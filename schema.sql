@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS pheweb.results;
+DROP TABLE IF EXISTS pheweb.associations;
 DROP TABLE IF EXISTS pheweb.variants;
 DROP TABLE IF EXISTS pheweb.phenos;
 DROP TABLE IF EXISTS pheweb.categories;
@@ -24,27 +24,26 @@ CREATE TABLE pheweb.phenos (
 
 CREATE TABLE pheweb.variants (
   id  BIGSERIAL,
-  chromosome TEXT NOT NULL,
-  position BIGINT NOT NULL,
+  chrom TEXT NOT NULL,
+  pos BIGINT NOT NULL,
   ref TEXT NOT NULL,
   alt TEXT NOT NULL,
   name TEXT NOT NULL, -- eg, "10:123456789 A>G", for search
-  rsids JSONB NOT NULL,
+  rsids JSONB,
   CONSTRAINT variant_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE pheweb.results (
+CREATE TABLE pheweb.associations (
   id BIGSERIAL,
   variant_id BIGINT NOT NULL,
   pheno_id BIGINT NOT NULL,
---  odds_ratio REAL,
   beta REAL,
   sebeta REAL,
   maf REAL,
   pval DOUBLE PRECISION NOT NULL,
-  CONSTRAINT result_pkey PRIMARY KEY (id),
-  CONSTRAINT result_variant_fkey FOREIGN KEY (variant_id) REFERENCES pheweb.variants(id),
-  CONSTRAINT result_pheno_fkey FOREIGN KEY (pheno_id) REFERENCES pheweb.phenos(id)
+  CONSTRAINT association_pkey PRIMARY KEY (id),
+  CONSTRAINT association_variant_fkey FOREIGN KEY (variant_id) REFERENCES pheweb.variants(id),
+  CONSTRAINT association_pheno_fkey FOREIGN KEY (pheno_id) REFERENCES pheweb.phenos(id)
   -- Do we want chisq or af_case? Would they be useful?  Private?
 );
 
