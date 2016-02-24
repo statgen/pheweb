@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS pheweb.categories;
 CREATE TABLE pheweb.categories (
   id BIGSERIAL,
   name TEXT NOT NULL,
-  css_color TEXT NOT NULL,
+--  css_color TEXT NOT NULL,
   CONSTRAINT category_pkey PRIMARY KEY (id)
 );
 
@@ -37,7 +37,7 @@ CREATE TABLE pheweb.results (
   id BIGSERIAL,
   variant_id BIGINT NOT NULL,
   pheno_id BIGINT NOT NULL,
-  odds_ratio REAL,
+--  odds_ratio REAL,
   beta REAL,
   sebeta REAL,
   maf REAL,
