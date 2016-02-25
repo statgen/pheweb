@@ -1,5 +1,7 @@
 {% extends "layout.html" %}
+
 {% block navbar_left %}{% endblock %}
+
 {% block in_head %}
 <style type="text/css">
   .navbar-default {
@@ -7,6 +9,7 @@
   }
 </style>
 {% endblock %}
+
 {% block body %}
     <div class="container">
         {% with messages = get_flashed_messages() %}
