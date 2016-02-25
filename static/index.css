@@ -1,24 +1,23 @@
 /* Reconcile bootstrap3 to typeahead.js (the real Typeahead, not bootstrap-typeahead) */
 .twitter-typeahead {
-    width: 100%;
+  width: 100%;
+}
+.tt-hint {
+  visibility: hidden;
 }
 .tt-menu {
-  min-width: 160px;
   margin-top: 2px;
   padding: 5px 0;
   background-color: #fff;
-  border: 1px solid #ccc;
   border: 1px solid rgba(0,0,0,.2);
   width:100%;
 }
 .tt-suggestion {
-  display: block;
   padding: 3px 20px;
 }
 .tt-suggestion.tt-cursor {
   color: #fff;
-  background-color: #0081c2;
+  background-color: #0081c2; // just backup for linear-gradientless browsers?
   background-image: linear-gradient(to bottom, #0088cc, #0077b3);
-  background-repeat: repeat-x;
 }
 /* ---- */
