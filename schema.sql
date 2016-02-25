@@ -1,3 +1,6 @@
+-- DROP SCHEMA pheweb CASCADE;
+-- CREATE SCHEMA pheweb AUTHORIZATION pheweb_writer;
+
 DROP TABLE IF EXISTS pheweb.associations;
 DROP TABLE IF EXISTS pheweb.variants;
 DROP TABLE IF EXISTS pheweb.phenos;
@@ -51,4 +54,7 @@ CREATE TABLE pheweb.associations (
 -- CREATE INDEX idx_variant_rsids_gin ON pheweb.variant USING GIN (rsids jsonb_path_ops);
 -- SELECT * FROM pheweb.variant WHERE rsids @> %(rsid);
 -- or maybe: SELECT * FROM pheweb.variants WHERE rsids ? %(rsid);
--- CREATE INDEX idx_result_variantid_gin ON pheweb.result USING GIN (variant_id);
+
+GRANT USAGE ON SCHEMA pheweb TO pheweb_reader;
+GRANT SELECT ON ALL TABLES IN SCHEMA pheweb TO pheweb_reader;
+ALTER DEFAULT PRIVILEGES IN SCHEMA pheweb GRANT SELECT ON TABLES TO pheweb_reader;

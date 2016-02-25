@@ -29,6 +29,8 @@ with psycopg2.connect(dbname="postgres", user="pheweb_writer", password=postgres
         with open(epacts_filename_template.format(pheno['NR'])) as f:
             for result in csv.DictReader(f, delimiter='\t'):
                 ref, alt = result['MARKER_ID'].split('_')[1].split('/')
+                pretty_name = '{chrom}:{pos}-{ref}-{alt}'.format(chrom=result['#CHROM'], pos=int(result['BEGIN']), ref=ref, alt=alt)
+
                 curs.execute("INSERT INTO pheweb.variants (chrom, pos, ref, alt, name, rsids) "
                              "VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;",
                              (
@@ -36,7 +38,7 @@ with psycopg2.connect(dbname="postgres", user="pheweb_writer", password=postgres
                                  int(result['BEGIN']),
                                  ref,
                                  alt,
-                                 result['MARKER_ID'], # TODO: pretty this up
+                                 pretty_name,
                                  None, # TODO: get rsids
                              ))
 
