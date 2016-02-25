@@ -27,9 +27,13 @@
             <div class="col-md-12">
                 <div id="home-searchbox">
                     <form action="/awesome">
-                        <input type="submit" style="display: none;"/>
-                        <input name="query" class="typeahead" type="text" placeholder="Search for a gene or variant or region" autofocus />
-                        <input type="submit" style="position: absolute; left: -9999px"/>
+                       <fieldset>
+                          <div class="form-group">
+                            <input type="submit" style="display: none;"/>
+                            <input name="query" class="form-control typeahead" type="text" placeholder="Search for a gene or variant or region" autofocus />
+                            <input type="submit" style="position: absolute; left: -9999px"/>
+                          </div>
+                       </fieldset>
                     </form>
                     <p class="text-muted">
                         Variant: <a href="/variant/22-36655789-G-T">22-36655789-G-T</a>,
