@@ -1,40 +1,24 @@
-.typeahead, .tt-input, .tt-hint {
-    border: 2px solid #CCCCCC;
-    border-radius: 8px;
-    font-size: 24px;
-    height: 30px;
-    line-height: 30px;
-    outline: medium none;
-    padding: 8px 12px;
-    width: 396px;
-}
-.typeahead {
-    background-color: #FFFFFF;
-}
-.typeahead:focus {
-    border: 2px solid #0097CF;
-}
-.tt-input {
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
-}
-.tt-hint {
-    color: #999999;
+/* Reconcile bootstrap3 to typeahead.js (the real Typeahead, not bootstrap-typeahead) */
+.twitter-typeahead {
+    width: 100%;
 }
 .tt-menu {
-    background-color: #FFFFFF;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    margin-top: 12px;
-    padding: 8px 0;
-    width: 422px;
+  min-width: 160px;
+  margin-top: 2px;
+  padding: 5px 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border: 1px solid rgba(0,0,0,.2);
+  width:100%;
 }
 .tt-suggestion {
-    font-size: 24px;
-    line-height: 24px;
-    padding: 3px 20px;
+  display: block;
+  padding: 3px 20px;
 }
 .tt-suggestion.tt-cursor {
-    background-color: #0097CF;
-    color: #FFFFFF;
+  color: #fff;
+  background-color: #0081c2;
+  background-image: linear-gradient(to bottom, #0088cc, #0077b3);
+  background-repeat: repeat-x;
 }
+/* ---- */
