@@ -5,7 +5,7 @@ from __future__ import print_function, division, absolute_import
 import psycopg2
 import json
 
-from flask import Flask, Response, jsonify, render_template
+from flask import Flask, Response, jsonify, render_template, request
 app = Flask(__name__)
 
 # LATER: maybe put this in a caching function
@@ -22,7 +22,7 @@ def autocomplete(query):
     return Response(json.dumps(suggestions), mimetype='application/json')
 
 @app.route('/api/icd9_info/<phewas_code>')
-def icd9_info(phewas_code):
+def api_icd9_info(phewas_code):
     curs.execute('SELECT icd9_info FROM pheweb.phenos WHERE phewas_code = %s', (phewas_code,))
     icd9_info = [r[0] for r in curs]
     if len(icd9_info) == 0:
@@ -30,13 +30,19 @@ def icd9_info(phewas_code):
     assert len(icd9_info) == 1
     return Response(json.dumps(icd9_info[0], indent=2, sort_keys=True), mimetype='application/json')
 
-@app.route('/api/phewas/<variant_name>')
-def phewas(variant_name):
+@app.route('/api/variant/<variant_name>')
+def api_variant(variant_name):
+    variant = get_variant(variant_name)
+    return Response(json.dumps(variant, indent=2, sort_keys=True), mimetype='application/json')
+
+def get_variant(variant_name):
+    # todo: handle rsids
+    # todo: handle 22-1234-A-C -> :
     curs.execute('SELECT id FROM pheweb.variants WHERE name = %s', (variant_name,))
     variant_ids = [r[0] for r in curs]
     if len(variant_ids) == 0:
-        return 'bad variant name', 404
-    assert len(variant_ids) == 1
+        raise Exception('bad variant name')
+    assert len(variant_ids) == 1, variant_ids
     variant_id = variant_ids[0]
 
     curs.execute('SELECT '
@@ -49,13 +55,39 @@ def phewas(variant_name):
                  'WHERE pheweb.associations.variant_id = %s '
                  'ORDER BY pheweb.phenos.phewas_code',
                  (variant_id,))
-    rv = list(dict(zip('name num_cases num_controls phewas_code phewas_string pval'.split(),r)) for r in curs)
-    return Response(json.dumps(rv, indent=2, sort_keys=True), mimetype='application/json')
+    phenos = list(dict(zip('category_name num_cases num_controls phewas_code phewas_string pval'.split(),r)) for r in curs)
+    assert len(phenos) > 0
+    return {
+        'variant_name': variant_name,
+        'phenos': phenos,
+    }
 
+@app.route('/variant')
+def variant_page_with_get_params():
+    query = request.args.get('query', '')
+    return variant_page(query)
+
+@app.route('/variant/<query>')
+def variant_page(query):
+    # TODO handle errors
+    variant = get_variant(query)
+    return render_template('variant.html',
+                           variant=variant)
 
 @app.route('/')
 def homepage():
     return render_template('index.html')
+
+@app.route('/about')
+def about_page():
+    return render_template('about.html')
+
+@app.errorhandler(404)
+def error_page(message):
+    return render_template(
+        'error.html',
+        message=message
+    ), 404
 
 
 if __name__ == '__main__':
