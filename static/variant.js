@@ -45,22 +45,16 @@ var unique_categories = d3.set(window.variant.phenos.map(function(cat) {
 var color_by_category = d3.scale.category20()
     .domain(unique_categories);
 
-window.d3_tooltip = d3.tip()
-    .attr('class', 'd3-tip')
-    .html(function(d) {
-        return [
-            d.category_name,
-            d.phewas_string,
-            '',
-            'phewas code: ' + d.phewas_code,
-            'pval: ' + d.pval,
-            '#cases: ' + d.num_cases,
-            '#controls: ' + d.num_controls
-        ].join('<br>');
-    })
-    .offset([-8,0]);
-
 function create_phewas_plot() {
+
+    var tooltip_template = _.template($('#tooltip-template').html());
+    window.d3_tooltip = d3.tip()
+        .attr('class', 'd3-tip')
+        .html(function(d) {
+            return tooltip_template({d: d});
+        })
+        .offset([-8,0]);
+
     var phewas_svg = d3.select('#phewas_plot_container').append("svg")
         .attr('id', 'phewas_svg')
         .attr("width", svg_width)

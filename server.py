@@ -5,7 +5,7 @@ from __future__ import print_function, division, absolute_import
 import psycopg2
 import json
 
-from flask import Flask, Response, jsonify, render_template, request
+from flask import Flask, Response, jsonify, render_template, request, redirect, url_for
 app = Flask(__name__)
 
 # LATER: maybe put this in a caching function
@@ -65,7 +65,7 @@ def get_variant(variant_name):
 @app.route('/variant')
 def variant_page_with_get_params():
     query = request.args.get('query', '')
-    return variant_page(query)
+    return redirect(url_for('variant_page', query=query))
 
 @app.route('/variant/<query>')
 def variant_page(query):
