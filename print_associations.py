@@ -10,7 +10,7 @@ epacts_filename_template = '/net/dumbo/home/larsf/PheWAS/MATCHED/PheWAS_{}_MATCH
 
 # phenos
 with open('/net/dumbo/home/larsf/PheWAS/PheWAS_code_v1_2.txt') as f:
-    phenos = {pheno['phewas_code2']: pheno for pheno in csv.DictReader(f, delimiter='\t')}
+    phenos = {pheno['phewas_code']: pheno for pheno in csv.DictReader(f, delimiter='\t')}
 
 with open('postgres_password') as f:
     postgres_password = f.read()
@@ -26,8 +26,8 @@ with psycopg2.connect(dbname="postgres", user="pheweb_writer", password=postgres
         pheno_ids = {p[0]: p[1] for p in curs}
 
         for pheno in phenos.itervalues():
-            print(pheno['phewas_code2'], '-', pheno['category_string'], '-', pheno['phewas_string'], file=sys.stderr)
-            pheno_id = pheno_ids[pheno['phewas_code2']]
+            print(pheno['phewas_code'], '-', pheno['category_string'], '-', pheno['phewas_string'], file=sys.stderr)
+            pheno_id = pheno_ids[pheno['phewas_code']]
 
             # insert all associations for this pheno
             with open(epacts_filename_template.format(pheno['NR'])) as f:

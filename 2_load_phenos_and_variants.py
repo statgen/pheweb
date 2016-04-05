@@ -10,14 +10,16 @@ epacts_filename_template = '/net/dumbo/home/larsf/PheWAS/MATCHED/PheWAS_{}_MATCH
 
 # phenos
 with open('/net/dumbo/home/larsf/PheWAS/PheWAS_code_v1_2.txt') as f:
-    phenos = {pheno['phewas_code2']: pheno for pheno in csv.DictReader(f, delimiter='\t')}
+    phenos = {pheno['phewas_code']: pheno for pheno in csv.DictReader(f, delimiter='\t')}
 
 # icd9
+for phewas_code in phenos:
+    phenos[phewas_code]['icd9_info'] = []
 with open('/net/dumbo/home/larsf/PheWAS/PheWAS_code_translation_v1_2.txt') as f:
     for icd9 in csv.DictReader(f, delimiter='\t'):
         phewas_code = icd9['phewas_code']
         if phewas_code in phenos:
-            phenos[phewas_code].setdefault('icd9_info', []).append({'code': icd9['icd9'], 'string': icd9['icd9_string']})
+            phenos[phewas_code]['icd9_info'].append({'code': icd9['icd9'], 'string': icd9['icd9_string']})
 
 with open('postgres_password') as f:
     postgres_password = f.read()
@@ -54,7 +56,7 @@ with psycopg2.connect(dbname="postgres", user="pheweb_writer", password=postgres
                          (
                              pheno['category_string'],
                              json.dumps(pheno['icd9_info']),
-                             pheno['phewas_code2'],
+                             pheno['phewas_code'],
                              pheno['phewas_string'],
                              pheno['Cases'],
                              pheno['Controls'],
