@@ -8,7 +8,6 @@
 <style type="text/css">
 .d3-tip {
   line-height: 1;
-  font-weight: bold;
   padding: 12px;
   background: rgba(0, 0, 0, 0.8);
   color: #fff;
@@ -66,8 +65,8 @@
     </div>
 
 <script type="text/template" id="tooltip-template">
-<%= d.category_name %><br>
 <%= d.phewas_string %><br><br>
+<%= d.category_name %><br>
 phewas code: <%= d.phewas_code %><br>
 pval: <%= d.pval %><br>
 #cases: <%= d.num_cases %><br>

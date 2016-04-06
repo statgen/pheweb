@@ -20,6 +20,7 @@ TODO backend
     - Subset so #cases >= 20
 
 - Subset to those phewas_codes and to variants with MAF>1% in `/net/fantasia/home/schellen/PheWAS/epacts_multi/gwas_17March2016/gwas_17March2016.epacts.gz`
+  - Write a new file with this double-subset and tabix it.
 
 - With this, we can find the:
     - #cases, #controls, and MAF for any variant
@@ -37,14 +38,19 @@ TODO backend
 
 TODO frontend
 =============
-- Color tooltips happy.
-- Bold only the phewas_string in tooltips.
-- y axis ticks should show only the exponent (eg, "5", "10").
-- label y axis "-log10(pvalue)".
 - Show categories on x_axis.
     - Figure out how many points in each category.
     - Get an endpoint for each category.
     - Find a font size and box width that accomodates all category names.
     - Rotate text counterclockwise a bit.
-- On click, pheno_points show a GWAS of top 5000 positions. Also, icd9 codes.
-- Display a significance threshold.  GWAS standard: 5E-8.  PheWAS: 0.05/1500 = 3E-5?
+- Color tooltips happy.
+- Show the names of all phenotypes above the threshold.
+  - For collision detection, see <https://www.w3.org/TR/SVG11/struct.html#__svg__SVGSVGElement__checkIntersection> or <http://stackoverflow.com/a/2178680/1166306>
+- Point tooltips based on quadrant.
+- On click, show GWAS.
+
+TODO GWAS
+=========
+- Show icd9 codes.
+- Show top 1000 positions.
+- Significance Threshold: 5E-8
