@@ -1,14 +1,3 @@
-// TODO:
-// - Color tooltips.
-// - Bold only the phewas_string in tooltips.
-// - y axis label "p-value"
-// - Show categories on x_axis.
-//    + Figure out how many points in each category.
-//    + Get an endpoint for each category.
-//    + Find a font size and box width that accomodates all category names.
-//    + Rotate text counterclockwise a bit.
-// - On click, pheno_points show a GWAS of top 5000 positions. Also, icd9 codes.
-// - Display a significance threshold.
 
 console.log(window.variant);
 
