@@ -44,7 +44,7 @@ TODO frontend
     - Find a font size and box width that accomodates all category names.
     - Rotate text counterclockwise a bit.
 - Color tooltips happy.
-- Show the names of all phenotypes above the threshold.
+- Use collision detection when displaying phewas_strings.
   - For collision detection, see <https://www.w3.org/TR/SVG11/struct.html#__svg__SVGSVGElement__checkIntersection> or <http://stackoverflow.com/a/2178680/1166306>
 - Point tooltips based on quadrant.
 - On click, show GWAS.

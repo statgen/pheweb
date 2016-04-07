@@ -89,21 +89,30 @@ function create_phewas_plot() {
         })
         .on('mouseover', point_tooltip.show)
         .on('mouseout', point_tooltip.hide);
-    //TODO use links.filter().append('text')...
-    links.each(function(d, i) {
-        var elem = d3.select(this);
-        if (d.pval < significance_threshold) {
-            var myCircle = this.firstChild;
-            elem.append('text')
-                .attr('text-anchor', 'start')
-                .attr('x', x_scale(i) + 10)
-                .attr('y', y_scale(-Math.log10(d.pval)))
-                .attr('dy', '.3em') // vertically center
-                .text(d.phewas_string.length > 40 ? d.phewas_string.slice(0,30).trim()+'...' : d.phewas_string)
-                .on('mouseover', function(e) {point_tooltip.show(e, myCircle)})
-                .on('mouseout', point_tooltip.hide);
-        }
-    });
+    links
+        .each(function(d,i) {
+            d.myIndex = i;
+            d.myCircle = this.firstChild;
+        })
+        .filter(function(d) {
+            return d.pval < significance_threshold;
+        })
+        .append('text')
+        .attr('text-anchor', 'start')
+        .attr('x', function(d) {
+            return x_scale(d.myIndex) + 10;
+        })
+        .attr('y', function(d) {
+            return y_scale(-Math.log10(d.pval));
+        })
+        .attr('dy', '.3em') // vertically center
+        .text(function(d) {
+            return d.phewas_string.length > 40 ? d.phewas_string.slice(0,30).trim()+'...' : d.phewas_string;
+        })
+        .on('mouseover', function(d) {
+            point_tooltip.show(d, d.myCircle);
+        })
+        .on('mouseout', point_tooltip.hide);
 
 
     //Axes
