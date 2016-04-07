@@ -13,24 +13,21 @@ The data subsetted so MAF>=1% is:
 - 210 GB
 - 7,741,775 lines
 - 3639 columns (1815*2+9)
+- took a few hours.
 
 The data subsetted so MAF>=1% and #cases>=20 is:
 - `/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz`
-- 53 GB compressed (gzip -2)
+- 48 GB compressed (bgzip)
 - maybe 165 GB
 - must be 7,741,775 lines
 - 2900 columns (1448*2+4)
-- took 45min.
-
-The bgzipped data is:
-- `/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20b.vcf.gz`
-- 48 GB compressed (bgzip)
-- took 3hr.
+- took 3hr. (with gzip -2, makes 53GB in only 45min)
 
 Tabix is:
-- `/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20b.vcf.gz.tbi`
+- `/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz.tbi`
 - 2.5 MB
 - took 25min.
+
 
 TODO backend
 ============
@@ -51,6 +48,7 @@ TODO backend
 - Sort phenos by their phewas_code-as-a-float, rather than as text.
 
 - Replace phenos.json with sqlite
+
 
 TODO frontend
 =============
