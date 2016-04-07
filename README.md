@@ -35,24 +35,21 @@ Tabix is:
 TODO backend
 ============
 
-- tabix `phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz`.
-  - then add `/net/mario/cluster/bin/tabix` to `1_*` and delete `2_*`.
-
 - With this, we can find the:
     - #cases, #controls, and MAF for any variant
     - pval, beta for each phewas_code for that variant
 
-- We still need:
-    - name and category of each phewas_code.  These can be loaded at server startup from postgres, or just from text files.
-        - Extract cols 1-3 of `/net/dumbo/home/larsf/PheWAS/PheWAS_code_v1_2.txt` to a new file.
+- From `phenos.json`, we can get:
+    - name and category of each phewas_code.
     - icd9s for each phewas_code.
-        - Everything is in `/net/dumbo/home/larsf/PheWAS/PheWAS_code_translation_v1_2.txt` (2MB).
-        - Parse this and make a json to read at startup? indent=1 for diffs.
 
-- Sort phenos by their phewas_code-as-a-float, rather than as text.
+- Serve these with the page.
 
 - Later, for GWAS view, we'll just make (for each pheno) `top1k-variants-phewas_code-0.08.json`.
 
+- Sort phenos by their phewas_code-as-a-float, rather than as text.
+
+- Replace phenos.json with sqlite
 
 TODO frontend
 =============
