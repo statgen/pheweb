@@ -40,11 +40,7 @@ def parse_marker_id(marker_id):
 @app.route('/api/autocomplete/<query>')
 def autocomplete(query):
     chrom, pos, ref, alt = parse_query(query)
-    if pos is None:
-        pos = 1
-    pos -= 1 # pysam skips variants at the start position.
-    if chrom is None:
-        chrom = '1'
+    pos = max(0, pos-1) # pysam skips variants at the start position.
 
     tabix_file = pysam.TabixFile('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20_sites.vcf.gz')
     tabix_iter = tabix_file.fetch(chrom, pos, parser = pysam.asTuple())
