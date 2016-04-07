@@ -33,6 +33,8 @@ TODO backend
         - Everything is in `/net/dumbo/home/larsf/PheWAS/PheWAS_code_translation_v1_2.txt` (2MB).
         - Parse this and make a json to read at startup? indent=1 for diffs.
 
+- Sort phenos by their phewas_code-as-a-float, rather than as text.
+
 - Later, for GWAS view, we'll just make (for each pheno) `top1k-variants-phewas_code-0.08.json`.
 
 

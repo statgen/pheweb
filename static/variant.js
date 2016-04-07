@@ -1,5 +1,7 @@
 
 console.log(window.variant);
+window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phewas_code); })
+console.log(window.variant);
 
 function create_phewas_plot() {
     var svg_width = $('#phewas_plot_container').width();
