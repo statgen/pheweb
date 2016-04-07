@@ -9,7 +9,7 @@ function create_phewas_plot() {
 
     var plot_margin = {
         'left': 70,
-        'right': 10,
+        'right': 30,
         'top': 10,
         'bottom': 170,
     };
@@ -152,7 +152,7 @@ function create_phewas_plot() {
         .append('text')
         .style('text-anchor', 'start')
         .attr('transform', function(d) {
-            return fmt('translate({0},{1})rotate(60)',
+            return fmt('translate({0},{1})rotate(50)',
                        plot_margin.left + x_scale(d.myIndex) + 3,
                        plot_height + plot_margin.top + 15);
         })
