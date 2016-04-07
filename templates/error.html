@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <br><br> {# Don't get stuck behind the navbar #}
+            {% for message in messages %}
+              <div class="alert alert-danger" role="alert"><b>Error:</b> {{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <div class="row" style="margin-top:7em">
+          <div class="col-xs-12">
+            <br><br>
+            <center>
+              <h2>Error</h2>
+              {% if message %}
+              <p>{{ message }}</p>
+              {% else %}
+              <h4>Either this page doesn't exist, or you just found a bug in our server.</h4><br>
+              {% endif %}
+              <br><br>
+              If this is something that we should know about, we'd appreciate if you'd <a href="mailto:pjvh@umich?subject=bug-pheweb">let us know</a>.<br>
+            </center>
+
+          </div>
+        </div>
+    </div>
+{% endblock %}
