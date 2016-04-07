@@ -28,7 +28,9 @@ The bgzipped data is:
 - took 3hr.
 
 Tabix is:
-
+- `/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20b.vcf.gz.tbi`
+- 2.5 MB
+- took 25min.
 
 TODO backend
 ============
