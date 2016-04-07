@@ -79,10 +79,13 @@ function create_phewas_plot() {
         .data(window.variant.phenos)
         .enter()
         .append('a')
-        .attr('class', 'pheno_point');
+        .attr('class', 'pheno_point')
+        .each(function(d, i) {
+            d.myIndex = i;
+        });
     links.append('circle')
-        .attr('cx', function(d, i) {
-            return x_scale(i);
+        .attr('cx', function(d) {
+            return x_scale(d.myIndex);
         })
         .attr('cy', function(d) {
             return y_scale(-Math.log10(d.pval));
@@ -94,11 +97,11 @@ function create_phewas_plot() {
         .on('mouseover', function(d) {
             //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
             point_tooltip.show(d, this);
+            // console.log(fmt('{0} {1}', x_scale(d.myIndex), y_scale(-Math.log10(d.pval))), this);
         })
         .on('mouseout', point_tooltip.hide);
     links
-        .each(function(d,i) {
-            d.myIndex = i;
+        .each(function(d) {
             d.myCircle = this.firstChild;
         })
         .filter(function(d) {
