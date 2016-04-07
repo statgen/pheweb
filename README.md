@@ -43,7 +43,8 @@ TODO backend
     - name and category of each phewas_code.
     - icd9s for each phewas_code.
 
-- Serve these with the page.
+- Remove postgres & get /variant working.
+    - On startup, read header line of vcf
 
 - Later, for GWAS view, we'll just make (for each pheno) `top1k-variants-phewas_code-0.08.json`.
 

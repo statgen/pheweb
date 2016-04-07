@@ -1,2 +1,3 @@
 psycopg2
 git+https://github.com/mitsuhiko/flask.git@d45445ed00f5d1839f19f66207ca276ebdc034c6
+pysam

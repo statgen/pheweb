@@ -4,36 +4,54 @@ from __future__ import print_function, division, absolute_import
 
 import psycopg2
 import json
+import os.path
+import pysam
+import itertools
+import re
 
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort
 app = Flask(__name__)
 
-# LATER: maybe put this in a caching function
-with open('postgres_password_readonly') as f:
-    postgres_password = f.read()
-conn = psycopg2.connect(dbname="postgres", user="pheweb_reader", password=postgres_password, host="localhost")
-curs = conn.cursor()
+with open(os.path.join(app.root_path, 'data/phenos.json')) as f:
+    phenos = json.load(f)
+
+def parse_query(query, default_chrom_pos = True):
+    if isinstance(query, unicode):
+        query = query.encode('utf-8')
+    chrom_pattern = r'(?:chr)?([0-9]+)'
+    chrom_pos_pattern = chrom_pattern + r'[-_:/ ]([0-9]+)'
+    chrom_pos_ref_alt_pattern = chrom_pos_pattern + r'[-_:/ ]([-ATCG]+)[-_:/ ]([-ATCG]+)'
+
+    match = re.match(chrom_pos_ref_alt_pattern, query) or re.match(chrom_pos_pattern, query) or re.match(chrom_pattern, query)
+    g = match.groups() if match else ()
+
+    if default_chrom_pos:
+        if len(g) == 0: g += ('1',)
+        if len(g) == 1: g += (0,)
+    if len(g) >= 2: g = (g[0], int(g[1])) + g[2:]
+    return g + tuple(itertools.repeat(None, 4-len(g)))
+
+def parse_marker_id(marker_id):
+    chr1, pos1, ref, alt, chr2, pos2 = re.match(r'([^:]+):([0-9]+)_([-ATCG]+)/([-ATCG]+)_([^:]+):([0-9]+)', marker_id).groups()
+    assert chr1 == chr2
+    assert pos1 == pos2
+    return chr1, pos1, ref, alt
 
 @app.route('/api/autocomplete/<query>')
 def autocomplete(query):
-    curs.execute("SELECT name FROM pheweb.variants WHERE name LIKE %s LIMIT 10",
-                 (query + '%',))
-    suggestions = [r[0] for r in curs]
-    return Response(json.dumps(suggestions), mimetype='application/json')
+    chrom, pos, ref, alt = parse_query(query)
+    if pos is None:
+        pos = 1
+    pos -= 1 # pysam skips variants at the start position.
+    if chrom is None:
+        chrom = '1'
 
-@app.route('/api/icd9_info/<phewas_code>')
-def api_icd9_info(phewas_code):
-    curs.execute('SELECT icd9_info FROM pheweb.phenos WHERE phewas_code = %s', (phewas_code,))
-    icd9_info = [r[0] for r in curs]
-    if len(icd9_info) == 0:
-        return 'bad phewas_code', 404
-    assert len(icd9_info) == 1
-    return Response(json.dumps(icd9_info[0], indent=2, sort_keys=True), mimetype='application/json')
+    tabix_file = pysam.TabixFile('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20_sites.vcf.gz')
+    tabix_iter = tabix_file.fetch(chrom, pos, parser = pysam.asTuple())
+    next_10 = [tuple(variant)[2] for variant in itertools.islice(tabix_iter, 0, 10)]
+    next_10 = ['{}:{}-{}-{}'.format(*parse_marker_id(marker_id)) for marker_id in next_10]
 
-@app.route('/api/variant/<variant_name>')
-def api_variant(variant_name):
-    variant = get_variant(variant_name)
-    return Response(json.dumps(variant, indent=2, sort_keys=True), mimetype='application/json')
+    return Response(json.dumps(next_10), mimetype='application/json')
 
 def get_variant(variant_name):
     # todo: handle rsids
