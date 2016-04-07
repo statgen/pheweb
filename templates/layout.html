@@ -30,9 +30,14 @@
                     wildcard: '%QUERY'
                 }
             });
-            $('.typeahead').typeahead(null, {
+            $('.typeahead').typeahead({
+                hint: false,
+              }, {
                 name: 'variant-suggester',
-                source: variant_suggester
+                source: variant_suggester,
+            });
+            $('.typeahead').bind('typeahead:select', function(ev, suggestion) {
+                $('#variant-search-form').submit();
             });
         });
     </script>
@@ -51,11 +56,10 @@
             {% block navbar_left %}
             <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a>
             <div class="navbar-left" id="navbar_form_container">
-                <form action="/variant" class="navbar-form" role="search">
+                <form action="/variant" id="variant-search-form" class="navbar-form" role="search">
                     <div class="form-group" id="navbar-awesomebar">
-                        <input type="submit" style="display: none;"/>
                         <input id="navbar-searchbox-input" name="query" class="form-control typeahead" type="text" size="30" placeholder="try 22:123456-A-C or rs12345"/>
-                        <input type="submit" style="position: absolute; left: -9999px"/>
+                        <input type="submit" style="position: absolute; left: -9999px; width:0"/>
                     </div>
                 </form>
             </div>
