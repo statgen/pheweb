@@ -66,7 +66,9 @@
 
 <script type="text/template" id="tooltip-template">
 <%= d.phewas_string %><br><br>
-<%= d.category_name %><br>
+<span style="color:<%= color_by_category(d.category_name) %>">
+  <%= d.category_name %>
+</span><br>
 phewas code: <%= d.phewas_code %><br>
 pval: <%= d.pval %><br>
 #cases: <%= d.num_cases %><br>

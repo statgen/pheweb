@@ -38,16 +38,11 @@ TODO backend
 
 TODO frontend
 =============
-- Show categories on x_axis.
-    - Figure out how many points in each category.
-    - Get an endpoint for each category.
-    - Find a font size and box width that accomodates all category names.
-    - Rotate text counterclockwise a bit.
-- Color tooltips happy.
 - Use collision detection when displaying phewas_strings.
   - For collision detection, see <https://www.w3.org/TR/SVG11/struct.html#__svg__SVGSVGElement__checkIntersection> or <http://stackoverflow.com/a/2178680/1166306>
 - Point tooltips based on quadrant.
 - On click, show GWAS.
+
 
 TODO GWAS
 =========

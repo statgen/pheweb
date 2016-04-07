@@ -9,7 +9,7 @@ function create_phewas_plot() {
         'left': 70,
         'right': 10,
         'top': 10,
-        'bottom': 40,
+        'bottom': 170,
     };
 
     var plot_width = svg_width - plot_margin.left - plot_margin.right;
@@ -43,15 +43,7 @@ function create_phewas_plot() {
         .attr('id', 'phewas_plot')
         .attr("transform", fmt("translate({0},{1})", plot_margin.left, plot_margin.top));
 
-    var tooltip_template = _.template($('#tooltip-template').html());
-    var point_tooltip = d3.tip()
-        .attr('class', 'd3-tip')
-        .html(function(d) {
-            return tooltip_template({d: d});
-        })
-        .offset([-8,0]);
-    phewas_svg.call(point_tooltip);
-
+    // Significance Threshold line
     var significance_threshold = 3e-5;
     var significance_threshold_tooltip = d3.tip()
         .attr('class', 'd3-tip')
@@ -71,6 +63,16 @@ function create_phewas_plot() {
         .on('mouseover', significance_threshold_tooltip.show)
         .on('mouseout', significance_threshold_tooltip.hide);
 
+    // Points & labels
+    var tooltip_template = _.template($('#tooltip-template').html());
+    var point_tooltip = d3.tip()
+        .attr('class', 'd3-tip')
+        .html(function(d) {
+            return tooltip_template({d: d, color_by_category: color_by_category});
+        })
+        .offset([-8,0]);
+    phewas_svg.call(point_tooltip);
+
     var links = phewas_plot.selectAll('a.pheno_point')
         .data(window.variant.phenos)
         .enter()
@@ -84,7 +86,7 @@ function create_phewas_plot() {
             return y_scale(-Math.log10(d.pval));
         })
         .attr('r', 3)
-        .attr('fill', function(d) {
+        .style('fill', function(d) {
             return color_by_category(d.category_name);
         })
         .on('mouseover', function(d) {
@@ -101,7 +103,7 @@ function create_phewas_plot() {
             return d.pval < significance_threshold;
         })
         .append('text')
-        .attr('text-anchor', 'start')
+        .style('text-anchor', 'start')
         .attr('x', function(d) {
             return x_scale(d.myIndex) + 10;
         })
@@ -118,7 +120,7 @@ function create_phewas_plot() {
         .on('mouseout', point_tooltip.hide);
 
 
-    //Axes
+    // Axes
     var yAxis = d3.svg.axis()
         .scale(y_scale)
         .orient("left");
@@ -127,7 +129,7 @@ function create_phewas_plot() {
         .call(yAxis);
 
     phewas_svg.append('text')
-        .attr('text-anchor', 'middle')
+        .style('text-anchor', 'middle')
         .attr('transform', fmt('translate({0},{1})rotate(-90)',
                                plot_margin.left*.4,
                                plot_height/2 + plot_margin.top))
@@ -135,11 +137,30 @@ function create_phewas_plot() {
 
     var xAxis = d3.svg.axis()
         .scale(x_scale)
-        .orient("bottom");
+        .orient("bottom")
+        .ticks(0);
     phewas_plot.append("g")
         .attr("class", "x axis")
         .attr("transform", fmt("translate(0,{0})", plot_height))
         .call(xAxis);
+
+    phewas_svg.selectAll('text.category_name')
+        .data(first_of_each_category())
+        .enter() // Do we need this?
+        .append('text')
+        .style('text-anchor', 'start')
+        .attr('transform', function(d) {
+            return fmt('translate({0},{1})rotate(60)',
+                       plot_margin.left + x_scale(d.myIndex) + 3,
+                       plot_height + plot_margin.top + 15);
+        })
+        .text(function(d) {
+            return d.category_name;
+        })
+        .style('fill', function(d) {
+            return color_by_category(d.category_name);
+        });
+
 }
 
 $(create_phewas_plot);
@@ -150,3 +171,17 @@ function fmt(format) {
         return (typeof args[number] != 'undefined') ? args[number] : match;
     });
 }
+
+function first_of_each_category() {
+    var categories_seen = {};
+    return window.variant.phenos.filter(function(pheno) {
+        if (categories_seen.hasOwnProperty(pheno.category_name)) {
+            return false;
+        } else {
+            categories_seen[pheno.category_name] = 1;
+            return true;
+        }
+    });
+}
+
+console.log(first_of_each_category());
