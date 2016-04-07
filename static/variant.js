@@ -87,7 +87,10 @@ function create_phewas_plot() {
         .attr('fill', function(d) {
             return color_by_category(d.category_name);
         })
-        .on('mouseover', point_tooltip.show)
+        .on('mouseover', function(d) {
+            //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
+            point_tooltip.show(d, this);
+        })
         .on('mouseout', point_tooltip.hide);
     links
         .each(function(d,i) {
