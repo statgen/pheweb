@@ -3,8 +3,8 @@ Data
 The original data is:
 - `/net/fantasia/home/schellen/PheWAS/epacts_multi/gwas_17March2016/gwas_17March2016.epacts.gz`
 - 216 GB compressed
-- maybe 650 GB.  NA lines are 40% the length of non-NA lines.  Then 25M non-NA lines + 6M NA lines = 710 GB.
-- maybe 25M lines. Lines with MAF>1% have no NAs.  1/3 of lines with MAF<1% are all NAs.  If NA lines are free, then we actually have 31M lines.
+- by ratio, 650 GB.  NA lines are 40% the length of non-NA lines.  Then 25M non-NA lines + 6M NA lines = 710 GB.
+- by ratio, 25M lines. Lines with MAF>1% have no NAs.  1/3 of lines with MAF<1% are all NAs.  If NA lines are free, then we actually have 31M lines.
 - 3639 columns (1815*2+9)
 
 The data subsetted so MAF>=1% is:
@@ -22,25 +22,19 @@ The data subsetted so MAF>=1% and #cases>=20 is:
 - 2900 columns (1448*2+4)
 - took 45min.
 
-Accessing the Database
-======================
+The bgzipped data is:
+- `/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20b.vcf.gz`
+- 48 GB compressed (bgzip)
+- took 3hr.
 
-Create a postgres role named pheweb_writer and store its password in postgres_password.
-
-Create a postgres role named pheweb_reader and store its password in postgres_password_readonly.
-
-Create a file `.pgpass` in your home directory containing:
-
-    *:*:*:pheweb_writer:<the_writer_password>
-    *:*:*:pheweb_reader:<the_reader_password>
-
-Now run `psql -U pheweb_writer -d postgres -h localhost` to inspect the data.
+Tabix is:
 
 
 TODO backend
 ============
 
-- bgzip and tabix `phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz`.
+- tabix `phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz`.
+  - then add `/net/mario/cluster/bin/tabix` to `1_*` and delete `2_*`.
 
 - With this, we can find the:
     - #cases, #controls, and MAF for any variant
