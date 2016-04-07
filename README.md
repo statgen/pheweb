@@ -32,22 +32,19 @@ Tabix is:
 TODO backend
 ============
 
-- With this, we can find the:
-    - #cases, #controls, and MAF for any variant
-    - pval, beta for each phewas_code for that variant
+- Put phenos.json in sorted order
 
-- From `phenos.json`, we can get:
-    - name and category of each phewas_code.
-    - icd9s for each phewas_code.
-
-- Remove postgres & get /variant working.
-    - On startup, read header line of vcf
-
-- Later, for GWAS view, we'll just make (for each pheno) `top1k-variants-phewas_code-0.08.json`.
-
-- Sort phenos by their phewas_code-as-a-float, rather than as text.
+- Replace sites.vcf with a marisa-trie of `{chr}:{pos}`
 
 - Replace phenos.json with sqlite
+
+
+TODO GWAS
+=========
+- make (for each pheno) `top1k-variants-phewas_code-0.08.json`.
+  - write a python script `get_columns_for_each_pheno.py` which prints `80.1 1,2,3,10,11\n80.2 1,2,3,12,13\n...`
+  - `./get_columns_for_each_pheno.py | while read phewas_code columns; do pigz vcf.gz | cut -d $'\t' -f "$columns" | perl -nale 'print if $F[3] < 0.01' | pigz > pheno-$phewas_code-only.vcf.gz`
+  - check that file size.  If it's small, just use `sort -k4 | head -1000 | sort -nk1,2` or python or something.  If it's huge, p<1% is wrong.
 
 
 TODO frontend
