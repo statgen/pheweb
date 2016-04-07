@@ -1,3 +1,27 @@
+Data
+====
+The original data is:
+- `/net/fantasia/home/schellen/PheWAS/epacts_multi/gwas_17March2016/gwas_17March2016.epacts.gz`
+- 216 GB compressed
+- maybe 650 GB.  NA lines are 40% the length of non-NA lines.  Then 25M non-NA lines + 6M NA lines = 710 GB.
+- maybe 25M lines. Lines with MAF>1% have no NAs.  1/3 of lines with MAF<1% are all NAs.  If NA lines are free, then we actually have 31M lines.
+- 3639 columns (1815*2+9)
+
+The data subsetted so MAF>=1% is:
+- `/var/pheweb_data/phewas_maf_gte_1e-2.vcf.gz`
+- 67 GB compressed (gzip -2)
+- 210 GB
+- 7,741,775 lines
+- 3639 columns (1815*2+9)
+
+The data subsetted so MAF>=1% and #cases>=20 is:
+- `/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz`
+- 53 GB compressed (gzip -2)
+- maybe 165 GB
+- must be 7,741,775 lines
+- 2900 columns (1448*2+4)
+- took 45min.
+
 Accessing the Database
 ======================
 
@@ -16,11 +40,7 @@ Now run `psql -U pheweb_writer -d postgres -h localhost` to inspect the data.
 TODO backend
 ============
 
-- Get the list of phewas_codes to use from `/net/fantasia/home/schellen/PheWAS/epacts_multi/gwas_17March2016/plots/case_control_counts.txt`
-    - Subset so #cases >= 20
-
-- Subset to those phewas_codes and to variants with MAF>1% in `/net/fantasia/home/schellen/PheWAS/epacts_multi/gwas_17March2016/gwas_17March2016.epacts.gz`
-  - Write a new file with this double-subset and tabix it.
+- bgzip and tabix `phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz`.
 
 - With this, we can find the:
     - #cases, #controls, and MAF for any variant
