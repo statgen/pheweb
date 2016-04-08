@@ -9,6 +9,7 @@ import pysam
 import itertools
 import re
 import gzip
+import marisa_trie
 
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash
 app = Flask(__name__)
@@ -16,6 +17,8 @@ app.config.from_object('flask_config')
 
 with open(os.path.join(app.root_path, 'data/phenos.json')) as f:
     phenos = json.load(f)
+
+sites_trie = marisa_trie.Trie().load('/var/pheweb_data/sites_trie.marisa')
 
 with gzip.open('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz') as f:
     header = f.readline().rstrip('\n').split('\t')
@@ -62,17 +65,15 @@ def make_marker_id(chrom, pos, ref, alt):
 @app.route('/api/autocomplete/<query>')
 def autocomplete(query):
     try:
-        chrom, pos, ref, alt = parse_query(query)
-        pos = max(0, pos-1) # pysam skips variants at the start position.
+        chrom, pos, ref, alt = parse_query(query, default_chrom_pos = False)
+        key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
+        key = key.decode('ascii')
 
-        tabix_file = pysam.TabixFile('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20_sites.vcf.gz')
-        tabix_iter = tabix_file.fetch(chrom, pos, parser = pysam.asTuple())
-        next_10 = [variant[2] for variant in itertools.islice(tabix_iter, 0, 10)]
-        next_10 = ['{}:{}-{}-{}'.format(*parse_marker_id(marker_id)) for marker_id in next_10]
-
+        next_10 = list(itertools.islice(sites_trie.iterkeys(key), 0, 10))
+        next_10 = [s.replace('-', ':', 1) for s in next_10]
         return Response(json.dumps(next_10), mimetype='application/json')
     except:
-        abort(404)
+        return None, 404
 
 def get_variant(query):
     # todo: handle rsids
@@ -147,4 +148,4 @@ def error_page(message):
 
 
 if __name__ == '__main__':
-    app.run(host='browser.sph.umich.edu', port=5000, debug=False)
+    app.run(host='browser.sph.umich.edu', port=5000, debug=False, use_reloader=True)

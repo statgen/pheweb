@@ -29,22 +29,19 @@ Tabix is:
 - took 25min.
 
 
-TODO backend
-============
-
-- Put phenos.json in sorted order
-
-- Replace sites.vcf with a marisa-trie of `{chr}:{pos}`
-
-- Replace phenos.json with sqlite
-
-
-TODO GWAS
-=========
+TODO GWAS backend
+=================
 - make (for each pheno) `top1k-variants-phewas_code-0.08.json`.
   - write a python script `get_columns_for_each_pheno.py` which prints `80.1 1,2,3,10,11\n80.2 1,2,3,12,13\n...`
   - `./get_columns_for_each_pheno.py | while read phewas_code columns; do pigz vcf.gz | cut -d $'\t' -f "$columns" | perl -nale 'print if $F[3] < 0.01' | pigz > pheno-$phewas_code-only.vcf.gz`
   - check that file size.  If it's small, just use `sort -k4 | head -1000 | sort -nk1,2` or python or something.  If it's huge, p<1% is wrong.
+
+
+TODO GWAS frontend
+==================
+- Show icd9 codes.
+
+- Significance Threshold: 5E-8
 
 
 TODO frontend
@@ -53,10 +50,3 @@ TODO frontend
   - For collision detection, see <https://www.w3.org/TR/SVG11/struct.html#__svg__SVGSVGElement__checkIntersection> or <http://stackoverflow.com/a/2178680/1166306>
 - Point tooltips based on quadrant.
 - On click, show GWAS.
-
-
-TODO GWAS
-=========
-- Show icd9 codes.
-- Show top 1000 positions.
-- Significance Threshold: 5E-8
