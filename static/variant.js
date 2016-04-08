@@ -5,7 +5,7 @@ console.log(window.variant);
 
 function create_phewas_plot() {
     var svg_width = $('#phewas_plot_container').width();
-    var svg_height = 500;
+    var svg_height = 650;
 
     var plot_margin = {
         'left': 70,
