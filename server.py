@@ -61,15 +61,18 @@ def make_marker_id(chrom, pos, ref, alt):
 
 @app.route('/api/autocomplete/<query>')
 def autocomplete(query):
-    chrom, pos, ref, alt = parse_query(query)
-    pos = max(0, pos-1) # pysam skips variants at the start position.
+    try:
+        chrom, pos, ref, alt = parse_query(query)
+        pos = max(0, pos-1) # pysam skips variants at the start position.
 
-    tabix_file = pysam.TabixFile('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20_sites.vcf.gz')
-    tabix_iter = tabix_file.fetch(chrom, pos, parser = pysam.asTuple())
-    next_10 = [variant[2] for variant in itertools.islice(tabix_iter, 0, 10)]
-    next_10 = ['{}:{}-{}-{}'.format(*parse_marker_id(marker_id)) for marker_id in next_10]
+        tabix_file = pysam.TabixFile('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20_sites.vcf.gz')
+        tabix_iter = tabix_file.fetch(chrom, pos, parser = pysam.asTuple())
+        next_10 = [variant[2] for variant in itertools.islice(tabix_iter, 0, 10)]
+        next_10 = ['{}:{}-{}-{}'.format(*parse_marker_id(marker_id)) for marker_id in next_10]
 
-    return Response(json.dumps(next_10), mimetype='application/json')
+        return Response(json.dumps(next_10), mimetype='application/json')
+    except:
+        abort(404)
 
 def get_variant(query):
     # todo: handle rsids
@@ -117,12 +120,15 @@ def variant_page_with_get_params():
 
 @app.route('/variant/<query>')
 def variant_page(query):
-    variant = get_variant(query)
-    if variant is None:
-        flash("Sorry, I couldn't find the variant {}".format(query))
+    try:
+        variant = get_variant(query)
+        if variant is None:
+            flash("Sorry, I couldn't find the variant {}".format(query))
+            abort(404)
+        return render_template('variant.html',
+                               variant=variant)
+    except:
         abort(404)
-    return render_template('variant.html',
-                           variant=variant)
 
 @app.route('/')
 def homepage():
@@ -141,4 +147,4 @@ def error_page(message):
 
 
 if __name__ == '__main__':
-    app.run(host='browser.sph.umich.edu', port=5000, debug=True)
+    app.run(host='browser.sph.umich.edu', port=5000, debug=False)
