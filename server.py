@@ -98,7 +98,7 @@ def get_variant(query):
             'category_name': pheno['category_string'],
             'num_cases': pheno['num_cases'],
             'num_controls': pheno['num_controls'],
-            'pval': matching_variant_row[pheno['colnum_pval']],
+            'pval': float(matching_variant_row[pheno['colnum_pval']]),
         })
 
     return rv
