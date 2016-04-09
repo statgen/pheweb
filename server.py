@@ -148,4 +148,5 @@ def error_page(message):
 
 
 if __name__ == '__main__':
-    app.run(host='browser.sph.umich.edu', port=5000, debug=False, use_reloader=True)
+    extra_files = 'templates/about.html templates/error.html templates/index.html templates/layout.html templates/variant.html'.split()
+    app.run(host='browser.sph.umich.edu', port=5000, debug=False, use_reloader=True, extra_files=extra_files)
