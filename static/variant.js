@@ -1,11 +1,35 @@
 
-console.log(window.variant);
-window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phewas_code); })
-console.log(window.variant);
+window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phewas_code); });
+
+var first_of_each_category = (function() {
+    var categories_seen = {};
+    return window.variant.phenos.filter(function(pheno) {
+        if (categories_seen.hasOwnProperty(pheno.category_name)) {
+            return false;
+        } else {
+            categories_seen[pheno.category_name] = 1;
+            return true;
+        }
+    });
+})();
+
+var category_order = (function() {
+    var rv = {};
+    first_of_each_category.forEach(function(pheno, i) {
+        rv[pheno.category_name] = i;
+    });
+    return rv;
+})();
+
+// sortBy is a stable sort, so we just sort by category_order and we're good.
+window.variant.phenos = _.sortBy(window.variant.phenos, function(d) {
+    return category_order[d.category_name];
+});
+
 
 function create_phewas_plot() {
     var svg_width = $('#phewas_plot_container').width();
-    var svg_height = 650;
+    var svg_height = 550;
 
     var plot_margin = {
         'left': 70,
@@ -150,7 +174,7 @@ function create_phewas_plot() {
         .call(xAxis);
 
     phewas_svg.selectAll('text.category_name')
-        .data(first_of_each_category())
+        .data(first_of_each_category)
         .enter() // Do we need this?
         .append('text')
         .style('text-anchor', 'start')
@@ -176,17 +200,3 @@ function fmt(format) {
         return (typeof args[number] != 'undefined') ? args[number] : match;
     });
 }
-
-function first_of_each_category() {
-    var categories_seen = {};
-    return window.variant.phenos.filter(function(pheno) {
-        if (categories_seen.hasOwnProperty(pheno.category_name)) {
-            return false;
-        } else {
-            categories_seen[pheno.category_name] = 1;
-            return true;
-        }
-    });
-}
-
-console.log(first_of_each_category());
