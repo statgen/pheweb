@@ -84,8 +84,9 @@ function create_phewas_plot() {
         .attr('x2', plot_width)
         .attr('y1', y_scale(-Math.log10(significance_threshold)))
         .attr('y2', y_scale(-Math.log10(significance_threshold)))
-        .attr('stroke-width', 4)
+        .attr('stroke-width', '2px')
         .attr('stroke', 'gray')
+        .attr('stroke-dasharray', '10,10')
         .on('mouseover', significance_threshold_tooltip.show)
         .on('mouseout', significance_threshold_tooltip.hide);
 
@@ -155,6 +156,7 @@ function create_phewas_plot() {
         .orient("left");
     phewas_plot.append("g")
         .attr("class", "y axis")
+        .attr('transform', 'translate(-3,0)') // avoid letting points spill through the y axis.
         .call(yAxis);
 
     phewas_svg.append('text')
