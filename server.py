@@ -138,14 +138,17 @@ def api_pheno(path):
 def is_pheno(query):
     return bool(re.match(r'[0-9]+(?:\.[0-9]+)?', query))
 
-@app.route('/pheno/<query>')
-def pheno_page(query):
+@app.route('/pheno/<phewas_code>')
+def pheno_page(phewas_code):
     try:
-        if not is_pheno(query):
-            flash("Sorry, I couldn't find the phenotype {}".format(query))
+        if not is_pheno(phewas_code) or phewas_code not in phenos:
+            flash("Sorry, I couldn't find the phewas code {!r}".format(phewas_code))
             abort(404)
+        icd9s = phenos[phewas_code]['icd9s']
         return render_template('pheno.html',
-                               pheno=query)
+                               phewas_code=phewas_code,
+                               icd9s=icd9s,
+        )
     except:
         abort(404)
 
