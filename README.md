@@ -59,6 +59,11 @@ TODO GWAS frontend
 - Significance Threshold: 5E-8
 
 
+TODO backend
+============
+Round `#cases` to a multiple of 50 and prepend "~". (round up or nearest?)  If <50, write "<50".
+
+
 TODO frontend
 =============
 - Use collision detection when displaying phewas_strings.

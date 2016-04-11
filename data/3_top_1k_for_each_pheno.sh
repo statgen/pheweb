@@ -9,6 +9,6 @@ while read phewas_code columns; do
     echo $(date '+%Y-%m-%d %T') $phewas_code $columns
     /net/mario/cluster/bin/pigz -dc "/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz" |
     cut -d $'\t' -f "$columns" |
-    perl -nale 'print if $F[4] < 0.01' |
-    /net/mario/cluster/bin/pigz > "/var/pheweb_data/gwas/$phewas_code.vcf.gz"
+    perl -nale 'print if $F[4] < 0.1' |
+    /net/mario/cluster/bin/pigz > "/var/pheweb_data/gwas-single-pheno/$phewas_code.vcf.gz"
 done
