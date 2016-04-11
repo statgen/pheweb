@@ -7,7 +7,24 @@ import json
 
 from get_colnumbers import get_phenos
 
+def round_to_50(num):
+    if num < 50:
+        return '<50'
+    else:
+        return '~{}'.format((25+num) // 50 * 50)
+assert round_to_50(0) == '<50'
+assert round_to_50(49) == '<50'
+assert round_to_50(50) == '~50'
+assert round_to_50(74) == '~50'
+assert round_to_50(75) == '~100'
+assert round_to_50(124) == '~100'
+assert round_to_50(125) == '~150'
+
 good_phenos = get_phenos()
+
+for pheno in good_phenos.values():
+    for key in ['num_cases', 'num_controls']:
+        pheno[key] = round_to_50(pheno[key])
 
 for phewas_code in good_phenos:
     good_phenos[phewas_code]['icd9s'] = []
