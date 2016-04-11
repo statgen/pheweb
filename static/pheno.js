@@ -130,7 +130,10 @@ function create_gwas_plot() {
             //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
             point_tooltip.show(d, this);
         })
-        .on('mouseout', point_tooltip.hide);
+        .on('mouseout', point_tooltip.hide)
+        .on('click', function(d) {
+            window.location = fmt('/variant/{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
+        });
 
 
     // Axes
