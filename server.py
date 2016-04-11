@@ -11,7 +11,7 @@ import re
 import gzip
 import marisa_trie
 
-from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash
+from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
 app = Flask(__name__)
 app.config.from_object('flask_config')
 
@@ -109,7 +109,7 @@ def get_variant(query):
     return rv
 
 @app.route('/api/variant/<query>')
-def api_variant_page(query):
+def api_variant(query):
     variant = get_variant(query)
     return Response(json.dumps(variant), mimetype='application/json')
 
@@ -131,6 +131,24 @@ def variant_page(query):
     except:
         abort(404)
 
+@app.route('/api/pheno/<path:path>')
+def api_pheno(path):
+    return send_from_directory('/var/pheweb_data/gwas-json/', path)
+
+def is_pheno(query):
+    return bool(re.match(r'[0-9]+(?:\.[0-9]+)?', query))
+
+@app.route('/pheno/<query>')
+def pheno_page(query):
+    try:
+        if not is_pheno(query):
+            flash("Sorry, I couldn't find the phenotype {}".format(query))
+            abort(404)
+        return render_template('pheno.html',
+                               pheno=query)
+    except:
+        abort(404)
+
 @app.route('/')
 def homepage():
     return render_template('index.html')
@@ -148,5 +166,5 @@ def error_page(message):
 
 
 if __name__ == '__main__':
-    extra_files = 'templates/about.html templates/error.html templates/index.html templates/layout.html templates/variant.html'.split()
+    extra_files = 'templates/about.html templates/error.html templates/index.html templates/layout.html templates/variant.html templates/pheno.html'.split()
     app.run(host='browser.sph.umich.edu', port=5000, threaded=True, debug=False, use_reloader=True, extra_files=extra_files)

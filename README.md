@@ -56,8 +56,6 @@ TODO GWAS frontend
 ==================
 - Show icd9 codes.
 
-- Significance Threshold: 5E-8
-
 
 TODO frontend
 =============
