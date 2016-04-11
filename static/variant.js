@@ -115,9 +115,14 @@ function create_phewas_plot() {
         .attr('cy', function(d) {
             return y_scale(-Math.log10(d.pval));
         })
-        .attr('r', 3)
+        .attr('r', 5)
         .style('fill', function(d) {
             return color_by_category(d.category_name);
+        })
+        .style('fill-opacity', 0.5)
+        .style('stroke-width', 1)
+        .style('stroke', function(d) {
+            return color_by_category(d.category_name); // TODO see whether people like this black instead.
         })
         .on('mouseover', function(d) {
             //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
