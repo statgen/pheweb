@@ -105,6 +105,9 @@ function create_phewas_plot() {
         .enter()
         .append('a')
         .attr('class', 'pheno_point')
+        .attr('xlink:href', function(d) {
+            return '/pheno/' + d.phewas_code;
+        })
         .each(function(d, i) {
             d.myIndex = i;
         });
@@ -129,10 +132,7 @@ function create_phewas_plot() {
             point_tooltip.show(d, this);
             // console.log(fmt('{0} {1}', x_scale(d.myIndex), y_scale(-Math.log10(d.pval))), this);
         })
-        .on('mouseout', point_tooltip.hide)
-        .on('click', function(d) {
-            window.location = '/pheno/' + d.phewas_code;
-        });
+        .on('mouseout', point_tooltip.hide);
     links
         .each(function(d) {
             d.myCircle = this.firstChild;
@@ -155,10 +155,7 @@ function create_phewas_plot() {
         .on('mouseover', function(d) {
             point_tooltip.show(d, d.myCircle);
         })
-        .on('mouseout', point_tooltip.hide)
-        .on('click', function(d) {
-            window.location = '/pheno/' + d.phewas_code;
-        });
+        .on('mouseout', point_tooltip.hide);
 
 
     // Axes
