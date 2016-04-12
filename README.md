@@ -60,7 +60,7 @@ TODO GWAS frontend
 TODO PheWAS backend
 ===================
 - search by rsid (make a RecordTrie that maps to 'chrom-pos-ref-alt')
-- Is just top 2k fine?  If not, get 10k random variants spread through the genome where.  Take all with p > max(pval of top 2k) for each pheno.  Put in a folder.
+- Is just top 2k fine?  If not, get 10k random variants spread through the genome.  Take all with p > max(pval of top 2k) for each pheno.  Put in a folder.
 
 
 TODO PheWAS frontend
