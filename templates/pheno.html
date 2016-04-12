@@ -41,6 +41,11 @@
 .axis g.tick line {
   stroke: #666;
 }
+
+.icd9-info > p,
+.pheno-info > p {
+  margin-bottom: 0;
+}
 </style>
 {% endblock %}
 
@@ -61,7 +66,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-xs-12">
+            <div class="pheno-info col-xs-12">
                 <p>Category: {{ pheno.category_string}}</p>
                 <p>Number of cases: {{ pheno.num_cases }}</p>
                 <p>Number of controls: {{ pheno.num_controls }}</p>
@@ -70,7 +75,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-xs-12">
+            <div class="icd9-info col-xs-12">
               <h3>ICD9 codes included in this PheWAS code:</h3>
               {% for icd9 in pheno.icd9s %}
                 <p>{{ icd9.icd9_code }} - {{ icd9.icd9_string }}</p>
