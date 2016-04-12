@@ -31,7 +31,7 @@ Tabix is:
 
 TODO GWAS backend
 =================
-- make `gwas/008.json`. (first make `gwas/008.vcf.gz`)
+- Speed up `3_1_`.
   - we want top ~1k
   - p < 0.1: 800k
   - p < 0.01 : 80k
@@ -54,12 +54,17 @@ Option 3: Convert to hdf5 and then extract columns.
 
 TODO GWAS frontend
 ==================
-- Show icd9 codes.
+- Display chromosomes on x-axis
 
 
-TODO frontend
-=============
+TODO PheWAS backend
+===================
+- search by rsid (make a RecordTrie that maps to 'chrom-pos-ref-alt')
+- Is just top 2k fine?  If not, get 10k random variants spread through the genome where.  Take all with p > max(pval of top 2k) for each pheno.  Put in a folder.
+
+
+TODO PheWAS frontend
+====================
 - Use collision detection when displaying phewas_strings.
   - For collision detection, see <https://www.w3.org/TR/SVG11/struct.html#__svg__SVGSVGElement__checkIntersection> or <http://stackoverflow.com/a/2178680/1166306>
 - Point tooltips based on quadrant.
-- On click, show GWAS.
