@@ -101,25 +101,68 @@ function create_gwas_plot() {
         .html(function(d) {
             return tooltip_template({d: d});
         })
-        .offset([-8,0]);
+        .offset([-6,0]);
     gwas_svg.call(point_tooltip);
 
-    var links = gwas_plot.selectAll('a.variant_point')
+    gwas_plot.selectAll('a.variant_big_point')
         .data(window.variants)
         .enter()
         .append('a')
-        .attr('class', 'variant_point')
+        .attr('class', 'variant_big_point')
         .attr('xlink:href', function(d) {
             return fmt('/variant/{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
-        });
-    links.append('circle')
+        })
+        .append('circle')
         .attr('cx', function(d) {
             return x_scale(get_genomic_position(d));
         })
         .attr('cy', function(d) {
             return y_scale(-Math.log10(d.pval));
         })
-        .attr('r', 5)
+        .attr('r', 7)
+        .style('opacity', 0)
+        .style('stroke-width', 1)
+        .on('mouseover', function(d) {
+            //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
+            var target_node = document.getElementById(fmt('little-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
+            d3.select(target_node)
+                .style('fill-opacity', 1)
+                .style('fill', 'black')
+                .style('stroke', 'black');
+            point_tooltip.show(d, target_node);
+        })
+        .on('mouseout', function(d) {
+            var target_node = document.getElementById(fmt('little-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
+            d3.select(target_node)
+                .style('fill-opacity', 0.5)
+                .style('fill', function(d) {
+                    return color_by_chrom(d.chrom);
+                })
+                .style('stroke', function(d) {;
+                    return color_by_chrom(d.chrom);
+                });
+            point_tooltip.hide(d);
+        });
+
+    gwas_plot.selectAll('a.variant_little_point')
+        .data(window.variants)
+        .enter()
+        .append('a')
+        .attr('class', 'variant_little_point')
+        .attr('xlink:href', function(d) {
+            return fmt('/variant/{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
+        })
+        .append('circle')
+        .attr('id', function(d) {
+            return fmt('little-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
+        })
+        .attr('cx', function(d) {
+            return x_scale(get_genomic_position(d));
+        })
+        .attr('cy', function(d) {
+            return y_scale(-Math.log10(d.pval));
+        })
+        .attr('r', 2)
         .style('fill', function(d) {
             return color_by_chrom(d.chrom);
         })
@@ -130,9 +173,23 @@ function create_gwas_plot() {
         })
         .on('mouseover', function(d) {
             //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
+            d3.select(this)
+                .style('fill-opacity', 1)
+                .style('fill', 'black')
+                .style('stroke', 'black');
             point_tooltip.show(d, this);
         })
-        .on('mouseout', point_tooltip.hide);
+        .on('mouseout', function(d) {
+            d3.select(this)
+                .style('fill-opacity', 0.5)
+                .style('fill', function(d) {
+                    return color_by_chrom(d.chrom);
+                })
+                .style('stroke', function(d) {;
+                    return color_by_chrom(d.chrom);
+                });
+            point_tooltip.hide(d);
+        });
 
 
     // Axes
