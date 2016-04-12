@@ -31,25 +31,6 @@ Tabix is:
 
 TODO GWAS backend
 =================
-- Speed up `3_1_`.
-  - we want top ~1k
-  - p < 0.1: 800k
-  - p < 0.01 : 80k
-  - p < 0.001 : 8k
-  - subsetting each pheno takes 15 min. 15min * 1500 = 16 days.
-
-Option 1: recursive splitting.
-- write a script like `3_`, but where the python gives the input and output filenames.  Then the python will guide the bash through a recursive splitting process.
-  - Each layer of splitting should take 2hr.  We need 11 splits.  That's 1 day.
-
-Option 2: remove variants where p > 0.001 for all phenos.
-- If this has good results, but not good enough to solve the problem completely, it can be combined with option 1.
-- grep won't work, b/c beta often has 0.00
-- `4_` shows that we can't use this until we've already split a few times b/c every variant is 0.00X somewhere.
-
-Option 3: Convert to hdf5 and then extract columns.
-- hdf5 will convert my floats-as-strings to floats-as-32bit-floats I think.  That will not save much space.
-- Will the initial hdf5 array need to live in memory?  That seems like a deal-breaker.
 
 
 TODO GWAS frontend
