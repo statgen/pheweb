@@ -3,8 +3,8 @@ Data
 The original data is:
 - `/net/fantasia/home/schellen/PheWAS/epacts_multi/gwas_17March2016/gwas_17March2016.epacts.gz`
 - 216 GB compressed
-- by ratio, 650 GB.  NA lines are 40% the length of non-NA lines.  Then 25M non-NA lines + 6M NA lines = 710 GB.
-- by ratio, 25M lines. Lines with MAF>1% have no NAs.  1/3 of lines with MAF<1% are all NAs.  If NA lines are free, then we actually have 31M lines.
+- probably 650-710 GB. (affected by NA lines)
+- probably 25M-31M lines. (affected by NA lines)
 - 3639 columns (1815*2+9)
 
 The data subsetted so MAF>=1% is:
@@ -21,7 +21,7 @@ The data subsetted so MAF>=1% and #cases>=20 is:
 - maybe 165 GB
 - must be 7,741,775 lines
 - 2900 columns (1448*2+4)
-- took 3hr. (with gzip -2, makes 53GB in only 45min)
+- took 3hr. (with gzip -2, makes 53GB in only 45min, but we need bgzip which is slow)
 
 Tabix is:
 - `/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz.tbi`
@@ -31,6 +31,7 @@ Tabix is:
 
 TODO GWAS backend
 =================
+- Regenerate jsons with 5k variants.
 
 
 TODO GWAS frontend
@@ -41,7 +42,6 @@ TODO GWAS frontend
 TODO PheWAS backend
 ===================
 - search by rsid (make a RecordTrie that maps to 'chrom-pos-ref-alt')
-- Is just top 2k fine?  If not, get 10k random variants spread through the genome.  Take all with p > max(pval of top 2k) for each pheno.  Put in a folder.
 
 
 TODO PheWAS frontend
