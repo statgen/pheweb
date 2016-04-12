@@ -89,7 +89,7 @@
     </div>
 
 <script type="text/template" id="tooltip-template">
-<%= d.chrom %>:<%= d.pos %> <%= d.ref %> &gt; <%= d.alt %><br>
+<%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> &gt; <%= d.alt %><br>
 pval: <%= d.pval %><br>
 MAF: <%= d.maf %><br>
 </script>
