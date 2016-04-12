@@ -5,7 +5,7 @@ $.getJSON("/api/pheno/" + window.pheno + ".json").done(function(variants) {
 });
 
 var get_chrom_offsets = _.memoize(function() {
-    var chrom_padding = 1e7;
+    var chrom_padding = 5e7;
     var chrom_lengths = {};
     window.variants.forEach(function(variant) {
         if (!(variant.chrom in chrom_lengths) || (variant.pos > chrom_lengths[variant.chrom])) {
@@ -39,7 +39,7 @@ function create_gwas_plot() {
         'left': 70,
         'right': 30,
         'top': 10,
-        'bottom': 170,
+        'bottom': 50,
     };
 
     var plot_width = svg_width - plot_margin.left - plot_margin.right;
@@ -62,7 +62,7 @@ function create_gwas_plot() {
     //     .domain(get_chrom_offsets().chroms);
     var color_by_chrom = d3.scale.ordinal()
         .domain(get_chrom_offsets().chroms)
-        .range(['blue', 'yellow', 'red']);
+        .range(['rgb(31,119,180)', 'rgb(255,127,14)', 'rgb(214,39,40)']);
 
     var gwas_svg = d3.select('#plot_container').append("svg")
         .attr('id', 'gwas_svg')
@@ -127,7 +127,7 @@ function create_gwas_plot() {
         .style('fill-opacity', 0.5)
         .style('stroke-width', 1)
         .style('stroke', function(d) {
-            return 'black';
+            return color_by_chrom(d.chrom);
         })
         .on('mouseover', function(d) {
             //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
@@ -164,7 +164,7 @@ function create_gwas_plot() {
         .style('text-anchor', 'middle')
         .attr('transform', fmt('translate({0},{1})',
                                plot_width/2 + plot_margin.left,
-                               plot_height + plot_margin.top + plot_margin.bottom/3))
+                               plot_height + plot_margin.top + plot_margin.bottom*.9))
         .text('Genomic Position');
 }
 

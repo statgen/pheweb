@@ -135,22 +135,17 @@ def variant_page(query):
 def api_pheno(path):
     return send_from_directory('/var/pheweb_data/gwas-json/', path)
 
-def is_pheno(query):
-    return bool(re.match(r'[0-9]+(?:\.[0-9]+)?', query))
-
 @app.route('/pheno/<phewas_code>')
 def pheno_page(phewas_code):
     try:
-        if not is_pheno(phewas_code) or phewas_code not in phenos:
-            flash("Sorry, I couldn't find the phewas code {!r}".format(phewas_code))
-            abort(404)
-        icd9s = phenos[phewas_code]['icd9s']
-        return render_template('pheno.html',
-                               phewas_code=phewas_code,
-                               icd9s=icd9s,
-        )
+        pheno = phenos[phewas_code]
     except:
+        flash("Sorry, I couldn't find the phewas code {!r}".format(phewas_code))
         abort(404)
+    return render_template('pheno.html',
+                           phewas_code=phewas_code,
+                           pheno=pheno,
+    )
 
 @app.route('/')
 def homepage():
