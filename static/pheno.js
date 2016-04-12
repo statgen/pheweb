@@ -34,34 +34,14 @@ function get_genomic_position(variant) {
 function create_gwas_plot() {
     var svg_width = $('#plot_container').width();
     var svg_height = 550;
-
     var plot_margin = {
         'left': 70,
         'right': 30,
         'top': 10,
         'bottom': 50,
     };
-
     var plot_width = svg_width - plot_margin.left - plot_margin.right;
     var plot_height = svg_height - plot_margin.top - plot_margin.bottom;
-
-    var x_scale = d3.scale.linear()
-        .domain(d3.extent(window.variants, function(d) {
-            return get_genomic_position(d);
-        }))
-        .range([0, plot_width]);
-
-    var neglog10_pval_extent = (function() {
-        var pval_extent = d3.extent(window.variants, function(d) { return d.pval; });
-        return [-Math.log10(pval_extent[0]), -Math.log10(pval_extent[1])];
-    })();
-    var y_scale = d3.scale.linear()
-        .domain(neglog10_pval_extent)
-        .range([0, plot_height]);
-
-    var color_by_chrom = d3.scale.ordinal()
-        .domain(get_chrom_offsets().chroms)
-        .range(['rgb(31,119,180)', 'rgb(255,127,14)', 'rgb(214,39,40)']);
 
     var gwas_svg = d3.select('#plot_container').append("svg")
         .attr('id', 'gwas_svg')
@@ -82,6 +62,26 @@ function create_gwas_plot() {
         })
         .offset([-8,0]);
     gwas_svg.call(significance_threshold_tooltip);
+
+    var x_scale = d3.scale.linear()
+        .domain(d3.extent(window.variants, function(d) {
+            return get_genomic_position(d);
+        }))
+        .range([0, plot_width]);
+
+    var neglog10_pval_extent = (function() {
+        var pval_extent = d3.extent(window.variants, function(d) { return d.pval; });
+        pval_extent[0] = Math.min(pval_extent[0], significance_threshold)*0.9;
+        pval_extent[1] = Math.max(pval_extent[1], significance_threshold)*1.1;
+        return [-Math.log10(pval_extent[0]), -Math.log10(pval_extent[1])];
+    })();
+    var y_scale = d3.scale.linear()
+        .domain(neglog10_pval_extent)
+        .range([0, plot_height]);
+
+    var color_by_chrom = d3.scale.ordinal()
+        .domain(get_chrom_offsets().chroms)
+        .range(['rgb(31,119,180)', 'rgb(255,127,14)', 'rgb(214,39,40)']);
 
     gwas_plot.append('line')
         .attr('x1', 0)
