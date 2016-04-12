@@ -51,15 +51,14 @@ function create_gwas_plot() {
         }))
         .range([0, plot_width]);
 
-    var neglog10_min_pval = -Math.log10(d3.min(window.variants, function(d) {
-        return d.pval;
-    }));
+    var neglog10_pval_extent = (function() {
+        var pval_extent = d3.extent(window.variants, function(d) { return d.pval; });
+        return [-Math.log10(pval_extent[0]), -Math.log10(pval_extent[1])];
+    })();
     var y_scale = d3.scale.linear()
-        .domain([neglog10_min_pval, 0])
+        .domain(neglog10_pval_extent)
         .range([0, plot_height]);
 
-    // var color_by_chrom = d3.scale.category20()
-    //     .domain(get_chrom_offsets().chroms);
     var color_by_chrom = d3.scale.ordinal()
         .domain(get_chrom_offsets().chroms)
         .range(['rgb(31,119,180)', 'rgb(255,127,14)', 'rgb(214,39,40)']);
