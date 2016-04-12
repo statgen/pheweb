@@ -150,7 +150,14 @@ function create_phewas_plot() {
         })
         .attr('dy', '.3em') // vertically center
         .text(function(d) {
-            return d.phewas_string.length > 40 ? d.phewas_string.slice(0,30).trim()+'...' : d.phewas_string;
+            if (d.phewas_string.length < 30) {
+                return d.phewas_string;
+            } else {
+                // Try to cut the string at a space.
+                var break_index = d.phewas_string.slice(20, 30).indexOf(' ');
+                break_index = (break_index === -1) ? 25 : 20 + break_index;
+                return d.phewas_string.slice(0, break_index).trim() + '...';
+            }
         })
         .on('mouseover', function(d) {
             point_tooltip.show(d, d.myCircle);
