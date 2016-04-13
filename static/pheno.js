@@ -82,8 +82,8 @@ function create_gwas_plot() {
         .attr('x2', plot_width)
         .attr('y1', y_scale(-Math.log10(significance_threshold)))
         .attr('y2', y_scale(-Math.log10(significance_threshold)))
-        .attr('stroke-width', '2px')
-        .attr('stroke', 'gray')
+        .attr('stroke-width', '5px')
+        .attr('stroke', 'lightgray')
         .attr('stroke-dasharray', '10,10')
         .on('mouseover', significance_threshold_tooltip.show)
         .on('mouseout', significance_threshold_tooltip.hide);
