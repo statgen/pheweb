@@ -69,14 +69,12 @@
         <div class="row">
             <div class="col-xs-12">
                 <h1 style="margin-top:0">{{ phewas_code }}: {{ pheno.phewas_string }}</h1>
-                <br>
             </div>
         </div>
         <div class="row">
             <div class="pheno-info col-xs-12">
-                <p>Category: {{ pheno.category_string}}</p>
-                <p>Number of cases: {{ pheno.num_cases }}</p>
-                <p>Number of controls: {{ pheno.num_controls }}</p>
+                <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
+                <p>Category: <b>{{ pheno.category_string}}</b></p>
                 <div id="plot_container">
                 </div>
             </div>
