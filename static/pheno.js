@@ -69,19 +69,13 @@ function create_gwas_plot() {
         }))
         .range([0, plot_width]);
 
-    var neglog10_pval_extent = (function() {
-        var pval_extent = d3.extent(window.variants, function(d) { return d.pval; });
-        pval_extent[0] = Math.min(pval_extent[0], significance_threshold)*0.9;
-        pval_extent[1] = Math.max(pval_extent[1], significance_threshold)*1.1;
-        return [-Math.log10(pval_extent[0]), -Math.log10(pval_extent[1])];
-    })();
     var y_scale = d3.scale.linear()
-        .domain(neglog10_pval_extent)
+        .domain([-Math.log10(Math.min(d3.min(window.variants, function(d) { return d.pval; }), 1e-10)), 0])
         .range([0, plot_height]);
 
     var color_by_chrom = d3.scale.ordinal()
         .domain(get_chrom_offsets().chroms)
-        .range(['rgb(31,119,180)', 'rgb(255,127,14)', 'rgb(214,39,40)']);
+        .range(['black', 'gray']);
 
     gwas_plot.append('line')
         .attr('x1', 0)
@@ -195,7 +189,8 @@ function create_gwas_plot() {
     // Axes
     var yAxis = d3.svg.axis()
         .scale(y_scale)
-        .orient("left");
+        .orient("left")
+        .tickFormat(d3.format("d"));
     gwas_plot.append("g")
         .attr("class", "y axis")
         .attr('transform', 'translate(-3,0)') // avoid letting points spill through the y axis.

@@ -168,7 +168,8 @@ function create_phewas_plot() {
     // Axes
     var yAxis = d3.svg.axis()
         .scale(y_scale)
-        .orient("left");
+        .orient("left")
+        .tickFormat(d3.format("d"));
     phewas_plot.append("g")
         .attr("class", "y axis")
         .attr('transform', 'translate(-3,0)') // avoid letting points spill through the y axis.
