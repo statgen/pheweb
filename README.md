@@ -31,7 +31,8 @@ Tabix is:
 
 TODO GWAS backend
 =================
-- Regenerate jsons with 5k variants.
+- Regenerate jsons with binned variants.
+- Search by phewas_code or phewas_string
 
 
 TODO GWAS frontend
@@ -41,7 +42,7 @@ TODO GWAS frontend
 
 TODO PheWAS backend
 ===================
-- search by rsid (make a RecordTrie that maps to 'chrom-pos-ref-alt')
+- Search by rsid (make a RecordTrie that maps to 'chrom-pos-ref-alt')
 
 
 TODO PheWAS frontend
