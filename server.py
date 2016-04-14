@@ -9,7 +9,9 @@ import pysam
 import itertools
 import re
 import gzip
-import marisa_trie
+
+from utils import parse_variant, parse_marker_id, make_marker_id
+from autocomplete import get_autocompletion
 
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
 app = Flask(__name__)
@@ -17,8 +19,6 @@ app.config.from_object('flask_config')
 
 with open(os.path.join(app.root_path, 'data/phenos.json')) as f:
     phenos = json.load(f)
-
-sites_trie = marisa_trie.Trie().load('/var/pheweb_data/sites_trie.marisa')
 
 with gzip.open('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz') as f:
     header = f.readline().rstrip('\n').split('\t')
@@ -37,48 +37,27 @@ for phewas_code in phenos:
 def get_phenos(): # TODO why can't I use `phenos` in routes?
     return phenos
 
-def parse_query(query, default_chrom_pos = True):
-    if isinstance(query, unicode):
-        query = query.encode('utf-8')
-    chrom_pattern = r'(?:chr)?([0-9]+)'
-    chrom_pos_pattern = chrom_pattern + r'[-_:/ ]([0-9]+)'
-    chrom_pos_ref_alt_pattern = chrom_pos_pattern + r'[-_:/ ]([-ATCG]+)[-_:/ ]([-ATCG]+)'
+@app.route('/api/autocomplete')
+def autocomplete():
+    query = request.args.get('query', '')
+    suggestions = get_autocompletion(query, phenos)
+    if suggestions:
+        return jsonify(sorted(suggestions, key=lambda sugg: sugg['display']))
+    return jsonify([])
 
-    match = re.match(chrom_pos_ref_alt_pattern, query) or re.match(chrom_pos_pattern, query) or re.match(chrom_pattern, query)
-    g = match.groups() if match else ()
-
-    if default_chrom_pos:
-        if len(g) == 0: g += ('1',)
-        if len(g) == 1: g += (0,)
-    if len(g) >= 2: g = (g[0], int(g[1])) + g[2:]
-    return g + tuple(itertools.repeat(None, 4-len(g)))
-
-def parse_marker_id(marker_id):
-    chr1, pos1, ref, alt, chr2, pos2 = re.match(r'([^:]+):([0-9]+)_([-ATCG]+)/([-ATCG]+)_([^:]+):([0-9]+)', marker_id).groups()
-    assert chr1 == chr2
-    assert pos1 == pos2
-    return chr1, pos1, ref, alt
-
-def make_marker_id(chrom, pos, ref, alt):
-    return '{chrom}:{pos}_{ref}/{alt}_{chrom}:{pos}'.format(chrom=chrom, pos=pos, ref=ref, alt=alt)
-
-@app.route('/api/autocomplete/<query>')
-def autocomplete(query):
-    try:
-        chrom, pos, ref, alt = parse_query(query, default_chrom_pos = False)
-        key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
-        key = key.decode('ascii')
-
-        next_10 = list(itertools.islice(sites_trie.iterkeys(key), 0, 10))
-        next_10 = [s.replace('-', ':', 1) for s in next_10]
-        return Response(json.dumps(next_10), mimetype='application/json')
-    except:
-        return None, 404
+@app.route('/go')
+def go():
+    query = request.args.get('query', None)
+    if query is None:
+        die("How did you manage to get a null query?")
+    suggestions = get_autocompletion(query, phenos)
+    if suggestions:
+        return redirect(suggestions[0]['url'])
+    die("Couldn't find page for {!r}".format(query))
 
 def get_variant(query):
-    # todo: handle rsids
-    # todo: differentiate between parse errors and variants-not-found (and later, rsid-not-found)
-    chrom, pos, ref, alt = parse_query(query)
+    # todo: differentiate between parse errors and variants-not-found
+    chrom, pos, ref, alt = parse_variant(query)
     assert None not in [chrom, pos, ref, alt]
     marker_id = make_marker_id(chrom, pos, ref, alt)
 
@@ -95,7 +74,7 @@ def get_variant(query):
         'variant_name': '{} : {:,} {}>{}'.format(chrom, pos, ref, alt),
         'phenos': []
     }
-    for phewas_code, pheno in get_phenos().items():
+    for phewas_code, pheno in get_phenos().iteritems():
         rv['phenos'].append({
             'phewas_code': phewas_code,
             'phewas_string': pheno['phewas_string'],
@@ -103,7 +82,7 @@ def get_variant(query):
             'num_cases': pheno['num_cases'],
             'num_controls': pheno['num_controls'],
             'pval': float(matching_variant_row[pheno['colnum_pval']]),
-            'beta': float(matching_variant_row[pheno['colnum_beta']]),
+            # 'beta': float(matching_variant_row[pheno['colnum_beta']]),
         })
 
     return rv
@@ -124,8 +103,7 @@ def variant_page(query):
     try:
         variant = get_variant(query)
         if variant is None:
-            flash("Sorry, I couldn't find the variant {}".format(query))
-            abort(404)
+            die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
                                variant=variant)
     except:
@@ -140,8 +118,7 @@ def pheno_page(phewas_code):
     try:
         pheno = phenos[phewas_code]
     except:
-        flash("Sorry, I couldn't find the phewas code {!r}".format(phewas_code))
-        abort(404)
+        die("Sorry, I couldn't find the phewas code {!r}".format(phewas_code))
     return render_template('pheno.html',
                            phewas_code=phewas_code,
                            pheno=pheno,
@@ -154,6 +131,10 @@ def homepage():
 @app.route('/about')
 def about_page():
     return render_template('about.html')
+
+def die(message):
+    flash(message)
+    abort(404)
 
 @app.errorhandler(404)
 def error_page(message):

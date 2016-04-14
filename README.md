@@ -49,4 +49,8 @@ TODO PheWAS frontend
 ====================
 - Use collision detection when displaying phewas_strings.
   - For collision detection, see <https://www.w3.org/TR/SVG11/struct.html#__svg__SVGSVGElement__checkIntersection> or <http://stackoverflow.com/a/2178680/1166306>
+  - Also check whether a label falls off the right side.
+  - First try flipping left.  Then just don't display.
+  - Render all labels after all points.
+  - Maybe include an invisible background rect to ensure proper collision detection.
 - Point tooltips based on quadrant.

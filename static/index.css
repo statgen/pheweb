@@ -2,9 +2,6 @@
 .twitter-typeahead {
   width: 100%;
 }
-.tt-hint {
-  visibility: hidden;
-}
 .tt-menu {
   margin-top: 2px;
   padding: 5px 0;
