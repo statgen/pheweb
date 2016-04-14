@@ -72,7 +72,11 @@ def get_variant(query):
 
     rv = {
         'variant_name': '{} : {:,} {}>{}'.format(chrom, pos, ref, alt),
-        'phenos': []
+        'chrom': chrom,
+        'pos': pos,
+        'ref': ref,
+        'alt': alt,
+        'phenos': [],
     }
     for phewas_code, pheno in get_phenos().iteritems():
         rv['phenos'].append({
