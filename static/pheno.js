@@ -75,7 +75,9 @@ function create_gwas_plot() {
 
     var color_by_chrom = d3.scale.ordinal()
         .domain(get_chrom_offsets().chroms)
-        .range(['black', 'gray']);
+        .range(['rgb(120,120,186)', 'rgb(0,0,66)']);
+    //colors to maybe sample from later:
+    //.range(['rgb(120,120,186)', 'rgb(0,0,66)', 'rgb(44,150,220)', 'rgb(40,60,80)', 'rgb(33,127,188)', 'rgb(143,76,176)']);
 
     gwas_plot.append('line')
         .attr('x1', 0)
