@@ -2,61 +2,20 @@
 <head>
     {% block title %}<title>PheWeb</title>{% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
           integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
             integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
-
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.6.7/d3-tip.min.js"></script>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
-
-    <script type="text/javascript">
-        $(function() {
-            autocomplete_bloodhound = new Bloodhound({
-                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('display'),
-                queryTokenizer: Bloodhound.tokenizers.whitespace,
-                identify: function(sugg) { return sugg.display; }, // maybe allows Bloodhound to `.get()`  objects
-                remote: {
-                    url: '/api/autocomplete?query=%QUERY',
-                    wildcard: '%QUERY'
-                },
-                local: [{"display":"1:16344683-C-T","url":"/variant/1:16344683-C-T","value":"1:16344683-C-T"},{"display":"340 (Migraine)","url":"/pheno/340","value":"340"},{"display":"Polyneuropathy due to drugs (316.1)","url":"/pheno/316.1","value":"316.1"}]
-            });
-            function autocomplete_bloodhound_with_defaults(query, sync, async) {
-              if (query.trim() === '') {
-                sync(autocomplete_bloodhound.all());
-              } else {
-                autocomplete_bloodhound.search(query, sync, async);
-              }
-            }
-            $('.typeahead').typeahead({
-                hint: false,
-                highlight: true,
-                minLength: 0,
-              }, {
-                name: 'autocomplete',
-                source: autocomplete_bloodhound_with_defaults,
-                display: 'value',
-                limit: Infinity,
-                templates: {
-                   suggestion: _.template("<div><%= display %></div>"),
-                   empty: "<div style='padding:3px 20px'>No matches found.</div>"
-                }
-            });
-            $('.typeahead').bind('typeahead:select', function(ev, suggestion) {
-                window.location.href = suggestion.url;
-            });
-        });
-    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', filename='common.js') }}"></script>
     {% block in_head %}{% endblock %}
 </head>
 <body>
@@ -72,7 +31,7 @@
             {% block navbar_left %}
             <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a>
             <div class="navbar-left" id="navbar_form_container">
-                <form action="/go" id="variant-search-form" class="navbar-form" role="search">
+                <form action="/go" class="navbar-form" role="search">
                     <div class="form-group" id="navbar-awesomebar">
                         <input id="navbar-searchbox-input" name="query" class="form-control typeahead" type="text" size="40" placeholder="Search for a variant or phenotype"/>
                     </div>
