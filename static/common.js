@@ -38,6 +38,7 @@ $(function() {
             },
         },
         local: defaults,
+        sorter: function(a, b) { return (a.display > b.display) ? 1 : -1; },
     });
 
     function autocomplete_bloodhound_with_defaults(query, sync, async) {
@@ -56,10 +57,10 @@ $(function() {
         name: 'autocomplete',
         source: autocomplete_bloodhound_with_defaults,
         display: 'value',
-        limit: Infinity,
+        limit: 100,
         templates: {
             suggestion: _.template("<div><%= display %></div>"),
-            empty: "<div style='padding:3px 20px'>No matches found.</div>"
+            empty: "<div class='tt-empty-message'>No matches found.</div>"
         }
     });
 

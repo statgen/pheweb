@@ -32,7 +32,6 @@ Tabix is:
 TODO GWAS backend
 =================
 - Regenerate jsons with binned variants.
-- Search by phewas_code or phewas_string
 
 
 TODO GWAS frontend
