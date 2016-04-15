@@ -119,7 +119,7 @@ def variant_page(query):
 
 @app.route('/api/pheno/<path:path>')
 def api_pheno(path):
-    return send_from_directory('/var/pheweb_data/gwas-json/', path)
+    return send_from_directory('/var/pheweb_data/gwas-json-binned/', path)
 
 @app.route('/pheno/<phewas_code>')
 def pheno_page(phewas_code):
