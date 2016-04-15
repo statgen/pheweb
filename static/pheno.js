@@ -1,6 +1,6 @@
 
 $.getJSON("/api/pheno/" + window.pheno + ".json").done(function(variants) {
-    window.binned_variants = variants.binned_variants;
+    window.variant_bins = variants.variant_bins;
     window.unbinned_variants = variants.unbinned_variants;
     $(create_gwas_plot);
 });
@@ -14,11 +14,11 @@ var get_chrom_offsets = _.memoize(function() {
             chrom_lengths[variant.chrom] = variant.pos;
         }
     }
-    window.binned_variants.forEach(update_chrom_lengths);
+    window.variant_bins.forEach(update_chrom_lengths);
     window.unbinned_variants.forEach(update_chrom_lengths);
 
     var chroms = _.sortBy(Object.keys(chrom_lengths), function(chrom) {
-        return Number.parseFloat(chrom);
+        return Number.parseInt(chrom);
     });
     var chrom_offsets = {};
     chrom_offsets[chroms[0]] = 0;
@@ -69,7 +69,7 @@ function create_gwas_plot() {
     gwas_svg.call(significance_threshold_tooltip);
 
     var genomic_position_extent = (function() {
-        var extent1 = d3.extent(window.binned_variants, function(d) {
+        var extent1 = d3.extent(window.variant_bins, function(d) {
             return get_genomic_position(d);
         });
         var extent2 = d3.extent(window.unbinned_variants, function(d) {
@@ -88,9 +88,11 @@ function create_gwas_plot() {
                 return -Math.log10(d.pval);
             });
         }
-        return d3.max(window.binned_variants, function(d) {
-            return d.neglog10_pval;
-        })
+        return d3.max(window.variant_bins, function(bin) {
+            return d3.max(bin, function(d) {
+                return d.neglog10_pval;
+            });
+        });
     })();
 
     var y_scale = d3.scale.linear()
@@ -212,27 +214,24 @@ function create_gwas_plot() {
         });
 
 
-    gwas_plot.selectAll('circle.binned_variant_little_point')
-        .data(window.binned_variants)
+    gwas_plot.selectAll('nopenopenope')
+        .data(window.variant_bins)
         .enter()
-        .append('circle')
-        .attr('class', 'binned_variant_little_point')
-        .attr('cx', function(d) {
-            return x_scale(get_genomic_position(d));
-        })
-        .attr('cy', function(d) {
-            return y_scale(d.neglog10_pval);
-        })
-        .attr('r', 2)
-        .style('fill', function(d) {
-            return color_by_chrom(d.chrom);
-        })
-        .style('fill-opacity', 0.5)
-        .style('stroke-width', 1)
-        .style('stroke', function(d) {
-            return color_by_chrom(d.chrom);
+        .append('g')
+        .each(function(bin) {
+            bin.neglog10_pvals.forEach(function(neglog10_pval) {
+                gwas_plot
+                    .append('circle')
+                    .attr('class', 'binned_variant_little_point')
+                    .attr('cx', x_scale(get_genomic_position(bin)))
+                    .attr('cy', y_scale(neglog10_pval))
+                    .attr('r', 2)
+                    .style('fill', color_by_chrom(bin.chrom))
+                    .style('fill-opacity', 0.5)
+                    .style('stroke-width', 1)
+                    .style('stroke', color_by_chrom(bin.chrom));
+            });
         });
-
 
     // Axes
     var yAxis = d3.svg.axis()

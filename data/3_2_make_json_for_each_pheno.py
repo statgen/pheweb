@@ -5,10 +5,10 @@ from __future__ import print_function, division, absolute_import
 import glob
 import re
 import os.path
-import os
 import json
 import gzip
 import math
+import datetime
 
 BIN_LENGTH = 1e7
 NEGLOG10_PVAL_BIN_DIGITS = 1 # Use 0.1, 0.2, etc
@@ -29,20 +29,14 @@ def parse_variant_tuple(variant):
     return (chrom, pos, ref, alt, maf, pval)
 
 def bin_variants(variants):
-    binned_variants = []
+    bins = []
     unbinned_variants = []
 
-    cur_bin = None
-    def empty_cur_bin():
-        for neglog10_pval in cur_bin['neglog10_pvals']:
-            binned_variants.append({
-                'chrom': cur_bin['chrom'],
-                'pos': cur_bin['startpos'] + BIN_LENGTH/2,
-                'neglog10_pval': neglog10_pval,
-            })
-
+    prev_chrom, prev_pos = -1, -1
     for variant in variants:
         chrom, pos, ref, alt, maf, pval = parse_variant_tuple(variant)
+        assert pos >= prev_pos or int(chrom) > int(prev_chrom), (chrom, pos, prev_chrom, prev_pos)
+        prev_chrom, prev_pos = chrom, pos
         if pval < BIN_THRESHOLD:
             unbinned_variants.append({
                 'chrom': chrom,
@@ -54,19 +48,20 @@ def bin_variants(variants):
             })
 
         else:
-            if cur_bin is None or chrom != cur_bin['chrom'] or pos > cur_bin['startpos'] + BIN_LENGTH:
-                if cur_bin is not None:
-                    empty_cur_bin()
-                cur_bin = {
+            if len(bins) == 0 or chrom != bins[-1]['chrom'] or pos > bins[-1]['startpos'] + BIN_LENGTH:
+                bins.append({
                     'chrom': chrom,
                     'startpos': pos,
                     'neglog10_pvals': set(),
-                }
-            cur_bin['neglog10_pvals'].add(round(-math.log10(pval), NEGLOG10_PVAL_BIN_DIGITS))
+                })
+            bins[-1]['neglog10_pvals'].add(round(-math.log10(pval), NEGLOG10_PVAL_BIN_DIGITS))
 
-    empty_cur_bin()
+    for b in bins:
+        b['neglog10_pvals'] = sorted(b['neglog10_pvals'])
+        b['pos'] = b['startpos'] + BIN_LENGTH/2
+        del b['startpos']
 
-    return binned_variants, unbinned_variants
+    return bins, unbinned_variants
 
 
 files_to_convert = glob.glob('/var/pheweb_data/gwas-one-pheno/*.vcf.gz')
@@ -76,7 +71,7 @@ for filename in files_to_convert:
     dest_filename = '/var/pheweb_data/gwas-json-binned/{}.json'.format(basename.replace('.vcf.gz', ''))
     if os.path.exists(dest_filename):
         continue
-    print('{} -> {}'.format(filename, dest_filename))
+    print('{}\t{} -> {}'.format(datetime.datetime.now(), filename, dest_filename))
 
     with gzip.open(filename) as f:
         header = f.readline().rstrip('\n').split('\t')
@@ -86,10 +81,10 @@ for filename in files_to_convert:
         assert re.match(r'[0-9]+(?:\.[0-9]+)?\.B', header[5])
 
         variants = (line.rstrip('\n').split('\t') for line in f)
-        binned_variants, unbinned_variants = bin_variants(variants)
+        variant_bins, unbinned_variants = bin_variants(variants)
 
     rv = {
-        'binned_variants': binned_variants,
+        'variant_bins': variant_bins,
         'unbinned_variants': unbinned_variants,
     }
 
