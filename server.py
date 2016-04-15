@@ -11,7 +11,7 @@ import re
 import gzip
 
 from utils import parse_variant, parse_marker_id, make_marker_id
-from autocomplete import get_autocompletion
+from autocomplete import get_autocompletion, get_best_completion
 
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
 app = Flask(__name__)
@@ -50,9 +50,9 @@ def go():
     query = request.args.get('query', None)
     if query is None:
         die("How did you manage to get a null query?")
-    suggestions = get_autocompletion(query, phenos)
-    if suggestions:
-        return redirect(suggestions[0]['url'])
+    best_suggestion = get_best_completion(query, phenos)
+    if best_suggestion:
+        return redirect(best_suggestion['url'])
     die("Couldn't find page for {!r}".format(query))
 
 def get_variant(query):

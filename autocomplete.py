@@ -64,3 +64,11 @@ def get_phewas_string_autocompletion(query, phenos):
                 if len(suggestions) == 10: break
         if suggestions:
             return suggestions
+
+def get_best_completion(query, phenos):
+    # TODO: get_autocompletion only returns the first 10, so this will be a little broken.  Look at more.
+    suggestions = get_autocompletion(query, phenos)
+    if suggestions:
+        for suggestion in suggestions:
+            suggestion['match_quality'] = len(set(query.lower().split()).intersection(suggestion['display'].lower().split())) / len(suggestion['display'].split())
+        return max(suggestions, key=lambda sugg: sugg['match_quality'])
