@@ -40,6 +40,10 @@
   fill: none;
 }
 
+.variant-info > p {
+  margin-bottom: 0;
+}
+
 #phewas_plot_container {
   min-width: 700px;
 }
@@ -57,8 +61,9 @@
           {% endif %}
         {% endwith %}
         <div class="row">
-            <div class="col-xs-12">
+            <div class="variant-info col-xs-12">
                 <h1 style="margin-top:0">{{ variant.variant_name }}</h1>
+                <p>MAF: {{ variant.maf }}</p>
                 <p>View on
                   <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a><span style="font-weight:bold" id="clinvar-link"></span>
                 </p>

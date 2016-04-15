@@ -70,12 +70,16 @@ def get_variant(query):
     else: # didn't break
         return None
 
+    maf = float(matching_variant_row[3])
+    assert 0 < maf <= 0.5
+
     rv = {
         'variant_name': '{} : {:,} {}>{}'.format(chrom, pos, ref, alt),
         'chrom': chrom,
         'pos': pos,
         'ref': ref,
         'alt': alt,
+        'maf': maf,
         'phenos': [],
     }
     for phewas_code, pheno in get_phenos().iteritems():
