@@ -214,23 +214,33 @@ function create_gwas_plot() {
         });
 
 
-    gwas_plot.selectAll('nopenopenope')
+    gwas_plot.selectAll('g.bin')
         .data(window.variant_bins)
         .enter()
         .append('g')
-        .each(function(bin) {
-            bin.neglog10_pvals.forEach(function(neglog10_pval) {
-                gwas_plot
-                    .append('circle')
-                    .attr('class', 'binned_variant_little_point')
-                    .attr('cx', x_scale(get_genomic_position(bin)))
-                    .attr('cy', y_scale(neglog10_pval))
-                    .attr('r', 2)
-                    .style('fill', color_by_chrom(bin.chrom))
-                    .style('fill-opacity', 0.5)
-                    .style('stroke-width', 1)
-                    .style('stroke', color_by_chrom(bin.chrom));
-            });
+        .attr('class', 'bin')
+        .selectAll('circle.binned_variant_little_point')
+        .data(function(d) { return d.neglog10_pvals; })
+        .enter()
+        .append('circle')
+        .attr('class', 'binned_variant_little_point')
+        .attr('cx', function() {
+            //return x_scale(get_genomic_position(d3.select(this.parentNode).datum()));
+            return x_scale(get_genomic_position(this.parentNode.__data__));
+        })
+        .attr('cy', function(d) {
+            return y_scale(d);
+        })
+        .attr('r', 2)
+        .style('fill', function() {
+            // return color_by_chrom(d3.select(this.parentNode).datum().chrom);
+            return color_by_chrom(this.parentNode.__data__.chrom);
+        })
+        .style('fill-opacity', 0.5)
+        .style('stroke-width', 1)
+        .style('stroke', function() {
+            // return color_by_chrom(d3.select(this.parentNode).datum().chrom);
+            return color_by_chrom(this.parentNode.__data__.chrom);
         });
 
     // Axes
