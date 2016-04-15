@@ -147,18 +147,9 @@ function create_gwas_plot() {
         .on('mouseover', function(d) {
             //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
             var target_node = document.getElementById(fmt('little-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
-            d3.select(target_node)
-                .style('fill', 'black')
             point_tooltip.show(d, target_node);
         })
-        .on('mouseout', function(d) {
-            var target_node = document.getElementById(fmt('little-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
-            d3.select(target_node)
-                .style('fill', function(d) {
-                    return color_by_chrom(d.chrom);
-                })
-            point_tooltip.hide(d);
-        });
+        .on('mouseout', point_tooltip.hide);
 
     gwas_plot.selectAll('a.variant_little_point')
         .data(window.unbinned_variants)
@@ -184,17 +175,9 @@ function create_gwas_plot() {
         })
         .on('mouseover', function(d) {
             //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
-            d3.select(this)
-                .style('fill', 'black')
             point_tooltip.show(d, this);
         })
-        .on('mouseout', function(d) {
-            d3.select(this)
-                .style('fill', function(d) {
-                    return color_by_chrom(d.chrom);
-                })
-            point_tooltip.hide(d);
-        });
+        .on('mouseout', point_tooltip.hide);
 
 
     gwas_plot.selectAll('g.bin')
