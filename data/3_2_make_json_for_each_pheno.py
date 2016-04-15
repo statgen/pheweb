@@ -12,7 +12,7 @@ import datetime
 
 BIN_LENGTH = 1e7
 NEGLOG10_PVAL_BIN_DIGITS = 1 # Use 0.1, 0.2, etc
-BIN_THRESHOLD = 5e-8 # pvals less than this threshold don't get binned.
+BIN_THRESHOLD = 1e-4 # pvals less than this threshold don't get binned.
 
 
 def parse_marker_id(marker_id):
