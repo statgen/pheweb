@@ -6,24 +6,30 @@ $.getJSON("/api/pheno/" + window.pheno + ".json").done(function(variants) {
 });
 
 var get_chrom_offsets = _.memoize(function() {
-    var chrom_padding = 5e7;
-    var chrom_lengths = {};
+    var chrom_padding = 2e7;
+    var chrom_extents = {};
 
-    var update_chrom_lengths = function(variant) {
-        if (!(variant.chrom in chrom_lengths) || (variant.pos > chrom_lengths[variant.chrom])) {
-            chrom_lengths[variant.chrom] = variant.pos;
+    var update_chrom_extents = function(variant) {
+        if (!(variant.chrom in chrom_extents)) {
+            chrom_extents[variant.chrom] = [variant.pos, variant.pos];
+        } else if (variant.pos > chrom_extents[variant.chrom][1]) {
+            chrom_extents[variant.chrom][1] = variant.pos;
+        } else if (variant.pos < chrom_extents[variant.chrom][0]) {
+            chrom_extents[variant.chrom][0] = variant.pos;
         }
     }
-    window.variant_bins.forEach(update_chrom_lengths);
-    window.unbinned_variants.forEach(update_chrom_lengths);
+    window.variant_bins.forEach(update_chrom_extents);
+    window.unbinned_variants.forEach(update_chrom_extents);
 
-    var chroms = _.sortBy(Object.keys(chrom_lengths), function(chrom) {
+    var chroms = _.sortBy(Object.keys(chrom_extents), function(chrom) {
         return Number.parseInt(chrom);
     });
+    // chrom_offsets are defined to be the numbers that make `get_genomic_position()` work.
+    // ie, they leave a gap of `chrom_padding` between the last variant on one chromosome and the first on the next.
     var chrom_offsets = {};
-    chrom_offsets[chroms[0]] = 0;
+    chrom_offsets[chroms[0]] = -chrom_extents[chroms[0]][0];
     for (var i=1; i<chroms.length; i++) {
-        chrom_offsets[chroms[i]] = chrom_offsets[chroms[i-1]] + chrom_lengths[chroms[i-1]] + chrom_padding;
+        chrom_offsets[chroms[i]] = chrom_offsets[chroms[i-1]] + chrom_extents[chroms[i-1]][1] - chrom_extents[chroms[i]][0] + chrom_padding;
     }
     return {
         "chrom_offsets": chrom_offsets,
