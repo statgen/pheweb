@@ -1,20 +1,20 @@
 $(function() {
     var defaults = [
         {
-            "display":"1:16344683-C-T",
-            "url":"/variant/1:16344683-C-T",
-            "value":"1:16344683-C-T"
+            "display":"6:396321-C-T",
+            "url":"/variant/6:396321-C-T",
+            "value":"6:396321-C-T",
         },
         {
-            "display":"340 (Migraine)",
-            "url":"/pheno/340",
-            "value":"340"
+            "display":"340.1 (Migrain with aura)",
+            "url":"/pheno/340.1",
+            "value":"340.1",
         },
         {
-            "display":"Polyneuropathy due to drugs (316.1)",
-            "url":"/pheno/316.1",
-            "value":"316.1"
-        }
+            "display":"Type 2 diabetes (250.2)",
+            "url":"/pheno/250.2",
+            "value":"250.2",
+        },
     ];
 
     autocomplete_bloodhound = new Bloodhound({

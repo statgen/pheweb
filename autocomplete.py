@@ -7,14 +7,9 @@ import marisa_trie
 from utils import parse_variant
 
 def get_autocompletion(query, phenos):
-    if query.strip() == '':
-        return get_variant_autocompletion('1')[:1] + \
-            get_phewas_code_autocompletion('3', phenos)[:1] + \
-            get_phewas_string_autocompletion('d', phenos)[:1]
-    else:
-        return get_variant_autocompletion(query) or \
-            get_phewas_code_autocompletion(query, phenos) or \
-            get_phewas_string_autocompletion(query, phenos)
+    return get_variant_autocompletion(query) or \
+        get_phewas_code_autocompletion(query, phenos) or \
+        get_phewas_string_autocompletion(query, phenos)
 
 
 sites_trie = marisa_trie.Trie().load('/var/pheweb_data/sites_trie.marisa')
