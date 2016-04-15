@@ -211,6 +211,21 @@
     });
 })();
 
+(function() { // Check Clinvar and render link.
+    var clinvar_api_template = _.template('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=<%= chrom %>[Chromosome]%20AND%20<%= pos %>[Base%20Position%20for%20Assembly%20GRCh37]&retmode=json');
+    var clinvar_api_url = clinvar_api_template(window.variant);
+
+    var clinvar_link_template = _.template('http://www.ncbi.nlm.nih.gov/clinvar?term=<%= chrom %>[Chromosome]%20AND%20<%= pos %>[Base%20Position%20for%20Assembly%20GRCh37]');
+    var clinvar_link_url = clinvar_link_template(window.variant);
+
+    $.getJSON(clinvar_api_url).done(function(result) {
+        if (result.esearchresult.count !== "0") {
+            // It's in ClinVar
+            $('#clinvar-link').html(', <a href="{URL}" target="_blank">Clinvar</a>'.replace('{URL}', clinvar_link_url));
+        }
+    });
+})();
+
 function fmt(format) {
     var args = Array.prototype.slice.call(arguments, 1);
     return format.replace(/{(\d+)}/g, function(match, number) {

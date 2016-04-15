@@ -60,8 +60,7 @@
             <div class="col-xs-12">
                 <h1 style="margin-top:0">{{ variant.variant_name }}</h1>
                 <p>View on
-                  <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>,
-                  <a href="http://www.ncbi.nlm.nih.gov/clinvar?term={{ variant.chrom }}[Chromosome]%20AND%20{{ variant.pos }}[Base%20Position%20for%20Assembly%20GRCh37]">ClinVar</a>
+                  <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a><span style="font-weight:bold" id="clinvar-link"></span>
                 </p>
                 <div id="phewas_plot_container">
                 </div>
