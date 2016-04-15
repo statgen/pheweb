@@ -148,21 +148,15 @@ function create_gwas_plot() {
             //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
             var target_node = document.getElementById(fmt('little-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
             d3.select(target_node)
-                .style('fill-opacity', 1)
                 .style('fill', 'black')
-                .style('stroke', 'black');
             point_tooltip.show(d, target_node);
         })
         .on('mouseout', function(d) {
             var target_node = document.getElementById(fmt('little-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
             d3.select(target_node)
-                .style('fill-opacity', 0.5)
                 .style('fill', function(d) {
                     return color_by_chrom(d.chrom);
                 })
-                .style('stroke', function(d) {;
-                    return color_by_chrom(d.chrom);
-                });
             point_tooltip.hide(d);
         });
 
@@ -184,32 +178,21 @@ function create_gwas_plot() {
         .attr('cy', function(d) {
             return y_scale(-Math.log10(d.pval));
         })
-        .attr('r', 2)
+        .attr('r', 2.3)
         .style('fill', function(d) {
-            return color_by_chrom(d.chrom);
-        })
-        .style('fill-opacity', 0.5)
-        .style('stroke-width', 1)
-        .style('stroke', function(d) {
             return color_by_chrom(d.chrom);
         })
         .on('mouseover', function(d) {
             //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
             d3.select(this)
-                .style('fill-opacity', 1)
                 .style('fill', 'black')
-                .style('stroke', 'black');
             point_tooltip.show(d, this);
         })
         .on('mouseout', function(d) {
             d3.select(this)
-                .style('fill-opacity', 0.5)
                 .style('fill', function(d) {
                     return color_by_chrom(d.chrom);
                 })
-                .style('stroke', function(d) {;
-                    return color_by_chrom(d.chrom);
-                });
             point_tooltip.hide(d);
         });
 
@@ -231,14 +214,8 @@ function create_gwas_plot() {
         .attr('cy', function(d) {
             return y_scale(d);
         })
-        .attr('r', 2)
+        .attr('r', 2.3)
         .style('fill', function() {
-            // return color_by_chrom(d3.select(this.parentNode).datum().chrom);
-            return color_by_chrom(this.parentNode.__data__.chrom);
-        })
-        .style('fill-opacity', 0.5)
-        .style('stroke-width', 1)
-        .style('stroke', function() {
             // return color_by_chrom(d3.select(this.parentNode).datum().chrom);
             return color_by_chrom(this.parentNode.__data__.chrom);
         });
