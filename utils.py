@@ -4,6 +4,9 @@ from __future__ import print_function, division, absolute_import
 import re
 import itertools
 import math
+import json
+import gzip
+import os
 
 
 def parse_variant(query, default_chrom_pos = True):
@@ -38,3 +41,21 @@ def round_sig(x, digits):
     return 0 if x==0 else round(x, digits-1-int(math.floor(math.log10(abs(x)))))
 assert round_sig(0.00123, 2) == 0.0012
 assert round_sig(1.59e-10, 2) == 1.6e-10
+
+
+def get_phenos_with_colnums(app_root_path):
+    with open(os.path.join(app_root_path, 'data/phenos.json')) as f:
+        phenos = json.load(f)
+    with gzip.open('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz') as f:
+        header = f.readline().rstrip('\n').split('\t')
+    assert header[:4] == ['#CHROM', 'BEG', 'MARKER_ID', 'MAF']
+    for colnum, colname in enumerate(header[4:], start=4):
+        if colnum % 2 == 0:
+            phewas_code = colname.rstrip('.P')
+            phenos[phewas_code]['colnum_pval'] = colnum
+        else:
+            phewas_code = colname.rstrip('.B')
+            phenos[phewas_code]['colnum_beta'] = colnum
+    for phewas_code in phenos:
+        assert 'colnum_pval' in phenos[phewas_code] and 'colnum_beta' in phenos[phewas_code]
+    return phenos

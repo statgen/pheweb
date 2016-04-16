@@ -2,38 +2,18 @@
 
 from __future__ import print_function, division, absolute_import
 
-import psycopg2
-import json
 import os.path
 import pysam
-import itertools
-import re
-import gzip
 
-from utils import parse_variant, make_marker_id
+from utils import parse_variant, make_marker_id, get_phenos_with_colnums
 from autocomplete import get_autocompletion, get_best_completion
 
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
 app = Flask(__name__)
 app.config.from_object('flask_config')
 
-with open(os.path.join(app.root_path, 'data/phenos.json')) as f:
-    phenos = json.load(f)
 
-with gzip.open('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz') as f:
-    header = f.readline().rstrip('\n').split('\t')
-    assert header[:4] == ['#CHROM', 'BEG', 'MARKER_ID', 'MAF']
-    for colnum, colname in enumerate(header):
-        if colnum <= 3: continue
-        elif colnum % 2 == 0:
-            phewas_code = colname.rstrip('.P')
-            phenos[phewas_code]['colnum_pval'] = colnum
-        else:
-            phewas_code = colname.rstrip('.B')
-            phenos[phewas_code]['colnum_beta'] = colnum
-for phewas_code in phenos:
-    assert 'colnum_pval' in phenos[phewas_code] and 'colnum_beta' in phenos[phewas_code]
-
+phenos = get_phenos_with_colnums(app.root_path)
 def get_phenos(): # TODO why can't I use `phenos` in routes?
     return phenos
 
@@ -98,7 +78,7 @@ def get_variant(query):
 @app.route('/api/variant/<query>')
 def api_variant(query):
     variant = get_variant(query)
-    return Response(json.dumps(variant), mimetype='application/json')
+    return jsonify(variant)
 
 @app.route('/variant')
 def variant_page_with_get_params():
@@ -153,5 +133,6 @@ def error_page(message):
 
 
 if __name__ == '__main__':
-    extra_files = 'templates/about.html templates/error.html templates/index.html templates/layout.html templates/variant.html templates/pheno.html'.split()
+    import glob
+    extra_files = glob.glob('templates/*.html')
     app.run(host='browser.sph.umich.edu', port=5000, threaded=True, debug=False, use_reloader=True, extra_files=extra_files)
