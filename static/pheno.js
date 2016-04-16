@@ -24,16 +24,25 @@ var get_chrom_offsets = _.memoize(function() {
     var chroms = _.sortBy(Object.keys(chrom_extents), function(chrom) {
         return Number.parseInt(chrom);
     });
+
+    var chrom_genomic_start_positions = {};
+    chrom_genomic_start_positions[chroms[0]] = 0;
+    for (var i=1; i<chroms.length; i++) {
+        chrom_genomic_start_positions[chroms[i]] = chrom_genomic_start_positions[chroms[i-1]] + chrom_extents[chroms[i-1]][1] - chrom_extents[chroms[i-1]][0] + chrom_padding;
+    }
+
     // chrom_offsets are defined to be the numbers that make `get_genomic_position()` work.
     // ie, they leave a gap of `chrom_padding` between the last variant on one chromosome and the first on the next.
     var chrom_offsets = {};
-    chrom_offsets[chroms[0]] = -chrom_extents[chroms[0]][0];
-    for (var i=1; i<chroms.length; i++) {
-        chrom_offsets[chroms[i]] = chrom_offsets[chroms[i-1]] + chrom_extents[chroms[i-1]][1] - chrom_extents[chroms[i]][0] + chrom_padding;
-    }
+    Object.keys(chrom_genomic_start_positions).forEach(function(chrom) {
+        chrom_offsets[chrom] = chrom_genomic_start_positions[chrom] - chrom_extents[chrom][0];
+    });
+
     return {
-        "chrom_offsets": chrom_offsets,
-        "chroms": chroms,
+        chrom_extents: chrom_extents,
+        chroms: chroms,
+        chrom_genomic_start_positions: chrom_genomic_start_positions,
+        chrom_offsets: chrom_offsets,
     };
 });
 
@@ -132,11 +141,13 @@ function create_gwas_plot() {
         .offset([-6,0]);
     gwas_svg.call(point_tooltip);
 
-    gwas_plot.selectAll('a.variant_big_point')
+    gwas_plot.append('g')
+        .attr('class', 'variant_hover_rings')
+        .selectAll('a.variant_hover_ring')
         .data(window.unbinned_variants)
         .enter()
         .append('a')
-        .attr('class', 'variant_big_point')
+        .attr('class', 'variant_hover_ring')
         .attr('xlink:href', function(d) {
             return fmt('/variant/{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
         })
@@ -152,22 +163,24 @@ function create_gwas_plot() {
         .style('stroke-width', 1)
         .on('mouseover', function(d) {
             //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
-            var target_node = document.getElementById(fmt('little-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
+            var target_node = document.getElementById(fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
             point_tooltip.show(d, target_node);
         })
         .on('mouseout', point_tooltip.hide);
 
-    gwas_plot.selectAll('a.variant_little_point')
+    gwas_plot.append('g')
+        .attr('class', 'variant_points')
+        .selectAll('a.variant_point')
         .data(window.unbinned_variants)
         .enter()
         .append('a')
-        .attr('class', 'variant_little_point')
+        .attr('class', 'variant_point')
         .attr('xlink:href', function(d) {
             return fmt('/variant/{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
         })
         .append('circle')
         .attr('id', function(d) {
-            return fmt('little-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
+            return fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
         })
         .attr('cx', function(d) {
             return x_scale(get_genomic_position(d));
@@ -186,7 +199,9 @@ function create_gwas_plot() {
         .on('mouseout', point_tooltip.hide);
 
 
-    gwas_plot.selectAll('g.bin')
+    gwas_plot.append('g')
+        .attr('class', 'bins')
+        .selectAll('g.bin')
         .data(window.variant_bins)
         .enter()
         .append('g')
@@ -216,7 +231,7 @@ function create_gwas_plot() {
         .tickFormat(d3.format("d"));
     gwas_plot.append("g")
         .attr("class", "y axis")
-        .attr('transform', 'translate(-3,0)') // avoid letting points spill through the y axis.
+        .attr('transform', 'translate(-8,0)') // avoid letting points spill through the y axis.
         .call(yAxis);
 
     gwas_svg.append('text')
@@ -226,20 +241,34 @@ function create_gwas_plot() {
                                plot_height/2 + plot_margin.top))
         .text('-log10(pvalue)');
 
-    var xAxis = d3.svg.axis()
-        .scale(x_scale)
-        .orient("bottom");
-    gwas_plot.append("g")
-        .attr("class", "x axis")
-        .attr("transform", fmt("translate(0,{0})", plot_height))
-        .call(xAxis);
+    var chroms_and_midpoints = (function() {
+        var v = get_chrom_offsets();
+        return v.chroms.map(function(chrom) {
+            return {
+                chrom: chrom,
+                midpoint: v.chrom_genomic_start_positions[chrom] + (v.chrom_extents[chrom][1] - v.chrom_extents[chrom][0]) / 2,
+            };
+        });
+    })();
+    console.log(chroms_and_midpoints);
 
-    gwas_svg.append('text')
+    gwas_svg.selectAll('text.chrom_label')
+        .data(chroms_and_midpoints)
+        .enter()
+        .append('text')
         .style('text-anchor', 'middle')
-        .attr('transform', fmt('translate({0},{1})',
-                               plot_width/2 + plot_margin.left,
-                               plot_height + plot_margin.top + plot_margin.bottom*.9))
-        .text('Genomic Position');
+        .attr('transform', function(d) {
+            return fmt('translate({0},{1})',
+                       plot_margin.left + x_scale(d.midpoint),
+                       plot_height + plot_margin.top + 20);
+        })
+        .text(function(d) {
+            return d.chrom;
+        })
+        .style('fill', function(d) {
+            return color_by_chrom(d.chrom);
+        });
+
 }
 
 function fmt(format) {
