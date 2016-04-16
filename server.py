@@ -4,6 +4,7 @@ from __future__ import print_function, division, absolute_import
 
 import os.path
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
+from flask.ext.compress import Compress
 
 from utils import get_phenos_with_colnums, get_variant
 from autocomplete import get_autocompletion, get_best_completion
@@ -11,6 +12,7 @@ from autocomplete import get_autocompletion, get_best_completion
 
 app = Flask(__name__)
 app.config.from_object('flask_config')
+Compress(app)
 
 phenos = get_phenos_with_colnums(app.root_path)
 
