@@ -3,6 +3,7 @@ from __future__ import print_function, division, absolute_import
 
 import re
 import itertools
+import math
 
 
 def parse_variant(query, default_chrom_pos = True):
@@ -26,8 +27,14 @@ def parse_marker_id(marker_id):
     chr1, pos1, ref, alt, chr2, pos2 = re.match(r'([^:]+):([0-9]+)_([-ATCG]+)/([-ATCG]+)_([^:]+):([0-9]+)', marker_id).groups()
     assert chr1 == chr2
     assert pos1 == pos2
-    return chr1, pos1, ref, alt
+    return chr1, int(pos1), ref, alt
 
 
 def make_marker_id(chrom, pos, ref, alt):
     return '{chrom}:{pos}_{ref}/{alt}_{chrom}:{pos}'.format(chrom=chrom, pos=pos, ref=ref, alt=alt)
+
+
+def round_sig(x, digits):
+    return 0 if x==0 else round(x, digits-1-int(math.floor(math.log10(abs(x)))))
+assert round_sig(0.00123, 2) == 0.0012
+assert round_sig(1.59e-10, 2) == 1.6e-10

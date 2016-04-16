@@ -10,7 +10,7 @@ import itertools
 import re
 import gzip
 
-from utils import parse_variant, parse_marker_id, make_marker_id
+from utils import parse_variant, make_marker_id
 from autocomplete import get_autocompletion, get_best_completion
 
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory

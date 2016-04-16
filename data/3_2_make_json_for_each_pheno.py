@@ -11,22 +11,15 @@ import math
 import datetime
 import multiprocessing
 
+import sys
+sys.path.insert(0, os.path.join(sys.path[0], '..'))
+from utils import round_sig, parse_marker_id
+
 BIN_LENGTH = 3e6
 NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
 NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 BIN_THRESHOLD = 1e-4 # pvals less than this threshold don't get binned.
 
-
-def round_sig(x, digits):
-    return 0 if x==0 else round(x, digits-1-int(math.floor(math.log10(abs(x)))))
-assert round_sig(0.00123, 2) == 0.0012
-assert round_sig(1.59e-10, 2) == 1.6e-10
-
-def parse_marker_id(marker_id):
-    chr1, pos1, ref, alt, chr2, pos2 = re.match(r'([^:]+):([0-9]+)_([-ATCG]+)/([-ATCG]+)_([^:]+):([0-9]+)', marker_id).groups()
-    assert chr1 == chr2
-    assert pos1 == pos2
-    return chr1, int(pos1), ref, alt
 
 def parse_variant_tuple(variant):
     chrom, pos, maf, pval, beta = variant[0], int(variant[1]), float(variant[3]), float(variant[4]), float(variant[5])
