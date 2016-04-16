@@ -77,7 +77,7 @@ def get_variant(query, phenos):
     else: # didn't break
         return None
 
-    maf = float(matching_variant_row[3])
+    maf = round_sig(float(matching_variant_row[3]), 3)
     assert 0 < maf <= 0.5
 
     rv = {
