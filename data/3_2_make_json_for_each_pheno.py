@@ -15,7 +15,7 @@ import sys
 sys.path.insert(0, os.path.join(sys.path[0], '..'))
 from utils import round_sig, parse_marker_id
 
-BIN_LENGTH = 3e6
+BIN_LENGTH = int(3e6)
 NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
 NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 BIN_THRESHOLD = 1e-4 # pvals less than this threshold don't get binned.
@@ -70,7 +70,7 @@ def bin_variants(variants):
     bins = [b for b in bins if len(b['neglog10_pvals']) != 0]
     for b in bins:
         b['neglog10_pvals'] = sorted(b['neglog10_pvals'])
-        b['pos'] = b['startpos'] + int(BIN_LENGTH/2)
+        b['pos'] = int(b['startpos'] + BIN_LENGTH/2)
         del b['startpos']
 
     return bins, unbinned_variants
