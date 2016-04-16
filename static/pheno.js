@@ -141,6 +141,7 @@ function create_gwas_plot() {
         .offset([-6,0]);
     gwas_svg.call(point_tooltip);
 
+    function pp1() {
     gwas_plot.append('g')
         .attr('class', 'variant_hover_rings')
         .selectAll('a.variant_hover_ring')
@@ -167,7 +168,10 @@ function create_gwas_plot() {
             point_tooltip.show(d, target_node);
         })
         .on('mouseout', point_tooltip.hide);
+    }
+    pp1();
 
+    function pp2() {
     gwas_plot.append('g')
         .attr('class', 'variant_points')
         .selectAll('a.variant_point')
@@ -197,8 +201,10 @@ function create_gwas_plot() {
             point_tooltip.show(d, this);
         })
         .on('mouseout', point_tooltip.hide);
+    }
+    pp2();
 
-
+    function pp3() { // drawing the ~60k binned variant circles takes ~500ms.  The (far fewer) unbinned variants take much less time.
     gwas_plot.append('g')
         .attr('class', 'bins')
         .selectAll('g.bin')
@@ -206,23 +212,51 @@ function create_gwas_plot() {
         .enter()
         .append('g')
         .attr('class', 'bin')
+        .each(function(d) {
+            d.x = x_scale(get_genomic_position(d));
+            d.color = color_by_chrom(d.chrom);
+        })
         .selectAll('circle.binned_variant_little_point')
         .data(function(d) { return d.neglog10_pvals; })
         .enter()
         .append('circle')
         .attr('class', 'binned_variant_little_point')
         .attr('cx', function() {
-            //return x_scale(get_genomic_position(d3.select(this.parentNode).datum()));
-            return x_scale(get_genomic_position(this.parentNode.__data__));
+            //return x_scale(get_genomic_position(d3.select(this.parentNode).datum())); //slow
+            //return x_scale(get_genomic_position(this.parentNode.__data__)); //slow
+            return this.parentNode.__data__.x;
         })
-        .attr('cy', function(d) {
-            return y_scale(d);
+        .attr('cy', function(neglog10_pval) {
+            return y_scale(neglog10_pval);
         })
         .attr('r', 2.3)
         .style('fill', function() {
-            // return color_by_chrom(d3.select(this.parentNode).datum().chrom);
-            return color_by_chrom(this.parentNode.__data__.chrom);
+            // return color_by_chrom(d3.select(this.parentNode).datum().chrom); //slow
+            // return color_by_chrom(this.parentNode.__data__.chrom); //slow?
+            return this.parentNode.__data__.color;
         });
+    }
+    pp3();
+
+    function pp3_2() {
+    gwas_plot.selectAll('nopenopenope')
+        .data(window.variant_bins)
+        .enter()
+        .append('g')
+        .each(function(bin) {
+            var x = x_scale(get_genomic_position(bin));
+            var color = color_by_chrom(bin.chrom);
+            bin.neglog10_pvals.forEach(function(neglog10_pval) {
+                gwas_plot
+                    .append('circle')
+                    .attr('cx', x)
+                    .attr('cy', y_scale(neglog10_pval))
+                    .attr('r', 2.3)
+                    .style('fill', color);
+            });
+        });
+    }
+    //pp3_2(); //slow
 
     // Axes
     var yAxis = d3.svg.axis()
