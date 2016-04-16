@@ -1,4 +1,4 @@
-$(function() {
+(function() {
     var defaults = [
         {
             "display":"6:396321-C-T",
@@ -49,22 +49,24 @@ $(function() {
         }
     }
 
-    $('.typeahead').typeahead({
-        hint: false,
-        highlight: true,
-        minLength: 0,
-    }, {
-        name: 'autocomplete',
-        source: autocomplete_bloodhound_with_defaults,
-        display: 'value',
-        limit: 100,
-        templates: {
-            suggestion: _.template("<div><%= display %></div>"),
-            empty: "<div class='tt-empty-message'>No matches found.</div>"
-        }
-    });
+    $(function() {
+        $('.typeahead').typeahead({
+            hint: false,
+            highlight: true,
+            minLength: 0,
+        }, {
+            name: 'autocomplete',
+            source: autocomplete_bloodhound_with_defaults,
+            display: 'value',
+            limit: 100,
+            templates: {
+                suggestion: _.template("<div><%= display %></div>"),
+                empty: "<div class='tt-empty-message'>No matches found.</div>"
+            }
+        });
 
-    $('.typeahead').bind('typeahead:select', function(ev, suggestion) {
-        window.location.href = suggestion.url;
+        $('.typeahead').bind('typeahead:select', function(ev, suggestion) {
+            window.location.href = suggestion.url;
+        });
     });
-});
+})();
