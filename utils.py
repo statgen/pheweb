@@ -7,6 +7,7 @@ import math
 import json
 import gzip
 import os
+import pysam
 
 
 def parse_variant(query, default_chrom_pos = True):
@@ -59,3 +60,44 @@ def get_phenos_with_colnums(app_root_path):
     for phewas_code in phenos:
         assert 'colnum_pval' in phenos[phewas_code] and 'colnum_beta' in phenos[phewas_code]
     return phenos
+
+
+def get_variant(query, phenos):
+    # todo: differentiate between parse errors and variants-not-found
+    chrom, pos, ref, alt = parse_variant(query)
+    assert None not in [chrom, pos, ref, alt]
+    marker_id = make_marker_id(chrom, pos, ref, alt)
+
+    tabix_file = pysam.TabixFile('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz')
+    tabix_iter = tabix_file.fetch(chrom, pos, pos+1, parser = pysam.asTuple())
+    for variant_row in tabix_iter:
+        if variant_row[2] == marker_id:
+            matching_variant_row = tuple(variant_row)
+            break
+    else: # didn't break
+        return None
+
+    maf = float(matching_variant_row[3])
+    assert 0 < maf <= 0.5
+
+    rv = {
+        'variant_name': '{} : {:,} {}>{}'.format(chrom, pos, ref, alt),
+        'chrom': chrom,
+        'pos': pos,
+        'ref': ref,
+        'alt': alt,
+        'maf': maf,
+        'phenos': [],
+    }
+    for phewas_code, pheno in phenos.iteritems():
+        rv['phenos'].append({
+            'phewas_code': phewas_code,
+            'phewas_string': pheno['phewas_string'],
+            'category_name': pheno['category_string'],
+            'num_cases': pheno['num_cases'],
+            'num_controls': pheno['num_controls'],
+            'pval': float(matching_variant_row[pheno['colnum_pval']]),
+            # 'beta': float(matching_variant_row[pheno['colnum_beta']]),
+        })
+
+    return rv

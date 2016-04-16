@@ -3,19 +3,16 @@
 from __future__ import print_function, division, absolute_import
 
 import os.path
-import pysam
+from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
 
-from utils import parse_variant, make_marker_id, get_phenos_with_colnums
+from utils import get_phenos_with_colnums, get_variant
 from autocomplete import get_autocompletion, get_best_completion
 
-from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
+
 app = Flask(__name__)
 app.config.from_object('flask_config')
 
-
 phenos = get_phenos_with_colnums(app.root_path)
-def get_phenos(): # TODO why can't I use `phenos` in routes?
-    return phenos
 
 @app.route('/api/autocomplete')
 def autocomplete():
@@ -35,49 +32,9 @@ def go():
         return redirect(best_suggestion['url'])
     die("Couldn't find page for {!r}".format(query))
 
-def get_variant(query):
-    # todo: differentiate between parse errors and variants-not-found
-    chrom, pos, ref, alt = parse_variant(query)
-    assert None not in [chrom, pos, ref, alt]
-    marker_id = make_marker_id(chrom, pos, ref, alt)
-
-    tabix_file = pysam.TabixFile('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz')
-    tabix_iter = tabix_file.fetch(chrom, pos, pos+1, parser = pysam.asTuple())
-    for variant_row in tabix_iter:
-        if variant_row[2] == marker_id:
-            matching_variant_row = tuple(variant_row)
-            break
-    else: # didn't break
-        return None
-
-    maf = float(matching_variant_row[3])
-    assert 0 < maf <= 0.5
-
-    rv = {
-        'variant_name': '{} : {:,} {}>{}'.format(chrom, pos, ref, alt),
-        'chrom': chrom,
-        'pos': pos,
-        'ref': ref,
-        'alt': alt,
-        'maf': maf,
-        'phenos': [],
-    }
-    for phewas_code, pheno in get_phenos().iteritems():
-        rv['phenos'].append({
-            'phewas_code': phewas_code,
-            'phewas_string': pheno['phewas_string'],
-            'category_name': pheno['category_string'],
-            'num_cases': pheno['num_cases'],
-            'num_controls': pheno['num_controls'],
-            'pval': float(matching_variant_row[pheno['colnum_pval']]),
-            # 'beta': float(matching_variant_row[pheno['colnum_beta']]),
-        })
-
-    return rv
-
 @app.route('/api/variant/<query>')
 def api_variant(query):
-    variant = get_variant(query)
+    variant = get_variant(query, phenos)
     return jsonify(variant)
 
 @app.route('/variant')
@@ -89,7 +46,7 @@ def variant_page_with_get_params():
 @app.route('/variant/<query>')
 def variant_page(query):
     try:
-        variant = get_variant(query)
+        variant = get_variant(query, phenos)
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
