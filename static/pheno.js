@@ -21,9 +21,7 @@ var get_chrom_offsets = _.memoize(function() {
     window.variant_bins.forEach(update_chrom_extents);
     window.unbinned_variants.forEach(update_chrom_extents);
 
-    var chroms = _.sortBy(Object.keys(chrom_extents), function(chrom) {
-        return Number.parseInt(chrom);
-    });
+    var chroms = _.sortBy(Object.keys(chrom_extents), Number.parseInt);
 
     var chrom_genomic_start_positions = {};
     chrom_genomic_start_positions[chroms[0]] = 0;
@@ -77,19 +75,13 @@ function create_gwas_plot() {
     var significance_threshold = 5e-8;
     var significance_threshold_tooltip = d3.tip()
         .attr('class', 'd3-tip')
-        .html(function(d) {
-            return 'Significance Threshold: 5E-8';
-        })
+        .html('Significance Threshold: 5E-8')
         .offset([-8,0]);
     gwas_svg.call(significance_threshold_tooltip);
 
     var genomic_position_extent = (function() {
-        var extent1 = d3.extent(window.variant_bins, function(d) {
-            return get_genomic_position(d);
-        });
-        var extent2 = d3.extent(window.unbinned_variants, function(d) {
-            return get_genomic_position(d);
-        });
+        var extent1 = d3.extent(window.variant_bins, get_genomic_position);
+        var extent2 = d3.extent(window.unbinned_variants, get_genomic_position);
         return d3.extent(extent1.concat(extent2));
     })();
 
@@ -104,9 +96,7 @@ function create_gwas_plot() {
             });
         }
         return d3.max(window.variant_bins, function(bin) {
-            return d3.max(bin, function(d) {
-                return d.neglog10_pval;
-            });
+            return d3.max(bin, prop('neglog10_pval'));
         });
     })();
 
@@ -204,20 +194,22 @@ function create_gwas_plot() {
     }
     pp2();
 
+    //loop through to replace .each()
+
     function pp3() { // drawing the ~60k binned variant circles takes ~500ms.  The (far fewer) unbinned variants take much less time.
-    gwas_plot.append('g')
+    var bins = gwas_plot.append('g')
         .attr('class', 'bins')
         .selectAll('g.bin')
         .data(window.variant_bins)
         .enter()
         .append('g')
         .attr('class', 'bin')
-        .each(function(d) {
+        .each(function(d) { //todo: do this in a forEach
             d.x = x_scale(get_genomic_position(d));
             d.color = color_by_chrom(d.chrom);
-        })
-        .selectAll('circle.binned_variant_little_point')
-        .data(function(d) { return d.neglog10_pvals; })
+        });
+    bins.selectAll('circle.binned_variant_little_point')
+        .data(prop('neglog10_pvals'))
         .enter()
         .append('circle')
         .attr('class', 'binned_variant_little_point')
@@ -303,11 +295,4 @@ function create_gwas_plot() {
             return color_by_chrom(d.chrom);
         });
 
-}
-
-function fmt(format) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    return format.replace(/{(\d+)}/g, function(match, number) {
-        return (typeof args[number] != 'undefined') ? args[number] : match;
-    });
 }

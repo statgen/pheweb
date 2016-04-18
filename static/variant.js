@@ -46,16 +46,12 @@
             .domain([0, window.variant.phenos.length])
             .range([0, plot_width]);
 
-        var neglog10_min_pval = -Math.log10(d3.min(window.variant.phenos, function(d) {
-            return d.pval;
-        }));
+        var neglog10_min_pval = -Math.log10(d3.min(window.variant.phenos, prop('pval')));
         var y_scale = d3.scale.linear()
             .domain([neglog10_min_pval, 0])
             .range([0, plot_height]);
 
-        var unique_categories = d3.set(window.variant.phenos.map(function(cat) {
-            return cat.category_name;
-        })).values();
+        var unique_categories = d3.set(window.variant.phenos.map(prop('category_name'))).values();
         var color_by_category = d3.scale.category20()
             .domain(unique_categories);
 
@@ -73,9 +69,7 @@
         var significance_threshold = 3e-5;
         var significance_threshold_tooltip = d3.tip()
             .attr('class', 'd3-tip')
-            .html(function(d) {
-                return 'Significance Threshold: 3E-5';
-            })
+            .html('Significance Threshold: 3E-5')
             .offset([-8,0]);
         phewas_svg.call(significance_threshold_tooltip);
 
@@ -201,9 +195,7 @@
                            plot_margin.left + x_scale(d.myIndex) + 3,
                            plot_height + plot_margin.top + 15);
             })
-            .text(function(d) {
-                return d.category_name;
-            })
+            .text(prop('category_name'))
             .style('fill', function(d) {
                 return color_by_category(d.category_name);
             });
@@ -225,10 +217,3 @@
         }
     });
 })();
-
-function fmt(format) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    return format.replace(/{(\d+)}/g, function(match, number) {
-        return (typeof args[number] != 'undefined') ? args[number] : match;
-    });
-}

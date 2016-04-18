@@ -70,3 +70,16 @@
         });
     });
 })();
+
+
+// convenience functions
+function fmt(format) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return format.replace(/{(\d+)}/g, function(match, number) {
+        return (typeof args[number] != 'undefined') ? args[number] : match;
+    });
+}
+
+function prop(property) { //from d3-jetpack
+    return function(obj) { return obj[property]; }; //Maybe support indexes, multiple levels, etc.
+}
