@@ -52,7 +52,7 @@
             .range([0, plot_height]);
 
         var unique_categories = d3.set(window.variant.phenos.map(prop('category_name'))).values();
-        var color_by_category = d3.scale.category20()
+        var color_by_category = d3.scale.category20b()
             .domain(unique_categories);
 
         var phewas_svg = d3.select('#phewas_plot_container').append("svg")
