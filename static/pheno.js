@@ -202,12 +202,13 @@ function create_gwas_plot() {
             d.x = x_scale(get_genomic_position(d));
             d.color = color_by_chrom(d.chrom);
         });
-    bins.selectAll('circle.binned_variant_little_point')
+    bins.selectAll('circle.binned_variant_point')
         .data(prop('neglog10_pvals'))
         .enter()
         .append('circle')
-        .attr('class', 'binned_variant_little_point')
+        .attr('class', 'binned_variant_point')
         .attr('cx', function() {
+            // TODO: set transform on <g>.
             //return x_scale(get_genomic_position(d3.select(this.parentNode).datum())); //slow
             //return x_scale(get_genomic_position(this.parentNode.__data__)); //slow
             return this.parentNode.__data__.x;
@@ -221,6 +222,18 @@ function create_gwas_plot() {
             // return color_by_chrom(this.parentNode.__data__.chrom); //slow?
             return this.parentNode.__data__.color;
         });
+    bins.selectAll('circle.binned_variant_line')
+        .data(prop('neglog10_pval_extents'))
+        .enter()
+        .append('line')
+        .attr('class', 'binned_variant_line')
+        .attr('x1', function() { return this.parentNode.__data__.x; })
+        .attr('x2', function() { return this.parentNode.__data__.x; })
+        .attr('y1', function(d) { return y_scale(d[0]); })
+        .attr('y2', function(d) { return y_scale(d[1]); })
+        .style('stroke', function() { return this.parentNode.__data__.color; })
+        .style('stroke-width', 4.6)
+        .style('stroke-linecap', 'round');
     }
     pp3();
 

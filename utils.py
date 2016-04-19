@@ -7,7 +7,6 @@ import math
 import json
 import gzip
 import os
-import pysam
 
 
 def parse_variant(query, default_chrom_pos = True):
@@ -63,6 +62,7 @@ def get_phenos_with_colnums(app_root_path):
 
 
 def get_variant(query, phenos):
+    import pysam
     # todo: differentiate between parse errors and variants-not-found
     chrom, pos, ref, alt = parse_variant(query)
     assert None not in [chrom, pos, ref, alt]

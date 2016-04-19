@@ -31,6 +31,23 @@ def parse_variant_tuple(variant):
 def rounded_neglog10(pval):
     return round(-math.log10(pval) // NEGLOG10_PVAL_BIN_SIZE * NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
 
+def get_pvals_and_pval_extents(pvals):
+    # expects that NEGLOG10_PVAL_BIN_SIZE is the distance between adjacent bins.
+    pvals = sorted(pvals)
+    extents = [[pvals[0], pvals[0]]]
+    for p in pvals:
+        if extents[-1][1] + NEGLOG10_PVAL_BIN_SIZE * 1.1 > p:
+            extents[-1][1] = p
+        else:
+            extents.append([p,p])
+    rv_pvals, rv_pval_extents = [], []
+    for (start, end) in extents:
+        if start == end:
+            rv_pvals.append(start)
+        else:
+            rv_pval_extents.append([start,end])
+    return (rv_pvals, rv_pval_extents)
+
 def bin_variants(variants):
     bins = []
     unbinned_variants = []
@@ -69,7 +86,7 @@ def bin_variants(variants):
 
     bins = [b for b in bins if len(b['neglog10_pvals']) != 0]
     for b in bins:
-        b['neglog10_pvals'] = sorted(b['neglog10_pvals'])
+        b['neglog10_pvals'], b['neglog10_pval_extents'] = get_pvals_and_pval_extents(b['neglog10_pvals'])
         b['pos'] = int(b['startpos'] + BIN_LENGTH/2)
         del b['startpos']
 
