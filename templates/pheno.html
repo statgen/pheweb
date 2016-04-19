@@ -1,10 +1,15 @@
 {% extends "layout.html" %}
 
 {% block in_head %}
+<script type="text/javascript" src="{{ url_for('static', filename='pheno.js') }}"></script>
 <script type="text/javascript">
   window.pheno = {{ phewas_code|tojson|safe }};
+  $.getJSON("/api/pheno/" + window.pheno + ".json").done(function(variants) {
+      window.variant_bins = variants.variant_bins;
+      window.unbinned_variants = variants.unbinned_variants;
+      $(create_gwas_plot);
+  });
 </script>
-<script type="text/javascript" src="{{ url_for('static', filename='pheno.js') }}"></script>
 <style type="text/css">
 .d3-tip {
   line-height: 1;

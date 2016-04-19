@@ -1,10 +1,4 @@
 
-$.getJSON("/api/pheno/" + window.pheno + ".json").done(function(variants) {
-    window.variant_bins = variants.variant_bins;
-    window.unbinned_variants = variants.unbinned_variants;
-    $(create_gwas_plot);
-});
-
 var get_chrom_offsets = _.memoize(function() {
     var chrom_padding = 2e7;
     var chrom_extents = {};
