@@ -90,7 +90,7 @@ function create_gwas_plot() {
             });
         }
         return d3.max(window.variant_bins, function(bin) {
-            return d3.max(bin, prop('neglog10_pval'));
+            return d3.max(bin, _.property('neglog10_pval'));
         });
     })();
 
@@ -203,7 +203,7 @@ function create_gwas_plot() {
             d.color = color_by_chrom(d.chrom);
         });
     bins.selectAll('circle.binned_variant_point')
-        .data(prop('neglog10_pvals'))
+        .data(_.property('neglog10_pvals'))
         .enter()
         .append('circle')
         .attr('class', 'binned_variant_point')
@@ -223,7 +223,7 @@ function create_gwas_plot() {
             return this.parentNode.__data__.color;
         });
     bins.selectAll('circle.binned_variant_line')
-        .data(prop('neglog10_pval_extents'))
+        .data(_.property('neglog10_pval_extents'))
         .enter()
         .append('line')
         .attr('class', 'binned_variant_line')

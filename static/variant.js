@@ -46,12 +46,12 @@
             .domain([0, window.variant.phenos.length])
             .range([0, plot_width]);
 
-        var neglog10_min_pval = -Math.log10(d3.min(window.variant.phenos, prop('pval')));
+        var neglog10_min_pval = -Math.log10(d3.min(window.variant.phenos, _.property('pval')));
         var y_scale = d3.scale.linear()
             .domain([neglog10_min_pval, 0])
             .range([0, plot_height]);
 
-        var unique_categories = d3.set(window.variant.phenos.map(prop('category_name'))).values();
+        var unique_categories = d3.set(window.variant.phenos.map(_.property('category_name'))).values();
         var color_by_category = d3.scale.category20b()
             .domain(unique_categories);
 
@@ -195,7 +195,7 @@
                            plot_margin.left + x_scale(d.myIndex) + 3,
                            plot_height + plot_margin.top + 15);
             })
-            .text(prop('category_name'))
+            .text(_.property('category_name'))
             .style('fill', function(d) {
                 return color_by_category(d.category_name);
             });

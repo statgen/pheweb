@@ -79,7 +79,3 @@ function fmt(format) {
         return (typeof args[number] != 'undefined') ? args[number] : match;
     });
 }
-
-function prop(property) { //from d3-jetpack
-    return function(obj) { return obj[property]; }; //Maybe support indexes, multiple levels, etc.
-}
