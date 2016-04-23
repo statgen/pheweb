@@ -90,6 +90,11 @@ def error_page(message):
         message=message
     ), 404
 
+# Resist some CSRF attacks
+@app.after_request
+def apply_caching(response):
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    return response
 
 if __name__ == '__main__':
     import glob
