@@ -2,6 +2,11 @@
 
 from __future__ import print_function, division, absolute_import
 
+import os.path
+
+activate_this = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../venv/bin/activate_this.py')
+execfile(activate_this, dict(__file__=activate_this))
+
 import csv
 import json
 

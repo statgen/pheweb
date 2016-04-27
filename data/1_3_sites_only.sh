@@ -2,6 +2,8 @@
 
 set -eou pipefail
 
-/net/mario/cluster/bin/pigz -dc "/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz" |
+data_dir="/var/pheweb_data/"
+
+/net/mario/cluster/bin/pigz -dc "$data_dir/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz" |
 cut -d $'\t' -f 1,2,3 |
-/net/mario/cluster/bin/pigz > "/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20_sites.vcf.gz"
+/net/mario/cluster/bin/pigz > "$data_dir/phewas_maf_gte_1e-2_ncases_gte_20_sites.vcf.gz"

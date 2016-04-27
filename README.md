@@ -31,17 +31,16 @@ Tabix is:
 
 TODO GWAS backend
 =================
-- Regenerate jsons with binned variants.
 
 
 TODO GWAS frontend
 ==================
-- Display chromosomes on x-axis
 
 
 TODO PheWAS backend
 ===================
-- Search by rsid (make a RecordTrie that maps to 'chrom-pos-ref-alt')
+- Search by rs# (make a RecordTrie that maps rs# to 'chrom-pos-ref-alt')
+- Show rs# (Just make a dict? Or map sites_trie to rs#?)
 
 
 TODO PheWAS frontend

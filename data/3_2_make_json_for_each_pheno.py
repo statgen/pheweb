@@ -2,6 +2,11 @@
 
 from __future__ import print_function, division, absolute_import
 
+import os.path
+
+activate_this = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../venv/bin/activate_this.py')
+execfile(activate_this, dict(__file__=activate_this))
+
 import glob
 import re
 import os
@@ -15,6 +20,7 @@ import sys
 sys.path.insert(0, os.path.join(sys.path[0], '..'))
 from utils import round_sig, parse_marker_id
 
+data_dir = '/var/pheweb_data/'
 BIN_LENGTH = int(3e6)
 NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
 NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
@@ -121,12 +127,12 @@ def make_json_file(args):
 
 
 def get_files_to_convert():
-    src_filenames = glob.glob('/var/pheweb_data/gwas-one-pheno/*.vcf.gz')
+    src_filenames = glob.glob(data_dir + '/gwas-one-pheno/*.vcf.gz')
     print('source files:', len(src_filenames))
     for src_filename in src_filenames:
         basename = os.path.basename(src_filename)
-        dest_filename = '/var/pheweb_data/gwas-json-binned/{}.json'.format(basename.replace('.vcf.gz', ''))
-        tmp_filename = '/var/pheweb_data/gwas-json-binned/tmp-{}.json'.format(basename.replace('.vcf.gz', ''))
+        dest_filename = '{}/gwas-json-binned/{}.json'.format(data_dir, basename.replace('.vcf.gz', ''))
+        tmp_filename = '{}/gwas-json-binned/tmp-{}.json'.format(data_dir, basename.replace('.vcf.gz', ''))
         assert not os.path.exists(tmp_filename), tmp_filename # It's not really a problem, just surprising.
         if not os.path.exists(dest_filename):
             yield (src_filename, dest_filename, tmp_filename)

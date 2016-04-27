@@ -2,6 +2,11 @@
 
 from __future__ import print_function, division, absolute_import
 
+import os.path
+
+activate_this = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../venv/bin/activate_this.py')
+execfile(activate_this, dict(__file__=activate_this))
+
 import gzip
 import collections
 import os.path
@@ -9,7 +14,8 @@ import subprocess
 import datetime
 import shutil
 
-epacts_results_filename = '/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz'
+data_dir = '/var/pheweb_data/'
+epacts_results_filename = data_dir + '/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz'
 
 def get_phenos_in_file(filename):
     with gzip.open(filename) as f:
@@ -33,12 +39,12 @@ def get_halves(ordered_dict):
     keys = ordered_dict.keys()
     return (keys[:midpoint], keys[midpoint:])
 
-work_todo = ['/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz']
+work_todo = [data_dir + '/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz']
 
 while work_todo:
     print('{} \t{}'.format(
         datetime.datetime.now(),
-        ' '.join(path.replace('/var/pheweb_data/','').replace('gwas-intermediate-splits/','').replace('.vcf.gz','') for path in work_todo)
+        ' '.join(path.replace(data_dir,'').replace('gwas-intermediate-splits/','').replace('.vcf.gz','') for path in work_todo)
     ))
 
     file_to_split = work_todo.pop()
@@ -47,9 +53,9 @@ while work_todo:
 
     for half in get_halves(phenos):
         if len(half) == 1:
-            dest_filename = '/var/pheweb_data/gwas-one-pheno/{}.vcf.gz'.format(half[0])
+            dest_filename = '{}/gwas-one-pheno/{}.vcf.gz'.format(data_dir, half[0])
         else:
-            dest_filename = '/var/pheweb_data/gwas-intermediate-splits/{}-{}.vcf.gz'.format(half[0], half[-1])
+            dest_filename = '{}/gwas-intermediate-splits/{}-{}.vcf.gz'.format(data_dir, half[0], half[-1])
 
         if os.path.exists(dest_filename):
             print('already exists: {}'.format(dest_filename))
@@ -64,9 +70,9 @@ while work_todo:
             # script = """/net/mario/cluster/bin/pigz -dc '{}' | cut -d "\t" -f '{}' | /net/mario/cluster/bin/pigz > '{}'""".format(file_to_split, columns, dest_filename)
 
             # Try to be idempotent.
-            script = """/net/mario/cluster/bin/pigz -dc '{}' | cut -d "\t" -f '{}' | /net/mario/cluster/bin/pigz > '/var/pheweb_data/tmp.vcf.gz'""".format(file_to_split, columns)
+            script = """/net/mario/cluster/bin/pigz -dc '{}' | cut -d "\t" -f '{}' | /net/mario/cluster/bin/pigz > '{}/tmp.vcf.gz'""".format(file_to_split, columns, data_dir)
             subprocess.call(script, shell=True)
-            shutil.move('/var/pheweb_data/tmp.vcf.gz', dest_filename)
+            shutil.move('{}/tmp.vcf.gz'.format(data_dir), dest_filename)
 
         if len(half) != 1:
             work_todo.append(dest_filename)
