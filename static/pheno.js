@@ -309,8 +309,11 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 function create_qq_plot(qq) {
     window.qq = qq; //for debugging
     $(function() {
+
+        var exp_max = d3.max(qq, function(d) { return d[0]; });
+        var obs_max = Math.max(exp_max, Math.min(9.01, d3.max(qq, function(d) { return d[1]; }))); // Constrain obs_max in [exp_max, 9.01]. `9.01` preserves the tick `9`.
+
         var svg_width = $('#qq_plot_container').width();
-        var svg_height = svg_width;
         var plot_margin = {
             'left': 70,
             'right': 30,
@@ -318,7 +321,9 @@ function create_qq_plot(qq) {
             'bottom': 50,
         };
         var plot_width = svg_width - plot_margin.left - plot_margin.right;
-        var plot_height = svg_height - plot_margin.top - plot_margin.bottom;
+        // Size the plot to make things square.  This way, x_scale and y_scale should be exactly equivalent.
+        var plot_height = plot_width / exp_max * obs_max;
+        var svg_height = plot_height + plot_margin.top + plot_margin.bottom;
 
         var qq_svg = d3.select('#qq_plot_container').append("svg")
             .attr('id', 'qq_svg')
@@ -330,21 +335,19 @@ function create_qq_plot(qq) {
             .attr('id', 'qq_plot')
             .attr("transform", fmt("translate({0},{1})", plot_margin.left, plot_margin.top));
 
-        var exp_extent = d3.extent(qq, function(d) { return d[0]; });
-        var obs_extent = d3.extent(qq, function(d) { return d[1]; });
         var x_scale = d3.scale.linear()
-            .domain(exp_extent)
+            .domain([0, exp_max])
             .range([0, plot_width]);
         var y_scale = d3.scale.linear()
-            .domain(obs_extent)
+            .domain([0, obs_max])
             .range([plot_height, 0]);
 
         // y=x line
         qq_plot.append('line')
             .attr('x1', x_scale(0))
-            .attr('x2', x_scale(exp_extent[1])) // TODO: min(exp, obs)
+            .attr('x2', x_scale(exp_max))
             .attr('y1', y_scale(0))
-            .attr('y2', y_scale(exp_extent[1])) // TODO: min(exp, obs)
+            .attr('y2', y_scale(exp_max))
             .attr('stroke-width', '5px')
             .attr('stroke', 'lightgray');
 
@@ -366,7 +369,9 @@ function create_qq_plot(qq) {
             .orient("bottom")
             .innerTickSize(-plot_height) // this approach to a grid is taken from <http://bl.ocks.org/hunzy/11110940>
             .outerTickSize(0)
-            .tickPadding(7);
+            .tickPadding(7)
+            .tickFormat(d3.format("d")) //integers
+            .tickValues([0,1,2,3,4,5,6,7,8,9]); //prevent unlabeled, non-integer ticks. Numbers out-of-bounds don't matter.
         qq_plot.append("g")
             .attr("class", "x axis")
             .attr("transform", fmt("translate(0,{0})", plot_height))
@@ -377,7 +382,9 @@ function create_qq_plot(qq) {
             .orient("left")
             .innerTickSize(-plot_width)
             .outerTickSize(0)
-            .tickPadding(7);
+            .tickPadding(7)
+            .tickFormat(d3.format("d")) //integers
+            .tickValues([0,1,2,3,4,5,6,7,8,9]); //prevent unlabeled, non-integer ticks. Numbers out-of-bounds don't matter.
         qq_plot.append("g")
             .attr("class", "y axis")
             .call(yAxis);
