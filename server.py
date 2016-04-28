@@ -60,6 +60,10 @@ def variant_page(query):
 def api_pheno(path):
     return send_from_directory('/var/pheweb_data/gwas-json-binned/', path)
 
+@app.route('/api/pheno-qq/<path:path>')
+def api_pheno_qq(path):
+    return send_from_directory('/var/pheweb_data/qq/', path)
+
 @app.route('/pheno/<phewas_code>')
 def pheno_page(phewas_code):
     try:
