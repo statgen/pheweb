@@ -3,6 +3,11 @@
 from __future__ import print_function, division, absolute_import
 
 import os.path
+
+my_dir = os.path.dirname(os.path.abspath(__file__))
+activate_this = os.path.join(my_dir, '../venv/bin/activate_this.py')
+execfile(activate_this, dict(__file__=activate_this))
+
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
 from flask.ext.compress import Compress
 
