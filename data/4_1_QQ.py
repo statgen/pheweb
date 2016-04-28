@@ -16,6 +16,7 @@ import gzip
 import math
 import datetime
 import multiprocessing
+import scipy.stats
 
 import sys
 sys.path.insert(0, os.path.join(my_dir, '..'))
@@ -26,6 +27,18 @@ NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
 NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 NUM_BINS = 1000
 
+def approx_equal(a, b, tolerance=1e-4):
+    return abs(a-b) <= max(abs(a), abs(b)) * tolerance
+assert approx_equal(42, 42.0000001)
+assert not approx_equal(42, 42.01)
+
+def gc_value(median_pval):
+    # This should be equivalent to this R: `qchisq(p, df=1, lower.tail=F) / qchisq(.5, df=1, lower.tail=F)`
+    return scipy.stats.chi2.ppf(1 - median_pval, 1) / scipy.stats.chi2.ppf(0.5, 1)
+assert approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
+assert approx_equal(gc_value(0.5), 1)
+assert approx_equal(gc_value(0.50001), 0.9999533)
+assert approx_equal(gc_value(0.6123), 0.5645607)
 
 def parse_variant_tuple(variant):
     chrom, pos, maf, pval, beta = variant[0], int(variant[1]), float(variant[3]), float(variant[4]), float(variant[5])
@@ -44,6 +57,7 @@ def make_qq(variants):
         neglog10_pvals.append(-math.log10(pval))
     neglog10_pvals = sorted(neglog10_pvals)
 
+    # QQ
     max_exp_neglog10_pval = -math.log10(1/len(neglog10_pvals)) #expected
     max_obs_neglog10_pval = max(neglog10_pvals) #observed
     # print(max_obs_neglog10_pval, max_exp_neglog10_pval)
@@ -56,15 +70,26 @@ def make_qq(variants):
         occupied_bins.add( (exp_bin,obs_bin) )
     # print(sorted(occupied_bins))
 
-    rv = []
+    qq = []
     for exp_bin, obs_bin in occupied_bins:
         assert exp_bin <= NUM_BINS, exp_bin
         assert obs_bin <= NUM_BINS, obs_bin
-        rv.append((
+        qq.append((
             exp_bin / NUM_BINS * max_exp_neglog10_pval,
             obs_bin / NUM_BINS * max_obs_neglog10_pval
         ))
-    rv = sorted(rv)
+    qq = sorted(qq)
+
+    # GC_value lambda
+    median_neglog10_pval = neglog10_pvals[len(neglog10_pvals)//2]
+    median_pval = 10 ** -median_neglog10_pval # I know, `10 ** -(-math.log10(pval))` is gross.
+    gc_value_lambda = gc_value(median_pval)
+
+    rv = {
+        'qq': qq,
+        'median_pval': median_pval,
+        'gc_value_lambda': round_sig(gc_value_lambda, 5),
+    }
     return rv
 
 
@@ -80,9 +105,7 @@ def make_json_file(args):
         assert re.match(r'[0-9]+(?:\.[0-9]+)?\.B', header[5])
 
         variants = (line.rstrip('\n').split('\t') for line in f)
-        qq = make_qq(variants)
-
-    rv = {'qq': qq}
+        rv = make_qq(variants)
 
     # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
     with open(tmp_filename, 'w') as f:
