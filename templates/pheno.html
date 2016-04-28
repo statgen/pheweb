@@ -5,9 +5,10 @@
 <script type="text/javascript">
   window.pheno = {{ phewas_code|tojson|safe }};
   $.getJSON("/api/pheno/" + window.pheno + ".json").done(function(variants) {
-      window.variant_bins = variants.variant_bins;
-      window.unbinned_variants = variants.unbinned_variants;
-      $(create_gwas_plot);
+      create_gwas_plot(variants.variant_bins, variants.unbinned_variants);
+  });
+  $.getJSON("/api/pheno-qq/" + window.pheno + ".json").done(function(qq) {
+      create_qq_plot(qq);
   });
 </script>
 <style type="text/css">
@@ -38,12 +39,15 @@
   text-align: center;
 }
 
-.axis > path.domain {
+#manhattan_plot_container {
+  min-width: 700px;
+}
+#manhattan_plot_container .axis > path.domain {
   stroke-width: 2px;
   stroke: #666;
   fill: none;
 }
-.axis g.tick line {
+#manhattan_plot_container .axis g.tick line {
   stroke: #666;
 }
 
@@ -51,9 +55,6 @@
   margin-bottom: 0;
 }
 
-#plot_container {
-  min-width: 700px;
-}
 </style>
 {% endblock %}
 
@@ -76,16 +77,20 @@
             <div class="pheno-info col-xs-12">
                 <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
                 <p>Category: <b>{{ pheno.category_string}}</b></p>
-                <div id="plot_container">
+                <div id="manhattan_plot_container">
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="icd9-info col-xs-12">
+            <div class="icd9-info col-xs-12 col-md-6">
               <h3>ICD9 codes included in this PheWAS code:</h3>
               {% for icd9 in pheno.icd9s %}
                 <p>{{ icd9.icd9_code }} - {{ icd9.icd9_string }}</p>
               {% endfor %}
+            </div>
+            <div class="icd9-info col-xs-12 col-md-6">
+              <h3>QQ plot:</h3>
+              <div id="qq_plot_container"></div>
             </div>
         </div>
 
