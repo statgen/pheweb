@@ -371,7 +371,7 @@ function create_qq_plot(qq) {
             .outerTickSize(0)
             .tickPadding(7)
             .tickFormat(d3.format("d")) //integers
-            .tickValues([0,1,2,3,4,5,6,7,8,9]); //prevent unlabeled, non-integer ticks. Numbers out-of-bounds don't matter.
+            .tickValues(_.range(exp_max)); //prevent unlabeled, non-integer ticks.
         qq_plot.append("g")
             .attr("class", "x axis")
             .attr("transform", fmt("translate(0,{0})", plot_height))
@@ -384,7 +384,7 @@ function create_qq_plot(qq) {
             .outerTickSize(0)
             .tickPadding(7)
             .tickFormat(d3.format("d")) //integers
-            .tickValues([0,1,2,3,4,5,6,7,8,9]); //prevent unlabeled, non-integer ticks. Numbers out-of-bounds don't matter.
+            .tickValues(_.range(obs_max)); //prevent unlabeled, non-integer ticks.
         qq_plot.append("g")
             .attr("class", "y axis")
             .call(yAxis);
