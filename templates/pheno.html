@@ -7,8 +7,8 @@
   $.getJSON("/api/pheno/" + window.pheno + ".json").done(function(variants) {
       create_gwas_plot(variants.variant_bins, variants.unbinned_variants);
   });
-  $.getJSON("/api/pheno-qq/" + window.pheno + ".json").done(function(qq) {
-      create_qq_plot(qq);
+  $.getJSON("/api/pheno-qq/" + window.pheno + ".json").done(function(data) {
+      create_qq_plot(data.qq);
   });
 </script>
 <style type="text/css">
@@ -51,6 +51,15 @@
   stroke: #666;
 }
 
+#qq_plot_container .axis path.domain {
+  stroke: black;
+  fill: none;
+}
+#qq_plot_container .axis g.tick line {
+  stroke: #666;
+  opacity: 0.3;
+}
+
 .icd9-info > p, .pheno-info > p {
   margin-bottom: 0;
 }
@@ -82,13 +91,13 @@
             </div>
         </div>
         <div class="row">
-            <div class="icd9-info col-xs-12 col-md-6">
+            <div class="icd9-info col-xs-12 col-md-6 col-lg-7">
               <h3>ICD9 codes included in this PheWAS code:</h3>
               {% for icd9 in pheno.icd9s %}
                 <p>{{ icd9.icd9_code }} - {{ icd9.icd9_string }}</p>
               {% endfor %}
             </div>
-            <div class="icd9-info col-xs-12 col-md-6">
+            <div class="icd9-info col-xs-12 col-md-6 col-lg-5">
               <h3>QQ plot:</h3>
               <div id="qq_plot_container"></div>
             </div>

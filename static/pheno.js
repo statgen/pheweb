@@ -307,5 +307,93 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 
 
 function create_qq_plot(qq) {
-    console.log(qq);
+    window.qq = qq; //for debugging
+    $(function() {
+        var svg_width = $('#qq_plot_container').width();
+        var svg_height = svg_width;
+        var plot_margin = {
+            'left': 70,
+            'right': 30,
+            'top': 10,
+            'bottom': 50,
+        };
+        var plot_width = svg_width - plot_margin.left - plot_margin.right;
+        var plot_height = svg_height - plot_margin.top - plot_margin.bottom;
+
+        var qq_svg = d3.select('#qq_plot_container').append("svg")
+            .attr('id', 'qq_svg')
+            .attr("width", svg_width)
+            .attr("height", svg_height)
+            .style("display", "block")
+            .style("margin", "auto");
+        var qq_plot = qq_svg.append("g")
+            .attr('id', 'qq_plot')
+            .attr("transform", fmt("translate({0},{1})", plot_margin.left, plot_margin.top));
+
+        var exp_extent = d3.extent(qq, function(d) { return d[0]; });
+        var obs_extent = d3.extent(qq, function(d) { return d[1]; });
+        var x_scale = d3.scale.linear()
+            .domain(exp_extent)
+            .range([0, plot_width]);
+        var y_scale = d3.scale.linear()
+            .domain(obs_extent)
+            .range([plot_height, 0]);
+
+        // y=x line
+        qq_plot.append('line')
+            .attr('x1', x_scale(0))
+            .attr('x2', x_scale(exp_extent[1])) // TODO: min(exp, obs)
+            .attr('y1', y_scale(0))
+            .attr('y2', y_scale(exp_extent[1])) // TODO: min(exp, obs)
+            .attr('stroke-width', '5px')
+            .attr('stroke', 'lightgray');
+
+        // points
+        qq_plot.append('g')
+            .attr('class', 'qq_points')
+            .selectAll('circle.qq_point')
+            .data(qq)
+            .enter()
+            .append('circle')
+            .attr('cx', function(d) { return x_scale(d[0]); })
+            .attr('cy', function(d) { return y_scale(d[1]); })
+            .attr('r', 2)
+            .attr('fill', 'gray');
+
+        // Axes
+        var xAxis = d3.svg.axis()
+            .scale(x_scale)
+            .orient("bottom")
+            .innerTickSize(-plot_height) // this approach to a grid is taken from <http://bl.ocks.org/hunzy/11110940>
+            .outerTickSize(0)
+            .tickPadding(7);
+        qq_plot.append("g")
+            .attr("class", "x axis")
+            .attr("transform", fmt("translate(0,{0})", plot_height))
+            .call(xAxis);
+
+        var yAxis = d3.svg.axis()
+            .scale(y_scale)
+            .orient("left")
+            .innerTickSize(-plot_width)
+            .outerTickSize(0)
+            .tickPadding(7);
+        qq_plot.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
+
+        qq_svg.append('text')
+            .style('text-anchor', 'middle')
+            .attr('transform', fmt('translate({0},{1})rotate(-90)',
+                                   plot_margin.left*.4,
+                                   plot_margin.top + plot_height/2))
+            .text('observed -log10(p)');
+
+        qq_svg.append('text')
+            .style('text-anchor', 'middle')
+            .attr('transform', fmt('translate({0},{1})',
+                                   plot_margin.left + plot_width/2,
+                                   plot_margin.top + plot_height + plot_margin.bottom*3/4))
+            .text('expected -log10(p)');
+  });
 }
