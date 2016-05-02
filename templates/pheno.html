@@ -8,6 +8,7 @@
       create_gwas_plot(variants.variant_bins, variants.unbinned_variants);
   });
   $.getJSON("/api/pheno-qq/" + window.pheno + ".json").done(function(data) {
+      $('span.gc-control').html(data.gc_value_lambda);
       create_qq_plot(data.qq);
   });
 </script>
@@ -99,6 +100,7 @@
             </div>
             <div class="icd9-info col-xs-12 col-sm-offset-1 col-sm-4 col-md-offset-1 col-md-3 col-lg-3">
               <h3>QQ plot:</h3>
+              <p>Genomic Control value: lambda = <span class="gc-control"></span></p>
               <div id="qq_plot_container"></div>
             </div>
         </div>
