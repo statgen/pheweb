@@ -62,7 +62,10 @@
         {% endwith %}
         <div class="row">
             <div class="variant-info col-xs-12">
-                <h1 style="margin-top:0">{{ variant.variant_name }}</h1>
+                <h1 style="margin-top:0">
+                  {{ variant.variant_name }}
+                  {% if variant.rsids %}({{ variant.rsids }}){% endif %}
+                </h1>
                 <p>MAF: {{ variant.maf }}</p>
                 <p>View on
                   <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a><span style="font-weight:bold" id="clinvar-link"></span>

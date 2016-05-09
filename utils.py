@@ -61,7 +61,7 @@ def get_phenos_with_colnums(app_root_path):
     return phenos
 
 
-def get_variant(query, phenos):
+def get_variant(query, phenos, sites_rsids_trie):
     import pysam
     # todo: differentiate between parse errors and variants-not-found
     chrom, pos, ref, alt = parse_variant(query)
@@ -89,6 +89,14 @@ def get_variant(query, phenos):
         'maf': maf,
         'phenos': [],
     }
+
+    rsids = sites_rsids_trie.get('{}-{}-{}-{}'.format(chrom, pos, ref, alt))
+    # This is a comma-separated string of rsids.  It's almost always just one.
+    if rsids is not None:
+        assert len(rsids) == 1 # I don't understand why this is a list.
+        rv['rsids'] = rsids[0]
+
+
     for phewas_code, pheno in phenos.iteritems():
         rv['phenos'].append({
             'phewas_code': phewas_code,

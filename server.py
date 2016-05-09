@@ -12,7 +12,7 @@ from flask import Flask, Response, jsonify, render_template, request, redirect, 
 from flask.ext.compress import Compress
 
 from utils import get_phenos_with_colnums, get_variant
-from autocomplete import get_autocompletion, get_best_completion
+from autocomplete import get_autocompletion, get_best_completion, sites_rsids_trie
 
 
 app = Flask(__name__)
@@ -41,19 +41,13 @@ def go():
 
 @app.route('/api/variant/<query>')
 def api_variant(query):
-    variant = get_variant(query, phenos)
+    variant = get_variant(query, phenos, sites_rsids_trie)
     return jsonify(variant)
-
-@app.route('/variant')
-def variant_page_with_get_params():
-    # TODO: instead of this route, make the form submit to the right url.
-    query = request.args.get('query', '')
-    return redirect(url_for('variant_page', query=query))
 
 @app.route('/variant/<query>')
 def variant_page(query):
     try:
-        variant = get_variant(query, phenos)
+        variant = get_variant(query, phenos, sites_rsids_trie)
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
