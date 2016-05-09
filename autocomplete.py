@@ -12,7 +12,9 @@ def get_autocompletion(query, phenos):
         list(itertools.islice(get_variant_autocompletion(query), 0, 10)) or \
         list(itertools.islice(get_rsid_autocompletion(query), 0, 10)) or \
         list(itertools.islice(get_phewas_code_autocompletion(query, phenos), 0, 10)) or \
-        list(itertools.islice(get_phewas_string_autocompletion(query, phenos), 0, 10))
+        list(itertools.islice(get_phewas_string_autocompletion(query, phenos), 0, 10)) or \
+        list(itertools.islice(get_icd9_code_autocompletion(query, phenos), 0, 10)) or \
+        list(itertools.islice(get_icd9_string_autocompletion(query, phenos), 0, 10))
 
 
 sites_rsids_trie = marisa_trie.BytesTrie().load('/var/pheweb_data/sites_rsids_trie.marisa')
@@ -65,7 +67,29 @@ def get_phewas_string_autocompletion(query, phenos):
                     "url": "/pheno/{}".format(phewas_code),
                 }
 
-# TODO: icd9
+def get_icd9_code_autocompletion(query, phenos):
+    # Try icd9_code
+    if re.match('^\s*[0-9]', query):
+        for phewas_code, pheno in phenos.iteritems():
+            for icd9 in pheno['icd9s']:
+                if icd9['icd9_code'].startswith(query):
+                    yield {
+                        "value": phewas_code,
+                        "display": "{} (icd9 code; phewas code: {}; icd9_string: {})".format(icd9['icd9_code'], phewas_code, icd9['icd9_string']),
+                        "url": "/pheno/{}".format(phewas_code),
+                    }
+
+def get_icd9_string_autocompletion(query, phenos):
+    # Try icd9_string
+    if re.match('^\s*[a-zA-Z]', query):
+        for phewas_code, pheno in phenos.iteritems():
+            for icd9 in pheno['icd9s']:
+                if query.title() in pheno['phewas_string'].title():
+                    yield {
+                        "value": phewas_code,
+                        "display": "{} (icd9 string; icd9 code: {}; phewas code: {})".format(icd9['icd9_string'], icd9['icd9_code'], phewas_code),
+                        "url": "/pheno/{}".format(phewas_code),
+                    }
 
 def get_best_completion(query, phenos):
     # TODO: get_autocompletion only returns the first 10, so this will be a little broken.  Look at more.
