@@ -1,14 +1,20 @@
 (function() {
+    // It's unfortunate that these are hard-coded, but it works pretty great, so I won't change it now.
     var defaults = [
         {
-            "display":"6:396321-C-T",
+            "display":"6:396321-C-T (rs12203592)",
             "url":"/variant/6:396321-C-T",
             "value":"6:396321-C-T",
         },
         {
-            "display":"340.1 (Migrain with aura)",
-            "url":"/pheno/340.1",
-            "value":"340.1",
+            "display": "rs150266918 (7:45574647-G-A)",
+            "url":"/variant/7:45574647-G-A",
+            "value":"7:45574647-G-A",
+        },
+        {
+            "display":"427.21 (Atrial fibrillation)",
+            "url":"/pheno/427.21",
+            "value":"427.21",
         },
         {
             "display":"Type 2 diabetes (250.2)",
