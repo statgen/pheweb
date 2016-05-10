@@ -53,7 +53,7 @@ def variant_page(query):
         return render_template('variant.html',
                                variant=variant)
     except:
-        abort(404)
+        die('Oh no, something went wrong')
 
 @app.route('/api/pheno/<path:path>')
 def api_pheno(path):

@@ -68,7 +68,19 @@
                 </h1>
                 <p>MAF: {{ variant.maf }}</p>
                 <p>View on
-                  <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a><span style="font-weight:bold" id="clinvar-link"></span>
+                  <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>{% if variant.rsids %},{% endif %}
+                  {% with rsids = (variant.rsids.split(',') if variant.rsids else []) %}
+                    {% if rsids|length == 1 %}
+                      <a href="https://www.ebi.ac.uk/gwas/search?query={{ rsids[0] }}">GWAS Catalog</a>,
+                      <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term={{ rsids[0] }}">PubMed</a>
+                    {% else %}
+                      {% for rsid in rsids %}
+                        <a href="https://www.ebi.ac.uk/gwas/search?query={{ rsid }}">GWAS Catalog for {{ rsid }}</a>,
+                        <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term={{ rsid }}">PubMed for {{ rsid }}</a>{% if not loop.last %},{% endif %}
+                      {% endfor %}
+                    {% endif %}
+                  {% endwith %}
+                  <span style="font-weight:bold" id="clinvar-link"></span>
                 </p>
                 <div id="phewas_plot_container">
                 </div>
