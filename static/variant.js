@@ -217,3 +217,30 @@
         }
     });
 })();
+
+
+(function() { // Check PubMed for each rsid and render link.
+    var pubmed_api_template = _.template('http://www.ncbi.nlm.nih.gov/pubmed/?term=<%= rsid %>&format=text');
+    var pubmed_link_template = _.template('http://www.ncbi.nlm.nih.gov/pubmed/?term=<%= rsid %>');
+    var rsids = window.variant.rsids.split(','); // There's usually just one rsid.
+    rsids.forEach(function(rsid) {
+        var pubmed_api_url = pubmed_api_template({rsid: rsid});
+        var pubmed_link_url = pubmed_link_template({rsid: rsid});
+
+        $.getJSON(pubmed_api_url).done(function(result) {
+            var has_pubmed_results = _.any(result.split('\n'), function(line) { return line[0] !== '<'; });
+            if (has_pubmed_results) {
+                if (rsids.length == 1) {
+                    $('#pubmed-link').html(', <a href="{URL}" target="_blank">PubMed</a>'
+                                           .replace('{URL}', pubmed_link_url));
+                    console.log(rsid);
+                } else {
+                    $('#pubmed-link').html(', <a href="{URL}" target="_blank">PubMed for {RSID}</a>'
+                                           .replace('{URL}', pubmed_link_url)
+                                           .replace('{RSID}', rsid));
+                    console.log(rsid);
+                }
+            }
+        });
+    });
+})();
