@@ -308,6 +308,38 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 
 function create_qq_plot(qq) {
     window.qq = qq; //for debugging
+
+    // Generated in R with:
+    // nvar <- 7741774; get.x.y.min <- function(i) c(-log10((i-.5)/nvar), -log10(qbeta(.05/2, i, nvar-i))); get.x.y.max <- function(i) c(-log10((i-.5)/nvar), -log10(qbeta(1-.05/2, i, nvar-i)))
+    // m <- t(sapply(c(nvar-1,2^(22:0)), get.x.y0.y1))
+    // cat('[\n', paste(apply(m, 1, function(x) paste0('[', paste(x, collapse=', '), ']')), collapse=',\n'), '\n]\n', sep='')
+    var qq_ci_trumpet_points = [
+        [8.41463191637995e-08, 2.06937091984728e-07, 1.42026694351221e-09],
+        [2.66180636288143e-01, 2.66462030395762e-01, 2.65899337287824e-01],
+        [5.6721068372407e-01, 5.67712677422238e-01, 5.66708883205101e-01],
+        [8.68240782931961e-01, 8.69013887987563e-01, 8.67468067199388e-01],
+        [1.16927098568384e+00, 1.17040644058532e+00, 1.16813631239316e+00],
+        [1.4703013955239e+00, 1.47193629381956e+00, 1.46866806341512e+00],
+        [1.77133221954124e+00, 1.77366493805335e+00, 1.76900263637013e+00],
+        [2.07236387191668e+00, 2.07567792384905e+00, 2.06905609364153e+00],
+        [2.37339718102252e+00, 2.37809579805874e+00, 2.36871111430798e+00],
+        [2.67443380364607e+00, 2.68108942684051e+00, 2.66780328423004e+00],
+        [2.97547705353256e+00, 2.98490200133311e+00, 2.96610231693523e+00],
+        [3.27653355885515e+00, 3.28988107575576e+00, 3.26328647005259e+00],
+        [3.57761657869133e+00, 3.59652585605225e+00, 3.55890817139793e+00],
+        [3.87875264212526e+00, 3.90555820542648e+00, 3.85234886553959e+00],
+        [4.17999485107561e+00, 4.21803168233452e+00, 4.14276177058554e+00],
+        [4.48144958465306e+00, 4.5355039743129e+00, 4.42900339626155e+00],
+        [4.78333030435382e+00, 4.86032012266057e+00, 4.70955967275273e+00],
+        [5.08606676383181e+00, 5.19610062771554e+00, 4.98248235352387e+00],
+        [5.39052993533419e+00, 5.54863456742877e+00, 5.24536812930765e+00],
+        [5.6985087909535e+00, 5.92763839672079e+00, 5.49543716880598e+00],
+        [6.01377922573209e+00, 6.35053910237972e+00, 5.72979481308295e+00],
+        [6.34477244477351e+00, 6.85146752472168e+00, 5.94597606127947e+00],
+        [6.71274923006811e+00, 7.5046496357087e+00, 6.14285724932233e+00],
+        [7.18987048478777e+00, 8.48541433197784e+00, 6.32194607299163e+00]
+    ];
+    window.qq_ci = qq_ci_trumpet_points;
     $(function() {
 
         var exp_max = d3.max(qq, function(d) { return d[0]; });
@@ -334,6 +366,7 @@ function create_qq_plot(qq) {
         var qq_plot = qq_svg.append("g")
             .attr('id', 'qq_plot')
             .attr("transform", fmt("translate({0},{1})", plot_margin.left, plot_margin.top));
+        window.qq_plot = qq_plot;
 
         var x_scale = d3.scale.linear()
             .domain([0, exp_max])
@@ -341,15 +374,23 @@ function create_qq_plot(qq) {
         var y_scale = d3.scale.linear()
             .domain([0, obs_max])
             .range([plot_height, 0]);
+        window.x_scale = x_scale;
+        window.y_scale = y_scale;
 
-        // y=x line
-        qq_plot.append('line')
-            .attr('x1', x_scale(0))
-            .attr('x2', x_scale(exp_max))
-            .attr('y1', y_scale(0))
-            .attr('y2', y_scale(exp_max))
-            .attr('stroke-width', '5px')
-            .attr('stroke', 'lightgray');
+        // "trumpet" CI path
+        var area = d3.svg.area()
+        .x( function(d) {
+            return x_scale(d[0]);
+        }).y0( function(d) {
+            return y_scale(d[1] + .05);
+        }).y1( function(d) {
+            return y_scale(d[2] - .05);
+        });
+        qq_plot.append('path')
+            .attr('class', 'trumpet_ci')
+            .datum(qq_ci_trumpet_points)
+            .attr("d", area)
+            .style("fill", "lightgray");
 
         // points
         qq_plot.append('g')
@@ -360,8 +401,8 @@ function create_qq_plot(qq) {
             .append('circle')
             .attr('cx', function(d) { return x_scale(d[0]); })
             .attr('cy', function(d) { return y_scale(d[1]); })
-            .attr('r', 2)
-            .attr('fill', 'gray');
+            .attr('r', 1.5)
+            .attr('fill', 'blue');
 
         // Axes
         var xAxis = d3.svg.axis()
