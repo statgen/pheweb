@@ -17,6 +17,7 @@ import math
 import datetime
 import multiprocessing
 import scipy.stats
+import collections
 
 import sys
 sys.path.insert(0, os.path.join(my_dir, '..'))
@@ -26,6 +27,8 @@ data_dir = '/var/pheweb_data/'
 NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
 NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 NUM_BINS = 1000
+
+NUM_MAF_RANGES = 4
 
 def approx_equal(a, b, tolerance=1e-4):
     return abs(a-b) <= max(abs(a), abs(b)) * tolerance
@@ -49,6 +52,54 @@ def parse_variant_tuple(variant):
 
 def rounded(x):
     return round(x // NEGLOG10_PVAL_BIN_SIZE * NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
+
+Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
+def make_qq_stratified(variant_lines):
+    variants = []
+    for variant_line in variant_lines:
+        chrom, pos, ref, alt, maf, pval = parse_variant_tuple(variant_line)
+        variants.append(Variant(neglog10_pval = -math.log10(pval), maf = maf))
+    variants = sorted(variants, key=lambda v: v.maf)
+
+    # QQ
+    num_variants_in_biggest_maf_range = int(math.ceil(len(variants) / NUM_MAF_RANGES))
+    max_exp_neglog10_pval = -math.log10(0.5 / num_variants_in_biggest_maf_range) #expected
+    max_obs_neglog10_pval = max(v.neglog10_pval for v in variants) #observed
+    # TODO: should max_obs_neglog10_pval be at most 9?  That'd break our assertions.
+    # print(max_exp_neglog10_pval, max_obs_neglog10_pval)
+
+    qqs = [dict() for i in range(NUM_MAF_RANGES)]
+    for qq_i in range(NUM_MAF_RANGES):
+        slice_indices = (len(variants) * qq_i//4,
+                         len(variants) * (qq_i+1)//NUM_MAF_RANGES - 1)
+        qqs[qq_i]['maf_range'] = (variants[slice_indices[0]].maf,
+                               variants[slice_indices[1]].maf)
+
+        neglog10_pvals = sorted((v.neglog10_pval for v in variants[slice(*slice_indices)]),
+                                reverse=True)
+
+        occupied_bins = set()
+        for i, obs_neglog10_pval in enumerate(neglog10_pvals):
+            exp_neglog10_pval = -math.log10( (i+0.5) / len(neglog10_pvals))
+            exp_bin = int(exp_neglog10_pval / max_exp_neglog10_pval * NUM_BINS)
+            obs_bin = int(obs_neglog10_pval / max_obs_neglog10_pval * NUM_BINS)
+            occupied_bins.add( (exp_bin,obs_bin) )
+        # print(sorted(occupied_bins))
+
+        qq = []
+        for exp_bin, obs_bin in occupied_bins:
+            assert 0 <= exp_bin <= NUM_BINS, exp_bin
+            assert 0 <= obs_bin <= NUM_BINS, obs_bin
+            qq.append((
+                exp_bin / NUM_BINS * max_exp_neglog10_pval,
+                obs_bin / NUM_BINS * max_obs_neglog10_pval
+            ))
+        qq = sorted(qq)
+
+        qqs[qq_i]['qq'] = qq
+
+    return qqs
+
 
 def make_qq(variants):
     neglog10_pvals = []
@@ -105,7 +156,7 @@ def make_json_file(args):
         assert re.match(r'[0-9]+(?:\.[0-9]+)?\.B', header[5])
 
         variants = (line.rstrip('\n').split('\t') for line in f)
-        rv = make_qq(variants)
+        rv = make_qq_stratified(variants)
 
     # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
     with open(tmp_filename, 'w') as f:
@@ -120,7 +171,7 @@ def get_files_to_convert():
     print('source files:', len(src_filenames))
     for src_filename in src_filenames:
         basename = os.path.basename(src_filename)
-        dest_filename = '{}/qq/{}.json'.format(data_dir, basename.replace('.vcf.gz', ''))
+        dest_filename = '{}/qq/{}-stratified.json'.format(data_dir, basename.replace('.vcf.gz', ''))
         tmp_filename = '{}/qq/tmp-{}.json'.format(data_dir, basename.replace('.vcf.gz', ''))
         assert not os.path.exists(tmp_filename), tmp_filename # It's not really a problem, just surprising.
         if not os.path.exists(dest_filename):
@@ -128,7 +179,9 @@ def get_files_to_convert():
 
 files_to_convert = list(get_files_to_convert())
 print('files to convert:', len(files_to_convert))
+
 p = multiprocessing.Pool(30)
 #p.map(make_json_file, files_to_convert)
 p.map_async(make_json_file, files_to_convert).get(1e8) # Makes KeyboardInterrupt work
+
 # make_json_file(files_to_convert[0]) # for debugging
