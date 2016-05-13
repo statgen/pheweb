@@ -171,7 +171,7 @@ def get_files_to_convert():
     print('source files:', len(src_filenames))
     for src_filename in src_filenames:
         basename = os.path.basename(src_filename)
-        dest_filename = '{}/qq/{}-stratified.json'.format(data_dir, basename.replace('.vcf.gz', ''))
+        dest_filename = '{}/qq/{}.json'.format(data_dir, basename.replace('.vcf.gz', ''))
         tmp_filename = '{}/qq/tmp-{}.json'.format(data_dir, basename.replace('.vcf.gz', ''))
         assert not os.path.exists(tmp_filename), tmp_filename # It's not really a problem, just surprising.
         if not os.path.exists(dest_filename):

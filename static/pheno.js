@@ -306,9 +306,13 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 }
 
 
-function create_qq_plot(qq) {
-    window.qq = qq; //for debugging
+function create_qq_plot(maf_ranges) {
 
+    maf_ranges.forEach(function(maf_range, i) {
+        maf_range.color = ['blue', 'green', 'red', 'yellow'][i];
+    })
+
+    // TODO: adjust this for fewer variants in each maf_range?  `nvar <- nvar / 4`?
     // Generated in R with:
     // nvar <- 7741774; get.x.y.min <- function(i) c(-log10((i-.5)/nvar), -log10(qbeta(.05/2, i, nvar-i))); get.x.y.max <- function(i) c(-log10((i-.5)/nvar), -log10(qbeta(1-.05/2, i, nvar-i)))
     // m <- t(sapply(c(nvar-1,2^(22:0)), get.x.y0.y1))
@@ -339,11 +343,12 @@ function create_qq_plot(qq) {
         [6.71274923006811e+00, 7.5046496357087e+00, 6.14285724932233e+00],
         [7.18987048478777e+00, 8.48541433197784e+00, 6.32194607299163e+00]
     ];
-    window.qq_ci = qq_ci_trumpet_points;
     $(function() {
 
-        var exp_max = d3.max(qq, function(d) { return d[0]; });
-        var obs_max = Math.max(exp_max, Math.min(9.01, d3.max(qq, function(d) { return d[1]; }))); // Constrain obs_max in [exp_max, 9.01]. `9.01` preserves the tick `9`.
+        var exp_max = d3.max(maf_ranges, function(maf_range) { return d3.max(maf_range.qq, _.property(0)); });
+        var obs_max = d3.max(maf_ranges, function(maf_range) { return d3.max(maf_range.qq, _.property(1))});
+        // Constrain obs_max in [exp_max, 9.01]. `9.01` preserves the tick `9`.
+        obs_max = Math.max(exp_max, Math.min(9.01, obs_max));
 
         var svg_width = $('#qq_plot_container').width();
         var plot_margin = {
@@ -366,7 +371,6 @@ function create_qq_plot(qq) {
         var qq_plot = qq_svg.append("g")
             .attr('id', 'qq_plot')
             .attr("transform", fmt("translate({0},{1})", plot_margin.left, plot_margin.top));
-        window.qq_plot = qq_plot;
 
         var x_scale = d3.scale.linear()
             .domain([0, exp_max])
@@ -374,8 +378,6 @@ function create_qq_plot(qq) {
         var y_scale = d3.scale.linear()
             .domain([0, obs_max])
             .range([plot_height, 0]);
-        window.x_scale = x_scale;
-        window.y_scale = y_scale;
 
         // "trumpet" CI path
         var area = d3.svg.area()
@@ -392,17 +394,20 @@ function create_qq_plot(qq) {
             .attr("d", area)
             .style("fill", "lightgray");
 
+        // TODO: nested selection
         // points
-        qq_plot.append('g')
-            .attr('class', 'qq_points')
-            .selectAll('circle.qq_point')
-            .data(qq)
-            .enter()
-            .append('circle')
-            .attr('cx', function(d) { return x_scale(d[0]); })
-            .attr('cy', function(d) { return y_scale(d[1]); })
-            .attr('r', 1.5)
-            .attr('fill', 'blue');
+        maf_ranges.forEach(function(maf_range) {
+            qq_plot.append('g')
+                .attr('class', 'qq_points')
+                .selectAll('circle.qq_point')
+                .data(maf_range.qq)
+                .enter()
+                .append('circle')
+                .attr('cx', function(d) { return x_scale(d[0]); })
+                .attr('cy', function(d) { return y_scale(d[1]); })
+                .attr('r', 1.5)
+                .attr('fill', maf_range.color);
+        });
 
         // Axes
         var xAxis = d3.svg.axis()

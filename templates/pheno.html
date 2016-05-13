@@ -8,8 +8,10 @@
       create_gwas_plot(variants.variant_bins, variants.unbinned_variants);
   });
   $.getJSON("/api/pheno-qq/" + window.pheno + ".json").done(function(data) {
-      $('span.gc-control').html(data.gc_value_lambda.toFixed(3));
-      create_qq_plot(data.qq);
+// TODO: add a lambda for each maf_range.
+//      $('span.gc-control').html(data.gc_value_lambda.toFixed(3));
+//      create_qq_plot(data.qq);
+      create_qq_plot(data);
   });
 </script>
 <style type="text/css">

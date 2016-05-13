@@ -55,13 +55,13 @@ def variant_page(query):
     except:
         die('Oh no, something went wrong')
 
-@app.route('/api/pheno/<path:path>')
-def api_pheno(path):
-    return send_from_directory('/var/pheweb_data/gwas-json-binned/', path)
+@app.route('/api/pheno/<filename>')
+def api_pheno(filename):
+    return send_from_directory('/var/pheweb_data/gwas-json-binned/', filename)
 
-@app.route('/api/pheno-qq/<path:path>')
-def api_pheno_qq(path):
-    return send_from_directory('/var/pheweb_data/qq/', path)
+@app.route('/api/pheno-qq/<filename>')
+def api_pheno_qq(filename):
+    return send_from_directory('/var/pheweb_data/qq/', filename)
 
 @app.route('/pheno/<phewas_code>')
 def pheno_page(phewas_code):
