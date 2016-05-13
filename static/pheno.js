@@ -190,8 +190,6 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         }
         pp2();
 
-        //loop through to replace .each()
-
         function pp3() { // drawing the ~60k binned variant circles takes ~500ms.  The (far fewer) unbinned variants take much less time.
         var bins = gwas_plot.append('g')
             .attr('class', 'bins')
@@ -209,55 +207,33 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .enter()
             .append('circle')
             .attr('class', 'binned_variant_point')
-            .attr('cx', function() {
-                // TODO: set transform on <g>.
-                //return x_scale(get_genomic_position(d3.select(this.parentNode).datum())); //slow
-                //return x_scale(get_genomic_position(this.parentNode.__data__)); //slow
-                return this.parentNode.__data__.x;
+            .attr('cx', function(d, i, parent_i) {
+                return variant_bins[parent_i].x;
             })
             .attr('cy', function(neglog10_pval) {
                 return y_scale(neglog10_pval);
             })
             .attr('r', 2.3)
-            .style('fill', function() {
+            .style('fill', function(d, i, parent_i) {
                 // return color_by_chrom(d3.select(this.parentNode).datum().chrom); //slow
                 // return color_by_chrom(this.parentNode.__data__.chrom); //slow?
-                return this.parentNode.__data__.color;
+                // return this.parentNode.__data__.color;
+                return variant_bins[parent_i].color;
             });
         bins.selectAll('circle.binned_variant_line')
             .data(_.property('neglog10_pval_extents'))
             .enter()
             .append('line')
             .attr('class', 'binned_variant_line')
-            .attr('x1', function() { return this.parentNode.__data__.x; })
-            .attr('x2', function() { return this.parentNode.__data__.x; })
+            .attr('x1', function(d, i, parent_i) { return variant_bins[parent_i].x; })
+            .attr('x2', function(d, i, parent_i) { return variant_bins[parent_i].x; })
             .attr('y1', function(d) { return y_scale(d[0]); })
             .attr('y2', function(d) { return y_scale(d[1]); })
-            .style('stroke', function() { return this.parentNode.__data__.color; })
+            .style('stroke', function(d, i, parent_i) { return variant_bins[parent_i].color; })
             .style('stroke-width', 4.6)
             .style('stroke-linecap', 'round');
         }
         pp3();
-
-        function pp3_2() {
-        gwas_plot.selectAll('nopenopenope')
-            .data(variant_bins)
-            .enter()
-            .append('g')
-            .each(function(bin) {
-                var x = x_scale(get_genomic_position(bin));
-                var color = color_by_chrom(bin.chrom);
-                bin.neglog10_pvals.forEach(function(neglog10_pval) {
-                    gwas_plot
-                        .append('circle')
-                        .attr('cx', x)
-                        .attr('cy', y_scale(neglog10_pval))
-                        .attr('r', 2.3)
-                        .style('fill', color);
-                });
-            });
-        }
-        //pp3_2(); //slow
 
         // Axes
         var yAxis = d3.svg.axis()
@@ -394,20 +370,23 @@ function create_qq_plot(maf_ranges) {
             .attr("d", area)
             .style("fill", "lightgray");
 
-        // TODO: nested selection
         // points
-        maf_ranges.forEach(function(maf_range) {
-            qq_plot.append('g')
-                .attr('class', 'qq_points')
-                .selectAll('circle.qq_point')
-                .data(maf_range.qq)
-                .enter()
-                .append('circle')
-                .attr('cx', function(d) { return x_scale(d[0]); })
-                .attr('cy', function(d) { return y_scale(d[1]); })
-                .attr('r', 1.5)
-                .attr('fill', maf_range.color);
-        });
+        qq_plot.append('g')
+            .selectAll('g.qq_points')
+            .data(maf_ranges)
+            .enter()
+            .append('g')
+            .attr('class', 'qq_points')
+            .selectAll('circle.qq_point')
+            .data(_.property('qq'))
+            .enter()
+            .append('circle')
+            .attr('cx', function(d) { return x_scale(d[0]); })
+            .attr('cy', function(d) { return y_scale(d[1]); })
+            .attr('r', 1.5)
+            .attr('fill', function (d, i, parent_index) {
+                return maf_ranges[parent_index].color;
+            });
 
         // Axes
         var xAxis = d3.svg.axis()
