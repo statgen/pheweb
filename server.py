@@ -102,4 +102,6 @@ def apply_caching(response):
 if __name__ == '__main__':
     import glob
     extra_files = glob.glob('templates/*.html')
-    app.run(host='browser.sph.umich.edu', port=5000, threaded=True, debug=False, use_reloader=True, extra_files=extra_files)
+    app.run(host='browser.sph.umich.edu', port=5000,
+#            threaded=True, # seems to be bad at dying when I ctrl-C / SIGTERM.
+            debug=False, use_reloader=True, extra_files=extra_files)
