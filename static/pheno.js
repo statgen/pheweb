@@ -285,7 +285,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 function create_qq_plot(maf_ranges) {
 
     maf_ranges.forEach(function(maf_range, i) {
-        maf_range.color = ['blue', 'green', 'red', 'yellow'][i];
+        maf_range.color = ['#e66101', '#fdb863', '#b2abd2', '#5e3c99'][i];
     })
 
     // TODO: adjust this for fewer variants in each maf_range?  `nvar <- nvar / 4`?
@@ -386,6 +386,28 @@ function create_qq_plot(maf_ranges) {
             .attr('r', 1.5)
             .attr('fill', function (d, i, parent_index) {
                 return maf_ranges[parent_index].color;
+            });
+
+        // Legend
+        qq_plot.append('g')
+            .attr('transform', fmt('translate({0},{1})',
+                                  plot_width,
+                                  plot_height - 50))
+            .selectAll('text.legend-items')
+            .data(maf_ranges)
+            .enter()
+            .append('text')
+            .attr('text-anchor', 'end')
+            .attr('y', function(d,i) {
+                return i + 'em';
+            })
+            .text(function(d) {
+                return fmt('{0} ≤ MAF < {1}',
+                           d.maf_range[0].toFixed(2),
+                           d.maf_range[1].toFixed(2));
+            })
+            .attr('fill', function(d) {
+                return d.color;
             });
 
         // Axes
