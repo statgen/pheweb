@@ -37,6 +37,26 @@ def get_variant_autocompletion(query):
 def get_rsid_autocompletion(query):
     if query.startswith('rs'):
         key = query.decode('ascii')
+
+        # In Trie.iteritems, "rs100" comes before "rs1".
+        # So, rsids_sites_trie.iteritems("rs7412")[-1] is "rs7412".
+        # That's unfortunate, and I don't know how to fix it.
+        # I wish we could get a real lexicographic order, where shorter strings come first, but I don't see how.
+        # Even better would be to the 10 shortest children of the current string.
+        # Here's an attempt at being a little better.
+
+        rsids_to_check = [key] + [u"{}{}".format(key, i) for i in range(10)]
+        for rsid in rsids_to_check:
+            chrom_pos_ref_alt = rsids_sites_trie.get(rsid)
+            if chrom_pos_ref_alt is not None:
+                chrom_pos_ref_alt = chrom_pos_ref_alt[0]
+                chrom_pos_ref_alt = chrom_pos_ref_alt.replace('-', ':', 1)
+                yield {
+                    "value": chrom_pos_ref_alt,
+                    "display": '{} ({})'.format(rsid, chrom_pos_ref_alt),
+                    "url": "/variant/{}".format(chrom_pos_ref_alt)
+                }
+
         for rsid, chrom_pos_ref_alt in rsids_sites_trie.iteritems(key):
             chrom_pos_ref_alt = chrom_pos_ref_alt.replace('-', ':', 1)
             yield {
