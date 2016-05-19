@@ -331,7 +331,7 @@ function create_qq_plot(maf_ranges) {
             'left': 70,
             'right': 30,
             'top': 10,
-            'bottom': 50,
+            'bottom': 120,
         };
         var plot_width = svg_width - plot_margin.left - plot_margin.right;
         // Size the plot to make things square.  This way, x_scale and y_scale should be exactly equivalent.
@@ -389,10 +389,10 @@ function create_qq_plot(maf_ranges) {
             });
 
         // Legend
-        qq_plot.append('g')
+        qq_svg.append('g')
             .attr('transform', fmt('translate({0},{1})',
-                                  plot_width,
-                                  plot_height - 50))
+                                  plot_margin.left + plot_width,
+                                  plot_margin.top + plot_height + 70))
             .selectAll('text.legend-items')
             .data(maf_ranges)
             .enter()
@@ -402,9 +402,10 @@ function create_qq_plot(maf_ranges) {
                 return i + 'em';
             })
             .text(function(d) {
-                return fmt('{0} ≤ MAF < {1}',
+                return fmt('{0} ≤ MAF < {1} ({2})',
                            d.maf_range[0].toFixed(2),
-                           d.maf_range[1].toFixed(2));
+                           d.maf_range[1].toFixed(2),
+                           d.count);
             })
             .attr('fill', function(d) {
                 return d.color;
@@ -447,7 +448,7 @@ function create_qq_plot(maf_ranges) {
             .style('text-anchor', 'middle')
             .attr('transform', fmt('translate({0},{1})',
                                    plot_margin.left + plot_width/2,
-                                   plot_margin.top + plot_height + plot_margin.bottom*3/4))
+                                   plot_margin.top + plot_height + 40))
             .text('expected -log10(p)');
   });
 }

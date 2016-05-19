@@ -30,18 +30,6 @@ NUM_BINS = 1000
 
 NUM_MAF_RANGES = 4
 
-def approx_equal(a, b, tolerance=1e-4):
-    return abs(a-b) <= max(abs(a), abs(b)) * tolerance
-assert approx_equal(42, 42.0000001)
-assert not approx_equal(42, 42.01)
-
-def gc_value(median_pval):
-    # This should be equivalent to this R: `qchisq(p, df=1, lower.tail=F) / qchisq(.5, df=1, lower.tail=F)`
-    return scipy.stats.chi2.ppf(1 - median_pval, 1) / scipy.stats.chi2.ppf(0.5, 1)
-assert approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
-assert approx_equal(gc_value(0.5), 1)
-assert approx_equal(gc_value(0.50001), 0.9999533)
-assert approx_equal(gc_value(0.6123), 0.5645607)
 
 def parse_variant_tuple(variant):
     chrom, pos, maf, pval, beta = variant[0], int(variant[1]), float(variant[3]), float(variant[4]), float(variant[5])
@@ -53,94 +41,81 @@ def parse_variant_tuple(variant):
 def rounded(x):
     return round(x // NEGLOG10_PVAL_BIN_SIZE * NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
 
-Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
-def make_qq_stratified(variant_lines):
-    variants = []
-    for variant_line in variant_lines:
-        chrom, pos, ref, alt, maf, pval = parse_variant_tuple(variant_line)
-        variants.append(Variant(neglog10_pval = -math.log10(pval), maf = maf))
-    variants = sorted(variants, key=lambda v: v.maf)
 
-    # QQ
-    num_variants_in_biggest_maf_range = int(math.ceil(len(variants) / NUM_MAF_RANGES))
-    max_exp_neglog10_pval = -math.log10(0.5 / num_variants_in_biggest_maf_range) #expected
-    max_obs_neglog10_pval = max(v.neglog10_pval for v in variants) #observed
-    # TODO: should max_obs_neglog10_pval be at most 9?  That'd break our assertions.
-    # print(max_exp_neglog10_pval, max_obs_neglog10_pval)
+def approx_equal(a, b, tolerance=1e-4):
+    return abs(a-b) <= max(abs(a), abs(b)) * tolerance
+assert approx_equal(42, 42.0000001)
+assert not approx_equal(42, 42.01)
 
-    qqs = [dict() for i in range(NUM_MAF_RANGES)]
-    for qq_i in range(NUM_MAF_RANGES):
-        slice_indices = (len(variants) * qq_i//4,
-                         len(variants) * (qq_i+1)//NUM_MAF_RANGES - 1)
-        qqs[qq_i]['maf_range'] = (variants[slice_indices[0]].maf,
-                               variants[slice_indices[1]].maf)
-
-        neglog10_pvals = sorted((v.neglog10_pval for v in variants[slice(*slice_indices)]),
-                                reverse=True)
-
-        occupied_bins = set()
-        for i, obs_neglog10_pval in enumerate(neglog10_pvals):
-            exp_neglog10_pval = -math.log10( (i+0.5) / len(neglog10_pvals))
-            exp_bin = int(exp_neglog10_pval / max_exp_neglog10_pval * NUM_BINS)
-            obs_bin = int(obs_neglog10_pval / max_obs_neglog10_pval * NUM_BINS)
-            occupied_bins.add( (exp_bin,obs_bin) )
-        # print(sorted(occupied_bins))
-
-        qq = []
-        for exp_bin, obs_bin in occupied_bins:
-            assert 0 <= exp_bin <= NUM_BINS, exp_bin
-            assert 0 <= obs_bin <= NUM_BINS, obs_bin
-            qq.append((
-                exp_bin / NUM_BINS * max_exp_neglog10_pval,
-                obs_bin / NUM_BINS * max_obs_neglog10_pval
-            ))
-        qq = sorted(qq)
-
-        qqs[qq_i]['qq'] = qq
-
-    return qqs
+def gc_value_from_list(neglog10_pvals, quantile=0.5):
+    # neglog10_pvals must be in decreasing order.
+    assert all(neglog10_pvals[i] >= neglog10_pvals[i+1] for i in range(len(neglog10_pvals)-1))
+    neglog10_pval = neglog10_pvals[int(len(neglog10_pvals) * quantile)]
+    pval = 10 ** -neglog10_pval
+    return gc_value(pval, quantile)
+def gc_value(pval, quantile=0.5):
+    # This should be equivalent to this R: `qchisq(p, df=1, lower.tail=F) / qchisq(.5, df=1, lower.tail=F)`
+    return scipy.stats.chi2.ppf(1 - pval, 1) / scipy.stats.chi2.ppf(1 - quantile, 1)
+assert approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
+assert approx_equal(gc_value(0.5), 1)
+assert approx_equal(gc_value(0.50001), 0.9999533)
+assert approx_equal(gc_value(0.6123), 0.5645607)
 
 
-def make_qq(variants):
-    neglog10_pvals = []
-    for variant in variants:
-        chrom, pos, ref, alt, maf, pval = parse_variant_tuple(variant)
-        neglog10_pvals.append(-math.log10(pval))
-    neglog10_pvals = sorted(neglog10_pvals)
+def compute_qq(neglog10_pvals):
+    # neglog10_pvals must be in decreasing order.
+    assert all(neglog10_pvals[i] >= neglog10_pvals[i+1] for i in range(len(neglog10_pvals)-1))
 
-    # QQ
-    max_exp_neglog10_pval = -math.log10(1/len(neglog10_pvals)) #expected
-    max_obs_neglog10_pval = max(neglog10_pvals) #observed
-    # print(max_obs_neglog10_pval, max_exp_neglog10_pval)
+    max_exp_neglog10_pval = -math.log10(0.5 / len(neglog10_pvals))
+    max_obs_neglog10_pval = neglog10_pvals[0]
 
     occupied_bins = set()
     for i, obs_neglog10_pval in enumerate(neglog10_pvals):
-        exp_neglog10_pval = -math.log10((len(neglog10_pvals)-i)/len(neglog10_pvals))
+        exp_neglog10_pval = -math.log10( (i+0.5) / len(neglog10_pvals))
         exp_bin = int(exp_neglog10_pval / max_exp_neglog10_pval * NUM_BINS)
         obs_bin = int(obs_neglog10_pval / max_obs_neglog10_pval * NUM_BINS)
         occupied_bins.add( (exp_bin,obs_bin) )
-    # print(sorted(occupied_bins))
 
     qq = []
     for exp_bin, obs_bin in occupied_bins:
-        assert exp_bin <= NUM_BINS, exp_bin
-        assert obs_bin <= NUM_BINS, obs_bin
+        assert 0 <= exp_bin <= NUM_BINS, exp_bin
+        assert 0 <= obs_bin <= NUM_BINS, obs_bin
         qq.append((
             exp_bin / NUM_BINS * max_exp_neglog10_pval,
             obs_bin / NUM_BINS * max_obs_neglog10_pval
         ))
-    qq = sorted(qq)
+    return sorted(qq)
 
-    # GC_value lambda
-    median_neglog10_pval = neglog10_pvals[len(neglog10_pvals)//2]
-    median_pval = 10 ** -median_neglog10_pval # I know, `10 ** -(-math.log10(pval))` is gross.
-    gc_value_lambda = gc_value(median_pval)
 
-    rv = {
-        'qq': qq,
-        'median_pval': median_pval,
-        'gc_value_lambda': round_sig(gc_value_lambda, 5),
-    }
+Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
+def make_qq_stratified(variants):
+    variants = sorted(variants, key=lambda v: v.maf)
+
+    qqs = [dict() for i in range(NUM_MAF_RANGES)]
+    for qq_i in range(NUM_MAF_RANGES):
+        # Note: slice_indices[1] is the same as slice_indices[0] of the next slice.
+        # But that's not a problem, because range() ignores the last index.
+        slice_indices = (len(variants) * qq_i//NUM_MAF_RANGES,
+                         len(variants) * (qq_i+1)//NUM_MAF_RANGES)
+        qqs[qq_i]['maf_range'] = (variants[slice_indices[0]].maf,
+                                  variants[slice_indices[1]-1].maf)
+        neglog10_pvals = sorted((variants[i].neglog10_pval for i in range(*slice_indices)), reverse=True)
+        qqs[qq_i]['count'] = len(neglog10_pvals)
+        qqs[qq_i]['qq'] = compute_qq(neglog10_pvals)
+
+    return qqs
+
+
+def make_qq(neglog10_pvals):
+    neglog10_pvals = sorted(neglog10_pvals, reverse=True)
+    rv = {}
+#    rv['qq'] = compute_qq(neglog10_pvals) # We don't need this now.
+    rv['count'] = len(neglog10_pvals)
+    rv['gc_lambda'] = {}
+    rv['gc_lambda']['0.5'] = round_sig(gc_value_from_list(neglog10_pvals, 0.5), 5)
+    rv['gc_lambda']['0.1'] = round_sig(gc_value_from_list(neglog10_pvals, 0.1), 5)
+    rv['gc_lambda']['0.01'] = round_sig(gc_value_from_list(neglog10_pvals, 0.01), 5)
+    rv['gc_lambda']['0.001'] = round_sig(gc_value_from_list(neglog10_pvals, 0.001), 5)
     return rv
 
 
@@ -155,8 +130,15 @@ def make_json_file(args):
         assert re.match(r'[0-9]+(?:\.[0-9]+)?\.P', header[4])
         assert re.match(r'[0-9]+(?:\.[0-9]+)?\.B', header[5])
 
-        variants = (line.rstrip('\n').split('\t') for line in f)
-        rv = make_qq_stratified(variants)
+        variants = []
+        for line in f:
+            v = line.rstrip('\n').split('\t')
+            chrom, pos, ref, alt, maf, pval = parse_variant_tuple(v)
+            variants.append(Variant(neglog10_pval = -math.log10(pval), maf = maf))
+        rv = {}
+        rv['overall'] = make_qq(v.neglog10_pval for v in variants)
+        rv['by_maf'] = make_qq_stratified(variants)
+
 
     # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
     with open(tmp_filename, 'w') as f:
@@ -184,4 +166,5 @@ p = multiprocessing.Pool(30)
 #p.map(make_json_file, files_to_convert)
 p.map_async(make_json_file, files_to_convert).get(1e8) # Makes KeyboardInterrupt work
 
-# make_json_file(files_to_convert[0]) # for debugging
+# for f in files_to_convert:
+#     make_json_file(f) # for debugging
