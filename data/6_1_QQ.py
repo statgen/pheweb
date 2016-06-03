@@ -30,16 +30,14 @@ NUM_BINS = 1000
 
 NUM_MAF_RANGES = 4
 
-
-def parse_variant_tuple(variant):
-    chrom, pos, maf, pval, beta = variant[0], int(variant[1]), float(variant[3]), float(variant[4]), float(variant[5])
-    chrom2, pos2, ref, alt = parse_marker_id(variant[2])
+Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
+def parse_variant_line(variant_line):
+    v = variant_line.split('\t')
+    chrom, pos, maf, pval, beta = v[0], int(v[1]), float(v[3]), float(v[4]), float(v[5])
+    chrom2, pos2, ref, alt = parse_marker_id(v[2])
     assert chrom == chrom2
     assert pos == pos2
-    return (chrom, pos, ref, alt, maf, pval)
-
-def rounded(x):
-    return round(x // NEGLOG10_PVAL_BIN_SIZE * NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
+    return Variant(-math.log10(pval), maf)
 
 
 def approx_equal(a, b, tolerance=1e-4):
@@ -87,7 +85,6 @@ def compute_qq(neglog10_pvals):
     return sorted(qq)
 
 
-Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
 def make_qq_stratified(variants):
     variants = sorted(variants, key=lambda v: v.maf)
 
@@ -130,11 +127,7 @@ def make_json_file(args):
         assert re.match(r'[0-9]+(?:\.[0-9]+)?\.P', header[4])
         assert re.match(r'[0-9]+(?:\.[0-9]+)?\.B', header[5])
 
-        variants = []
-        for line in f:
-            v = line.rstrip('\n').split('\t')
-            chrom, pos, ref, alt, maf, pval = parse_variant_tuple(v)
-            variants.append(Variant(neglog10_pval = -math.log10(pval), maf = maf))
+        variants = [parse_variant_line(line.rstrip('\n')) for line in f]
         rv = {}
         rv['overall'] = make_qq(v.neglog10_pval for v in variants)
         rv['by_maf'] = make_qq_stratified(variants)

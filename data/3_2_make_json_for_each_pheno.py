@@ -28,12 +28,13 @@ NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 BIN_THRESHOLD = 1e-4 # pvals less than this threshold don't get binned.
 
 
-def parse_variant_tuple(variant):
+Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf', 'beta'])
+def parse_variant_line(variant_line):
     chrom, pos, maf, pval, beta = variant[0], int(variant[1]), float(variant[3]), float(variant[4]), float(variant[5])
     chrom2, pos2, ref, alt = parse_marker_id(variant[2])
     assert chrom == chrom2
     assert pos == pos2
-    return (chrom, pos, ref, alt, maf, pval)
+    return Variant(chrom=chrom, pos=pos, ref=ref, alt=alt, pval=pval, maf=maf, beta=beta)
 
 def rounded_neglog10(pval):
     return round(-math.log10(pval) // NEGLOG10_PVAL_BIN_SIZE * NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
@@ -61,35 +62,34 @@ def bin_variants(variants):
 
     prev_chrom, prev_pos = -1, -1
     for variant in variants:
-        chrom, pos, ref, alt, maf, pval = parse_variant_tuple(variant)
-        assert pos >= prev_pos or int(chrom) > int(prev_chrom), (chrom, pos, prev_chrom, prev_pos)
-        prev_chrom, prev_pos = chrom, pos
-        if pval < BIN_THRESHOLD:
+        assert variant.pos >= prev_pos or int(variant.chrom) > int(prev_chrom), (variant, prev_chrom, prev_pos)
+        prev_chrom, prev_pos = variant.chrom, variant.pos
+        if variant.pval < BIN_THRESHOLD:
             unbinned_variants.append({
-                'chrom': chrom,
-                'pos': pos,
-                'ref': ref,
-                'alt': alt,
-                'maf': round_sig(maf, 3),
-                'pval': round_sig(pval, 2),
+                'chrom': variant.chrom,
+                'pos': variant.pos,
+                'ref': variant.ref,
+                'alt': variant.alt,
+                'maf': round_sig(variant.maf, 3),
+                'pval': round_sig(variant.pval, 2),
             })
 
         else:
-            if len(bins) == 0 or chrom != bins[-1]['chrom']:
+            if len(bins) == 0 or variant.chrom != bins[-1]['chrom']:
                 # We need a new bin, starting with this variant.
                 bins.append({
-                    'chrom': chrom,
-                    'startpos': pos,
+                    'chrom': variant.chrom,
+                    'startpos': variant.pos,
                     'neglog10_pvals': set(),
                 })
-            elif pos > bins[-1]['startpos'] + BIN_LENGTH:
+            elif variant.pos > bins[-1]['startpos'] + BIN_LENGTH:
                 # We need a new bin following the last one.
                 bins.append({
-                    'chrom': chrom,
+                    'chrom': variant.chrom,
                     'startpos': bins[-1]['startpos'] + BIN_LENGTH,
                     'neglog10_pvals': set(),
                 })
-            bins[-1]['neglog10_pvals'].add(rounded_neglog10(pval))
+            bins[-1]['neglog10_pvals'].add(rounded_neglog10(variant.pval))
 
     bins = [b for b in bins if len(b['neglog10_pvals']) != 0]
     for b in bins:
@@ -111,7 +111,7 @@ def make_json_file(args):
         assert re.match(r'[0-9]+(?:\.[0-9]+)?\.P', header[4])
         assert re.match(r'[0-9]+(?:\.[0-9]+)?\.B', header[5])
 
-        variants = (line.rstrip('\n').split('\t') for line in f)
+        variants = (parse_variant_line(line.rstrip('\n')) for line in f)
         variant_bins, unbinned_variants = bin_variants(variants)
 
     rv = {
