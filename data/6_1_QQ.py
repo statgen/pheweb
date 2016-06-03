@@ -106,7 +106,7 @@ def make_qq_stratified(variants):
 def make_qq(neglog10_pvals):
     neglog10_pvals = sorted(neglog10_pvals, reverse=True)
     rv = {}
-#    rv['qq'] = compute_qq(neglog10_pvals) # We don't need this now.
+    rv['qq'] = compute_qq(neglog10_pvals) # We don't need this now.
     rv['count'] = len(neglog10_pvals)
     rv['gc_lambda'] = {}
     rv['gc_lambda']['0.5'] = round_sig(gc_value_from_list(neglog10_pvals, 0.5), 5)
