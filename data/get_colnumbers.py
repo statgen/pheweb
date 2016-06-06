@@ -4,6 +4,7 @@ from __future__ import print_function, division, absolute_import
 
 import os.path
 
+# Activate virtualenv
 activate_this = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../venv/bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
@@ -11,9 +12,9 @@ import gzip
 import collections
 import csv
 
-# TODO: maybe update #cases, #controls
-phewas_codes_filename = '/net/fantasia/home/schellen/PheWAS/epacts_multi/gwas_17March2016/plots/case_control_counts.txt'
-epacts_results_filename = '/var/pheweb_data/phewas_maf_gte_1e-2.vcf.gz'
+execfile(os.path.join(my_dir, '../config.config'))
+
+
 
 def get_phenos():
     phenos = collections.OrderedDict()

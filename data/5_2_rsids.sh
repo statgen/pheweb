@@ -2,7 +2,9 @@
 
 set -euo pipefail
 
-data_dir="/var/pheweb_data/"
+PROJECT_DIR="$( cd "$( dirname "$( dirname "${BASH_SOURCE[0]}" )" )" && pwd )"
+source "$PROJECT_DIR/config.config"
+
 
 if ! [[ -e "$data_dir/dbSNP/dbsnp-b147-GRCh37.gz" ]]; then
     echo downloading!

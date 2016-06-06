@@ -6,6 +6,12 @@ import marisa_trie
 
 from utils import parse_variant
 
+import os.path
+my_dir = os.path.dirname(os.path.abspath(__file__))
+execfile(os.path.join(my_dir, 'config.config'))
+
+
+
 def get_autocompletion(query, phenos):
     query = query.strip()
     return \
@@ -17,8 +23,8 @@ def get_autocompletion(query, phenos):
         list(itertools.islice(get_icd9_string_autocompletion(query, phenos), 0, 10))
 
 
-sites_rsids_trie = marisa_trie.BytesTrie().load('/var/pheweb_data/sites_rsids_trie.marisa')
-rsids_sites_trie = marisa_trie.BytesTrie().load('/var/pheweb_data/rsids_sites_trie.marisa')
+sites_rsids_trie = marisa_trie.BytesTrie().load(data_dir + '/sites_rsids_trie.marisa')
+rsids_sites_trie = marisa_trie.BytesTrie().load(data_dir + '/rsids_sites_trie.marisa')
 
 def get_variant_autocompletion(query):
     # chrom-pos-ref-alt format

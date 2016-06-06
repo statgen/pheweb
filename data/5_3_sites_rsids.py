@@ -11,6 +11,7 @@ from __future__ import print_function, division, absolute_import
 
 import os.path
 
+# Activate virtualenv
 my_dir = os.path.dirname(os.path.abspath(__file__))
 activate_this = os.path.join(my_dir, '../../venv/bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
@@ -22,10 +23,12 @@ import sys
 sys.path.insert(0, os.path.join(my_dir, '..'))
 from utils import parse_marker_id
 
-data_dir = '/var/pheweb_data/'
+execfile(os.path.join(my_dir, '../config.config'))
+
 rsids_filename = data_dir + "/dbSNP/rsids.vcf.gz"
 sites_filename = data_dir + "/phewas_maf_gte_1e-2_ncases_gte_20_sites.vcf.gz"
 out_filename = data_dir + "/phewas_maf_gte_1e-2_ncases_gte_20_sites_rsids.vcf.gz"
+
 
 
 Site_line = collections.namedtuple('Site_line', 'chrom pos ref alt'.split())

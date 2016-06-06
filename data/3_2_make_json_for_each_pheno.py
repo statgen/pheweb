@@ -4,6 +4,7 @@ from __future__ import print_function, division, absolute_import
 
 import os.path
 
+# Activate virtualenv
 my_dir = os.path.dirname(os.path.abspath(__file__))
 activate_this = os.path.join(my_dir, '../../venv/bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
@@ -21,7 +22,10 @@ import sys
 sys.path.insert(0, os.path.join(my_dir, '..'))
 from utils import round_sig, parse_marker_id
 
-data_dir = '/var/pheweb_data/'
+execfile(os.path.join(my_dir, '../config.config'))
+
+
+
 BIN_LENGTH = int(3e6)
 NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
 NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits

@@ -8,6 +8,11 @@ import json
 import gzip
 import os
 
+import os.path
+my_dir = os.path.dirname(os.path.abspath(__file__))
+execfile(os.path.join(my_dir, 'config.config'))
+
+
 
 def parse_variant(query, default_chrom_pos = True):
     if isinstance(query, unicode):
@@ -46,7 +51,7 @@ assert round_sig(1.59e-10, 2) == 1.6e-10
 def get_phenos_with_colnums(app_root_path):
     with open(os.path.join(app_root_path, 'data/phenos.json')) as f:
         phenos = json.load(f)
-    with gzip.open('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz') as f:
+    with gzip.open(data_dir + '/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz') as f:
         header = f.readline().rstrip('\n').split('\t')
     assert header[:4] == ['#CHROM', 'BEG', 'MARKER_ID', 'MAF']
     for colnum, colname in enumerate(header[4:], start=4):
@@ -68,7 +73,7 @@ def get_variant(query, phenos, sites_rsids_trie):
     assert None not in [chrom, pos, ref, alt]
     marker_id = make_marker_id(chrom, pos, ref, alt)
 
-    tabix_file = pysam.TabixFile('/var/pheweb_data/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz')
+    tabix_file = pysam.TabixFile(data_dir + '/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz')
     tabix_iter = tabix_file.fetch(chrom, pos, pos+1, parser = pysam.asTuple())
     for variant_row in tabix_iter:
         if variant_row[2] == marker_id:

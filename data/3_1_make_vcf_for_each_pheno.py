@@ -4,6 +4,7 @@ from __future__ import print_function, division, absolute_import
 
 import os.path
 
+# Activate virtualenv
 my_dir = os.path.dirname(os.path.abspath(__file__))
 activate_this = os.path.join(my_dir, '../../venv/bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
@@ -15,8 +16,11 @@ import subprocess
 import datetime
 import shutil
 
-data_dir = '/var/pheweb_data/'
+execfile(os.path.join(my_dir, '../config.config'))
+
 epacts_results_filename = data_dir + '/phewas_maf_gte_1e-2_ncases_gte_20.vcf.gz'
+
+
 
 def get_phenos_in_file(filename):
     with gzip.open(filename) as f:

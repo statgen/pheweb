@@ -4,6 +4,7 @@ from __future__ import print_function, division, absolute_import
 
 import os.path
 
+# Activate virtualenv
 my_dir = os.path.dirname(os.path.abspath(__file__))
 activate_this = os.path.join(my_dir, '../venv/bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
@@ -13,6 +14,9 @@ from flask.ext.compress import Compress
 
 from utils import get_phenos_with_colnums, get_variant
 from autocomplete import get_autocompletion, get_best_completion, sites_rsids_trie
+
+execfile(os.path.join(my_dir, 'config.config'))
+
 
 
 app = Flask(__name__)
@@ -57,11 +61,11 @@ def variant_page(query):
 
 @app.route('/api/pheno/<filename>')
 def api_pheno(filename):
-    return send_from_directory('/var/pheweb_data/gwas-json-binned/', filename)
+    return send_from_directory(data_dir + '/gwas-json-binned/', filename)
 
 @app.route('/api/pheno-qq/<filename>')
 def api_pheno_qq(filename):
-    return send_from_directory('/var/pheweb_data/qq/', filename)
+    return send_from_directory(data_dir + '/qq/', filename)
 
 @app.route('/pheno/<phewas_code>')
 def pheno_page(phewas_code):

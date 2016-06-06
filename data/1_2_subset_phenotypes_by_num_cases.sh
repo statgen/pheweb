@@ -2,11 +2,10 @@
 
 set -eou pipefail
 
-data_dir="/var/pheweb_data/"
+PROJECT_DIR="$( cd "$( dirname "$( dirname "${BASH_SOURCE[0]}" )" )" && pwd )"
+source "$PROJECT_DIR/config.config"
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-colnums="$($SCRIPT_DIR/get_colnumbers.py)"
+colnums="$($PROJECT_DIR/data/get_colnumbers.py)"
 
 /net/mario/cluster/bin/pigz -dc "$data_dir/phewas_maf_gte_1e-2.vcf.gz" |
 cut -d $'\t' -f "$colnums" |
