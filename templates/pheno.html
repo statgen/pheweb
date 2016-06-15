@@ -80,6 +80,11 @@
             {% endfor %}
           {% endif %}
         {% endwith %}
+        {% if '<' in pheno.num_cases|string %}
+          <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno.num_cases }} cases.</div>
+        {% elif pheno.num_cases|int < 200 %}
+          <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno.num_cases }} cases.</div>
+        {% endif %}
         <div class="row">
             <div class="col-xs-12">
                 <h1 style="margin-top:0">{{ phewas_code }}: {{ pheno.phewas_string }}</h1>
