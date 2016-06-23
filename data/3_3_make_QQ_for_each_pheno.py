@@ -2,12 +2,19 @@
 
 from __future__ import print_function, division, absolute_import
 
+# Load config
 import os.path
+my_dir = os.path.dirname(os.path.abspath(__file__))
+execfile(os.path.join(my_dir, '../config.config'))
 
 # Activate virtualenv
-my_dir = os.path.dirname(os.path.abspath(__file__))
-activate_this = os.path.join(my_dir, '../../venv/bin/activate_this.py')
+activate_this = os.path.join(virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
+
+import sys
+sys.path.insert(0, os.path.join(my_dir, '..'))
+from utils import round_sig, parse_marker_id
+
 
 import glob
 import re
@@ -19,12 +26,6 @@ import datetime
 import multiprocessing
 import scipy.stats
 import collections
-
-import sys
-sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import round_sig, parse_marker_id
-
-execfile(os.path.join(my_dir, '../config.config'))
 
 
 

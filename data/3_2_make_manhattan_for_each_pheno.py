@@ -2,12 +2,18 @@
 
 from __future__ import print_function, division, absolute_import
 
+# Load config
 import os.path
+my_dir = os.path.dirname(os.path.abspath(__file__))
+execfile(os.path.join(my_dir, '../config.config'))
 
 # Activate virtualenv
-my_dir = os.path.dirname(os.path.abspath(__file__))
-activate_this = os.path.join(my_dir, '../../venv/bin/activate_this.py')
+activate_this = os.path.join(virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
+
+import sys
+sys.path.insert(0, os.path.join(my_dir, '..'))
+from utils import round_sig, parse_marker_id
 
 import glob
 import re
@@ -17,12 +23,8 @@ import gzip
 import math
 import datetime
 import multiprocessing
-
-import sys
-sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import round_sig, parse_marker_id
-
-execfile(os.path.join(my_dir, '../config.config'))
+import csv
+import collections
 
 
 
@@ -32,13 +34,22 @@ NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 BIN_THRESHOLD = 1e-4 # pvals less than this threshold don't get binned.
 
 
-Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf', 'beta'])
-def parse_variant_line(variant_line):
-    chrom, pos, maf, pval, beta = variant[0], int(variant[1]), float(variant[3]), float(variant[4]), float(variant[5])
-    chrom2, pos2, ref, alt = parse_marker_id(variant[2])
-    assert chrom == chrom2
-    assert pos == pos2
-    return Variant(chrom=chrom, pos=pos, ref=ref, alt=alt, pval=pval, maf=maf, beta=beta)
+Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf'])
+def parse_variant_rows(variant_rows):
+    for variant_row in variant_rows:
+        chrom = variant_row['#CHROM']
+        pos = int(variant_row['BEGIN'])
+        maf = float(variant_row['MAF'])
+        if maf < .01:
+            continue
+        try:
+            pval = float(variant_row['PVALUE'])
+        except ValueError:
+            continue
+        chrom2, pos2, ref, alt = parse_marker_id(variant_row['MARKER_ID'])
+        assert chrom == chrom2
+        assert pos == pos2
+        yield Variant(chrom=chrom, pos=pos, ref=ref, alt=alt, pval=pval, maf=maf)
 
 def rounded_neglog10(pval):
     return round(-math.log10(pval) // NEGLOG10_PVAL_BIN_SIZE * NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
@@ -109,13 +120,9 @@ def make_json_file(args):
     assert not os.path.exists(dest_filename), dest_filename
 
     with gzip.open(src_filename) as f:
-        header = f.readline().rstrip('\n').split('\t')
-        assert len(header) == 6, header
-        assert header[:4] == ['#CHROM', 'BEG', 'MARKER_ID', 'MAF']
-        assert re.match(r'[0-9]+(?:\.[0-9]+)?\.P', header[4])
-        assert re.match(r'[0-9]+(?:\.[0-9]+)?\.B', header[5])
+        reader = csv.DictReader(f, delimiter='\t')
 
-        variants = (parse_variant_line(line.rstrip('\n')) for line in f)
+        variants = parse_variant_rows(reader)
         variant_bins, unbinned_variants = bin_variants(variants)
 
     rv = {
@@ -132,18 +139,25 @@ def make_json_file(args):
 
 
 def get_files_to_convert():
-    src_filenames = glob.glob(data_dir + '/gwas-one-pheno/*.vcf.gz')
+    src_filenames = glob.glob(epacts_source_filenames_pattern)
     print('source files:', len(src_filenames))
     for src_filename in src_filenames:
         basename = os.path.basename(src_filename)
-        dest_filename = '{}/gwas-json-binned/{}.json'.format(data_dir, basename.replace('.vcf.gz', ''))
-        tmp_filename = '{}/gwas-json-binned/tmp-{}.json'.format(data_dir, basename.replace('.vcf.gz', ''))
+        dest_filename = '{}/gwas-json-binned/{}.json'.format(data_dir, basename.replace('.epacts.gz', ''))
+        tmp_filename = '{}/gwas-json-binned/tmp-{}.json'.format(data_dir, basename.replace('.epacts.gz', ''))
         assert not os.path.exists(tmp_filename), tmp_filename # It's not really a problem, just surprising.
         if not os.path.exists(dest_filename):
             yield (src_filename, dest_filename, tmp_filename)
+
+try:
+    os.makedirs(data_dir + '/gwas-json-binned')
+except OSError:
+    pass
 
 files_to_convert = list(get_files_to_convert())
 print('files to convert:', len(files_to_convert))
 p = multiprocessing.Pool(30)
 #p.map(make_json_file, files_to_convert)
 p.map_async(make_json_file, files_to_convert).get(1e8) # Makes KeyboardInterrupt work
+
+# make_json_file(files_to_convert[0]) # debugging
