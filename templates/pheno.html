@@ -4,10 +4,10 @@
 <script type="text/javascript" src="{{ url_for('static', filename='pheno.js') }}"></script>
 <script type="text/javascript">
   window.pheno = {{ phewas_code|tojson|safe }};
-  $.getJSON("/api/pheno/" + window.pheno + ".json").done(function(variants) {
+  $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json").done(function(variants) {
       create_gwas_plot(variants.variant_bins, variants.unbinned_variants);
   });
-  $.getJSON("/api/pheno-qq/" + window.pheno + ".json").done(function(data) {
+  $.getJSON("/api/qq/pheno/" + window.pheno + ".json").done(function(data) {
     _.sortBy(_.pairs(data.overall.gc_lambda)).forEach(function(d) {
       $('.gc-control').append('<br>GC Lambda ' + d[0] + ': ' + d[1].toFixed(3));
     });
@@ -16,7 +16,7 @@
 </script>
 <style type="text/css">
 .d3-tip {
-  line-height: 1;
+  line-height: 1.4;
   padding: 12px;
   background: rgba(0, 0, 0, 0.8);
   color: #fff;
@@ -119,6 +119,8 @@
 <%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> &gt; <%= d.alt %><br>
 pval: <%= d.pval %><br>
 MAF: <%= d.maf %><br>
+nearest gene<%= (d.nearest_genes.indexOf(',') !== -1) ? 's' : '' %>: <%= d.nearest_genes %><br>
+rsid<%= (d.rsids.indexOf(',') !== -1) ? 's' : '' %>: <%= d.rsids %><br>
 </script>
 
 {% endblock %}

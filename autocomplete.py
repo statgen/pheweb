@@ -13,7 +13,7 @@ execfile(os.path.join(my_dir, 'config.config'))
 
 
 def get_autocompletion(query, phenos):
-    query = query.strip()
+    query = query.strip().replace(',', '')
     return \
         list(itertools.islice(get_variant_autocompletion(query), 0, 10)) or \
         list(itertools.islice(get_rsid_autocompletion(query), 0, 10)) or \
@@ -23,8 +23,8 @@ def get_autocompletion(query, phenos):
         list(itertools.islice(get_icd9_string_autocompletion(query, phenos), 0, 10))
 
 
-sites_rsids_trie = marisa_trie.BytesTrie().load(data_dir + '/sites_rsids_trie.marisa')
-rsids_sites_trie = marisa_trie.BytesTrie().load(data_dir + '/rsids_sites_trie.marisa')
+cpra_to_rsids_trie = marisa_trie.BytesTrie().load(data_dir + '/sites/cpra_to_rsids_trie.marisa')
+rsid_to_cpra_trie = marisa_trie.BytesTrie().load(data_dir + '/sites/rsid_to_cpra_trie.marisa')
 
 def get_variant_autocompletion(query):
     # chrom-pos-ref-alt format
@@ -32,20 +32,21 @@ def get_variant_autocompletion(query):
     if chrom is not None:
         key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
         key = key.decode('ascii')
-        for chrom_pos_ref_alt, rsids in sites_rsids_trie.iteritems(key):
-            chrom_pos_ref_alt = chrom_pos_ref_alt.replace('-', ':', 1)
+        for cpra, rsids in cpra_to_rsids_trie.iteritems(key):
+            cpra = cpra.replace('-', ':', 1)
             yield {
-                "value": chrom_pos_ref_alt,
-                "display": '{} ({})'.format(chrom_pos_ref_alt, rsids) if rsids else chrom_pos_ref_alt,
-                "url": "/variant/{}".format(chrom_pos_ref_alt)
+                "value": cpra,
+                "display": '{} ({})'.format(cpra, rsids) if rsids else cpra,
+                "url": "/variant/{}".format(cpra)
             }
 
 def get_rsid_autocompletion(query):
+    query = query.lower()
     if query.startswith('rs'):
         key = query.decode('ascii')
 
         # In Trie.iteritems, "rs100" comes before "rs1".
-        # So, rsids_sites_trie.iteritems("rs7412")[-1] is "rs7412".
+        # So, rsid_to_cpra_trie.iteritems("rs7412")[-1] is "rs7412".
         # That's unfortunate, and I don't know how to fix it.
         # I wish we could get a real lexicographic order, where shorter strings come first, but I don't see how.
         # Even better would be to the 10 shortest children of the current string.
@@ -53,22 +54,22 @@ def get_rsid_autocompletion(query):
 
         rsids_to_check = [key] + [u"{}{}".format(key, i) for i in range(10)]
         for rsid in rsids_to_check:
-            chrom_pos_ref_alt = rsids_sites_trie.get(rsid)
-            if chrom_pos_ref_alt is not None:
-                chrom_pos_ref_alt = chrom_pos_ref_alt[0]
-                chrom_pos_ref_alt = chrom_pos_ref_alt.replace('-', ':', 1)
+            cpra = rsid_to_cpra_trie.get(rsid)
+            if cpra is not None:
+                cpra = cpra[0]
+                cpra = cpra.replace('-', ':', 1)
                 yield {
-                    "value": chrom_pos_ref_alt,
-                    "display": '{} ({})'.format(rsid, chrom_pos_ref_alt),
-                    "url": "/variant/{}".format(chrom_pos_ref_alt)
+                    "value": cpra,
+                    "display": '{} ({})'.format(rsid, cpra),
+                    "url": "/variant/{}".format(cpra)
                 }
 
-        for rsid, chrom_pos_ref_alt in rsids_sites_trie.iteritems(key):
-            chrom_pos_ref_alt = chrom_pos_ref_alt.replace('-', ':', 1)
+        for rsid, cpra in rsid_to_cpra_trie.iteritems(key):
+            cpra = cpra.replace('-', ':', 1)
             yield {
-                "value": chrom_pos_ref_alt,
-                "display": '{} ({})'.format(rsid, chrom_pos_ref_alt),
-                "url": "/variant/{}".format(chrom_pos_ref_alt)
+                "value": cpra,
+                "display": '{} ({})'.format(rsid, cpra),
+                "url": "/variant/{}".format(cpra)
             }
 
 def get_phewas_code_autocompletion(query, phenos):

@@ -13,7 +13,7 @@ execfile(activate_this, dict(__file__=activate_this))
 
 import sys
 sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import round_sig, parse_marker_id
+from utils import round_sig, parse_marker_id, mkdir_p
 
 
 import gzip
@@ -28,7 +28,7 @@ import errno
 
 Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf'])
 def parse_variant_rows(f):
-    variant_rows = DictReader(f, delimiter='\t')
+    variant_rows = csv.DictReader(f, delimiter='\t')
     for variant_row in variant_rows:
         chrom = variant_row['#CHROM']
         pos = int(variant_row['BEGIN'])
@@ -83,8 +83,7 @@ def get_conversions_to_do():
     for src_filename in src_filenames:
         pheno_code = extract_pheno_code(src_filename)
         dest_filename = '{}/pheno/{}'.format(data_dir, pheno_code)
-        tmp_filename = '{}/pheno/tmp-{}'.format(data_dir, pheno_code)
-        assert not os.path.exists(tmp_filename), tmp_filename # It's not really a problem, just surprising.
+        tmp_filename = '{}/tmp/pheno-{}'.format(data_dir, pheno_code)
         if not os.path.exists(dest_filename):
             yield {
                 'src': src_filename,
@@ -92,14 +91,8 @@ def get_conversions_to_do():
                 'tmp': tmp_filename,
             }
 
-def mkdir_p(path):
-    # like `mkdir -p`
-    try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno != errno.EEXIST or not os.path.isdir(path):
-            raise
 mkdir_p(data_dir + '/pheno')
+mkdir_p(data_dir + '/tmp')
 
 conversions_to_do = list(get_conversions_to_do())
 print('number of conversions to do:', len(conversions_to_do))

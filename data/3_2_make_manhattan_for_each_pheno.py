@@ -13,19 +13,18 @@ execfile(activate_this, dict(__file__=activate_this))
 
 import sys
 sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import round_sig, parse_marker_id
+from utils import round_sig, mkdir_p
 
 import glob
 import re
 import os
 import json
-import gzip
 import math
 import datetime
 import multiprocessing
 import csv
 import collections
-
+import errno
 
 
 BIN_LENGTH = int(3e6)
@@ -34,22 +33,23 @@ NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 BIN_THRESHOLD = 1e-4 # pvals less than this threshold don't get binned.
 
 
-Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf'])
-def parse_variant_rows(variant_rows):
-    for variant_row in variant_rows:
-        chrom = variant_row['#CHROM']
-        pos = int(variant_row['BEGIN'])
-        maf = float(variant_row['MAF'])
+Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf', 'nearest_genes', 'rsids'])
+def get_variants(f):
+    for variant_row in csv.DictReader(f, delimiter='\t'):
+        chrom = variant_row['chr']
+        pos = int(variant_row['pos'])
+        ref = variant_row['ref']
+        alt = variant_row['alt']
+        nearest_genes = variant_row['nearest_genes']
+        rsids = variant_row['rsids']
+        maf = float(variant_row['maf'])
         if maf < .01:
             continue
         try:
-            pval = float(variant_row['PVALUE'])
+            pval = float(variant_row['pval'])
         except ValueError:
             continue
-        chrom2, pos2, ref, alt = parse_marker_id(variant_row['MARKER_ID'])
-        assert chrom == chrom2
-        assert pos == pos2
-        yield Variant(chrom=chrom, pos=pos, ref=ref, alt=alt, pval=pval, maf=maf)
+        yield Variant(chrom=chrom, pos=pos, ref=ref, alt=alt, pval=pval, maf=maf, nearest_genes=nearest_genes, rsids=rsids)
 
 def rounded_neglog10(pval):
     return round(-math.log10(pval) // NEGLOG10_PVAL_BIN_SIZE * NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
@@ -87,6 +87,8 @@ def bin_variants(variants):
                 'alt': variant.alt,
                 'maf': round_sig(variant.maf, 3),
                 'pval': round_sig(variant.pval, 2),
+                'nearest_genes': variant.nearest_genes,
+                'rsids': variant.rsids,
             })
 
         else:
@@ -116,13 +118,11 @@ def bin_variants(variants):
 
 
 def make_json_file(args):
-    src_filename, dest_filename, tmp_filename = args
+    src_filename, dest_filename, tmp_filename = args['src'], args['dest'], args['tmp']
     assert not os.path.exists(dest_filename), dest_filename
 
-    with gzip.open(src_filename) as f:
-        reader = csv.DictReader(f, delimiter='\t')
-
-        variants = parse_variant_rows(reader)
+    with open(src_filename) as f:
+        variants = get_variants(f)
         variant_bins, unbinned_variants = bin_variants(variants)
 
     rv = {
@@ -138,26 +138,23 @@ def make_json_file(args):
     os.rename(tmp_filename, dest_filename)
 
 
-def get_files_to_convert():
-    src_filenames = glob.glob(epacts_source_filenames_pattern)
-    print('source files:', len(src_filenames))
+def get_conversions_to_do():
+    src_filenames = glob.glob(data_dir + '/augmented_pheno/*')
+    print('number of source files:', len(src_filenames))
     for src_filename in src_filenames:
-        basename = os.path.basename(src_filename)
-        dest_filename = '{}/gwas-json-binned/{}.json'.format(data_dir, basename.replace('.epacts.gz', ''))
-        tmp_filename = '{}/gwas-json-binned/tmp-{}.json'.format(data_dir, basename.replace('.epacts.gz', ''))
-        assert not os.path.exists(tmp_filename), tmp_filename # It's not really a problem, just surprising.
+        pheno_code = os.path.basename(src_filename)
+        assert not 'tmp' in pheno_code
+        dest_filename = '{}/manhattan/{}.json'.format(data_dir, pheno_code)
+        tmp_filename = '{}/tmp/manhattan-{}.json'.format(data_dir, pheno_code)
         if not os.path.exists(dest_filename):
-            yield (src_filename, dest_filename, tmp_filename)
+            yield {'src':src_filename, 'dest':dest_filename, 'tmp':tmp_filename}
 
-try:
-    os.makedirs(data_dir + '/gwas-json-binned')
-except OSError:
-    pass
+mkdir_p(data_dir + '/manhattan')
+mkdir_p(data_dir + '/tmp')
 
-files_to_convert = list(get_files_to_convert())
-print('files to convert:', len(files_to_convert))
-p = multiprocessing.Pool(30)
-#p.map(make_json_file, files_to_convert)
-p.map_async(make_json_file, files_to_convert).get(1e8) # Makes KeyboardInterrupt work
-
-# make_json_file(files_to_convert[0]) # debugging
+conversions_to_do = list(get_conversions_to_do())
+print('number of files to convert:', len(conversions_to_do))
+num_processes = multiprocessing.cpu_count() * 3//4 + 1
+p = multiprocessing.Pool(num_processes)
+p.map_async(make_json_file, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
+#print(conversions_to_do[0]); make_json_file(conversions_to_do[0]) # debugging

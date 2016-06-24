@@ -13,20 +13,18 @@ execfile(activate_this, dict(__file__=activate_this))
 
 import sys
 sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import round_sig, parse_marker_id
-
+from utils import round_sig, mkdir_p
 
 import glob
 import re
 import os
 import json
-import gzip
 import math
 import datetime
 import multiprocessing
 import scipy.stats
 import collections
-
+import csv
 
 
 NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
@@ -36,13 +34,15 @@ NUM_BINS = 1000
 NUM_MAF_RANGES = 4
 
 Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
-def parse_variant_line(variant_line):
-    v = variant_line.split('\t')
-    chrom, pos, maf, pval, beta = v[0], int(v[1]), float(v[3]), float(v[4]), float(v[5])
-    chrom2, pos2, ref, alt = parse_marker_id(v[2])
-    assert chrom == chrom2
-    assert pos == pos2
-    return Variant(-math.log10(pval), maf)
+def get_variants(f):
+    for v in csv.DictReader(f, delimiter='\t'):
+        pval = v['pval']
+        try:
+            pval = float(pval)
+        except ValueError:
+            continue
+        maf = float(v['maf'])
+        yield Variant(-math.log10(pval), maf)
 
 
 def approx_equal(a, b, tolerance=1e-4):
@@ -122,21 +122,15 @@ def make_qq(neglog10_pvals):
 
 
 def make_json_file(args):
-    src_filename, dest_filename, tmp_filename = args
+    src_filename, dest_filename, tmp_filename = args['src'], args['dest'], args['tmp']
     assert not os.path.exists(dest_filename), dest_filename
 
-    with gzip.open(src_filename) as f:
-        header = f.readline().rstrip('\n').split('\t')
-        assert len(header) == 6, header
-        assert header[:4] == ['#CHROM', 'BEG', 'MARKER_ID', 'MAF']
-        assert re.match(r'[0-9]+(?:\.[0-9]+)?\.P', header[4])
-        assert re.match(r'[0-9]+(?:\.[0-9]+)?\.B', header[5])
+    with open(src_filename) as f:
+        variants = list(get_variants(f))
 
-        variants = [parse_variant_line(line.rstrip('\n')) for line in f]
-        rv = {}
-        rv['overall'] = make_qq(v.neglog10_pval for v in variants)
-        rv['by_maf'] = make_qq_stratified(variants)
-
+    rv = {}
+    rv['overall'] = make_qq(v.neglog10_pval for v in variants)
+    rv['by_maf'] = make_qq_stratified(variants)
 
     # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
     with open(tmp_filename, 'w') as f:
@@ -146,23 +140,22 @@ def make_json_file(args):
     os.rename(tmp_filename, dest_filename)
 
 
-def get_files_to_convert():
-    src_filenames = glob.glob(data_dir + '/gwas-one-pheno/*.vcf.gz')
-    print('source files:', len(src_filenames))
+def get_conversions_to_do():
+    src_filenames = glob.glob(data_dir + '/augmented_pheno/*')
+    print('number of source files:', len(src_filenames))
     for src_filename in src_filenames:
-        basename = os.path.basename(src_filename)
-        dest_filename = '{}/qq/{}.json'.format(data_dir, basename.replace('.vcf.gz', ''))
-        tmp_filename = '{}/qq/tmp-{}.json'.format(data_dir, basename.replace('.vcf.gz', ''))
-        assert not os.path.exists(tmp_filename), tmp_filename # It's not really a problem, just surprising.
+        pheno_code = os.path.basename(src_filename)
+        dest_filename = '{}/qq/{}.json'.format(data_dir, pheno_code)
+        tmp_filename = '{}/tmp/qq-{}.json'.format(data_dir, pheno_code)
         if not os.path.exists(dest_filename):
-            yield (src_filename, dest_filename, tmp_filename)
+            yield {'src':src_filename, 'dest':dest_filename, 'tmp':tmp_filename}
 
-files_to_convert = list(get_files_to_convert())
-print('files to convert:', len(files_to_convert))
+mkdir_p(data_dir + '/qq')
+mkdir_p(data_dir + '/tmp')
 
-p = multiprocessing.Pool(30)
-#p.map(make_json_file, files_to_convert)
-p.map_async(make_json_file, files_to_convert).get(1e8) # Makes KeyboardInterrupt work
-
-# for f in files_to_convert:
-#     make_json_file(f) # for debugging
+conversions_to_do = list(get_conversions_to_do())
+print('number of files to convert:', len(conversions_to_do))
+num_processes = multiprocessing.cpu_count() * 3//4 + 1
+p = multiprocessing.Pool(num_processes)
+p.map_async(make_json_file, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
+#print(conversions_to_do[0]); make_json_file(conversions_to_do[0]) # debugging
