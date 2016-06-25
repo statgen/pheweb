@@ -45,13 +45,13 @@ def go():
 
 @app.route('/api/variant/<query>')
 def api_variant(query):
-    variant = get_variant(query, phenos, sites_rsids_trie)
+    variant = get_variant(query, phenos, cpra_to_rsids_trie)
     return jsonify(variant)
 
 @app.route('/variant/<query>')
 def variant_page(query):
     try:
-        variant = get_variant(query, phenos, sites_rsids_trie)
+        variant = get_variant(query, phenos, cpra_to_rsids_trie)
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
@@ -86,7 +86,7 @@ def homepage():
 def about_page():
     return render_template('about.html')
 
-def die(message):
+def die(message='no message'):
     flash(message)
     abort(404)
 
