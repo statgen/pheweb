@@ -117,6 +117,18 @@ def bin_variants(variants):
     return bins, unbinned_variants
 
 
+def label_genes_to_show(variants):
+    variants_by_gene = {}
+    for v in variants:
+        if v['pval'] < 1e-5: # This is my arbitrary cutoff.
+            for gene in v['nearest_genes'].split(','):
+                variants_by_gene.setdefault(gene, []).append(v)
+
+    for variants_in_gene in variants_by_gene.values():
+        best_variant = min(variants_in_gene, key=lambda v: v['pval'])
+        best_variant['show_gene'] = True
+
+
 def make_json_file(args):
     src_filename, dest_filename, tmp_filename = args['src'], args['dest'], args['tmp']
     assert not os.path.exists(dest_filename), dest_filename
@@ -124,6 +136,8 @@ def make_json_file(args):
     with open(src_filename) as f:
         variants = get_variants(f)
         variant_bins, unbinned_variants = bin_variants(variants)
+
+    label_genes_to_show(unbinned_variants)
 
     rv = {
         'variant_bins': variant_bins,

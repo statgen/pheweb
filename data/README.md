@@ -14,9 +14,9 @@ Steps for per-pheno input:
 - [x] `rsid-to-cpra.marisa_trie`: Trie rsid -> from chr-pos-ref-alt (1_8.2)
 - [x] `manhattan/<phewas_code>.json` (3_2)
     - when rsids == '', should I leave it undefined?
-    - [ ] Mark which variants should have a gene label.
+    - [x] Mark which variants should have a gene label.
         - While variants w/ p<1e-4: m_s_v = min(significant_variants, key=_.pval); m_s_v.showgene=True; significant_variants = [v for v in significant_variants if abs(v.pos-m_s_v.pos) > 100k]
-        - Might as well wait until LZ.js-based view.
+        - Nah, I'll just show the top variant in each gene instead.
 - [x] `qq/<phewas_code>.json` (3_3)
 
 - [ ] Webpage: pheno.html: 1 <-> 4 QQ.
