@@ -6,7 +6,7 @@ Steps for per-pheno input:
     - [x] Handle gene overlaps like 1:879911 (NOC2L,SAMD11)
     - [x] Sort correctly (including multi-allelics)
 - [x] Make `augmented_pheno/<phewas_code>.tsv` by extracting `sites/sites.tsv` positions (& [nearest_gene, rsids]) from the raw input files. (3_1)
-- [o] Make `main-matrix.tsv` from all `augmented_pheno/<phewas_code>.tsv`. (4_1)
+- [x] Make `main-matrix.tsv` from all `augmented_pheno/<phewas_code>.tsv`. (4_1)
     - This mostly keeps one cpu at 100% usage.
     - We could have calculated mean_maf beforehand, and then we'd just need to concat pval columns.  That could be done recursively -- just divide up the files among the cpus.
 
@@ -20,7 +20,7 @@ Steps for per-pheno input:
 - [x] `qq/<phewas_code>.json` (3_3)
 
 - [ ] Webpage: pheno.html: 1 <-> 4 QQ.
-- [ ] Webpage: variant.html: StreamTable of [pheno_code, pheno_string, icd9_info, neglog10_pval(desc)]
+- [x] Webpage: variant.html: StreamTable of [pheno_code, pheno_string, icd9_info, neglog10_pval(desc)]
 - [ ] Webpage: pheno.html: StreamTable of [cpra, maf, nearest_gene, neglog10_pval(desc)] with checkbox "show only strongest hit for each gene"
 - [ ] Webpage: pheno.html: for variants that have the "showgene" attribute, show their gene above them, but behind the points if possible.
 

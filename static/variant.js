@@ -1,3 +1,9 @@
+var color_by_category = (function() {
+    var unique_categories = d3.set(window.variant.phenos.map(_.property('category_name'))).values();
+    return d3.scale.category20b()
+        .domain(unique_categories);
+})();
+
 (function() { // Create PheWAS plot.
 
     window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phewas_code); });
@@ -50,10 +56,6 @@
         var y_scale = d3.scale.linear()
             .domain([neglog10_min_pval, 0])
             .range([0, plot_height]);
-
-        var unique_categories = d3.set(window.variant.phenos.map(_.property('category_name'))).values();
-        var color_by_category = d3.scale.category20b()
-            .domain(unique_categories);
 
         var phewas_svg = d3.select('#phewas_plot_container').append("svg")
             .attr('id', 'phewas_svg')
@@ -256,3 +258,41 @@ if (typeof window.variant.rsids !== "undefined") {
         });
     })();
 }
+
+$(function() { // Populate StreamTable
+    // This is mostly copied from <https://michigangenomics.org/health_data.html>.
+    var data = _.sortBy(window.variant.phenos, function(pheno) { return pheno.pval; });
+    var template = _.template($('#streamtable-template').html());
+    var view = function(phenotype) {
+        return template({d: phenotype, color_by_category: color_by_category});
+    };
+    var $found = $('#streamtable-found');
+    $found.text(data.length + " total phenotypes");
+
+    var callbacks = {
+        pagination: function(summary){
+            if ($.trim($('#search').val()).length > 0){
+                $found.text(summary.total + " matching codes");
+            } else {
+                $found.text(data.length + " total codes");
+            }
+        }
+    }
+
+    var options = {
+        view: view,
+        search_box: '#search',
+        per_page: 20,
+        callbacks: callbacks,
+        pagination: {
+            span: 5,
+            next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
+            prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
+            per_page_select: "#per_page",
+            per_page: 10
+        }
+    }
+
+    $('#stream_table').stream_table(options, data);
+
+});
