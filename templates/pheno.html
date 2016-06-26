@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block in_head %}
-<script type="text/javascript" src="https://michigangenomics.org/js/stream_table.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='vendor/stream_table.min.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='pheno.js') }}"></script>
 <script type="text/javascript">
   window.pheno = {{ phewas_code|tojson|safe }};

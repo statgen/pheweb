@@ -4,7 +4,7 @@
 <script type="text/javascript">
   window.variant = {{ variant|tojson(separators=(',',':'))|safe }};
 </script>
-<script type="text/javascript" src="https://michigangenomics.org/js/stream_table.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='vendor/stream_table.min.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='variant.js') }}"></script>
 <style type="text/css">
 .d3-tip {
