@@ -21,7 +21,7 @@ Steps for per-pheno input:
 
 - [ ] Webpage: pheno.html: 1 <-> 4 QQ.
 - [x] Webpage: variant.html: StreamTable of [pheno_code, pheno_string, icd9_info, neglog10_pval(desc)]
-- [ ] Webpage: pheno.html: StreamTable of [cpra, maf, nearest_gene, neglog10_pval(desc)] with checkbox "show only strongest hit for each gene"
+- [x] Webpage: pheno.html: StreamTable of [cpra, maf, nearest_gene, neglog10_pval(desc)] with checkbox "show only strongest hit for each gene"
 - [ ] Webpage: pheno.html: for variants that have the "showgene" attribute, show their gene above them, but behind the points if possible.
 
 

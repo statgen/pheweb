@@ -452,3 +452,45 @@ function create_qq_plot(maf_ranges) {
             .text('expected -log10(p)');
   });
 }
+
+
+function populate_streamtable(variants) {
+    $(function() {
+        // This is mostly copied from <https://michigangenomics.org/health_data.html>.
+        var data = _.filter(variants, _.property('show_gene'));
+        data = _.sortBy(data, _.property('pval'));
+        var template = _.template($('#streamtable-template').html());
+        var view = function(variant) {
+            return template({v: variant});
+        };
+        var $found = $('#streamtable-found');
+        $found.text(data.length + " total variants");
+
+        var callbacks = {
+            pagination: function(summary){
+                if ($.trim($('#search').val()).length > 0){
+                    $found.text(summary.total + " matching variants");
+                } else {
+                    $found.text(data.length + " total variants");
+                }
+            }
+        }
+
+        var options = {
+            view: view,
+            search_box: '#search',
+            per_page: 20,
+            callbacks: callbacks,
+            pagination: {
+                span: 5,
+                next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
+                prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
+                per_page_select: "#per_page",
+                per_page: 10
+            }
+        }
+
+        $('#stream_table').stream_table(options, data);
+
+    });
+}
