@@ -250,7 +250,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .attr('transform', fmt('translate({0},{1})rotate(-90)',
                                    plot_margin.left*.4,
                                    plot_height/2 + plot_margin.top))
-            .text('-log10(pvalue)');
+            .text('-log\u2081\u2080(p-value)'); // Unicode subscript "10"
 
         var chroms_and_midpoints = (function() {
             var v = get_chrom_offsets();

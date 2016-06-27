@@ -176,7 +176,7 @@ var color_by_category = (function() {
             .attr('transform', fmt('translate({0},{1})rotate(-90)',
                                    plot_margin.left*.4,
                                    plot_height/2 + plot_margin.top))
-            .text('-log10(pvalue)');
+            .text('-log\u2081\u2080(p-value)'); // Unicode subscript "10"
 
         var xAxis = d3.svg.axis()
             .scale(x_scale)
