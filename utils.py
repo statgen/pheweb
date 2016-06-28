@@ -55,8 +55,6 @@ assert round_sig(1.59e-10, 2) == 1.6e-10
 def get_phenos_with_colnums(app_root_path):
     with open(os.path.join(app_root_path, 'data/phenos.json')) as f:
         phenos = json.load(f)
-    for broken_pheno in '769 350.3 350.6'.split():
-        del phenos[broken_pheno]
     with gzip.open(data_dir + '/matrix.tsv.gz') as f:
         header = f.readline().rstrip('\r\n').split('\t')
     assert header[:7] == '#chr pos ref alt rsids nearest_genes maf'.split()
