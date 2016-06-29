@@ -1,5 +1,17 @@
 #!/usr/bin/env python2
 
+# I tried io.open(fname, bufffering=2**16), but it made things slower.  I don't know how to get better buffering.
+
+'''
+I'm reading in a full position at a time to avoid this issue that was happening before:
+ ...
+ 1       72897673        G       A
+ 1       72897673        G       T
+ 1       72897673        G       A
+ ...
+'''
+
+
 from __future__ import print_function, division, absolute_import
 
 # Load config
@@ -27,12 +39,39 @@ import datetime
 NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.
 
 
-def get_file_reader(file):
-    header = next(file)
-    assert header.rstrip('\r\n').split('\t')[:4] == 'chr pos ref alt'.split(), repr(header)
-    for line in file:
+class CpraReader(object):
+    def __init__(self, file):
+        header = next(file)
+        assert header.rstrip('\r\n').split('\t')[:4] == 'chr pos ref alt'.split(), repr(header)
+        self.file = file
+        self.peek_cpra = None
+    def __iter__(self):
+        return self # Do I really need this?
+
+    def get_a_cpra(self):
+        'Returns the next chrom-pos-ref-alt'
+        line = next(self.file)
         v = line.rstrip('\r\n').split('\t')
-        yield (int(v[0]), int(v[1]), v[2], v[3])
+        return (int(v[0]), int(v[1]), v[2], v[3])
+
+    def next(self):
+        'Returns a list of lines that are tied for the next chrom-pos.'
+        if self.peek_cpra is not None:
+            next_cp = [self.peek_cpra]
+            self.peek_cpra = None
+        else:
+            next_cp = [self.get_a_cpra()]
+        while True:
+            cpra = self.get_a_cpra()
+            if cpra[0] == next_cp[0][0] and cpra[1] == next_cp[0][1]:
+                next_cp.append(cpra)
+                return next_cp
+            else:
+                self.peek_cpra = cpra
+                return next_cp
+    __next__ = next # Py2
+
+
 
 def merge(input_filenames, out_filename):
     tmp_filename = '{}/tmp/merging-{}'.format(data_dir, random.randrange(1e10)) # I don't like tempfile.
@@ -45,33 +84,42 @@ def merge(input_filenames, out_filename):
         for input_filename in input_filenames:
             pheno_code = os.path.basename(input_filename)
             file = es.enter_context(open(input_filename))
-            readers[pheno_code] = get_file_reader(file)
+            readers[pheno_code] = CpraReader(file)
 
-        next_lines = {}
+        next_cpras = {}
+        num_next_cpras_for_pheno = {}
         for pheno_code, reader in readers.items():
             try:
-                next_line = next(reader)
+                next_cp = next(reader)
             except StopIteration:
                 print('StopIteration exception occurred for {}'.format(pheno_code))
                 raise
             else:
-                next_lines.setdefault(next_line, list()).append(pheno_code)
+                num_next_cpras_for_pheno[pheno_code] = len(next_cp)
+                for cpra in next_cp:
+                    next_cpras.setdefault(cpra, list()).append(pheno_code)
 
         n_variants = 0
-        while next_lines:
-            next_line = min(next_lines)
-            if len(next_lines[next_line]) == len(input_filenames):
-                # Only write out a line if all input files have it.
-                f_out.write('{}\t{}\t{}\t{}\n'.format(*next_line))
-                n_variants += 1
+        while next_cpras:
+            assert len(next_cpras) <= len(input_filenames) * 2, len(next_cpras)
 
-            for pheno_code in next_lines[next_line]:
-                try:
-                    next_lines.setdefault(next(readers[pheno_code]), list()).append(pheno_code)
-                except StopIteration:
-                    del readers[pheno_code]
+            next_cpra = min(next_cpras)
+            f_out.write('{}\t{}\t{}\t{}\n'.format(*next_cpra))
+            n_variants += 1
 
-            del next_lines[next_line]
+            for pheno_code in next_cpras[next_cpra]:
+                num_next_cpras_for_pheno[pheno_code] -= 1
+                assert num_next_cpras_for_pheno[pheno_code] >= 0
+                if num_next_cpras_for_pheno[pheno_code] == 0:
+                    try:
+                        next_cp = next(readers[pheno_code])
+                        num_next_cpras_for_pheno[pheno_code] = len(next_cp)
+                        for cpra in next_cp:
+                            next_cpras.setdefault(cpra, list()).append(pheno_code)
+                    except StopIteration:
+                        del readers[pheno_code]
+
+            del next_cpras[next_cpra]
 
         assert not readers, readers.items()
 
@@ -107,6 +155,11 @@ def merge_files_in_queue(lock, files_to_merge):
             files_to_merge.append(out_filename)
             print('number of files to merge : {:4} ({} files in {} seconds)'.format(len(files_to_merge), len(files_to_merge_now), (datetime.datetime.now() - start_time).seconds))
 
+
+# # debug
+# files_to_merge = glob.glob(data_dir + '/pheno/*')[:NUM_FILES_TO_MERGE_AT_ONCE]
+# merge(files_to_merge, data_dir+'/tmp/debug-cpra.tsv')
+# exit(0)
 
 out_filename = data_dir + '/sites/cpra.tsv'
 files_to_merge = glob.glob(data_dir + '/pheno/*')
