@@ -98,13 +98,17 @@ def get_variant(query, phenos, cpra_to_rsids_trie):
     }
 
     for pheno_code, pheno in phenos.iteritems():
+        try:
+            pval = float(matching_variant_row[pheno['colnum_pval']])
+        except ValueError:
+            pval = 1
         rv['phenos'].append({
             'phewas_code': pheno_code,
             'phewas_string': pheno['phewas_string'],
             'category_name': pheno['category_string'],
             'num_cases': pheno['num_cases'],
             'num_controls': pheno['num_controls'],
-            'pval': float(matching_variant_row[pheno['colnum_pval']]),
+            'pval': pval,
         })
 
     return rv
