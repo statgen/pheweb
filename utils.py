@@ -3,8 +3,9 @@ from __future__ import print_function, division, absolute_import
 
 # Load config
 import os.path
+import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-execfile(os.path.join(my_dir, 'config.config'))
+conf = imp.load_source('conf', os.path.join(my_dir, 'config.config'))
 
 import re
 import itertools
@@ -55,7 +56,7 @@ assert round_sig(1.59e-10, 2) == 1.6e-10
 def get_phenos_with_colnums(app_root_path):
     with open(os.path.join(app_root_path, 'data/phenos.json')) as f:
         phenos = json.load(f)
-    with gzip.open(data_dir + '/matrix.tsv.gz') as f:
+    with gzip.open(conf.data_dir + '/matrix.tsv.gz') as f:
         header = f.readline().rstrip('\r\n').split('\t')
     assert header[:7] == '#chr pos ref alt rsids nearest_genes maf'.split()
     for colnum, colname in enumerate(header[7:], start=7):
@@ -73,7 +74,7 @@ def get_variant(query, phenos, cpra_to_rsids_trie):
     chrom, pos, ref, alt = parse_variant(query)
     assert None not in [chrom, pos, ref, alt]
 
-    tabix_file = pysam.TabixFile(data_dir + '/matrix.tsv.gz')
+    tabix_file = pysam.TabixFile(conf.data_dir + '/matrix.tsv.gz')
     tabix_iter = tabix_file.fetch(chrom, pos-1, pos+1, parser = pysam.asTuple())
     for variant_row in tabix_iter:
         if int(variant_row[1]) == int(pos) and variant_row[3] == alt:

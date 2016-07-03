@@ -1,14 +1,16 @@
 from __future__ import print_function, division, absolute_import
 
+# Load config
+import os.path
+import imp
+my_dir = os.path.dirname(os.path.abspath(__file__))
+conf = imp.load_source('conf', os.path.join(my_dir, 'config.config'))
+
 import itertools
 import re
 import marisa_trie
 
 from utils import parse_variant
-
-import os.path
-my_dir = os.path.dirname(os.path.abspath(__file__))
-execfile(os.path.join(my_dir, 'config.config'))
 
 
 
@@ -23,8 +25,8 @@ def get_autocompletion(query, phenos):
         list(itertools.islice(get_icd9_string_autocompletion(query, phenos), 0, 10))
 
 
-cpra_to_rsids_trie = marisa_trie.BytesTrie().load(data_dir + '/sites/cpra_to_rsids_trie.marisa')
-rsid_to_cpra_trie = marisa_trie.BytesTrie().load(data_dir + '/sites/rsid_to_cpra_trie.marisa')
+cpra_to_rsids_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/cpra_to_rsids_trie.marisa')
+rsid_to_cpra_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/rsid_to_cpra_trie.marisa')
 
 def get_variant_autocompletion(query):
     # chrom-pos-ref-alt format

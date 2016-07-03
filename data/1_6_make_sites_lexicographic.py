@@ -11,11 +11,12 @@ from __future__ import print_function, division, absolute_import
 
 # Load config
 import os.path
+import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-execfile(os.path.join(my_dir, '../config.config'))
+conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 
 # Activate virtualenv
-activate_this = os.path.join(virtualenv_dir, 'bin/activate_this.py')
+activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
 
@@ -31,8 +32,8 @@ def get_line_reader(f):
             'dist': int(fields[6]),
         }
 
-with open(data_dir + 'sites/cpra_rsids_genes.lexicographic.tsv') as in_f, \
-     open(data_dir + 'sites/sites.lexicographic.tsv', 'w') as out_f:
+with open(conf.data_dir + 'sites/cpra_rsids_genes.lexicographic.tsv') as in_f, \
+     open(conf.data_dir + 'sites/sites.lexicographic.tsv', 'w') as out_f:
     reader = get_line_reader(in_f)
 
     v = next(reader)

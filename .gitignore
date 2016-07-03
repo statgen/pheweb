@@ -1,3 +1,4 @@
 postgres_password*
 *.pyc
+config.configc
 flask_config.py

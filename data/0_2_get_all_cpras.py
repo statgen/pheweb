@@ -16,11 +16,12 @@ from __future__ import print_function, division, absolute_import
 
 # Load config
 import os.path
+import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-execfile(os.path.join(my_dir, '../config.config'))
+conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 
 # Activate virtualenv
-activate_this = os.path.join(virtualenv_dir, 'bin/activate_this.py')
+activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
 import sys
@@ -74,7 +75,7 @@ class CpraReader(object):
 
 
 def merge(input_filenames, out_filename):
-    tmp_filename = '{}/tmp/merging-{}'.format(data_dir, random.randrange(1e10)) # I don't like tempfile.
+    tmp_filename = '{}/tmp/merging-{}'.format(conf.data_dir, random.randrange(1e10)) # I don't like tempfile.
 
     with contextlib2.ExitStack() as es, \
          open(tmp_filename, 'w') as f_out:
@@ -128,7 +129,7 @@ def merge(input_filenames, out_filename):
     print('{:8} variants in {} <- {}'.format(n_variants, os.path.basename(out_filename), [os.path.basename(path) for path in input_filenames]))
 
 
-mkdir_p(data_dir + '/tmp')
+mkdir_p(conf.data_dir + '/tmp')
 
 def merge_files_in_queue(lock, files_to_merge):
 
@@ -142,13 +143,13 @@ def merge_files_in_queue(lock, files_to_merge):
                     files_to_merge.pop()
                 print('number of files to merge: {:4}'.format(len(files_to_merge)))
 
-        out_filename = '{}/tmp/merging-{}'.format(data_dir, random.randrange(1e10)) # I don't like tempfile.
+        out_filename = '{}/tmp/merging-{}'.format(conf.data_dir, random.randrange(1e10)) # I don't like tempfile.
 
         start_time = datetime.datetime.now()
         merge(files_to_merge_now, out_filename)
 
         for filename in files_to_merge_now:
-            if filename.startswith('{}/tmp/merging-'.format(data_dir)):
+            if filename.startswith('{}/tmp/merging-'.format(conf.data_dir)):
                 os.remove(filename)
 
         with lock:
@@ -157,12 +158,12 @@ def merge_files_in_queue(lock, files_to_merge):
 
 
 # # debug
-# files_to_merge = glob.glob(data_dir + '/pheno/*')[:NUM_FILES_TO_MERGE_AT_ONCE]
-# merge(files_to_merge, data_dir+'/tmp/debug-cpra.tsv')
+# files_to_merge = glob.glob(conf.data_dir + '/pheno/*')[:NUM_FILES_TO_MERGE_AT_ONCE]
+# merge(files_to_merge, conf.data_dir+'/tmp/debug-cpra.tsv')
 # exit(0)
 
-out_filename = data_dir + '/sites/cpra.tsv'
-files_to_merge = glob.glob(data_dir + '/pheno/*')
+out_filename = conf.data_dir + '/sites/cpra.tsv'
+files_to_merge = glob.glob(conf.data_dir + '/pheno/*')
 print('number of files to merge: {:4}'.format(len(files_to_merge)))
 
 manna = multiprocessing.Manager()

@@ -4,11 +4,12 @@ from __future__ import print_function, division, absolute_import
 
 # Load config
 import os.path
+import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-execfile(os.path.join(my_dir, 'config.config'))
+conf = imp.load_source('conf', os.path.join(my_dir, 'config.config'))
 
 # Activate virtualenv
-activate_this = os.path.join(virtualenv_dir, 'bin/activate_this.py')
+activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
@@ -53,7 +54,7 @@ def variant_page(query):
     try:
         variant = get_variant(query, phenos, cpra_to_rsids_trie)
         if variant is None:
-            die("Sorry, I couldn't find the variant {}".format(query))
+            die("Sorry, I couldn't find the variant {}".format(query.encode('utf-8')))
         return render_template('variant.html',
                                variant=variant)
     except:
@@ -61,18 +62,18 @@ def variant_page(query):
 
 @app.route('/api/manhattan/pheno/<filename>')
 def api_pheno(filename):
-    return send_from_directory(data_dir + '/manhattan/', filename)
+    return send_from_directory(conf.data_dir + '/manhattan/', filename)
 
 @app.route('/api/qq/pheno/<filename>')
 def api_pheno_qq(filename):
-    return send_from_directory(data_dir + '/qq/', filename)
+    return send_from_directory(conf.data_dir + '/qq/', filename)
 
 @app.route('/pheno/<phewas_code>')
 def pheno_page(phewas_code):
     try:
         pheno = phenos[phewas_code]
     except:
-        die("Sorry, I couldn't find the phewas code {!r}".format(phewas_code))
+        die("Sorry, I couldn't find the phewas code {!r}".format(phewas_code.encode('utf-8')))
     return render_template('pheno.html',
                            phewas_code=phewas_code,
                            pheno=pheno,
@@ -108,4 +109,4 @@ if __name__ == '__main__':
     extra_files = glob.glob('templates/*.html')
     app.run(host='browser.sph.umich.edu', port=5001,
 #            threaded=True, # seems to be bad at dying when I ctrl-C / SIGTERM.
-            debug=False, use_reloader=True, extra_files=extra_files)
+            debug=True, use_reloader=True, extra_files=extra_files)

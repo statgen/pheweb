@@ -4,11 +4,12 @@ from __future__ import print_function, division, absolute_import
 
 # Load config
 import os.path
+import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-execfile(os.path.join(my_dir, '../config.config'))
+conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 
 # Activate virtualenv
-activate_this = os.path.join(virtualenv_dir, 'bin/activate_this.py')
+activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
 import sys
@@ -153,18 +154,18 @@ def make_json_file(args):
 
 
 def get_conversions_to_do():
-    src_filenames = glob.glob(data_dir + '/augmented_pheno/*')
+    src_filenames = glob.glob(conf.data_dir + '/augmented_pheno/*')
     print('number of source files:', len(src_filenames))
     for src_filename in src_filenames:
         pheno_code = os.path.basename(src_filename)
         assert not 'tmp' in pheno_code
-        dest_filename = '{}/manhattan/{}.json'.format(data_dir, pheno_code)
-        tmp_filename = '{}/tmp/manhattan-{}.json'.format(data_dir, pheno_code)
+        dest_filename = '{}/manhattan/{}.json'.format(conf.data_dir, pheno_code)
+        tmp_filename = '{}/tmp/manhattan-{}.json'.format(conf.data_dir, pheno_code)
         if not os.path.exists(dest_filename):
             yield {'src':src_filename, 'dest':dest_filename, 'tmp':tmp_filename}
 
-mkdir_p(data_dir + '/manhattan')
-mkdir_p(data_dir + '/tmp')
+mkdir_p(conf.data_dir + '/manhattan')
+mkdir_p(conf.data_dir + '/tmp')
 
 conversions_to_do = list(get_conversions_to_do())
 print('number of files to convert:', len(conversions_to_do))

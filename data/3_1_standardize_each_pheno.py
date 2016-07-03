@@ -4,11 +4,12 @@ from __future__ import print_function, division, absolute_import
 
 # Load config
 import os.path
+import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-execfile(os.path.join(my_dir, '../config.config'))
+conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 
 # Activate virtualenv
-activate_this = os.path.join(virtualenv_dir, 'bin/activate_this.py')
+activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
 import sys
@@ -25,7 +26,7 @@ import csv
 import collections
 import errno
 
-sites_filename = data_dir + '/sites/sites.tsv'
+sites_filename = conf.data_dir + '/sites/sites.tsv'
 
 Pheno_Variant = collections.namedtuple('Pheno_Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf'])
 def get_pheno_variants(f):
@@ -152,18 +153,19 @@ def _convert(src_filename, out_filename):
         os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
 
 def extract_pheno_code(path):
+    # TODO: make this configurable
     basename = os.path.basename(path)
     return re.match(r'pheno\.([0-9\.]+)\.epacts\.gz', basename).groups()[0]
 assert extract_pheno_code('/RESULTS/pheno.705.1/pheno.705.1.epacts.gz') == '705.1'
 
 
 def get_conversions_to_do():
-    src_filenames = glob.glob(epacts_source_filenames_pattern)
+    src_filenames = glob.glob(conf.epacts_source_filenames_pattern)
     print('number of source files:', len(src_filenames))
     for src_filename in src_filenames:
         pheno_code = extract_pheno_code(src_filename)
-        dest_filename = '{}/augmented_pheno/{}'.format(data_dir, pheno_code)
-        tmp_filename = '{}/tmp/augmented_pheno-{}'.format(data_dir, pheno_code)
+        dest_filename = '{}/augmented_pheno/{}'.format(conf.data_dir, pheno_code)
+        tmp_filename = '{}/tmp/augmented_pheno-{}'.format(conf.data_dir, pheno_code)
         if not os.path.exists(dest_filename):
             yield {
                 'src': src_filename,
@@ -171,8 +173,8 @@ def get_conversions_to_do():
                 'tmp': tmp_filename,
             }
 
-mkdir_p(data_dir + '/augmented_pheno')
-mkdir_p(data_dir + '/tmp')
+mkdir_p(conf.data_dir + '/augmented_pheno')
+mkdir_p(conf.data_dir + '/tmp')
 
 # # debug
 # convert(list(get_conversions_to_do())[0])

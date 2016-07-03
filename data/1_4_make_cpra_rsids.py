@@ -11,11 +11,12 @@ from __future__ import print_function, division, absolute_import
 
 # Load config
 import os.path
+import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-execfile(os.path.join(my_dir, '../config.config'))
+conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 
 # Activate virtualenv
-activate_this = os.path.join(virtualenv_dir, 'bin/activate_this.py')
+activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
 import sys
@@ -27,9 +28,9 @@ import gzip
 import collections
 import csv
 
-rsids_filename = data_dir + "/sites/dbSNP/rsids.vcf.gz"
-cpra_filename = data_dir + "/sites/cpra.tsv"
-out_filename = data_dir + "/sites/cpra_rsids.tsv"
+rsids_filename = conf.data_dir + "/sites/dbSNP/rsids.vcf.gz"
+cpra_filename = conf.data_dir + "/sites/cpra.tsv"
+out_filename = conf.data_dir + "/sites/cpra_rsids.tsv"
 
 
 def get_rsid_reader(rsids_f):

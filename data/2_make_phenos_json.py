@@ -4,11 +4,12 @@ from __future__ import print_function, division, absolute_import
 
 # Load config
 import os.path
+import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-execfile(os.path.join(my_dir, '../config.config'))
+conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 
 # Activate virtualenv
-activate_this = os.path.join(virtualenv_dir, 'bin/activate_this.py')
+activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
 import csv
@@ -23,9 +24,10 @@ def get_phenos_from_input_files():
     good_phenos = collections.OrderedDict() # have enough cases
     bad_phenos = {} # don't have enough cases
 
-    sourcefiles = glob.glob(epacts_source_filenames_pattern)
-    print('number of sourcefiles matched by {!r}: {}'.format(epacts_source_filenames_pattern, len(sourcefiles)))
+    sourcefiles = glob.glob(conf.epacts_source_filenames_pattern)
+    print('number of sourcefiles matched by {!r}: {}'.format(conf.epacts_source_filenames_pattern, len(sourcefiles)))
     for sourcefile in sourcefiles:
+        # TODO: how to make this nicely configurable?  Make `conf.epacts_source_filenames_pattern` a regex with one group that must match pheno_code?
         match = re.search(r'/pheno\.[0-9\.]+?/pheno\.([0-9\.]+?)\.epacts\.gz$', sourcefile)
         assert len(match.groups()) == 1
         phewas_code = match.groups()[0]
@@ -34,13 +36,13 @@ def get_phenos_from_input_files():
             reader = csv.DictReader(f, delimiter='\t')
             first_line = next(reader)
             num_controls, num_cases = int(first_line['NS.CTRL']), int(first_line['NS.CASE'])
-            if num_cases >= minimum_num_cases:
+            if num_cases >= conf.minimum_num_cases:
                 good_phenos[phewas_code] = dict(num_cases=num_cases, num_controls=num_controls)
             else:
                 bad_phenos[phewas_code] = True
 
-    print('number of phenos at least {} cases: {}'.format(minimum_num_cases, len(good_phenos)))
-    print('number of phenos with fewer than {} cases: {}'.format(minimum_num_cases, len(bad_phenos)))
+    print('number of phenos at least {} cases: {}'.format(conf.minimum_num_cases, len(good_phenos)))
+    print('number of phenos with fewer than {} cases: {}'.format(conf.minimum_num_cases, len(bad_phenos)))
     if bad_phenos:
         print('example phenos with too few cases:', ', '.join(list(bad_phenos)[:10]))
 
