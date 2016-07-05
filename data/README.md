@@ -28,7 +28,6 @@ Steps for per-pheno input:
 
 
 Later:
-- Make a dev server with symlinks to the real server data.
 - Require a parser script for input files, which will be used for `cpra.tsv` and `augmented_pheno/<pheno_code>`.
     - parse_input_file.py should offer a generator function from an input file that returns [cpra, pval, maf].
 - Rename 0_1 -> 0_1_get_cpras_from_each_input_file.
