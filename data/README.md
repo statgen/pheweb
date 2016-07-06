@@ -4,11 +4,10 @@ Todo:
     - While variants w/ p<1e-4: m_s_v = min(significant_variants, key=_.pval); m_s_v.showgene=True; significant_variants = [v for v in significant_variants if abs(v.pos-m_s_v.pos) > 100k]
     - [ ] Then peaks with p<1e-8 get gene labels, and peaks with p<1e-6 go in StreamTable.
 - [ ] LZ - see Andrew's code.
-- [ ] Require a parser script for input files, which will be used for `cpra.tsv` and `augmented_pheno/<pheno_code>`.
-    - parse_input_file.py should offer a generator function from an input file that returns [cpra, pval, maf].
-- [ ] Rename 0_1 -> 0_1_get_cpras_from_each_input_file.
-    - Or maybe just integrate it into 0_2 to cut down tmp file usage by ~5X.  Then put strict assertions around the input parser.
-- [ ] Rename 0_2 -> 0_2_get_cpras_to_show.
+   - bgzip and tabix augmented_phenos
+- [ ] input_parsers/epacts.py should offer a generator function from an input file that returns [cpra, pval, maf] with optional min_maf.
+    - Affects 0_1, 2, 3_1
+    - [ ] Then merge 0_1 into 0_2 to cut down tmp file usage by ~5X.  Then put strict assertions around the input parser.
 - [ ] Fill more of `gwas-trait-mapping.csv` and re-Manhattan those phenotypes.
     - use `cat gwas_catalog_v1.0.1-associations_e84_r2016-06-12.tsv | cut -f 35 | tr , "\n" | sed 's_^ __' | sort -u | less`
 - [ ] Show GWAS Catalog info on variant.html (using rs#)
