@@ -1,15 +1,17 @@
 Todo:
+- [ ] Google Analytics.
 - [ ] Webpage: pheno.html: 1 <-> 4 QQ.
 - [ ] Mark peaks better.
     - While variants w/ p<1e-4: m_s_v = min(significant_variants, key=_.pval); m_s_v.showgene=True; significant_variants = [v for v in significant_variants if abs(v.pos-m_s_v.pos) > 100k]
     - [ ] Then peaks with p<1e-8 get gene labels, and peaks with p<1e-6 go in StreamTable.
 - [ ] LZ - see Andrew's code.
    - bgzip and tabix augmented_phenos
-- [ ] input_parsers/epacts.py should offer a generator function from an input file that returns [cpra, pval, maf] with optional min_maf.
-    - Affects 0_1, 2, 3_1
-    - [ ] Then merge 0_1 into 0_2 to cut down tmp file usage by ~5X.  Then put strict assertions around the input parser.
-- [ ] Fill more of `gwas-trait-mapping.csv` and re-Manhattan those phenotypes.
-    - use `cat gwas_catalog_v1.0.1-associations_e84_r2016-06-12.tsv | cut -f 35 | tr , "\n" | sed 's_^ __' | sort -u | less`
+- [ ] Merge 0_1 into 0_2 to cut down tmp file usage by ~5X.  Then put strict assertions around the input parser.
+- [ ] Move [5_0, 5_1] to 3_x
+- [ ] GWAS Catalog hits on Manhattan Plots
+    - GWAS Catalog mapped_traits: `cat gwas_catalog_v1.0.1-associations_e84_r2016-06-12.tsv | cut -f 35 | tr , "\n" | sed 's_^ __' | sort -u | less`
+    - statistically match GWAS Catalog mapped_traits to our phenotypes (even if they're not Vanderbilt ICD9 PheWAS) and then offer the top matches with checkboxes.
+    - on LZ, just show all GWAS Catalog hits.
 - [ ] Show GWAS Catalog info on variant.html (using rs#)
 - [ ] Write a Makefile to do all of this?  Snakemake?
 - [ ] Invert colors (like ctrl-opt-com-8)?

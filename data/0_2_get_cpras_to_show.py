@@ -24,9 +24,7 @@ conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
-import sys
-sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import mkdir_p
+utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
 
 
 import contextlib2 # python2 backport of python3.5+ contextlib
@@ -129,7 +127,7 @@ def merge(input_filenames, out_filename):
     print('{:8} variants in {} <- {}'.format(n_variants, os.path.basename(out_filename), [os.path.basename(path) for path in input_filenames]))
 
 
-mkdir_p(conf.data_dir + '/tmp')
+utils.mkdir_p(conf.data_dir + '/tmp')
 
 def merge_files_in_queue(lock, files_to_merge):
 

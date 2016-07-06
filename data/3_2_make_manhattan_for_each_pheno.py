@@ -12,9 +12,8 @@ conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
-import sys
-sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import round_sig, mkdir_p
+utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+
 
 import glob
 import re
@@ -86,8 +85,8 @@ def bin_variants(variants):
                 'pos': variant.pos,
                 'ref': variant.ref,
                 'alt': variant.alt,
-                'maf': round_sig(variant.maf, 3),
-                'pval': round_sig(variant.pval, 2),
+                'maf': utils.round_sig(variant.maf, 3),
+                'pval': utils.round_sig(variant.pval, 2),
                 'nearest_genes': variant.nearest_genes,
                 'rsids': variant.rsids,
             })
@@ -164,8 +163,8 @@ def get_conversions_to_do():
         if not os.path.exists(dest_filename):
             yield {'src':src_filename, 'dest':dest_filename, 'tmp':tmp_filename}
 
-mkdir_p(conf.data_dir + '/manhattan')
-mkdir_p(conf.data_dir + '/tmp')
+utils.mkdir_p(conf.data_dir + '/manhattan')
+utils.mkdir_p(conf.data_dir + '/tmp')
 
 conversions_to_do = list(get_conversions_to_do())
 print('number of files to convert:', len(conversions_to_do))

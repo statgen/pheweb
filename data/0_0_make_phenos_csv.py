@@ -12,10 +12,6 @@ conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
-import sys
-sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import mkdir_p
-
 
 import glob
 import re

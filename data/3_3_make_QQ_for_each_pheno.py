@@ -12,9 +12,8 @@ conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
-import sys
-sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import round_sig, mkdir_p
+utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+
 
 import glob
 import re
@@ -115,10 +114,10 @@ def make_qq(neglog10_pvals):
     rv['qq'] = compute_qq(neglog10_pvals) # We don't need this now.
     rv['count'] = len(neglog10_pvals)
     rv['gc_lambda'] = {}
-    rv['gc_lambda']['0.5'] = round_sig(gc_value_from_list(neglog10_pvals, 0.5), 5)
-    rv['gc_lambda']['0.1'] = round_sig(gc_value_from_list(neglog10_pvals, 0.1), 5)
-    rv['gc_lambda']['0.01'] = round_sig(gc_value_from_list(neglog10_pvals, 0.01), 5)
-    rv['gc_lambda']['0.001'] = round_sig(gc_value_from_list(neglog10_pvals, 0.001), 5)
+    rv['gc_lambda']['0.5'] = utils.round_sig(gc_value_from_list(neglog10_pvals, 0.5), 5)
+    rv['gc_lambda']['0.1'] = utils.round_sig(gc_value_from_list(neglog10_pvals, 0.1), 5)
+    rv['gc_lambda']['0.01'] = utils.round_sig(gc_value_from_list(neglog10_pvals, 0.01), 5)
+    rv['gc_lambda']['0.001'] = utils.round_sig(gc_value_from_list(neglog10_pvals, 0.001), 5)
     return rv
 
 
@@ -151,8 +150,8 @@ def get_conversions_to_do():
         if not os.path.exists(dest_filename):
             yield {'src':src_filename, 'dest':dest_filename, 'tmp':tmp_filename}
 
-mkdir_p(conf.data_dir + '/qq')
-mkdir_p(conf.data_dir + '/tmp')
+utils.mkdir_p(conf.data_dir + '/qq')
+utils.mkdir_p(conf.data_dir + '/tmp')
 
 conversions_to_do = list(get_conversions_to_do())
 print('number of files to convert:', len(conversions_to_do))

@@ -12,10 +12,8 @@ conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
-import sys
-sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import round_sig, parse_marker_id, mkdir_p
-
+utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/epacts.py'))
 
 import gzip
 import datetime
@@ -24,30 +22,6 @@ import csv
 import collections
 
 sites_filename = conf.data_dir + '/sites/sites.tsv'
-
-Pheno_Variant = collections.namedtuple('Pheno_Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf'])
-def get_pheno_variants(f):
-    header = next(f)
-    header_fields = header.rstrip('\n\r').split('\t')
-    CHROM_COL = header_fields.index('#CHROM')
-    POS_COL = header_fields.index('BEGIN')
-    MAF_COL = header_fields.index('MAF')
-    PVAL_COL = header_fields.index('PVALUE')
-    MARKER_ID_COL = header_fields.index('MARKER_ID')
-    for line in f:
-        fields = line.rstrip('\n\r').split('\t')
-        chrom = fields[CHROM_COL]
-        pos = int(fields[POS_COL])
-        maf = fields[MAF_COL]
-        pval = fields[PVAL_COL]
-        try:
-            pval = float(pval)
-        except ValueError:
-            pval = '.'
-        chrom2, pos2, ref, alt = parse_marker_id(fields[MARKER_ID_COL])
-        assert chrom == chrom2, fields
-        assert pos == pos2, (fields, pos, pos2)
-        yield Pheno_Variant(chrom=chrom, pos=pos, ref=ref, alt=alt, pval=pval, maf=maf)
 
 Site_Variant = collections.namedtuple('Site_Variant', ['chrom', 'pos', 'ref', 'alt', 'rsids', 'nearest_genes'])
 def get_site_variants(f):
@@ -85,7 +59,7 @@ def _convert(src_filename, out_filename):
          open(sites_filename) as f_sites, \
          open(out_filename, 'w') as f_out:
 
-        pheno_variants = get_pheno_variants(f_in)
+        pheno_variants = input_file_parser.get_variants(f_in)
         site_variants = get_site_variants(f_sites)
 
         writer = csv.DictWriter(f_out, fieldnames='chr pos ref alt rsids nearest_genes maf pval'.split(), delimiter='\t')
@@ -163,8 +137,8 @@ def get_conversions_to_do():
                 'tmp': tmp_filename,
             }
 
-mkdir_p(conf.data_dir + '/augmented_pheno')
-mkdir_p(conf.data_dir + '/tmp')
+utils.mkdir_p(conf.data_dir + '/augmented_pheno')
+utils.mkdir_p(conf.data_dir + '/tmp')
 
 # # debug
 # convert(list(get_conversions_to_do())[0])

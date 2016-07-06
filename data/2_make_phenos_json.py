@@ -12,6 +12,8 @@ conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
+input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/epacts.py'))
+
 import csv
 import json
 import gzip
@@ -27,9 +29,7 @@ def get_phenos_from_input_files():
     print('number of source files:', len(phenos))
     for pheno in phenos:
         with gzip.open(pheno['src_filename']) as f:
-            reader = csv.DictReader(f, delimiter='\t')
-            first_line = next(reader)
-        num_controls, num_cases = int(first_line['NS.CTRL']), int(first_line['NS.CASE'])
+            num_cases, num_controls = input_file_parser.get_num_cases_and_controls(f)
         if num_cases >= conf.minimum_num_cases:
             good_phenos[pheno['pheno_code']] = dict(num_cases=num_cases, num_controls=num_controls)
         else:

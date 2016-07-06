@@ -12,35 +12,13 @@ conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
-import sys
-sys.path.insert(0, os.path.join(my_dir, '..'))
-from utils import round_sig, parse_marker_id, mkdir_p
-
+utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/epacts.py'))
 
 import gzip
 import datetime
 import multiprocessing
 import csv
-import collections
-
-
-Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf'])
-def parse_variant_rows(f):
-    variant_rows = csv.DictReader(f, delimiter='\t')
-    for variant_row in variant_rows:
-        chrom = variant_row['#CHROM']
-        pos = int(variant_row['BEGIN'])
-        maf = float(variant_row['MAF'])
-        if maf < conf.minimum_maf:
-            continue
-        try:
-            pval = float(variant_row['PVALUE'])
-        except ValueError:
-            continue
-        chrom2, pos2, ref, alt = parse_marker_id(variant_row['MARKER_ID'])
-        assert chrom == chrom2
-        assert pos == pos2
-        yield Variant(chrom=chrom, pos=pos, ref=ref, alt=alt, pval=pval, maf=maf)
 
 
 def convert(conversion_to_do):
@@ -53,7 +31,7 @@ def convert(conversion_to_do):
     with gzip.open(src_filename) as f_in, \
          open(tmp_filename, 'w') as f_out:
 
-        variants = parse_variant_rows(f_in)
+        variants = input_file_parser.get_variants(f_in, minimum_maf=conf.minimum_maf)
 
         writer = csv.DictWriter(f_out, fieldnames='chr pos ref alt maf'.split(), delimiter='\t')
         writer.writeheader()
@@ -84,8 +62,8 @@ def get_conversions_to_do():
                 'tmp': tmp_filename,
             }
 
-mkdir_p(conf.data_dir + '/pheno')
-mkdir_p(conf.data_dir + '/tmp')
+utils.mkdir_p(conf.data_dir + '/pheno')
+utils.mkdir_p(conf.data_dir + '/tmp')
 
 conversions_to_do = list(get_conversions_to_do())
 print('number of conversions to do:', len(conversions_to_do))
