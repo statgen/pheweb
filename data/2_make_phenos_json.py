@@ -16,30 +16,24 @@ import csv
 import json
 import gzip
 import collections
-import glob
-import re
 
 
 def get_phenos_from_input_files():
     good_phenos = collections.OrderedDict() # have enough cases
     bad_phenos = {} # don't have enough cases
 
-    sourcefiles = glob.glob(conf.epacts_source_filenames_pattern)
-    print('number of sourcefiles matched by {!r}: {}'.format(conf.epacts_source_filenames_pattern, len(sourcefiles)))
-    for sourcefile in sourcefiles:
-        # TODO: how to make this nicely configurable?  Make `conf.epacts_source_filenames_pattern` a regex with one group that must match pheno_code?
-        match = re.search(r'/pheno\.[0-9\.]+?/pheno\.([0-9\.]+?)\.epacts\.gz$', sourcefile)
-        assert len(match.groups()) == 1
-        phewas_code = match.groups()[0]
-
-        with gzip.open(sourcefile) as f:
+    with open(conf.data_dir + '/phenos.csv') as f:
+        phenos = list(csv.DictReader(f))
+    print('number of source files:', len(phenos))
+    for pheno in phenos:
+        with gzip.open(pheno['src_filename']) as f:
             reader = csv.DictReader(f, delimiter='\t')
             first_line = next(reader)
-            num_controls, num_cases = int(first_line['NS.CTRL']), int(first_line['NS.CASE'])
-            if num_cases >= conf.minimum_num_cases:
-                good_phenos[phewas_code] = dict(num_cases=num_cases, num_controls=num_controls)
-            else:
-                bad_phenos[phewas_code] = True
+        num_controls, num_cases = int(first_line['NS.CTRL']), int(first_line['NS.CASE'])
+        if num_cases >= conf.minimum_num_cases:
+            good_phenos[pheno['pheno_code']] = dict(num_cases=num_cases, num_controls=num_controls)
+        else:
+            bad_phenos[pheno['pheno_code']] = True
 
     print('number of phenos at least {} cases: {}'.format(conf.minimum_num_cases, len(good_phenos)))
     print('number of phenos with fewer than {} cases: {}'.format(conf.minimum_num_cases, len(bad_phenos)))
