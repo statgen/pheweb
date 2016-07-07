@@ -1,11 +1,10 @@
-Todo:
+For us:
 - [ ] Webpage: pheno.html: 1 <-> 4 QQ.
 - [ ] Mark peaks better.
     - While variants w/ p<1e-4: m_s_v = min(significant_variants, key=_.pval); m_s_v.showgene=True; significant_variants = [v for v in significant_variants if abs(v.pos-m_s_v.pos) > 100k]
     - [ ] Then peaks with p<1e-8 get gene labels, and peaks with p<1e-6 go in StreamTable.
-- [ ] Merge 0_1 into 0_2 to cut down tmp file usage by ~5X.  Then put strict assertions around the input parser.
-    - `CpraReader(input_file_parser.get_variants(f))`
 - [ ] LZ should have current chr:start-end in URL and on page.
+- [ ] Highlight the thing you clicked to get to the current page.
 - [ ] GWAS Catalog hits on Manhattan Plots
     - statistically match GWAS Catalog mapped_traits to our phenotypes (even if they're not Vanderbilt ICD9 PheWAS) and then offer the top matches with checkboxes.
         - What statistic should happen here? For a [mapped_trait, pheno] pair, we have [(chr:pos, pval), ...].
@@ -13,10 +12,15 @@ Todo:
     - on LZ, just show all GWAS Catalog hits.
 - [ ] Show GWAS Catalog info on variant.html (using rs#)
 - [ ] Understand GTEx (see GTEx.txt)
-- [ ] Write a Makefile to do all of this?  Snakemake?
+- [ ] Show a table of significant phenos on index.html.
 - [ ] Invert colors (like ctrl-opt-com-8)?
+
+For others:
+- [ ] Merge 0_1 into 0_2 to cut down tmp file usage by ~5X.  Then put strict assertions around the input parser.
+    - `CpraReader(input_file_parser.get_variants(f))`
+- [ ] Write a Makefile to do all of this?  Snakemake?
 - [ ] Keep annotations separate from data, and maybe put data into hdf5 or flat files to save some space.
-    - Maybe add row# into annoations (sites.tsv) to index into the matrices.
+    - Maybe add row# into annotations (sites.tsv) to index into the matrices.
     - Maybe keep separate row-major and column-major matrices, or just a separate file for each phenotype.
 - [ ] Separate out icd9 info.
     - `autocomplete.py`: for now, just add a flag.
@@ -46,7 +50,6 @@ Todo:
     - 4_4_qq.py
     - 5_1_make_matrix.sh (also does bgzip/tabix)
         - reading/writing bgzip in c++:
-- [ ] Show a table of significant phenos on index.html.
 
 
 Info:
