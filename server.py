@@ -17,7 +17,9 @@ from flask_compress import Compress
 
 from utils import get_phenos_with_colnums, get_variant
 from autocomplete import get_autocompletion, get_best_completion, cpra_to_rsids_trie
+import region
 
+import re
 
 
 app = Flask(__name__)
@@ -68,16 +70,37 @@ def api_pheno(filename):
 def api_pheno_qq(filename):
     return send_from_directory(conf.data_dir + '/qq/', filename)
 
-@app.route('/pheno/<phewas_code>')
-def pheno_page(phewas_code):
+@app.route('/pheno/<pheno_code>')
+def pheno_page(pheno_code):
     try:
-        pheno = phenos[phewas_code]
+        pheno = phenos[pheno_code]
     except:
-        die("Sorry, I couldn't find the phewas code {!r}".format(phewas_code.encode('utf-8')))
+        die("Sorry, I couldn't find the pheno code {!r}".format(pheno_code.encode('utf-8')))
     return render_template('pheno.html',
-                           phewas_code=phewas_code,
+                           phewas_code=pheno_code,
                            pheno=pheno,
     )
+
+@app.route('/region/<pheno_code>/<region>')
+def region_page(pheno_code, region):
+    try:
+        pheno = phenos[pheno_code]
+    except:
+        die("Sorry, I couldn't find the phewas code {!r}".format(pheno_code.encode('utf-8')))
+    pheno['pheno_code'] = pheno_code
+    return render_template('region.html',
+                           pheno=pheno,
+                           region=region,
+    )
+
+@app.route('/api/region/<pheno_code>/lz-results/') # This API is easier on the LZ side.
+def api_region(pheno_code):
+    filter_param = request.args.get('filter')
+    groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
+    chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
+    rv = region.get_rows(pheno_code, chrom, pos_start, pos_end)
+    return jsonify(rv)
+
 
 @app.route('/')
 def homepage():
