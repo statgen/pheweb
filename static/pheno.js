@@ -127,6 +127,14 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .offset([-6,0]);
         gwas_svg.call(point_tooltip);
 
+        function get_link_to_LZ(variant) {
+            return fmt('/region/{0}/{1}:{2}-{3}',
+                       window.pheno,
+                       variant.chrom,
+                       Math.max(0, variant.pos - 200*1000),
+                       variant.pos + 200*1000);
+        }
+
         function pp1() {
         gwas_plot.append('g')
             .attr('class', 'variant_hover_rings')
@@ -135,9 +143,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .enter()
             .append('a')
             .attr('class', 'variant_hover_ring')
-            .attr('xlink:href', function(d) {
-                return fmt('/variant/{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
-            })
+            .attr('xlink:href', get_link_to_LZ)
             .append('circle')
             .attr('cx', function(d) {
                 return x_scale(get_genomic_position(d));
@@ -165,9 +171,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .enter()
             .append('a')
             .attr('class', 'variant_point')
-            .attr('xlink:href', function(d) {
-                return fmt('/variant/{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
-            })
+            .attr('xlink:href', get_link_to_LZ)
             .append('circle')
             .attr('id', function(d) {
                 return fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);

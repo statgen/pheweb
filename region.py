@@ -21,6 +21,8 @@ def get_rows(pheno_code, chrom, pos_start, pos_end):
             'id': [], # chr:pos_ref/alt
             'chr': [],
             'position': [],
+            'ref': [],
+            'alt': [],
             'rsid': [],
             'maf': [],
             'pvalue': [],
@@ -37,6 +39,8 @@ def get_rows(pheno_code, chrom, pos_start, pos_end):
         chrom, pos = v[0], int(v[1])
         rv['data']['chr'].append(chrom)
         rv['data']['position'].append(pos)
+        rv['data']['ref'].append(v[2])
+        rv['data']['alt'].append(v[3])
         rv['data']['id'].append('{}:{}_{}/{}'.format(chrom, pos, v[2], v[3]))
         rv['data']['rsid'].append(v[4])
         rv['data']['pvalue'].append(pval)
