@@ -5,6 +5,7 @@ Todo:
     - [ ] Then peaks with p<1e-8 get gene labels, and peaks with p<1e-6 go in StreamTable.
 - [ ] Merge 0_1 into 0_2 to cut down tmp file usage by ~5X.  Then put strict assertions around the input parser.
     - `CpraReader(input_file_parser.get_variants(f))`
+- [ ] LZ should have current chr:start-end in URL and on page.
 - [ ] GWAS Catalog hits on Manhattan Plots
     - statistically match GWAS Catalog mapped_traits to our phenotypes (even if they're not Vanderbilt ICD9 PheWAS) and then offer the top matches with checkboxes.
         - What statistic should happen here? For a [mapped_trait, pheno] pair, we have [(chr:pos, pval), ...].

@@ -8,22 +8,50 @@
 <script src="{{ url_for('static', filename='vendor/locuszoom-0.3.9.app.js') }}" type="text/javascript"></script>
 <link rel="stylesheet" type="text/css" href="http://statgen.github.io/locuszoom/versions/0.3.9/locuszoom.css" />
 <script src="{{ url_for('static', filename='region.js') }}"></script>
+
+<style type="text/css">
+.icd9-info > p, .pheno-info > p {
+  margin-bottom: 0;
+}
+</style>
 {% endblock %}
 
 {% block body %}
 <div class="container-fluid">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <br><br> {# Dont get stuck behind the navbar #}
+      {% for message in messages %}
+        <div class="alert alert-danger" role="alert"><b>Error:</b> {{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% if '<' in pheno.num_cases|string %}
+    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno.num_cases }} cases.</div>
+  {% elif pheno.num_cases|int < 200 %}
+    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno.num_cases }} cases.</div>
+  {% endif %}
   <div class="row">
     <div class="col-xs-12">
-      Pheno: {{ pheno['phewas_string'] }}<br><br><br>
+      <h1 style="margin-top:0">{{ pheno['pheno_code'] }}: {{ pheno['phewas_string'] }}</h1>
     </div>
   </div>
   <div class="row">
+      <div class="pheno-info col-xs-12">
+          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
+          <p>Category: <b>{{ pheno.category_string}}</b></p>
+      </div>
+  </div>
+  <br>
+  <div class="row">
     <div class="col-xs-12">
-      <form>
-        <label for="lz-1_region">Region: </label>
-        <input style="color:#000000" type="text" size=25 id="lz-1_region" />
-        <input style="color:#000000" type="button" id="lz-1_submit" value="Go" onClick="handleFormSubmit('lz-1');" />
-      </form>
+      <a href="/pheno/{{ pheno['pheno_code'] }}" class="btn btn-default">Back to Manhattan</a>
+      <button id="move-left-fast" type="button" class="btn btn-default"><span class="glyphicon glyphicon-arrow-left"></span><span class="glyphicon glyphicon-arrow-left"></span></button>
+      <button id="move-left" type="button" class="btn btn-default"><span class="glyphicon glyphicon-arrow-left"></span></button>
+      <button id="zoom-in" type="button" class="btn btn-default"><span class="glyphicon glyphicon-zoom-in"></span></button>
+      <button id="zoom-out" type="button" class="btn btn-default"><span class="glyphicon glyphicon-zoom-out"></span></button>
+      <button id="move-right" type="button" class="btn btn-default"><span class="glyphicon glyphicon-arrow-right"></span></button>
+      <button id="move-right-fast" type="button" class="btn btn-default"><span class="glyphicon glyphicon-arrow-right"></span><span class="glyphicon glyphicon-arrow-right"></span></button>
       <br>
     </div>
   </div>
