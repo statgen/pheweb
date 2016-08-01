@@ -206,10 +206,10 @@ var color_by_category = (function() {
 })();
 
 (function() { // Check Clinvar and render link.
-    var clinvar_api_template = _.template('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=<%= chrom %>[Chromosome]%20AND%20<%= pos %>[Base%20Position%20for%20Assembly%20GRCh37]&retmode=json');
+    var clinvar_api_template = _.template('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=<%= chrom %>[Chromosome]%20AND%20<%= pos %>[Base%20Position%20for%20Assembly%20GRCh37]&retmode=json');
     var clinvar_api_url = clinvar_api_template(window.variant);
 
-    var clinvar_link_template = _.template('http://www.ncbi.nlm.nih.gov/clinvar?term=<%= chrom %>[Chromosome]%20AND%20<%= pos %>[Base%20Position%20for%20Assembly%20GRCh37]');
+    var clinvar_link_template = _.template('https://www.ncbi.nlm.nih.gov/clinvar?term=<%= chrom %>[Chromosome]%20AND%20<%= pos %>[Base%20Position%20for%20Assembly%20GRCh37]');
     var clinvar_link_url = clinvar_link_template(window.variant);
 
     $.getJSON(clinvar_api_url).done(function(result) {
@@ -223,11 +223,8 @@ var color_by_category = (function() {
 
 if (typeof window.variant.rsids !== "undefined") {
     (function() { // Check PubMed for each rsid and render link.
-        // var pubmed_api_template = _.template('http://www.ncbi.nlm.nih.gov/pubmed/?term=<%= rsid %>&format=text');
-        // This url has `Access-Control-Allow-Origin` so that I can access it:
-        //var pubmed_api_template = _.template('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&retmode=xml&tool=eutils-test&term=<%= rsid %>');
-        var pubmed_api_template = _.template('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&retmode=xml&term=<%= rsid %>');
-        var pubmed_link_template = _.template('http://www.ncbi.nlm.nih.gov/pubmed/?term=<%= rsid %>');
+        var pubmed_api_template = _.template('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&retmode=xml&term=<%= rsid %>');
+        var pubmed_link_template = _.template('https://www.ncbi.nlm.nih.gov/pubmed/?term=<%= rsid %>');
         var rsids = window.variant.rsids.split(','); // There's usually just one rsid.
         rsids.forEach(function(rsid) {
             var pubmed_api_url = pubmed_api_template({rsid: rsid});
