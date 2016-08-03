@@ -16,13 +16,16 @@ from utils import parse_variant
 
 def get_autocompletion(query, phenos):
     query = query.strip().replace(',', '')
-    return \
+    result = \
         list(itertools.islice(get_variant_autocompletion(query), 0, 10)) or \
         list(itertools.islice(get_rsid_autocompletion(query), 0, 10)) or \
         list(itertools.islice(get_phewas_code_autocompletion(query, phenos), 0, 10)) or \
-        list(itertools.islice(get_phewas_string_autocompletion(query, phenos), 0, 10)) or \
-        list(itertools.islice(get_icd9_code_autocompletion(query, phenos), 0, 10)) or \
-        list(itertools.islice(get_icd9_string_autocompletion(query, phenos), 0, 10))
+        list(itertools.islice(get_phewas_string_autocompletion(query, phenos), 0, 10))
+    if conf.use_vanderbilt_phewas_icd9s_and_categories and not result:
+        result = \
+            list(itertools.islice(get_icd9_code_autocompletion(query, phenos), 0, 10)) or \
+            list(itertools.islice(get_icd9_string_autocompletion(query, phenos), 0, 10))
+    return result
 
 
 cpra_to_rsids_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/cpra_to_rsids_trie.marisa')

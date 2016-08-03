@@ -13,7 +13,7 @@ activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
 utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
-input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/epacts.py'))
+input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
 
 import gzip
 import datetime
