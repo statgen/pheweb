@@ -12,7 +12,7 @@ conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 
-input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/epacts.py'))
+input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
 
 import csv
 import json
@@ -32,6 +32,8 @@ def get_phenos_from_input_files():
             num_cases, num_controls = input_file_parser.get_num_cases_and_controls(f)
         if num_cases >= conf.minimum_num_cases:
             good_phenos[pheno['pheno_code']] = dict(num_cases=num_cases, num_controls=num_controls)
+            if 'category_string' in pheno:
+                good_phenos[pheno['pheno_code']]['category_string'] = pheno['category_string']
         else:
             bad_phenos[pheno['pheno_code']] = True
 

@@ -7,9 +7,9 @@ source "$PROJECT_DIR/config.config"
 
 # Tabix expects the header line to start with a '#'
 (echo -n '#'; cat "$data_dir/matrix.tsv") |
-/net/mario/cluster/bin/bgzip > "$data_dir/matrix.tsv.gz"
+$bgzip_path > "$data_dir/matrix.tsv.gz"
 
-/net/mario/cluster/bin/tabix -p vcf "$data_dir/matrix.tsv.gz"
+$tabix_path -p vcf "$data_dir/matrix.tsv.gz"
 
 echo done!
 }

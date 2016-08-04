@@ -127,6 +127,7 @@ def merge(input_filenames, out_filename):
     print('{:8} variants in {} <- {}'.format(n_variants, os.path.basename(out_filename), [os.path.basename(path) for path in input_filenames]))
 
 
+utils.mkdir_p(conf.data_dir + '/sites')
 utils.mkdir_p(conf.data_dir + '/tmp')
 
 def merge_files_in_queue(lock, files_to_merge):

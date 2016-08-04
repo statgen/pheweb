@@ -36,10 +36,10 @@ def get_variants(f, minimum_maf=None):
             pval = float(pval)
         except ValueError:
             pval = '.'
-        chrom2, pos2, ref, alt = parse_marker_id(fields[MARKER_ID_COL])
+        chrom2, pos2, ref, alt = utils.parse_marker_id(fields[MARKER_ID_COL])
         assert chrom == chrom2, fields
         assert pos == pos2, (fields, pos, pos2)
-        yield Pheno_Variant(chrom=chrom, pos=pos, ref=ref, alt=alt, pval=pval, maf=maf)
+        yield Variant(chrom=chrom, pos=pos, ref=ref, alt=alt, pval=pval, maf=maf)
 
 def get_num_cases_and_controls(f):
     reader = csv.DictReader(f, delimiter='\t')
