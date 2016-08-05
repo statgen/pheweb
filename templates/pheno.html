@@ -100,24 +100,6 @@
                 </div>
             </div>
         </div>
-        {% if pheno.icd9s %}
-        <div class="row">
-            <div class="icd9-info col-xs-12 col-sm-7 col-md-8 col-lg-8">
-              <h3>ICD9 codes included in this PheWAS code:</h3>
-              {% for icd9 in pheno.icd9s %}
-                <p><b>{{ icd9.icd9_code }}</b> - {{ icd9.icd9_string }}</p>
-              {% endfor %}
-            </div>
-            <div class="icd9-info col-xs-12 col-sm-offset-1 col-sm-4 col-md-offset-1 col-md-3 col-lg-3">
-              <h3>QQ plot:</h3>
-              <div id="qq_plot_container"></div>
-              <p class="gc-control"></p>
-              <br><br><br>
-            </div>
-        </div>
-        {% endif %}
-
-        <br>
 
         <div class="row">
           <div class="col-xs-12 col-md-8">
@@ -165,6 +147,24 @@
           </div>
         </div>
 
+        <div class="row">
+            {% if pheno.icd9s %}
+            <div class="icd9-info col-xs-12 col-sm-7 col-md-8 col-lg-8">
+              <h3>ICD9 codes included in this PheWAS code:</h3>
+              {% for icd9 in pheno.icd9s %}
+                <p><b>{{ icd9.icd9_code }}</b> - {{ icd9.icd9_string }}</p>
+              {% endfor %}
+            </div>
+            <div class="icd9-info col-xs-12 col-sm-offset-1 col-sm-4 col-md-offset-1 col-md-3 col-lg-3">
+            {% else %}
+            <div class="icd9-info col-xs-12 col-sm-4 col-md-3 col-lg-3">
+            {% endif %}
+              <h3>QQ plot:</h3>
+              <div id="qq_plot_container"></div>
+              <p class="gc-control"></p>
+              <br><br><br>
+            </div>
+        </div>
 </div>
 
 <script type="text/template" id="tooltip-template">
