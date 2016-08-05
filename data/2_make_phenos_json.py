@@ -31,9 +31,8 @@ def get_phenos_from_input_files():
         with gzip.open(pheno['src_filename']) as f:
             num_cases, num_controls = input_file_parser.get_num_cases_and_controls(f)
         if num_cases >= conf.minimum_num_cases:
-            good_phenos[pheno['pheno_code']] = dict(num_cases=num_cases, num_controls=num_controls)
-            if 'category_string' in pheno:
-                good_phenos[pheno['pheno_code']]['category_string'] = pheno['category_string']
+            good_phenos[pheno['pheno_code']] = {k:v for k,v in pheno.items() if k != 'src_filename'}
+            good_phenos[pheno['pheno_code']].update(dict(num_cases=num_cases, num_controls=num_controls))
         else:
             bad_phenos[pheno['pheno_code']] = True
 
