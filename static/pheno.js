@@ -442,14 +442,14 @@ function create_qq_plot(maf_ranges) {
             .attr('transform', fmt('translate({0},{1})rotate(-90)',
                                    plot_margin.left*.4,
                                    plot_margin.top + plot_height/2))
-            .text('observed -log10(p)');
+            .text('observed -log\u2081\u2080(p)');
 
         qq_svg.append('text')
             .style('text-anchor', 'middle')
             .attr('transform', fmt('translate({0},{1})',
                                    plot_margin.left + plot_width/2,
                                    plot_margin.top + plot_height + 40))
-            .text('expected -log10(p)');
+            .text('expected -log\u2081\u2080(p)');
   });
 }
 
