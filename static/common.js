@@ -2,25 +2,24 @@
     // It's unfortunate that these are hard-coded, but it works pretty great, so I won't change it now.
     var defaults = [
         {
-            "display":"6:396321-C-T (rs12203592)",
-            "url":"/variant/6:396321-C-T",
-            "value":"6:396321-C-T",
+            "display":"ESA_COLESTEROLO (ESA_COLESTEROLO)",
+            "url":"/pheno/ESA_COLESTEROLO",
+            "value":"ESA_COLESTEROLO"
+        },{
+            "display":"ESA_TRIGLICERIDI (ESA_TRIGLICERIDI)",
+            "url":"/pheno/ESA_TRIGLICERIDI",
+            "value":"ESA_TRIGLICERIDI"
         },
         {
-            "display": "rs150266918 (7:45574647-G-A)",
-            "url":"/variant/7:45574647-G-A",
-            "value":"7:45574647-G-A",
+            "display":"HDL (HDL)",
+            "url":"/pheno/HDL",
+            "value":"HDL"
         },
         {
-            "display":"427.21 (Atrial fibrillation)",
-            "url":"/pheno/427.21",
-            "value":"427.21",
-        },
-        {
-            "display":"Type 2 diabetes (250.2)",
-            "url":"/pheno/250.2",
-            "value":"250.2",
-        },
+            "display":"LDL (LDL)",
+            "url":"/pheno/LDL",
+            "value":"LDL"
+        }
     ];
 
     autocomplete_bloodhound = new Bloodhound({
