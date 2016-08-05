@@ -1,5 +1,4 @@
 Todo:
-- [ ] Google Analytics.
 - [ ] Webpage: pheno.html: 1 <-> 4 QQ.
 - [ ] Mark peaks better.
     - While variants w/ p<1e-4: m_s_v = min(significant_variants, key=_.pval); m_s_v.showgene=True; significant_variants = [v for v in significant_variants if abs(v.pos-m_s_v.pos) > 100k]
@@ -13,6 +12,7 @@ Todo:
     - statistically match GWAS Catalog mapped_traits to our phenotypes (even if they're not Vanderbilt ICD9 PheWAS) and then offer the top matches with checkboxes.
     - on LZ, just show all GWAS Catalog hits.
 - [ ] Show GWAS Catalog info on variant.html (using rs#)
+- [ ] Understand GTEx (see GTEx.txt)
 - [ ] Write a Makefile to do all of this?  Snakemake?
 - [ ] Invert colors (like ctrl-opt-com-8)?
 - [ ] Keep annoations separate from data, and maybe put data into hdf5 of flat files to save some space.

@@ -6,10 +6,12 @@
 <script type="text/javascript">
   window.pheno = {{ phewas_code|tojson|safe }};
   $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json").done(function(data) {
+      window.manhattan_data = data; // debugging
       create_gwas_plot(data.variant_bins, data.unbinned_variants);
       populate_streamtable(data.unbinned_variants);
   });
   $.getJSON("/api/qq/pheno/" + window.pheno + ".json").done(function(data) {
+    window.pheno_data = data; //debugging
     _.sortBy(_.pairs(data.overall.gc_lambda)).forEach(function(d) {
       $('.gc-control').append('<br>GC Lambda ' + d[0] + ': ' + d[1].toFixed(3));
     });
