@@ -32,6 +32,9 @@ NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
 NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 BIN_THRESHOLD = 1e-4 # pvals less than this threshold don't get binned.
 
+with open(conf.data_dir + '/gwas-catalog/gwas.json') as f:
+    known_hits_by_pheno = json.load(f)
+
 
 Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf', 'nearest_genes', 'rsids'])
 def get_variants(f):
@@ -130,7 +133,7 @@ def label_genes_to_show(variants):
 
 
 def make_json_file(args):
-    src_filename, dest_filename, tmp_filename = args['src'], args['dest'], args['tmp']
+    src_filename, dest_filename, tmp_filename, pheno_code = args['src'], args['dest'], args['tmp'], args['pheno_code']
     assert not os.path.exists(dest_filename), dest_filename
 
     with open(src_filename) as f:
@@ -143,6 +146,11 @@ def make_json_file(args):
         'variant_bins': variant_bins,
         'unbinned_variants': unbinned_variants,
     }
+
+    try:
+        rv['known_hits'] = known_hits_by_pheno[pheno_code]
+    except KeyError:
+        pass
 
     # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
     with open(tmp_filename, 'w') as f:
@@ -161,7 +169,12 @@ def get_conversions_to_do():
         dest_filename = '{}/manhattan/{}.json'.format(conf.data_dir, pheno_code)
         tmp_filename = '{}/tmp/manhattan-{}.json'.format(conf.data_dir, pheno_code)
         if not os.path.exists(dest_filename):
-            yield {'src':src_filename, 'dest':dest_filename, 'tmp':tmp_filename}
+            yield {
+                'src':src_filename,
+                'dest':dest_filename,
+                'tmp':tmp_filename,
+                'pheno_code':pheno_code
+            }
 
 utils.mkdir_p(conf.data_dir + '/manhattan')
 utils.mkdir_p(conf.data_dir + '/tmp')

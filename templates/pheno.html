@@ -7,8 +7,9 @@
   window.pheno = {{ phewas_code|tojson|safe }};
   $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json").done(function(data) {
       window.manhattan_data = data; // debugging
-      create_gwas_plot(data.variant_bins, data.unbinned_variants);
+      create_gwas_plot(data.variant_bins, data.unbinned_variants, data.known_hits);
       populate_streamtable(data.unbinned_variants);
+      window.data = data; // debugging.
   });
   $.getJSON("/api/qq/pheno/" + window.pheno + ".json").done(function(data) {
     window.pheno_data = data; //debugging
@@ -177,6 +178,14 @@ nearest gene<%= (d.nearest_genes.indexOf(',') !== -1) ? 's' : '' %>: <%= d.neare
 <% if (d.rsids) { %>
 rsid<%= (d.rsids.indexOf(',') !== -1) ? 's' : '' %>: <%= d.rsids.replace(/,/g, ', ') %><br>
 <% } %>
+</script>
+
+<script type="text/template" id="known-hit-tooltip-template">
+Known hit from GWAS Catalog:<br>
+<%= d.chrom %>:<%= d.pos.toLocaleString() %><br>
+pval: <%= d.pval.toExponential(1) %><br>
+reported gene<%= (d.reported_genes.indexOf(',') !== -1) ? 's' : '' %>: <%= d.reported_genes %><br>
+trait: <%= d.trait %>
 </script>
 
 <script type="text/template" id="streamtable-template">

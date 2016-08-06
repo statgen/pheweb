@@ -1,5 +1,5 @@
 
-function create_gwas_plot(variant_bins, unbinned_variants) {
+function create_gwas_plot(variant_bins, unbinned_variants, known_hits) {
 
     var get_chrom_offsets = _.memoize(function() {
         var chrom_padding = 2e7;
@@ -105,6 +105,46 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .range(['rgb(120,120,186)', 'rgb(0,0,66)']);
         //colors to maybe sample from later:
         //.range(['rgb(120,120,186)', 'rgb(0,0,66)', 'rgb(44,150,220)', 'rgb(40,60,80)', 'rgb(33,127,188)', 'rgb(143,76,176)']);
+
+        var known_hit_tooltip_template = _.template($('#known-hit-tooltip-template').html());
+        var known_hit_tooltip = d3.tip()
+            .attr('class', 'd3-tip')
+            .html(function(d) {
+                return known_hit_tooltip_template({d: d});
+            })
+            .offset([-6,0]);
+        gwas_svg.call(known_hit_tooltip);
+
+        function draw_known_hits() {
+            known_columns = gwas_plot.append('g')
+                .attr('class', 'known_columns')
+                .selectAll('g.known_columns')
+                .data(known_hits)
+                .enter()
+                .append('a')
+                .attr('xlink:href', function(d) { return (d.link.lastIndexOf('http', 0) === 0 ? '' : 'http://')  + d.link; })
+                .append('line')
+                .attr('x1', function(d) {
+                    d.chrom = d.chrom || d.chr; //oops, wrong name.
+                    d.x = x_scale(get_genomic_position(d));
+                    if (isNaN(d.x)) {
+                        console.log(d.x, d.chrom, d.pos);
+                        d.x = -999; // usually d.chrom == 'X'
+                    }
+                    return d.x;
+                })
+                .attr('x2', function(d) { return d.x; })
+                .attr('y1', function(d) { return y_scale(0); })
+                .attr('y2', function(d) { return d3.max([y_scale(-Math.log10(d.pval)), 0]); }) // TODO: cap at graph height without using `0`
+                .attr('stroke', 'lightgreen')
+                .attr('stroke-width', 3)
+                .attr('stroke-linecap', 'round')
+                .on('mouseover', known_hit_tooltip.show)
+                .on('mouseout', known_hit_tooltip.hide);
+        }
+        if (known_hits) {
+            draw_known_hits();
+        }
 
         gwas_plot.append('line')
             .attr('x1', 0)

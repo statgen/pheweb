@@ -1,0 +1,53 @@
+pheno_code,gwas_catalog_mapped_trait
+
+250,diabetes mellitus
+250,diabetic nephropathy
+250,diabetic retinopathy
+250,gestational diabetes
+250,type I diabetes mellitus
+250,type 1 diabetes nephropathy
+250,type 2 diabetes nephropathy
+250,type II diabetes mellitus
+
+250.1,diabetes mellitus
+250.1,diabetic nephropathy
+250.1,diabetic retinopathy
+250.1,gestational diabetes
+250.1,type I diabetes mellitus
+250.1,type 1 diabetes nephropathy
+
+250.2,diabetes mellitus
+250.2,diabetic nephropathy
+250.2,diabetic retinopathy
+250.2,gestational diabetes
+250.2,type 2 diabetes nephropathy
+250.2,type II diabetes mellitus
+
+250.7,diabetic retinopathy
+
+250.13,diabetic retinopathy
+
+250.12,type 1 diabetes nephropathy
+
+172,cutaneous melanoma
+172,melanoma
+172,cutaneous melanoma
+172,melanoma
+172,basal cell carcinoma
+172,esophageal squamous cell carcinoma
+172,laryngeal squamous cell carcinoma
+172,squamous cell carcinoma
+
+172.11,cutaneous melanoma
+172.11,melanoma
+
+172.1,cutaneous melanoma
+172.1,melanoma
+
+172.21,basal cell carcinoma
+
+172.22,esophageal squamous cell carcinoma
+172.22,laryngeal squamous cell carcinoma
+172.22,squamous cell carcinoma
+
+327.71,restless legs syndrome
