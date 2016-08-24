@@ -79,6 +79,13 @@
                         , <a href="https://www.ebi.ac.uk/gwas/search?query={{ rsid }}">GWAS Catalog for {{ rsid }}</a>
                       {% endfor %}
                     {% endif %}
+                    {% if rsids|length == 1 %}
+                      , <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ rsids[0] }}">dbSNP</a>
+                    {% else %}
+                      {% for rsid in rsids %}
+                        , <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ rsids[0] }}">dbSNP for {{ rsid }}</a>
+                      {% endfor %}
+                    {% endif %}
                   {% endwith %}
                   <span style="font-weight:bold" id="pubmed-link"></span>
                   <span style="font-weight:bold" id="clinvar-link"></span>
