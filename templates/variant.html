@@ -130,7 +130,7 @@
                   <th>Phenotype Code</th>
                   <th>Phenotype</th>
                   <th>P-value</th>
-                  <th>Number of cases</th>
+                  <th>Number of samples</th>
                 </tr>
               </thead>
               <tbody>
@@ -148,8 +148,7 @@
 </span><br>
 phewas code: <%= d.phewas_code %><br>
 pval: <%= d.pval.toExponential(1) %><br>
-#cases: <%= d.num_cases %><br>
-#controls: <%= d.num_controls %>
+#samples: <%= d.num_cases %><br>
 </script>
 
 <script type="text/template" id="streamtable-template">
