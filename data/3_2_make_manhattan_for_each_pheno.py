@@ -1,5 +1,9 @@
 #!/usr/bin/env python2
 
+# TODO: move prev_* into get_variants()
+# TODO: copy MAX_NUM_UNBINNED from ENCORE
+# TODO: combine with QQ
+
 from __future__ import print_function, division, absolute_import
 
 # Load config
