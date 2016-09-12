@@ -290,9 +290,10 @@ function create_qq_plot(maf_ranges) {
 
     // TODO: adjust this for fewer variants in each maf_range?  `nvar <- nvar / 4`?
     // Generated in R with:
-    // nvar <- 7741774; get.x.y.min <- function(i) c(-log10((i-.5)/nvar), -log10(qbeta(.05/2, i, nvar-i))); get.x.y.max <- function(i) c(-log10((i-.5)/nvar), -log10(qbeta(1-.05/2, i, nvar-i)))
+    // nvar <- 7741774
+    // get.x.y0.y1 <- function(i) c(-log10((i-.5)/nvar), -log10(qbeta(.05/2, i, nvar-i)), -log10(qbeta(1-.05/2, i, nvar-i)))
     // m <- t(sapply(c(nvar-1,2^(22:0)), get.x.y0.y1))
-    // cat('[\n', paste(apply(m, 1, function(x) paste0('[', paste(x, collapse=', '), ']')), collapse=',\n'), '\n]\n', sep='')
+    // cat('[\n', paste(apply(m, 1, function(x) {paste0('[', paste(x, collapse=', '), ']')}), collapse=',\n'), '\n]\n', sep='')
     var qq_ci_trumpet_points = [
         [8.41463191637995e-08, 2.06937091984728e-07, 1.42026694351221e-09],
         [2.66180636288143e-01, 2.66462030395762e-01, 2.65899337287824e-01],
