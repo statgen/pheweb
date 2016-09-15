@@ -18,7 +18,7 @@ input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'i
 import gzip
 import datetime
 import multiprocessing
-import csv
+import json
 import collections
 
 sites_filename = conf.data_dir + '/sites/sites.tsv'
@@ -124,8 +124,8 @@ def _convert(src_filename, out_filename):
         os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
 
 def get_conversions_to_do():
-    with open(conf.data_dir + '/phenos.csv') as f:
-        phenos = list(csv.DictReader(f))
+    with open(my_dir + '/phenos.json') as f:
+        phenos = json.load(f)
     print('number of source files:', len(phenos))
     for pheno in phenos:
         dest_filename = '{}/augmented_pheno/{}'.format(conf.data_dir, pheno['pheno_code'])
