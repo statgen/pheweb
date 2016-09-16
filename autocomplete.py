@@ -77,15 +77,14 @@ def get_rsid_autocompletion(query):
                 "url": "/variant/{}".format(cpra)
             }
 
-_regex_get_phewas_code_autocompletion = re.compile('^\s*[0-9]')
 def get_phewas_code_autocompletion(query, phenos):
     # Try phewas_code
-    if _regex_get_phewas_code_autocompletion.match(query):
+    if True:
         for phewas_code, pheno in phenos.iteritems():
-            if phewas_code.startswith(query):
+            if query.title() in phewas_code.title():
                 yield {
                     "value": phewas_code,
-                    "display": "{} ({})".format(phewas_code, pheno['phewas_string']), # TODO: truncate phewas_string intelligently
+                    "display": "{}".format(phewas_code), # TODO: truncate phewas_string intelligently
                     "url": "/pheno/{}".format(phewas_code),
                 }
 

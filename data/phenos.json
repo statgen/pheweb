@@ -1,34 +1,42 @@
 {
 "ESA_COLESTEROLO": {
-"category_string": "lipids", 
-"num_cases": 5885, 
-"num_controls": 5885, 
+"category_string": "", 
+"num_cases": 5937, 
+"num_controls": 5937, 
 "pheno_code": "ESA_COLESTEROLO", 
-"phewas_string": "4", 
-"src_filename": "/net/wonderland/home/csidore/Pheweb/data/ESA_COLESTEROLO.SS2120.epacts.gz"
+"phewas_string": "", 
+"src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-ESA_COLESTEROLO/epacts-ESA_COLESTEROLO.epacts.gz"
+}, 
+"ESA_HDL": {
+"category_string": "", 
+"num_cases": 5942, 
+"num_controls": 5942, 
+"pheno_code": "ESA_HDL", 
+"phewas_string": "", 
+"src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-ESA_HDL/epacts-ESA_HDL.epacts.gz"
 }, 
 "ESA_TRIGLICERIDI": {
-"category_string": "lipids", 
-"num_cases": 5885, 
-"num_controls": 5885, 
+"category_string": "", 
+"num_cases": 5905, 
+"num_controls": 5905, 
 "pheno_code": "ESA_TRIGLICERIDI", 
-"phewas_string": "3", 
-"src_filename": "/net/wonderland/home/csidore/Pheweb/data/ESA_TRIGLICERIDI.SS2120.epacts.gz"
+"phewas_string": "", 
+"src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-ESA_TRIGLICERIDI/epacts-ESA_TRIGLICERIDI.epacts.gz"
 }, 
-"HDL": {
-"category_string": "lipids", 
-"num_cases": 5885, 
-"num_controls": 5885, 
-"pheno_code": "HDL", 
-"phewas_string": "1", 
-"src_filename": "/net/wonderland/home/csidore/Pheweb/data/HDL.SS2120.epacts.gz"
+"HEIGHT": {
+"category_string": "", 
+"num_cases": 5940, 
+"num_controls": 5940, 
+"pheno_code": "HEIGHT", 
+"phewas_string": "", 
+"src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-HEIGHT/epacts-HEIGHT.epacts.gz"
 }, 
 "LDL": {
-"category_string": "lipids", 
-"num_cases": 5881, 
-"num_controls": 5881, 
+"category_string": "", 
+"num_cases": 5937, 
+"num_controls": 5937, 
 "pheno_code": "LDL", 
-"phewas_string": "2", 
-"src_filename": "/net/wonderland/home/csidore/Pheweb/data/LDL.SS2120.epacts.gz"
+"phewas_string": "", 
+"src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-LDL/epacts-LDL.epacts.gz"
 }
 }

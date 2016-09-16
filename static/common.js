@@ -2,23 +2,28 @@
     // It's unfortunate that these are hard-coded, but it works pretty great, so I won't change it now.
     var defaults = [
         {
-            "display":"ESA_COLESTEROLO (ESA_COLESTEROLO)",
+            "display":"ESA_COLESTEROLO",
             "url":"/pheno/ESA_COLESTEROLO",
             "value":"ESA_COLESTEROLO"
         },{
-            "display":"ESA_TRIGLICERIDI (ESA_TRIGLICERIDI)",
+            "display":"ESA_TRIGLICERIDI",
             "url":"/pheno/ESA_TRIGLICERIDI",
             "value":"ESA_TRIGLICERIDI"
         },
         {
-            "display":"HDL (HDL)",
+            "display":"HDL",
             "url":"/pheno/HDL",
             "value":"HDL"
         },
         {
-            "display":"LDL (LDL)",
+            "display":"LDL",
             "url":"/pheno/LDL",
             "value":"LDL"
+        },
+        {
+            "display":"HEIGHT",
+            "url":"/pheno/HEIGHT",
+            "value":"HEIGHT"
         }
     ];
 
