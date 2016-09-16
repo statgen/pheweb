@@ -18,6 +18,7 @@ input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'i
 import gzip
 import datetime
 import multiprocessing
+import csv
 import json
 import collections
 
@@ -127,7 +128,7 @@ def get_conversions_to_do():
     with open(my_dir + '/phenos.json') as f:
         phenos = json.load(f)
     print('number of source files:', len(phenos))
-    for pheno in phenos:
+    for pheno in phenos.values():
         dest_filename = '{}/augmented_pheno/{}'.format(conf.data_dir, pheno['pheno_code'])
         tmp_filename = '{}/tmp/augmented_pheno-{}'.format(conf.data_dir, pheno['pheno_code'])
         if not os.path.exists(dest_filename):

@@ -11,7 +11,7 @@ echo "$data_dir/sites/sites.lexicographic.tsv contains a line that doesn't start
 exit 1
 
 cat "$data_dir/sites/sites.lexicographic.tsv" |
-# Note: we need a stable sort (-s) so that multiallelic variants (same chr:pos, different alt) will stay in the same order.
+# Note: this uses a stable sort (-s) so that multiallelic variants (same chr:pos, different alt) will stay in the same order.
 sort -k 1,1n -k2,2n -s \
 > "$data_dir/sites/sites.tsv"
 

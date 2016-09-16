@@ -19,6 +19,7 @@ import gzip
 import datetime
 import multiprocessing
 import csv
+import json
 
 
 def convert(conversion_to_do):
@@ -49,10 +50,10 @@ def convert(conversion_to_do):
     os.rename(tmp_filename, dest_filename)
 
 def get_conversions_to_do():
-    with open(conf.data_dir + '/phenos.csv') as f:
-        phenos = list(csv.DictReader(f))
+    with open(my_dir + '/phenos.json') as f:
+        phenos = json.load(f)
     print('number of source files:', len(phenos))
-    for pheno in phenos:
+    for pheno in phenos.values():
         dest_filename = '{}/pheno/{}'.format(conf.data_dir, pheno['pheno_code'])
         tmp_filename = '{}/tmp/pheno-{}'.format(conf.data_dir, pheno['pheno_code'])
         if not os.path.exists(dest_filename):
