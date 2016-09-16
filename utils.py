@@ -122,3 +122,8 @@ def mkdir_p(path):
     except OSError as exc:
         if exc.errno != errno.EEXIST or not os.path.isdir(path):
             raise
+
+def activate_virtualenv(path):
+    with open(path) as f:
+        code = compile(f.read(), path, 'exec')
+        exec(code, dict(__file__=path))

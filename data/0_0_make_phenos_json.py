@@ -1,12 +1,5 @@
 #!/usr/bin/env python2
 
-'''
-TODO:
-- only write json, and make all other scripts depend on it.
-- use regex from conf if they are available
-- if necessary, we can make a phenos.csv later on, but we don't really need it now.
-'''
-
 from __future__ import print_function, division, absolute_import
 
 # Load config
@@ -15,9 +8,12 @@ import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
 conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
 
+# Load utils
+utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+
 # Activate virtualenv
-activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
-execfile(activate_this, dict(__file__=activate_this))
+utils.activate_virtualenv(os.path.join(conf.virtualenv_dir, 'bin/activate_this.py'))
+
 
 import glob
 import re
@@ -43,7 +39,7 @@ phenos = list(get_phenos_with_regex())
 # Figure out how many cases/controls each phenotype has.
 input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
 for pheno in phenos:
-    with gzip.open(pheno['src_filename']) as f:
+    with gzip.open(pheno['src_filename'], 'rt') as f:
         num_cases, num_controls = input_file_parser.get_num_cases_and_controls(f)
         pheno.update(dict(num_cases=num_cases, num_controls=num_controls))
 
