@@ -3,24 +3,32 @@
 "category_string": "lipids", 
 "num_cases": 5885, 
 "num_controls": 5885, 
-"phewas_string": "ESA_COLESTEROLO"
+"pheno_code": "ESA_COLESTEROLO", 
+"phewas_string": "4", 
+"src_filename": "/net/wonderland/home/csidore/Pheweb/data/ESA_COLESTEROLO.SS2120.epacts.gz"
 }, 
 "ESA_TRIGLICERIDI": {
 "category_string": "lipids", 
 "num_cases": 5885, 
 "num_controls": 5885, 
-"phewas_string": "ESA_TRIGLICERIDI"
+"pheno_code": "ESA_TRIGLICERIDI", 
+"phewas_string": "3", 
+"src_filename": "/net/wonderland/home/csidore/Pheweb/data/ESA_TRIGLICERIDI.SS2120.epacts.gz"
 }, 
 "HDL": {
 "category_string": "lipids", 
 "num_cases": 5885, 
 "num_controls": 5885, 
-"phewas_string": "HDL"
+"pheno_code": "HDL", 
+"phewas_string": "1", 
+"src_filename": "/net/wonderland/home/csidore/Pheweb/data/HDL.SS2120.epacts.gz"
 }, 
 "LDL": {
 "category_string": "lipids", 
 "num_cases": 5881, 
 "num_controls": 5881, 
-"phewas_string": "LDL"
+"pheno_code": "LDL", 
+"phewas_string": "2", 
+"src_filename": "/net/wonderland/home/csidore/Pheweb/data/LDL.SS2120.epacts.gz"
 }
 }
