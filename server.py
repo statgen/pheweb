@@ -112,5 +112,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     extra_files = glob.glob('templates/*.html')
     app.run(host='browser.sph.umich.edu', port=args.port,
-#            threaded=True, # seems to be bad at dying when I ctrl-C / SIGTERM.
+            threaded=True, # seems to be bad at dying when I ctrl-C / SIGTERM.
             debug=True, use_reloader=True, extra_files=extra_files)
