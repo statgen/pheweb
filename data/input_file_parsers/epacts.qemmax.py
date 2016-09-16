@@ -28,7 +28,7 @@ def get_variants(f, minimum_maf=None):
         fields = line.rstrip('\n\r').split('\t')
         chrom = fields[CHROM_COL]
         pos = int(fields[POS_COL])
-        maf = fields[MAF_COL]
+        maf = float(fields[MAF_COL])
         if minimum_maf is not None and maf < minimum_maf:
             continue
         pval = fields[PVAL_COL]
