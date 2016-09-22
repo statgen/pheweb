@@ -83,7 +83,7 @@ def _convert(src_filename, out_filename):
             # Catch pheno_variant up to the position of site_variant
             while pheno_variant[1] < site_variant[1]:
                 pheno_variant = next(pheno_variants)
-            assert site_variant[:2] == pheno_variant[:2], 'pheno_variant[:2] ({}) != site_variant[:2] ({}) in {}'.format(pheno_variant, site_variant, conversion_to_do)
+            assert site_variant[:2] == pheno_variant[:2], 'pheno_variant[:2] ({}) != site_variant[:2] ({}) in {}'.format(pheno_variant, site_variant, src_filename)
 
             # If it's a perfect match, just print and advance both.
             if pheno_variant[:4] == site_variant[:4]:
