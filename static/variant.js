@@ -68,10 +68,10 @@ var color_by_category = (function() {
             .attr("transform", fmt("translate({0},{1})", plot_margin.left, plot_margin.top));
 
         // Significance Threshold line
-        var significance_threshold = 3e-5;
+        var significance_threshold = 2e-3;
         var significance_threshold_tooltip = d3.tip()
             .attr('class', 'd3-tip')
-            .html('Significance Threshold: 3E-5')
+            .html('Significance Threshold: 2E-3')
             .offset([-8,0]);
         phewas_svg.call(significance_threshold_tooltip);
 
