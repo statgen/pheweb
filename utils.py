@@ -72,7 +72,7 @@ pheno_fields_to_include_with_variant = {
     'phewas_string', 'category_name', 'num_cases', 'num_controls', 'num_samples',
 }
 
-def get_variant(query, phenos, cpra_to_rsids_trie):
+def get_variant(query, phenos):
     import pysam
     # todo: differentiate between parse errors and variants-not-found
     chrom, pos, ref, alt = parse_variant(query)

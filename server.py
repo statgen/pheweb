@@ -16,7 +16,7 @@ from flask import Flask, Response, jsonify, render_template, request, redirect, 
 from flask_compress import Compress
 
 from utils import get_phenos_with_colnums, get_variant
-from autocomplete import get_autocompletion, get_best_completion, cpra_to_rsids_trie
+from autocomplete import Autocompleter
 import region
 
 import re
@@ -28,10 +28,12 @@ Compress(app)
 
 phenos = get_phenos_with_colnums(app.root_path)
 
+autocompleter = Autocompleter(phenos)
+
 @app.route('/api/autocomplete')
 def autocomplete():
     query = request.args.get('query', '')
-    suggestions = get_autocompletion(query, phenos)
+    suggestions = autocompleter.autocomplete(query)
     if suggestions:
         return jsonify(sorted(suggestions, key=lambda sugg: sugg['display']))
     return jsonify([])
@@ -41,20 +43,20 @@ def go():
     query = request.args.get('query', None)
     if query is None:
         die("How did you manage to get a null query?")
-    best_suggestion = get_best_completion(query, phenos)
+    best_suggestion = autocompleter.get_best_completion(query)
     if best_suggestion:
         return redirect(best_suggestion['url'])
     die("Couldn't find page for {!r}".format(query))
 
 @app.route('/api/variant/<query>')
 def api_variant(query):
-    variant = get_variant(query, phenos, cpra_to_rsids_trie)
+    variant = get_variant(query, phenos)
     return jsonify(variant)
 
 @app.route('/variant/<query>')
 def variant_page(query):
     try:
-        variant = get_variant(query, phenos, cpra_to_rsids_trie)
+        variant = get_variant(query, phenos)
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query.encode('utf-8')))
         return render_template('variant.html',
