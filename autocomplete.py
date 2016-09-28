@@ -9,6 +9,7 @@ conf = imp.load_source('conf', os.path.join(my_dir, 'config.config'))
 import itertools
 import re
 import marisa_trie
+import copy
 
 from utils import parse_variant
 
@@ -23,7 +24,8 @@ from utils import parse_variant
 
 class Autocompleter(object):
     def __init__(self, phenos):
-        self._phenos = phenos
+        self._phenos = copy.deepcopy(phenos)
+        self._preprocess_phenos()
 
         self._cpra_to_rsids_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/cpra_to_rsids_trie.marisa')
         self._rsid_to_cpra_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/rsid_to_cpra_trie.marisa')
@@ -34,7 +36,7 @@ class Autocompleter(object):
             self._autocomplete_phewas_code,
             self._autocomplete_phewas_string,
         ]
-        if conf.use_vanderbilt_phewas_icd9s_and_categories:
+        if any('icd9s' in pheno for pheno in self._phenos.itervalues()):
             self._autocompleters.extend([
                 self._autocomplete_icd9_code,
                 self._autocomplete_icd9_string,
@@ -59,6 +61,23 @@ class Autocompleter(object):
             intersection_tokens = set(query_tokens).intersection(suggestion_tokens)
             suggestion['match_quality'] = len(intersection_tokens) / len(suggestion_tokens)
         return max(suggestions, key=lambda sugg: sugg['match_quality'])
+
+
+    _process_string_non_word_regex = re.compile(r"(?ui)[^\w\.]") # Most of the time we want to include periods in words
+    @classmethod
+    def _process_string(cls, string):
+        # Cleaning inspired by <https://github.com/seatgeek/fuzzywuzzy/blob/6353e2/fuzzywuzzy/utils.py#L69>
+        return ' ' + cls._process_string_non_word_regex.sub(' ', string).lower().strip()
+
+    def _preprocess_phenos(self):
+        for phewas_code, pheno in self._phenos.iteritems():
+            pheno['--spaced--phewas_code'] = self._process_string(phewas_code)
+            if 'phewas_string' in pheno:
+                pheno['--spaced--phewas_string'] = self._process_string(pheno['phewas_string'])
+            if 'icd9s' in pheno:
+                for icd9 in pheno['icd9s']:
+                    icd9['--spaced--icd9_string'] = self._process_string(icd9['icd9_string'])
+
 
     def _autocomplete_variant(self, query):
         # chrom-pos-ref-alt format
@@ -107,32 +126,25 @@ class Autocompleter(object):
                     "url": "/variant/{}".format(cpra)
                 }
 
-    # TODO:
-    # 1. remove this regex
-    # 2. use a deepcopy of `phenos` in this class
-    # 2. pre-process (lower, tokenize) the phewas_codes and add those back to phenos
-    # 3. match against the pre-processed tokens.
-    _regex_get_phewas_code_autocompletion = re.compile('^\s*[0-9]')
     def _autocomplete_phewas_code(self, query):
-        if self._regex_get_phewas_code_autocompletion.match(query):
-            for phewas_code, pheno in self._phenos.iteritems():
-                if phewas_code.startswith(query):
-                    yield {
-                        "value": phewas_code,
-                        "display": "{} ({})".format(phewas_code, pheno['phewas_string']), # TODO: truncate phewas_string intelligently
-                        "url": "/pheno/{}".format(phewas_code),
-                    }
+        query = self._process_string(query)
+        for phewas_code, pheno in self._phenos.iteritems():
+            if query in pheno['--spaced--phewas_code']:
+                yield {
+                    "value": phewas_code,
+                    "display": "{} ({})".format(phewas_code, pheno['phewas_string']), # TODO: truncate phewas_string intelligently
+                    "url": "/pheno/{}".format(phewas_code),
+                }
 
-    _regex_get_phewas_string_autocompletion = re.compile('^\s*[a-zA-Z]')
     def _autocomplete_phewas_string(self, query):
-        if self._regex_get_phewas_string_autocompletion.match(query):
-            for phewas_code, pheno in self._phenos.iteritems():
-                if query.title() in pheno['phewas_string'].title():
-                    yield {
-                        "value": phewas_code,
-                        "display": "{} ({})".format(pheno['phewas_string'], phewas_code),
-                        "url": "/pheno/{}".format(phewas_code),
-                    }
+        query = self._process_string(query)
+        for phewas_code, pheno in self._phenos.iteritems():
+            if query in pheno['--spaced--phewas_string']:
+                yield {
+                    "value": phewas_code,
+                    "display": "{} ({})".format(pheno['phewas_string'], phewas_code),
+                    "url": "/pheno/{}".format(phewas_code),
+                }
 
     _regex_get_icd9_code_autocompletion = re.compile('^\s*[0-9]')
     def _autocomplete_icd9_code(self, query):
@@ -148,10 +160,11 @@ class Autocompleter(object):
 
     _regex_get_icd9_string_autocompletion = re.compile('^\s*[a-zA-Z]')
     def _autocomplete_icd9_string(self, query):
+        query = self._process_string(query)
         if self._regex_get_icd9_string_autocompletion.match(query):
             for phewas_code, pheno in self._phenos.iteritems():
-                for icd9 in pheno['icd9s']:
-                    if query.title() in pheno['phewas_string'].title():
+                for icd9 in pheno.get('icd9s', []):
+                    if query in icd9['--spaced--icd9_string']:
                         yield {
                             "value": phewas_code,
                             "display": "{} (icd9 string; icd9 code: {}; phewas code: {})".format(icd9['icd9_string'], icd9['icd9_code'], phewas_code),
