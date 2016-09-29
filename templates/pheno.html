@@ -84,11 +84,13 @@
             {% endfor %}
           {% endif %}
         {% endwith %}
-        {% if '<' in pheno.num_cases|string %}
-          <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno.num_cases }} cases.</div>
-        {% elif pheno.num_cases|int < 200 %}
-          <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno.num_cases }} cases.</div>
-        {% endif %}
+        {% for key in ['num_cases', 'num_controls', 'num_samples' %}
+          {% if '<' in pheno[key]|string %}
+            <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div>
+          {% elif pheno[key]|int < 200 %}
+            <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div>
+          {% endif %}
+        {% endfor %}
         <div class="row">
             <div class="col-xs-12">
                 <h1 style="margin-top:0">{{ phewas_code }}: {{ pheno.phewas_string }}</h1>
@@ -96,7 +98,11 @@
         </div>
         <div class="row">
             <div class="pheno-info col-xs-12">
-                <p><b>{{ pheno.num_cases }}</b> samples</p>
+                {% if 'num_cases' in pheno %}
+                  <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
+                {% elif 'num_samples' in pheno %}
+                  <p><b>{{ pheno.num_samples }}</b> samples</p>
+                {% endif %}
                 <p>Category: <b>{{ pheno.category_string}}</b></p>
                 <div id="manhattan_plot_container">
                 </div>

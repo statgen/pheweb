@@ -41,13 +41,13 @@ def get_rsid_reader(rsids_f):
             else:
                  fields = line.rstrip('\n').split('\t')
                  chrom, pos, rsid, ref, alt = int(fields[0]), int(fields[1]), fields[2], fields[3], fields[4]
-                 yield {'chr':chrom, 'pos':int(pos), 'ref':ref, 'alt':alt, 'rsid':rsid}
+                 yield {'chrom':chrom, 'pos':int(pos), 'ref':ref, 'alt':alt, 'rsid':rsid}
 
 def get_cpra_reader(cpra_f):
     cpra_reader = csv.DictReader(cpra_f, delimiter='\t')
     for cpra in cpra_reader:
         yield {
-            'chr': int(cpra['chr']),
+            'chrom': int(cpra['chrom']),
             'pos': int(cpra['pos']),
             'ref': cpra['ref'],
             'alt': cpra['alt'],
@@ -62,7 +62,7 @@ with open(cpra_filename) as cpra_f, \
     rsid = next(rsid_reader)
     def get_next_rsid(prev_rsid):
         rsid = next(rsid_reader, None)
-        assert rsid is None or (rsid['chr'], rsid['pos']) >= (prev_rsid['chr'], prev_rsid['pos']), (rsid, prev_rsid)
+        assert rsid is None or (rsid['chrom'], rsid['pos']) >= (prev_rsid['chrom'], prev_rsid['pos']), (rsid, prev_rsid)
         return rsid
     cpra_reader = get_cpra_reader(cpra_f)
 
@@ -70,15 +70,15 @@ with open(cpra_filename) as cpra_f, \
     prev_cpra = None
     for cpra in cpra_reader:
 
-        assert prev_cpra is None or (int(prev_cpra['chr']), int(prev_cpra['pos'])) <= (int(cpra['chr']), int(cpra['pos']))
+        assert prev_cpra is None or (int(prev_cpra['chrom']), int(prev_cpra['pos'])) <= (int(cpra['chrom']), int(cpra['pos']))
         prev_cpra = cpra
 
         # At the end, if we go past the last rsid, `rsid` will be None, so we'll skip all rsid-related loops.
-        while rsid is not None and (int(rsid['chr']), int(rsid['pos'])) < (int(cpra['chr']), int(cpra['pos'])):
+        while rsid is not None and (int(rsid['chrom']), int(rsid['pos'])) < (int(cpra['chrom']), int(cpra['pos'])):
             rsid = get_next_rsid(rsid)
 
         rsids = []
-        while rsid is not None and (int(rsid['chr']), int(rsid['pos'])) == (int(cpra['chr']), int(cpra['pos'])):
+        while rsid is not None and (int(rsid['chrom']), int(rsid['pos'])) == (int(cpra['chrom']), int(cpra['pos'])):
             if (rsid['ref'], rsid['alt']) == (cpra['ref'], cpra['alt']):
                 # TODO: Check whether both files handle indels the same way.  For now, we don't have indels, so don't worry about it.
                 #       As a reminder to fix this, here's an assertion that will break someday:
@@ -86,4 +86,4 @@ with open(cpra_filename) as cpra_f, \
                 rsids.append(rsid['rsid'])
             rsid = get_next_rsid(rsid)
 
-        print('{chr}\t{pos}\t{ref}\t{alt}\t{0}'.format(','.join(rsids), **cpra), file=out_f)
+        print('{chrom}\t{pos}\t{ref}\t{alt}\t{0}'.format(','.join(rsids), **cpra), file=out_f)

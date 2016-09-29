@@ -15,7 +15,6 @@ execfile(activate_this, dict(__file__=activate_this))
 utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
 input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
 
-import gzip
 import datetime
 import multiprocessing
 import csv
@@ -36,15 +35,7 @@ def convert(conversion_to_do):
         fieldnames = next(variants)
         writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
-
-        for v in variants:
-            writer.writerow({
-                'chr': v.chrom,
-                'pos': v.pos,
-                'ref': v.ref,
-                'alt': v.alt,
-                'maf': v.maf,
-            })
+        writer.writerows(variants)
 
         os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
     print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
@@ -66,6 +57,8 @@ def get_conversions_to_do():
 
 utils.mkdir_p(conf.data_dir + '/pheno')
 utils.mkdir_p(conf.data_dir + '/tmp')
+
+# TODO: add `--debug` which doesn't use multiprocessing
 
 conversions_to_do = list(get_conversions_to_do())
 print('number of conversions to do:', len(conversions_to_do))

@@ -104,7 +104,7 @@ int main() {
   //TDOO: check .isgood() on each ifstream.
 
   // Print header
-  std::cout << "chr\tpos\tref\talt\trsids\tnearest_genes\tmaf";
+  std::cout << "chrom\tpos\tref\talt\trsids\tnearest_genes\tmaf";
   for (std::vector<std::string>::size_type i = 0; i != fnames.size(); i++) {
     std::cout << "\tpval-" << fnames[i];
   }
@@ -114,7 +114,7 @@ int main() {
   for (std::vector<std::ifstream>::size_type i = 0; i != ifs.size(); i++) {
     CSVRow row;
     *ifs[i] >> row;
-    assert (row[CHR_COL] == "chr");
+    assert (row[CHR_COL] == "chrom");
     assert (row[POS_COL] == "pos");
     assert (row[REF_COL] == "ref");
     assert (row[ALT_COL] == "alt");

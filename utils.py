@@ -58,7 +58,7 @@ def get_phenos_with_colnums(app_root_path):
         phenos = json.load(f)
     with gzip.open(conf.data_dir + '/matrix.tsv.gz') as f:
         header = f.readline().rstrip('\r\n').split('\t')
-    assert header[:7] == '#chr pos ref alt rsids nearest_genes maf'.split()
+    assert header[:7] == '#chrom pos ref alt rsids nearest_genes maf'.split()
     for colnum, colname in enumerate(header[7:], start=7):
         assert colname.startswith('pval-')
         pheno_code = colname[len('pval-'):]
@@ -67,6 +67,10 @@ def get_phenos_with_colnums(app_root_path):
         assert 'colnum_pval' in phenos[pheno_code], (pheno_code, phenos[pheno_code])
     return phenos
 
+
+pheno_fields_to_include_with_variant = {
+    'phewas_string', 'category_name', 'num_cases', 'num_controls', 'num_samples',
+}
 
 def get_variant(query, phenos, cpra_to_rsids_trie):
     import pysam
@@ -105,13 +109,11 @@ def get_variant(query, phenos, cpra_to_rsids_trie):
             pval = 1
         rv['phenos'].append({
             'phewas_code': pheno_code,
-            'phewas_string': pheno['phewas_string'],
-            'category_name': pheno['category_string'],
-            'num_cases': pheno['num_cases'],
-            'num_controls': pheno['num_controls'],
             'pval': pval,
         })
-
+        for key in pheno:
+            if key in pheno_fields_to_include_with_variant:
+                rv['phenos'][-1][key] = pheno[key]
     return rv
 
 

@@ -36,35 +36,40 @@ def get_phenos_with_regex():
         }
 phenos = list(get_phenos_with_regex())
 
-# Figure out how many cases/controls each phenotype has.
+# Figure out how many cases/controls/samples each phenotype has.
 input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
 for pheno in phenos:
-    with gzip.open(pheno['src_filename'], 'rt') as f:
-        pheno.update(input_file_parser.get_pheno_info(f))
+    pheno.update(input_file_parser.get_pheno_info(pheno['src_filename']))
+    print('get_pheno_info({!r})'.format(pheno['src_filename']))
 
-def get_only_good_phenos():
-    good_phenos = [] # phenos with enough cases
-    bad_phenos = [] # phenos without enough cases
+def get_only_phenos_with_enough_cases():
+    # TODO: make a generalized filter (lambda p:p...), and run it separately for cases and sample?  But how to give nice debugging output?
+    good_phenos = [] # phenos with enough cases/samples
+    bad_phenos = [] # phenos without enough cases/samples
 
     for pheno in phenos:
-        if pheno['num_cases'] >= conf.minimum_num_cases:
-            good_phenos.append(pheno)
-        else:
+        if 'num_cases' in pheno and pheno['num_cases'] < conf.minimum_num_cases:
             bad_phenos.append(pheno)
+        elif 'num_samples' in pheno and pheno['num_samples'] < conf.minimum_num_samples:
+            bad_phenos.append(pheno)
+        else:
+            good_phenos.append(pheno)
 
-    print('number of phenotypes with at least {} cases: {}'.format(conf.minimum_num_cases, len(good_phenos)))
-    print('number of phenotypes with fewer than {} cases: {}'.format(conf.minimum_num_cases, len(bad_phenos)))
+    print('number of phenotypes with at least {} cases / {} samples: {}'.format(conf.minimum_num_cases, conf.minimum_num_samples, len(good_phenos)))
+    print('number of phenotypes with too few cases/samples: {}'.format(len(bad_phenos)))
     if bad_phenos:
-        print('example phenotypes with too few cases:', json.dumps(bad_phenos[:10]))
+        print('example phenotypes with too few cases/samples:', json.dumps(bad_phenos[:10]))
 
     return good_phenos
-phenos = get_only_good_phenos()
+if 'minimum_num_cases' in dir(conf) or 'minimum_num_samples' in dir(conf):
+    phenos = get_only_phenos_with_enough_cases()
 
 
 # Hide small numbers of cases for identifiability reasons.
 for pheno in phenos:
-    for key in ['num_cases', 'num_controls']:
-        pheno[key] = '<50' if pheno[key] < 50 else pheno[key]
+    for key in ['num_cases', 'num_controls', 'num_samples']:
+        if key in pheno and pheno[key] < 50:
+            pheno[key] = '<50'
 
 
 phenos_by_phewas_code = {pheno['pheno_code']: pheno for pheno in phenos}

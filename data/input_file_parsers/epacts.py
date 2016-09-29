@@ -11,6 +11,7 @@ conf = imp.load_source('conf', os.path.join(my_dir, '../../config.config'))
 utils = imp.load_source('utils', os.path.join(my_dir, '../../utils.py'))
 
 import csv
+import gzip
 
 
 legitimate_null_values = ['.', 'NA']
@@ -41,19 +42,19 @@ possible_fields = {
     },
     'beta': {
         'aliases': ['BETA'],
-        'type': float,
+        'type': nullable_float,
     },
     'sebeta': {
         'aliases': ['SEBETA'],
-        'type': float,
+        'type': nullable_float,
     }
 }
 required_fields = ['chrom', 'pos', 'ref', 'alt', 'maf', 'pval']
 
 def get_variants(src_filename, minimum_maf=None):
     with gzip.open(src_filename) as f:
-
-        # TODO: use `csv.reader` or `pandas.read_csv`.
+        # TODO: use `pandas.read_csv(src_filename, usecols=[...], converters={...}, iterator=True, verbose=True, na_values='.', sep=None)
+        #   - first without `usecols`, to parse the column names, and then a second time with `usecols`.
 
         colname_mapping = {} # Map from a key like 'chrom' to an index # TODO rename to colname_index
 
@@ -68,8 +69,8 @@ def get_variants(src_filename, minimum_maf=None):
         else:
             MARKER_ID_COL = None
 
-        for fieldname, fieldname_aliases in column_info['fieldname_alias_mappings'].iteritems():
-            for fieldname_alias in fieldname_aliases:
+        for fieldname in possible_fields:
+            for fieldname_alias in possible_fields[fieldname]['aliases']:
                 if fieldname_alias in header_fields:
                     # Check that we haven't already mapped this fieldname to a header column.
                     if fieldname in colname_mapping:
@@ -94,9 +95,13 @@ def get_variants(src_filename, minimum_maf=None):
             v = {}
             for fieldname in colname_mapping:
                 if colname_mapping[fieldname] is not None:
-                    v[fieldname] = possible_fields[fieldname]['type'](fields[colname_mapping[fieldname]])
+                    try:
+                        v[fieldname] = possible_fields[fieldname]['type'](fields[colname_mapping[fieldname]])
+                    except:
+                        print("failed on fieldname {!r} attempting to convert value {!r} to type {!r}".format(fieldname, fields[colname_mapping[fieldname]], possible_fields[fieldname]['type']))
+                        exit(1)
 
-            if minimum_maf is not None and maf < minimum_maf:
+            if minimum_maf is not None and v['maf'] < minimum_maf:
                 continue
 
             if MARKER_ID_COL is not None:
@@ -117,7 +122,6 @@ def get_pheno_info(src_filename):
         for i, line in enumerate(reader):
             if i > 100: break
             assert _get_pheno_info_from_line(line) == rv
-
     return rv
 
 def _get_pheno_info_from_line(line):
@@ -128,3 +132,4 @@ def _get_pheno_info_from_line(line):
         rv['num_cases'] = int(line['NS.CASE'])
     if 'NS.CTRL' in line:
         rv['num_controls'] = int(line['NS.CTRL'])
+    return rv

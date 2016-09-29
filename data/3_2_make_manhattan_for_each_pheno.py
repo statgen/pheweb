@@ -40,7 +40,7 @@ BIN_THRESHOLD = 1e-4 # pvals less than this threshold don't get binned.
 Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf', 'nearest_genes', 'rsids'])
 def get_variants(f):
     for variant_row in csv.DictReader(f, delimiter='\t'):
-        chrom = variant_row['chr']
+        chrom = variant_row['chrom']
         pos = int(variant_row['pos'])
         ref = variant_row['ref']
         alt = variant_row['alt']

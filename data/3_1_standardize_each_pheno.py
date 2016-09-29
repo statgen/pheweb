@@ -15,7 +15,6 @@ execfile(activate_this, dict(__file__=activate_this))
 utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
 input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
 
-import gzip
 import datetime
 import multiprocessing
 import csv
@@ -36,7 +35,7 @@ def get_site_variants(sites_filename):
 
 def write_variant(writer, site_variant, pheno_variant):
     writer.writerow({
-        'chr': site_variant.chrom,
+        'chrom': site_variant.chrom,
         'pos': site_variant.pos,
         'ref': site_variant.ref,
         'alt': site_variant.alt,
@@ -62,7 +61,7 @@ def _convert(src_filename, out_filename):
         pheno_variants = input_file_parser.get_variants(src_filename)
         site_variants = get_site_variants(sites_filename)
 
-        writer = csv.DictWriter(f_out, fieldnames='chr pos ref alt rsids nearest_genes maf pval'.split(), delimiter='\t')
+        writer = csv.DictWriter(f_out, fieldnames='chrom pos ref alt rsids nearest_genes maf pval'.split(), delimiter='\t')
         writer.writeheader()
 
         # Print out each site_variant along with some info from a pheno_variant that matches it.

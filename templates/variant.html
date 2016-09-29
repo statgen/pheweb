@@ -144,7 +144,12 @@
 <script type="text/template" id="tooltip-template">
 <%= d.phewas_code %><br><br>
 pval: <%= d.pval.toExponential(1) %><br>
-#samples: <%= d.num_cases %><br>
+<% if (d.num_cases) { %>
+#cases: <%= d.num_cases %><br>
+#controls: <%= d.num_controls %><br>
+<% } else if (d.num_samples) { %>
+#samples: <%= d.num_samples %><br>
+<% } %>
 </script>
 
 <script type="text/template" id="streamtable-template">
@@ -155,7 +160,13 @@ pval: <%= d.pval.toExponential(1) %><br>
     <td><a style="color:black" href="/pheno/<%= d.phewas_code %>"><%= d.phewas_code %></a></td>
     <td><a style="color:black" href="/pheno/<%= d.phewas_code %>"><%= d.phewas_string %></a></td>
     <td><%= d.pval.toExponential(1) %></td>
-    <td><%= d.num_cases %></td>
+    <td><% if (d.num_cases) { %>
+      <%= d.num_cases %> / <%= d.num_controls %>
+      <% } else if (d.num_samples) { %>
+      <%= d.num_samples %>
+      <% } %>
+    </td>
+
   </tr>
 </script>
 

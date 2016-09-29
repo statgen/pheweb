@@ -12,7 +12,7 @@ run() {
     exit_code=$?
     set -e
     end_time=$(date +%s)
-    text_highlight; echo "=> Completed $1 in $((end_time - start_time)) with exit code $exit_code"; text_default
+    text_highlight; echo "=> Completed $1 in $((end_time - start_time)) seconds with exit code $exit_code"; text_default
     [[ $exit_code = 0 ]] || exit $exit_code
 }
 

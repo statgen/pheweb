@@ -41,7 +41,7 @@ NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.
 class CpraReader(object):
     def __init__(self, file):
         header = next(file)
-        assert header.rstrip('\r\n').split('\t')[:4] == 'chr pos ref alt'.split(), repr(header)
+        assert header.rstrip('\r\n').split('\t')[:4] == 'chrom pos ref alt'.split(), repr(header)
         self.file = file
         self.peek_cpra = None
     def __iter__(self):
@@ -77,7 +77,7 @@ def merge(input_filenames, out_filename):
 
     with contextlib2.ExitStack() as es, \
          open(tmp_filename, 'w') as f_out:
-        f_out.write('\t'.join('chr pos ref alt'.split()) + '\n')
+        f_out.write('\t'.join('chrom pos ref alt'.split()) + '\n')
 
         readers = {}
         for input_filename in input_filenames:
