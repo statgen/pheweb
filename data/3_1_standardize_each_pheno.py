@@ -25,12 +25,13 @@ import collections
 sites_filename = conf.data_dir + '/sites/sites.tsv'
 
 Site_Variant = collections.namedtuple('Site_Variant', ['chrom', 'pos', 'ref', 'alt', 'rsids', 'nearest_genes'])
-def get_site_variants(f):
-    for line in f:
-        fields = line.rstrip('\n\r').split('\t')
-        chrom = fields[0]
-        pos = int(fields[1])
-        yield Site_Variant(chrom=chrom, pos=pos, ref=fields[2], alt=fields[3], rsids=fields[4], nearest_genes=fields[5])
+def get_site_variants(sites_filename):
+    with open(sites_filename) as f:
+        for line in f:
+            fields = line.rstrip('\n\r').split('\t')
+            chrom = fields[0]
+            pos = int(fields[1])
+            yield Site_Variant(chrom=chrom, pos=pos, ref=fields[2], alt=fields[3], rsids=fields[4], nearest_genes=fields[5])
 
 
 def write_variant(writer, site_variant, pheno_variant):
@@ -56,12 +57,10 @@ def convert(conversion_to_do):
     os.rename(tmp_filename, dest_filename)
 
 def _convert(src_filename, out_filename):
-    with gzip.open(src_filename) as f_in, \
-         open(sites_filename) as f_sites, \
-         open(out_filename, 'w') as f_out:
+    with open(out_filename, 'w') as f_out:
 
-        pheno_variants = input_file_parser.get_variants(f_in)
-        site_variants = get_site_variants(f_sites)
+        pheno_variants = input_file_parser.get_variants(src_filename)
+        site_variants = get_site_variants(sites_filename)
 
         writer = csv.DictWriter(f_out, fieldnames='chr pos ref alt rsids nearest_genes maf pval'.split(), delimiter='\t')
         writer.writeheader()

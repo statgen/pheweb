@@ -40,8 +40,7 @@ phenos = list(get_phenos_with_regex())
 input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
 for pheno in phenos:
     with gzip.open(pheno['src_filename'], 'rt') as f:
-        num_cases, num_controls = input_file_parser.get_num_cases_and_controls(f)
-        pheno.update(dict(num_cases=num_cases, num_controls=num_controls))
+        pheno.update(input_file_parser.get_pheno_info(f))
 
 def get_only_good_phenos():
     good_phenos = [] # phenos with enough cases

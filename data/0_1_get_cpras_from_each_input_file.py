@@ -29,13 +29,14 @@ def convert(conversion_to_do):
     assert not os.path.exists(dest_filename), dest_filename
 
     # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
-    with gzip.open(src_filename) as f_in, \
-         open(tmp_filename, 'w') as f_out:
+    with open(tmp_filename, 'w') as f_out:
 
-        variants = input_file_parser.get_variants(f_in, minimum_maf=conf.minimum_maf)
+        variants = input_file_parser.get_variants(src_filename, minimum_maf=conf.minimum_maf)
 
-        writer = csv.DictWriter(f_out, fieldnames='chr pos ref alt maf'.split(), delimiter='\t')
+        fieldnames = next(variants)
+        writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
+
         for v in variants:
             writer.writerow({
                 'chr': v.chrom,
