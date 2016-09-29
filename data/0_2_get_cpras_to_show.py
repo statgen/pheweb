@@ -11,6 +11,12 @@ I'm reading in a full position at a time to avoid this issue that was happening 
  ...
 '''
 
+# TODO:
+# - replace manna_list with manna_dict.  All changes must re-assign to manna_dict.
+# - separate the initial input files from the further processed files.
+# - keep track of jobs that are currently running, so that we can wait until `len(jobs_in_progress) == 0 or len(jobs_to_do) >= 4`
+# - absorb 0_1 into this file.  Can `input_file_parsers/epacts.py` read our intermediate files?
+# - split up by chromosome.
 
 from __future__ import print_function, division, absolute_import
 
