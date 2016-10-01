@@ -4,7 +4,7 @@
 <script type="text/javascript">
   window.pheno = {{ pheno|tojson|safe}};
 </script>
-<script src="http://portaldev.sph.umich.edu/lz-amp/locuszoom.vendor.min.js" type="text/javascript"></script> <!-- TODO: host on my own -->
+<script src="{{ url_for('static', filename='vendor/locuszoom.vendor.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/locuszoom-0.3.9.app.js') }}" type="text/javascript"></script>
 <link rel="stylesheet" type="text/css" href="http://statgen.github.io/locuszoom/versions/0.3.9/locuszoom.css" />
 <script src="{{ url_for('static', filename='region.js') }}"></script>
