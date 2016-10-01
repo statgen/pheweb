@@ -107,12 +107,11 @@ if conf.use_vanderbilt_phewas_icd9s_and_categories:
 if hasattr(conf, 'no_category_string'):
     for pheno in phenos:
         pheno['category_string'] = ''
-if hasattr(conf, 'no_phewas_string'):
-    for pheno in phenos:
-        pheno['phewas_string'] = ''
 
 
-required_keys = ['category_string', 'phewas_string']
+required_keys = ['category_string']
+if any('phewas_string' in pheno for pheno in phenos):
+    required_keys.append('phewas_string')
 for required_key in required_keys:
     for pheno in phenos:
         if required_key not in pheno:

@@ -158,7 +158,7 @@ pval: <%= d.pval.toExponential(1) %><br>
       <%= d.category_name %>
     </td>
     <td><a style="color:black" href="/pheno/<%= d.phewas_code %>"><%= d.phewas_code %></a></td>
-    <td><a style="color:black" href="/pheno/<%= d.phewas_code %>"><%= d.phewas_string %></a></td>
+    <td><a style="color:black" href="/pheno/<%= d.phewas_code %>"><%= d.phewas_string || "" %></a></td>
     <td><%= d.pval.toExponential(1) %></td>
     <td><% if (d.num_cases) { %>
       <%= d.num_cases %> / <%= d.num_controls %>

@@ -93,7 +93,7 @@
         {% endfor %}
         <div class="row">
             <div class="col-xs-12">
-                <h1 style="margin-top:0">{{ phewas_code }}: {{ pheno.phewas_string }}</h1>
+                <h1 style="margin-top:0">{{ phewas_code }}{% if pheno.phewas_string %}: {{ pheno.phewas_string }}{% endif %}</h1>
             </div>
         </div>
         <div class="row">

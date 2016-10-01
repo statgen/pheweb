@@ -146,13 +146,14 @@ var color_by_category = (function() {
             })
             .attr('dy', '.3em') // vertically center
             .text(function(d) {
-                if (d.phewas_string.length < 30) {
-                    return d.phewas_string;
+                var text = d.phewas_string || d.phewas_code;
+                if (text.length < 30) {
+                    return text;
                 } else {
                     // Try to cut the string at a space.
-                    var break_index = d.phewas_string.slice(20, 30).indexOf(' ');
+                    var break_index = text.slice(20, 30).indexOf(' ');
                     break_index = (break_index === -1) ? 25 : 20 + break_index;
-                    return d.phewas_string.slice(0, break_index).trim() + '...';
+                    return text.slice(0, break_index).trim() + '...';
                 }
             })
             .on('mouseover', function(d) {
