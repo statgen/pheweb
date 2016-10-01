@@ -126,10 +126,13 @@ def get_pheno_info(src_filename):
 
 def _get_pheno_info_from_line(line):
     rv = {}
-    if 'NS' in line:
-        rv['num_samples'] = int(line['NS'])
     if 'NS.CASE' in line:
         rv['num_cases'] = int(line['NS.CASE'])
     if 'NS.CTRL' in line:
         rv['num_controls'] = int(line['NS.CTRL'])
+    if 'NS' in line:
+        rv['num_samples'] = int(line['NS'])
+    if all(key in rv for key in ['num_cases', 'num_controls', 'num_samples']):
+        assert rv['num_cases'] + rv['num_controls'] == rv['num_samples']
+        del rv['num_samples'] # don't need it.
     return rv

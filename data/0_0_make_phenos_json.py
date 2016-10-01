@@ -21,6 +21,7 @@ import json
 import gzip
 import collections
 import string
+import csv
 
 
 def get_phenos_with_regex():
@@ -35,7 +36,8 @@ def get_phenos_with_regex():
             'src_filename': src_filename,
             'pheno_code': pheno_code,
         }
-phenos = list(set(get_phenos_with_regex()))
+phenos = list(get_phenos_with_regex())
+print('Done with globbing.')
 
 
 # Check that pheno_code is url-safe.
@@ -86,6 +88,8 @@ for pheno in phenos:
 
 # TODO: let's not switch to this format until later, or maybe never.
 phenos_by_phewas_code = {pheno['pheno_code']: pheno for pheno in phenos}
+for pheno in phenos_by_phewas_code.values():
+    del pheno['pheno_code']
 
 
 if hasattr(conf, 'use_vanderbilt_phewas_icd9s_and_categories'):
@@ -114,7 +118,7 @@ if hasattr(conf, 'use_vanderbilt_phewas_icd9s_and_categories'):
                     assert pheno['category_string'] == icd9['category_string']
 
     for pheno in phenos:
-        assert len(phenos['icd9s']) > 0
+        assert len(pheno['icd9s']) > 0
 
 
 if hasattr(conf, 'no_category_string'):
