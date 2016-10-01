@@ -20,6 +20,7 @@ import re
 import json
 import gzip
 import collections
+import string
 
 
 def get_phenos_with_regex():
@@ -34,35 +35,46 @@ def get_phenos_with_regex():
             'src_filename': src_filename,
             'pheno_code': pheno_code,
         }
-phenos = list(get_phenos_with_regex())
+phenos = list(set(get_phenos_with_regex()))
 
-# Figure out how many cases/controls/samples each phenotype has.
+
+# Check that pheno_code is url-safe.
+urlsafe_characters = string.ascii_letters + string.digits + '_-~. ' # TODO: Is this complete?  Am I missing some characters?  Is space okay?
+for pheno in phenos:
+    bad_chars = list(set(char for char in pheno['pheno_code'] if char not in urlsafe_characters))
+    if bad_chars:
+        print("The phenotype with pheno_code {!r} contains the characters {!r} which is not allowed, because these string will be used in URLs".format(pheno['pheno_code'], bad_chars))
+        print("Other phenotypes might have this problem too.")
+        print("If this character IS actually urlsafe, it needs to be added to the list urlsafe_characters")
+        print("If this is something you can't or don't want to fix, we can modify pheweb.")
+        exit(1)
+
+
+# Extract some information from each phenotype's input file(s).
 input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
 for pheno in phenos:
     pheno.update(input_file_parser.get_pheno_info(pheno['src_filename']))
     print('get_pheno_info({!r})'.format(pheno['src_filename']))
 
-def get_only_phenos_with_enough_cases():
-    # TODO: make a generalized filter (lambda p:p...), and run it separately for cases and sample?  But how to give nice debugging output?
+
+def filter_phenos(phenos, filter_func, name_for_debugging=''):
     good_phenos = [] # phenos with enough cases/samples
     bad_phenos = [] # phenos without enough cases/samples
-
     for pheno in phenos:
-        if 'num_cases' in pheno and pheno['num_cases'] < conf.minimum_num_cases:
-            bad_phenos.append(pheno)
-        elif 'num_samples' in pheno and pheno['num_samples'] < conf.minimum_num_samples:
-            bad_phenos.append(pheno)
-        else:
+        if filter_func(pheno):
             good_phenos.append(pheno)
-
-    print('number of phenotypes with at least {} cases / {} samples: {}'.format(conf.minimum_num_cases, conf.minimum_num_samples, len(good_phenos)))
-    print('number of phenotypes with too few cases/samples: {}'.format(len(bad_phenos)))
+        else:
+            bad_phenos.append(pheno)
+    print('running filter {}: {} phenos pass, {} phenos fail.'.format(name_for_debugging, len(good_phenos), len(bad_phenos)))
     if bad_phenos:
-        print('example phenotypes with too few cases/samples:', json.dumps(bad_phenos[:10]))
-
+        print('- example phenotypes with too few cases/samples:', json.dumps(bad_phenos[:3]))
     return good_phenos
-if 'minimum_num_cases' in dir(conf) or 'minimum_num_samples' in dir(conf):
-    phenos = get_only_phenos_with_enough_cases()
+if hasattr(conf, 'minimum_num_cases'):
+    phenos = filter_phenos(phenos, lambda pheno: pheno.get('num_controls', float('inf')) > conf.minimum_num_cases, 'num_case_filter')
+if hasattr(conf, 'minimum_num_samples'):
+    phenos = filter_phenos(phenos, lambda pheno: pheno.get('num_controls', float('inf')) > conf.minimum_num_samples, 'num_samples_filter')
+if hasattr(conf, 'minimum_num_controls'):
+    phenos = filter_phenos(phenos, lambda pheno: pheno.get('num_controls', float('inf')) > conf.minimum_num_controls, 'num_control_filter')
 
 
 # Hide small numbers of cases for identifiability reasons.
@@ -72,10 +84,11 @@ for pheno in phenos:
             pheno[key] = '<50'
 
 
+# TODO: let's not switch to this format until later, or maybe never.
 phenos_by_phewas_code = {pheno['pheno_code']: pheno for pheno in phenos}
 
 
-if conf.use_vanderbilt_phewas_icd9s_and_categories:
+if hasattr(conf, 'use_vanderbilt_phewas_icd9s_and_categories'):
     # Load icd9 info, category_string, and phewas_string for each phewas_code.
     for pheno in phenos:
         pheno['icd9s'] = []

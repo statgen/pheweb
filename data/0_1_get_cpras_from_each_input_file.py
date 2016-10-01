@@ -30,7 +30,8 @@ def convert(conversion_to_do):
     # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
     with open(tmp_filename, 'w') as f_out:
 
-        variants = input_file_parser.get_variants(src_filename, minimum_maf=conf.minimum_maf)
+        minimum_maf = conf.minimum_maf if hasattr(conf, 'minimum_maf') else 0
+        variants = input_file_parser.get_variants(src_filename, minimum_maf=minimum_maf)
 
         fieldnames = next(variants)
         writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
