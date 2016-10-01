@@ -86,14 +86,9 @@ for pheno in phenos:
             pheno[key] = '<50'
 
 
-# TODO: let's not switch to this format until later, or maybe never.
-phenos_by_phewas_code = {pheno['pheno_code']: pheno for pheno in phenos}
-for pheno in phenos_by_phewas_code.values():
-    del pheno['pheno_code']
-
-
 if hasattr(conf, 'use_vanderbilt_phewas_icd9s_and_categories'):
     # Load icd9 info, category_string, and phewas_string for each phewas_code.
+    phenos_by_phewas_code = {pheno['pheno_code']: pheno for pheno in phenos}
     for pheno in phenos:
         pheno['icd9s'] = []
     pheno_and_icd9_filename = os.path.join(my_dir, 'PheWAS_code_translation_v1_2.txt')
@@ -141,5 +136,6 @@ for required_key in required_keys:
                 print("If you don't, things will probably break sooner or later.")
                 break
 
+phenos = sorted(phenos, key=lambda pheno: pheno['pheno_code'])
 with open('phenos.json', 'w') as f:
-    json.dump(phenos_by_phewas_code, f, sort_keys=True, indent=0)
+    json.dump(phenos, f, sort_keys=True, indent=0)

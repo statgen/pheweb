@@ -55,17 +55,17 @@ assert round_sig(1.59e-10, 2) == 1.6e-10
 
 def get_phenos_with_colnums(app_root_path):
     with open(os.path.join(app_root_path, 'data/phenos.json')) as f:
-        phenos = json.load(f)
+        phenos_by_phewas_code = {pheno['pheno_code']: pheno for pheno in json.load(f)}
     with gzip.open(conf.data_dir + '/matrix.tsv.gz') as f:
         header = f.readline().rstrip('\r\n').split('\t')
     assert header[:7] == '#chrom pos ref alt rsids nearest_genes maf'.split()
     for colnum, colname in enumerate(header[7:], start=7):
         if colname.startswith('pval-'):
             pheno_code = colname[len('pval-'):]
-            phenos[pheno_code]['colnum_pval'] = colnum
-    for pheno_code in phenos:
-        assert 'colnum_pval' in phenos[pheno_code], (pheno_code, phenos[pheno_code])
-    return phenos
+            phenos_by_phewas_code[pheno_code]['colnum_pval'] = colnum
+    for pheno_code in phenos_by_phewas_code:
+        assert 'colnum_pval' in phenos_by_phewas_code[pheno_code], (pheno_code, phenos_by_phewas_code[pheno_code])
+    return phenos_by_phewas_code
 
 
 pheno_fields_to_include_with_variant = {

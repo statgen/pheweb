@@ -24,7 +24,7 @@ import glob
 import json
 
 with open(my_dir + '/phenos.json') as f:
-    phenos = json.load(f)
+    phenos = {pheno['pheno_code']: pheno for pheno in json.load(f)}
 
 #phenos = dict(list(phenos.items())[:10]) # debugging
 
