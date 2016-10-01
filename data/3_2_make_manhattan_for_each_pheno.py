@@ -28,7 +28,7 @@ import datetime
 import multiprocessing
 import csv
 import collections
-import errno
+import itertools
 
 
 BIN_LENGTH = int(3e6)
@@ -36,25 +36,22 @@ NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
 NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 BIN_THRESHOLD = 1e-4 # pvals less than this threshold don't get binned.
 
-# TODO: quit this namedtuple garbage.
-# TODO: send along whatever fields we get from csv.DictReader(), but do try to make some numeric.
-#     - in particular: beta, sebeta.
-#     - better: just switch to pandas.read_csv()
-Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf', 'nearest_genes', 'rsids'])
+# TODO: just switch to pandas.read_csv
 def get_variants(f):
-    for variant_row in csv.DictReader(f, delimiter='\t'):
-        chrom = variant_row['chrom']
-        pos = int(variant_row['pos'])
-        ref = variant_row['ref']
-        alt = variant_row['alt']
-        nearest_genes = variant_row['nearest_genes']
-        rsids = variant_row['rsids']
-        maf = float(variant_row['maf'])
+    reader = csv.DictReader(f, delimiter='\t')
+    for v in reader:
+        v['pos'] = int(v['pos'])
+        v['maf'] = float(v['maf'])
         try:
-            pval = float(variant_row['pval'])
+            v['pval'] = float(v['pval'])
         except ValueError:
-            continue
-        yield Variant(chrom=chrom, pos=pos, ref=ref, alt=alt, pval=pval, maf=maf, nearest_genes=nearest_genes, rsids=rsids)
+            v['pval'] = 1
+        for key in ['beta', 'sebeta']:
+            try:
+                v[key] = float(v[key])
+            except (ValueError, KeyError):
+                continue
+        yield v
 
 def rounded_neglog10(pval):
     return round(-math.log10(pval) // NEGLOG10_PVAL_BIN_SIZE * NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
@@ -82,36 +79,29 @@ def bin_variants(variants):
 
     prev_chrom, prev_pos = -1, -1
     for variant in variants:
-        assert variant.pos >= prev_pos or int(variant.chrom) > int(prev_chrom), (variant, prev_chrom, prev_pos)
-        prev_chrom, prev_pos = variant.chrom, variant.pos
-        if variant.pval < BIN_THRESHOLD:
-            unbinned_variants.append({
-                'chrom': variant.chrom,
-                'pos': variant.pos,
-                'ref': variant.ref,
-                'alt': variant.alt,
-                'maf': utils.round_sig(variant.maf, 3),
-                'pval': utils.round_sig(variant.pval, 2),
-                'nearest_genes': variant.nearest_genes,
-                'rsids': variant.rsids,
-            })
+        assert variant['pos'] >= prev_pos or int(variant['chrom']) > int(prev_chrom), (variant, prev_chrom, prev_pos)
+        prev_chrom, prev_pos = variant['chrom'], variant['pos']
+        if variant['pval'] < BIN_THRESHOLD:
+            variant['maf'] = utils.round_sig(variant['maf'], 3)
+            variant['pval'] = utils.round_sig(variant['pval'], 2)
+            unbinned_variants.append(variant)
 
         else:
-            if len(bins) == 0 or variant.chrom != bins[-1]['chrom']:
+            if len(bins) == 0 or variant['chrom'] != bins[-1]['chrom']:
                 # We need a new bin, starting with this variant.
                 bins.append({
-                    'chrom': variant.chrom,
-                    'startpos': variant.pos,
+                    'chrom': variant['chrom'],
+                    'startpos': variant['pos'],
                     'neglog10_pvals': set(),
                 })
-            elif variant.pos > bins[-1]['startpos'] + BIN_LENGTH:
+            elif variant['pos'] > bins[-1]['startpos'] + BIN_LENGTH:
                 # We need a new bin following the last one.
                 bins.append({
-                    'chrom': variant.chrom,
+                    'chrom': variant['chrom'],
                     'startpos': bins[-1]['startpos'] + BIN_LENGTH,
                     'neglog10_pvals': set(),
                 })
-            bins[-1]['neglog10_pvals'].add(rounded_neglog10(variant.pval))
+            bins[-1]['neglog10_pvals'].add(rounded_neglog10(variant['pval']))
 
     bins = [b for b in bins if len(b['neglog10_pvals']) != 0]
     for b in bins:

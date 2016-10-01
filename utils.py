@@ -60,9 +60,9 @@ def get_phenos_with_colnums(app_root_path):
         header = f.readline().rstrip('\r\n').split('\t')
     assert header[:7] == '#chrom pos ref alt rsids nearest_genes maf'.split()
     for colnum, colname in enumerate(header[7:], start=7):
-        assert colname.startswith('pval-')
-        pheno_code = colname[len('pval-'):]
-        phenos[pheno_code]['colnum_pval'] = colnum
+        if colname.startswith('pval-'):
+            pheno_code = colname[len('pval-'):]
+            phenos[pheno_code]['colnum_pval'] = colnum
     for pheno_code in phenos:
         assert 'colnum_pval' in phenos[pheno_code], (pheno_code, phenos[pheno_code])
     return phenos

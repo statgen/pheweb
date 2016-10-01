@@ -183,8 +183,13 @@ pval: <%= d.pval.toExponential(1) %><br>
 MAF: <%= d.maf.toPrecision(2) %><br>
 nearest gene<%= (d.nearest_genes.indexOf(',') !== -1) ? 's' : '' %>: <%= d.nearest_genes.replace(/,/g, ', ') %><br>
 <% if (d.rsids) { %>
-rsid<%= (d.rsids.indexOf(',') !== -1) ? 's' : '' %>: <%= d.rsids.replace(/,/g, ', ') %><br>
+ rsid<%= (d.rsids.indexOf(',') !== -1) ? 's' : '' %>: <%= d.rsids.replace(/,/g, ', ') %><br>
 <% } %>
+<% _.each(['beta', 'sebeta'], function(key) { %>
+ <% if (_.has(d, key)) { %>
+  <%= key %>: <%= d[key] %><br>
+ <% } %>
+<% }) %>
 </script>
 
 <script type="text/template" id="streamtable-template">
