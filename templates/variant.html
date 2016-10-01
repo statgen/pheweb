@@ -143,6 +143,11 @@
 
 <script type="text/template" id="tooltip-template">
 <%= d.phewas_string || d.phewas_code %><br>
+<% if (d.category_name) { %>
+<span style="color:<%= color_by_category(d.category_name) %>">
+<%= d.category_name %>
+</span><br>
+<% } %>
 pval: <%= d.pval.toExponential(1) %><br>
 <% if (d.num_cases) { %>
 #cases: <%= d.num_cases %><br>
