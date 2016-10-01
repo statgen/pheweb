@@ -34,8 +34,9 @@ class Autocompleter(object):
             self._autocomplete_variant,
             self._autocomplete_rsid,
             self._autocomplete_phewas_code,
-            self._autocomplete_phewas_string,
         ]
+        if any('phewas_string' in pheno for pheno in self._phenos.itervalues()):
+            self._autocompleters.append(self._autocomplete_phewas_string)
         if any('icd9s' in pheno for pheno in self._phenos.itervalues()):
             self._autocompleters.extend([
                 self._autocomplete_icd9_code,
@@ -132,7 +133,7 @@ class Autocompleter(object):
             if query in pheno['--spaced--phewas_code']:
                 yield {
                     "value": phewas_code,
-                    "display": "{} ({})".format(phewas_code, pheno['phewas_string']), # TODO: truncate phewas_string intelligently
+                    "display": "{} ({})".format(phewas_code, pheno['phewas_string']) if 'phewas_string' in pheno else phewas_code, # TODO: truncate phewas_string intelligently
                     "url": "/pheno/{}".format(phewas_code),
                 }
 
