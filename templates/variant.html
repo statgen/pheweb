@@ -142,7 +142,7 @@
 </div>
 
 <script type="text/template" id="tooltip-template">
-<%= d.phewas_code %><br><br>
+<%= d.phewas_string || d.phewas_code %><br>
 pval: <%= d.pval.toExponential(1) %><br>
 <% if (d.num_cases) { %>
 #cases: <%= d.num_cases %><br>
