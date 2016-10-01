@@ -2,6 +2,9 @@
 {
 set -euo pipefail
 
+# TODO move this into python
+# TODO parallelize this
+
 PROJECT_DIR="$( cd "$( dirname "$( dirname "$(readlink -f "${BASH_SOURCE[0]}" )" )" )" && pwd )"
 source "$PROJECT_DIR/config.config"
 

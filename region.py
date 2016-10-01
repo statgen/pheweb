@@ -10,7 +10,7 @@ utils = imp.load_source('utils', os.path.join(my_dir, 'utils.py'))
 import json
 import pysam
 
-
+# TODO: also get beta, sebeta, etc
 def get_rows(pheno_code, chrom, pos_start, pos_end):
     infile = '{}/augmented_pheno_gz/{}.gz'.format(conf.data_dir, pheno_code).encode('utf-8')
     tabix_file = pysam.TabixFile(infile)

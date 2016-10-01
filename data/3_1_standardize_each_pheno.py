@@ -23,27 +23,18 @@ import collections
 
 sites_filename = conf.data_dir + '/sites/sites.tsv'
 
-Site_Variant = collections.namedtuple('Site_Variant', ['chrom', 'pos', 'ref', 'alt', 'rsids', 'nearest_genes'])
 def get_site_variants(sites_filename):
     with open(sites_filename) as f:
         for line in f:
             fields = line.rstrip('\n\r').split('\t')
             chrom = fields[0]
             pos = int(fields[1])
-            yield Site_Variant(chrom=chrom, pos=pos, ref=fields[2], alt=fields[3], rsids=fields[4], nearest_genes=fields[5])
+            yield dict(chrom=chrom, pos=pos, ref=fields[2], alt=fields[3], rsids=fields[4], nearest_genes=fields[5])
 
 
 def write_variant(writer, site_variant, pheno_variant):
-    writer.writerow({
-        'chrom': site_variant.chrom,
-        'pos': site_variant.pos,
-        'ref': site_variant.ref,
-        'alt': site_variant.alt,
-        'rsids': site_variant.rsids,
-        'nearest_genes': site_variant.nearest_genes,
-        'maf': pheno_variant.maf,
-        'pval': pheno_variant.pval,
-    })
+    site_variant.update(pheno_variant)
+    writer.writerow(site_variant)
 
 def convert(conversion_to_do):
     # Use tmp_filename to avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
@@ -55,13 +46,17 @@ def convert(conversion_to_do):
     print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
     os.rename(tmp_filename, dest_filename)
 
+# TODO: make this use itertools.groupby on chr-pos instead of these hacks.
 def _convert(src_filename, out_filename):
     with open(out_filename, 'w') as f_out:
 
         pheno_variants = input_file_parser.get_variants(src_filename)
         site_variants = get_site_variants(sites_filename)
 
-        writer = csv.DictWriter(f_out, fieldnames='chrom pos ref alt rsids nearest_genes maf pval'.split(), delimiter='\t')
+        pheno_variant_headers = next(pheno_variants)
+        sites_fieldnames = 'chrom pos ref alt rsids nearest_genes maf pval'.split()
+        fieldnames = sites_fieldnames + list(set(pheno_variant_headers) - set(sites_fieldnames))
+        writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
 
         # Print out each site_variant along with some info from a pheno_variant that matches it.
@@ -71,20 +66,20 @@ def _convert(src_filename, out_filename):
         pheno_variant = next(pheno_variants)
         while True:
             # Get pheno_variant onto the same chromosome as site_variant
-            if site_variant[0] not in chroms_seen_before:
-                while pheno_variant[0] != site_variant[0]:
-                    assert pheno_variant[0] in chroms_seen_before
+            if site_variant['chrom'] not in chroms_seen_before:
+                while pheno_variant['chrom'] != site_variant['chrom']:
+                    assert pheno_variant['chrom'] in chroms_seen_before, repr(pheno_variant)
                     pheno_variant = next(pheno_variants)
-                chroms_seen_before.add(site_variant[0])
-            assert site_variant[0] == pheno_variant[0]
+                chroms_seen_before.add(site_variant['chrom'])
+            assert site_variant['chrom'] == pheno_variant['chrom']
 
             # Catch pheno_variant up to the position of site_variant
-            while pheno_variant[1] < site_variant[1]:
+            while pheno_variant['pos'] < site_variant['pos']:
                 pheno_variant = next(pheno_variants)
-            assert site_variant[:2] == pheno_variant[:2], 'pheno_variant[:2] ({}) != site_variant[:2] ({}) in {}'.format(pheno_variant, site_variant, src_filename)
+            assert all(site_variant[key] == pheno_variant[key] for key in ['chrom', 'pos']), 'pheno_variant[chrom,pos] ({}) != site_variant[chrom,pos] ({}) in {}'.format(pheno_variant, site_variant, src_filename)
 
             # If it's a perfect match, just print and advance both.
-            if pheno_variant[:4] == site_variant[:4]:
+            if all(pheno_variant[key] == site_variant[key] for key in ['chrom', 'pos', 'ref', 'alt']):
                 write_variant(writer, site_variant, pheno_variant)
                 try:
                     site_variant = next(site_variants)
@@ -94,7 +89,7 @@ def _convert(src_filename, out_filename):
 
             # If the alternate allele doesn't match, then it's a multi-allelic variant in the wrong order
             else:
-                current_chr_pos = site_variant[:2]
+                current_chr_pos = (site_variant['chrom'], site_variant['pos'])
 
                 # Gather up all the pheno_variants at this position
                 pheno_variants_at_current_pos = [pheno_variant]
@@ -103,21 +98,21 @@ def _convert(src_filename, out_filename):
                         pheno_variant = next(pheno_variants)
                     except StopIteration:
                         break
-                    if pheno_variant[:2] == current_chr_pos:
+                    if (pheno_variant['chrom'], pheno_variant['pos']) == current_chr_pos:
                         pheno_variants_at_current_pos.append(pheno_variant)
                     else:
                         break
 
                 # For each site_variant at this position, write out with the matching pheno_variant.
                 while True:
-                    matches = [v for v in pheno_variants_at_current_pos if v[:4] == site_variant[:4]]
+                    matches = [v for v in pheno_variants_at_current_pos if v['alt'] == site_variant['alt']]
                     assert len(matches) == 1
                     write_variant(writer, site_variant, matches[0])
                     try:
                         site_variant = next(site_variants)
                     except StopIteration:
                         return
-                    if site_variant[:2] != current_chr_pos:
+                    if (site_variant['chrom'], site_variant['pos']) != current_chr_pos:
                         break
 
         os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>

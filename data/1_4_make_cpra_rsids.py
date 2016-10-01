@@ -1,16 +1,23 @@
 #!/usr/bin/env python2
 
 '''
-This script creates `cpra_rsids.tsv` by merging `sites/cpra.tsv` with `sites/dbSNP/dbsnp-b147-GRCh37.gz`.
-It relies on both being sorted the same way, so it makes some assertions about that.
+This script annotates `cpra.tsv` with rsids (comma-separated) from `sites/dbSNP/rsids.vcf.gz`.  It prints output to `cpra_rsids.tsv`.
 
-Note: this only works for chr1-22.  For others, we'll need to fix up sorting.
+It relies on both being ordered like [1-22,X,Y,MT] and having positions sorted.
+
+Notes:
+
+`sites/cpra.tsv` can have multi-allelic positions.
+`sites/dbSNP/rsids.vcf.gz` can have multi-allelic variants and multiple rsids for the same chr-pos-ref-alt.
+
+In `sites/dbSNP/rsids.vcf.gz`, sometimes `alt` contains `N`, which matches any nucleotide I think.
+
+We read one full position at a time.  When we have a position-match, we find all rsids that match a variant.
 '''
 
 # TODO:
-# 1. this needs to fetch one pos at a time from `/sites/cpra.tsv`.  Then it needs to test each of those against each rsid.
-#    - see 3_2 for some of that code.
-# 2. Deal with chromosome order.
+# - In rsids.vcf.gz why does `ref` sometimes contain `N`?
+# - Do we need to left-normalize all indels?
 
 from __future__ import print_function, division, absolute_import
 
@@ -47,28 +54,14 @@ def get_rsid_reader(rsids_f):
                 assert line.rstrip('\n').split('\t') == '#CHROM POS ID REF ALT QUAL FILTER INFO'.split()
             else:
                  fields = line.rstrip('\n').split('\t')
-                 chrom, pos, rsid, ref, alt_group = int(fields[0]), int(fields[1]), fields[2], fields[3], fields[4]
+                 chrom, pos, rsid, ref, alt_group = fields[0], int(fields[1]), fields[2], fields[3], fields[4]
                  assert rsid.startswith('rs')
-                 assert all(base in 'ATCG' for base in ref)
+                 # Sometimes the reference contains `N`, and that's okay.
+                 assert all(base in 'ATCGN' for base in ref), repr(ref)
                  for alt in alt_group.split(','):
                      # Alt can be a comma-separated list
-                     assert all(base in 'ATCG' for base in alt), alt
+                     assert all(base in 'ATCGN' for base in alt), repr(alt)
                      yield {'chrom':chrom, 'pos':int(pos), 'ref':ref, 'alt':alt, 'rsid':rsid}
-
-class PushableIterator(object):
-    '''A wrapper around an iterator that allows you to push items back on top, LIFO.'''
-    def __init__(self, iterator):
-        self.iterator = iterator
-        self._top = []
-    def __iter__(self):
-        return self
-    def __next__(self):
-        try:
-            return self._top.pop()
-        except IndexError:
-            return next(self.iterator)
-    def push_on_top(self, item):
-        self._top.push(item)
 
 def get_cpra_reader(cpra_f):
     '''Returns a reader which returns a list of all cpras at the next chrom-pos.'''
@@ -76,41 +69,72 @@ def get_cpra_reader(cpra_f):
     cpra_reader = csv.DictReader(cpra_f, delimiter='\t')
     for cpra in cpra_reader:
         yield {
-            'chrom': int(cpra['chrom']),
+            'chrom': cpra['chrom'],
             'pos': int(cpra['pos']),
             'ref': cpra['ref'],
             'alt': cpra['alt'],
         }
 
 def get_one_chr_pos_at_a_time(iterator):
+    '''Turns
+    [{'chr':'1', 'pos':123, 'ref':'A', 'alt':'T'},{'chr':'1', 'pos':123, 'ref':'A', 'alt':'GC'},{'chr':'1', 'pos':128, 'ref':'A', 'alt':'T'},...]
+    into:
+    [ [{'chr':'1', 'pos':123, 'ref':'A', 'alt':'T'},{'chr':'1', 'pos':123, 'ref':'A', 'alt':'GC'}] , [{'chr':'1', 'pos':128, 'ref':'A', 'alt':'T'}] ,...]
+    where variants with the same position are in a list.
+    '''
     for k, g in itertools.groupby(iterator, key=lambda cpra: (cpra['chrom'], cpra['pos'])):
-        return list(g)
+        yield list(g)
 
 def are_match(seq1, seq2):
     if seq1 == seq2: return True
-    if len(seq1) != len(seq2): return False
-    if 'N' not in seq1 and 'N' not in seq2: return False
-    return all(b1 == b2 or b1 == 'N' or b2 == 'N' for b1, b2 in zip(seq1, seq2))
+    if len(seq1) == len(seq2) and 'N' in seq1 or 'N' in seq2:
+        return all(b1 == b2 or b1 == 'N' or b2 == 'N' for b1, b2 in zip(seq1, seq2))
+    return False
+
+
+rsids_chrom_order = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y", "MT"]
+rsids_chrom_order = {chrom: index for index,chrom in enumerate(rsids_chrom_order)}
+cpra_largest_index_in_rsids_chrom_order = -1
 
 with open(cpra_filename) as cpra_f, \
      gzip.open(rsids_filename) as rsids_f, \
      open(out_filename, 'w') as out_f:
 
-    rsid_reader = PushableIterator(get_rsid_reader(rsids_f))
+    rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))
     cp_group_reader = get_one_chr_pos_at_a_time(get_cpra_reader(cpra_f))
 
+    rsid_group = next(rsid_group_reader)
     for cp_group in cp_group_reader:
+        if cp_group[0]['chrom'] not in rsids_chrom_order:
+            print("Your input has a chromosome {!r}, which we don't have rsids for.".format(cp_group[0]['chrom']))
+            print("That wouldn't be a big problem, but I'm using the rsid chromosome order for sanity-checking.")
+            print("So you're going to have to remove this message and fix some stuff related to rsids_chrom_order")
+            exit(1)
+        if rsids_chrom_order[cp_group[0]['chrom']] < cpra_largest_index_in_rsids_chrom_order:
+            print("Your chromosomes are in the wrong order!  See `rsids_chrom_order` in this file for the right order.")
+            exit(1)
+        cpra_largest_index_in_rsids_chrom_order = rsids_chrom_order[cp_group[0]['chrom']]
 
+        # Advance rsid_group until it is up to/past cp_group
         while True:
-            rsid = next(rsid_reader)
-            if rsid['chrom']
+            if rsid_group[0]['chrom'] == cp_group[0]['chrom']:
+                rsid_is_not_behind = rsid_group[0]['pos'] >= cp_group[0]['pos']
+            else:
+                rsid_is_not_behind = rsids_chrom_order[rsid_group[0]['chrom']] >= rsids_chrom_order[cp_group[0]['chrom']]
+            if rsid_is_not_behind:
+                break
+            else:
+                try:
+                    rsid_group = next(rsid_group_reader)
+                except StopIteration:
+                    break
 
-        rsids = []
-        while rsid is not None and (int(rsid['chrom']), int(rsid['pos'])) == (int(cpra['chrom']), int(cpra['pos'])):
-            if (rsid['ref'], rsid['alt']) == (cpra['ref'], cpra['alt']):
-                # TODO: Check whether both files handle indels the same way.  For now, just hope that all files in a dataset are consistent.
-                assert len(cpra['ref']) == 1 and len(cpra['alt']) == 1, cpra
-                rsids.append(rsid['rsid'])
-            rsid = get_next_rsid(rsid)
-
-        print('{chrom}\t{pos}\t{ref}\t{alt}\t{0}'.format(','.join(rsids), **cpra), file=out_f)
+        if rsid_group[0]['chrom'] == cp_group[0]['chrom'] and rsid_group[0]['pos'] >= cp_group[0]['pos']:
+            # Woohoo a match!
+            for cpra in cp_group:
+                rsids = (rsid['rsid'] for rsid in rsid_group if cpra['ref'] == rsid['ref'] and are_match(cpra['alt'], rsid['alt']))
+                print('{chrom}\t{pos}\t{ref}\t{alt}\t{0}'.format(','.join(rsids), **cpra), file=out_f)
+        else:
+            # No match, just print each cpra with an empty `rsids` column
+            for cpra in cp_group:
+                print('{chrom}\t{pos}\t{ref}\t{alt}\t'.format(**cpra), file=out_f)

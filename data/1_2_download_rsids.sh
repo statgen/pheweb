@@ -16,8 +16,8 @@ if ! [[ -e "$data_dir/sites/dbSNP/rsids.vcf.gz" ]]; then
     fi
 
     gzip -cd "$data_dir/sites/dbSNP/dbsnp-b147-GRCh37.gz" |
+    grep -v '^#' |
     perl -F'\t' -nale 'print "$F[0]\t$F[1]\t$F[2]\t$F[3]\t$F[4]"' | # Gotta declare that it's tab-delimited, else it's '\s'-delimited I think.
-    grep '^[0-9]' | # We only have chr1-22, so throw away X, Y, MT, etc.
     gzip > "$data_dir/sites/dbSNP/rsids.vcf.gz"
 
 else

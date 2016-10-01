@@ -87,6 +87,7 @@ const int RSID_COL = 4;
 const int GENE_COL = 5;
 const int MAF_COL = 6;
 const int PVAL_COL = 7;
+// TODO: get beta, sebeta, etc
 
 int main() {
   std::vector<std::string> fnames = glob("*");

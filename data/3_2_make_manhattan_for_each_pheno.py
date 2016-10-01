@@ -36,7 +36,10 @@ NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
 NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 BIN_THRESHOLD = 1e-4 # pvals less than this threshold don't get binned.
 
-
+# TODO: quit this namedtuple garbage.
+# TODO: send along whatever fields we get from csv.DictReader(), but do try to make some numeric.
+#     - in particular: beta, sebeta.
+#     - better: just switch to pandas.read_csv()
 Variant = collections.namedtuple('Variant', ['chrom', 'pos', 'ref', 'alt', 'pval', 'maf', 'nearest_genes', 'rsids'])
 def get_variants(f):
     for variant_row in csv.DictReader(f, delimiter='\t'):
@@ -47,8 +50,6 @@ def get_variants(f):
         nearest_genes = variant_row['nearest_genes']
         rsids = variant_row['rsids']
         maf = float(variant_row['maf'])
-        if maf < .01:
-            continue
         try:
             pval = float(variant_row['pval'])
         except ValueError:
