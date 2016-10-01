@@ -78,16 +78,9 @@ void set_ulimit_num_files(unsigned num_files) {
   }
 }
 
-
-const int CHR_COL = 0;
-const int POS_COL = 1;
-const int REF_COL = 2;
-const int ALT_COL = 3;
-const int RSID_COL = 4;
-const int GENE_COL = 5;
-const int MAF_COL = 6;
-const int PVAL_COL = 7;
-// TODO: get beta, sebeta, etc
+// TODO: read these from the first file, and then assert them in all the others.
+// TODO: don't try to be a hero - just check for [beta, sebeta] and add them when they are available.
+//     - if they aren't, maybe just set them to -1.
 
 int main() {
   std::vector<std::string> fnames = glob("*");
@@ -102,17 +95,64 @@ int main() {
     ifs[i] = f;
   }
 
-  //TDOO: check .isgood() on each ifstream.
+  //TODO: check .isgood() on each ifstream.
+
+  //Read the column indexes of each field from the first file.
+  int CHR_COL = -1;
+  int POS_COL = -1;
+  int REF_COL = -1;
+  int ALT_COL = -1;
+  int RSID_COL = -1;
+  int GENE_COL = -1;
+  int MAF_COL = -1;
+  int PVAL_COL = -1;
+  int BETA_COL = -1;
+  int SEBETA_COL = -1;
+  CSVRow row;
+  *ifs[0] >> row;
+  for (int fieldname_index = 0; fieldname_index < row.size(); fieldname_index++) {
+    if (row[fieldname_index] == "chrom") {
+       CHR_COL = fieldname_index;
+    } else if (row[fieldname_index] == "pos") {
+      POS_COL = fieldname_index;
+    } else if (row[fieldname_index] == "ref") {
+      REF_COL = fieldname_index;
+    } else if (row[fieldname_index] == "alt") {
+      ALT_COL = fieldname_index;
+    } else if (row[fieldname_index] == "rsids") {
+      RSID_COL = fieldname_index;
+    } else if (row[fieldname_index] == "nearest_genes") {
+      GENE_COL = fieldname_index;
+    } else if (row[fieldname_index] == "maf") {
+      MAF_COL = fieldname_index;
+    } else if (row[fieldname_index] == "pval") {
+      PVAL_COL = fieldname_index;
+    } else if (row[fieldname_index] == "beta") {
+      BETA_COL = fieldname_index;
+    } else if (row[fieldname_index] == "sebeta") {
+      SEBETA_COL = fieldname_index;
+    } else {
+      std::cerr << "What is this column \"" << row[fieldname_index] << "\"?" << std::endl;
+      return 1;
+    }
+  }
+
 
   // Print header
   std::cout << "chrom\tpos\tref\talt\trsids\tnearest_genes\tmaf";
   for (std::vector<std::string>::size_type i = 0; i != fnames.size(); i++) {
     std::cout << "\tpval-" << fnames[i];
+    if (BETA_COL != -1) {
+      std::cout << "\tbeta-" << fnames[i];
+    }
+    if (SEBETA_COL != -1) {
+      std::cout << "\tsebeta-" << fnames[i];
+    }
   }
   std::cout << "\n";
 
   // Read first line of each file.
-  for (std::vector<std::ifstream>::size_type i = 0; i != ifs.size(); i++) {
+  for (std::vector<std::ifstream>::size_type i = 1; i != ifs.size(); i++) {
     CSVRow row;
     *ifs[i] >> row;
     assert (row[CHR_COL] == "chrom");
@@ -123,6 +163,8 @@ int main() {
     assert (row[GENE_COL] == "nearest_genes");
     assert (row[MAF_COL] == "maf");
     assert (row[PVAL_COL] == "pval");
+    assert (BETA_COL == -1 || row[BETA_COL] == "beta");
+    assert (SEBETA_COL == -1 || row[SEBETA_COL] == "sebeta");
   }
 
   // Combine the remaining lines of each file.
@@ -147,6 +189,12 @@ int main() {
     double maf = atof(row[MAF_COL].c_str());
     std::ostringstream all_the_rest;
     all_the_rest << row[PVAL_COL];
+    if (BETA_COL != -1) {
+      all_the_rest << "\t" << row[BETA_COL];
+    }
+    if (SEBETA_COL != -1) {
+      all_the_rest << "\t" << row[BETA_COL];
+    }
 
     const std::string chr = row[CHR_COL];
     const std::string pos = row[POS_COL];
@@ -162,8 +210,14 @@ int main() {
       assert (row[POS_COL] == pos);
       assert (row[ALT_COL] == alt);
 
-      maf += atof(row[6].c_str());
-      all_the_rest << "\t" << row[7];
+      maf += atof(row[MAF_COL].c_str());
+      all_the_rest << "\t" << row[PVAL_COL];
+      if (BETA_COL != -1) {
+        all_the_rest << "\t" << row[BETA_COL];
+      }
+      if (SEBETA_COL != -1) {
+        all_the_rest << "\t" << row[BETA_COL];
+      }
     }
 
     std::cout << maf/fnames.size() << "\t" << all_the_rest.str() << "\n";
