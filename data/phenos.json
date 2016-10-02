@@ -1,158 +1,158 @@
+[
 {
-"AT": {
 "category_string": "", 
 "num_samples": 5764, 
 "pheno_code": "AT", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-AT/epacts-AT.epacts.gz"
 }, 
-"BMI": {
+{
 "category_string": "", 
 "num_samples": 5928, 
 "pheno_code": "BMI", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-BMI/epacts-BMI.epacts.gz"
 }, 
-"DIASTOLIC_BP": {
+{
 "category_string": "", 
 "num_samples": 5935, 
 "pheno_code": "DIASTOLIC_BP", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-DIASTOLIC_BP/epacts-DIASTOLIC_BP.epacts.gz"
 }, 
-"EDV": {
+{
 "category_string": "", 
 "num_samples": 5839, 
 "pheno_code": "EDV", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-EDV/epacts-EDV.epacts.gz"
 }, 
-"ESA_COLESTEROLO": {
+{
 "category_string": "", 
 "num_samples": 5937, 
 "pheno_code": "ESA_COLESTEROLO", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-ESA_COLESTEROLO/epacts-ESA_COLESTEROLO.epacts.gz"
 }, 
-"ESA_HDL": {
+{
 "category_string": "", 
 "num_samples": 5942, 
 "pheno_code": "ESA_HDL", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-ESA_HDL/epacts-ESA_HDL.epacts.gz"
 }, 
-"ESA_TRIGLICERIDI": {
+{
 "category_string": "", 
 "num_samples": 5905, 
 "pheno_code": "ESA_TRIGLICERIDI", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-ESA_TRIGLICERIDI/epacts-ESA_TRIGLICERIDI.epacts.gz"
 }, 
-"HEIGHT": {
+{
 "category_string": "", 
 "num_samples": 5940, 
 "pheno_code": "HEIGHT", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-HEIGHT/epacts-HEIGHT.epacts.gz"
 }, 
-"HIP": {
+{
 "category_string": "", 
 "num_samples": 5931, 
 "pheno_code": "HIP", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-HIP/epacts-HIP.epacts.gz"
 }, 
-"HR": {
+{
 "category_string": "", 
 "num_samples": 5943, 
 "pheno_code": "HR", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-HR/epacts-HR.epacts.gz"
 }, 
-"IMT": {
+{
 "category_string": "", 
 "num_samples": 5849, 
 "pheno_code": "IMT", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-IMT/epacts-IMT.epacts.gz"
 }, 
-"IP": {
+{
 "category_string": "", 
 "num_samples": 5830, 
 "pheno_code": "IP", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-IP/epacts-IP.epacts.gz"
 }, 
-"LDL": {
+{
 "category_string": "", 
 "num_samples": 5937, 
 "pheno_code": "LDL", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-LDL/epacts-LDL.epacts.gz"
 }, 
-"MEAN_BP": {
+{
 "category_string": "", 
 "num_samples": 5932, 
 "pheno_code": "MEAN_BP", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-MEAN_BP/epacts-MEAN_BP.epacts.gz"
 }, 
-"PR": {
+{
 "category_string": "", 
 "num_samples": 5890, 
 "pheno_code": "PR", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-PR/epacts-PR.epacts.gz"
 }, 
-"PSV": {
+{
 "category_string": "", 
 "num_samples": 5848, 
 "pheno_code": "PSV", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-PSV/epacts-PSV.epacts.gz"
 }, 
-"PULSE_PRESSURE": {
+{
 "category_string": "", 
 "num_samples": 5925, 
 "pheno_code": "PULSE_PRESSURE", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-PULSE_PRESSURE/epacts-PULSE_PRESSURE.epacts.gz"
 }, 
-"QTC": {
+{
 "category_string": "", 
 "num_samples": 5942, 
 "pheno_code": "QTC", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-QTC/epacts-QTC.epacts.gz"
 }, 
-"SD_ratio": {
+{
 "category_string": "", 
 "num_samples": 5823, 
 "pheno_code": "SD_ratio", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-SD_ratio/epacts-SD_ratio.epacts.gz"
 }, 
-"SYSTOLIC_BP": {
+{
 "category_string": "", 
 "num_samples": 5925, 
 "pheno_code": "SYSTOLIC_BP", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-SYSTOLIC_BP/epacts-SYSTOLIC_BP.epacts.gz"
 }, 
-"WAIST": {
+{
 "category_string": "", 
 "num_samples": 5940, 
 "pheno_code": "WAIST", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-WAIST/epacts-WAIST.epacts.gz"
 }, 
-"WALL_LUMEN_RATIO": {
+{
 "category_string": "", 
 "num_samples": 5815, 
 "pheno_code": "WALL_LUMEN_RATIO", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-WALL_LUMEN_RATIO/epacts-WALL_LUMEN_RATIO.epacts.gz"
 }, 
-"WEIGHT": {
+{
 "category_string": "", 
 "num_samples": 5935, 
 "pheno_code": "WEIGHT", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-WEIGHT/epacts-WEIGHT.epacts.gz"
 }, 
-"diam_D": {
+{
 "category_string": "", 
 "num_samples": 5842, 
 "pheno_code": "diam_D", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-diam_D/epacts-diam_D.epacts.gz"
 }, 
-"diam_S": {
+{
 "category_string": "", 
 "num_samples": 5821, 
 "pheno_code": "diam_S", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-diam_S/epacts-diam_S.epacts.gz"
 }, 
-"vti": {
+{
 "category_string": "", 
 "num_samples": 5842, 
 "pheno_code": "vti", 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-vti/epacts-vti.epacts.gz"
 }
-}
+]
