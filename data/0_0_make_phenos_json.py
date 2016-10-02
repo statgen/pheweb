@@ -56,7 +56,7 @@ for pheno in phenos:
 input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
 for pheno in phenos:
     pheno.update(input_file_parser.get_pheno_info(pheno['src_filename']))
-    print('get_pheno_info({!r})'.format(pheno['src_filename']))
+    #print('get_pheno_info({!r})'.format(pheno['src_filename']))
 
 
 def filter_phenos(phenos, filter_func, name_for_debugging=''):
