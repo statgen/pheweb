@@ -1,32 +1,5 @@
 (function() {
     // It's unfortunate that these are hard-coded, but it works pretty great, so I won't change it now.
-    var defaults = [
-        {
-            "display":"ESA_COLESTEROLO",
-            "url":"/pheno/ESA_COLESTEROLO",
-            "value":"ESA_COLESTEROLO"
-        },{
-            "display":"ESA_TRIGLICERIDI",
-            "url":"/pheno/ESA_TRIGLICERIDI",
-            "value":"ESA_TRIGLICERIDI"
-        },
-        {
-            "display":"HDL",
-            "url":"/pheno/HDL",
-            "value":"HDL"
-        },
-        {
-            "display":"LDL",
-            "url":"/pheno/LDL",
-            "value":"LDL"
-        },
-        {
-            "display":"HEIGHT",
-            "url":"/pheno/HEIGHT",
-            "value":"HEIGHT"
-        }
-    ];
-
     autocomplete_bloodhound = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('display'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
@@ -47,26 +20,17 @@
                 return data;
             },
         },
-        local: defaults,
         sorter: function(a, b) { return (a.display > b.display) ? 1 : -1; },
     });
-
-    function autocomplete_bloodhound_with_defaults(query, sync, async) {
-        if (query.trim() === '') {
-            sync(defaults);
-        } else {
-            autocomplete_bloodhound.search(query, sync, async);
-        }
-    }
 
     $(function() {
         $('.typeahead').typeahead({
             hint: false,
             highlight: true,
-            minLength: 0,
+            minLength: 1,
         }, {
             name: 'autocomplete',
-            source: autocomplete_bloodhound_with_defaults,
+            source: autocomplete_bloodhound,
             display: 'value',
             limit: 100,
             templates: {
