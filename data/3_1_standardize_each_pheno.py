@@ -121,7 +121,7 @@ def get_conversions_to_do():
     with open(my_dir + '/phenos.json') as f:
         phenos = json.load(f)
     print('number of source files:', len(phenos))
-    for pheno in phenos.values():
+    for pheno in phenos:
         dest_filename = '{}/augmented_pheno/{}'.format(conf.data_dir, pheno['pheno_code'])
         tmp_filename = '{}/tmp/augmented_pheno-{}'.format(conf.data_dir, pheno['pheno_code'])
         if not os.path.exists(dest_filename):
