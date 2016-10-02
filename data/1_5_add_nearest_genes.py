@@ -1,9 +1,34 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
+from __future__ import print_function, division, absolute_import
+
+'''
+This script takes a file with the columns [chrom, pos, ...] (but no headers) and adds a column for nearest_gene.
+'''
+
+'''
+TODO:
+- should we only look at the distance to the start of the gene?
+    - I've heard that it's common to only look at variants within 50kb of TSS, because that's where TFBS are concentrated.
+- are these gene ranges the whole transcript, including UTRs?
+'''
+
+# Load config
+import os.path
+import imp
+my_dir = os.path.dirname(os.path.abspath(__file__))
+conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
+
+# Activate virtualenv
+activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
+execfile(activate_this, dict(__file__=activate_this))
+
 
 import intervaltree
 import bisect
 import csv
 import os
+import os.path
+
 
 class BisectFinder(object):
     '''Given a list like [(123, 'foo'), (125, 'bar')...], BisectFinder helps you find the things before and after 124.'''
@@ -21,7 +46,6 @@ class BisectFinder(object):
         idx = bisect.bisect_left(self._nums, pos)
         return (self._nums[idx], self._values[idx])
 
-# TODO: try to make a class `IntervalTreeWithClosest`, and abstract everything else apart from that.
 class GeneAnnotator(object):
     def __init__(self, interval_tuples):
         '''intervals is like [('22', 12321, 12345, 'APOL1'), ...]'''
@@ -44,18 +68,24 @@ class GeneAnnotator(object):
             self._gene_ends[chrom] = BisectFinder(self._gene_ends[chrom])
 
     def annotate_position(self, chrom, pos):
-        # TODO: should this handle [pos_start, pos_end] because indels?
         if chrom == 'MT': chrom = 'M'
         if chrom not in self._its:
             return ''
         overlapping_genes = self._its[chrom].search(pos)
         if overlapping_genes:
             return ','.join(og.data for og in overlapping_genes)
-        dist_to_nearest_gene_end, nearest_gene_end = self._gene_ends[chrom].get_item_before(pos)
-        dist_to_nearest_gene_start, nearest_gene_start = self._gene_starts[chrom].get_item_after(pos)
+        nearest_gene_end = self._gene_ends[chrom].get_item_before(pos)
+        nearest_gene_start = self._gene_starts[chrom].get_item_after(pos)
+        if nearest_gene_end is None or nearest_gene_start is None:
+            if nearest_gene_end is not None: return nearest_gene_end[1]
+            if nearest_gene_start is not None: return nearest_gene_start[1]
+            print('This is very surprising - {!r} {!r}'.format(chrom, pos))
+            return ''
+        dist_to_nearest_gene_end = abs(nearest_gene_end[0] - pos)
+        dist_to_nearest_gene_start = abs(nearest_gene_start[0] - pos)
         if dist_to_nearest_gene_end < dist_to_nearest_gene_start:
-            return nearest_gene_end
-        return nearest_gene_start
+            return nearest_gene_end[1]
+        return nearest_gene_start[1]
 
 _legal_chroms = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M']
 def get_interval_tuples(genes_file):
@@ -67,7 +97,7 @@ def get_interval_tuples(genes_file):
 
 def annotate_genes(file_to_annotate, temp_file, output_file, genes_file):
     '''All four args are filepaths'''
-    ga = GeneAnnotator(get_interval_tuples('/Users/peter/tmp/gene-annotator/genes.bed'))
+    ga = GeneAnnotator(get_interval_tuples(genes_file))
     with open(file_to_annotate) as in_f, \
          open(temp_file, 'w') as out_f:
         for line in in_f:
@@ -80,4 +110,9 @@ def annotate_genes(file_to_annotate, temp_file, output_file, genes_file):
         os.rename(temp_file, output_file)
 
 if __name__ == '__main__':
-    annotate_genes('/Users/peter/tmp/gene-annotator/cpra_rsids.tsv', '/Users/peter/tmp/gene-annotator/tmp.tsv', '/Users/peter/tmp/gene-annotator/sites.tsv', '/Users/peter/tmp/gene-annotator/genes.bed')
+    input_file = os.path.join(conf.data_dir, 'sites/cpra_rsids.tsv')
+    output_file = os.path.join(conf.data_dir, 'sites/sites.tsv')
+    temp_file = os.path.join(conf.data_dir, 'tmp/sites.tsv')
+    genes_file = os.path.join(conf.data_dir, 'sites/genes/genes.bed')
+
+    annotate_genes(input_file, temp_file, output_file, genes_file)
