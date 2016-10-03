@@ -21,7 +21,7 @@ run ./0_1_get_cpras_from_each_input_file.py # check dates of src_filenames (hard
 run ./0_2_get_cpras_to_show.py # check dates of cpra/*
 run ./1_2_download_rsids.sh
 run ./1_3_download_genes.sh
-run ./1_4_make_cpra_rsids.py
+run ./1_4_add_rsids.py
 run ./1_5_add_nearest_genes.py
 run ./1_8_make_tries.py
 run ./3_1_standardize_each_pheno.py # each depends on its own src_filename, and also on sites.tsv
