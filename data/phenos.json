@@ -1,204 +1,132 @@
 [
 {
-"category_string": [], 
-"key": "acceleration time", 
 "num_samples": 5764, 
 "pheno_code": "AT", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-AT/epacts-AT.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "Anthropometric data: BMI", 
 "num_samples": 5928, 
 "pheno_code": "BMI", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-BMI/epacts-BMI.epacts.gz"
 }, 
 {
-"category_string": [], 
 "num_samples": 5935, 
 "pheno_code": "DIASTOLIC_BP", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-DIASTOLIC_BP/epacts-DIASTOLIC_BP.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "end diastolic velocity", 
 "num_samples": 5839, 
 "pheno_code": "EDV", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-EDV/epacts-EDV.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "Total cholesterol", 
 "num_samples": 5937, 
 "pheno_code": "ESA_COLESTEROLO", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-ESA_COLESTEROLO/epacts-ESA_COLESTEROLO.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "HDL cholesterol", 
 "num_samples": 5942, 
 "pheno_code": "ESA_HDL", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-ESA_HDL/epacts-ESA_HDL.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "Triglycerides", 
 "num_samples": 5905, 
 "pheno_code": "ESA_TRIGLICERIDI", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-ESA_TRIGLICERIDI/epacts-ESA_TRIGLICERIDI.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "Anthropometric data: HEIGHT  (Standing)", 
 "num_samples": 5940, 
 "pheno_code": "HEIGHT", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-HEIGHT/epacts-HEIGHT.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "Anthropometric data: HIP CIRCUMFERENCE", 
 "num_samples": 5931, 
 "pheno_code": "HIP", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-HIP/epacts-HIP.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "HEART RATE", 
 "num_samples": 5943, 
 "pheno_code": "HR", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-HR/epacts-HR.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "CCA intima media thickness", 
 "num_samples": 5849, 
 "pheno_code": "IMT", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-IMT/epacts-IMT.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "pulsatility index", 
 "num_samples": 5830, 
 "pheno_code": "IP", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-IP/epacts-IP.epacts.gz"
 }, 
 {
-"category_string": [], 
 "num_samples": 5937, 
 "pheno_code": "LDL", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-LDL/epacts-LDL.epacts.gz"
 }, 
 {
-"category_string": [], 
 "num_samples": 5932, 
 "pheno_code": "MEAN_BP", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-MEAN_BP/epacts-MEAN_BP.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "P-R INTERVAL (msec)", 
 "num_samples": 5890, 
 "pheno_code": "PR", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-PR/epacts-PR.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "peak systolic velocity", 
 "num_samples": 5848, 
 "pheno_code": "PSV", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-PSV/epacts-PSV.epacts.gz"
 }, 
 {
-"category_string": [], 
 "num_samples": 5925, 
 "pheno_code": "PULSE_PRESSURE", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-PULSE_PRESSURE/epacts-PULSE_PRESSURE.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "QTc INTERVAL", 
 "num_samples": 5942, 
 "pheno_code": "QTC", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-QTC/epacts-QTC.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "systolic diastolic ratio", 
 "num_samples": 5823, 
 "pheno_code": "SD_ratio", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-SD_ratio/epacts-SD_ratio.epacts.gz"
 }, 
 {
-"category_string": [], 
 "num_samples": 5925, 
 "pheno_code": "SYSTOLIC_BP", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-SYSTOLIC_BP/epacts-SYSTOLIC_BP.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "Anthropometric data: WAIST CIRCUMFERENCE", 
 "num_samples": 5940, 
 "pheno_code": "WAIST", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-WAIST/epacts-WAIST.epacts.gz"
 }, 
 {
-"category_string": [], 
 "num_samples": 5815, 
 "pheno_code": "WALL_LUMEN_RATIO", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-WALL_LUMEN_RATIO/epacts-WALL_LUMEN_RATIO.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "Anthropometric data: WEIGHT", 
 "num_samples": 5935, 
 "pheno_code": "WEIGHT", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-WEIGHT/epacts-WEIGHT.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "diastolic CCA diameter", 
 "num_samples": 5842, 
 "pheno_code": "diam_D", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-diam_D/epacts-diam_D.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "systolic CCA diameter", 
 "num_samples": 5821, 
 "pheno_code": "diam_S", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-diam_S/epacts-diam_S.epacts.gz"
 }, 
 {
-"category_string": [], 
-"key": "integral time velocity", 
 "num_samples": 5842, 
 "pheno_code": "vti", 
-"phewas_string": [], 
 "src_filename": "/net/wonderland/home/csidore/Epacts_vcfs/Michelle_panel/GOODheader/out-vti/epacts-vti.epacts.gz"
 }
 ]
