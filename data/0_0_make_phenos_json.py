@@ -91,7 +91,7 @@ if hasattr(conf, 'use_vanderbilt_phewas_icd9s_and_categories'):
     phenos_by_phewas_code = {pheno['pheno_code']: pheno for pheno in phenos}
     for pheno in phenos:
         pheno['icd9s'] = []
-    pheno_and_icd9_filename = os.path.join(my_dir, 'PheWAS_code_translation_v1_2.txt')
+    pheno_and_icd9_filename = os.path.join(my_dir, '../unnecessary_things/PheWAS_code_translation_v1_2.txt')
     with open(pheno_and_icd9_filename) as f:
         for icd9 in csv.DictReader(f, delimiter='\t'):
 
