@@ -34,14 +34,13 @@ if hasattr(conf, 'minimum_num_controls'):
 
 phenos_json_utils.hide_small_numbers_of_samples(phenos)
 
-more_info = phenos_json_utils.read_file(os.path.join(my_dir, '../unnecessary_things/PheWAS_code_translation_v1_2.txt'), has_header=True)
-phenos_json_utils.keep_only_columns(more_info, ['icd9', 'icd9_string', 'phewas_code', 'phewas_string', 'category_string'])
-phenos_json_utils.rename_column(more_info, 'icd9', 'icd9_code')
-phenos_json_utils.rename_column(more_info, 'phewas_code', 'pheno_code')
-phenos_json_utils.combine_columns(more_info, ['icd9_code', 'icd9_string'], 'icd9s')
+more_info = phenos_json_utils.read_file(os.path.join(my_dir, '../unnecessary_things/DbDescription_IV.xlsx'), has_header=False)
+phenos_json_utils.keep_only_columns(more_info, [0, 1, 4])
+phenos_json_utils.rename_column(more_info, 0, 'category_string')
+phenos_json_utils.rename_column(more_info, 1, 'pheno_code')
+phenos_json_utils.rename_column(more_info, 4, 'phewas_string')
+print(more_info[:3])
 phenos_json_utils.merge_in_info(phenos, more_info)
-for pheno in phenos:
-    assert len(pheno['icd9s']) > 0
 
 required_keys = ['category_string', 'phewas_string']
 phenos_json_utils.check_that_all_phenos_have_keys(phenos, required_keys)

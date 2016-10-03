@@ -73,11 +73,10 @@ def hide_small_numbers_of_samples(phenos, minimum_visible_number=50):
 def read_file(fname, has_header=False):
     # Return a list-of-dicts with the original column names, or integers if none.
     # It'd be great to use pandas for this.
-    # This is pretty complicated, but let's just get something pretty much working.
 
     assert os.path.exists(fname)
 
-    # 1. try openpyxl.  If it fails but fname.endswith('.xlsx'), fail.
+    # 1. try openpyxl.
     phenos = _read_xlsx_file(fname, has_header)
     if phenos is not None:
         return phenos
@@ -91,7 +90,7 @@ def read_file(fname, has_header=False):
                 print("The filename {!r} ends with '.json' but reading it as json failed.".format(fname))
                 exit(1)
 
-    # 3. try csv.Sniffer().sniff(f.read(1024)).
+    # 3. try csv.reader() with csv.Sniffer().sniff()
     phenos = _read_csv_file(fname, has_header)
     if phenos is not None:
         return phenos
@@ -109,12 +108,19 @@ def _read_xlsx_file(fname, has_header):
         num_cols = len(rows[0])
         if has_header:
             fieldnames = rows[0]
-            assert all(fieldname is not None for fieldname in fieldnames)
-            assert len(set(fieldnames)) == len(fieldnames)
+            if any(fieldname is None or fieldname == '' for fieldname in fieldnames):
+                if has_header == 'augment':
+                    fieldnames = [i if fieldname is None else fieldname for i, fieldname in enumerate(fieldnames)]
+                else:
+                    exit(1)
+            assert len(set(fieldnames)) == len(fieldnames), fieldnames
         else:
             fieldnames = range(num_cols)
         return [{fieldnames[i]: row[i] for i in range(num_cols)} for row in rows]
     except openpyxl.utils.exceptions.InvalidFileException:
+        if fname.endswith('.xlsx'):
+            print("The filename {!r} ends with '.xlsx' but reading it as an excel file failed.".format(fname))
+            exit(1)
         return None
 
 def _read_csv_file(fname, has_header):
@@ -128,6 +134,11 @@ def _read_csv_file(fname, has_header):
         num_cols = len(rows[0])
         if has_header:
             fieldnames = rows[0]
+            if any(fieldname is None or fieldname == '' for fieldname in fieldnames):
+                if has_header == 'augment':
+                    fieldnames = [i if fieldname is None else fieldname for i, fieldname in enumerate(fieldnames)]
+                else:
+                    exit(1)
             assert len(set(fieldnames)) == len(fieldnames)
         else:
             fieldnames = range(num_cols)
@@ -161,6 +172,9 @@ class _hashabledict(dict):
     return self.__key() == other.__key()
 
 def merge_in_info(phenos, more_info_rows):
+    # TODO: do some special-casing for category_string and phewas_string, since we have to have exactly one of each.
+
+    keys_that_cant_be_lists = {'category_string', 'phewas_string'}
     keys_to_add = {key for row in more_info_rows for key in row} - {key for row in phenos for key in row}
     keys_to_add_that_are_dicts = {key for key in keys_to_add if any(isinstance(row[key], dict) for row in more_info_rows)}
     for key in keys_to_add_that_are_dicts:
@@ -171,7 +185,12 @@ def merge_in_info(phenos, more_info_rows):
         pheno = phenos_by_pheno_code.get(more_info_row['pheno_code'], None)
         if pheno is not None:
             for key in more_info_row:
-                if key in keys_to_add:
+                if key in keys_that_cant_be_lists:
+                    if key in pheno:
+                        assert pheno[key] == more_info_row[key], (key, pheno, more_info_row)
+                    else:
+                        pheno[key] = more_info_row[key]
+                elif key in keys_to_add:
                     if key in keys_to_add_that_are_dicts:
                         pheno.setdefault(key, set()).add(_hashabledict(more_info_row[key]))
                     else:
@@ -181,7 +200,7 @@ def merge_in_info(phenos, more_info_rows):
                 else:
                     print("wat?")
 
-    keys_with_multiple_items = set(key for key in keys_to_add if any(len(pheno[key]) != 1 for pheno in phenos))
+    keys_with_multiple_items = set(key for key in keys_to_add-keys_that_cant_be_lists if any(key not in pheno or len(pheno[key]) != 1 for pheno in phenos))
 
     for pheno in phenos:
         for key in keys_to_add:
@@ -189,8 +208,8 @@ def merge_in_info(phenos, more_info_rows):
                 try:
                     pheno[key] = sorted(pheno[key])
                 except:
-                    pheno[key] = list(pheno[key])
-            else:
+                    pheno[key] = list(pheno.get(key, []))
+            elif key not in keys_that_cant_be_lists:
                 assert len(pheno[key]) == 1
                 pheno[key] = next(iter(pheno[key]))
 
@@ -203,7 +222,6 @@ def check_that_all_phenos_have_keys(phenos, keys):
             failed = True
             print("\nERROR: the key {} is required but {} phenotypes don't have it.".format(
                 key, len(phenos_missing_key)))
-            print("\nERROR: pheno {} doesn't have a {}.".format(pheno['pheno_code'], key))
             print("Here are the first few other phenotypes that are missing the key {}:".format(key))
             for pheno in phenos_missing_key[:10]:
                 print(repr(pheno))
