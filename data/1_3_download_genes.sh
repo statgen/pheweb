@@ -9,7 +9,7 @@ export PATH="$bedtools_path:$PATH"
 
 mkdir -p "$data_dir/sites/genes/"
 
-if ! [[ -e "$data_dir/sites/genes/genes.lexicographic.bed" ]]; then
+if ! [[ -e "$data_dir/sites/genes/genes.bed" ]]; then
 
     if ! [[ -e "$data_dir/sites/genes/gencode.gtf.gz" ]]; then
         # Link from <http://www.gencodegenes.org/releases/19.html>
@@ -23,13 +23,8 @@ if ! [[ -e "$data_dir/sites/genes/genes.lexicographic.bed" ]]; then
     perl -F'\t' -nale '$F[0] =~ s{chr}{}; print "$F[0]\t$F[3]\t$F[4]\t", m{gene_name "(.*?)";} if $F[2] eq "gene"' \
         > "$data_dir/sites/genes/genes.bed"
 
-    # Bedtools expects chromosomes to be in lexicographic order.
-    cat "$data_dir/sites/genes/genes.bed" |
-    bedtools sort -i \
-        > "$data_dir/sites/genes/genes.lexicographic.bed"
-
 else
-    echo "$data_dir/sites/genes/genes.lexicographic.bed already exists"
+    echo "$data_dir/sites/genes/genes.bed already exists"
 fi
 
 echo done!
