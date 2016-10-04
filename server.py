@@ -15,7 +15,7 @@ execfile(activate_this, dict(__file__=activate_this))
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
 from flask_compress import Compress
 
-from utils import get_phenos_with_colnums, get_variant
+from utils import get_phenos_with_colnums, get_variant, get_random_page
 from autocomplete import Autocompleter
 import region
 
@@ -79,6 +79,11 @@ def api_pheno_qq(filename):
 @app.route('/top_hits')
 def top_hits_page():
     return render_template('top_hits.html')
+
+@app.route('/random')
+def random_page():
+    url = get_random_page()
+    return redirect(url)
 
 @app.route('/pheno/<pheno_code>')
 def pheno_page(pheno_code):

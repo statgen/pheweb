@@ -14,7 +14,7 @@ import json
 import gzip
 import os
 import errno
-
+import random
 
 
 def parse_variant(query, default_chrom_pos = True):
@@ -129,3 +129,16 @@ def activate_virtualenv(path):
     with open(path) as f:
         code = compile(f.read(), path, 'exec')
         exec(code, dict(__file__=path))
+
+def get_random_page():
+    with open(os.path.join(conf.data_dir, 'top_hits.json')) as f:
+        hits = json.load(f)
+        hits = [hit for hit in hits if hit['pval'] < 5e-8]
+    hit = random.choice(hits)
+    r = random.random()
+    if r < 0.4:
+        return '/pheno/{}'.format(hit['pheno_code'])
+    elif r < 0.8:
+        return '/variant/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
+    else:
+        return '/region/{pheno_code}/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
