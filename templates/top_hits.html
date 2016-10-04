@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+
+{% block in_head %}
+<script type="text/javascript" src="{{ url_for('static', filename='vendor/stream_table.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='top_hits.js') }}"></script>
+<script type="text/javascript">
+  $.getJSON("/api/top_hits.json").done(function(data) {
+      window.top_hits = data; // debugging
+      populate_streamtable(data);
+  });
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <br><br> {# Dont get stuck behind the navbar #}
+            {% for message in messages %}
+              <div class="alert alert-danger" role="alert"><b>Error:</b> {{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <div class="row">
+            <div class="col-xs-12">
+                <h1 style="margin-top:0">Top Hits</h1>
+            </div>
+        </div>
+
+        <div class="row">
+          <div class="col-xs-12 col-md-8">
+            <div class="row">
+              <div class="col-xs-8 col-sm-9">
+                <input type="text" class="form-control" id="search" placeholder="Search... &quot;TCF7L2&quot;, &quot;rs1861867&quot;, etc.">
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-12 col-md-4">
+            <h5 class="pull-right"><div id="streamtable-found" class="label label-primary"></div></h5>
+          </div>
+        </div>
+
+        <br>
+
+        <div class="row">
+          <div class="col-xs-12">
+            <table id="stream_table" class="table table-striped table-bordered">
+              <thead>
+                <tr>
+                  <th>Top variant in loci</th>
+                  <th>Phenotype</th>
+                  <th>Nearest Gene(s)</th>
+                  <th>MAF of top variant</th>
+                  <th>P-value of top variant</th>
+                  <th>Beta of top variant</th>
+                  <th>sebeta of top variant</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+</div>
+
+<script type="text/template" id="streamtable-template">
+  <tr>
+    <td><a style="color:black" href="/variant/<%= h.chrom %>-<%= h.pos %>-<%= h.ref %>-<%= h.alt %>">
+        <%= h.chrom %>:<%= h.pos.toLocaleString() %> <%= h.ref %> &gt; <%= h.alt %>
+        <% if (h.rsids) { %>(<%= h.rsids %>)<% } %>
+    </a></td>
+    <td><a style="color:black" href="/pheno/<%= h.pheno_code %>">
+        <%= h.pheno_code || h.phewas_string %>
+    </a></td>
+    <td><%= h.nearest_genes.join(', ') %></td>
+    <td><%= h.maf.toPrecision(2) %></td>
+    <td><%= h.pval.toExponential(1) %></td>
+    <td><%= h.beta.toExponential(1) %></td>
+    <td><%= h.sebeta.toExponential(1) %></td>
+  </tr>
+</script>
+
+{% endblock %}

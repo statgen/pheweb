@@ -68,9 +68,17 @@ def variant_page(query):
 def api_pheno(filename):
     return send_from_directory(conf.data_dir + '/manhattan/', filename)
 
+@app.route('/api/top_hits.json')
+def api_top_hits():
+    return send_from_directory(conf.data_dir, 'top_hits.json')
+
 @app.route('/api/qq/pheno/<filename>')
 def api_pheno_qq(filename):
     return send_from_directory(conf.data_dir + '/qq/', filename)
+
+@app.route('/top_hits')
+def top_hits_page():
+    return render_template('top_hits.html')
 
 @app.route('/pheno/<pheno_code>')
 def pheno_page(pheno_code):
