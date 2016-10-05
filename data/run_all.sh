@@ -30,5 +30,6 @@ run ./3_3_make_QQ_for_each_pheno.py # each depends on its own augmented_pheno
 run ./4_1_make_matrix.sh # depends on augmented_pheno/*
 run ./4_2_bgzip.sh
 run ./5_1_bgzip_augmented_phenos.sh # each depends on its own augmented_pheno
+run ./9_3_get_all_hits.py
 # delete unneeded files?
 }
