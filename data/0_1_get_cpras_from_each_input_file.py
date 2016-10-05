@@ -59,11 +59,16 @@ def get_conversions_to_do():
 utils.mkdir_p(conf.data_dir + '/pheno')
 utils.mkdir_p(conf.data_dir + '/tmp')
 
-# TODO: add `--debug` which doesn't use multiprocessing
-
 conversions_to_do = list(get_conversions_to_do())
 print('number of conversions to do:', len(conversions_to_do))
+
+# TODO: still do parallel but show errors like <http://stackoverflow.com/questions/6728236/exception-thrown-in-multiprocessing-pool-not-detected>
+if False: # debugging
+    print("debugging, so doing one at a time")
+    for v in conversions_to_do:
+        print(v)
+        convert(v)
+
 p = multiprocessing.Pool(40)
 #p.map(convert, conversions_to_do)
 p.map_async(convert, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
-#convert(conversions_to_do[0]) # debugging
