@@ -53,20 +53,30 @@ required_fields = ['chrom', 'pos', 'ref', 'alt', 'maf', 'pval']
 
 def get_variants(pheno, minimum_maf=None):
     assoc_files = _get_assoc_files_in_order(pheno)
-    return variants_view(v for fname in assoc_files for v in _get_variants(fname, minimum_maf=minimum_maf))
+    return variants_view(_get_variants(fname, minimum_maf=minimum_maf) for fname in assoc_files)
 
 class variants_view(object):
-    def __init__(self, variants):
-        self.v = variants
-        try:
-            self.fieldnames = next(self.v)
-        except StopIteration:
-            utils.die("ERROR: what?")
+    def __init__(self, list_of_variants_iters_that_each_begin_with_fieldnames):
+        self.fieldnames = None
+        self.v = self.condense_iterators_to_have_just_one_fieldnames(list_of_variants_iters_that_each_begin_with_fieldnames)
+        self.fieldnames = next(self.v)
     def __iter__(self):
         return self
     def __next__(self):
         return next(self.v)
     next = __next__
+    def condense_iterators_to_have_just_one_fieldnames(self, list_of_variants_iters_that_each_begin_with_fieldnames):
+        for variant_iterator in list_of_variants_iters_that_each_begin_with_fieldnames:
+            new_fnames = next(variant_iterator)
+            if not 3 < len(new_fnames) < 100:
+                utils.die("ERROR 4324")
+            if self.fieldnames is None:
+                yield new_fnames
+            else:
+                if self.fieldnames != new_fnames:
+                    utils.die("ERROR 345")
+            for v in variant_iterator:
+                yield v
 
 _chrom_order = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
 def _variant_order_key(v):
@@ -77,7 +87,7 @@ def _variant_order_key(v):
 def _get_assoc_files_in_order(pheno):
     assoc_files = [{'fname': fname} for fname in pheno['assoc_files']]
     for assoc_file in assoc_files:
-        v = next(variants_view(_get_variants(assoc_file['fname'])))
+        v = next(variants_view([_get_variants(assoc_file['fname'])]))
         assoc_file['chrom'], assoc_file['pos'] = v['chrom'], v['pos']
     assoc_files = sorted(assoc_files, key=_variant_order_key)
     return [assoc_file['fname'] for assoc_file in assoc_files]

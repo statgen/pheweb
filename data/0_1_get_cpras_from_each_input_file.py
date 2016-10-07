@@ -65,7 +65,7 @@ if __name__ == '__main__':
     if False: # debugging
         print("debugging, so doing one at a time")
         for v in conversions_to_do:
-            print(v)
+            print(v['dest'])
             convert(v)
         exit(0)
 
