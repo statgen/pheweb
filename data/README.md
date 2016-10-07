@@ -29,7 +29,7 @@ For others:
             - 0_make_phenos_json
             - then others can use phenos.json
         - no more `phenos.csv`.  Go straight to `phenos.json`.  Put it in `$data_dir`.
-        - Just specify the output format and offer a pipeline for icd9s.
+        - Just specify the output format and offer a pipeline for icd9_info.
         - Configure which phenos.json-maker runs using `config.config`.
     - template/pheno.html: for now, just add a flag.
 - [ ] Make things more generic to handle more kinds of data without forking:

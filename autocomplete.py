@@ -33,11 +33,11 @@ class Autocompleter(object):
         self._autocompleters = [
             self._autocomplete_variant,
             self._autocomplete_rsid,
-            self._autocomplete_phewas_code,
+            self._autocomplete_phenocode,
         ]
-        if any('phewas_string' in pheno for pheno in self._phenos.itervalues()):
-            self._autocompleters.append(self._autocomplete_phewas_string)
-        if any('icd9s' in pheno for pheno in self._phenos.itervalues()):
+        if any('phenostring' in pheno for pheno in self._phenos.itervalues()):
+            self._autocompleters.append(self._autocomplete_phenostring)
+        if any('icd9_info' in pheno for pheno in self._phenos.itervalues()):
             self._autocompleters.extend([
                 self._autocomplete_icd9_code,
                 self._autocomplete_icd9_string,
@@ -71,12 +71,12 @@ class Autocompleter(object):
         return ' ' + cls._process_string_non_word_regex.sub(' ', string).lower().strip()
 
     def _preprocess_phenos(self):
-        for phewas_code, pheno in self._phenos.iteritems():
-            pheno['--spaced--phewas_code'] = self._process_string(phewas_code)
-            if 'phewas_string' in pheno:
-                pheno['--spaced--phewas_string'] = self._process_string(pheno['phewas_string'])
-            if 'icd9s' in pheno:
-                for icd9 in pheno['icd9s']:
+        for phenocode, pheno in self._phenos.iteritems():
+            pheno['--spaced--phenocode'] = self._process_string(phenocode)
+            if 'phenostring' in pheno:
+                pheno['--spaced--phenostring'] = self._process_string(pheno['phenostring'])
+            if 'icd9_info' in pheno:
+                for icd9 in pheno['icd9_info']:
                     icd9['--spaced--icd9_string'] = self._process_string(icd9['icd9_string'])
 
 
@@ -127,47 +127,47 @@ class Autocompleter(object):
                     "url": "/variant/{}".format(cpra)
                 }
 
-    def _autocomplete_phewas_code(self, query):
+    def _autocomplete_phenocode(self, query):
         query = self._process_string(query)
-        for phewas_code, pheno in self._phenos.iteritems():
-            if query in pheno['--spaced--phewas_code']:
+        for phenocode, pheno in self._phenos.iteritems():
+            if query in pheno['--spaced--phenocode']:
                 yield {
-                    "value": phewas_code,
-                    "display": "{} ({})".format(phewas_code, pheno['phewas_string']) if 'phewas_string' in pheno else phewas_code, # TODO: truncate phewas_string intelligently
-                    "url": "/pheno/{}".format(phewas_code),
+                    "value": phenocode,
+                    "display": "{} ({})".format(phenocode, pheno['phenostring']) if 'phenostring' in pheno else phenocode, # TODO: truncate phenostring intelligently
+                    "url": "/pheno/{}".format(phenocode),
                 }
 
-    def _autocomplete_phewas_string(self, query):
+    def _autocomplete_phenostring(self, query):
         query = self._process_string(query)
-        for phewas_code, pheno in self._phenos.iteritems():
-            if query in pheno['--spaced--phewas_string']:
+        for phenocode, pheno in self._phenos.iteritems():
+            if query in pheno['--spaced--phenostring']:
                 yield {
-                    "value": phewas_code,
-                    "display": "{} ({})".format(pheno['phewas_string'], phewas_code),
-                    "url": "/pheno/{}".format(phewas_code),
+                    "value": phenocode,
+                    "display": "{} ({})".format(pheno['phenostring'], phenocode),
+                    "url": "/pheno/{}".format(phenocode),
                 }
 
     _regex_get_icd9_code_autocompletion = re.compile('^\s*[0-9]')
     def _autocomplete_icd9_code(self, query):
         if self._regex_get_icd9_code_autocompletion.match(query):
-            for phewas_code, pheno in self._phenos.iteritems():
-                for icd9 in pheno['icd9s']:
+            for phenocode, pheno in self._phenos.iteritems():
+                for icd9 in pheno['icd9_info']:
                     if icd9['icd9_code'].startswith(query):
                         yield {
-                            "value": phewas_code,
-                            "display": "{} (icd9 code; phewas code: {}; icd9_string: {})".format(icd9['icd9_code'], phewas_code, icd9['icd9_string']),
-                            "url": "/pheno/{}".format(phewas_code),
+                            "value": phenocode,
+                            "display": "{} (icd9 code; phewas code: {}; icd9_string: {})".format(icd9['icd9_code'], phenocode, icd9['icd9_string']),
+                            "url": "/pheno/{}".format(phenocode),
                         }
 
     _regex_get_icd9_string_autocompletion = re.compile('^\s*[a-zA-Z]')
     def _autocomplete_icd9_string(self, query):
         query = self._process_string(query)
         if self._regex_get_icd9_string_autocompletion.match(query):
-            for phewas_code, pheno in self._phenos.iteritems():
-                for icd9 in pheno.get('icd9s', []):
+            for phenocode, pheno in self._phenos.iteritems():
+                for icd9 in pheno.get('icd9_info', []):
                     if query in icd9['--spaced--icd9_string']:
                         yield {
-                            "value": phewas_code,
-                            "display": "{} (icd9 string; icd9 code: {}; phewas code: {})".format(icd9['icd9_string'], icd9['icd9_code'], phewas_code),
-                            "url": "/pheno/{}".format(phewas_code),
+                            "value": phenocode,
+                            "display": "{} (icd9 string; icd9 code: {}; phewas code: {})".format(icd9['icd9_string'], icd9['icd9_code'], phenocode),
+                            "url": "/pheno/{}".format(phenocode),
                         }

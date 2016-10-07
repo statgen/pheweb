@@ -38,19 +38,19 @@ def write_variant(writer, site_variant, pheno_variant):
 
 def convert(conversion_to_do):
     # Use tmp_filename to avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
-    src_filename = conversion_to_do['src']
+    pheno = conversion_to_do['pheno']
     dest_filename = conversion_to_do['dest']
     tmp_filename = conversion_to_do['tmp']
     assert not os.path.exists(dest_filename), dest_filename
-    _convert(src_filename, tmp_filename)
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
+    _convert(pheno, tmp_filename)
+    print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
     os.rename(tmp_filename, dest_filename)
 
 # TODO: make this use itertools.groupby on chr-pos instead of these hacks.
-def _convert(src_filename, out_filename):
+def _convert(pheno, out_filename):
     with open(out_filename, 'w') as f_out:
 
-        pheno_variants = input_file_parser.get_variants(src_filename)
+        pheno_variants = input_file_parser.get_variants(pheno)
         site_variants = get_site_variants(sites_filename)
 
         pheno_variant_headers = next(pheno_variants)
@@ -76,7 +76,7 @@ def _convert(src_filename, out_filename):
             # Catch pheno_variant up to the position of site_variant
             while pheno_variant['pos'] < site_variant['pos']:
                 pheno_variant = next(pheno_variants)
-            assert all(site_variant[key] == pheno_variant[key] for key in ['chrom', 'pos']), 'pheno_variant[chrom,pos] ({}) != site_variant[chrom,pos] ({}) in {}'.format(pheno_variant, site_variant, src_filename)
+            assert all(site_variant[key] == pheno_variant[key] for key in ['chrom', 'pos']), 'pheno_variant[chrom,pos] ({}) != site_variant[chrom,pos] ({}) in {}'.format(pheno_variant, site_variant, pheno['phenocode'])
 
             # If it's a perfect match, just print and advance both.
             if all(pheno_variant[key] == site_variant[key] for key in ['chrom', 'pos', 'ref', 'alt']):
@@ -118,15 +118,14 @@ def _convert(src_filename, out_filename):
         os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
 
 def get_conversions_to_do():
-    with open(my_dir + '/phenos.json') as f:
-        phenos = json.load(f)
+    phenos = utils.get_phenolist()
     print('number of source files:', len(phenos))
     for pheno in phenos:
-        dest_filename = '{}/augmented_pheno/{}'.format(conf.data_dir, pheno['pheno_code'])
-        tmp_filename = '{}/tmp/augmented_pheno-{}'.format(conf.data_dir, pheno['pheno_code'])
+        dest_filename = '{}/augmented_pheno/{}'.format(conf.data_dir, pheno['phenocode'])
+        tmp_filename = '{}/tmp/augmented_pheno-{}'.format(conf.data_dir, pheno['phenocode'])
         if not os.path.exists(dest_filename):
             yield {
-                'src': pheno['src_filename'],
+                'pheno': pheno,
                 'dest': dest_filename,
                 'tmp': tmp_filename,
             }

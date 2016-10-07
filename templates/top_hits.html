@@ -67,8 +67,8 @@
         <%= h.chrom %>:<%= h.pos.toLocaleString() %> <%= h.ref %> &gt; <%= h.alt %>
         <% if (h.rsids) { %>(<%= h.rsids %>)<% } %>
     </a></td>
-    <td><a style="color:black" href="/pheno/<%= h.pheno_code %>">
-        <%= h.pheno_code || h.phewas_string %>
+    <td><a style="color:black" href="/pheno/<%= h.phenocode %>">
+        <%= h.phenocode || h.phenostring %>
     </a></td>
     <td><%= h.nearest_genes.join(', ') %></td>
     <td><%= h.maf.toPrecision(2) %></td>

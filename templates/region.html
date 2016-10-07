@@ -37,7 +37,7 @@
   {% endfor %}
   <div class="row">
     <div class="col-xs-12">
-      <h1 style="margin-top:0">{{ pheno['pheno_code'] }}{% if pheno.phewas_string %}: {{ pheno.phewas_string }}{% endif %}</h1>
+      <h1 style="margin-top:0">{{ pheno['phenocode'] }}{% if pheno.phenostring %}: {{ pheno.phenostring }}{% endif %}</h1>
     </div>
   </div>
   <div class="row">
@@ -47,13 +47,13 @@
           {% elif 'num_samples' in pheno %}
             <p><b>{{ pheno.num_samples }}</b> samples</p>
           {% endif %}
-          <p>Category: <b>{{ pheno.category_string}}</b></p>
+          <p>Category: <b>{{ pheno.category}}</b></p>
       </div>
   </div>
   <br>
   <div class="row">
     <div class="col-xs-12">
-      <a href="/pheno/{{ pheno['pheno_code'] }}" class="btn btn-default">Back to Manhattan</a>
+      <a href="/pheno/{{ pheno['phenocode'] }}" class="btn btn-default">Back to Manhattan</a>
       <button id="move-left-fast" type="button" class="btn btn-default" title="move 3/4 screen left">
         <span class="glyphicon glyphicon-arrow-left"></span><span class="glyphicon glyphicon-arrow-left"></span></button>
       <button id="move-left" type="button" class="btn btn-default" title="move 1/4 scren left">

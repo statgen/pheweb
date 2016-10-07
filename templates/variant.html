@@ -142,10 +142,10 @@
 </div>
 
 <script type="text/template" id="tooltip-template">
-<%= d.phewas_string || d.phewas_code %><br>
-<% if (d.category_name) { %>
-<span style="color:<%= color_by_category(d.category_name) %>">
-<%= d.category_name %>
+<%= d.phenostring || d.phenocode %><br>
+<% if (d.category) { %>
+<span style="color:<%= color_by_category(d.category) %>">
+<%= d.category %>
 </span><br>
 <% } %>
 pval: <%= d.pval.toExponential(1) %><br>
@@ -159,11 +159,11 @@ pval: <%= d.pval.toExponential(1) %><br>
 
 <script type="text/template" id="streamtable-template">
   <tr>
-    <td style="color:<%= color_by_category(d.category_name) %>">
-      <%= d.category_name %>
+    <td style="color:<%= color_by_category(d.category) %>">
+      <%= d.category %>
     </td>
-    <td><a style="color:black" href="/pheno/<%= d.phewas_code %>"><%= d.phewas_code %></a></td>
-    <td><a style="color:black" href="/pheno/<%= d.phewas_code %>"><%= d.phewas_string || "" %></a></td>
+    <td><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenocode %></a></td>
+    <td><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || "" %></a></td>
     <td><%= d.pval.toExponential(1) %></td>
     <td><% if (d.num_cases) { %>
       <%= d.num_cases %> / <%= d.num_controls %>

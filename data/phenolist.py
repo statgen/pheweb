@@ -261,14 +261,14 @@ def merge_in_info(phenolist, more_info_rows):
 
 # def merge_in_info(phenos, more_info_rows):
 #     # TODO: do some special-casing for category and phenostring, since we have to have exactly one of each.
-#     keys_that_cant_be_lists = {'category_string', 'phewas_string'}
+#     keys_that_cant_be_lists = {'category_string', 'phenostring'}
 #     keys_to_add = {key for row in more_info_rows for key in row} - {key for row in phenos for key in row}
 #     keys_to_add_that_are_dicts = {key for key in keys_to_add if any(isinstance(row[key], dict) for row in more_info_rows)}
 #     for key in keys_to_add_that_are_dicts:
 #         assert all(isinstance(row[key], dict) for row in more_info_rows)
-#     phenos_by_pheno_code = {pheno['pheno_code']: pheno for pheno in phenos}
+#     phenos_by_phenocode = {pheno['phenocode']: pheno for pheno in phenos}
 #     for more_info_row in more_info_rows:
-#         pheno = phenos_by_pheno_code.get(more_info_row['pheno_code'], None)
+#         pheno = phenos_by_phenocode.get(more_info_row['phenocode'], None)
 #         if pheno is not None:
 #             for key in more_info_row:
 #                 if key in keys_that_cant_be_lists:

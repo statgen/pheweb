@@ -11,8 +11,8 @@ import json
 import pysam
 
 # TODO: also get beta, sebeta, etc
-def get_rows(pheno_code, chrom, pos_start, pos_end):
-    infile = '{}/augmented_pheno_gz/{}.gz'.format(conf.data_dir, pheno_code).encode('utf-8')
+def get_rows(phenocode, chrom, pos_start, pos_end):
+    infile = '{}/augmented_pheno_gz/{}.gz'.format(conf.data_dir, phenocode).encode('utf-8')
     tabix_file = pysam.TabixFile(infile)
     tabix_iter = tabix_file.fetch(chrom.encode('utf-8'), pos_start-1, pos_end+1, parser = pysam.asTuple())
 

@@ -144,9 +144,9 @@ def get_conversions_to_do():
     src_filenames = glob.glob(conf.data_dir + '/augmented_pheno/*')
     print('number of source files:', len(src_filenames))
     for src_filename in src_filenames:
-        pheno_code = os.path.basename(src_filename)
-        dest_filename = '{}/qq/{}.json'.format(conf.data_dir, pheno_code)
-        tmp_filename = '{}/tmp/qq-{}.json'.format(conf.data_dir, pheno_code)
+        phenocode = os.path.basename(src_filename)
+        dest_filename = '{}/qq/{}.json'.format(conf.data_dir, phenocode)
+        tmp_filename = '{}/tmp/qq-{}.json'.format(conf.data_dir, phenocode)
         if not os.path.exists(dest_filename):
             yield {'src':src_filename, 'dest':dest_filename, 'tmp':tmp_filename}
 

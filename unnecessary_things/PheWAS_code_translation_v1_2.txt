@@ -1,4 +1,4 @@
-"icd9"	"icd9_string"	"phewas_code"	"phewas_string"	"exclude_range"	"rollup_bool"	"Ignore_bool"	"sex"	"pregnancy_related"	"category"	"category_string"
+"icd9"	"icd9_string"	"phenocode"	"phenostring"	"exclude_range"	"rollup_bool"	"Ignore_bool"	"sex"	"pregnancy_related"	"category"	"category_string"
 "001"	"Cholera"	"008"	"Intestinal infection"	"001-009.99"	1	0	""	0	1	"infectious diseases"
 "001.0"	"Cholera due to Vibrio cholerae"	"008"	"Intestinal infection"	"001-009.99"	1	0	""	0	1	"infectious diseases"
 "001.1"	"Cholera due to Vibrio cholerae el tor"	"008"	"Intestinal infection"	"001-009.99"	1	0	""	0	1	"infectious diseases"

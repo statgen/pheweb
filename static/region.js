@@ -1,6 +1,6 @@
 (function() {
     // Define LocusZoom Data Sources object
-    var localBase = "/api/region/" + window.pheno.pheno_code + "/lz-";
+    var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";
     var remoteBase = "http://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
     data_sources.add("base", ["AssociationLZ", localBase]);

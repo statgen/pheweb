@@ -22,7 +22,7 @@ import json
 
 
 def convert(conversion_to_do):
-    src_filename = conversion_to_do['src']
+    pheno = conversion_to_do['pheno']
     dest_filename = conversion_to_do['dest']
     tmp_filename = conversion_to_do['tmp']
     assert not os.path.exists(dest_filename), dest_filename
@@ -31,7 +31,7 @@ def convert(conversion_to_do):
     with open(tmp_filename, 'w') as f_out:
 
         minimum_maf = conf.minimum_maf if hasattr(conf, 'minimum_maf') else 0
-        variants = input_file_parser.get_variants(src_filename, minimum_maf=minimum_maf)
+        variants = input_file_parser.get_variants(pheno, minimum_maf=minimum_maf)
 
         fieldnames = next(variants)
         writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
@@ -39,36 +39,36 @@ def convert(conversion_to_do):
         writer.writerows(variants)
 
         os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
+    print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
     os.rename(tmp_filename, dest_filename)
 
 def get_conversions_to_do():
-    with open(my_dir + '/phenos.json') as f:
-        phenos = json.load(f)
+    phenos = utils.get_phenolist()
     print('number of source files:', len(phenos))
     for pheno in phenos:
-        dest_filename = '{}/pheno/{}'.format(conf.data_dir, pheno['pheno_code'])
-        tmp_filename = '{}/tmp/pheno-{}'.format(conf.data_dir, pheno['pheno_code'])
+        dest_filename = '{}/cpra/{}'.format(conf.data_dir, pheno['phenocode'])
+        tmp_filename = '{}/tmp/cpra-{}'.format(conf.data_dir, pheno['phenocode'])
         if not os.path.exists(dest_filename):
             yield {
-                'src': pheno['src_filename'],
+                'pheno': pheno,
                 'dest': dest_filename,
                 'tmp': tmp_filename,
             }
 
-utils.mkdir_p(conf.data_dir + '/pheno')
-utils.mkdir_p(conf.data_dir + '/tmp')
+if __name__ == '__main__':
+    utils.mkdir_p(conf.data_dir + '/cpra')
+    utils.mkdir_p(conf.data_dir + '/tmp')
 
-conversions_to_do = list(get_conversions_to_do())
-print('number of conversions to do:', len(conversions_to_do))
+    conversions_to_do = list(get_conversions_to_do())
+    print('number of conversions to do:', len(conversions_to_do))
 
-# TODO: still do parallel but show errors like <http://stackoverflow.com/questions/6728236/exception-thrown-in-multiprocessing-pool-not-detected>
-if False: # debugging
-    print("debugging, so doing one at a time")
-    for v in conversions_to_do:
-        print(v)
-        convert(v)
+    # TODO: still do parallel but show errors like <http://stackoverflow.com/questions/6728236/exception-thrown-in-multiprocessing-pool-not-detected>
+    if False: # debugging
+        print("debugging, so doing one at a time")
+        for v in conversions_to_do:
+            print(v)
+            convert(v)
+        exit(0)
 
-p = multiprocessing.Pool(40)
-#p.map(convert, conversions_to_do)
-p.map_async(convert, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
+    p = multiprocessing.Pool(40)
+    p.map_async(convert, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work

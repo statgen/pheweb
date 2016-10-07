@@ -14,10 +14,10 @@ set -x
 ./phenolist.py filter-phenotypes --minimum-num-cases 20 --minimum-num-controls 20 --minimum-num-samples 20
 
 ./phenolist.py import-phenolist -f "$data_dir/pheno-list-phewascodes.json" "$PROJECT_DIR/unnecessary_things/PheWAS_code_translation_v1_2.txt"
-./phenolist.py keep-only-columns -f "$data_dir/pheno-list-phewascodes.json" icd9_string category_string icd9 phewas_string phewas_code
-./phenolist.py rename-columns -f "$data_dir/pheno-list-phewascodes.json"   icd9 icd9_code   phewas_string phenostring   phewas_code phenocode   category_string category
+./phenolist.py keep-only-columns -f "$data_dir/pheno-list-phewascodes.json" icd9_string category_string icd9 phenostring phenocode
+./phenolist.py rename-columns -f "$data_dir/pheno-list-phewascodes.json"   icd9 icd9_code   phenostring phenostring   phenocode phenocode   category_string category
 ./phenolist.py unique-phenocode -f "$data_dir/pheno-list-phewascodes.json" --columns-are-related icd9_info
 
 ./phenolist.py merge-in-info "$data_dir/pheno-list-phewascodes.json"
-./phenolist.py verify --required-columns icd9_info phenostring category
+./phenolist.py verify --required-columns icd9_info phenostring category assoc_files
 }

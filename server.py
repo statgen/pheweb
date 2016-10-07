@@ -85,35 +85,35 @@ def random_page():
     url = get_random_page()
     return redirect(url)
 
-@app.route('/pheno/<pheno_code>')
-def pheno_page(pheno_code):
+@app.route('/pheno/<phenocode>')
+def pheno_page(phenocode):
     try:
-        pheno = phenos[pheno_code]
+        pheno = phenos[phenocode]
     except:
-        die("Sorry, I couldn't find the pheno code {!r}".format(pheno_code.encode('utf-8')))
+        die("Sorry, I couldn't find the pheno code {!r}".format(phenocode.encode('utf-8')))
     return render_template('pheno.html',
-                           phewas_code=pheno_code,
+                           phenocode=phenocode,
                            pheno=pheno,
     )
 
-@app.route('/region/<pheno_code>/<region>')
-def region_page(pheno_code, region):
+@app.route('/region/<phenocode>/<region>')
+def region_page(phenocode, region):
     try:
-        pheno = phenos[pheno_code]
+        pheno = phenos[phenocode]
     except:
-        die("Sorry, I couldn't find the phewas code {!r}".format(pheno_code.encode('utf-8')))
-    pheno['pheno_code'] = pheno_code
+        die("Sorry, I couldn't find the phewas code {!r}".format(phenocode.encode('utf-8')))
+    pheno['phenocode'] = phenocode
     return render_template('region.html',
                            pheno=pheno,
                            region=region,
     )
 
-@app.route('/api/region/<pheno_code>/lz-results/') # This API is easier on the LZ side.
-def api_region(pheno_code):
+@app.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
+def api_region(phenocode):
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
-    rv = region.get_rows(pheno_code, chrom, pos_start, pos_end)
+    rv = region.get_rows(phenocode, chrom, pos_start, pos_end)
     return jsonify(rv)
 
 

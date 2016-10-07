@@ -16,7 +16,7 @@ run() {
     [[ $exit_code = 0 ]] || exit $exit_code
 }
 
-run ./0_0_make_phenos_json.py
+run ./0_0_make_phenolist.sh
 run ./0_1_get_cpras_from_each_input_file.py # check dates of src_filenames (hard from Makefile, maybe easiest from python. snakemake?)
 run ./0_2_get_cpras_to_show.py # check dates of cpra/*
 run ./1_2_download_rsids.sh

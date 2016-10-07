@@ -56,24 +56,26 @@ def round_sig(x, digits):
 assert round_sig(0.00123, 2) == 0.0012
 assert round_sig(1.59e-10, 2) == 1.6e-10
 
+def get_phenolist():
+    with open(os.path.join(conf.data_dir, 'pheno-list.json')) as f:
+        return json.load(f)
 
 def get_phenos_with_colnums(app_root_path):
-    with open(os.path.join(app_root_path, 'data/phenos.json')) as f:
-        phenos_by_phewas_code = {pheno['pheno_code']: pheno for pheno in json.load(f)}
+    phenos_by_phenocode = {pheno['phenocode']: pheno for pheno in get_phenolist()}
     with gzip.open(conf.data_dir + '/matrix.tsv.gz') as f:
         header = f.readline().rstrip('\r\n').split('\t')
     assert header[:7] == '#chrom pos ref alt rsids nearest_genes maf'.split()
     for colnum, colname in enumerate(header[7:], start=7):
         if colname.startswith('pval-'):
-            pheno_code = colname[len('pval-'):]
-            phenos_by_phewas_code[pheno_code]['colnum_pval'] = colnum
-    for pheno_code in phenos_by_phewas_code:
-        assert 'colnum_pval' in phenos_by_phewas_code[pheno_code], (pheno_code, phenos_by_phewas_code[pheno_code])
-    return phenos_by_phewas_code
+            phenocode = colname[len('pval-'):]
+            phenos_by_phenocode[phenocode]['colnum_pval'] = colnum
+    for phenocode in phenos_by_phenocode:
+        assert 'colnum_pval' in phenos_by_phenocode[phenocode], (phenocode, phenos_by_phenocode[phenocode])
+    return phenos_by_phenocode
 
 
 pheno_fields_to_include_with_variant = {
-    'phewas_string', 'category_name', 'num_cases', 'num_controls', 'num_samples',
+    'phenostring', 'category', 'num_cases', 'num_controls', 'num_samples',
 }
 
 def get_variant(query, phenos):
@@ -106,13 +108,13 @@ def get_variant(query, phenos):
         'phenos': [],
     }
 
-    for pheno_code, pheno in phenos.iteritems():
+    for phenocode, pheno in phenos.iteritems():
         try:
             pval = float(matching_variant_row[pheno['colnum_pval']])
         except ValueError:
             pval = 1
         rv['phenos'].append({
-            'phewas_code': pheno_code,
+            'phenocode': phenocode,
             'pval': pval,
         })
         for key in pheno:
@@ -141,11 +143,11 @@ def get_random_page():
     hit = random.choice(hits)
     r = random.random()
     if r < 0.4:
-        return '/pheno/{}'.format(hit['pheno_code'])
+        return '/pheno/{}'.format(hit['phenocode'])
     elif r < 0.8:
         return '/variant/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
     else:
-        return '/region/{pheno_code}/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
+        return '/region/{phenocode}/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
 
 def die(message):
     print(message, file=sys.stderr)

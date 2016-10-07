@@ -1,20 +1,20 @@
 var color_by_category = (function() {
-    var unique_categories = d3.set(window.variant.phenos.map(_.property('category_name'))).values();
+    var unique_categories = d3.set(window.variant.phenos.map(_.property('category'))).values();
     return d3.scale.category20b()
         .domain(unique_categories);
 })();
 
 (function() { // Create PheWAS plot.
 
-    window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phewas_code); });
+    window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phenocode); });
 
     var first_of_each_category = (function() {
         var categories_seen = {};
         return window.variant.phenos.filter(function(pheno) {
-            if (categories_seen.hasOwnProperty(pheno.category_name)) {
+            if (categories_seen.hasOwnProperty(pheno.category)) {
                 return false;
             } else {
-                categories_seen[pheno.category_name] = 1;
+                categories_seen[pheno.category] = 1;
                 return true;
             }
         });
@@ -23,14 +23,14 @@ var color_by_category = (function() {
     var category_order = (function() {
         var rv = {};
         first_of_each_category.forEach(function(pheno, i) {
-            rv[pheno.category_name] = i;
+            rv[pheno.category] = i;
         });
         return rv;
     })();
 
     // sortBy is a stable sort, so we just sort by category_order and we're good.
     window.variant.phenos = _.sortBy(window.variant.phenos, function(d) {
-        return category_order[d.category_name];
+        return category_order[d.category];
     });
 
     $(function() {
@@ -102,7 +102,7 @@ var color_by_category = (function() {
             .append('a')
             .attr('class', 'pheno_point')
             .attr('xlink:href', function(d) {
-                return '/pheno/' + d.phewas_code;
+                return '/pheno/' + d.phenocode;
             })
             .each(function(d, i) {
                 d.myIndex = i;
@@ -116,12 +116,12 @@ var color_by_category = (function() {
             })
             .attr('r', 5)
             .style('fill', function(d) {
-                return color_by_category(d.category_name);
+                return color_by_category(d.category);
             })
             .style('fill-opacity', 0.5)
             .style('stroke-width', 1)
             .style('stroke', function(d) {
-                return color_by_category(d.category_name);
+                return color_by_category(d.category);
             })
             .on('mouseover', function(d) {
                 //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
@@ -146,7 +146,7 @@ var color_by_category = (function() {
             })
             .attr('dy', '.3em') // vertically center
             .text(function(d) {
-                var text = d.phewas_string || d.phewas_code;
+                var text = d.phenostring || d.phenocode;
                 if (text.length < 30) {
                     return text;
                 } else {
@@ -188,7 +188,7 @@ var color_by_category = (function() {
             .attr("transform", fmt("translate(0,{0})", plot_height))
             .call(xAxis);
 
-        phewas_svg.selectAll('text.category_name')
+        phewas_svg.selectAll('text.category')
             .data(first_of_each_category)
             .enter() // Do we need this?
             .append('text')
@@ -198,9 +198,9 @@ var color_by_category = (function() {
                            plot_margin.left + x_scale(d.myIndex) + 3,
                            plot_height + plot_margin.top + 15);
             })
-            .text(_.property('category_name'))
+            .text(_.property('category'))
             .style('fill', function(d) {
-                return color_by_category(d.category_name);
+                return color_by_category(d.category);
             });
 
     });

@@ -25,14 +25,14 @@ LOCI_SPREAD_FROM_BEST_HIT = int(500e3)
 PVAL_CUTOFF = 1e-6
 
 def get_hits(pheno):
-    fname = os.path.join(conf.data_dir, 'manhattan/{}.json'.format(pheno['pheno_code']))
+    fname = os.path.join(conf.data_dir, 'manhattan/{}.json'.format(pheno['phenocode']))
     with open(fname) as f:
         variants = json.load(f)['unbinned_variants']
 
     hits_by_chrom = dict()
     for v in variants:
         if v['pval'] <= PVAL_CUTOFF:
-            v['pheno_code'] = pheno['pheno_code']
+            v['phenocode'] = pheno['phenocode']
             hits_by_chrom.setdefault(v['chrom'], []).append(v)
 
     for hits in hits_by_chrom.values():
@@ -55,9 +55,7 @@ def get_hits(pheno):
 
 
 if __name__ == '__main__':
-    with open(os.path.join(my_dir, 'phenos.json')) as f:
-        phenos = json.load(f)
-    #phenos = dict(list(phenos.items())[:10]) # debugging
+    phenos = utils.get_phenolist()
 
     hits = []
     for pheno in phenos:

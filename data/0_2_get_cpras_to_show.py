@@ -87,22 +87,22 @@ def merge(input_filenames, out_filename):
 
         readers = {}
         for input_filename in input_filenames:
-            pheno_code = os.path.basename(input_filename)
+            phenocode = os.path.basename(input_filename)
             file = es.enter_context(open(input_filename))
-            readers[pheno_code] = CpraReader(file)
+            readers[phenocode] = CpraReader(file)
 
         next_cpras = {}
         num_next_cpras_for_pheno = {}
-        for pheno_code, reader in readers.items():
+        for phenocode, reader in readers.items():
             try:
                 next_cp = next(reader)
             except StopIteration:
-                print('StopIteration exception occurred for {}'.format(pheno_code))
+                print('StopIteration exception occurred for {}'.format(phenocode))
                 raise
             else:
-                num_next_cpras_for_pheno[pheno_code] = len(next_cp)
+                num_next_cpras_for_pheno[phenocode] = len(next_cp)
                 for cpra in next_cp:
-                    next_cpras.setdefault(cpra, list()).append(pheno_code)
+                    next_cpras.setdefault(cpra, list()).append(phenocode)
 
         n_variants = 0
         while next_cpras:
@@ -112,17 +112,17 @@ def merge(input_filenames, out_filename):
             f_out.write('{}\t{}\t{}\t{}\n'.format(*next_cpra))
             n_variants += 1
 
-            for pheno_code in next_cpras[next_cpra]:
-                num_next_cpras_for_pheno[pheno_code] -= 1
-                assert num_next_cpras_for_pheno[pheno_code] >= 0
-                if num_next_cpras_for_pheno[pheno_code] == 0:
+            for phenocode in next_cpras[next_cpra]:
+                num_next_cpras_for_pheno[phenocode] -= 1
+                assert num_next_cpras_for_pheno[phenocode] >= 0
+                if num_next_cpras_for_pheno[phenocode] == 0:
                     try:
-                        next_cp = next(readers[pheno_code])
-                        num_next_cpras_for_pheno[pheno_code] = len(next_cp)
+                        next_cp = next(readers[phenocode])
+                        num_next_cpras_for_pheno[phenocode] = len(next_cp)
                         for cpra in next_cp:
-                            next_cpras.setdefault(cpra, list()).append(pheno_code)
+                            next_cpras.setdefault(cpra, list()).append(phenocode)
                     except StopIteration:
-                        del readers[pheno_code]
+                        del readers[phenocode]
 
             del next_cpras[next_cpra]
 
@@ -162,32 +162,34 @@ def merge_files_in_queue(lock, files_to_merge):
             print('number of files to merge : {:4} ({} files in {} seconds)'.format(len(files_to_merge), len(files_to_merge_now), (datetime.datetime.now() - start_time).seconds))
 
 
-# # debug
-# files_to_merge = glob.glob(conf.data_dir + '/pheno/*')[:NUM_FILES_TO_MERGE_AT_ONCE]
-# merge(files_to_merge, conf.data_dir+'/tmp/debug-cpra.tsv')
-# exit(0)
+if __name__ == '__main__':
 
-out_filename = conf.data_dir + '/sites/cpra.tsv'
-files_to_merge = glob.glob(conf.data_dir + '/pheno/*')
-print('number of files to merge: {:4}'.format(len(files_to_merge)))
+    if False: # debug
+        files_to_merge = glob.glob(conf.data_dir + '/cpra/*')[:NUM_FILES_TO_MERGE_AT_ONCE]
+        merge(files_to_merge, conf.data_dir+'/tmp/debug-cpra.tsv')
+        exit(0)
 
-manna = multiprocessing.Manager()
-manna_lock = manna.Lock()
-manna_files_to_merge = manna.list(files_to_merge)
-num_processes = multiprocessing.cpu_count() * 3//4 + 1
-print('number of processes:', num_processes)
+    out_filename = conf.data_dir + '/sites/cpra.tsv'
+    files_to_merge = glob.glob(conf.data_dir + '/cpra/*')
+    print('number of files to merge: {:4}'.format(len(files_to_merge)))
 
-processes = [multiprocessing.Process(target=merge_files_in_queue, args=(manna_lock, manna_files_to_merge)) for _ in range(num_processes)]
-for p in processes:
-    p.start()
-failed = False
-for p in processes:
-    p.join()
-    if p.exitcode != 0:
-        print('process {} exited with exitcode {}'.format(p.name, p.exitcode))
-        failed = True
+    manna = multiprocessing.Manager()
+    manna_lock = manna.Lock()
+    manna_files_to_merge = manna.list(files_to_merge)
+    num_processes = multiprocessing.cpu_count() * 3//4 + 1
+    print('number of processes:', num_processes)
 
-print('all workers returned')
-if not failed:
-    assert len(manna_files_to_merge) == 1, manna_files_to_merge
-    os.rename(manna_files_to_merge[0], out_filename)
+    processes = [multiprocessing.Process(target=merge_files_in_queue, args=(manna_lock, manna_files_to_merge)) for _ in range(num_processes)]
+    for p in processes:
+        p.start()
+    failed = False
+    for p in processes:
+        p.join()
+        if p.exitcode != 0:
+            print('process {} exited with exitcode {}'.format(p.name, p.exitcode))
+            failed = True
+
+    print('all workers returned')
+    if not failed:
+        assert len(manna_files_to_merge) == 1, manna_files_to_merge
+        os.rename(manna_files_to_merge[0], out_filename)
