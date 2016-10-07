@@ -15,6 +15,7 @@ import gzip
 import os
 import errno
 import random
+import sys
 
 
 def parse_variant(query, default_chrom_pos = True):
@@ -145,3 +146,40 @@ def get_random_page():
         return '/variant/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
     else:
         return '/region/{pheno_code}/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
+
+def die(message):
+    print(message, file=sys.stderr)
+    exit(1)
+
+def all_equal(iterator):
+    try:
+        first = next(iterator)
+    except StopIteration:
+        return True
+    return all(it == first for it in iterator)
+
+def sorted_groupby(iterator, key=None):
+    if key is None: key = (lambda v:v)
+    return [list(group) for _, group in itertools.groupby(sorted(iterator, key=key), key=key)]
+
+class open_maybe_gzip(object):
+     def __init__(self, fname):
+         f = open(fname, 'rb')
+         first_three = f.read(3)
+         if first_three != b'\x1f\x8b\x08':
+              # It's not GZIP
+              f.seek(0)
+              self.f = f
+         else:
+              f.close()
+              f = gzip.open(fname)
+              self.f = f
+     def __enter__(self):
+          return self.f
+     def __exit__(self, *exc):
+          self.f.close()
+
+def pairwise(iterable):
+    "s -> (s0, s1), (s2, s3), (s4, s5), ..."
+    it = iter(iterable)
+    return itertools.izip(it, it)

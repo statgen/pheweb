@@ -4,3 +4,5 @@ marisa-trie==0.7.2
 flask-compress==1.3.0
 contextlib2
 intervaltree
+more_itertools
+tqdm

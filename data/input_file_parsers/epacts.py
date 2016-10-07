@@ -112,7 +112,9 @@ def get_variants(src_filename, minimum_maf=None):
             yield v
 
 
-def get_pheno_info(src_filename):
+def get_pheno_info(pheno):
+    # TODO: if it has multiple association files, read each and check that they agree
+    src_filename = pheno['assoc_files'][0]
     with gzip.open(src_filename, 'rt') as f:
         reader = csv.DictReader(f, delimiter='\t')
         first_line = next(reader)
