@@ -53,23 +53,7 @@ required_fields = ['chrom', 'pos', 'ref', 'alt', 'maf', 'pval']
 
 def get_variants(pheno, minimum_maf=None):
     assoc_files = _get_assoc_files_in_order(pheno)
-    for fname in assoc_files:
-        for v in _get_variants(fname, minimum_maf=minimum_maf):
-            yield v
-
-_chrom_order = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
-def _variant_order_key(v):
-    try:
-        return (_chrom_order.index(v['chrom']), v['pos'])
-    except ValueError:
-        print("Failed to understand the relative position variant {!r}, probably because we don't recognize the chromosome".format(v))
-def _get_assoc_files_in_order(pheno):
-    assoc_files = [{'fname': fname} for fname in pheno['assoc_files']]
-    for assoc_file in assoc_files:
-        v = next(variants_view(_get_variants(assoc_file['fname'])))
-        assoc_file['chrom'], assoc_file['pos'] = v['chrom'], v['pos']
-    assoc_files = sorted(assoc_files, key=_variant_order_key)
-    return [assoc_file['fname'] for assoc_file in assoc_files]
+    return variants_view(v for fname in assoc_files for v in _get_variants(fname, minimum_maf=minimum_maf))
 
 class variants_view(object):
     def __init__(self, variants):
@@ -84,6 +68,19 @@ class variants_view(object):
         return next(self.v)
     next = __next__
 
+_chrom_order = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
+def _variant_order_key(v):
+    try:
+        return (_chrom_order.index(v['chrom']), v['pos'])
+    except ValueError:
+        print("Failed to understand the relative position variant {!r}, probably because we don't recognize the chromosome".format(v))
+def _get_assoc_files_in_order(pheno):
+    assoc_files = [{'fname': fname} for fname in pheno['assoc_files']]
+    for assoc_file in assoc_files:
+        v = next(variants_view(_get_variants(assoc_file['fname'])))
+        assoc_file['chrom'], assoc_file['pos'] = v['chrom'], v['pos']
+    assoc_files = sorted(assoc_files, key=_variant_order_key)
+    return [assoc_file['fname'] for assoc_file in assoc_files]
 
 def _get_variants(src_filename, minimum_maf=None):
     with gzip.open(src_filename) as f:

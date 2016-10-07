@@ -33,8 +33,7 @@ def convert(conversion_to_do):
         minimum_maf = conf.minimum_maf if hasattr(conf, 'minimum_maf') else 0
         variants = input_file_parser.get_variants(pheno, minimum_maf=minimum_maf)
 
-        fieldnames = next(variants)
-        writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
+        writer = csv.DictWriter(f_out, fieldnames=variants.fieldnames, delimiter='\t')
         writer.writeheader()
         writer.writerows(variants)
 

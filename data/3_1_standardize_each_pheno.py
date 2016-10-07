@@ -53,9 +53,8 @@ def _convert(pheno, out_filename):
         pheno_variants = input_file_parser.get_variants(pheno)
         site_variants = get_site_variants(sites_filename)
 
-        pheno_variant_headers = next(pheno_variants)
         sites_fieldnames = 'chrom pos ref alt rsids nearest_genes maf pval'.split()
-        fieldnames = sites_fieldnames + list(set(pheno_variant_headers) - set(sites_fieldnames))
+        fieldnames = sites_fieldnames + list(set(pheno_variants.fieldnames) - set(sites_fieldnames))
         writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
 
