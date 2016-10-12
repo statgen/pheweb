@@ -61,7 +61,7 @@ if __name__ == '__main__':
     conversions_to_do = list(get_conversions_to_do())
     print('number of conversions to do:', len(conversions_to_do))
 
-    # TODO: still do parallel but show errors like <http://stackoverflow.com/questions/6728236/exception-thrown-in-multiprocessing-pool-not-detected>
+    # TODO: we won't need this once we're on py3
     if False: # debugging
         print("debugging, so doing one at a time")
         for v in conversions_to_do:

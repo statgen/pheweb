@@ -41,9 +41,10 @@ import errno
 import multiprocessing
 import datetime
 
-NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.
+NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #files / #cpus?
 
 
+# TODO: replace this whole mess with itertools.groupby
 class CpraReader(object):
     def __init__(self, file):
         header = next(file)
@@ -57,7 +58,7 @@ class CpraReader(object):
         'Returns the next chrom-pos-ref-alt'
         line = next(self.file)
         v = line.rstrip('\r\n').split('\t')
-        return (int(v[0]), int(v[1]), v[2], v[3])
+        return (v[0], int(v[1]), v[2], v[3])
 
     def next(self):
         'Returns a list of lines that are tied for the next chrom-pos.'
@@ -78,6 +79,8 @@ class CpraReader(object):
 
 
 
+# TODO: use heapq?
+# TODO: sort chomosomes same as input_file_parsers does.  Actually, just put that order in utils.py.
 def merge(input_filenames, out_filename):
     tmp_filename = '{}/tmp/merging-{}'.format(conf.data_dir, random.randrange(1e10)) # I don't like tempfile.
 
