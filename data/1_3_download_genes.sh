@@ -5,8 +5,6 @@ set -euo pipefail
 PROJECT_DIR="$( cd "$( dirname "$( dirname "$(readlink -f "${BASH_SOURCE[0]}" )" )" )" && pwd )"
 source "$PROJECT_DIR/config.config"
 
-export PATH="$bedtools_path:$PATH"
-
 mkdir -p "$data_dir/sites/genes/"
 
 if ! [[ -e "$data_dir/sites/genes/genes.bed" ]]; then

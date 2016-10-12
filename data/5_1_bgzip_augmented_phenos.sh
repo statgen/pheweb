@@ -8,6 +8,24 @@ set -euo pipefail
 PROJECT_DIR="$( cd "$( dirname "$( dirname "$(readlink -f "${BASH_SOURCE[0]}" )" )" )" && pwd )"
 source "$PROJECT_DIR/config.config"
 
+if [[ -n $(type -t tabix) ]]; then
+    tabix='tabix'
+elif [[ -n "${tabix_path:-}" ]]; then
+    tabix="$tabix_path"
+else
+    echo "Failed to find a path for tabix.  Please specify 'tabix_path' in 'config.config'."
+    exit 1
+fi
+
+if [[ -n $(type -t bgzip) ]]; then
+    bgzip='bgzip'
+elif [[ -n "${bgzip_path:-}" ]]; then
+    bgzip="$bgzip_path"
+else
+    echo "Failed to find a path for bgzip.  Please specify 'tabix_path' in 'config.config'."
+    exit 1
+fi
+
 mkdir -p "$data_dir/augmented_pheno_gz"
 
 for infile in "$data_dir/augmented_pheno/"*; do
@@ -17,9 +35,9 @@ for infile in "$data_dir/augmented_pheno/"*; do
 
         # Tabix expects the header line to start with a '#'
         (echo -n '#'; cat "$infile") |
-        "$bgzip_path" > "$outfile"
+        "$bgzip" > "$outfile"
 
-        "$tabix_path" -p vcf "$outfile"
+        "$tabix" -p vcf "$outfile"
     fi
 done
 
