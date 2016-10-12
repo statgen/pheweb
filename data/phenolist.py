@@ -210,6 +210,21 @@ def _import_phenolist_csv(f, has_header):
         fieldnames = range(num_cols)
     return [{fieldnames[i]: row[i] for i in range(num_cols)} for row in rows]
 
+def split_values_on_pipes(phenolist):
+    all_keys = list(set(itertools.chain.from_iterable(phenolist)))
+    str_keys = [key for key in all_keys if all(isinstance(pheno.get(key, None), str) for pheno in phenolist)]
+    pipe_keys = [key for key in str_keys if any('|' in pheno.get(key, '') for pheno in phenolist)]
+    if pipe_keys:
+        print("Here are the keys that are going to be split into lists (ie, all values are strings and at least one contains '|'):")
+        for key in pipe_keys:
+            print("- {!r}".format(key))
+        for key in pipe_keys:
+            for pheno in phenolist:
+                if key in pheno:
+                    pheno[key] = pheno[key].split('|')
+    return phenolist
+
+
 def rename_column(phenolist, old_name, new_name):
     for pheno in phenolist:
         if new_name in pheno:
@@ -486,11 +501,14 @@ if __name__ == '__main__':
     def f(args):
         fname = args.fname or default_phenolist_fname
         phenolist = import_phenolist(args.input_filename, not args.no_header)
+        if args.delimit_lists_with_pipe:
+            phenolist = split_values_on_pipes(phenolist)
         save_phenolist(phenolist, fname)
     p = subparsers.add_parser('import-phenolist', help='read a csv, tsv, gzipped csv, gzipped tsv, or xlsx file and produce a json file')
     p.add_argument('input_filename', help="input filename")
     p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
     p.add_argument('--no-header', dest="no_header", action="store_true", help="whether input_filename has no header, in which case columns will just be numbered")
+    p.add_argument('--never-delimit-lists-with-pipe', dest="delimit_lists_with_pipe", action="store_false", help="whether to split any fields that contain pipes into lists")
 
     @add_subcommand('keep-only-columns')
     @modifies_phenolist
