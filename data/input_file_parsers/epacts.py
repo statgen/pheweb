@@ -78,10 +78,10 @@ class variants_view(object):
             for v in variant_iterator:
                 yield v
 
-_chrom_order = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
+
 def _variant_order_key(v):
     try:
-        return (_chrom_order.index(v['chrom']), v['pos'])
+        return (utils.chrom_order[v['chrom']], v['pos'])
     except ValueError:
         print("Failed to understand the relative position variant {!r}, probably because we don't recognize the chromosome".format(v))
 def _get_assoc_files_in_order(pheno):

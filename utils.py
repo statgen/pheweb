@@ -185,3 +185,6 @@ def pairwise(iterable):
     "s -> (s0, s1), (s2, s3), (s4, s5), ..."
     it = iter(iterable)
     return itertools.izip(it, it)
+
+chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
+chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}

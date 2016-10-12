@@ -92,7 +92,7 @@ def are_match(seq1, seq2):
     return False
 
 
-rsids_chrom_order = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y", "MT"]
+rsids_chrom_order = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
 rsids_chrom_order = {chrom: index for index,chrom in enumerate(rsids_chrom_order)}
 cpra_largest_index_in_rsids_chrom_order = -1
 
