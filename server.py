@@ -146,9 +146,11 @@ if __name__ == '__main__':
     import argparse
     import glob
     parser = argparse.ArgumentParser()
-    parser.add_argument('--port', type=int, default=5001, help='an integer for the accumulator')
+    parser.add_argument('--host', default=None, help='the hostname to use to access this server')
+    parser.add_argument('--port', type=int, default=5000, help='an integer for the accumulator')
     args = parser.parse_args()
     extra_files = glob.glob('templates/*.html')
-    app.run(host='browser.sph.umich.edu', port=args.port,
+    app.run(host=args.host, port=args.port,
             threaded=True, # seems to be bad at dying when I ctrl-C / SIGTERM.
-            debug=True, use_reloader=True, extra_files=extra_files)
+            debug=True, use_evalex=False,
+            use_reloader=True, extra_files=extra_files)
