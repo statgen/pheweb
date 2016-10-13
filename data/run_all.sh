@@ -3,8 +3,8 @@
 set -euo pipefail
 
 # These functions just makes things pretty.
-text_highlight() { tput setab 3; tput setaf 0; }
-text_default() { tput sgr0; }
+text_highlight() { (tput setab 3; tput setaf 0) 2>/dev/null || true; } # tput will fail on bad terminals, but that's okay
+text_default() { tput sgr0 2>/dev/null || true; }
 run() {
     text_highlight; echo; echo "=> Starting $1"; text_default
     start_time=$(date +%s)
