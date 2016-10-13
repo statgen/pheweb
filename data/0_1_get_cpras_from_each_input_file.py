@@ -22,7 +22,6 @@ def convert(conversion_to_do):
     pheno = conversion_to_do['pheno']
     dest_filename = conversion_to_do['dest']
     tmp_filename = conversion_to_do['tmp']
-    assert not os.path.exists(dest_filename), dest_filename
 
     # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
     with open(tmp_filename, 'w') as f_out:
@@ -40,11 +39,18 @@ def convert(conversion_to_do):
 
 def get_conversions_to_do():
     phenos = utils.get_phenolist()
-    print('number of source files:', len(phenos))
+    print('number of phenos:', len(phenos))
     for pheno in phenos:
         dest_filename = '{}/cpra/{}'.format(conf.data_dir, pheno['phenocode'])
         tmp_filename = '{}/tmp/cpra-{}'.format(conf.data_dir, pheno['phenocode'])
-        if not os.path.exists(dest_filename):
+
+        should_write_file = not os.path.exists(dest_filename)
+        if not should_write_file:
+            dest_file_mtime = os.stat(dest_filename).st_mtime
+            src_file_mtimes = [os.stat(fname).st_mtime for fname in pheno['assoc_files']]
+            if dest_file_mtime < max(src_file_mtimes):
+                should_write_file = True
+        if should_write_file:
             yield {
                 'pheno': pheno,
                 'dest': dest_filename,
@@ -56,7 +62,7 @@ if __name__ == '__main__':
     utils.mkdir_p(conf.data_dir + '/tmp')
 
     conversions_to_do = list(get_conversions_to_do())
-    print('number of conversions to do:', len(conversions_to_do))
+    print('number of phenos to process:', len(conversions_to_do))
 
     # TODO: we won't need this once we're on py3
     if False: # debugging

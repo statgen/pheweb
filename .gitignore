@@ -1,3 +1,6 @@
 postgres_password*
 *.pyc
 flask_config.py
+test/data_dir/*
+!test/data_dir/config.py
+!test/data_dir/make_phenolist.py

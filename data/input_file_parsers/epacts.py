@@ -6,13 +6,13 @@ from __future__ import print_function, division, absolute_import
 import os.path
 import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+utils = imp.load_source('utils', os.path.join(my_dir, '../../utils.py'))
 conf = utils.conf
 
 import csv
 import gzip
 import itertools
-
+import functools
 
 legitimate_null_values = ['.', 'NA']
 
@@ -63,16 +63,17 @@ required_fields = ['chrom', 'pos', 'ref', 'alt', 'maf', 'pval']
 for fieldname in possible_fields:
     possible_fields[fieldname]['aliases'] = [alias.lower() for alias in [fieldname] + possible_fields[fieldname]['aliases']]
 
-def get_fieldnames_and_variants(pheno, minimum_maf=None):
-    assoc_files = _get_assoc_files_in_order(pheno)
-    fieldnames, variants = _combine_fieldnames_variants_pairs(_get_fieldnames_and_variants(fname, minimum_maf=minimum_maf) for fname in assoc_files)
-    sorted_variants = _order_ref_alt_lexicographically(variants)
-    return (fieldnames, sorted_variants)
-
 def exit(*args, **kwargs):
     # It seems like exit(1) just hangs when used in multiprocessing, unlike raise, which kills all processes.
     # So I'm hackishly overriding it.  Gross.  Py3 will probably fix this issue.
     raise Exception('')
+
+
+def get_fieldnames_and_variants(pheno, minimum_maf=None, keep_chrom_idx=False):
+    assoc_files = _get_assoc_files_in_order(pheno)
+    fieldnames, variants = _combine_fieldnames_variants_pairs(_get_fieldnames_and_variants(fname, minimum_maf=minimum_maf) for fname in assoc_files)
+    sorted_variants = _order_ref_alt_lexicographically(variants, keep_chrom_idx=keep_chrom_idx)
+    return (fieldnames, sorted_variants)
 
 def _variant_order_key(v):
     return (_get_chrom_index(v['chrom']), v['pos'])
@@ -82,7 +83,7 @@ def _get_chrom_index(chrom):
     except KeyError:
         print("\nIt looks like one of your variants has the chromosome {!r}, but PheWeb doesn't handle that chromosome.".format(chrom))
         print("I bet you could fix it by running code like this on each of your input files:")
-        print("zless my-input-file.tsv | perl -nale 'print if $. == 1 or m{^(1?[0-9]|2[0-2]|X)\t}' | gzip > my-replacement-input-file.tsv.gz\n")
+        print("zless my-input-file.tsv | perl -nale 'print if $. == 1 or m{^(1?[0-9]|2[0-2]|X|Y|MT?)\t}' | gzip > my-replacement-input-file.tsv.gz\n")
         exit()
 def _get_assoc_files_in_order(pheno):
     assoc_files = [{'fname': fname} for fname in pheno['assoc_files']]
@@ -93,8 +94,7 @@ def _get_assoc_files_in_order(pheno):
     assoc_files = sorted(assoc_files, key=_variant_order_key)
     return [assoc_file['fname'] for assoc_file in assoc_files]
 
-
-def _order_ref_alt_lexicographically(variants):
+def _order_ref_alt_lexicographically(variants, keep_chrom_idx=False):
     # Also assert that chrom and pos are in order
     cp_groups = itertools.groupby(variants, key=lambda v:(v['chrom'], v['pos']))
     prev_chrom_index, prev_pos = -1, -1
@@ -112,36 +112,33 @@ def _order_ref_alt_lexicographically(variants):
                 cp[1], prev_pos, cp[0]))
             exit(1)
         for v in sorted(tied_variants, key=lambda v:(v['ref'], v['alt'])):
+            if keep_chrom_idx:
+                v['chrom_idx'] = chrom_index
             yield v
 
-def _tuplify_headed_iterator(headed_iterator):
-    header = next(headed_iterator)
-    return (header, headed_iterator)
+def _tuplify_headed_iterator(f):
+    @functools.wraps(f)
+    def f2(*args, **kwargs):
+        it = f(*args, **kwargs)
+        header = next(it)
+        return (header, it)
+    return f2
 
+@_tuplify_headed_iterator
 def _combine_fieldnames_variants_pairs(list_of_fieldname_variants_pairs):
-    # return is in (fieldnames, variants) form
-    rv = _headed_combine_fieldnames_variants_pairs(list_of_fieldname_variants_pairs)
-    fieldnames = next(rv)
-    return (fieldnames, rv)
-def _headed_combine_fieldnames_variants_pairs(list_of_fieldname_variants_pairs):
-    # return is in itertools.chain([fieldnames], variants) form
-    constant_fieldnames = None
+    # return is in itertools.chain([fieldnames], variants) form but _tuplify_headed_iterator() transforms it to (fieldnames, variants)
+    constant_fieldnames, variants = next(list_of_fieldname_variants_pairs)
+    yield constant_fieldnames
+    for v in variants: yield v
     for fieldnames, variants in list_of_fieldname_variants_pairs:
-        if constant_fieldnames is None:
-            assert fieldnames is not None
-            constant_fieldnames = fieldnames
-            yield constant_fieldnames
-        else:
-            if constant_fieldnames != fieldnames:
-                utils.die("ERROR 34234 for {!r} and {!r}".format(constant_fieldnames, fieldnames))
+        if constant_fieldnames != fieldnames:
+            utils.die("ERROR 34234 for {!r} and {!r}".format(constant_fieldnames, fieldnames))
         for v in variants:
             yield v
 
-def _get_fieldnames_and_variants(*args, **kwargs):
-    # return is in (fieldnames, variants) form
-    return _tuplify_headed_iterator(_get_headed_variants(*args, **kwargs))
-def _get_headed_variants(src_filename, minimum_maf=None):
-    # return is in itertools.chain([fieldnames], variants) form
+@_tuplify_headed_iterator
+def _get_fieldnames_and_variants(src_filename, minimum_maf=None):
+    # return is in itertools.chain([fieldnames], variants) form but _tuplify_headed_iterator() transforms it to (fieldnames, variants)
     with utils.open_maybe_gzip(src_filename) as f:
         # TODO: use `pandas.read_csv(src_filename, usecols=[...], converters={...}, iterator=True, verbose=True, na_values='.', sep=None)
         #   - first without `usecols`, to parse the column names, and then a second time with `usecols`.
@@ -214,21 +211,28 @@ def _get_headed_variants(src_filename, minimum_maf=None):
             yield v
 
 
+
 def get_pheno_info(pheno):
-    # TODO: if it has multiple association files, read each and check that they agree
-    src_filename = pheno['assoc_files'][0]
-    with gzip.open(src_filename, 'rt') as f:
-        reader = csv.DictReader(f, delimiter='\t')
-        first_line = next(reader)
-        rv = _get_pheno_info_from_line(first_line)
+    lines_metadata_infos = _get_lines_metadata_infos(pheno)
+    first_line, first_line_metadata, first_info = next(lines_metadata_infos)
+    for line, line_metadata, info in lines_metadata_infos:
+        if info != first_info:
+            utils.die("The pheno info parsed from some lines disagrees.\n" +
+                      "- on line {line_num} of file {filename!r}, parsed:\n".format(**first_line_metadata) +
+                      "    {}".format(first_line) +
+                      "- on line {line_num} of file {filename!r}, parsed:\n".format(**line_metadata) +
+                      "    {}".format(line))
+    return first_info
 
-        # Check that some later lines agree
-        for i, line in enumerate(reader):
-            if i > 100: break
-            assert _get_pheno_info_from_line(line) == rv
-    return rv
+def _get_lines_metadata_infos(pheno):
+    for filename in pheno['assoc_files']:
+        with utils.open_maybe_gzip(filename, 'rt') as f:
+            reader = csv.DictReader(f, delimiter='\t')
+            for i, line in enumerate(itertools.islice(reader, 0, 100)):
+                metadata = {'line_num':i, 'filename':filename}
+                yield (line, metadata, _get_pheno_info_from_line(line, metadata))
 
-def _get_pheno_info_from_line(line):
+def _get_pheno_info_from_line(line, line_metadata):
     rv = {}
     if 'NS.CASE' in line:
         rv['num_cases'] = int(line['NS.CASE'])
@@ -237,6 +241,10 @@ def _get_pheno_info_from_line(line):
     if 'NS' in line:
         rv['num_samples'] = int(line['NS'])
     if all(key in rv for key in ['num_cases', 'num_controls', 'num_samples']):
-        assert rv['num_cases'] + rv['num_controls'] == rv['num_samples']
+        if rv['num_cases'] + rv['num_controls'] != rv['num_samples']:
+            utils.die("The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
+                      "- the filename: {!r}\n".format(line_metadata['filename']) +
+                      "- the line number: {}".format(line_metadata['line_num']+1) +
+                      "- parsed line: [{!r}]\n".format(line))
         del rv['num_samples'] # don't need it.
     return rv

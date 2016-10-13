@@ -6,13 +6,14 @@
 
 # `data_dir` should have enough space to store all of your association files.
 # It's best if you have read/write access to it.  If you don't, prefix all commands with `sudo `.
-data_dir='/path/to/my/data/'
+# If this file is at the root of your data_dir, you don't need this line.
+#data_dir='/path/to/data_dir'
 
 
 # Any variant with this minor allele frequency (MAF) or larger WILL BE SHOWN, no matter what.
 # If a variant has a smaller MAF, it will still be shown if it has a large enough MAF in some other phenotype.
 # For example, if you set it to 0.01, you'll only see variants that have a MAF>=1% in at least one phenotype.
-minimum_maf = 0.0
+minimum_maf=0.01
 
 
 # These aren't needed by default.

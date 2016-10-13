@@ -110,6 +110,16 @@ if __name__ == '__main__':
     input_file = os.path.join(conf.data_dir, 'sites/cpra_rsids.tsv')
     output_file = os.path.join(conf.data_dir, 'sites/sites.tsv')
     temp_file = os.path.join(conf.data_dir, 'tmp/sites.tsv')
-    genes_file = os.path.join(conf.data_dir, 'sites/genes/genes.bed')
+    if hasattr(conf, 'cache_dir'):
+        genes_file = os.path.join(conf.cache_dir, 'genes.bed')
+    else:
+        genes_file = os.path.join(conf.data_dir, 'sites', 'genes','genes.bed')
 
-    annotate_genes(input_file, temp_file, output_file, genes_file)
+    def mod_time(fname):
+        return os.stat(fname).st_mtime
+
+    if os.path.exists(output_file) and max(mod_time(genes_file), mod_time(input_file)) < mod_time(output_file):
+        print('gene annotation is up-to-date!')
+    else:
+        annotate_genes(input_file, temp_file, output_file, genes_file)
+

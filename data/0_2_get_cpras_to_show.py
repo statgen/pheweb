@@ -11,7 +11,6 @@ I'm reading in a full position at a time to avoid this issue that was happening 
 
 # TODO:
 # - split up by chromosome?
-# - remove cp_group behavior, since input_file_parsers/epacts.py handles that for us.
 
 from __future__ import print_function, division, absolute_import
 
@@ -178,6 +177,14 @@ if __name__ == '__main__':
 
     out_filename = conf.data_dir + '/sites/cpra.tsv'
     files_to_merge = glob.glob(conf.data_dir + '/cpra/*')
+
+    if os.path.exists(out_filename):
+        dest_file_modification_time = os.stat(out_filename).st_mtime
+        src_file_modification_times = [os.stat(fname).st_mtime for fname in files_to_merge]
+        if dest_file_modification_time > max(src_file_modification_times):
+            print('The list of sites is up-to-date!')
+            exit(0)
+
     print('number of files to merge: {:4}'.format(len(files_to_merge)))
 
     manna = multiprocessing.Manager()

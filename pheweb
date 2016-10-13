@@ -2,18 +2,17 @@
 
 # -*- mode: python -*-
 
-# TODO:
-# 1. Create a folder `subcommands/`.
-# 2. Populate a few subcommands.  What should each have?  Just a function?  A class?
-# 3. When someone runs `./pheweb <subcommand>`, check for `subcommands/<subcommand>.py`.  Invoke it with args[1:], config, pheweb_dir, and data_dir.
-# 4. Put all of `data/*.{sh,py}` in there, including `phenolist.py` and `run_all.py`.
-#    - how should `run_all.py` invoke `./pheweb get_cpras`?  Maybe pass it a reference to the subommand-calling function?
-# 5. Fetch config from [$PHEWEB_DIR/config.py, $PWD/config.py, $pheweb_dir/config.py].
-# 6. Put data in $data_dir/generated-by-pheweb/
-# 7. Set up tests.  Use .gitignore.
-# 8. `./server.py --port 5005` -> `./pheweb serve --port 5005`.
-
 '''
+1. Create a folder `subcommands/`.
+2. Populate a few subcommands.  What should each have?  Just a function?  A class?
+3. When someone runs `./pheweb <subcommand>`, check for `subcommands/<subcommand>.py`.  Invoke it with args[1:], config, pheweb_dir, and data_dir.
+4. Put all of `data/*.{sh,py}` in there, including `phenolist.py` and `run_all.py`.
+   - how should `run_all.py` invoke `./pheweb get_cpras`?  Maybe pass it a reference to the subommand-calling function?
+5. Fetch config from [$PHEWEB_DIR/config.py, $PWD/config.py, $pheweb_dir/config.py].
+6. Put data in $data_dir/generated-by-pheweb/
+7. Set up tests.  Use .gitignore.
+8. `./server.py --port 5005` -> `./pheweb serve --port 5005`.
+
 make everything subcommands of a common entry-point.
 - `./pheweb phenolist glob ...`
 
@@ -22,9 +21,12 @@ move all pheweb-generated data into `$dir/generated-by-pheweb/`.
 make a subcommand `./pheweb quickstart '/tmp/phe([0-9]+).tsv.gz'`
 - uses `~/my-phewebs/$RANDOM/`
 - prepares a pheweb and hosts it on `0.0.0.0:5000`
-    - could it open a web browser?  how to do that on linux?
+    - could it open a web browser?  how to do that on linux?  only if on macOS?
+    - could it find its own external IP, attempt to contact itself, and then provide a link if it works?
+    - and otherwise, it would just print or link to instructions?
 
 to make templates configurable:
+- use `$data_dir/custom_templates/`
 - option 1: (nope)
     - make own templates that extend defaults
     - tell flask to use them
@@ -57,7 +59,7 @@ Differences between mgi and sardinia-r2
 - config.config (minimum_maf, data_dir)
 - 0_0
     - not really my problem, but get it out of pheweb/data/
-- phewas_significance_threshold (add to config.config)
+- phewas_significance_threshold (add to config.py)
 - about.html text
 - index.html <h2>
 - inclusion of <th>beta (se)</th> on top_hits and others
@@ -72,14 +74,13 @@ so then everything will work but we'll want to work from $dir and use the fullpa
 
    ```
    pip3 install pheweb
-   mkdir /var/my-new-pheweb; cd /var/my-new-pheweb
-   pheweb quickstart --glob <glob>... # just uses $(basename) as phecode
-   pheweb server --port 5003
+   pheweb quickstart <globs>... # just uses $(basename) as phecode
    ```
 
-make a special `./pheweb augment-like-vb-icd9-phewas`.
-- it should be easy to add custom subcommands.
-- What if we just had one file for each subcommand (`pheweb/subcommands/<subcommand>.py`), so it was super easy to add more?
+make a special `./pheweb phenolist augment-like-vb-icd9-phewas`.
 
-use wget (from pypi) instead of /usr/{,local/}bin/wget (https://pypi.python.org/pypi/wget)
+remove non-python dependencies:
+- use wget (from pypi) instead of /usr/{,local/}bin/wget (https://pypi.python.org/pypi/wget)
+- use pysam.tabix_index() instead of `tabix -p vcf <file>`
+- is there any way to avoid bgzip?  probably not.
 '''

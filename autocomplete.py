@@ -4,7 +4,7 @@ from __future__ import print_function, division, absolute_import
 import os.path
 import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+utils = imp.load_source('utils', os.path.join(my_dir, 'utils.py'))
 conf = utils.conf
 
 import itertools

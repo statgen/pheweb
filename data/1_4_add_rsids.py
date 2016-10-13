@@ -16,7 +16,6 @@ We read one full position at a time.  When we have a position-match, we find all
 '''
 
 # TODO:
-# - In rsids.vcf.gz why does `ref` sometimes contain `N`?
 # - Do we need to left-normalize all indels?
 
 from __future__ import print_function, division, absolute_import
@@ -34,10 +33,17 @@ import collections
 import csv
 import itertools
 
-rsids_filename = conf.data_dir + "/sites/dbSNP/rsids.vcf.gz"
+if hasattr(conf, 'cache_dir'):
+    rsids_filename = os.path.join(conf.cache_dir, 'rsids-147.vcf.gz')
+else:
+    rsids_filename = os.path.join(conf.data_dir, 'sites', 'dbSNP', 'rsids-147.vcf.gz')
 cpra_filename = conf.data_dir + "/sites/cpra.tsv"
 out_filename = conf.data_dir + "/sites/cpra_rsids.tsv"
 
+def mod_time(fname): return os.stat(fname).st_mtime
+if os.path.exists(out_filename) and max(mod_time(cpra_filename), mod_time(rsids_filename)) < mod_time(out_filename):
+    print('rsid annotation is up-to-date!')
+    exit(0)
 
 def get_rsid_reader(rsids_f):
     # TODO: add assertions about ordering?
@@ -58,7 +64,6 @@ def get_rsid_reader(rsids_f):
 
 def get_cpra_reader(cpra_f):
     '''Returns a reader which returns a list of all cpras at the next chrom-pos.'''
-    # TODO: add assertions about ordering?
     cpra_reader = csv.DictReader(cpra_f, delimiter='\t')
     for cpra in cpra_reader:
         yield {

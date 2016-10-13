@@ -10,19 +10,24 @@ utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
 conf = utils.conf
 utils.activate_virtualenv()
 
-input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
-
+dbsnp_version = 147
 dbsnp_dir = os.path.join(conf.data_dir, 'sites', 'dbSNP')
-tmp_file = os.path.join(dbsnp_dir, 'tmp-dbsnp-b147-GRCh37.gz')
-raw_file = os.path.join(dbsnp_dir, 'dbsnp-b147-GRCh37.gz')
-clean_file = os.path.join(dbsnp_dir, 'rsids.vcf.gz')
-wget = utils.get_path('wget')
+tmp_file = os.path.join(dbsnp_dir, 'tmp-dbsnp-b{}-GRCh37.gz'.format(dbsnp_version))
+raw_file = os.path.join(dbsnp_dir, 'dbsnp-b{}-GRCh37.gz'.format(dbsnp_version))
 
-utils.mkdir_p(dbsnp_dir)
+clean_file = 'rsids-{}.vcf.gz'.format(dbsnp_version)
+if hasattr(conf, 'cache_dir'):
+    utils.mkdir_p(conf.cache_dir)
+    clean_file = os.path.join(conf.cache_dir, clean_file)
+else:
+    clean_file = os.path.join(dbsnp_dir, clean_file)
 
 if not os.path.exists(clean_file):
+    print('dbsnp will be stored at {clean_file!r}'.format(**locals()))
+    utils.mkdir_p(dbsnp_dir)
     if not os.path.exists(raw_file):
         print('Downloading dbsnp!')
+        wget = utils.get_path('wget')
         #utils.run_cmd([wget, '-O', tmp_file, 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/database/organism_data/b147_SNPChrPosOnRef_105.bcp.gz'])
         utils.run_cmd([wget, '-O', tmp_file, 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz'])
         os.rename(tmp_file, raw_file)
@@ -34,5 +39,5 @@ if not os.path.exists(clean_file):
     gzip > '{clean_file}'
     '''.format(**locals()))
 
-else
-    print("'{clean_file}' already exists".format(**locals()))
+else:
+    print("dbsnp is at '{clean_file}'".format(**locals()))

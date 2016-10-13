@@ -10,17 +10,21 @@ utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
 conf = utils.conf
 utils.activate_virtualenv()
 
-input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
-
 gene_dir = os.path.join(conf.data_dir, 'sites', 'genes')
 bed_file = os.path.join(gene_dir, 'genes.bed')
 gencode_file = os.path.join(gene_dir, 'gencode.gtf.gz')
-wget = utils.get_path('wget')
 
-utils.mkdir_p(gene_dir)
+if hasattr(conf, 'cache_dir'):
+    utils.mkdir_p(conf.cache_dir)
+    bed_file = os.path.join(conf.cache_dir, 'genes.bed')
+else:
+    bed_file = os.path.join(gene_dir, 'genes.ged')
 
 if not os.path.exists(bed_file):
+    print('genes.bed will be stored at {bed_file!r}'.format(**locals()))
+    utils.mkdir_p(gene_dir)
     if not os.path.exists(gencode_file):
+        wget = utils.get_path('wget')
         # Link from <http://www.gencodegenes.org/releases/19.html>
         utils.run_cmd([wget, '-O', gencode_file, "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz"])
 
@@ -33,5 +37,5 @@ if not os.path.exists(bed_file):
     perl -F'\t' -nale '$F[0] =~ s/chr//; print "$F[0]\t$F[3]\t$F[4]\t", m/gene_name "(.*?)";/ if $F[2] eq "gene"' > '{bed_file}'
     '''.format(**locals()))
 
-else
-    print("{bed_file} already exists".format(**locals()))
+else:
+    print("gencode is at {bed_file!r}".format(**locals()))

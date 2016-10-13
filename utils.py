@@ -14,11 +14,26 @@ conf = None
 for conf_file in possible_conf_files:
     if os.path.exists(conf_file):
         conf = imp.load_source('conf', conf_file)
+        break
 if conf is None:
     raise Exception('PheWeb failed to find a config.py file.  Places checked:\n{}'.format('\n'.join(possible_conf_files)))
+if not hasattr(conf, 'data_dir'):
+    conf.data_dir = os.path.dirname(conf.__file__)
+if not hasattr(conf, 'source_file_parser'): # TODO: rename `association_file_parser`, relegate source_file_parser to an alias
+    conf.source_file_parser = 'epacts'
+if hasattr(conf, 'cache_dir'):
+    if not conf.cache_dir:
+        del conf.cache_dir
+    else:
+        conf.cache_dir = os.path.expanduser(conf.cache_dir)
+        if not os.access(conf.cache_dir, os.R_OK):
+            print('Warning: the directory {!r} is configured to be your cache directory in {!r} but it is not readable'.format(
+                conf.cache_dir, conf_file))
 
 import re
 import itertools
+import functools
+import traceback
 import math
 import json
 import gzip
@@ -27,6 +42,7 @@ import errno
 import random
 import sys
 import subprocess
+import time
 
 
 def parse_variant(query, default_chrom_pos = True):
@@ -70,12 +86,13 @@ def get_phenos_with_colnums(app_root_path):
     with gzip.open(conf.data_dir + '/matrix.tsv.gz') as f:
         header = f.readline().rstrip('\r\n').split('\t')
     assert header[:7] == '#chrom pos ref alt rsids nearest_genes maf'.split()
-    for colnum, colname in enumerate(header[7:], start=7):
-        if colname.startswith('pval-'):
-            phenocode = colname[len('pval-'):]
-            phenos_by_phenocode[phenocode]['colnum_pval'] = colnum
     for phenocode in phenos_by_phenocode:
-        assert 'colnum_pval' in phenos_by_phenocode[phenocode], (phenocode, phenos_by_phenocode[phenocode])
+        phenos_by_phenocode[phenocode]['colnum'] = {}
+    for colnum, colname in enumerate(header[7:], start=7):
+        label, phenocode = colname.split('@')
+        phenos_by_phenocode[phenocode]['colnum'][label] = colnum
+    for phenocode in phenos_by_phenocode:
+        assert 'pval' in phenos_by_phenocode[phenocode]['colnum'], (phenocode, phenos_by_phenocode[phenocode])
     return phenos_by_phenocode
 
 
@@ -164,6 +181,18 @@ def die(message):
     print(message, file=sys.stderr)
     exit(1)
 
+def exception_printer(f):
+    @functools.wraps(f)
+    def f2(*args, **kwargs):
+        try:
+            rv = f(*args, **kwargs)
+        except Exception as exc:
+            time.sleep(2*random.random()) # hopefully avoid interleaved printing (when using multiprocessing)
+            traceback.print_exc()
+            print(exc)
+            raise
+    return f2
+
 def all_equal(iterator):
     try:
         first = next(iterator)
@@ -176,27 +205,29 @@ def sorted_groupby(iterator, key=None):
     return [list(group) for _, group in itertools.groupby(sorted(iterator, key=key), key=key)]
 
 class open_maybe_gzip(object):
-     def __init__(self, fname):
-         f = open(fname, 'rb')
-         first_three = f.read(3)
-         if first_three != b'\x1f\x8b\x08':
-              # It's not GZIP
-              f.seek(0)
-              self.f = f
-         else:
-              f.close()
-              f = gzip.open(fname)
-              self.f = f
-     def __enter__(self):
-          return self.f
-     def __exit__(self, *exc):
-          self.f.close()
+    def __init__(self, fname, *args):
+        self.fname = fname
+        self.args = args
+    def __enter__(self):
+        is_gzip = False
+        with open(self.fname, 'rb') as f:
+            if f.read(3) == b'\x1f\x8b\x08':
+                is_gzip = True
+        if is_gzip:
+            self.f = gzip.open(self.fname, *self.args)
+        else:
+            self.f = open(self.fname, *self.args)
+        return self.f
+    def __exit__(self, *exc):
+        self.f.close()
 
 def pairwise(iterable):
     "s -> (s0, s1), (s2, s3), (s4, s5), ..."
     it = iter(iterable)
     return itertools.izip(it, it)
 
+# TODO: chrom_order_list[25-1] = 'M', chrom_order['M'] = 25-1, chrom_order['MT'] = 25-1 ?
+#       and epacts.py should convert all chroms to chrom_idx?
 chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
 chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
 

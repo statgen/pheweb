@@ -16,20 +16,33 @@ utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
 conf = utils.conf
 utils.activate_virtualenv()
 
-input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
-
 import subprocess
 import os
+import time
+import glob
 
 gxx = utils.get_path('g++', 'gxx_path')
+tabix = utils.get_path('tabix')
+bgzip = utils.get_path('bgzip')
 matrixify_cpp_fname = os.path.join(my_dir, 'matrixify.cpp')
 matrixify_exe_fname = os.path.join(conf.data_dir, 'tmp', 'matrixify')
+sites_fname = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
 augmented_pheno_dir = os.path.join(conf.data_dir, 'augmented_pheno')
-matrix_tsv_fname = os.path.join(conf.data_dir, 'matrix.tsv')
+matrix_gz_fname = os.path.join(conf.data_dir, 'matrix.tsv.gz')
 
-utils.run_cmd([gxx, matrixify_cpp_fname, '-O3', '-o', matrixify_exe_fname])
+def should_run():
+    if not os.path.exists(matrix_gz_fname): return True
+    infiles = list(glob.glob(os.path.join(augmented_pheno_dir, '*')))
+    infiles.append(sites_fname)
+    infile_modtime = max(os.stat(fn).st_mtime for fn in infiles)
+    return infile_modtime > os.stat(matrix_gz_fname).st_mtime
 
-utils.run_script('''
-cd '{augmented_pheno_dir}'
-'{matrixify_exe_fname}' > '{matrix_tsv_fname}'
-'''.format(**locals()))
+if should_run():
+    utils.run_cmd([gxx, '--std=c++11', matrixify_cpp_fname, '-O3', '-o', matrixify_exe_fname])
+    utils.run_script('''
+    '{matrixify_exe_fname}' '{sites_fname}' '{augmented_pheno_dir}' |
+    '{bgzip}' > '{matrix_gz_fname}'
+    '''.format(**locals()))
+    utils.run_cmd([tabix, '-p' ,'vcf', matrix_gz_fname])
+else:
+    print('matrix is up-to-date!')

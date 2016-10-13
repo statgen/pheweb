@@ -26,7 +26,7 @@ run() {
     exit_code=$?
     set -e
     end_time=$(date +%s)
-    text_highlight; [[ $exit_code = 0 ]] && echo -n '=> echo Completed' || echo -n '=> Failed'; echo -n " $1 in $((end_time - start_time)) seconds with exit code $exit_code"; text_default; echo
+    text_highlight; [[ $exit_code = 0 ]] && echo -n '=> Completed' || echo -n '=> Failed'; echo -n " in $((end_time - start_time)) seconds with exit code $exit_code"; text_default; echo
     [[ $exit_code = 0 ]] || exit $exit_code
 }
 
@@ -42,7 +42,6 @@ run ./3_1_standardize_each_pheno.py # TODO: each depends on its own src_filename
 run ./3_2_make_manhattan_for_each_pheno.py # TODO: each depends on its own augmented_pheno
 run ./3_3_make_QQ_for_each_pheno.py # TODO: each depends on its own augmented_pheno
 run ./4_1_make_matrix.py # TODO: depends on augmented_pheno/*
-run ./4_2_bgzip.py
 run ./5_1_bgzip_augmented_phenos.py # TODO: each depends on its own augmented_pheno
 run ./9_3_get_all_hits.py
 # TODO: delete unneeded files?

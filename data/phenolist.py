@@ -36,8 +36,8 @@ def get_phenolist_with_globs(globs):
             num_files_in_this_glob = 0
             for fname in glob.iglob(g):
                 num_files_in_this_glob += 1
-                assoc_fnames.append(fname)
-                progressbar.update()
+                assoc_fnames.append(os.path.abspath(fname))
+                progressbar.update() # TODO: Check whether this actually makes a decent progressbar
             if num_files_in_this_glob == 0:
                 progressbar.write("\rWARNING: the shell-glob {!r} didn't match any files\n".format(g))
     print("NOTE: found {} association files".format(len(assoc_fnames)))
@@ -172,14 +172,6 @@ def import_phenolist(fname, has_header):
         print("I couldn't figure out how to open the file {!r}, sorry.".format(fname))
         exit(1)
 
-def listify_assoc_files(phenolist):
-    for pheno in phenolist:
-        if 'assoc_files' in pheno and not isinstance(pheno['assoc_files'], list):
-            if not isinstance(pheno['assoc_files'], str):
-                utils.die("assoc_files is of unsupported type({!r}). value: {!r}".format(type(pheno['assoc_files']), pheno['assoc_files']))
-            pheno['assoc_files'] = [pheno['assoc_files']]
-    return phenolist
-
 def _import_phenolist_xlsx(fname, has_header):
     import openpyxl
     try:
@@ -260,6 +252,30 @@ def split_values_on_pipes(phenolist):
                     pheno[key] = pheno[key].split('|')
     return phenolist
 
+def listify_assoc_files(phenolist):
+    for pheno in phenolist:
+        if 'assoc_files' in pheno and not isinstance(pheno['assoc_files'], list):
+            if not isinstance(pheno['assoc_files'], str):
+                utils.die("assoc_files is of unsupported type({!r}). value: {!r}".format(type(pheno['assoc_files']), pheno['assoc_files']))
+            pheno['assoc_files'] = [pheno['assoc_files']]
+    return phenolist
+
+def numify_numeric_cols(phenolist):
+    float_regex = re.compile(r'^-?[0-9]+(?:\.[0-9]+)?(?:[Ee]-?[0-9]+)?$')
+    all_keys = list(set(itertools.chain.from_iterable(phenolist)))
+    int_keys = [key for key in all_keys if all(isinstance(pheno.get(key, ''), str) and pheno.get(key, '0').isdigit() for pheno in phenolist)]
+    float_keys = [key for key in all_keys if all(isinstance(pheno.get(key, ''), str) and float_regex.match(pheno.get(key, '0')) for pheno in phenolist)]
+    float_keys = set(float_keys) - set(int_keys)
+    for key in int_keys:
+        for pheno in phenolist:
+            if key in pheno:
+                pheno[key] = int(pheno[key])
+    for key in float_keys:
+        for pheno in phenolist:
+            if key in pheno:
+                pheno[key] = float(pheno[key])
+    return phenolist
+
 def print_as_csv(phenolist):
     phenolist = copy.deepcopy(phenolist)
     all_columns = list(more_itertools.unique_everseen(col for pheno in phenolist for col in pheno))
@@ -267,7 +283,9 @@ def print_as_csv(phenolist):
     w.writeheader()
     for pheno in phenolist:
         for k in pheno:
-            if isinstance(pheno[k], (str,unicode)):
+            if isinstance(pheno[k], (int, float)):
+                pass
+            elif isinstance(pheno[k], (str,unicode)):
                 pass
             elif isinstance(pheno[k], list) and len(pheno[k])>0 and all(isinstance(v,(str,unicode)) for v in pheno[k]) and all('|' not in v for v in pheno[k]):
                 pheno[k] = '|'.join(pheno[k])
@@ -556,6 +574,7 @@ if __name__ == '__main__':
         if args.delimit_lists_with_pipe:
             phenolist = split_values_on_pipes(phenolist)
         phenolist = listify_assoc_files(phenolist)
+        phenolist = numify_numeric_cols(phenolist)
         save_phenolist(phenolist, fname)
     p = subparsers.add_parser('import-phenolist', help='read a csv, tsv, gzipped csv, gzipped tsv, or xlsx file and produce a json file')
     p.add_argument('input_filename', help="input filename")
