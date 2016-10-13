@@ -9,7 +9,8 @@ Loading data into a new Pheweb is done in four steps.
 2. Make a data directory.  It should be in a location where you can afford to store twice as much data as the size of your input files.
    If you don't have read/write access to it, most of the commands you run later will need to start with `sudo `.
 
-3. Make a python2 virtualenv.  First, if you don't have `virtualenv` installed, follow the directions [here](https://virtualenv.pypa.io/en/stable/installation/)Then make your virtualenv:
+3. Make a python2 virtualenv.  If you don't have `virtualenv` installed, follow the directions [here](https://virtualenv.pypa.io/en/stable/installation/).
+   Use these commands to make a virtualenv and install the packages we need:
 
     ```
     virtualenv --python=python2.7 /path/to/my/new/venv # Choose a path you like.
