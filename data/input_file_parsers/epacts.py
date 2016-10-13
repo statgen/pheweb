@@ -134,8 +134,9 @@ def _get_variants(src_filename, minimum_maf=None):
             fields = line.rstrip('\n\r').split('\t')
             if len(fields) != len(header_fields):
                 print("ERROR: A line has {!r} fields, but we expected {!r}.".format(len(fields), len(header_fields)))
-                print("The line: {!r}".format(fields))
-                print("The header: {!r}".format(header_fields))
+                print("- The line: {!r}".format(fields))
+                print("- The header: {!r}".format(header_fields))
+                print("- In file: {!r}".format(src_filename))
                 exit(1)
 
             v = {}
