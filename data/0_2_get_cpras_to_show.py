@@ -43,6 +43,7 @@ import datetime
 import itertools
 
 NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #files / #cpus?
+MIN_NUM_FILES_TO_MERGE_AT_ONCE = 4 # Try to avoid ever merging fewer than this many files at a time.
 
 
 def get_cpras(file):
@@ -126,17 +127,27 @@ def merge(input_filenames, out_filename):
 utils.mkdir_p(conf.data_dir + '/sites')
 utils.mkdir_p(conf.data_dir + '/tmp')
 
-def merge_files_in_queue(lock, files_to_merge):
+def merge_files_in_queue(lock, manna_dict):
+    # Keep a work queue of files that need to get merged.
+    # Each process takes files off the queue, merges them, and pushes the result back onto the queue.
+    # But if there are fewer than MIN_NUM_FILES_TO_MERGE_AT_ONCE on the work queue, and there are files currently being merged (ie, the process is not alone),
+    #    then the process just exits rather than merge a small number of files.
 
     while True:
         with lock:
-            if len(files_to_merge) <= 1: # no work to do.
+            if len(manna_dict['files_to_merge']) <= 1: # no work to do.
                 return
+            elif len(manna_dict['files_to_merge']) >= MIN_NUM_FILES_TO_MERGE_AT_ONCE or len(manna_dict['files_being_merged']) == 0:
+                # If there's a good amount of work to do (or if we're the only process left to do the work), we merge some files.
+                files_to_merge_now = manna_dict['files_to_merge'][-NUM_FILES_TO_MERGE_AT_ONCE:]
+                manna_dict['files_being_merged'] = manna_dict['files_being_merged'] + files_to_merge_now
+                manna_dict['files_to_merge'] = manna_dict['files_to_merge'][:-NUM_FILES_TO_MERGE_AT_ONCE]
+                print('this process is now merging {:4} files, {:4} files remaining, {:4} currently in progress'.format(
+                    len(files_to_merge_now), len(manna_dict['files_to_merge']), len(manna_dict['files_being_merged'])))
             else:
-                files_to_merge_now = files_to_merge[-NUM_FILES_TO_MERGE_AT_ONCE:]
-                for _ in files_to_merge_now:
-                    files_to_merge.pop()
-                print('number of files to merge: {:4}'.format(len(files_to_merge)))
+                print("Looks like there's nothing for this process to do, so quitting. ({:4} files remaining, {:4} currently in progress)".format(
+                    len(manna_dict['files_to_merge']), len(manna_dict['files_being_merged'])))
+                return
 
         out_filename = '{}/tmp/merging-{}'.format(conf.data_dir, random.randrange(1e10)) # I don't like tempfile.
 
@@ -148,8 +159,10 @@ def merge_files_in_queue(lock, files_to_merge):
                 os.remove(filename)
 
         with lock:
-            files_to_merge.append(out_filename)
-            print('number of files to merge : {:4} ({} files in {} seconds)'.format(len(files_to_merge), len(files_to_merge_now), (datetime.datetime.now() - start_time).seconds))
+            manna_dict['files_being_merged'] = [f for f in manna_dict['files_being_merged'] if f not in files_to_merge_now]
+            manna_dict['files_to_merge'] = manna_dict['files_to_merge'] + [out_filename]
+            print('remaining files to merge : {:4} (just did {} files in {} seconds)'.format(
+                len(manna_dict['files_to_merge']), len(files_to_merge_now), (datetime.datetime.now() - start_time).seconds))
 
 
 if __name__ == '__main__':
@@ -165,11 +178,13 @@ if __name__ == '__main__':
 
     manna = multiprocessing.Manager()
     manna_lock = manna.Lock()
-    manna_files_to_merge = manna.list(files_to_merge)
+    manna_dict = manna.dict()
+    manna_dict['files_to_merge'] = files_to_merge
+    manna_dict['files_being_merged'] = []
     num_processes = multiprocessing.cpu_count() * 3//4 + 1
     print('number of processes:', num_processes)
 
-    processes = [multiprocessing.Process(target=merge_files_in_queue, args=(manna_lock, manna_files_to_merge)) for _ in range(num_processes)]
+    processes = [multiprocessing.Process(target=merge_files_in_queue, args=(manna_lock, manna_dict)) for _ in range(num_processes)]
     for p in processes:
         p.start()
     failed = False
@@ -181,5 +196,5 @@ if __name__ == '__main__':
 
     print('all workers returned')
     if not failed:
-        assert len(manna_files_to_merge) == 1, manna_files_to_merge
-        os.rename(manna_files_to_merge[0], out_filename)
+        assert len(manna_dict['files_to_merge']) == 1, manna_dict['files_to_merge']
+        os.rename(manna_dict['files_to_merge'][0], out_filename)
