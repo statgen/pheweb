@@ -1,6 +1,5 @@
 #!/usr/bin/env python2
 
-# TODO: move prev_* into get_variants()
 # TODO: copy MAX_NUM_UNBINNED from ENCORE
 # TODO: combine with QQ
 
@@ -77,10 +76,7 @@ def bin_variants(variants):
     bins = []
     unbinned_variants = []
 
-    prev_chrom, prev_pos = -1, -1
     for variant in variants:
-        assert variant['pos'] >= prev_pos or int(variant['chrom']) > int(prev_chrom), (variant, prev_chrom, prev_pos)
-        prev_chrom, prev_pos = variant['chrom'], variant['pos']
         if variant['pval'] < BIN_THRESHOLD:
             variant['maf'] = utils.round_sig(variant['maf'], 3)
             variant['pval'] = utils.round_sig(variant['pval'], 2)
