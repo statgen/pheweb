@@ -30,8 +30,12 @@ Inside of your data directory, you need to end up with a file named `pheno-list.
 ```
 [
  {
-  "assoc_files": ["/path/to/ear-length.epacts.gz"],
+  "assoc_files": ["/home/watman/ear-length.epacts.gz"],
   "phenocode": "ear-length"
+ },
+ {
+  "assoc_files": ["/home/watman/eats-kimchi.X.epacts.gz","/home/watman/eats-kimchi.autosomal.epacts.gz"],
+  "phenocode": "eats-kimchi"
  },
  ...
 ]
@@ -54,20 +58,21 @@ There are three ways to make that file:
 
   ```
   phenocode,assoc_files
-  eats-kimchi,/home/watman/kimchi-autosomal.epacts.gz|/home/watman/kimchi-X.epacts.gz
-  likes-cats,/home/watman/cats-all.epacts.gz
+  eats-kimchi,/home/watman/eats-kimchi.autosomal.epacts.gz|/home/watman/eats-kimchi.X.epacts.gz
+  ear-length,/home/watman/ear-length.all.epacts.gz
   ```
 
 - (B) If you have a shell-glob that matches all of your association filenames, run `./phenolist.py glob-files "/path/to/association/files/*/*.epacts.gz"`.
 
   Then use a regular expression to make a phenocode for each phenotype.
-  For example, you could use the regex `/(.*?)\.epacts\.gz` to match `eats-kimchi`,`likes-cats`, and `likes-dogs` from the association files:
+  For example, you could use the regex `/(.*?)\.[^\.]+\.epacts\.gz` to match `eats-kimchi` and `ear-length` from the association files:
 
-    - `/home/watman/eats-kimchi.epacts.gz`
-    - `/home/watman/likes-cats.epacts.gz`
-    - `/home/watman/likes-dogs.epacts.gz`
+    - `/home/watman/eats-kimchi.autosomal.epacts.gz`
+    - `/home/watman/eats-kimchi.X.epacts.gz`
+    - `/home/watman/ear-length.all.epacts.gz
 
-- (C) If you want to use a shell glob and regex like in (B) but you have  multiple association files for each phenotype, then do the steps in (B) and then run:
+  If you have multiple association files for some phenotypes (like "eats-kimchi", which has separate files for X and autosomal chromosomes),
+  you can combine lines that have identical `phenocode`s with this command:
 
   ```
   ./phenolist.py unique-phenocode
@@ -81,17 +86,17 @@ No matter what you do, please run `./phenolist.py verify` when you are done.  At
 ### 3. Load your association files.
 
 0. If you only want variants that reach some minimum MAF, then set `minimum_maf` in `config.config`.
-   Any variant with this minor allele frequency (MAF) or larger WILL BE SHOWN, no matter what.
-   If a variant has a smaller MAF, it will still be shown if it has a large enough MAF in some other phenotype.
+   Any variant that has at least that minor allele frequency (MAF) will be shown on the website, no matter what.
+   If a variant has a smaller MAF (in some phenotype), it will still be shown if it has a large enough MAF in some other phenotype.
 
 1. Run `./run_all.sh`.
 
-2. If something breaks, read the error message.  If you can understand what broke,
+2. If something breaks, read the error message.  Then,
 
     - If you can understand the error message, modify `data/input_file_parsers/epacts.py` to handle your file type.
       If the modification is something that pheweb should support by default, please email your changes to <pjvh@umich.edu>.
 
-    - If you can't understand the error message, please email your error message to <pjvh@umich.edu>.
+    - If you can't understand the error message, please email your error message to <pjvh@umich.edu> and hopefully I get back to you quickly.
 
     Then re-run `./run_all.sh`.
 
@@ -126,6 +131,7 @@ Next you need to find a way to for your computer to access the server.  You have
 ### 5. Modify templates if necessary.
 
 The templates that you might want to modify are:
+
 - `templates/about.html`
 - `templates/index.html`
 - the tooltip template in `templates/pheno.html`
@@ -134,7 +140,7 @@ The templates that you might want to modify are:
 As you modify templates, you might have to kill and restart your development server for the changes to take effect.  Or maybe not.  Who knows.
 
 
-### 6. Use a real server.
+### 6. Use a real webserver.
 
 At this point your Pheweb should be working how you want it to, and everything should be good except maybe the URL you're using.
 
