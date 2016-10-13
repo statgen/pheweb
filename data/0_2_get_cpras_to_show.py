@@ -55,7 +55,7 @@ def get_cpras(file):
 # TODO: instead of relying on utils.chrom_order, make our own dynamically as we encounter new chromosomes
 def convert_to_numeric_chrom(cpra_iterator):
     for cpra in cpra_iterator:
-        yield (utils.chrom_order[cp[0]], cp[1], cp[2], cp[3])
+        yield (utils.chrom_order[cpra[0]], cpra[1], cpra[2], cpra[3])
 
 def order_cpras(cpra_iterator):
     cp_groups = itertools.groupby(cpra_iterator, key=lambda v:(v[0], v[1]))
@@ -66,12 +66,12 @@ def order_cpras(cpra_iterator):
             print("The chromosomes in your file appear to be in the wrong order.")
             print("The required order is: {!r}".format(utils.chrom_order_list))
             print("But in your file, the chromosome {!r} came after the chromosome {!r}".format(
-                utils.chrom_order_list[chrom_index], utils.chrom_order_list[biggest_chrom_index_so_far]))
+                utils.chrom_order_list[cp[0]], utils.chrom_order_list[prev_cp[0]]))
             exit(1)
-        if chrom_index == biggest_chrom_index_so_far and cp[1] < biggest_pos_so_far:
+        if cp[0] == prev_cp[0] and cp[1] < prev_cp[1]:
             print("The positions in your file appear to be in the wrong order.")
             print("In your file, the position {!r} came after the position {!r} on chromsome {!r}".format(
-                cp[1], biggest_pos_so_far, utils.chrom_order_list[chrom_index]))
+                cp[1], prev_cp[1], utils.chrom_order_list[cp[0]]))
             exit(1)
         for cpra in sorted(tied_cpras):
             yield cpra
@@ -98,7 +98,7 @@ def merge(input_filenames, out_filename):
                 print('StopIteration exception occurred for {}'.format(phenocode))
                 raise
             else:
-                next_cpras.setdefault(cpra, list()).append(phenocode)
+                next_cpras.setdefault(next_cpra, list()).append(phenocode)
 
         n_variants = 0
         while next_cpras:
@@ -110,9 +110,11 @@ def merge(input_filenames, out_filename):
 
             for phenocode in next_cpras.pop(next_cpra):
                 try:
-                    next_cp = next(readers[phenocode])
+                    next_cpra = next(readers[phenocode])
                 except StopIteration:
                     del readers[phenocode]
+                else:
+                    next_cpras.setdefault(next_cpra, []).append(phenocode)
 
         assert not readers, readers.items()
 
