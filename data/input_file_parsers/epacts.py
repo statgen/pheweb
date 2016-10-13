@@ -83,7 +83,7 @@ def _variant_order_key(v):
     try:
         return (utils.chrom_order[v['chrom']], v['pos'])
     except ValueError:
-        print("Failed to understand the relative position variant {!r}, probably because we don't recognize the chromosome".format(v))
+        print("Failed to understand the relative position of variant {!r}, probably because we don't recognize the chromosome".format(v))
 def _get_assoc_files_in_order(pheno):
     assoc_files = [{'fname': fname} for fname in pheno['assoc_files']]
     for assoc_file in assoc_files:
@@ -132,6 +132,11 @@ def _get_variants(src_filename, minimum_maf=None):
 
         for line in f:
             fields = line.rstrip('\n\r').split('\t')
+            if len(fields) != len(header_fields):
+                print("ERROR: A line has {!r} fields, but we expected {!r}.".format(len(fields), len(header_fields)))
+                print("The line: {!r}".format(fields))
+                print("The header: {!r}".format(header_fields))
+                exit(1)
 
             v = {}
             for fieldname in colname_mapping:
@@ -139,8 +144,8 @@ def _get_variants(src_filename, minimum_maf=None):
                     try:
                         v[fieldname] = possible_fields[fieldname]['type'](fields[colname_mapping[fieldname]])
                     except:
-                        print("failed on fieldname {!r} attempting to convert value {!r} to type {!r} in {!r}".format(
-                            fieldname, fields[colname_mapping[fieldname]], possible_fields[fieldname]['type'], src_filename))
+                        print("failed on fieldname {!r} attempting to convert value {!r} to type {!r} in {!r} on line {!r}".format(
+                            fieldname, fields[colname_mapping[fieldname]], possible_fields[fieldname]['type'], src_filename, line))
                         exit(1)
 
             if minimum_maf is not None and v['maf'] < minimum_maf:
