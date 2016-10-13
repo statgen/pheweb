@@ -139,7 +139,8 @@ def _get_variants(src_filename, minimum_maf=None):
                     try:
                         v[fieldname] = possible_fields[fieldname]['type'](fields[colname_mapping[fieldname]])
                     except:
-                        print("failed on fieldname {!r} attempting to convert value {!r} to type {!r}".format(fieldname, fields[colname_mapping[fieldname]], possible_fields[fieldname]['type']))
+                        print("failed on fieldname {!r} attempting to convert value {!r} to type {!r} in {!r}".format(
+                            fieldname, fields[colname_mapping[fieldname]], possible_fields[fieldname]['type'], src_filename))
                         exit(1)
 
             if minimum_maf is not None and v['maf'] < minimum_maf:
