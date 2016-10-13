@@ -41,14 +41,9 @@ def parse_marker_id(marker_id):
     match = parse_marker_id.regex.match(marker_id)
     if match is None:
         raise Exception("ERROR: MARKER_ID didn't match our MARKER_ID pattern: {!r}".format(marker_id))
-    chr1, pos1, ref, alt, chr2, pos2 = match.groups()
-    if chr1 != chr2 or pos1 != pos2:
-        raise Exception("ERROR: chr:pos don't match between the two sides of MARKER_ID : {!r}".format(marker_id))
-    return chr1, int(pos1), ref, alt
-parse_marker_id.regex = re.compile(r'([^:]+):([0-9]+)_([-ATCG]+)/([-ATCG]+)_(?:chr)?([^:]+):([0-9]+)')
-
-def make_marker_id(chrom, pos, ref, alt):
-    return '{chrom}:{pos}_{ref}/{alt}_{chrom}:{pos}'.format(chrom=chrom, pos=pos, ref=ref, alt=alt)
+    chrom, pos, ref, alt = match.groups()
+    return chrom, int(pos), ref, alt
+parse_marker_id.regex = re.compile(r'([^:]+):([0-9]+)_([-ATCG\.]+)/([-ATCG\.]+)')
 
 
 def round_sig(x, digits):
