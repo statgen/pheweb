@@ -51,7 +51,3 @@ def get_rows(phenocode, chrom, pos_start, pos_end):
 
     rv['data']['end'] = rv['data']['position']
     return rv
-
-
-if __name__ == '__main__':
-    print(get_rows('070', '1', 1000, 500*1000))
