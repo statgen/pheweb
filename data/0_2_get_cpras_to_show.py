@@ -1,7 +1,5 @@
 #!/usr/bin/env python2
 
-# I tried io.open(fname, bufffering=2**16), but it made things slower.  I don't know how to get better buffering.
-
 '''
 I'm reading in a full position at a time to avoid this issue that was happening before:
  ...
@@ -12,11 +10,8 @@ I'm reading in a full position at a time to avoid this issue that was happening 
 '''
 
 # TODO:
-# - keep track of jobs that are currently running, so that we can wait until `len(jobs_in_progress) == 0 or len(jobs_to_do) >= 4`
-#     - replace manna_list with manna_dict.  All changes must re-assign to manna_dict.
-# - absorb 0_1 into this file.  Can `input_file_parsers/epacts.py` read our intermediate files?
-#     - separate the initial input files from the further processed files.
-# - split up by chromosome.
+# - split up by chromosome?
+# - remove cp_group behavior, since input_file_parsers/epacts.py handles that for us.
 
 from __future__ import print_function, division, absolute_import
 
@@ -145,8 +140,6 @@ def merge_files_in_queue(lock, manna_dict):
                 print('this process is now merging {:4} files, {:4} files remaining, {:4} currently in progress'.format(
                     len(files_to_merge_now), len(manna_dict['files_to_merge']), len(manna_dict['files_being_merged'])))
             else:
-                print("Looks like there's nothing for this process to do, so quitting. ({:4} files remaining, {:4} currently in progress)".format(
-                    len(manna_dict['files_to_merge']), len(manna_dict['files_being_merged'])))
                 return
 
         out_filename = '{}/tmp/merging-{}'.format(conf.data_dir, random.randrange(1e10)) # I don't like tempfile.
