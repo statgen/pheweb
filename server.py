@@ -20,6 +20,7 @@ from autocomplete import Autocompleter
 import region
 
 import re
+import traceback
 
 
 app = Flask(__name__)
@@ -61,8 +62,8 @@ def variant_page(query):
             die("Sorry, I couldn't find the variant {}".format(query.encode('utf-8')))
         return render_template('variant.html',
                                variant=variant)
-    except:
-        die('Oh no, something went wrong')
+    except Exception as exc:
+        die('Oh no, something went wrong', exc)
 
 @app.route('/api/manhattan/pheno/<filename>')
 def api_pheno(filename):
@@ -125,7 +126,10 @@ def homepage():
 def about_page():
     return render_template('about.html')
 
-def die(message='no message'):
+def die(message='no message', exception=None):
+    if exception is not None:
+        print(exception)
+        traceback.print_exc()
     flash(message)
     abort(404)
 

@@ -21,9 +21,9 @@ import sys
 def parse_variant(query, default_chrom_pos = True):
     if isinstance(query, unicode):
         query = query.encode('utf-8')
-    chrom_pattern = r'(?:[cC][hH][rR])?([0-9]+)'
+    chrom_pattern = r'(?:[cC][hH][rR])?([0-9XYMT]+)'
     chrom_pos_pattern = chrom_pattern + r'[-_:/ ]([0-9]+)'
-    chrom_pos_ref_alt_pattern = chrom_pos_pattern + r'[-_:/ ]([-AaTtCcGg]+)[-_:/ ]([-AaTtCcGg]+)'
+    chrom_pos_ref_alt_pattern = chrom_pos_pattern + r'[-_:/ ]([-AaTtCcGg\.]+)[-_:/ ]([-AaTtCcGg\.]+)'
 
     match = re.match(chrom_pos_ref_alt_pattern, query) or re.match(chrom_pos_pattern, query) or re.match(chrom_pattern, query)
     g = match.groups() if match else ()
@@ -31,7 +31,6 @@ def parse_variant(query, default_chrom_pos = True):
     if default_chrom_pos:
         if len(g) == 0: g += ('1',)
         if len(g) == 1: g += (0,)
-    if len(g) >= 1: g = (g[0].lower(),) + g[1:]
     if len(g) >= 2: g = (g[0], int(g[1])) + tuple([bases.upper() for bases in g[2:]])
     return g + tuple(itertools.repeat(None, 4-len(g)))
 
