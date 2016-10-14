@@ -47,10 +47,9 @@
                   <th>Top variant in loci</th>
                   <th>Phenotype</th>
                   <th>Nearest Gene(s)</th>
-                  <th>MAF of top variant</th>
-                  <th>P-value of top variant</th>
-                  <th>Beta of top variant</th>
-                  <th>sebeta of top variant</th>
+                  <th>MAF</th>
+                  <th>P-value</th>
+                  <th>Beta (se)</th>
                 </tr>
               </thead>
               <tbody>
@@ -73,8 +72,7 @@
     <td><%= h.nearest_genes.join(', ') %></td>
     <td><%= h.maf.toPrecision(2) %></td>
     <td><%= h.pval.toExponential(1) %></td>
-    <td><%= h.beta.toExponential(1) %></td>
-    <td><%= h.sebeta.toExponential(1) %></td>
+    <td><% if (h.hasOwnProperty('beta')) { %><%= h.beta.toPrecision(2) %> (<%= h.sebeta.toPrecision(2) %>)<% } %></td>
   </tr>
 </script>
 
