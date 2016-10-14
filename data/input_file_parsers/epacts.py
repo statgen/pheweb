@@ -12,6 +12,7 @@ utils = imp.load_source('utils', os.path.join(my_dir, '../../utils.py'))
 
 import csv
 import gzip
+import itertools
 
 
 legitimate_null_values = ['.', 'NA']
@@ -51,33 +52,11 @@ possible_fields = {
 }
 required_fields = ['chrom', 'pos', 'ref', 'alt', 'maf', 'pval']
 
-def get_variants(pheno, minimum_maf=None):
+def get_fieldnames_and_variants(pheno, minimum_maf=None):
     assoc_files = _get_assoc_files_in_order(pheno)
-    return variants_view(_get_variants(fname, minimum_maf=minimum_maf) for fname in assoc_files)
-
-class variants_view(object):
-    def __init__(self, list_of_variants_iters_that_each_begin_with_fieldnames):
-        self.fieldnames = None
-        self.v = self.condense_iterators_to_have_just_one_fieldnames(list_of_variants_iters_that_each_begin_with_fieldnames)
-        self.fieldnames = next(self.v)
-    def __iter__(self):
-        return self
-    def __next__(self):
-        return next(self.v)
-    next = __next__
-    def condense_iterators_to_have_just_one_fieldnames(self, list_of_variants_iters_that_each_begin_with_fieldnames):
-        for variant_iterator in list_of_variants_iters_that_each_begin_with_fieldnames:
-            new_fnames = next(variant_iterator)
-            if not 3 < len(new_fnames) < 100:
-                utils.die("ERROR 4324")
-            if self.fieldnames is None:
-                yield new_fnames
-            else:
-                if self.fieldnames != new_fnames:
-                    utils.die("ERROR 345")
-            for v in variant_iterator:
-                yield v
-
+    fieldnames, variants = _combine_fieldnames_variants_pairs(_get_fieldnames_and_variants(fname, minimum_maf=minimum_maf) for fname in assoc_files)
+    sorted_variants = _order_ref_alt_lexicographically(variants)
+    return (fieldnames, sorted_variants)
 
 def _variant_order_key(v):
     try:
@@ -87,12 +66,61 @@ def _variant_order_key(v):
 def _get_assoc_files_in_order(pheno):
     assoc_files = [{'fname': fname} for fname in pheno['assoc_files']]
     for assoc_file in assoc_files:
-        v = next(variants_view([_get_variants(assoc_file['fname'])]))
+        fieldnames, variants = _get_fieldnames_and_variants(assoc_file['fname'])
+        v = next(variants)
         assoc_file['chrom'], assoc_file['pos'] = v['chrom'], v['pos']
     assoc_files = sorted(assoc_files, key=_variant_order_key)
     return [assoc_file['fname'] for assoc_file in assoc_files]
 
-def _get_variants(src_filename, minimum_maf=None):
+
+def _order_ref_alt_lexicographically(variants):
+    # Also assert that chrom and pos are in order
+    cp_groups = itertools.groupby(variants, key=lambda v:(v['chrom'], v['pos']))
+    prev_chrom_index, prev_pos = -1, -1
+    for cp, tied_variants in cp_groups:
+        chrom_index = utils.chrom_order[cp[0]]
+        if chrom_index < prev_chrom_index:
+            print("The chromosomes in your file appear to be in the wrong order.")
+            print("The required order is: {!r}".format(utils.chrom_order_list))
+            print("But in your file, the chromosome {!r} came after the chromosome {!r}".format(
+                cp[0], utils.chrom_order_list[prev_chrom_index]))
+            exit(1)
+        if chrom_index == prev_chrom_index and cp[1] < prev_pos:
+            print("The positions in your file appear to be in the wrong order.")
+            print("In your file, the position {!r} came after the position {!r} on chromsome {!r}".format(
+                cp[1], prev_pos, cp[0]))
+            exit(1)
+        for v in sorted(tied_variants, key=lambda v:(v['ref'], v['alt'])):
+            yield v
+
+def _tuplify_headed_iterator(headed_iterator):
+    header = next(headed_iterator)
+    return (header, headed_iterator)
+
+def _combine_fieldnames_variants_pairs(list_of_fielname_variants_pairs):
+    # return is in (fieldnames, variants) form
+    rv = _headed_combine_fieldnames_variants_pairs(list_of_fielname_variants_pairs)
+    fieldnames = next(rv)
+    return (fieldnames, rv)
+def _headed_combine_fieldnames_variants_pairs(list_of_fielname_variants_pairs):
+    # return is in itertools.chain([fieldnames], variants) form
+    constant_fieldnames = None
+    for fieldnames, variants in list_of_fielname_variants_pairs:
+        if constant_fieldnames is None:
+            assert fieldnames is not None
+            constant_fieldnames = fieldnames
+            yield constant_fieldnames
+        else:
+            if constant_fieldnames != fieldnames:
+                utils.die("ERROR 34234 for {!r} and {!r}".format(constant_fieldnames, fieldnames))
+        for v in variants:
+            yield v
+
+def _get_fieldnames_and_variants(*args, **kwargs):
+    # return is in (fieldnames, variants) form
+    return _tuplify_headed_iterator(_get_headed_variants(*args, **kwargs))
+def _get_headed_variants(src_filename, minimum_maf=None):
+    # return is in itertools.chain([fieldnames], variants) form
     with gzip.open(src_filename) as f:
         # TODO: use `pandas.read_csv(src_filename, usecols=[...], converters={...}, iterator=True, verbose=True, na_values='.', sep=None)
         #   - first without `usecols`, to parse the column names, and then a second time with `usecols`.

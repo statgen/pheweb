@@ -50,11 +50,11 @@ def convert(conversion_to_do):
 def _convert(pheno, out_filename):
     with open(out_filename, 'w') as f_out:
 
-        pheno_variants = input_file_parser.get_variants(pheno)
+        pheno_fieldnames, pheno_variants = input_file_parser.get_fieldnames_and_variants(pheno)
         site_variants = get_site_variants(sites_filename)
 
         sites_fieldnames = 'chrom pos ref alt rsids nearest_genes maf pval'.split()
-        fieldnames = sites_fieldnames + list(set(pheno_variants.fieldnames) - set(sites_fieldnames))
+        fieldnames = sites_fieldnames + list(set(pheno_fieldnames) - set(sites_fieldnames))
         writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
 
