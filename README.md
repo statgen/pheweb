@@ -1,6 +1,9 @@
 ## How to Build a Pheweb for your Data
 
-Loading data into a new Pheweb is done in four steps.
+Loading data into a new Pheweb is done in four steps, followed by two steps of polishing.
+Hopefully only steps 1 and 2 will take much effort.
+If steps 3 or 4 give you any trouble, please email me at <pjvh@umich.edu> and I'll see what I can do to improve things.
+And steps 5 and 6 should only be as difficult as you want them to be.
 
 ### 1. Prepare the environment.
 
