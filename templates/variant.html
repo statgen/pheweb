@@ -67,7 +67,7 @@
                   {{ variant.variant_name }}
                   {% if variant.rsids %}({{ variant.rsids }}){% endif %}
                 </h1>
-                <p>Nearest gene: {{ variant.nearest_genes }}</p>
+                <p>Nearest gene: <i>{{ variant.nearest_genes }}</i></p>
                 <p>MAF: {{ variant.maf }}</p>
                 <p>View on
                   <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>
