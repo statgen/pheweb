@@ -48,7 +48,6 @@
                   <th>Nearest Gene(s)</th>
                   <th>MAF</th>
                   <th>P-value</th>
-                  <th>Beta (se)</th>
                 </tr>
               </thead>
               <tbody>
@@ -71,7 +70,6 @@
     <td><i><%= h.nearest_genes.join(', ') %></i></td>
     <td><%= h.maf.toPrecision(2) %></td>
     <td><%= h.pval.toExponential(1) %></td>
-    <td><% if (h.hasOwnProperty('beta')) { %><%= h.beta.toPrecision(2) %> (<%= h.sebeta.toPrecision(2) %>)<% } %></td>
   </tr>
 </script>
 
