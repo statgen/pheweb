@@ -127,7 +127,6 @@
               <thead>
                 <tr>
                   <th>Category</th>
-                  <th>Phenotype Code</th>
                   <th>Phenotype</th>
                   <th>P-value</th>
                   <th>Number of samples</th>
@@ -162,8 +161,7 @@ pval: <%= d.pval.toExponential(1) %><br>
     <td style="color:<%= color_by_category(d.category) %>">
       <%= d.category %>
     </td>
-    <td><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenocode %></a></td>
-    <td><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || "" %></a></td>
+    <td><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
     <td><%= d.pval.toExponential(1) %></td>
     <td><% if (d.num_cases) { %>
       <%= d.num_cases %> / <%= d.num_controls %>
