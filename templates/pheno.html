@@ -6,12 +6,12 @@
 <script type="text/javascript">
   window.pheno = {{ phenocode|tojson|safe }};
   $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json").done(function(data) {
-      window.manhattan_data = data; // debugging
+      window.data_manhattan = data; // debugging
       create_gwas_plot(data.variant_bins, data.unbinned_variants);
       populate_streamtable(data.unbinned_variants);
   });
   $.getJSON("/api/qq/pheno/" + window.pheno + ".json").done(function(data) {
-    window.pheno_data = data; //debugging
+    window.data_pheno = data; //debugging
     _.sortBy(_.pairs(data.overall.gc_lambda)).forEach(function(d) {
       $('.gc-control').append('<br>GC Lambda ' + d[0] + ': ' + d[1].toFixed(3));
     });
@@ -145,7 +145,6 @@
               <thead>
                 <tr>
                   <th>Variant</th>
-                  <th>dbSNP ID(s)</th>
                   <th>Nearest Gene(s)</th>
                   <th>MAF</th>
                   <th>P-value</th>
@@ -196,8 +195,8 @@ nearest gene<%= (d.nearest_genes.indexOf(',') !== -1) ? 's' : '' %>: <%= d.neare
   <tr>
     <td><a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>">
         <%= v.chrom %>:<%= v.pos.toLocaleString() %> <%= v.ref %> &gt; <%= v.alt %>
+        <% if (v.rsids) { %>(<%= v.rsids.replace(/,/g, ', ') %>)<% } %>
     </a></td>
-    <td><%= v.rsids.replace(/,/g, ', ') %></td>
     <td><%= v.nearest_genes.replace(/,/g, ', ') %></td>
     <td><%= v.maf.toPrecision(2) %></td>
     <td><%= v.pval.toExponential(1) %></td>
