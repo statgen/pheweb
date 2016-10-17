@@ -5,7 +5,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='top_hits.js') }}"></script>
 <script type="text/javascript">
   $.getJSON("/api/top_hits.json").done(function(data) {
-      window.top_hits = data; // debugging
+      window.data = data; // debugging
       populate_streamtable(data);
   });
 </script>
@@ -67,7 +67,7 @@
         <% if (h.rsids) { %>(<%= h.rsids %>)<% } %>
     </a></td>
     <td><a style="color:black" href="/pheno/<%= h.phenocode %>">
-        <%= h.phenocode || h.phenostring %>
+        <%= h.phenostring || h.phenocode %>
     </a></td>
     <td><%= h.nearest_genes.join(', ') %></td>
     <td><%= h.maf.toPrecision(2) %></td>

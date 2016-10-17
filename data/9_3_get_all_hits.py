@@ -17,8 +17,8 @@ utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
 import json
 
 # TODO:
-# each hit should list ALL of the genes that it includes.
-# it'd be great if they also listed all the rsids and variants, so that on-click we could display a variants-in-this-loci table.
+# - it'd be great if they also listed all the rsids and variants, so that on-click we could display a variants-in-this-loci table.
+# - Somewhere have a user-extendable whitelist of info that should be copied about each pheno.  Copy all of that stuff.
 
 
 LOCI_SPREAD_FROM_BEST_HIT = int(500e3)
@@ -38,19 +38,18 @@ def get_hits(pheno):
     for hits in hits_by_chrom.values():
         while hits:
             best_hit = min(hits, key=lambda hit: hit['pval'])
-            best_hit['nearest_genes'] = set(best_hit['nearest_genes'].split(','))
+            best_hit['nearest_genes'] = sorted(best_hit['nearest_genes'].split(','))
             if 'show_gene' in best_hit:
                 del best_hit['show_gene']
             remaining_hits = []
             for hit in hits:
                 if hit is best_hit:
                     pass
-                elif abs(hit['pos'] - best_hit['pos']) < LOCI_SPREAD_FROM_BEST_HIT:
-                    best_hit['nearest_genes'].update(hit['nearest_genes'].split(','))
-                else:
+                elif abs(hit['pos'] - best_hit['pos']) >= LOCI_SPREAD_FROM_BEST_HIT:
                     remaining_hits.append(hit)
             hits = remaining_hits
-            best_hit['nearest_genes'] = list(best_hit['nearest_genes'])
+            try: best_hit['phenostring'] = pheno['phenostring']
+            except KeyError: pass
             yield best_hit
 
 
