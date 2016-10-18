@@ -84,6 +84,8 @@ def top_hits_page():
 @app.route('/random')
 def random_page():
     url = get_random_page()
+    if url is None:
+        die("Sorry, it looks like no hits in this pheweb reached the significance threshold.")
     return redirect(url)
 
 @app.route('/pheno/<phenocode>')

@@ -133,8 +133,12 @@ def activate_virtualenv(path):
 def get_random_page():
     with open(os.path.join(conf.data_dir, 'top_hits.json')) as f:
         hits = json.load(f)
-        hits = [hit for hit in hits if hit['pval'] < 5e-8]
-    hit = random.choice(hits)
+        hits_to_choose_from = [hit for hit in hits if hit['pval'] < 5e-8]
+        if not hits_to_choose_from:
+            hits_to_choose_from = hits
+        if not hits:
+            return None
+    hit = random.choice(hits_to_choose_from)
     r = random.random()
     if r < 0.4:
         return '/pheno/{}'.format(hit['phenocode'])
