@@ -147,7 +147,7 @@ class Autocompleter(object):
                     "url": "/pheno/{}".format(phenocode),
                 }
 
-    _regex_get_icd9_code_autocompletion = re.compile('^\s*[0-9]')
+    _regex_get_icd9_code_autocompletion = re.compile('^\s*V?[0-9]')
     def _autocomplete_icd9_code(self, query):
         if self._regex_get_icd9_code_autocompletion.match(query):
             for phenocode, pheno in self._phenos.iteritems():
