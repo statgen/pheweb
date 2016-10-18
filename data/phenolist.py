@@ -81,6 +81,7 @@ def check_that_columns_are_present(phenolist, columns):
     if failed: exit(1)
 
 def check_that_phenocode_is_urlsafe(phenolist):
+    # TODO: use python-slugify
     urlsafe_characters = string.ascii_letters + string.digits + '_-~. ' # TODO: Is this complete?  Am I missing some characters?  Is space okay?
     for pheno in phenolist:
         bad_chars = list(set(char for char in pheno['phenocode'] if char not in urlsafe_characters))
