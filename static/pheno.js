@@ -490,7 +490,7 @@ function populate_streamtable(variants) {
                 span: 5,
                 next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
                 prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
-                per_page_select: "#per_page",
+                per_page_select: false,
                 per_page: 10
             }
         }
