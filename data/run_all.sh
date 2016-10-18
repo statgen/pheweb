@@ -2,6 +2,17 @@
 {
 set -euo pipefail
 
+# Get the directory where this script is located
+# Copied from <http://stackoverflow.com/a/246128/1166306>
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$SCRIPT_DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+
 # These functions just makes things pretty.
 text_highlight() { (tput setab 3; tput setaf 0) 2>/dev/null || true; } # tput will fail on bad terminals, but that's okay
 text_default() { tput sgr0 2>/dev/null || true; }
@@ -11,7 +22,7 @@ run() {
     echo; text_highlight; echo -n "=> Starting $1"; text_default; echo
     start_time=$(date +%s)
     set +e
-    $1
+    $SCRIPT_DIR/$1
     exit_code=$?
     set -e
     end_time=$(date +%s)
