@@ -21,3 +21,15 @@
   background-image: linear-gradient(to bottom, #0088cc, #0077b3);
 }
 /* ---- */
+
+/* StreamTable */
+.pagination {
+  margin: 0;
+}
+.stream_table_row {
+  margin-top: 10px;
+}
+#stream_table {
+  margin-bottom: 10px;
+}
+/* ---- */
