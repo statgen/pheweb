@@ -6,14 +6,16 @@ set -euo pipefail
 text_highlight() { (tput setab 3; tput setaf 0) 2>/dev/null || true; } # tput will fail on bad terminals, but that's okay
 text_default() { tput sgr0 2>/dev/null || true; }
 run() {
-    text_highlight; echo; echo "=> Starting $1"; text_default
+    # On OSX, if I print a newline while still in highlight-mode, the whole next line gets colored, and then partially un-colored as the next command overwrites it.
+    # So, Here I put the newline _after_ the text_default.
+    echo; text_highlight; echo -n "=> Starting $1"; text_default; echo
     start_time=$(date +%s)
     set +e
     $1
     exit_code=$?
     set -e
     end_time=$(date +%s)
-    text_highlight; echo "=> Completed $1 in $((end_time - start_time)) seconds with exit code $exit_code"; text_default
+    text_highlight; echo -n "=> Completed $1 in $((end_time - start_time)) seconds with exit code $exit_code"; text_default; echo
     [[ $exit_code = 0 ]] || exit $exit_code
 }
 
