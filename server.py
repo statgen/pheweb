@@ -152,7 +152,7 @@ if __name__ == '__main__':
     import argparse
     import glob
     parser = argparse.ArgumentParser()
-    parser.add_argument('--host', default=None, help='the hostname to use to access this server')
+    parser.add_argument('--host', default='0.0.0.0', help='the hostname to use to access this server')
     parser.add_argument('--port', type=int, default=5000, help='an integer for the accumulator')
     args = parser.parse_args()
     extra_files = glob.glob('templates/*.html')
