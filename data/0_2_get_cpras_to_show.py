@@ -54,23 +54,39 @@ def convert_to_numeric_chrom(cpra_iterator):
         yield (utils.chrom_order[cpra[0]], cpra[1], cpra[2], cpra[3])
 
 def order_cpras(cpra_iterator):
-    cp_groups = itertools.groupby(cpra_iterator, key=lambda v:(v[0], v[1]))
-    prev_cp = (-1, -1)
-    for cp, tied_cpras in cp_groups:
-        # Assert that chrom and pos are in order
-        if cp[0] < prev_cp[0]:
+    # Assert that [chrom, pos, ref, alt] are in order
+    prev_cpra = (-1, -1, '', '')
+    for cpra in cpra_iterator:
+        assert isinstance(cpra[0], int)
+        if cpra[0] < prev_cpra[0]:
             print("The chromosomes in your file appear to be in the wrong order.")
             print("The required order is: {!r}".format(utils.chrom_order_list))
             print("But in your file, the chromosome {!r} came after the chromosome {!r}".format(
-                utils.chrom_order_list[cp[0]], utils.chrom_order_list[prev_cp[0]]))
+                utils.chrom_order_list[cpra[0]], utils.chrom_order_list[prev_cpra[0]]))
             exit(1)
-        if cp[0] == prev_cp[0] and cp[1] < prev_cp[1]:
-            print("The positions in your file appear to be in the wrong order.")
-            print("In your file, the position {!r} came after the position {!r} on chromsome {!r}".format(
-                cp[1], prev_cp[1], utils.chrom_order_list[cp[0]]))
-            exit(1)
-        for cpra in sorted(tied_cpras):
-            yield cpra
+        elif cpra[0] == prev_cpra[0]:
+            if cpra[1] < prev_cpra[1]:
+                print("The positions in your file appear to be in the wrong order.")
+                print("In your file, the position {!r} came after the position {!r} on chromsome {!r}".format(
+                    cpra[1], prev_cpra[1], utils.chrom_order_list[cpra[0]]))
+                exit(1)
+            elif cpra[1] == prev_cpra[1]:
+                if cpra[2] < prev_cpra[2]:
+                    print("The variants in your file appear to be in the wrong order.")
+                    print("The variant {chrom}-{pos}-{ref1}-{alt1} came before {chrom}-{pos}-{ref2}-{alt2}, but they should be in the other order.".format(
+                        chrom=utils.chrom_order_list[cpra[0]], pos=cpra[1],
+                        ref1=prev_cpra[2], alt1=prev_cpra[3],
+                        ref2=cpra[2], alt2=prev_cpra[3]))
+                    print("That's because the ref allele should be in alphabetical order.")
+                    exit(1)
+                elif cpra[2] == prev_cpra[2] and cpra[3] < prev_cpra[3]:
+                    print("The variants in your file appear to be in the wrong order.")
+                    print("The variant {chrom}-{pos}-{ref}-{alt1} came before {chrom}-{pos}-{ref}-{alt2}, but they should be in the other order.".format(
+                        chrom=utils.chrom_order_list[cpra[0]], pos=cpra[1], ref=cpra[2],
+                        alt1=prev_cpra[3], alt2=prev_cpra[3]))
+                    print("That's because the alt allele should be in alphabetical order (at least, after ref is sorted).")
+                    exit(1)
+        yield cpra
 
 def merge(input_filenames, out_filename):
     tmp_filename = '{}/tmp/merging-{}'.format(conf.data_dir, random.randrange(1e10)) # I don't like tempfile.
@@ -83,7 +99,7 @@ def merge(input_filenames, out_filename):
         for input_filename in input_filenames:
             phenocode = os.path.basename(input_filename)
             file = es.enter_context(open(input_filename))
-            readers[phenocode] = order_cpras(get_cpras(file))
+            readers[phenocode] = order_cpras(convert_to_numeric_chrom(get_cpras(file)))
 
         # TODO: use heapq
         next_cpras = {}
@@ -102,7 +118,7 @@ def merge(input_filenames, out_filename):
             n_variants += 1
 
             next_cpra = min(next_cpras)
-            f_out.write('{}\t{}\t{}\t{}\n'.format(*next_cpra))
+            f_out.write('{chrom}\t{1}\t{2}\t{3}\n'.format(*next_cpra, chrom=utils.chrom_order_list[next_cpra[0]]))
 
             for phenocode in next_cpras.pop(next_cpra):
                 try:
