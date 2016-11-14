@@ -105,7 +105,7 @@ def region_page(phenocode, region):
     pheno['phenocode'] = phenocode
     return render_template('region.html',
                            pheno=pheno,
-                           region=region,
+                           region='11:99403901-99423901', # TODO: parse and rewrite this!
     )
 
 @app.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
