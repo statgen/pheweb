@@ -1,6 +1,6 @@
-## How to Build a Pheweb for your Data
+## How to Build a PheWeb for your Data
 
-Loading data into a new Pheweb is done in four steps, followed by two steps of polishing.
+Loading data into a new PheWeb is done in four steps, followed by two steps of polishing.
 Hopefully only steps 1 and 2 will take much effort.
 If steps 3 or 4 give you any trouble, please email me at <pjvh@umich.edu> and I'll see what I can do to improve things.
 And steps 5 and 6 should only be as difficult as you want them to be.
@@ -202,7 +202,7 @@ As you modify templates, you might have to kill and restart your development ser
 
 ### 7. Use a real webserver.
 
-At this point your Pheweb should be working how you want it to, and everything should be good except maybe the URL you're using.
+At this point your PheWeb should be working how you want it to, and everything should be good except maybe the URL you're using.
 
 For maximum speed and safety, you should switch to running Flask behind something like Apache2 or Nginx.
 More information about this is [here](http://flask.pocoo.org/docs/0.11/deploying/#deployment).

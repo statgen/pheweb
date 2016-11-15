@@ -1,4 +1,4 @@
-### Running Pheweb with Apache2
+### Running PheWeb with Apache2
 
 0. Install apache2 and `libapache2-mod-wsgi` (Ubuntu/Debian) or `mod_wsgi` (yum-based).
 
