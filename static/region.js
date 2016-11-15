@@ -12,49 +12,15 @@ window.debug = window.debug || {};
     data_sources.add("sig", ["StaticJSON", [{ "x": 0, "y": 4.522 }, { "x": 2881033286, "y": 4.522 }] ])
 
     var layout = {
-        // "state": {
-        //     "association": {},
-        //     "association.significance": {
-        //         "highlighted": [],
-        //         "selected": [],
-        //         "dimmed": [],
-        //         "hidden": []
-        //     },
-        //     "association.recombrate": {
-        //         "highlighted": [],
-        //         "selected": [],
-        //         "dimmed": [],
-        //         "hidden": []
-        //     },
-        //     "association.associationpvalues": {
-        //         "highlighted": [],
-        //         "selected": [],
-        //         "dimmed": [],
-        //         "hidden": []
-        //     },
-        //     "genes": {},
-        //     "genes.genes": {
-        //         "highlighted": [],
-        //         "selected": [],
-        //         "dimmed": [],
-        //         "hidden": []
-        //     },
-        //     "chr": "11",
-        //     "start": 99403901,
-        //     "end": 99423901
-        // },
-
-        width: 800, // for some reason this make the layout have a reasonable initial height.  I don't get it.
-        "height": 450,
-        "min_width": 400,
+        width: 800,
+        height: 400,
+        "min_width": 800,
         "min_height": 400,
-        responsive_size: true, // what do these even do?
         responsive_resize: true, // is this supposed to be here?
         "resizable": "responsive",
-        // "min_region_scale": 20000,
+        // aspect_ratio: 2, // do I want this?
         "min_region_scale": 2e3,
         "max_region_scale": 3e5,
-        "aspect_ratio": 1.7777777777777777, // what does this do?  Why do panels grow taller as I resize them more?
         "panel_boundaries": true,
 
         "dashboard": {
@@ -79,14 +45,11 @@ window.debug = window.debug || {};
             }]
         },
         "panels": [{
-            "proportional_height": 0.5,
             "id": "association",
             "title": "",
-            "width": 800,
-            "height": 225,
+            "proportional_height": 0.5,
             "min_width": 400,
-            "min_height": 200,
-            "proportional_width": 1,
+            "min_height": 100,
             "margin": {
                 "top": 35,
                 "right": 50,
@@ -205,10 +168,7 @@ window.debug = window.debug || {};
                     "floor": 0,
                     "ceiling": 100
                 },
-                "transition": {
-//                    "duration": 200
-                    "duration": 0
-                },
+                "transition": false,
                 "interpolate": "linear",
                 "hitarea_width": 5
             }, {
@@ -324,10 +284,7 @@ window.debug = window.debug || {};
                     "upper_buffer": 0.1,
                     "min_extent": [0, 10]
                 },
-                "transition": {
-//                    "duration": 200
-                    "duration": 0
-                },
+                "transition": false,
                 "highlighted": {
                     "onmouseover": "on",
                     "onmouseout": "off"
@@ -357,13 +314,10 @@ window.debug = window.debug || {};
                 }
             }
         }, {
-            "proportional_height": 0.5,
             "id": "genes",
-            "width": 800,
-            "height": 225,
+            "proportional_height": 0.5,
             "min_width": 400,
-            "min_height": 112.5,
-            "proportional_width": 1,
+            "min_height": 100,
             "margin": {
                 "top": 20,
                 "right": 50,
@@ -428,10 +382,7 @@ window.debug = window.debug || {};
                     "onclick": "toggle_exclusive",
                     "onshiftclick": "toggle"
                 },
-                "transition": {
-//                    "duration": 200
-                    "duration": 0
-                },
+                "transition": false,
                 "tooltip": {
                     "closable": true,
                     "show": {
