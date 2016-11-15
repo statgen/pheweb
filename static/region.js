@@ -11,94 +11,68 @@ window.debug = window.debug || {};
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }])
     data_sources.add("sig", ["StaticJSON", [{ "x": 0, "y": 4.522 }, { "x": 2881033286, "y": 4.522 }] ])
 
-    // // The old layout:
-    // var layout = {
-    //     responsive_size: true,
-    //     panels: [
-    //         {
-    //             id: "panel1",
-    //             data_layers: [
-    //                 {
-    //                 positions: {
-    //                     fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation", "pvalue|neglog10", "maf", "ld:state"],
-    //                     id_field: "id",
-    //                     tooltip: {
-    //                         html: "<strong>{{id}}</strong><br>" +
-    //                             "<strong>{{rsid}}</strong><br>" +
-    //                             "P-value: <strong>{{pvalue|scinotation}}</strong><br>" +
-    //                             "MAF: <strong>{{maf}}</strong><br>" +
-    //                             "<a href='/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}'>PheWAS</a>"
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     ]
-    // };
-
-    // // my attempt
-    // var layout = {
-    //     responsive_size: true,
-    //     panels: [
-    //         LocusZoom.Layouts.get("panel", "genes")
-    //     ]
-    // };
-
-    // // almost works
-    // var layout = LocusZoom.StandardLayout;
-
     var layout = {
-        "state": {
-            "association": {},
-            "association.significance": {
-                "highlighted": [],
-                "selected": [],
-                "dimmed": [],
-                "hidden": []
-            },
-            "association.recombrate": {
-                "highlighted": [],
-                "selected": [],
-                "dimmed": [],
-                "hidden": []
-            },
-            "association.associationpvalues": {
-                "highlighted": [],
-                "selected": [],
-                "dimmed": [],
-                "hidden": []
-            },
-            "genes": {},
-            "genes.genes": {
-                "highlighted": [],
-                "selected": [],
-                "dimmed": [],
-                "hidden": []
-            },
-            "chr": "11",
-            "start": 99403901,
-            "end": 99423901
-        },
-        "width": 800,
+        // "state": {
+        //     "association": {},
+        //     "association.significance": {
+        //         "highlighted": [],
+        //         "selected": [],
+        //         "dimmed": [],
+        //         "hidden": []
+        //     },
+        //     "association.recombrate": {
+        //         "highlighted": [],
+        //         "selected": [],
+        //         "dimmed": [],
+        //         "hidden": []
+        //     },
+        //     "association.associationpvalues": {
+        //         "highlighted": [],
+        //         "selected": [],
+        //         "dimmed": [],
+        //         "hidden": []
+        //     },
+        //     "genes": {},
+        //     "genes.genes": {
+        //         "highlighted": [],
+        //         "selected": [],
+        //         "dimmed": [],
+        //         "hidden": []
+        //     },
+        //     "chr": "11",
+        //     "start": 99403901,
+        //     "end": 99423901
+        // },
+
+        width: 800, // for some reason this make the layout have a reasonable initial height.  I don't get it.
         "height": 450,
+        "min_width": 400,
+        "min_height": 400,
+        responsive_size: true, // what do these even do?
+        responsive_resize: true, // is this supposed to be here?
         "resizable": "responsive",
-        "min_region_scale": 20000,
-        "max_region_scale": 4000000,
+        // "min_region_scale": 20000,
+        "min_region_scale": 2e3,
+        "max_region_scale": 3e5,
+        "aspect_ratio": 1.7777777777777777, // what does this do?  Why do panels grow taller as I resize them more?
+        "panel_boundaries": true,
+
         "dashboard": {
             "components": [{
-                "type": "title",
-                "title": "LocusZoom",
-                "subtitle": "<a href=\"https://statgen.github.io/locuszoom/\" target=\"_blank\">v0.4.8</a>",
-                "position": "left",
-                "color": "gray"
-            }, {
-                "type": "dimensions",
-                "position": "right",
-                "color": "gray"
-            }, {
-                "type": "region_scale",
-                "position": "right",
-                "color": "gray"
-            }, {
+            //     "type": "title",
+            //     "title": "LocusZoom",
+            //     "subtitle": "<a href=\"https://statgen.github.io/locuszoom/\" target=\"_blank\">v0.4.8</a>",
+            //     "position": "left",
+            //     "color": "gray"
+            // }, {
+            //     "type": "dimensions",
+            //     "position": "right",
+            //     "color": "gray"
+            // }, {
+            //     "type": "region_scale",
+            //     "position": "right",
+            //     "color": "gray"
+            // }, {
                 "type": "download",
                 "position": "right",
                 "color": "gray"
@@ -122,18 +96,18 @@ window.debug = window.debug || {};
             "inner_border": "rgba(210, 210, 210, 0.85)",
             "dashboard": {
                 "components": [{
-                    "type": "remove_panel",
-                    "position": "right",
-                    "color": "red"
-                }, {
-                    "type": "move_panel_up",
-                    "position": "right",
-                    "color": "gray"
-                }, {
-                    "type": "move_panel_down",
-                    "position": "right",
-                    "color": "gray"
-                }, {
+                //     "type": "remove_panel",
+                //     "position": "right",
+                //     "color": "red"
+                // }, {
+                //     "type": "move_panel_up",
+                //     "position": "right",
+                //     "color": "gray"
+                // }, {
+                //     "type": "move_panel_down",
+                //     "position": "right",
+                //     "color": "gray"
+                // }, {
                     "type": "toggle_legend",
                     "position": "right",
                     "color": "green"
@@ -232,7 +206,8 @@ window.debug = window.debug || {};
                     "ceiling": 100
                 },
                 "transition": {
-                    "duration": 200
+//                    "duration": 200
+                    "duration": 0
                 },
                 "interpolate": "linear",
                 "hitarea_width": 5
@@ -320,19 +295,9 @@ window.debug = window.debug || {};
                     "class": "lz-data_layer-scatter"
                 }],
 
-                // fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation", "pvalue|neglog10", "maf", "ld:state"],
-                // id_field: "id",
-                // tooltip: {
-                //     html: "<strong>{{id}}</strong><br>" +
-                //         "<strong>{{rsid}}</strong><br>" +
-                //         "P-value: <strong>{{pvalue|scinotation}}</strong><br>" +
-                //         "MAF: <strong>{{maf}}</strong><br>" +
-                //         "<a href='/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}'>PheWAS</a>"
-                // },
-
-               "fields": ["variant", "position", "pvalue", "pvalue|scinotation", "pvalue|neglog10", "log_pvalue", "log_pvalue|logtoscinotation", "ref_allele", "ld:state", "ld:isrefvar"],
-               "id_field": "variant",
-                "tooltip": {
+                fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation", "pvalue|neglog10", "maf", "ld:state", "ld:isrefvar"],
+                id_field: "id",
+                tooltip: {
                     "closable": true,
                     "show": {
                         "or": ["highlighted", "selected"]
@@ -340,7 +305,11 @@ window.debug = window.debug || {};
                     "hide": {
                         "and": ["unhighlighted", "unselected"]
                     },
-                    "html": "<strong>{{variant}}</strong><br>P Value: <strong>{{log_pvalue|logtoscinotation}}</strong><br>Ref. Allele: <strong>{{ref_allele}}</strong><br>"
+                    html: "<strong>{{id}}</strong><br>" +
+                        "<strong>{{rsid}}</strong><br>" +
+                        "P-value: <strong>{{pvalue|scinotation}}</strong><br>" +
+                        "MAF: <strong>{{maf}}</strong><br>" +
+                        "<a href='/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}'>PheWAS</a>"
                 },
 
                 "z_index": 2,
@@ -350,13 +319,14 @@ window.debug = window.debug || {};
                 },
                 "y_axis": {
                     "axis": 1,
-                    "field": "log_pvalue",
+                    "field": "pvalue|neglog10",
                     "floor": 0,
                     "upper_buffer": 0.1,
                     "min_extent": [0, 10]
                 },
                 "transition": {
-                    "duration": 200
+//                    "duration": 200
+                    "duration": 0
                 },
                 "highlighted": {
                     "onmouseover": "on",
@@ -423,18 +393,18 @@ window.debug = window.debug || {};
             },
             "dashboard": {
                 "components": [{
-                    "type": "remove_panel",
-                    "position": "right",
-                    "color": "red"
-                }, {
-                    "type": "move_panel_up",
-                    "position": "right",
-                    "color": "gray"
-                }, {
-                    "type": "move_panel_down",
-                    "position": "right",
-                    "color": "gray"
-                }, {
+                //     "type": "remove_panel",
+                //     "position": "right",
+                //     "color": "red"
+                // }, {
+                //     "type": "move_panel_up",
+                //     "position": "right",
+                //     "color": "gray"
+                // }, {
+                //     "type": "move_panel_down",
+                //     "position": "right",
+                //     "color": "gray"
+                // }, {
                     "type": "resize_to_data",
                     "position": "right",
                     "color": "blue"
@@ -443,11 +413,12 @@ window.debug = window.debug || {};
             "data_layers": [{
                 "namespace": {
                     "gene": "gene",
-                    "constraint": "constraint"
+                    // "constraint": "constraint"
                 },
                 "id": "genes",
                 "type": "genes",
-                "fields": ["gene:gene", "constraint:constraint"],
+                // "fields": ["gene:gene", "constraint:constraint"],
+                "fields": ["gene:gene"],
                 "id_field": "gene_id",
                 "highlighted": {
                     "onmouseover": "on",
@@ -458,7 +429,8 @@ window.debug = window.debug || {};
                     "onshiftclick": "toggle"
                 },
                 "transition": {
-                    "duration": 200
+//                    "duration": 200
+                    "duration": 0
                 },
                 "tooltip": {
                     "closable": true,
@@ -468,7 +440,8 @@ window.debug = window.debug || {};
                     "hide": {
                         "and": ["unhighlighted", "unselected"]
                     },
-                    "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div style=\"float: left;\">Gene ID: <strong>{{gene_id}}</strong></div><div style=\"float: right;\">Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table><tr><th>Constraint</th><th>Expected variants</th><th>Observed variants</th><th>Const. Metric</th></tr><tr><td>Synonymous</td><td>{{exp_syn}}</td><td>{{n_syn}}</td><td>z = {{syn_z}}</td></tr><tr><td>Missense</td><td>{{exp_mis}}</td><td>{{n_mis}}</td><td>z = {{mis_z}}</td></tr><tr><td>LoF</td><td>{{exp_lof}}</td><td>{{n_lof}}</td><td>pLI = {{pLI}}</td></tr></table><table width=\"100%\"><tr><td><button onclick=\"LocusZoom.getToolTipPlot(this).panel_ids_by_y_index.forEach(function(panel){ if(panel == 'genes'){ return; } var filters = (panel.indexOf('intervals') != -1 ? [['intervals:start','>=','{{start}}'],['intervals:end','<=','{{end}}']] : [['position','>','{{start}}'],['position','<','{{end}}']]); LocusZoom.getToolTipPlot(this).panels[panel].undimElementsByFilters(filters, true); }.bind(this)); LocusZoom.getToolTipPanel(this).data_layers.genes.unselectAllElements();\">Identify data in region</button></td><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
+                    "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div style=\"float: left;\">Gene ID: <strong>{{gene_id}}</strong></div><div style=\"float: right;\">Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
+                    // "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div style=\"float: left;\">Gene ID: <strong>{{gene_id}}</strong></div><div style=\"float: right;\">Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table><tr><th>Constraint</th><th>Expected variants</th><th>Observed variants</th><th>Const. Metric</th></tr><tr><td>Synonymous</td><td>{{exp_syn}}</td><td>{{n_syn}}</td><td>z = {{syn_z}}</td></tr><tr><td>Missense</td><td>{{exp_mis}}</td><td>{{n_mis}}</td><td>z = {{mis_z}}</td></tr><tr><td>LoF</td><td>{{exp_lof}}</td><td>{{n_lof}}</td><td>pLI = {{pLI}}</td></tr></table><table width=\"100%\"><tr><td><button onclick=\"LocusZoom.getToolTipPlot(this).panel_ids_by_y_index.forEach(function(panel){ if(panel == 'genes'){ return; } var filters = (panel.indexOf('intervals') != -1 ? [['intervals:start','>=','{{start}}'],['intervals:end','<=','{{end}}']] : [['position','>','{{start}}'],['position','<','{{end}}']]); LocusZoom.getToolTipPlot(this).panels[panel].undimElementsByFilters(filters, true); }.bind(this)); LocusZoom.getToolTipPanel(this).data_layers.genes.unselectAllElements();\">Identify data in region</button></td><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
                 },
                 "label_font_size": 12,
                 "label_exon_spacing": 4,
@@ -505,53 +478,57 @@ window.debug = window.debug || {};
                 }
             },
             "legend": null
-        }],
-        "min_width": 400,
-        "min_height": 400,
-        "responsive_resize": false,
-        "aspect_ratio": 1.7777777777777777,
-        "panel_boundaries": true
+        }]
     }
 
     window.debug.data_sources = data_sources;
     window.debug.layout = layout;
     $(function() {
         // Populate the div with a LocusZoom plot using the default layout
-        window.debug.plot = LocusZoom.populate("#lz-1", data_sources, layout);
+        window.plot = LocusZoom.populate("#lz-1", data_sources, layout);
 
-        // $('#move-left').on('click', function() { move(-0.5); });
-        // $('#move-left-fast').on('click', function() { move(-1.5); });
-        // $('#move-right').on('click', function() { move(0.5); });
-        // $('#move-right-fast').on('click', function() { move(1.5); });
-        // $('#zoom-out').on('click', function() { zoom(2); });
-        // $('#zoom-in').on('click', function() { zoom(0.5); });
+        $('#move-left').on('click', function() { move(-0.5); });
+        $('#move-left-fast').on('click', function() { move(-1.5); });
+        $('#move-right').on('click', function() { move(0.5); });
+        $('#move-right-fast').on('click', function() { move(1.5); });
+        $('#zoom-out').on('click', function() { zoom(2); });
+        $('#zoom-in').on('click', function() { zoom(0.5); });
     });
 
-    // function move(direction) {
-    //     // 1 means right, -1 means left.
-    //     var start = window.plot.state.start;
-    //     var end = window.plot.state.end;
-    //     var shift = Math.floor((end - start) / 2) * direction;
-    //     window.plot.applyState({
-    //         chr: window.plot.state.chr,
-    //         start: start + shift,
-    //         end: end + shift
-    //     });
-    // }
+    function move(direction) {
+        // 1 means right, -1 means left.
+        var start = window.plot.state.start;
+        var end = window.plot.state.end;
+        var shift = Math.floor((end - start) / 2) * direction;
+        window.plot.applyState({
+            chr: window.plot.state.chr,
+            start: start + shift,
+            end: end + shift
+        });
+    }
 
-    // function zoom(length_ratio) {
-    //     // 2 means bigger view, 0.5 means zoom in.
-    //     var start = window.plot.state.start;
-    //     var end = window.plot.state.end;
-    //     var center = (end + start) / 2;
-    //     start = Math.floor(center + (start - center) * length_ratio);
-    //     start = Math.max(0, start);
-    //     end = Math.floor(center + (end - center) * length_ratio);
-    //     window.plot.applyState({
-    //         chr: window.plot.state.chr,
-    //         start: start,
-    //         end: end,
-    //     });
-    // }
+    function zoom(growth_factor){
+        // 2 means bigger view, 0.5 means zoom in.
+        growth_factor = parseFloat(growth_factor);
+        var delta = (plot.state.end - plot.state.start) * (growth_factor - 1) / 2;
+        var new_start = Math.max(Math.round(plot.state.start - delta), 1);
+        var new_end   = Math.round(plot.state.end + delta);
+        if (new_start == new_end){ new_end++; }
+        var new_state = {
+            start: new_start,
+            end: new_end
+        };
+        if (new_state.end - new_state.start > plot.layout.max_region_scale){
+            delta = Math.round(((new_state.end - new_state.start) - plot.layout.max_region_scale) / 2);
+            new_state.start += delta;
+            new_state.end -= delta;
+        }
+        if (new_state.end - new_state.start < plot.layout.min_region_scale){
+            delta = Math.round((plot.layout.min_region_scale - (new_state.end - new_state.start)) / 2);
+            new_state.start -= delta;
+            new_state.end += delta;
+        }
+        plot.applyState(new_state);
+    }
 
 })();
