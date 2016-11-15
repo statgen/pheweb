@@ -12,8 +12,11 @@
   });
   $.getJSON("/api/qq/pheno/" + window.pheno + ".json").done(function(data) {
     window.data_pheno = data; //debugging
-    _.sortBy(_.pairs(data.overall.gc_lambda)).forEach(function(d) {
-      $('.gc-control').append('<br>GC Lambda ' + d[0] + ': ' + d[1].toFixed(3));
+    _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
+      var text = 'GC Lambda ' + d[0] + ': ' + d[1].toFixed(3);
+      if (i === 0) { text = '<b>' + text + '</b>'; }
+      text = '<br>' + text;
+      $('.gc-control').append(text);
     });
     create_qq_plot(data.by_maf);
   });
@@ -113,7 +116,7 @@
 
         <div class="row">
           <div class="col-xs-12 col-md-8">
-            <h3>Top Genes:</h3>
+            <h3>Top Hits:</h3>
           </div>
         </div>
         <div class="row">
@@ -156,6 +159,7 @@
               <h3>QQ plot:</h3>
               <div id="qq_plot_container"></div>
               <p class="gc-control"></p>
+              <i>(Genomic Control Lambda calculated based on the 50%ile (median), 10%ile, 1%ile, and 0.1%ile.)</i>
               <br><br><br>
             </div>
         </div>
