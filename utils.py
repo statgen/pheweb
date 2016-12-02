@@ -184,7 +184,8 @@ def get_random_page():
     elif r < 0.8:
         return '/variant/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
     else:
-        return '/region/{phenocode}/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
+        offset = int(50e3)
+        return '/region/{phenocode}/{chrom}:{pos1}-{pos2}'.format(pos1=hit['pos']-offset, pos2=hit['pos']+offset, **hit)
 
 def die(message):
     print(message, file=sys.stderr)
