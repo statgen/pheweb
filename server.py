@@ -149,6 +149,9 @@ def apply_caching(response):
     return response
 
 if __name__ == '__main__':
+
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 9
+
     import argparse
     import glob
     parser = argparse.ArgumentParser()
