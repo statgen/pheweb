@@ -25,8 +25,44 @@ And steps 5 and 6 should only be as difficult as you want them to be.
 
 5. Put all of this information in `config.config`.  Just Read The Instructions in `config.config` for how to do this.
 
+### 2. Prepare your association files
 
-### 2. Make a list of your phenotypes
+You should have one file for each phenotype.  (It can be gzipped if you want.)  It should be tab-delimited and have a header row.
+
+Note: If you are using EPACTS, your files should work just fine.  If they don't, email me.  EPACTS files won't have `REF` or `ALT`, but PheWeb will parse their `MARKER_ID` column to get those.
+
+The file must have columns for:
+
+- chromosome
+    - named `#CHROM` or `CHROM` (all column are not case-sensitive)
+    - must be a number between 1 and 22 or `X` or `Y` or `M` or `MT`
+- position
+    - named `POS`, `BEG`, or `BEGIN`
+    - must be an integer
+- reference allele
+    - named `REF`
+- alternate allele
+    - named `ALT`
+- minor allele frequency
+    - named `MAF`
+    - must be a real number between 0 and 1 (numbers may be in scientific notation, like `5.4e-12`)
+- p-value
+    - named `PVAL` or `PVALUE`
+    - must be decimal number between 0 and 1 or `.` or `NA` (both representing unknown)
+
+You may also have columns for:
+
+- effect size
+    - named `BETA`
+    - must be a real number
+- standard error of effect size
+    - named `SEBETA`
+    - must be a real number
+
+If you need Odds Ratio, I can add that.
+
+
+### 3. Make a list of your phenotypes
 
 Inside of your data directory, you need to end up with a file named `pheno-list.json` that looks like this:
 
@@ -86,7 +122,7 @@ There are three ways to make that file:
 No matter what you do, please run `./phenolist.py verify` when you are done.  At any point, you may run `./phenolist.py view` to view the current file.
 
 
-### 3. Load your association files.
+### 4. Load your association files.
 
 0. If you only want variants that reach some minimum MAF, then set `minimum_maf` in `config.config`.
    Any variant that has at least that minor allele frequency (MAF) will be shown on the website, no matter what.
@@ -104,7 +140,7 @@ No matter what you do, please run `./phenolist.py verify` when you are done.  At
     Then re-run `./run_all.sh`.
 
 
-### 4. Run a simple server to check that everything loaded correctly.
+### 5. Run a simple server to check that everything loaded correctly.
 
 Run `./server.py`.
 
@@ -131,7 +167,7 @@ Next you need to find a way to for your computer to access the server.  You have
 - (C) Skip straight to step 6, then do step 5 after that.
 
 
-### 5. Modify templates if necessary.
+### 6. Modify templates if necessary.
 
 The templates that you might want to modify are:
 
@@ -143,7 +179,7 @@ The templates that you might want to modify are:
 As you modify templates, you might have to kill and restart your development server for the changes to take effect.  Or maybe not.  Who knows.
 
 
-### 6. Use a real webserver.
+### 7. Use a real webserver.
 
 At this point your Pheweb should be working how you want it to, and everything should be good except maybe the URL you're using.
 
