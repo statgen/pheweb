@@ -121,7 +121,7 @@ def _get_fieldnames_and_variants(*args, **kwargs):
     return _tuplify_headed_iterator(_get_headed_variants(*args, **kwargs))
 def _get_headed_variants(src_filename, minimum_maf=None):
     # return is in itertools.chain([fieldnames], variants) form
-    with gzip.open(src_filename) as f:
+    with utils.open_maybe_gzip(src_filename) as f:
         # TODO: use `pandas.read_csv(src_filename, usecols=[...], converters={...}, iterator=True, verbose=True, na_values='.', sep=None)
         #   - first without `usecols`, to parse the column names, and then a second time with `usecols`.
 
