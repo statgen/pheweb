@@ -52,6 +52,10 @@ possible_fields = {
 }
 required_fields = ['chrom', 'pos', 'ref', 'alt', 'maf', 'pval']
 
+# make all aliases lowercase.
+for field in possible_fields.values():
+    field['aliases'] = [alias.lower() for alias in field['aliases']]
+
 def get_fieldnames_and_variants(pheno, minimum_maf=None):
     assoc_files = _get_assoc_files_in_order(pheno)
     fieldnames, variants = _combine_fieldnames_variants_pairs(_get_fieldnames_and_variants(fname, minimum_maf=minimum_maf) for fname in assoc_files)
@@ -127,7 +131,7 @@ def _get_headed_variants(src_filename, minimum_maf=None):
 
         colname_mapping = {} # Map from a key like 'chrom' to an index # TODO rename to colname_index
 
-        header_fields = [field.strip('"\' ') for field in next(f).rstrip('\n\r').split('\t')]
+        header_fields = [field.strip('"\' ').lower() for field in next(f).rstrip('\n\r').split('\t')]
 
         # Special case for `MARKER_ID`
         if 'MARKER_ID' in header_fields:
@@ -151,7 +155,11 @@ def _get_headed_variants(src_filename, minimum_maf=None):
         if not all(fieldname in colname_mapping for fieldname in required_fields):
             unmapped_required_fieldnames = [fieldname for fieldname in required_fields if fieldname not in colname_mapping]
             print("Some required fieldnames weren't successfully mapped to the columns of an input file.")
-            print("Those were: {!r}".format(unmapped_required_fieldnames))
+            print("The keys that were required but not present are: {!r}".format(unmapped_required_fieldnames))
+            print("Their accepted aliases are:")
+            for fieldname in unmapped_required_fieldnames:
+                print("- {}: {!r}".format(fieldname, possible_fields[fieldname]['aliases'])
+            print("Here are all the keys that WERE present: {!r}".format(header_fields))
             exit(1)
 
         optional_fields = list(set(colname_mapping) - set(required_fields))
