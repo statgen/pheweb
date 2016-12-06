@@ -127,7 +127,7 @@ def _get_headed_variants(src_filename, minimum_maf=None):
 
         colname_mapping = {} # Map from a key like 'chrom' to an index # TODO rename to colname_index
 
-        header_fields = next(f).rstrip('\n\r').split('\t')
+        header_fields = [field.strip('"\' ') for field in next(f).rstrip('\n\r').split('\t')]
 
         # Special case for `MARKER_ID`
         if 'MARKER_ID' in header_fields:
