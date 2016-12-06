@@ -158,7 +158,7 @@ def _get_headed_variants(src_filename, minimum_maf=None):
             print("The keys that were required but not present are: {!r}".format(unmapped_required_fieldnames))
             print("Their accepted aliases are:")
             for fieldname in unmapped_required_fieldnames:
-                print("- {}: {!r}".format(fieldname, possible_fields[fieldname]['aliases'])
+                print("- {}: {!r}".format(fieldname, possible_fields[fieldname]['aliases']))
             print("Here are all the keys that WERE present: {!r}".format(header_fields))
             exit(1)
 
