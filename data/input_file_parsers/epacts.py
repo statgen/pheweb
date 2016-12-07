@@ -36,11 +36,11 @@ possible_fields = {
     'ref': {
         'aliases': ['reference'],
         'type': str,
-    }
+    },
     'alt': {
         'aliases': ['alternate'],
         'type': str,
-    }
+    },
     'maf': {
         'aliases': [],
         'type': float,
@@ -62,7 +62,7 @@ required_fields = ['chrom', 'pos', 'ref', 'alt', 'maf', 'pval']
 
 # make all aliases lowercase.
 for fieldname in possible_fields:
-    possible_fields[fielname]['aliases'] = [alias.lower() for alias in [fieldname] + possible_fields[fieldname]['aliases']]
+    possible_fields[fieldname]['aliases'] = [alias.lower() for alias in [fieldname] + possible_fields[fieldname]['aliases']]
 
 def get_fieldnames_and_variants(pheno, minimum_maf=None):
     assoc_files = _get_assoc_files_in_order(pheno)
@@ -109,15 +109,15 @@ def _tuplify_headed_iterator(headed_iterator):
     header = next(headed_iterator)
     return (header, headed_iterator)
 
-def _combine_fieldnames_variants_pairs(list_of_fielname_variants_pairs):
+def _combine_fieldnames_variants_pairs(list_of_fieldname_variants_pairs):
     # return is in (fieldnames, variants) form
-    rv = _headed_combine_fieldnames_variants_pairs(list_of_fielname_variants_pairs)
+    rv = _headed_combine_fieldnames_variants_pairs(list_of_fieldname_variants_pairs)
     fieldnames = next(rv)
     return (fieldnames, rv)
-def _headed_combine_fieldnames_variants_pairs(list_of_fielname_variants_pairs):
+def _headed_combine_fieldnames_variants_pairs(list_of_fieldname_variants_pairs):
     # return is in itertools.chain([fieldnames], variants) form
     constant_fieldnames = None
-    for fieldnames, variants in list_of_fielname_variants_pairs:
+    for fieldnames, variants in list_of_fieldname_variants_pairs:
         if constant_fieldnames is None:
             assert fieldnames is not None
             constant_fieldnames = fieldnames
