@@ -26,15 +26,23 @@ def nullable_float(string):
 
 possible_fields = {
     'chrom': {
-        'aliases': ['#CHROM', 'CHROM'],
+        'aliases': ['#CHROM'],
         'type': str,
     },
     'pos': {
         'aliases': ['BEG', 'BEGIN'],
         'type': int,
     },
+    'ref': {
+        'aliases': ['reference'],
+        'type': str,
+    }
+    'alt': {
+        'aliases': ['alternate'],
+        'type': str,
+    }
     'maf': {
-        'aliases': ['MAF'],
+        'aliases': [],
         'type': float,
     },
     'pval': {
@@ -42,19 +50,19 @@ possible_fields = {
         'type': nullable_float,
     },
     'beta': {
-        'aliases': ['BETA'],
+        'aliases': [],
         'type': nullable_float,
     },
     'sebeta': {
-        'aliases': ['SEBETA'],
+        'aliases': [],
         'type': nullable_float,
     }
 }
 required_fields = ['chrom', 'pos', 'ref', 'alt', 'maf', 'pval']
 
 # make all aliases lowercase.
-for field in possible_fields.values():
-    field['aliases'] = [alias.lower() for alias in field['aliases']]
+for fieldname in possible_fields:
+    possible_fields[fielname]['aliases'] = [alias.lower() for alias in [fieldname] + possible_fields[fieldname]['aliases']]
 
 def get_fieldnames_and_variants(pheno, minimum_maf=None):
     assoc_files = _get_assoc_files_in_order(pheno)
