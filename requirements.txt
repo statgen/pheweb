@@ -1,8 +1,10 @@
-Flask==0.11
-pysam==0.9.0
-marisa-trie==0.7.2
-flask-compress==1.3.0
-contextlib2
-intervaltree
-more_itertools
-tqdm
+# note: `~=0.5` is equivalent to `>=0.5, < 0.6`.  I'm not sure what `~=0.5.1` does.
+
+Flask>=0.11
+pysam~=0.9.0
+marisa-trie~=0.7
+flask-compress~=1.3
+contextlib2~=0.5
+intervaltree~=2.1
+more_itertools~=2.4
+tqdm~=4.10
