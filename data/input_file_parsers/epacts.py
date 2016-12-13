@@ -70,11 +70,21 @@ def get_fieldnames_and_variants(pheno, minimum_maf=None):
     sorted_variants = _order_ref_alt_lexicographically(variants)
     return (fieldnames, sorted_variants)
 
+def exit(**args):
+    # It seems like exit(1) just hangs when used in multiprocessing, unlike raise, which kills all processes.
+    # So I'm hackishly overriding it.  Gross.  Py3 will probably fix this issue.
+    raise Exception('')
+
 def _variant_order_key(v):
+    return (_get_chrom_index(v['chrom']), v['pos'])
+def _get_chrom_index(chrom):
     try:
-        return (utils.chrom_order[v['chrom']], v['pos'])
-    except ValueError:
-        print("Failed to understand the relative position of variant {!r}, probably because we don't recognize the chromosome".format(v))
+        return utils.chrom_order[chrom]
+    except KeyError:
+        print("\nIt looks like one of your variants has the chromosome {!r}, but PheWeb doesn't handle that chromosome.".format(chrom))
+        print("I bet you could fix it by running code like this on each of your input files:")
+        print("zless my-input-file.tsv | perl -nale 'print if $. == 1 or m{^(1?[0-9]|2[0-2]|X)\t}' | gzip > my-replacement-input-file.tsv.gz\n")
+        exit()
 def _get_assoc_files_in_order(pheno):
     assoc_files = [{'fname': fname} for fname in pheno['assoc_files']]
     for assoc_file in assoc_files:
@@ -90,7 +100,7 @@ def _order_ref_alt_lexicographically(variants):
     cp_groups = itertools.groupby(variants, key=lambda v:(v['chrom'], v['pos']))
     prev_chrom_index, prev_pos = -1, -1
     for cp, tied_variants in cp_groups:
-        chrom_index = utils.chrom_order[cp[0]]
+        chrom_index = _get_chrom_index(cp[0])
         if chrom_index < prev_chrom_index:
             print("The chromosomes in your file appear to be in the wrong order.")
             print("The required order is: {!r}".format(utils.chrom_order_list))
