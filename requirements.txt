@@ -8,3 +8,5 @@ contextlib2~=0.5
 intervaltree~=2.1
 more_itertools~=2.4
 tqdm~=4.10
+openpyxl~=2.4
+scipy~=0.17
