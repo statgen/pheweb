@@ -70,7 +70,7 @@ def get_fieldnames_and_variants(pheno, minimum_maf=None):
     sorted_variants = _order_ref_alt_lexicographically(variants)
     return (fieldnames, sorted_variants)
 
-def exit(**args):
+def exit(*args, **kwargs):
     # It seems like exit(1) just hangs when used in multiprocessing, unlike raise, which kills all processes.
     # So I'm hackishly overriding it.  Gross.  Py3 will probably fix this issue.
     raise Exception('')
