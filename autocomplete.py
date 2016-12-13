@@ -120,12 +120,13 @@ class Autocompleter(object):
                     }
 
             for rsid, cpra in self._rsid_to_cpra_trie.iteritems(key):
-                cpra = cpra.replace('-', ':', 1)
-                yield {
-                    "value": cpra,
-                    "display": '{} ({})'.format(rsid, cpra),
-                    "url": "/variant/{}".format(cpra)
-                }
+                if rsid not in rsids_to_check: # don't repeat rsids we already yeld.
+                    cpra = cpra.replace('-', ':', 1)
+                    yield {
+                        "value": cpra,
+                        "display": '{} ({})'.format(rsid, cpra),
+                        "url": "/variant/{}".format(cpra)
+                    }
 
     def _autocomplete_phenocode(self, query):
         query = self._process_string(query)
