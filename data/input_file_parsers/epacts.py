@@ -149,11 +149,12 @@ def _get_headed_variants(src_filename, minimum_maf=None):
 
         colname_mapping = {} # Map from a key like 'chrom' to an index # TODO rename to colname_index
 
+        # Note: we're making all fieldnames lowercase, so we'll have to refer to them as lowercase everywhere after here.
         header_fields = [field.strip('"\' ').lower() for field in next(f).rstrip('\n\r').split('\t')]
 
         # Special case for `MARKER_ID`
-        if 'MARKER_ID' in header_fields:
-            MARKER_ID_COL = header_fields.index('MARKER_ID')
+        if 'marker_id' in header_fields:
+            MARKER_ID_COL = header_fields.index('marker_id')
             colname_mapping['ref'] = None # This is just to mark that we have 'ref', but it doesn't come from a column.
             colname_mapping['alt'] = None
             # TODO: this sort of provides a mapping for chrom and pos, but those are usually doubled anyways.
