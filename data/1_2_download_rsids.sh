@@ -21,7 +21,8 @@ if ! [[ -e "$data_dir/sites/dbSNP/rsids.vcf.gz" ]]; then
     if ! [[ -e "$data_dir/sites/dbSNP/dbsnp-b147-GRCh37.gz" ]]; then
         echo downloading!
         #    wget -O "$data_dir/sites/dbSNP/dbsnp-b147-GRCh37.gz" "ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/database/organism_data/b147_SNPChrPosOnRef_105.bcp.gz"
-        wget -O "$data_dir/sites/dbSNP/dbsnp-b147-GRCh37.gz" "ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz"
+        wget -O "$data_dir/sites/dbSNP/tmp-dbsnp-b147-GRCh37.gz" "ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz"
+        mv "$data_dir/sites/dbSNP/tmp-dbsnp-b147-GRCh37.gz" "$data_dir/sites/dbSNP/dbsnp-b147-GRCh37.gz"
     fi
 
     gzip -cd "$data_dir/sites/dbSNP/dbsnp-b147-GRCh37.gz" |
