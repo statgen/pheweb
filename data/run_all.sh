@@ -42,7 +42,7 @@ run ./3_1_standardize_each_pheno.py # TODO: each depends on its own src_filename
 run ./3_2_make_manhattan_for_each_pheno.py # TODO: each depends on its own augmented_pheno
 run ./3_3_make_QQ_for_each_pheno.py # TODO: each depends on its own augmented_pheno
 run ./4_1_make_matrix.sh # TODO: depends on augmented_pheno/*
-run ./4_2_bgzip.sh
+run ./4_2_bgzip.py
 run ./5_1_bgzip_augmented_phenos.sh # TODO: each depends on its own augmented_pheno
 run ./9_3_get_all_hits.py
 # TODO: delete unneeded files?
