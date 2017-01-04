@@ -89,7 +89,7 @@ That example file only include the columns `assoc_files` (a list of paths) and `
 
 There are three ways to make that file:
 
-- (A) If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running `./phenolist.py "/path/to/my/pheno-list.csv"`.
+- (A) If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running `./phenolist.py import-phenolist "/path/to/my/pheno-list.csv"`.
 
   If you have multiple association files for each phenotype, you may put them all into a single column with `|` between them.
 
