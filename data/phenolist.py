@@ -24,6 +24,8 @@ import sys
 import more_itertools
 import functools
 import tqdm
+import sys
+import copy
 
 def get_phenolist_with_globs(globs):
     assoc_fnames = []
@@ -87,7 +89,7 @@ def check_that_phenocode_is_urlsafe(phenolist):
         bad_chars = list(set(char for char in pheno['phenocode'] if char not in urlsafe_characters))
         if bad_chars:
             print("""\
-ERROR: The phenotype with phenocode {!r} contains the characters {!r} which is not allowed, because these string will be used in URLs
+ERROR: The phenocode {!r} contains the characters {!r} which is not allowed because phenocodes are used in URLs
 """.format(pheno['phenocode'], bad_chars))
             print("Other phenotypes might have this problem too.")
             print("If this character IS actually urlsafe, it needs to be added to the list urlsafe_characters")
@@ -111,7 +113,10 @@ def check_that_all_phenos_have_same_columns(phenolist):
                 utils.die("ERROR: the column {!r} is in at least one phenotype but not in {!r}".format(col, pheno))
 
 def check_that_all_phenotypes_have_assoc_files(phenolist):
-    if any(len(pheno.get('assoc_files', [])) == 0 for pheno in phenolist): utils.die("Some phenotypes don't have any association files")
+    for pheno in phenolist:
+        if 'assoc_files' not in pheno: utils.die("Some phenotypes don't have any association files")
+        if not isinstance(pheno['assoc_files'], list): utils.die("Assoc_files is not a list for some phenotypes.  I don't know how that happened but it's bad.")
+        if any(not isinstance(s, (str, unicode)) for s in pheno['assoc_files']): utils.die("assoc_files contains things other than strings for some phenotypes.")
 
 def extract_info_from_assoc_files(phenolist):
     input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
@@ -165,6 +170,14 @@ def import_phenolist(fname, has_header):
         print("I couldn't figure out how to open the file {!r}, sorry.".format(fname))
         exit(1)
 
+def listify_assoc_files(phenolist):
+    for pheno in phenolist:
+        if 'assoc_files' in pheno and not isinstance(pheno['assoc_files'], list):
+            if not isinstance(pheno['assoc_files'], str):
+                utils.die("assoc_files is of unsupported type({!r}). value: {!r}".format(type(pheno['assoc_files']), pheno['assoc_files']))
+            pheno['assoc_files'] = [pheno['assoc_files']]
+    return phenolist
+
 def _import_phenolist_xlsx(fname, has_header):
     import openpyxl
     try:
@@ -191,8 +204,16 @@ def _import_phenolist_xlsx(fname, has_header):
         return None
 
 def _import_phenolist_csv(f, has_header):
-    # Note: f is a file
-    dialect = csv.Sniffer().sniff(f.read(1024))
+    # Note: If a csv (1) contains commas in quoted cells and (2) doesn't have any line that starts with a quoted cell,
+    #       then sometimes this makes very bad choices.
+    #       In particular, if all lines have the same number of some other character (even a letter), that character might become the delimeter.
+    try:
+        dialect = csv.Sniffer().sniff(f.read(4096))
+    except Exception as exc:
+        print(exc)
+        utils.die("Sniffing csv format failed.  Check that your csv file is well-formed.  If it is, try delimiting with tabs or semicolons.")
+    if dialect.delimiter in string.ascii_letters or dialect.delimiter in string.digits:
+        utils.die("Our csv sniffer decided that {!r} looks like the most likely delimiter in your csv file, but that's crazy.")
     f.seek(0)
     try:
         rows = list(csv.reader(f, dialect))
@@ -211,6 +232,18 @@ def _import_phenolist_csv(f, has_header):
         fieldnames = range(num_cols)
     return [{fieldnames[i]: row[i] for i in range(num_cols)} for row in rows]
 
+def interpret_json(phenolist):
+    for pheno in phenolist:
+        for k in pheno:
+            if isinstance(pheno[k], str) and pheno[k].startswith('json:'):
+                s = pheno[k][len('json:'):]
+                try:
+                    pheno[k] = json.loads(s)
+                except Exception as exc:
+                    print(exc)
+                    utils.die("The input file contained an invalid field marked to be interpreted as json: {!r}".format(pheno[k]))
+    return phenolist
+
 def split_values_on_pipes(phenolist):
     all_keys = list(set(itertools.chain.from_iterable(phenolist)))
     str_keys = [key for key in all_keys if all(isinstance(pheno.get(key, None), str) for pheno in phenolist)]
@@ -224,6 +257,21 @@ def split_values_on_pipes(phenolist):
                 if key in pheno:
                     pheno[key] = pheno[key].split('|')
     return phenolist
+
+def print_as_csv(phenolist):
+    phenolist = copy.deepcopy(phenolist)
+    all_columns = list(more_itertools.unique_everseen(col for pheno in phenolist for col in pheno))
+    w = csv.DictWriter(sys.stdout, all_columns)
+    w.writeheader()
+    for pheno in phenolist:
+        for k in pheno:
+            if isinstance(pheno[k], (str,unicode)):
+                pass
+            elif isinstance(pheno[k], list) and len(pheno[k])>0 and all(isinstance(v,(str,unicode)) for v in pheno[k]) and all('|' not in v for v in pheno[k]):
+                pheno[k] = '|'.join(pheno[k])
+            else:
+                pheno[k] = 'json:' + json.dumps(pheno[k])
+        w.writerow(pheno)
 
 
 def rename_column(phenolist, old_name, new_name):
@@ -502,14 +550,26 @@ if __name__ == '__main__':
     def f(args):
         fname = args.fname or default_phenolist_fname
         phenolist = import_phenolist(args.input_filename, not args.no_header)
+        phenolist = interpret_json(phenolist)
         if args.delimit_lists_with_pipe:
             phenolist = split_values_on_pipes(phenolist)
+        phenolist = listify_assoc_files(phenolist)
         save_phenolist(phenolist, fname)
     p = subparsers.add_parser('import-phenolist', help='read a csv, tsv, gzipped csv, gzipped tsv, or xlsx file and produce a json file')
     p.add_argument('input_filename', help="input filename")
     p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
     p.add_argument('--no-header', dest="no_header", action="store_true", help="whether input_filename has no header, in which case columns will just be numbered")
     p.add_argument('--never-delimit-lists-with-pipe', dest="delimit_lists_with_pipe", action="store_false", help="whether to split any fields that contain pipes into lists")
+    # TODO: add option to strictly read a comma-delimited double-doublequote-escaped csv
+
+    @add_subcommand('print-as-csv')
+    def f(args):
+        fname = args.fname or default_phenolist_fname
+        phenolist = load_phenolist(fname)
+        print_as_csv(phenolist)
+    p = subparsers.add_parser('print-as-csv', help='Produce a csv file that could be read in by import-phenolist')
+    p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
+    # TODO: maybe make this be `view --csv`
 
     @add_subcommand('keep-only-columns')
     @modifies_phenolist
@@ -551,4 +611,3 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     subcommand_handlers[args.subcommand](args)
-    print('')

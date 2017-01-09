@@ -1,0 +1,4 @@
+assoc_files;phenocode;info
+/Users/peter/PROJECTS/pheweb-data/vb-input-from-peter/phe008.tsv;008;"json:[1,2]"
+/Users/peter/PROJECTS/pheweb-data/vb-input-from-peter/phe009.bar.tsv|/Users/peter/PROJECTS/pheweb-data/vb-input-from-peter/phe009.foo.tsv;009;foo
+/Users/peter/PROJECTS/pheweb-data/vb--from-peter/phe009.bar.tsv|/Users/peter/PROJECTS/pheweb-data/vb-input-from-peter/phe009.foo.tsv;009;bar
