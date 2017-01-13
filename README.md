@@ -80,14 +80,16 @@ Inside of your data directory, you need to end up with a file named `pheno-list.
 ]
 ```
 
-That example file only include the columns `assoc_files` (a list of paths) and `phenocode` (any string that works in a URL).  You may also optionally include:
+`phenocode` must only contain letters, numbers, or any of `_-~`.
+
+That example file only includes the columns `assoc_files` (a list of paths) and `phenocode` (any string that works in a URL).  If you want, you can also include:
 
 - `phenostring`: a string that is more descriptive than `phenocode` and will be shown in several places
 - `category`: a string that will group together phenotypes in the PheWAS plot and also be shown in several places
 - `num_cases`, `num_controls`, and/or `num_samples`: numbers of strings which will be shown in several places
 - anything else you want, but you'll have to modify templates to show it.
 
-There are three ways to make that file:
+There are three ways to make a `pheno-list.json`:
 
 - (A) If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running `./phenolist.py import-phenolist "/path/to/my/pheno-list.csv"`.
 
@@ -101,25 +103,36 @@ There are three ways to make that file:
   ear-length,/home/watman/ear-length.all.epacts.gz
   ```
 
-- (B) If you have a shell-glob that matches all of your association filenames, run `./phenolist.py glob-files "/path/to/association/files/*/*.epacts.gz"`.
+- (B) If you have one association file per phenotype, you can use a shell-glob and a regex to get assoc-files and phenocodes for them.
 
-  Then use a regular expression to make a phenocode for each phenotype.
-  For example, you could use the regex `/(.*?)\.[^\.]+\.epacts\.gz` to match `eats-kimchi` and `ear-length` from the association files:
+  Suppose that your assocation files are at paths like:
 
-    - `/home/watman/eats-kimchi.autosomal.epacts.gz`
-    - `/home/watman/eats-kimchi.X.epacts.gz`
-    - `/home/watman/ear-length.all.epacts.gz
+    - `/home/watman/eats-kimchi.epacts.gz`
+    - `/home/watman/ear-length.epacts.gz`
 
-  If you have multiple association files for some phenotypes (like "eats-kimchi", which has separate files for X and autosomal chromosomes),
-  you can combine lines that have identical `phenocode`s with this command:
+  Then you could run `./phenolist.py glob-files "/home/watman/*.epacts.gz"` to get `assoc-files`.
+
+  To get `phenocodes`, you can use a regex that captures the phenocode from the file path.  In this example, `./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'` would work.
+
+- (C)  If you have multiple association files for some phenotypes, you can follow the directions in (B) and then run `./phenolist unique-phenocode`.
+
+  For example, if your association files are at:
+
+    - `/home/watman/autosomal/eats-kimchi.epacts.gz`
+    - `/home/watman/X/eats-kimchi.epacts.gz`
+    - `/home/watman/all/ear-length.epacts.gz`
+
+  then you can run:
 
   ```
+  ./phenolist.py glob-files "/home/watman/*/*.epacts.gz"
+  ./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
   ./phenolist.py unique-phenocode
   ```
 
 - (D) If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for `./phenolist.py`.
 
-No matter what you do, please run `./phenolist.py verify` when you are done.  At any point, you may run `./phenolist.py view` to view the current file.
+No matter what you do, please run `./phenolist.py verify` when you are done to check that it worked correctly.  At any point, you may run `./phenolist.py view` to view the current file.
 
 
 ### 4. Load your association files.
