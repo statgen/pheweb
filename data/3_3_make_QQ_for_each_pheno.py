@@ -69,6 +69,9 @@ def compute_qq(neglog10_pvals):
     # neglog10_pvals must be in decreasing order.
     assert all(neglog10_pvals[i] >= neglog10_pvals[i+1] for i in range(len(neglog10_pvals)-1))
 
+    if len(neglog10_pvals) == 0:
+        return []
+
     max_exp_neglog10_pval = -math.log10(0.5 / len(neglog10_pvals))
     max_obs_neglog10_pval = neglog10_pvals[0]
 
