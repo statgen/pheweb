@@ -123,21 +123,29 @@ def make_qq(neglog10_pvals):
 
 def make_json_file(args):
     src_filename, dest_filename, tmp_filename = args['src'], args['dest'], args['tmp']
-    assert not os.path.exists(dest_filename), dest_filename
+    try:
+        assert not os.path.exists(dest_filename), dest_filename
 
-    with open(src_filename) as f:
-        variants = list(get_variants(f))
+        with open(src_filename) as f:
+            variants = list(get_variants(f))
 
-    rv = {}
-    rv['overall'] = make_qq(v.neglog10_pval for v in variants)
-    rv['by_maf'] = make_qq_stratified(variants)
+        rv = {}
+        rv['overall'] = make_qq(v.neglog10_pval for v in variants)
+        rv['by_maf'] = make_qq_stratified(variants)
 
-    # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
-    with open(tmp_filename, 'w') as f:
-        json.dump(rv, f, sort_keys=True, indent=0)
-        os.fsync(f.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
-    os.rename(tmp_filename, dest_filename)
+        # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
+        with open(tmp_filename, 'w') as f:
+            json.dump(rv, f, sort_keys=True, indent=0)
+            os.fsync(f.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
+        print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
+        os.rename(tmp_filename, dest_filename)
+    except Exception as exc:
+        print('ERROR OCCURRED WHEN MAKING QQ FILE {!r} FROM FILE {!r} (TMP FILE AT {!r})'.format(
+            dest_filename, src_filename, tmp_filename))
+        print('ERROR WAS:')
+        print(exc)
+        print('---')
+        raise
 
 
 def get_conversions_to_do():
