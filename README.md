@@ -12,7 +12,12 @@ And steps 5 and 6 should only be as difficult as you want them to be.
 2. Make a data directory.  It should be in a location where you can afford to store twice as much data as the size of your input files.
    If you don't have read/write access to it, most of the commands you run later will need to start with `sudo `.
 
-3. Make a python2 virtualenv.  If you don't have `virtualenv` installed, follow the directions [here](https://virtualenv.pypa.io/en/stable/installation/).
+3. Install dependencies.  You may install them with `pip2 install -r requirements.txt` (while in this directory).
+
+   If you get an error about permissions, perhaps `pip2 install --user -r requirements.txt` will work.
+
+   If that still doesn't work, make a python2 virtualenv.
+   If you don't have `virtualenv` installed, follow the directions [here](https://virtualenv.pypa.io/en/stable/installation/).
    Use these commands to make a virtualenv and install the packages we need:
 
     ```
@@ -25,6 +30,8 @@ And steps 5 and 6 should only be as difficult as you want them to be.
     - if you're on a Mac, you can install `wget` with [homebrew](http://brew.sh/)
 
 5. Put all of this information in `config.py`.  Just Read The Instructions in `config.py` for how to do this.
+
+   If you want to make PheWebs for multiple datasets, you can put a `config.py` in the data directory for each dataset and then `export PHEWEB_DATADIR=/path/to/dataset1/datadir`.
 
 ### 2. Prepare your association files
 
