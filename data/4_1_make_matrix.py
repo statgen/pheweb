@@ -2,6 +2,10 @@
 
 from __future__ import print_function, division, absolute_import
 
+# TODO:
+# when we make a package, maybe `g++ matrixify.cpp` won't work.
+# so pipe source into `g++ -x c++ - -o $data_dir/matrixify` instead. (how to pipe: http://stackoverflow.com/a/165662/1166306)
+
 # Load config, utils, venv
 import os.path
 import imp

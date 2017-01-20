@@ -21,9 +21,10 @@ And steps 5 and 6 should only be as difficult as you want them to be.
     pip install -r requirement.txt # the `requirements.txt` in this repository.
     ```
 
-4. Make sure you have tabix and bgzip.  If you can't just run `tabix` and `bgzip`, then either install them or find paths to those commands that work.
+4. Make sure you have tabix, bgzip, and wget.  If you can't just run `tabix`, `bgzip`, and `wget`, then either install them or find paths to those commands that work.
+    - if you're on a Mac, you can install `wget` with [homebrew](http://brew.sh/)
 
-5. Put all of this information in `config.config`.  Just Read The Instructions in `config.config` for how to do this.
+5. Put all of this information in `config.py`.  Just Read The Instructions in `config.py` for how to do this.
 
 ### 2. Prepare your association files
 
@@ -137,7 +138,7 @@ No matter what you do, please run `./phenolist.py verify` when you are done to c
 
 ### 4. Load your association files.
 
-0. If you only want variants that reach some minimum MAF, then set `minimum_maf` in `config.config`.
+0. If you only want variants that reach some minimum MAF, then set `minimum_maf` in `config.py`.
    Any variant that has at least that minor allele frequency (MAF) will be shown on the website, no matter what.
    If a variant has a smaller MAF (in some phenotype), it will still be shown if it has a large enough MAF in some other phenotype.
 

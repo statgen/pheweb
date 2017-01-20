@@ -62,21 +62,9 @@ then what about beta/sebeta in tables?  how to make that automatically be used o
     - put these two into a {%block%} for {%extends%}ing them
     - to make a clearer code structure, what if you built those two templates together (eg, `if(beta_sebeta){header_template+=...;row_template+=...}`)
 
-then how to get down to only pheweb install?
+then how to get down to only one pheweb install?
 - wsgi.wsgi must be in $dir
-- config.config must be in $dir
-- gotta run pheweb from $dir (or with `-d $dir`)
-- `custom_static/`
-- utils.get_config() will [check in $PWD, argparse for `-d $dir`] and error if neither
-- once we have `$dir`, we get all config
-- but then bash scripts must be wrapped in python.
-    - `0_0` belongs in `$dir`
-    - `1_*_download_*.sh` can be easily wrapped with `shell=True`
-    - `4_1_run_matrixify.sh` can be easily wrapped (and later something fancier once we make a package)
-    - `4_2_bgzip_matrix.sh` can be wrapped
-    - `5_1_bgzip_phenos.sh` is almost the same as 4_2 and needs multiprocessing.Pool.map()
-    - `run_all.sh` needs to be part of `./pheweb.py`.
-
+- `$data_dir/custom_templates/`
 
 Differences between mgi and sardinia-r2
 - config.config (minimum_maf, data_dir)
@@ -91,11 +79,8 @@ Differences between mgi and sardinia-r2
     - should this automatically be some real phenotypes?
         - just '&quot;{{ phenolist[0].phenostring || phenolist[0].phenocode }&quot;, &quot;{{ ... }}&quot;, etc.'
 
-
 the only remaining problem is wrapping c++ with python.  is there an alternative?
 - we can store `*.c++` in `pkg_resources`
-- we can `g++` from python
-- we can drop the executable into `$dir` (gross, I know, but it'll work for now)
 - that's good enough for now.
 - Ryan recommends cffi or ctypes.
 
@@ -114,4 +99,6 @@ so then everything will work but we'll want to work from $dir and use the fullpa
 make a special `./pheweb augment-like-vb-icd9-phewas`.
 - it should be easy to add custom subcommands.
 - What if we just had one file for each subcommand (`pheweb/subcommands/<subcommand>.py`), so it was super easy to add more?
+
+use wget (from pypi) instead of /usr/{,local/}bin/wget (https://pypi.python.org/pypi/wget)
 '''

@@ -2,10 +2,20 @@
 from __future__ import print_function, division, absolute_import
 
 # Load config
-import os.path
+import os
 import imp
-my_dir = os.path.dirname(os.path.abspath(__file__))
-conf = imp.load_source('conf', os.path.join(my_dir, 'config.config'))
+possible_conf_files = [
+    os.path.join(os.path.abspath(os.curdir), 'config.py'),
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.py'),
+]
+if 'PHEWEB_DATADIR' in os.environ:
+    possible_conf_files.insert(0, os.path.join(os.environ['PHEWEB_DATADIR'], 'config.py'))
+conf = None
+for conf_file in possible_conf_files:
+    if os.path.exists(conf_file):
+        conf = imp.load_source('conf', conf_file)
+if conf is None:
+    raise Exception('PheWeb failed to find a config.py file.  Places checked:\n{}'.format('\n'.join(possible_conf_files)))
 
 import re
 import itertools
@@ -202,7 +212,7 @@ def get_path(cmd, attr=None):
         except subprocess.CalledProcessError:
             pass
     if path is None:
-        raise Exception("The command '{cmd}' was not found in $PATH and was not specified (as {attr}) in config.config.".format(cmd=cmd, attr=attr))
+        raise Exception("The command '{cmd}' was not found in $PATH and was not specified (as {attr}) in config.py.".format(cmd=cmd, attr=attr))
     return path
 
 def run_script(script):
@@ -210,7 +220,7 @@ def run_script(script):
     try:
         with open(os.devnull) as devnull:
             # is this the right way to block stdin?
-            data = subprocess.check_output(['bash', '-c', script], stderr=subprocess.STDOUT, stdin=devnull)
+            data = subprocess.check_output(['sh', '-c', script], stderr=subprocess.STDOUT, stdin=devnull)
         status = 0
     except subprocess.CalledProcessError as ex:
         data = ex.output
