@@ -14,23 +14,10 @@
 # 8. `./server.py --port 5005` -> `./pheweb serve --port 5005`.
 
 '''
-wrap all bash in python.
-- to start, just build basher.py which runs a string like `set -euo pipefail`, capturing & printing stderr.
-- then make them all subcommands of a common entry-point.
-    - should be easy, right?
-    - `./pheweb phenolist glob ...`
-- it'll fetch config from [`-d $dir`, $PHEWEB_DATA_DIR, $PWD, `pheweb/config.config`].
-    - `-d $dir` sounds hard, so add it later.  others should be easy.  undocument last option.
+make everything subcommands of a common entry-point.
+- `./pheweb phenolist glob ...`
 
 move all pheweb-generated data into `$dir/generated-by-pheweb/`.
-
-make venv optional
-- replace activate_this lines with `utils.try_to_activate_venv(config)`
-    - but what if users neglect to install venv when they should?
-        - 3 options:
-            - A. add a check-that-reqs-are-fulfilled script, which runs at the start.
-            - B. wrap imports in try-except. (I like this one)
-            - C. just be explicit in docs.
 
 make a subcommand `./pheweb quickstart '/tmp/phe([0-9]+).tsv.gz'`
 - uses `~/my-phewebs/$RANDOM/`
@@ -69,7 +56,7 @@ then how to get down to only one pheweb install?
 Differences between mgi and sardinia-r2
 - config.config (minimum_maf, data_dir)
 - 0_0
-    - not really my problem
+    - not really my problem, but get it out of pheweb/data/
 - phewas_significance_threshold (add to config.config)
 - about.html text
 - index.html <h2>
@@ -79,12 +66,6 @@ Differences between mgi and sardinia-r2
     - should this automatically be some real phenotypes?
         - just '&quot;{{ phenolist[0].phenostring || phenolist[0].phenocode }&quot;, &quot;{{ ... }}&quot;, etc.'
 
-the only remaining problem is wrapping c++ with python.  is there an alternative?
-- we can store `*.c++` in `pkg_resources`
-- that's good enough for now.
-- Ryan recommends cffi or ctypes.
-
-
 so then everything will work but we'll want to work from $dir and use the fullpath for `pheweb.py`.
 - at that point it should be easy to switch to `setup.py` and packaging.  but not before then.
 - once this works, the directions will be:
@@ -92,7 +73,7 @@ so then everything will work but we'll want to work from $dir and use the fullpa
    ```
    pip3 install pheweb
    mkdir /var/my-new-pheweb; cd /var/my-new-pheweb
-   pheweb all-in-one --glob <glob>...
+   pheweb quickstart --glob <glob>... # just uses $(basename) as phecode
    pheweb server --port 5003
    ```
 
