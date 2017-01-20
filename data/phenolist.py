@@ -18,11 +18,16 @@ import glob
 import re
 import itertools
 import sys
-import more_itertools
 import functools
-import tqdm
 import sys
 import copy
+
+try:
+    import more_itertools
+    import tqdm
+except ImportError:
+    print("It looks like you haven't installed the dependencies.  Please see the documentation for instructions on how to install them.")
+    raise
 
 def get_phenolist_with_globs(globs):
     assoc_fnames = []
