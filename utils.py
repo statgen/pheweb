@@ -16,6 +16,7 @@ import os
 import errno
 import random
 import sys
+import subprocess
 
 
 def parse_variant(query, default_chrom_pos = True):
@@ -125,9 +126,11 @@ def mkdir_p(path):
         if exc.errno != errno.EEXIST or not os.path.isdir(path):
             raise
 
-def activate_virtualenv(path):
-    with open(path) as f:
-        code = compile(f.read(), path, 'exec')
+def activate_virtualenv():
+    if hasattr(conf, 'virtualenv_dir'):
+        path = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
+        with open(path) as f:
+            code = compile(f.read(), path, 'exec')
         exec(code, dict(__file__=path))
 
 def get_random_page():
@@ -186,3 +189,54 @@ def pairwise(iterable):
 
 chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
 chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
+
+
+def get_path(cmd, attr=None):
+    if attr is None: attr = '{}_path'.format(cmd)
+    path = None
+    if hasattr(conf, attr):
+        path = getattr(conf, attr)
+    else:
+        try:
+            path = subprocess.check_output(['which', cmd]).strip()
+        except subprocess.CalledProcessError:
+            pass
+    if path is None:
+        raise Exception("The command '{cmd}' was not found in $PATH and was not specified (as {attr}) in config.config.".format(cmd=cmd, attr=attr))
+    return path
+
+def run_script(script):
+    script = 'set -euo pipefail\n' + script
+    try:
+        with open(os.devnull) as devnull:
+            # is this the right way to block stdin?
+            data = subprocess.check_output(['bash', '-c', script], stderr=subprocess.STDOUT, stdin=devnull)
+        status = 0
+    except subprocess.CalledProcessError as ex:
+        data = ex.output
+        status = ex.returncode
+    data = data.decode('utf8')
+    if status != 0:
+        print('FAILED with status {}'.format(status))
+        print('output was:')
+        print(data)
+        sys.exit(1)
+    return data
+
+def run_cmd(cmd):
+    '''cmd must be a list of arguments'''
+    try:
+        with open(os.devnull) as devnull:
+            # is this the right way to block stdin?
+            data = subprocess.check_output(cmd, stderr=subprocess.STDOUT, stdin=devnull)
+        status = 0
+    except subprocess.CalledProcessError as ex:
+        data = ex.output
+        status = ex.returncode
+    data = data.decode('utf8')
+    if status != 0:
+        print('FAILED with status {}'.format(status))
+        print('output was:')
+        print(data)
+        sys.exit(1)
+    return data

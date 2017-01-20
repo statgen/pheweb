@@ -2,20 +2,17 @@
 
 from __future__ import print_function, division, absolute_import
 
-# Load config
+# Load config, utils, venv
 import os.path
 import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-conf = imp.load_source('conf', os.path.join(my_dir, 'config.config'))
-
-# Activate virtualenv
-activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
-execfile(activate_this, dict(__file__=activate_this))
+utils = imp.load_source('utils', os.path.join(my_dir, 'utils.py'))
+conf = utils.conf
+utils.activate_virtualenv()
 
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
 from flask_compress import Compress
 
-from utils import get_phenos_with_colnums, get_variant, get_random_page
 from autocomplete import Autocompleter
 import region
 
@@ -27,7 +24,7 @@ app = Flask(__name__)
 app.config.from_object('flask_config')
 Compress(app)
 
-phenos = get_phenos_with_colnums(app.root_path)
+phenos = utils.get_phenos_with_colnums(app.root_path)
 
 autocompleter = Autocompleter(phenos)
 
@@ -51,13 +48,13 @@ def go():
 
 @app.route('/api/variant/<query>')
 def api_variant(query):
-    variant = get_variant(query, phenos)
+    variant = utils.get_variant(query, phenos)
     return jsonify(variant)
 
 @app.route('/variant/<query>')
 def variant_page(query):
     try:
-        variant = get_variant(query, phenos)
+        variant = utils.get_variant(query, phenos)
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query.encode('utf-8')))
         return render_template('variant.html',
@@ -83,7 +80,7 @@ def top_hits_page():
 
 @app.route('/random')
 def random_page():
-    url = get_random_page()
+    url = utils.get_random_page()
     if url is None:
         die("Sorry, it looks like no hits in this pheweb reached the significance threshold.")
     return redirect(url)

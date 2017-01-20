@@ -1,17 +1,16 @@
 from __future__ import print_function, division, absolute_import
 
-# Load config
+# Load config, utils, venv
 import os.path
 import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-conf = imp.load_source('conf', os.path.join(my_dir, 'config.config'))
+utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+conf = utils.conf
 
 import itertools
 import re
 import marisa_trie
 import copy
-
-from utils import parse_variant
 
 # TODO: sort suggestions better.
 # - It's good that hitting enter sends you to the thing with the highest token-ratio.
@@ -83,7 +82,7 @@ class Autocompleter(object):
     def _autocomplete_variant(self, query):
         # chrom-pos-ref-alt format
         query = query.replace(',', '')
-        chrom, pos, ref, alt = parse_variant(query, default_chrom_pos = False)
+        chrom, pos, ref, alt = utils.parse_variant(query, default_chrom_pos = False)
         if chrom is not None:
             key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
             key = key.decode('ascii')

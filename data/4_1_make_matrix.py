@@ -14,18 +14,16 @@ input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'i
 
 import subprocess
 import os
-import sys
 
-tabix = utils.get_path('tabix')
-bgzip = utils.get_path('bgzip')
+gxx = utils.get_path('g++', 'gxx_path')
+matrixify_cpp_fname = os.path.join(my_dir, 'matrixify.cpp')
+matrixify_exe_fname = os.path.join(conf.data_dir, 'tmp', 'matrixify')
+augmented_pheno_dir = os.path.join(conf.data_dir, 'augmented_pheno')
+matrix_tsv_fname = os.path.join(conf.data_dir, 'matrix.tsv')
 
-matrix_fname = os.path.join(conf.data_dir, 'matrix.tsv')
-matrix_gz_fname = os.path.join(conf.data_dir, 'matrix.tsv.gz')
+utils.run_cmd([gxx, matrixify_cpp_fname, '-O3', '-o', matrixify_exe_fname])
 
 utils.run_script('''
-# Tabix expects the header line to start with a '#'
-(echo -n '#'; cat '{matrix_fname}') |
-'{bgzip}' > '{matrix_gz_fname}'
+cd '{augmented_pheno_dir}'
+'{matrixify_exe_fname}' > '{matrix_tsv_fname}'
 '''.format(**locals()))
-
-utils.run_cmd([tabix, '-p' ,'vcf', matrix_gz_fname])

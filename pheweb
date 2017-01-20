@@ -1,0 +1,117 @@
+#!/usr/bin/env python2
+
+# -*- mode: python -*-
+
+# TODO:
+# 1. Create a folder `subcommands/`.
+# 2. Populate a few subcommands.  What should each have?  Just a function?  A class?
+# 3. When someone runs `./pheweb <subcommand>`, check for `subcommands/<subcommand>.py`.  Invoke it with args[1:], config, pheweb_dir, and data_dir.
+# 4. Put all of `data/*.{sh,py}` in there, including `phenolist.py` and `run_all.py`.
+#    - how should `run_all.py` invoke `./pheweb get_cpras`?  Maybe pass it a reference to the subommand-calling function?
+# 5. Fetch config from [$PHEWEB_DIR/config.py, $PWD/config.py, $pheweb_dir/config.py].
+# 6. Put data in $data_dir/generated-by-pheweb/
+# 7. Set up tests.  Use .gitignore.
+# 8. `./server.py --port 5005` -> `./pheweb serve --port 5005`.
+
+'''
+wrap all bash in python.
+- to start, just build basher.py which runs a string like `set -euo pipefail`, capturing & printing stderr.
+- then make them all subcommands of a common entry-point.
+    - should be easy, right?
+    - `./pheweb phenolist glob ...`
+- it'll fetch config from [`-d $dir`, $PHEWEB_DATA_DIR, $PWD, `pheweb/config.config`].
+    - `-d $dir` sounds hard, so add it later.  others should be easy.  undocument last option.
+
+move all pheweb-generated data into `$dir/generated-by-pheweb/`.
+
+make venv optional
+- replace activate_this lines with `utils.try_to_activate_venv(config)`
+    - but what if users neglect to install venv when they should?
+        - 3 options:
+            - A. add a check-that-reqs-are-fulfilled script, which runs at the start.
+            - B. wrap imports in try-except. (I like this one)
+            - C. just be explicit in docs.
+
+make a subcommand `./pheweb quickstart '/tmp/phe([0-9]+).tsv.gz'`
+- uses `~/my-phewebs/$RANDOM/`
+- prepares a pheweb and hosts it on `0.0.0.0:5000`
+    - could it open a web browser?  how to do that on linux?
+
+to make templates configurable:
+- option 1: (nope)
+    - make own templates that extend defaults
+    - tell flask to use them
+- option 2: (yep)
+    - put `custom_templates/` FIRST
+    - `region.html` just inherits from `base_region.html` without any changes
+    - `custom_templates/region.html` will be override default.
+- option 3: (yep)
+    - use lots of importing in templates (like exac)
+    - `custom_templates/qq.html` overrides the qq plot. (&c)
+    - can we namespace templates? (eg, `custom_templates/region/{base,default,tooltip}.html`)
+
+then what about beta/sebeta in tables?  how to make that automatically be used or not?
+- no premature optimization, just make it work
+- option 1: (plzno)
+    - include beta/sebeta in header and row-template and make js hide it if unused
+- option 2: (nope)
+    - user is responsible for overriding templates to include it.
+- option 3: (yep)
+    - make a header-template that takes a {variant: true, beta_sebeta: true, ...}
+    - likewise for row-template
+    - put these two into a {%block%} for {%extends%}ing them
+    - to make a clearer code structure, what if you built those two templates together (eg, `if(beta_sebeta){header_template+=...;row_template+=...}`)
+
+then how to get down to only pheweb install?
+- wsgi.wsgi must be in $dir
+- config.config must be in $dir
+- gotta run pheweb from $dir (or with `-d $dir`)
+- `custom_static/`
+- utils.get_config() will [check in $PWD, argparse for `-d $dir`] and error if neither
+- once we have `$dir`, we get all config
+- but then bash scripts must be wrapped in python.
+    - `0_0` belongs in `$dir`
+    - `1_*_download_*.sh` can be easily wrapped with `shell=True`
+    - `4_1_run_matrixify.sh` can be easily wrapped (and later something fancier once we make a package)
+    - `4_2_bgzip_matrix.sh` can be wrapped
+    - `5_1_bgzip_phenos.sh` is almost the same as 4_2 and needs multiprocessing.Pool.map()
+    - `run_all.sh` needs to be part of `./pheweb.py`.
+
+
+Differences between mgi and sardinia-r2
+- config.config (minimum_maf, data_dir)
+- 0_0
+    - not really my problem
+- phewas_significance_threshold (add to config.config)
+- about.html text
+- index.html <h2>
+- inclusion of <th>beta (se)</th> on top_hits and others
+    - gonna be solved by above approach
+- placeholder="..." on variant.html (ie, pheno names)
+    - should this automatically be some real phenotypes?
+        - just '&quot;{{ phenolist[0].phenostring || phenolist[0].phenocode }&quot;, &quot;{{ ... }}&quot;, etc.'
+
+
+the only remaining problem is wrapping c++ with python.  is there an alternative?
+- we can store `*.c++` in `pkg_resources`
+- we can `g++` from python
+- we can drop the executable into `$dir` (gross, I know, but it'll work for now)
+- that's good enough for now.
+- Ryan recommends cffi or ctypes.
+
+
+so then everything will work but we'll want to work from $dir and use the fullpath for `pheweb.py`.
+- at that point it should be easy to switch to `setup.py` and packaging.  but not before then.
+- once this works, the directions will be:
+
+   ```
+   pip3 install pheweb
+   mkdir /var/my-new-pheweb; cd /var/my-new-pheweb
+   pheweb all-in-one --glob <glob>...
+   pheweb server --port 5003
+   ```
+
+make a special `./pheweb augment-like-vb-icd9-phewas`.
+- it should be easy to add custom subcommands.
+- What if we just had one file for each subcommand (`pheweb/subcommands/<subcommand>.py`), so it was super easy to add more?
+'''

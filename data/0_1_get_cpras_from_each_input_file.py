@@ -2,17 +2,14 @@
 
 from __future__ import print_function, division, absolute_import
 
-# Load config
+# Load config, utils, venv
 import os.path
 import imp
 my_dir = os.path.dirname(os.path.abspath(__file__))
-conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
-
-# Activate virtualenv
-activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
-execfile(activate_this, dict(__file__=activate_this))
-
 utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+conf = utils.conf
+utils.activate_virtualenv()
+
 input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
 
 import datetime
