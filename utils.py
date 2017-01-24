@@ -78,8 +78,17 @@ assert round_sig(0.00123, 2) == 0.0012
 assert round_sig(1.59e-10, 2) == 1.6e-10
 
 def get_phenolist():
-    with open(os.path.join(conf.data_dir, 'pheno-list.json')) as f:
-        return json.load(f)
+    fname = os.path.join(conf.data_dir, 'pheno-list.json')
+    try:
+        with open(os.path.join(fname)) as f:
+            return json.load(f)
+    except IOError: # TODO: these exceptions change in python3
+        die("You need a file to define your phenotypes at '{fname}'.\n".format(fname=fname) +
+                  "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
+    except ValueError:
+            print("Your file at '{fname}' contains invalid json.\n".format(fname=fname) +
+                  "The error it produced was:")
+            raise
 
 def get_phenos_with_colnums(app_root_path):
     phenos_by_phenocode = {pheno['phenocode']: pheno for pheno in get_phenolist()}
@@ -132,7 +141,7 @@ def get_variant(query, phenos):
 
     for phenocode, pheno in phenos.iteritems():
         try:
-            pval = float(matching_variant_row[pheno['colnum_pval']])
+            pval = float(matching_variant_row[pheno['colnum']['pval']])
         except ValueError:
             pval = 1
         rv['phenos'].append({
