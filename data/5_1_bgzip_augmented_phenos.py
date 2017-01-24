@@ -42,10 +42,10 @@ def convert(infile):
     # print("{} -> {}".format(infile, outfile))
 
 def get_conversions_to_do():
-    for src_fname in os.listdir(augmented_pheno_dir):
-        src_fname = os.path.join(augmented_pheno_dir, src_fname)
-        dest_fname = os.path.join(augmented_pheno_gz_dir, src_fname)
-        if os.stat(src_fname).st_mtime > os.stat(dest_fname).st_mtime:
+    for fname in os.listdir(augmented_pheno_dir):
+        src_fname = os.path.join(augmented_pheno_dir, fname)
+        dest_fname = os.path.join(augmented_pheno_gz_dir, fname)
+        if not os.path.exists(dest_fname) or os.stat(src_fname).st_mtime > os.stat(dest_fname).st_mtime:
             yield src_fname
 
 utils.mkdir_p(augmented_pheno_gz_dir)
