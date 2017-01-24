@@ -198,4 +198,4 @@ At this point your Pheweb should be working how you want it to, and everything s
 
 For maximum speed and safety, you should switch to running Flask behind something like Apache2 or Nginx.
 More information about this is [here](http://flask.pocoo.org/docs/0.11/deploying/#deployment).
-If you choose Apache2, I have some documentation for you [here](https://github.com/statgen/pheweb/tree/master/other_documentation/running_with_apache2).
+If you choose Apache2, I have some documentation for you [here](https://github.com/statgen/pheweb/tree/master/unnecessary_things/other_documentation/running_with_apache2)
