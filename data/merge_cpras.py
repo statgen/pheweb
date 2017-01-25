@@ -34,6 +34,9 @@ import itertools
 NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #files / #cpus?
 MIN_NUM_FILES_TO_MERGE_AT_ONCE = 4 # Try to avoid ever merging fewer than this many files at a time.
 
+def exit(*args):
+    # You can't catch exit(), so I override it.  TODO: don't do this.
+    raise Exception()
 
 def get_cpras(file):
     header = next(file)
@@ -178,32 +181,34 @@ def run(argv):
         src_file_modification_times = [os.stat(fname).st_mtime for fname in files_to_merge]
         if dest_file_modification_time > max(src_file_modification_times):
             print('The list of sites is up-to-date!')
-            exit(0)
 
-    print('number of files to merge: {:4}'.format(len(files_to_merge)))
+    else:
 
-    manna = multiprocessing.Manager()
-    manna_lock = manna.Lock()
-    manna_dict = manna.dict()
-    manna_dict['files_to_merge'] = files_to_merge
-    manna_dict['files_being_merged'] = []
-    num_processes = multiprocessing.cpu_count() * 3//4 + 1
-    print('number of processes:', num_processes)
 
-    processes = [multiprocessing.Process(target=merge_files_in_queue, args=(manna_lock, manna_dict)) for _ in range(num_processes)]
-    for p in processes:
-        p.start()
-    failed = False
-    for p in processes:
-        p.join()
-        if p.exitcode != 0:
-            print('process {} exited with exitcode {}'.format(p.name, p.exitcode))
-            failed = True
+        print('number of files to merge: {:4}'.format(len(files_to_merge)))
 
-    print('all workers returned')
-    if not failed:
-        assert len(manna_dict['files_to_merge']) == 1, manna_dict['files_to_merge']
-        os.rename(manna_dict['files_to_merge'][0], out_filename)
+        manna = multiprocessing.Manager()
+        manna_lock = manna.Lock()
+        manna_dict = manna.dict()
+        manna_dict['files_to_merge'] = files_to_merge
+        manna_dict['files_being_merged'] = []
+        num_processes = multiprocessing.cpu_count() * 3//4 + 1
+        print('number of processes:', num_processes)
+
+        processes = [multiprocessing.Process(target=merge_files_in_queue, args=(manna_lock, manna_dict)) for _ in range(num_processes)]
+        for p in processes:
+            p.start()
+        failed = False
+        for p in processes:
+            p.join()
+            if p.exitcode != 0:
+                print('process {} exited with exitcode {}'.format(p.name, p.exitcode))
+                failed = True
+
+        print('all workers returned')
+        if not failed:
+            assert len(manna_dict['files_to_merge']) == 1, manna_dict['files_to_merge']
+            os.rename(manna_dict['files_to_merge'][0], out_filename)
 
 
 if __name__ == '__main__':

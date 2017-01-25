@@ -68,8 +68,10 @@ def _convert(pheno, out_filename):
         writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
 
-        pheno_variant = next(pheno_variants)
-        site_variant = next(site_variants)
+        try: pheno_variant = next(pheno_variants)
+        except: raise Exception("It appears that the phenotype {!r} has no variants.".format(pheno['phenocode']))
+        try: site_variant = next(site_variants)
+        except: raise Exception("It appears that your sites file (at {!r}) has no variants.".format(sites_filename))
         while True:
             cmp = _which_variant_is_bigger(pheno_variant, site_variant)
             if cmp == 1:

@@ -19,6 +19,7 @@ from data import make_qq
 from data import make_matrix
 from data import bgzip_phenos
 from data import top_loci
+from data import process_assoc_files
 
 def serve_run(argv):
     import server
@@ -38,6 +39,7 @@ handlers['make-qq'] = make_qq.run
 handlers['make-matrix'] = make_matrix.run
 handlers['bgzip-phenos'] = bgzip_phenos.run
 handlers['top-loci'] = top_loci.run
+handlers['process-assoc-files'] = process_assoc_files.run
 handlers['serve'] = serve_run
 
 

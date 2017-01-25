@@ -33,6 +33,7 @@ import collections
 import csv
 import itertools
 
+
 if hasattr(conf, 'cache_dir'):
     rsids_filename = os.path.join(conf.cache_dir, 'rsids-147.vcf.gz')
 else:
@@ -41,9 +42,6 @@ cpra_filename = conf.data_dir + "/sites/cpra.tsv"
 out_filename = conf.data_dir + "/sites/cpra_rsids.tsv"
 
 def mod_time(fname): return os.stat(fname).st_mtime
-if os.path.exists(out_filename) and max(mod_time(cpra_filename), mod_time(rsids_filename)) < mod_time(out_filename):
-    print('rsid annotation is up-to-date!')
-    exit(0)
 
 def get_rsid_reader(rsids_f):
     # TODO: add assertions about ordering?
@@ -92,9 +90,12 @@ def are_match(seq1, seq2):
 
 rsids_chrom_order = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
 rsids_chrom_order = {chrom: index for index,chrom in enumerate(rsids_chrom_order)}
-cpra_largest_index_in_rsids_chrom_order = -1
 
 def run(argv):
+
+    if os.path.exists(out_filename) and max(mod_time(cpra_filename), mod_time(rsids_filename)) < mod_time(out_filename):
+        print('rsid annotation is up-to-date!')
+        return
 
     with open(cpra_filename) as cpra_f, \
          gzip.open(rsids_filename) as rsids_f, \
@@ -103,16 +104,17 @@ def run(argv):
         rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))
         cp_group_reader = get_one_chr_pos_at_a_time(get_cpra_reader(cpra_f))
 
+        cpra_largest_index_in_rsids_chrom_order = -1
         rsid_group = next(rsid_group_reader)
         for cp_group in cp_group_reader:
             if cp_group[0]['chrom'] not in rsids_chrom_order:
                 print("Your input has a chromosome {!r}, which we don't have rsids for.".format(cp_group[0]['chrom']))
                 print("That wouldn't be a big problem, but I'm using the rsid chromosome order for sanity-checking.")
                 print("So you're going to have to remove this message and fix some stuff related to rsids_chrom_order")
-                exit(1)
+                raise Exception()
             if rsids_chrom_order[cp_group[0]['chrom']] < cpra_largest_index_in_rsids_chrom_order:
                 print("Your chromosomes are in the wrong order!  See `rsids_chrom_order` in this file for the right order.")
-                exit(1)
+                raise Exception()
             cpra_largest_index_in_rsids_chrom_order = rsids_chrom_order[cp_group[0]['chrom']]
 
             # Advance rsid_group until it is up to/past cp_group

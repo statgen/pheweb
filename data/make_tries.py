@@ -26,9 +26,7 @@ def should_replace(fname):
 
 def run(argv):
 
-    should_replace = should_replace(cpra_to_rsids_trie_fname) or should_replace(rsid_to_cpra_trie_fname)
-
-    if not should_replace:
+    if not should_replace(cpra_to_rsids_trie_fname) and not should_replace(rsid_to_cpra_trie_fname):
         print('tries are up-to-date!')
 
     else:

@@ -17,8 +17,12 @@ for conf_file in possible_conf_files:
         break
 if conf is None:
     raise Exception('PheWeb failed to find a config.py file.  Places checked:\n{}'.format('\n'.join(possible_conf_files)))
+
+# Prepare config
 if not hasattr(conf, 'data_dir'):
     conf.data_dir = os.path.dirname(conf.__file__)
+if not os.access(conf.data_dir, os.R_OK):
+    raise Exception("It looks like you don't have permission to read your data_dir, {!r}".format(conf.data_dir))
 if not hasattr(conf, 'source_file_parser'): # TODO: rename `association_file_parser`, relegate source_file_parser to an alias
     conf.source_file_parser = 'epacts'
 if hasattr(conf, 'cache_dir'):
@@ -29,6 +33,7 @@ if hasattr(conf, 'cache_dir'):
         if not os.access(conf.cache_dir, os.R_OK):
             print('Warning: the directory {!r} is configured to be your cache directory in {!r} but it is not readable'.format(
                 conf.cache_dir, conf_file))
+
 
 import re
 import itertools
@@ -189,7 +194,7 @@ def get_random_page():
 
 def die(message):
     print(message, file=sys.stderr)
-    exit(1)
+    raise Exception()
 
 def exception_printer(f):
     @functools.wraps(f)
@@ -200,6 +205,8 @@ def exception_printer(f):
             time.sleep(2*random.random()) # hopefully avoid interleaved printing (when using multiprocessing)
             traceback.print_exc()
             print(exc)
+            if args: print('args were: {!r}'.format(args))
+            if kwargs: print('kwargs were: {!r}'.format(args))
             raise
     return f2
 
