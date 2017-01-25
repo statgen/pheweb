@@ -110,17 +110,19 @@ def get_conversions_to_do():
                 'tmp': tmp_filename,
             }
 
-utils.mkdir_p(conf.data_dir + '/augmented_pheno')
-utils.mkdir_p(conf.data_dir + '/tmp')
+def run(argv):
 
-# # debug
-# convert(list(get_conversions_to_do())[0])
-# exit(0)
+    utils.mkdir_p(conf.data_dir + '/augmented_pheno')
+    utils.mkdir_p(conf.data_dir + '/tmp')
 
-conversions_to_do = list(get_conversions_to_do())
-print('number of phenos to process:', len(conversions_to_do))
-num_processes = multiprocessing.cpu_count() * 3//4 + 1
-p = multiprocessing.Pool(num_processes)
-# p.map(convert, conversions_to_do) # I think KeyboardInterrupt fails to stop this.
-p.map_async(convert, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
-# print(conversions_to_do[0]); convert(conversions_to_do[0])
+    conversions_to_do = list(get_conversions_to_do())
+    print('number of phenos to process:', len(conversions_to_do))
+    num_processes = multiprocessing.cpu_count() * 3//4 + 1
+    p = multiprocessing.Pool(num_processes)
+    # p.map(convert, conversions_to_do) # I think KeyboardInterrupt fails to stop this.
+    p.map_async(convert, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
+    # print(conversions_to_do[0]); convert(conversions_to_do[0])
+
+
+if __name__ == '__main__':
+    run([])

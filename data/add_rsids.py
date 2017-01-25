@@ -94,45 +94,52 @@ rsids_chrom_order = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
 rsids_chrom_order = {chrom: index for index,chrom in enumerate(rsids_chrom_order)}
 cpra_largest_index_in_rsids_chrom_order = -1
 
-with open(cpra_filename) as cpra_f, \
-     gzip.open(rsids_filename) as rsids_f, \
-     open(out_filename, 'w') as out_f:
+def run(argv):
 
-    rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))
-    cp_group_reader = get_one_chr_pos_at_a_time(get_cpra_reader(cpra_f))
+    with open(cpra_filename) as cpra_f, \
+         gzip.open(rsids_filename) as rsids_f, \
+         open(out_filename, 'w') as out_f:
 
-    rsid_group = next(rsid_group_reader)
-    for cp_group in cp_group_reader:
-        if cp_group[0]['chrom'] not in rsids_chrom_order:
-            print("Your input has a chromosome {!r}, which we don't have rsids for.".format(cp_group[0]['chrom']))
-            print("That wouldn't be a big problem, but I'm using the rsid chromosome order for sanity-checking.")
-            print("So you're going to have to remove this message and fix some stuff related to rsids_chrom_order")
-            exit(1)
-        if rsids_chrom_order[cp_group[0]['chrom']] < cpra_largest_index_in_rsids_chrom_order:
-            print("Your chromosomes are in the wrong order!  See `rsids_chrom_order` in this file for the right order.")
-            exit(1)
-        cpra_largest_index_in_rsids_chrom_order = rsids_chrom_order[cp_group[0]['chrom']]
+        rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))
+        cp_group_reader = get_one_chr_pos_at_a_time(get_cpra_reader(cpra_f))
 
-        # Advance rsid_group until it is up to/past cp_group
-        while True:
-            if rsid_group[0]['chrom'] == cp_group[0]['chrom']:
-                rsid_is_not_behind = rsid_group[0]['pos'] >= cp_group[0]['pos']
-            else:
-                rsid_is_not_behind = rsids_chrom_order[rsid_group[0]['chrom']] >= rsids_chrom_order[cp_group[0]['chrom']]
-            if rsid_is_not_behind:
-                break
-            else:
-                try:
-                    rsid_group = next(rsid_group_reader)
-                except StopIteration:
+        rsid_group = next(rsid_group_reader)
+        for cp_group in cp_group_reader:
+            if cp_group[0]['chrom'] not in rsids_chrom_order:
+                print("Your input has a chromosome {!r}, which we don't have rsids for.".format(cp_group[0]['chrom']))
+                print("That wouldn't be a big problem, but I'm using the rsid chromosome order for sanity-checking.")
+                print("So you're going to have to remove this message and fix some stuff related to rsids_chrom_order")
+                exit(1)
+            if rsids_chrom_order[cp_group[0]['chrom']] < cpra_largest_index_in_rsids_chrom_order:
+                print("Your chromosomes are in the wrong order!  See `rsids_chrom_order` in this file for the right order.")
+                exit(1)
+            cpra_largest_index_in_rsids_chrom_order = rsids_chrom_order[cp_group[0]['chrom']]
+
+            # Advance rsid_group until it is up to/past cp_group
+            while True:
+                if rsid_group[0]['chrom'] == cp_group[0]['chrom']:
+                    rsid_is_not_behind = rsid_group[0]['pos'] >= cp_group[0]['pos']
+                else:
+                    rsid_is_not_behind = rsids_chrom_order[rsid_group[0]['chrom']] >= rsids_chrom_order[cp_group[0]['chrom']]
+                if rsid_is_not_behind:
                     break
+                else:
+                    try:
+                        rsid_group = next(rsid_group_reader)
+                    except StopIteration:
+                        break
 
-        if rsid_group[0]['chrom'] == cp_group[0]['chrom'] and rsid_group[0]['pos'] >= cp_group[0]['pos']:
-            # Woohoo a match!
-            for cpra in cp_group:
-                rsids = (rsid['rsid'] for rsid in rsid_group if cpra['ref'] == rsid['ref'] and are_match(cpra['alt'], rsid['alt']))
-                print('{chrom}\t{pos}\t{ref}\t{alt}\t{0}'.format(','.join(rsids), **cpra), file=out_f)
-        else:
-            # No match, just print each cpra with an empty `rsids` column
-            for cpra in cp_group:
-                print('{chrom}\t{pos}\t{ref}\t{alt}\t'.format(**cpra), file=out_f)
+            if rsid_group[0]['chrom'] == cp_group[0]['chrom'] and rsid_group[0]['pos'] >= cp_group[0]['pos']:
+                # Woohoo a match!
+                for cpra in cp_group:
+                    rsids = (rsid['rsid'] for rsid in rsid_group if cpra['ref'] == rsid['ref'] and are_match(cpra['alt'], rsid['alt']))
+                    print('{chrom}\t{pos}\t{ref}\t{alt}\t{0}'.format(','.join(rsids), **cpra), file=out_f)
+            else:
+                # No match, just print each cpra with an empty `rsids` column
+                for cpra in cp_group:
+                    print('{chrom}\t{pos}\t{ref}\t{alt}\t'.format(**cpra), file=out_f)
+
+
+if __name__ == '__main__':
+    run([])
+

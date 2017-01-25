@@ -48,10 +48,16 @@ def get_conversions_to_do():
         if not os.path.exists(dest_fname) or os.stat(src_fname).st_mtime > os.stat(dest_fname).st_mtime:
             yield src_fname
 
-utils.mkdir_p(augmented_pheno_gz_dir)
+def run(argv):
 
-infiles = list(get_conversions_to_do())
-print('number of phenos to process:', len(infiles))
-num_processes = multiprocessing.cpu_count() * 3//4 + 1
-p = multiprocessing.Pool(num_processes)
-p.map_async(convert, infiles).get(1e8) # Makes KeyboardInterrupt work
+    utils.mkdir_p(augmented_pheno_gz_dir)
+
+    infiles = list(get_conversions_to_do())
+    print('number of phenos to process:', len(infiles))
+    num_processes = multiprocessing.cpu_count() * 3//4 + 1
+    p = multiprocessing.Pool(num_processes)
+    p.map_async(convert, infiles).get(1e8) # Makes KeyboardInterrupt work
+
+
+if __name__ == '__main__':
+    run([])

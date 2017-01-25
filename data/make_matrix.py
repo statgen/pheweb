@@ -37,12 +37,18 @@ def should_run():
     infile_modtime = max(os.stat(fn).st_mtime for fn in infiles)
     return infile_modtime > os.stat(matrix_gz_fname).st_mtime
 
-if should_run():
-    utils.run_cmd([gxx, '--std=c++11', matrixify_cpp_fname, '-O3', '-o', matrixify_exe_fname])
-    utils.run_script('''
-    '{matrixify_exe_fname}' '{sites_fname}' '{augmented_pheno_dir}' |
-    '{bgzip}' > '{matrix_gz_fname}'
-    '''.format(**locals()))
-    utils.run_cmd([tabix, '-p' ,'vcf', matrix_gz_fname])
-else:
-    print('matrix is up-to-date!')
+def run(argv):
+
+    if should_run():
+        utils.run_cmd([gxx, '--std=c++11', matrixify_cpp_fname, '-O3', '-o', matrixify_exe_fname])
+        utils.run_script('''
+        '{matrixify_exe_fname}' '{sites_fname}' '{augmented_pheno_dir}' |
+        '{bgzip}' > '{matrix_gz_fname}'
+        '''.format(matrixify_exe_fname=matrixify_exe_fname, sites_fname=sites_fname, augmented_pheno_dir=augmented_pheno_dir, bgzip=bgzip, matrix_gz_fname=matrix_gz_fname))
+        utils.run_cmd([tabix, '-p' ,'vcf', matrix_gz_fname])
+    else:
+        print('matrix is up-to-date!')
+
+
+if __name__ == '__main__':
+    run([])

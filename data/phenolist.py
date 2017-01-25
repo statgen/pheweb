@@ -463,7 +463,7 @@ def write_phenolist_to_file(phenolist, f):
 
 default_phenolist_fname = os.path.join(conf.data_dir, 'pheno-list.json')
 
-if __name__ == '__main__':
+def run(argv):
     # TODO: replace -f with -p .  That's more clear for import-phenolist.
     # TODO: clean up that nasty usage, especially the {...}
     # TODO: its' awkward that some printing is to STDERR and some to STDOUT.  Use logger.
@@ -630,5 +630,8 @@ if __name__ == '__main__':
     # show all past commands and where their input & output pheno-lists are backed up to.
     # say "to get an old pheno-list back, just run `cp {} $data_dir/pheno-list.json`." (and use shlex.quote())
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     subcommand_handlers[args.subcommand](args)
+
+if __name__ == '__main__':
+    run(sys.argv[1:])

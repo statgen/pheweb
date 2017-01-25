@@ -106,7 +106,8 @@ def annotate_genes(file_to_annotate, temp_file, output_file, genes_file):
             os.fsync(out_f.fileno())
         os.rename(temp_file, output_file)
 
-if __name__ == '__main__':
+
+def run(argv):
     input_file = os.path.join(conf.data_dir, 'sites/cpra_rsids.tsv')
     output_file = os.path.join(conf.data_dir, 'sites/sites.tsv')
     temp_file = os.path.join(conf.data_dir, 'tmp/sites.tsv')
@@ -123,3 +124,5 @@ if __name__ == '__main__':
     else:
         annotate_genes(input_file, temp_file, output_file, genes_file)
 
+if __name__ == '__main__':
+    run([])

@@ -1,6 +1,73 @@
 #!/usr/bin/env python2
-
 # -*- mode: python -*-
+
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from data import phenolist
+from data import get_cpras
+from data import merge_cpras
+from data import download_rsids
+from data import download_genes
+from data import add_rsids
+from data import make_tries
+from data import standardize_phenos
+from data import make_manhattan
+from data import make_qq
+from data import make_matrix
+from data import bgzip_phenos
+from data import top_loci
+
+def serve_run(argv):
+    import server
+    server.run(argv)
+
+handlers = {}
+handlers['phenolist'] = phenolist.run
+handlers['get-cpras'] = get_cpras.run
+handlers['merge-cpras'] = merge_cpras.run
+handlers['download-rsids'] = download_rsids.run
+handlers['download-genes'] = download_genes.run
+handlers['add-rsids'] = add_rsids.run
+handlers['make-tries'] = make_tries.run
+handlers['standarize-phenos'] = standardize_phenos.run
+handlers['make-manhattan'] = make_manhattan.run
+handlers['make-qq'] = make_qq.run
+handlers['make-matrix'] = make_matrix.run
+handlers['bgzip-phenos'] = bgzip_phenos.run
+handlers['top-loci'] = top_loci.run
+handlers['serve'] = serve_run
+
+
+def help():
+    print('''
+To see more information about a subcommand, run that command followed by `-h`.
+
+Subcommands:
+
+    pheweb phenolist
+        prepare a list of phenotypes
+
+    pheweb process-assoc-files
+        once a phenolist has been prepared, load all data to be ready to run the server.
+
+    pheweb serve
+        host a webserver
+''')
+
+subcommand = sys.argv[1] if len(sys.argv)>1 else ''
+if subcommand in ['', '-h', '--help']:
+    help()
+elif subcommand not in handlers:
+    print('Unknown subcommand {!r}'.format(subcommand))
+    help()
+else:
+    handlers[subcommand](sys.argv[2:])
+
+
+
 
 '''
 1. Create a folder `subcommands/`.

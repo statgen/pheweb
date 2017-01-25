@@ -146,12 +146,17 @@ def get_conversions_to_do():
         if not os.path.exists(dest_filename) or os.stat(dest_filename).st_mtime < os.stat(src_filename).st_mtime:
             yield {'src':src_filename, 'dest':dest_filename, 'tmp':tmp_filename}
 
-utils.mkdir_p(conf.data_dir + '/manhattan')
-utils.mkdir_p(conf.data_dir + '/tmp')
+def run(argv):
 
-conversions_to_do = list(get_conversions_to_do())
-print('number of phenos to process:', len(conversions_to_do))
-num_processes = multiprocessing.cpu_count() * 3//4 + 1
-p = multiprocessing.Pool(num_processes)
-p.map_async(make_json_file, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
-#print(conversions_to_do[0]); make_json_file(conversions_to_do[0]) # debugging
+    utils.mkdir_p(conf.data_dir + '/manhattan')
+    utils.mkdir_p(conf.data_dir + '/tmp')
+
+    conversions_to_do = list(get_conversions_to_do())
+    print('number of phenos to process:', len(conversions_to_do))
+    num_processes = multiprocessing.cpu_count() * 3//4 + 1
+    p = multiprocessing.Pool(num_processes)
+    p.map_async(make_json_file, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
+
+
+if __name__ == '__main__':
+    run([])

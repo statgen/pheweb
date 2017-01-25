@@ -18,6 +18,7 @@ import csv
 import json
 
 
+@utils.exception_printer
 def convert(conversion_to_do):
     pheno = conversion_to_do['pheno']
     dest_filename = conversion_to_do['dest']
@@ -57,20 +58,17 @@ def get_conversions_to_do():
                 'tmp': tmp_filename,
             }
 
-if __name__ == '__main__':
+def run(argv):
+
     utils.mkdir_p(conf.data_dir + '/cpra')
     utils.mkdir_p(conf.data_dir + '/tmp')
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
 
-    # TODO: we won't need this once we're on py3
-    if False: # debugging
-        print("debugging, so doing one at a time")
-        for v in conversions_to_do:
-            print(v['dest'])
-            convert(v)
-        exit(0)
-
     p = multiprocessing.Pool(40)
     p.map_async(convert, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
+
+
+if __name__ == '__main__':
+    run([])

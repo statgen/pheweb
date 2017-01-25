@@ -19,7 +19,6 @@ import region
 import re
 import traceback
 
-
 app = Flask(__name__)
 app.config.from_object('flask_config')
 Compress(app)
@@ -145,7 +144,8 @@ def apply_caching(response):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     return response
 
-if __name__ == '__main__':
+
+def run(argv):
 
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 9
 
@@ -154,9 +154,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default='0.0.0.0', help='the hostname to use to access this server')
     parser.add_argument('--port', type=int, default=5000, help='an integer for the accumulator')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     extra_files = glob.glob('templates/*.html')
     app.run(host=args.host, port=args.port,
             threaded=True, # seems to be bad at dying when I ctrl-C / SIGTERM.
             debug=True, use_evalex=False,
             use_reloader=True, extra_files=extra_files)
+
+if __name__ == '__main__':
+    run(sys.argv[1:])

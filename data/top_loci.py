@@ -49,7 +49,7 @@ def get_hits(pheno):
             yield best_hit
 
 
-if __name__ == '__main__':
+def run(argv):
     phenos = utils.get_phenolist()
 
     hits = []
@@ -61,3 +61,7 @@ if __name__ == '__main__':
     with open(out_fname, 'w') as f:
         json.dump(hits, f, sort_keys=True, indent=0)
     print("wrote {} hits to {}".format(len(hits), out_fname))
+
+
+if __name__ == '__main__':
+    run([])

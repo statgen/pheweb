@@ -168,12 +168,7 @@ def merge_files_in_queue(lock, manna_dict):
                 len(manna_dict['files_to_merge']), len(files_to_merge_now), (datetime.datetime.now() - start_time).seconds))
 
 
-if __name__ == '__main__':
-
-    if False: # debug
-        files_to_merge = glob.glob(conf.data_dir + '/cpra/*')[:NUM_FILES_TO_MERGE_AT_ONCE]
-        merge(files_to_merge, conf.data_dir+'/tmp/debug-cpra.tsv')
-        exit(0)
+def run(argv):
 
     out_filename = conf.data_dir + '/sites/cpra.tsv'
     files_to_merge = glob.glob(conf.data_dir + '/cpra/*')
@@ -209,3 +204,7 @@ if __name__ == '__main__':
     if not failed:
         assert len(manna_dict['files_to_merge']) == 1, manna_dict['files_to_merge']
         os.rename(manna_dict['files_to_merge'][0], out_filename)
+
+
+if __name__ == '__main__':
+    run([])
