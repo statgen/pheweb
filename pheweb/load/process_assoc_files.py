@@ -3,16 +3,11 @@ from __future__ import print_function, division, absolute_import
 
 # TODO: color lines with ==> using colors like $(tput setab 3 2>/dev/null; tput setaf 0 2>/dev/null) $text $(tput sgr0 2>/dev/null)
 
-# Load config, utils, venv
-import os.path
-import imp
-my_dir = os.path.dirname(os.path.abspath(__file__))
-utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+from .. import utils
 conf = utils.conf
-utils.activate_virtualenv()
 
-import imp
 import time
+import os.path
 
 scripts = [{'name': name} for name in '''
 get_cpras
@@ -30,23 +25,20 @@ bgzip_phenos
 top_loci
 '''.split()]
 
+my_dir = os.path.dirname(os.path.abspath(__file__))
 for script in scripts:
-    script['module'] = imp.load_source(script['name'], os.path.join(my_dir, script['name']+'.py'))
+    # TODO: I don't know a way to avoid exec.  imp.load_source breaks intra-package relationships.
+    exec '''from . import {}'''.format(script['name'])
+    exec '''script['module'] = {}'''.format(script['name'])
 
 def run(argv):
     for script in scripts:
         print('==> Starting', script['name'])
         start_time = time.time()
-        failed = False
         try:
             script['module'].run([])
         except Exception as exc:
-            failed = True
-        time_spent = time.time() - start_time
-        if failed:
-            print('==> failed.')
-            print('Error message:')
-            print(exc)
-            raise exc
+            print('==> failed after {:.0f} seconds'.format(time.time() - start_time))
+            raise
         else:
-            print('==> Completed in {:.0f} seconds', end='\n\n')
+            print('==> Completed in {:.0f} seconds'.format(time.time() - start_time), end='\n\n')

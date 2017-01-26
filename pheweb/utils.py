@@ -50,6 +50,14 @@ import subprocess
 import time
 
 
+def get_assoc_file_parser():
+    from .load.input_file_parsers import epacts
+    return epacts
+    # TODO: how do I make this configurable?  I can't find the right syntax with imp.load_*.  Maybe in py3?
+    #       if you use load_source, then it's not part of this package, so it can't do relative imports.
+    # fname = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'load', 'input_file_parsers', conf.source_file_parser+'.py')
+    # return imp.load_source(conf.source_file_parser, fname)
+
 def parse_variant(query, default_chrom_pos = True):
     if isinstance(query, unicode):
         query = query.encode('utf-8')
@@ -166,13 +174,6 @@ def mkdir_p(path):
     except OSError as exc:
         if exc.errno != errno.EEXIST or not os.path.isdir(path):
             raise
-
-def activate_virtualenv():
-    if hasattr(conf, 'virtualenv_dir'):
-        path = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
-        with open(path) as f:
-            code = compile(f.read(), path, 'exec')
-        exec(code, dict(__file__=path))
 
 def get_random_page():
     with open(os.path.join(conf.data_dir, 'top_hits.json')) as f:

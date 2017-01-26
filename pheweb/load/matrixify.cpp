@@ -144,7 +144,6 @@ int main(int argc, char** argv) {
   std::string phenos_dir = argv[2];
   phenos_dir += "/*";
   std::vector<std::string> aug_fpaths = glob(phenos_dir.c_str());
-  std::cerr << "number of input files: " << aug_fpaths.size() << "\n";
   std::vector<std::string> aug_fnames(aug_fpaths.size());
   std::vector<std::ifstream*> aug_files(aug_fpaths.size()); // ifstreams have a problem with copies, so just pre-allocate.
   std::vector<CSVIterator*> aug_its(aug_fpaths.size());

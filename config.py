@@ -1,9 +1,5 @@
 # this file will be interpreted as python
 
-# if you want to use a virtual environment, you may put it here and PheWeb will automatically source it.
-# `$virtualenv_dir/bin/activate` should exist.  it must be for python2.
-#virtualenv_dir = '/path/to/my/venv'
-
 # `data_dir` should have enough space to store all of your association files.
 # It's best if you have read/write access to it.  If you don't, prefix all commands with `sudo `.
 data_dir='/path/to/my/data/'

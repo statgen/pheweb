@@ -2,13 +2,10 @@
 
 from __future__ import print_function, division, absolute_import
 
-# Load config, utils, venv
-import os.path
-import imp
-my_dir = os.path.dirname(os.path.abspath(__file__))
-utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+from .. import utils
 conf = utils.conf
-utils.activate_virtualenv()
+
+import os
 
 gene_dir = os.path.join(conf.data_dir, 'sites', 'genes')
 bed_file = os.path.join(gene_dir, 'genes.bed')

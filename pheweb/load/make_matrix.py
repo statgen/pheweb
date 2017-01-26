@@ -8,13 +8,8 @@ from __future__ import print_function, division, absolute_import
 # we can probably store the sourcecode in pkg_resources.  otherwise, a string will do.
 # later, cffi or ctypes will be good.
 
-# Load config, utils, venv
-import os.path
-import imp
-my_dir = os.path.dirname(os.path.abspath(__file__))
-utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+from .. import utils
 conf = utils.conf
-utils.activate_virtualenv()
 
 import subprocess
 import os
@@ -24,6 +19,7 @@ import glob
 gxx = utils.get_path('g++', 'gxx_path')
 tabix = utils.get_path('tabix')
 bgzip = utils.get_path('bgzip')
+my_dir = os.path.dirname(os.path.abspath(__file__))
 matrixify_cpp_fname = os.path.join(my_dir, 'matrixify.cpp')
 matrixify_exe_fname = os.path.join(conf.data_dir, 'tmp', 'matrixify')
 sites_fname = os.path.join(conf.data_dir, 'sites', 'sites.tsv')

@@ -14,16 +14,12 @@ I'm reading in a full position at a time to avoid this issue that was happening 
 
 from __future__ import print_function, division, absolute_import
 
-# Load config, utils, venv
-import os.path
-import imp
-my_dir = os.path.dirname(os.path.abspath(__file__))
-utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+from .. import utils
 conf = utils.conf
-utils.activate_virtualenv()
 
 import contextlib2 # python2 backport of python3.5+ contextlib
 
+import os
 import glob
 import random
 import errno

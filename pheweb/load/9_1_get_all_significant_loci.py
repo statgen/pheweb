@@ -2,17 +2,8 @@
 
 from __future__ import print_function, division, absolute_import
 
-# Load config
-import os.path
-import imp
-my_dir = os.path.dirname(os.path.abspath(__file__))
-conf = imp.load_source('conf', os.path.join(my_dir, '../config.config'))
-
-# Activate virtualenv
-activate_this = os.path.join(conf.virtualenv_dir, 'bin/activate_this.py')
-execfile(activate_this, dict(__file__=activate_this))
-
-utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+from .. import utils
+conf = utils.conf
 
 # DISTANCE_BETWEEN_HITS = int(1e6)
 # PVAL_CUTOFF = 5e-8

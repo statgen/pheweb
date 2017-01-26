@@ -2,25 +2,20 @@
 
 from __future__ import print_function, division, absolute_import
 
-# Load config, utils, venv
-import os.path
-import imp
-my_dir = os.path.dirname(os.path.abspath(__file__))
-utils = imp.load_source('utils', os.path.join(my_dir, 'utils.py'))
+from .. import utils
 conf = utils.conf
-utils.activate_virtualenv()
 
 from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
 from flask_compress import Compress
 
-from autocomplete import Autocompleter
-import region
+from .autocomplete import Autocompleter
+from . import region
 
 import re
 import traceback
 
 app = Flask(__name__)
-app.config.from_object('flask_config')
+app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'
 Compress(app)
 
 phenos = utils.get_phenos_with_colnums(app.root_path)

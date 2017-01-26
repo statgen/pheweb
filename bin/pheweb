@@ -4,25 +4,26 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# TODO: remove this when setup.py is working.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from data import phenolist
-from data import get_cpras
-from data import merge_cpras
-from data import download_rsids
-from data import download_genes
-from data import add_rsids
-from data import make_tries
-from data import standardize_phenos
-from data import make_manhattan
-from data import make_qq
-from data import make_matrix
-from data import bgzip_phenos
-from data import top_loci
-from data import process_assoc_files
+from pheweb.load import phenolist
+from pheweb.load import get_cpras
+from pheweb.load import merge_cpras
+from pheweb.load import download_rsids
+from pheweb.load import download_genes
+from pheweb.load import add_rsids
+from pheweb.load import make_tries
+from pheweb.load import standardize_phenos
+from pheweb.load import make_manhattan
+from pheweb.load import make_qq
+from pheweb.load import make_matrix
+from pheweb.load import bgzip_phenos
+from pheweb.load import top_loci
+from pheweb.load import process_assoc_files
 
 def serve_run(argv):
-    import server
+    from pheweb.serve import server
     server.run(argv)
 
 handlers = {}

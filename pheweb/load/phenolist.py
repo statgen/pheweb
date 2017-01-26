@@ -2,15 +2,10 @@
 
 from __future__ import print_function, division, absolute_import
 
-# Load config, utils, venv
-import os.path
-import imp
-my_dir = os.path.dirname(os.path.abspath(__file__))
-utils = imp.load_source('utils', os.path.join(my_dir, '../utils.py'))
+from .. import utils
 conf = utils.conf
-utils.activate_virtualenv()
 
-
+import os
 import string
 import json
 import csv
@@ -121,7 +116,7 @@ def check_that_all_phenotypes_have_assoc_files(phenolist):
         if any(not isinstance(s, (str, unicode)) for s in pheno['assoc_files']): utils.die("assoc_files contains things other than strings for some phenotypes.")
 
 def extract_info_from_assoc_files(phenolist):
-    input_file_parser = imp.load_source('input_file_parser', os.path.join(my_dir, 'input_file_parsers/{}.py'.format(conf.source_file_parser)))
+    input_file_parser = utils.get_assoc_file_parser()
     for pheno in tqdm.tqdm(phenolist, bar_format='Read {n:7} files'):
         pheno.update(input_file_parser.get_pheno_info(pheno))
     return phenolist
