@@ -1,3 +1,4 @@
 include pheweb/load/matrixify.cpp
+include README.md
 recursive-include pheweb/serve/static *
 recursive-include pheweb/serve/templates *
