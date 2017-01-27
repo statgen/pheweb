@@ -11,18 +11,18 @@ And steps 5 and 6 should only be as difficult as you want them to be.
 
 1) Run ``pip2 install pheweb``.
 
-   If you get an error about permissions, try ``pip2 install --user pheweb``.
+   - If you get an error about permissions, try ``pip2 install --user pheweb``.
 
-   If that doesn't work, make a python2 virtualenv.
-   If you don't have virtualenv installed, follow the directions `here`__.
-   Use these commands to make a virtualenv and activate a virtualenv:
+   - If that still doesn't work, make a python2 virtualenv.
+     If you don't have virtualenv installed, follow the directions `here`__.
+     Use these commands to make a virtualenv and activate a virtualenv:
 
-   __ https://virtualenv.pypa.io/en/stable/installation/
+     __ https://virtualenv.pypa.io/en/stable/installation/
 
-   .. code:: bash
+     .. code:: bash
 
-      virtualenv --python=python2.7 ~/venv-python2 # Choose a path you like.
-      ~/venv-python2/bin/activate
+        virtualenv --python=python2.7 ~/venv-python2 # Choose a path you like.
+        ~/venv-python2/bin/activate
 
 #) Make a data directory.  It should be in a location where you can afford to store twice as much data as the size of your input files.
 
