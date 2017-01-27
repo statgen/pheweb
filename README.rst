@@ -126,7 +126,9 @@ There are four ways to make a ``pheno-list.json``:
 
    Then you could run ``pheweb phenolist glob-files "/home/watman/*.epacts.gz"`` to get ``assoc-files``.
 
-   To get ``phenocodes``, you can use a regex that captures the phenocode from the file path.  In this example, ``pheweb phenolist extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'`` would work.
+   To get ``phenocodes``, you can use a regex that captures the phenocode from the file path.  In this example, you could use::
+
+      pheweb phenolist extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
 
 3. If you have multiple association files for some phenotypes, you can follow the directions in 2and then run ``pheweb phenolist unique-phenocode``.
 
