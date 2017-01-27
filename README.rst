@@ -26,16 +26,16 @@ And steps 5 and 6 should only be as difficult as you want them to be.
 
 #) Make a data directory.  It should be in a location where you can afford to store twice as much data as the size of your input files.
 
-#) In your data directory, make a file ``config.py``.  Options you can set:
+#) In your data directory, make a file ``config.py`` if you want to configure any options.  Options you can set:
 
    - ``minimum_maf``: any variant that has at least this minor allele frequency in some phenotype will be shown. (default: ``minimum_maf = 0``)
    - ``cache``: a directory where files used by all datasets can be stored.  If you don't want one, set `cache = False`.  (default: ``cache = "~/.pheweb/cache/"``)
 
-#) Make sure you have tabix, bgzip, wget, and g++ and that they are on your ``$PATH``.  If you can't just run ``tabix``, ``bgzip``, ``wget``, and ``g++``, find a way to install them.
+#) Make sure you have tabix, bgzip, wget, and g++ and that they are on your ``$PATH``.  If you can't just run ``tabix``, ``bgzip``, ``wget``, and ``g++`` from the command line, find a way to install them.
 
    - on macOS, you can install ``wget`` and ``htslib`` (which includes ``tabix`` and ``bgzip``) with `homebrew`__.
-   - on linux, either use a system package manager or `linuxbrew`__.
-   - if they aren't in your ``$PATH``, you can set ``tabix_path``, ``bgzip_path``, ``wget_path``, ``gxx_path`` in ``config.py``.
+   - on linux, either use your system package manager or `linuxbrew`__.
+   - if they aren't in your ``$PATH``, you can set ``tabix_path``, ``bgzip_path``, ``wget_path``, and ``gxx_path`` in ``config.py``.
 
 __ http://brew.sh/
 __ http://linuxbrew.sh/
@@ -45,12 +45,12 @@ __ http://linuxbrew.sh/
 
 You should have one file for each phenotype.  It can be gzipped if you want.  It should be tab-delimited and have a header row.  Variants must be sorted by chromosome and position, with chromosomes in the order [1-22,X,Y,MT].
 
-Note: If you are using EPACTS, your files should work just fine.  If they don't, email me.  EPACTS files won't have ``REF`` or ``ALT``, but PheWeb will parse their ``MARKER_ID`` column to get those.
+- If you are using EPACTS, your files should work just fine.  If they don't, email me.  EPACTS files won't have ``REF`` or ``ALT``, but PheWeb will parse their ``MARKER_ID`` column to get those.
 
 The file must have columns for:
 
 - chromosome
-    - named ``#CHROM`` or ``CHROM`` (all column are not case-sensitive)
+    - named ``#CHROM`` or ``CHROM`` (all column names are not case-sensitive)
     - must be a number between 1 and 22 or ``X`` or ``Y`` or ``M`` or ``MT``
 - position
     - named ``POS``, ``BEG``, or ``BEGIN``
@@ -81,7 +81,7 @@ If you need Odds Ratio, I can add that.
 3. Make a list of your phenotypes
 ---------------------------------
 
-Inside of your data directory, you need to end up with a file named ``pheno-list.json`` that looks like this:
+Inside of your data directory, you need a file named ``pheno-list.json`` that looks like this:
 
 .. code:: json
    [
@@ -98,7 +98,7 @@ Inside of your data directory, you need to end up with a file named ``pheno-list
 
 ``phenocode`` must only contain letters, numbers, or any of ``_-~``.
 
-That example file only includes the columns ``assoc_files`` (a list of paths) and ``phenocode`` (any string that works in a URL).  If you want, you can also include:
+That example file only includes the columns ``assoc_files`` (a list of paths to association files) and ``phenocode`` (a string representing your phenotype that is valid in a URL).  If you want, you can also include:
 
 - ``phenostring``: a string that is more descriptive than ``phenocode`` and will be shown in several places
 - ``category``: a string that will group together phenotypes in the PheWAS plot and also be shown in several places
@@ -107,7 +107,7 @@ That example file only includes the columns ``assoc_files`` (a list of paths) an
 
 There are four ways to make a ``pheno-list.json``:
 
-1. If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running ``./phenolist.py import-phenolist "/path/to/my/pheno-list.csv"``.
+1. If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running ``pheweb phenolist import-phenolist "/path/to/my/pheno-list.csv"``.
 
    If you have multiple association files for each phenotype, you may put them all into a single column with ``|`` between them.
 
@@ -124,11 +124,11 @@ There are four ways to make a ``pheno-list.json``:
    - ``/home/watman/eats-kimchi.epacts.gz``
    - ``/home/watman/ear-length.epacts.gz``
 
-   Then you could run ``./phenolist.py glob-files "/home/watman/*.epacts.gz"`` to get ``assoc-files``.
+   Then you could run ``pheweb phenolist glob-files "/home/watman/*.epacts.gz"`` to get ``assoc-files``.
 
-   To get ``phenocodes``, you can use a regex that captures the phenocode from the file path.  In this example, ``./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'`` would work.
+   To get ``phenocodes``, you can use a regex that captures the phenocode from the file path.  In this example, ``pheweb phenolist extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'`` would work.
 
-3. If you have multiple association files for some phenotypes, you can follow the directions in 2and then run ``./phenolist unique-phenocode``.
+3. If you have multiple association files for some phenotypes, you can follow the directions in 2and then run ``pheweb phenolist unique-phenocode``.
 
    For example, if your association files are at:
 
@@ -138,13 +138,13 @@ There are four ways to make a ``pheno-list.json``:
 
    then you can run::
 
-     ./phenolist.py glob-files "/home/watman/*/*.epacts.gz"
-     ./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
-     ./phenolist.py unique-phenocode
+     pheweb phenolist glob-files "/home/watman/*/*.epacts.gz"
+     pheweb phenolist extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
+     pheweb phenolist unique-phenocode
 
-4. If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for ``./phenolist.py``.
+4. If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for ``pheweb phenolist``.
 
-No matter what you do, please run ``./phenolist.py verify`` when you are done to check that it worked correctly.  At any point, you may run ``./phenolist.py view`` to view the current file.
+No matter what you do, please run ``pheweb phenolist.py verify`` when you are done to check that it worked correctly.  At any point, you may run ``pheweb phenolist.py view`` to view the current file.
 
 
 4. Load your association files
@@ -154,7 +154,7 @@ No matter what you do, please run ``./phenolist.py verify`` when you are done to
    Any variant that has at least that minor allele frequency (MAF) will be shown on the website, no matter what.
    If a variant has a smaller MAF (in some phenotype), it will still be shown if it has a large enough MAF in some other phenotype.
 
-1) Run ``./run_all.sh``.
+1) Run ``pheweb process-assoc-files``.
 
 2) If something breaks, read the error message.  Then,
 
@@ -163,27 +163,27 @@ No matter what you do, please run ``./phenolist.py verify`` when you are done to
 
    - If you can't understand the error message, please email your error message to <pjvh@umich.edu> and hopefully I get back to you quickly.
 
-   Then re-run ``./run_all.sh``.
+   Then re-run ``pheweb process-assoc-files``.
 
 
 5. Run a simple server to check that everything loaded correctly
 --------------------------
 
-Run ``./server.py``.
+Run ``pheweb serve``.
 
-If port 5000 is already taken, choose a different port (for example, 5432) and run ``./server.py --port 5432`` instead.
+If port 5000 is already taken, choose a different port (for example, 5432) and run ``pheweb serve --port 5432`` instead.
 
 Next you need to find a way to for your computer to access the server.  You have two options:
 
 A. Run Flask exposed to anybody on the internet.  This might be dangerous, but I never worry much about it.
 
-   You need a port that can get through your firewall. 80 or 5000 probably work, though 80 will require you to run ``sudo ./server.py --port 80``.
+   You need a port that can get through your firewall. 80 or 5000 probably work, though 80 will require you to run ``sudo $(which pheweb) serve --port 80``.
 
    You need an IP adddress or hostname that refers to your server.  If you ssh into your server with ``ssh watman@foobar.example.com``, this is ``foobar.example.com``.
    If you don't know this, run ``curl http://httpbin.org/ip`` on your server to get its IP address.  (If it returns something like ``"origin": "12.34.5.678"``, your server's IP is ``12.34.5.678``).
 
-   Now run ``./server.py --port <myport> --host <myhost>``.
-   For example, if you're using the default port (5000), and ``curl http://httpbin.org/ip`` return ``"origin": "12.34.5.678"``, then run ``./server.py --port 5000 --host 12.34.5.678``.
+   Now run ``pheweb serve --port <myport> --host <myhost>``.
+   For example, if you're using the default port (5000), and ``curl http://httpbin.org/ip`` return ``"origin": "12.34.5.678"``, then run ``pheweb serve --port 5000 --host 12.34.5.678``.
 
    When the server starts, it should say something like ``Running on http://12.34.5.678:5000/ (Press CTRL+C to quit)``.  Open that URL in the web browser on your computer.
 
