@@ -9,33 +9,33 @@ And steps 5 and 6 should only be as difficult as you want them to be.
 1. Install PheWeb
 -----------------
 
-1) Run `pip2 install pheweb`.
+1) Run ``pip2 install pheweb``.
 
-   If you get an error about permissions, try `pip2 install --user pheweb`.
+   If you get an error about permissions, try ``pip2 install --user pheweb``.
 
    If that doesn't work, make a python2 virtualenv.
-   If you don't have `virtualenv` installed, follow the directions `here`__.
+   If you don't have virtualenv installed, follow the directions `here`__.
    Use these commands to make a virtualenv and activate a virtualenv:
 
    __ https://virtualenv.pypa.io/en/stable/installation/
 
    .. code:: python
 
-      virtualenv --python=python2.7 ~/venv-python2 # Choose a path you like.
+      virtualenv -p python2.7 ~/venv-python2 # Choose a path you like.
       ~/venv-python2/bin/activate
 
 #) Make a data directory.  It should be in a location where you can afford to store twice as much data as the size of your input files.
 
-#) In your data directory, make a file `config.py`.  Options you can set:
+#) In your data directory, make a file ``config.py``.  Options you can set:
 
-    - `minimum_maf`: any variant that has at least this minor allele frequency in some phenotype will be shown. (default: `minimum_maf = 0`)
-    - `cache`: a directory where files used by all datasets can be stored.  If you don't want one, set `cache = False`.  (default: `cache = "~/.pheweb/cache/"`)
+- ``minimum_maf``: any variant that has at least this minor allele frequency in some phenotype will be shown. (default: ``minimum_maf = 0``)
+- ``cache``: a directory where files used by all datasets can be stored.  If you don't want one, set `cache = False`.  (default: ``cache = "~/.pheweb/cache/"``)
 
-#) Make sure you have tabix, bgzip, wget, and g++ and that they are on your `$PATH`.  If you can't just run `tabix`, `bgzip`, `wget`, and `g++`, find a way to install them.
+#) Make sure you have tabix, bgzip, wget, and g++ and that they are on your ``$PATH``.  If you can't just run ``tabix``, ``bgzip``, ``wget``, and ``g++``, find a way to install them.
 
-    - on macOS, you can install `wget` and `htslib` (which includes `tabix` and `bgzip`) with `homebrew`__.
+    - on macOS, you can install ``wget`` and ``htslib`` (which includes ``tabix`` and ``bgzip``) with `homebrew`__.
     - on linux, either use a system package manager or `linuxbrew`__.
-    - if they aren't in your `$PATH`, you can set `tabix_path`, `bgzip_path`, `wget_path`, `gxx_path` in `config.py`.
+    - if they aren't in your ``$PATH``, you can set ``tabix_path``, ``bgzip_path``, ``wget_path``, ``gxx_path`` in ``config.py``.
 
 __ http://brew.sh/
 __ http://linuxbrew.sh/
@@ -171,7 +171,7 @@ No matter what you do, please run `./phenolist.py verify` when you are done to c
 
 Run `./server.py`.
 
-If port 5000 is already taken, choose a different port (for example, 5432) and run `./server.py --port 5432` instead.
+If port 5000 is already taken, choose a different port (for example, 5432) and run ``./server.py --port 5432`` instead.
 
 Next you need to find a way to for your computer to access the server.  You have a few options:
 
