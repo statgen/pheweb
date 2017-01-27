@@ -1,17 +1,20 @@
 
-# run this with `python2 setup.py install` (in a virtualenv, probably)
-# while developing, use `python2 setup.py develop` to just make a symlink from `sites-packages` to this folder.
-# to upload to pypi, `python2 setup.py sdist bdist_wheel; twine upload dist/*`
+# to install:
+#     1. delete any build directories
+#     2. run `python2 setup.py install` (probably while in a virtualenv)
+#     2. maybe experiment with `python2 setup.py develop` (which uses a symlink)
+# to upload to pypi: `python2 setup.py sdist bdist_wheel; twine upload --skip-existing dist/*`
+# to update: `pip2 install --upgrade --upgrade-strategy only-if-needed --no-cache-dir pheweb`
 
 from setuptools import setup
 
 def readme():
-    with open('README.md') as f:
+    with open('README.rst') as f:
         return f.read()
 
 setup(
     name='PheWeb',
-    version='0.9',
+    version='0.9.3',
     description="A tool for building PheWAS websites from association files",
     long_description=readme(),
     author="Peter VandeHaar",
@@ -42,5 +45,6 @@ setup(
         'tqdm~=4.10',
         'openpyxl~=2.4',
         'scipy~=0.17',
+        'attrdict~=2.0',
      ]
 )

@@ -11,9 +11,9 @@ gene_dir = os.path.join(conf.data_dir, 'sites', 'genes')
 bed_file = os.path.join(gene_dir, 'genes.bed')
 gencode_file = os.path.join(gene_dir, 'gencode.gtf.gz')
 
-if hasattr(conf, 'cache_dir'):
-    utils.mkdir_p(conf.cache_dir)
-    bed_file = os.path.join(conf.cache_dir, 'genes.bed')
+if hasattr(conf, 'cache'):
+    utils.mkdir_p(conf.cache)
+    bed_file = os.path.join(conf.cache, 'genes.bed')
 else:
     bed_file = os.path.join(gene_dir, 'genes.ged')
 

@@ -13,9 +13,9 @@ tmp_file = os.path.join(dbsnp_dir, 'tmp-dbsnp-b{}-GRCh37.gz'.format(dbsnp_versio
 raw_file = os.path.join(dbsnp_dir, 'dbsnp-b{}-GRCh37.gz'.format(dbsnp_version))
 
 clean_file = 'rsids-{}.vcf.gz'.format(dbsnp_version)
-if hasattr(conf, 'cache_dir'):
-    utils.mkdir_p(conf.cache_dir)
-    clean_file = os.path.join(conf.cache_dir, clean_file)
+if hasattr(conf, 'cache'):
+    utils.mkdir_p(conf.cache)
+    clean_file = os.path.join(conf.cache, clean_file)
 else:
     clean_file = os.path.join(dbsnp_dir, clean_file)
 

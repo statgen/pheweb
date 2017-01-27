@@ -1,40 +1,6 @@
 
 from __future__ import print_function, division, absolute_import
 
-# Load config
-import os
-import imp
-possible_conf_files = [
-    os.path.join(os.path.abspath(os.curdir), 'config.py'),
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.py'),
-]
-if 'PHEWEB_DATADIR' in os.environ:
-    possible_conf_files.insert(0, os.path.join(os.environ['PHEWEB_DATADIR'], 'config.py'))
-conf = None
-for conf_file in possible_conf_files:
-    if os.path.exists(conf_file):
-        conf = imp.load_source('conf', conf_file)
-        break
-if conf is None:
-    raise Exception('PheWeb failed to find a config.py file.  Places checked:\n{}'.format('\n'.join(possible_conf_files)))
-
-# Prepare config
-if not hasattr(conf, 'data_dir'):
-    conf.data_dir = os.path.dirname(conf.__file__)
-if not os.access(conf.data_dir, os.R_OK):
-    raise Exception("It looks like you don't have permission to read your data_dir, {!r}".format(conf.data_dir))
-if not hasattr(conf, 'source_file_parser'): # TODO: rename `association_file_parser`, relegate source_file_parser to an alias
-    conf.source_file_parser = 'epacts'
-if hasattr(conf, 'cache_dir'):
-    if not conf.cache_dir:
-        del conf.cache_dir
-    else:
-        conf.cache_dir = os.path.expanduser(conf.cache_dir)
-        if not os.access(conf.cache_dir, os.R_OK):
-            print('Warning: the directory {!r} is configured to be your cache directory in {!r} but it is not readable'.format(
-                conf.cache_dir, conf_file))
-
-
 import re
 import itertools
 import functools
@@ -48,15 +14,18 @@ import random
 import sys
 import subprocess
 import time
+import attrdict
+import imp
 
+conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
 
 def get_assoc_file_parser():
     from .load.input_file_parsers import epacts
     return epacts
     # TODO: how do I make this configurable?  I can't find the right syntax with imp.load_*.  Maybe in py3?
     #       if you use load_source, then it's not part of this package, so it can't do relative imports.
-    # fname = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'load', 'input_file_parsers', conf.source_file_parser+'.py')
-    # return imp.load_source(conf.source_file_parser, fname)
+    # fname = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'load', 'input_file_parsers', conf['source_file_parser']+'.py')
+    # return imp.load_source(conf['source_file_parser'], fname)
 
 def parse_variant(query, default_chrom_pos = True):
     if isinstance(query, unicode):
@@ -91,7 +60,7 @@ assert round_sig(0.00123, 2) == 0.0012
 assert round_sig(1.59e-10, 2) == 1.6e-10
 
 def get_phenolist():
-    fname = os.path.join(conf.data_dir, 'pheno-list.json')
+    fname = os.path.join(conf['data_dir'], 'pheno-list.json')
     try:
         with open(os.path.join(fname)) as f:
             return json.load(f)
@@ -105,7 +74,7 @@ def get_phenolist():
 
 def get_phenos_with_colnums(app_root_path):
     phenos_by_phenocode = {pheno['phenocode']: pheno for pheno in get_phenolist()}
-    with gzip.open(conf.data_dir + '/matrix.tsv.gz') as f:
+    with gzip.open(conf['data_dir'] + '/matrix.tsv.gz') as f:
         header = f.readline().rstrip('\r\n').split('\t')
     assert header[:7] == '#chrom pos ref alt rsids nearest_genes maf'.split()
     for phenocode in phenos_by_phenocode:
@@ -128,7 +97,7 @@ def get_variant(query, phenos):
     chrom, pos, ref, alt = parse_variant(query)
     assert None not in [chrom, pos, ref, alt]
 
-    tabix_file = pysam.TabixFile(conf.data_dir + '/matrix.tsv.gz')
+    tabix_file = pysam.TabixFile(conf['data_dir'] + '/matrix.tsv.gz')
     tabix_iter = tabix_file.fetch(chrom, pos-1, pos+1, parser = pysam.asTuple())
     for variant_row in tabix_iter:
         if int(variant_row[1]) == int(pos) and variant_row[3] == alt:
@@ -176,7 +145,7 @@ def mkdir_p(path):
             raise
 
 def get_random_page():
-    with open(os.path.join(conf.data_dir, 'top_hits.json')) as f:
+    with open(os.path.join(conf['data_dir'], 'top_hits.json')) as f:
         hits = json.load(f)
         hits_to_choose_from = [hit for hit in hits if hit['pval'] < 5e-8]
         if not hits_to_choose_from:
@@ -299,3 +268,64 @@ def run_cmd(cmd):
         print(data)
         sys.exit(1)
     return data
+
+
+
+def dumb_cache(f):
+    cache = {}
+    @functools.wraps(f)
+    def f2(*args, **kwargs):
+        key = (tuple(args), tuple(kwargs.items()))
+        if key not in cache:
+            cache[key] = f(*args, **kwargs)
+        return cache[key]
+    return f2
+
+@dumb_cache
+def ensure_conf_is_loaded():
+
+    conf.data_dir = os.environ.get('PHEWEB_DATADIR', False) or os.path.abspath(os.path.curdir)
+    if not os.path.isdir(conf.data_dir):
+        mkdir_p(data_dir)
+    if not os.access(conf.data_dir, os.R_OK):
+        raise Exception("Your data directory, {!r}, is not readable.".format(conf.data_dir))
+
+    config_file = os.path.join(conf.data_dir, 'config.py')
+    if os.path.isfile(config_file):
+        try:
+            conf_module = imp.load_source('config', config_file)
+        except:
+            raise Exception("PheWeb tried to load your config.py at {!r} but it failed.".format(config_file))
+        else:
+            for key in dir(conf_module):
+                if not key.startswith('_'):
+                    conf[key] = getattr(conf_module, key)
+
+    if 'source_file_parser' not in conf: # TODO: rename `association_file_parser`, relegate source_file_parser to an alias
+        conf['source_file_parser'] = 'epacts'
+
+    def _configure_cache():
+        # if conf['cache'] exists and is Falsey, don't cache.
+        if 'cache' in conf and not conf['cache']:
+            del conf['cache']
+            return
+        # if it doesn't exist, use the default.
+        if 'cache' not in conf:
+            conf['cache'] = '~/.pheweb/cache'
+
+        conf['cache'] = os.path.expanduser(conf['cache'])
+        # check whether dir exists
+        if not os.path.isdir(conf['cache']):
+            try:
+                mkdir_p(conf['cache'])
+            except:
+                print("Warning: caching is disabled because the directory {!r} can't be created.\n".format(conf['cache']) +
+                      "If you don't want caching, set `cache = False` in your config.py.")
+                del conf['cache']
+                return
+        if not os.access(conf['cache'], os.R_OK):
+            print('Warning: the directory {!r} is configured to be your cache directory but it is not readable.\n'.format(conf['cache']) +
+                  "If you don't want caching, set `cache = False` in your config.py.")
+            del conf['cache']
+    _configure_cache()
+ensure_conf_is_loaded()

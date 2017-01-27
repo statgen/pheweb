@@ -106,8 +106,8 @@ def run(argv):
     input_file = os.path.join(conf.data_dir, 'sites/cpra_rsids.tsv')
     output_file = os.path.join(conf.data_dir, 'sites/sites.tsv')
     temp_file = os.path.join(conf.data_dir, 'tmp/sites.tsv')
-    if hasattr(conf, 'cache_dir'):
-        genes_file = os.path.join(conf.cache_dir, 'genes.bed')
+    if hasattr(conf, 'cache'):
+        genes_file = os.path.join(conf.cache, 'genes.bed')
     else:
         genes_file = os.path.join(conf.data_dir, 'sites', 'genes','genes.bed')
 

@@ -4,9 +4,6 @@
 import sys
 import os
 
-# TODO: remove this when setup.py is working.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from pheweb.load import phenolist
 from pheweb.load import get_cpras
 from pheweb.load import merge_cpras
@@ -71,26 +68,14 @@ else:
 
 
 
-
 '''
-1. Create a folder `subcommands/`.
-2. Populate a few subcommands.  What should each have?  Just a function?  A class?
-3. When someone runs `./pheweb <subcommand>`, check for `subcommands/<subcommand>.py`.  Invoke it with args[1:], config, pheweb_dir, and data_dir.
-4. Put all of `data/*.{sh,py}` in there, including `phenolist.py` and `run_all.py`.
-   - how should `run_all.py` invoke `./pheweb get_cpras`?  Maybe pass it a reference to the subommand-calling function?
-5. Fetch config from [$PHEWEB_DIR/config.py, $PWD/config.py, $pheweb_dir/config.py].
-6. Put data in $data_dir/generated-by-pheweb/
-7. Set up tests.  Use .gitignore.
-8. `./server.py --port 5005` -> `./pheweb serve --port 5005`.
-
-make everything subcommands of a common entry-point.
-- `./pheweb phenolist glob ...`
-
 move all pheweb-generated data into `$dir/generated-by-pheweb/`.
 
 make a subcommand `./pheweb quickstart '/tmp/phe([0-9]+).tsv.gz'`
-- uses `~/my-phewebs/$RANDOM/`
-- prepares a pheweb and hosts it on `0.0.0.0:5000`
+- makes dir=`~/.pheweb/mine/my-phewebs/$RANDOM/`
+- prepares $dir/pheno-list.json
+- tells user to `cd $dir && pheweb prepar-assoc-files`
+- runs `pheweb serve`
     - could it open a web browser?  how to do that on linux?  only if on macOS?
     - could it find its own external IP, attempt to contact itself, and then provide a link if it works?
     - and otherwise, it would just print or link to instructions?
@@ -121,36 +106,23 @@ then what about beta/sebeta in tables?  how to make that automatically be used o
     - put these two into a {%block%} for {%extends%}ing them
     - to make a clearer code structure, what if you built those two templates together (eg, `if(beta_sebeta){header_template+=...;row_template+=...}`)
 
-then how to get down to only one pheweb install?
-- wsgi.wsgi must be in $dir
-- `$data_dir/custom_templates/`
-
 Differences between mgi and sardinia-r2
 - config.config (minimum_maf, data_dir)
 - 0_0
     - not really my problem, but get it out of pheweb/data/
 - phewas_significance_threshold (add to config.py)
-- about.html text
-- index.html <h2>
+- about.html text (make a template `about_content.html`)
+- index.html <h2> (make a template `index_headers.html`)
 - inclusion of <th>beta (se)</th> on top_hits and others
     - gonna be solved by above approach
 - placeholder="..." on variant.html (ie, pheno names)
     - should this automatically be some real phenotypes?
         - just '&quot;{{ phenolist[0].phenostring || phenolist[0].phenocode }&quot;, &quot;{{ ... }}&quot;, etc.'
 
-so then everything will work but we'll want to work from $dir and use the fullpath for `pheweb.py`.
-- at that point it should be easy to switch to `setup.py` and packaging.  but not before then.
-- once this works, the directions will be:
-
-   ```
-   pip3 install pheweb
-   pheweb quickstart <globs>... # just uses $(basename) as phecode
-   ```
-
 make a special `./pheweb phenolist augment-like-vb-icd9-phewas`.
 
 remove non-python dependencies:
 - use wget (from pypi) instead of /usr/{,local/}bin/wget (https://pypi.python.org/pypi/wget)
 - use pysam.tabix_index() instead of `tabix -p vcf <file>`
-- is there any way to avoid bgzip?  probably not.
+- is there any way to avoid bgzip?  it's probably somewhere inside pysam, but I don't see it.
 '''

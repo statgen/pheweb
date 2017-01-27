@@ -1,39 +1,47 @@
-## How to Build a PheWeb for your Data
+How to Build a PheWeb for your Data
+===================================
 
 Loading data into a new PheWeb is done in four steps, followed by two steps of polishing.
 Hopefully only steps 1 and 2 will take much effort.
 If steps 3 or 4 give you any trouble, please email me at <pjvh@umich.edu> and I'll see what I can do to improve things.
 And steps 5 and 6 should only be as difficult as you want them to be.
 
-### 1. Prepare the environment.
+1. Install PheWeb
+-----------------
 
-1. Download this repo into a folder.  Go to the place you want it to be stored and run `git clone https://github.com/statgen/pheweb.git`.
+1) Run `pip2 install pheweb`.
 
-2. Make a data directory.  It should be in a location where you can afford to store twice as much data as the size of your input files.
-   If you don't have read/write access to it, most of the commands you run later will need to start with `sudo `.
+   If you get an error about permissions, try `pip2 install --user pheweb`.
 
-3. Install dependencies.  You may install them with `pip2 install -r requirements.txt` (while in this directory).
+   If that doesn't work, make a python2 virtualenv.
+   If you don't have `virtualenv` installed, follow the directions `here`__.
+   Use these commands to make a virtualenv and activate a virtualenv:
 
-   If you get an error about permissions, perhaps `pip2 install --user -r requirements.txt` will work.
+   __ https://virtualenv.pypa.io/en/stable/installation/
 
-   If that still doesn't work, make a python2 virtualenv.
-   If you don't have `virtualenv` installed, follow the directions [here](https://virtualenv.pypa.io/en/stable/installation/).
-   Use these commands to make a virtualenv and install the packages we need:
+   .. code:: python
 
-    ```
-    virtualenv --python=python2.7 /path/to/my/new/venv # Choose a path you like.
-    /path/to/my/new/venv/bin/activate
-    pip install -r requirement.txt # the `requirements.txt` in this repository.
-    ```
+      virtualenv --python=python2.7 ~/venv-python2 # Choose a path you like.
+      ~/venv-python2/bin/activate
 
-4. Make sure you have tabix, bgzip, and wget.  If you can't just run `tabix`, `bgzip`, and `wget`, then either install them or find paths to those commands that work.
-    - if you're on a Mac, you can install `wget` with [homebrew](http://brew.sh/)
+#) Make a data directory.  It should be in a location where you can afford to store twice as much data as the size of your input files.
 
-5. Put all of this information in `config.py`.  Just Read The Instructions in `config.py` for how to do this.
+#) In your data directory, make a file `config.py`.  Options you can set:
 
-   If you want to make PheWebs for multiple datasets, you can put a `config.py` in the data directory for each dataset and then `export PHEWEB_DATADIR=/path/to/dataset1/datadir`.
+    - `minimum_maf`: any variant that has at least this minor allele frequency in some phenotype will be shown. (default: `minimum_maf = 0`)
+    - `cache`: a directory where files used by all datasets can be stored.  If you don't want one, set `cache = False`.  (default: `cache = "~/.pheweb/cache/"`)
 
-### 2. Prepare your association files
+#) Make sure you have tabix, bgzip, wget, and g++ and that they are on your `$PATH`.  If you can't just run `tabix`, `bgzip`, `wget`, and `g++`, find a way to install them.
+
+    - on macOS, you can install `wget` and `htslib` (which includes `tabix` and `bgzip`) with `homebrew`__.
+    - on linux, either use a system package manager or `linuxbrew`__.
+    - if they aren't in your `$PATH`, you can set `tabix_path`, `bgzip_path`, `wget_path`, `gxx_path` in `config.py`.
+
+__ http://brew.sh/
+__ http://linuxbrew.sh/
+
+2. Prepare your association files
+---------------------------------
 
 You should have one file for each phenotype.  It can be gzipped if you want.  It should be tab-delimited and have a header row.  Variants must be sorted by chromosome and position, with chromosomes in the order [1-22,X,Y,MT].
 
@@ -70,23 +78,23 @@ You may also have columns for:
 If you need Odds Ratio, I can add that.
 
 
-### 3. Make a list of your phenotypes
+3. Make a list of your phenotypes
+---------------------------------
 
 Inside of your data directory, you need to end up with a file named `pheno-list.json` that looks like this:
 
-```
-[
- {
-  "assoc_files": ["/home/watman/ear-length.epacts.gz"],
-  "phenocode": "ear-length"
- },
- {
-  "assoc_files": ["/home/watman/eats-kimchi.X.epacts.gz","/home/watman/eats-kimchi.autosomal.epacts.gz"],
-  "phenocode": "eats-kimchi"
- },
- ...
-]
-```
+.. code:: json
+   [
+    {
+     "assoc_files": ["/home/watman/ear-length.epacts.gz"],
+     "phenocode": "ear-length"
+    },
+    {
+     "assoc_files": ["/home/watman/eats-kimchi.X.epacts.gz","/home/watman/eats-kimchi.autosomal.epacts.gz"],
+     "phenocode": "eats-kimchi"
+    },
+    ...
+   ]
 
 `phenocode` must only contain letters, numbers, or any of `_-~`.
 
@@ -103,13 +111,11 @@ There are three ways to make a `pheno-list.json`:
 
   If you have multiple association files for each phenotype, you may put them all into a single column with `|` between them.
 
-  For example, your file `pheno-list.csv` might look like this:
+  For example, your file `pheno-list.csv` might look like this::
 
-  ```
-  phenocode,assoc_files
-  eats-kimchi,/home/watman/eats-kimchi.autosomal.epacts.gz|/home/watman/eats-kimchi.X.epacts.gz
-  ear-length,/home/watman/ear-length.all.epacts.gz
-  ```
+     phenocode,assoc_files
+     eats-kimchi,/home/watman/eats-kimchi.autosomal.epacts.gz|/home/watman/eats-kimchi.X.epacts.gz
+     ear-length,/home/watman/ear-length.all.epacts.gz
 
 - (B) If you have one association file per phenotype, you can use a shell-glob and a regex to get assoc-files and phenocodes for them.
 
@@ -130,28 +136,27 @@ There are three ways to make a `pheno-list.json`:
     - `/home/watman/X/eats-kimchi.epacts.gz`
     - `/home/watman/all/ear-length.epacts.gz`
 
-  then you can run:
+  then you can run::
 
-  ```
-  ./phenolist.py glob-files "/home/watman/*/*.epacts.gz"
-  ./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
-  ./phenolist.py unique-phenocode
-  ```
+     ./phenolist.py glob-files "/home/watman/*/*.epacts.gz"
+     ./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
+     ./phenolist.py unique-phenocode
 
 - (D) If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for `./phenolist.py`.
 
 No matter what you do, please run `./phenolist.py verify` when you are done to check that it worked correctly.  At any point, you may run `./phenolist.py view` to view the current file.
 
 
-### 4. Load your association files.
+4. Load your association files
+------------------------------
 
-0. If you only want variants that reach some minimum MAF, then set `minimum_maf` in `config.py`.
+0) If you only want variants that reach some minimum MAF, then set `minimum_maf` in `config.py`.
    Any variant that has at least that minor allele frequency (MAF) will be shown on the website, no matter what.
    If a variant has a smaller MAF (in some phenotype), it will still be shown if it has a large enough MAF in some other phenotype.
 
-1. Run `./run_all.sh`.
+1) Run `./run_all.sh`.
 
-2. If something breaks, read the error message.  Then,
+2) If something breaks, read the error message.  Then,
 
     - If you can understand the error message, modify `data/input_file_parsers/epacts.py` to handle your file type.
       If the modification is something that pheweb should support by default, please email your changes to <pjvh@umich.edu>.
@@ -161,7 +166,8 @@ No matter what you do, please run `./phenolist.py verify` when you are done to c
     Then re-run `./run_all.sh`.
 
 
-### 5. Run a simple server to check that everything loaded correctly.
+5. Run a simple server to check that everything loaded correctly
+--------------------------
 
 Run `./server.py`.
 
@@ -188,7 +194,8 @@ Next you need to find a way to for your computer to access the server.  You have
 - (C) Skip straight to step 6, then do step 5 after that.
 
 
-### 6. Modify templates if necessary.
+6. Modify templates if necessary.
+------
 
 The templates that you might want to modify are:
 
@@ -200,10 +207,14 @@ The templates that you might want to modify are:
 As you modify templates, you might have to kill and restart your development server for the changes to take effect.  Or maybe not.  Who knows.
 
 
-### 7. Use a real webserver.
+7. Use a real webserver.
+-------
 
 At this point your PheWeb should be working how you want it to, and everything should be good except maybe the URL you're using.
 
 For maximum speed and safety, you should switch to running Flask behind something like Apache2 or Nginx.
-More information about this is [here](http://flask.pocoo.org/docs/0.11/deploying/#deployment).
-If you choose Apache2, I have some documentation for you [here](https://github.com/statgen/pheweb/tree/master/unnecessary_things/other_documentation/running_with_apache2)
+More information about this is `here`__.
+If you choose Apache2, I have some documentation for you `here`__.
+
+__ http://flask.pocoo.org/docs/0.11/deploying/#deployment
+__ https://github.com/statgen/pheweb/tree/master/unnecessary_things/other_documentation/running_with_apache2
