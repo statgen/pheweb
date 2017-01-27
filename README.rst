@@ -19,9 +19,9 @@ And steps 5 and 6 should only be as difficult as you want them to be.
 
    __ https://virtualenv.pypa.io/en/stable/installation/
 
-   .. code:: python
+   .. code:: bash
 
-      virtualenv -p python2.7 ~/venv-python2 # Choose a path you like.
+      virtualenv --python=python2.7 ~/venv-python2 # Choose a path you like.
       ~/venv-python2/bin/activate
 
 #) Make a data directory.  It should be in a location where you can afford to store twice as much data as the size of your input files.
@@ -45,34 +45,34 @@ __ http://linuxbrew.sh/
 
 You should have one file for each phenotype.  It can be gzipped if you want.  It should be tab-delimited and have a header row.  Variants must be sorted by chromosome and position, with chromosomes in the order [1-22,X,Y,MT].
 
-Note: If you are using EPACTS, your files should work just fine.  If they don't, email me.  EPACTS files won't have `REF` or `ALT`, but PheWeb will parse their `MARKER_ID` column to get those.
+Note: If you are using EPACTS, your files should work just fine.  If they don't, email me.  EPACTS files won't have ``REF`` or ``ALT``, but PheWeb will parse their ``MARKER_ID`` column to get those.
 
 The file must have columns for:
 
 - chromosome
-    - named `#CHROM` or `CHROM` (all column are not case-sensitive)
-    - must be a number between 1 and 22 or `X` or `Y` or `M` or `MT`
+    - named ``#CHROM`` or ``CHROM`` (all column are not case-sensitive)
+    - must be a number between 1 and 22 or ``X`` or ``Y`` or ``M`` or ``MT``
 - position
-    - named `POS`, `BEG`, or `BEGIN`
+    - named ``POS``, ``BEG``, or ``BEGIN``
     - must be an integer
 - reference allele
-    - named `REF`
+    - named ``REF``
 - alternate allele
-    - named `ALT`
+    - named ``ALT``
 - minor allele frequency
-    - named `MAF`
-    - must be a real number between 0 and 1 (numbers may be in scientific notation, like `5.4e-12`)
+    - named ``MAF``
+    - must be a real number between 0 and 1 (numbers may be in scientific notation, like ``5.4e-12``)
 - p-value
-    - named `PVAL` or `PVALUE`
-    - must be decimal number between 0 and 1 or `.` or `NA` (both representing unknown)
+    - named ``PVAL`` or ``PVALUE``
+    - must be decimal number between 0 and 1 or ``.`` or ``NA`` (both representing unknown)
 
 You may also have columns for:
 
 - effect size
-    - named `BETA`
+    - named ``BETA``
     - must be a real number
 - standard error of effect size
-    - named `SEBETA`
+    - named ``SEBETA``
     - must be a real number
 
 If you need Odds Ratio, I can add that.
@@ -81,7 +81,7 @@ If you need Odds Ratio, I can add that.
 3. Make a list of your phenotypes
 ---------------------------------
 
-Inside of your data directory, you need to end up with a file named `pheno-list.json` that looks like this:
+Inside of your data directory, you need to end up with a file named ``pheno-list.json`` that looks like this:
 
 .. code:: json
    [
@@ -96,22 +96,22 @@ Inside of your data directory, you need to end up with a file named `pheno-list.
     ...
    ]
 
-`phenocode` must only contain letters, numbers, or any of `_-~`.
+``phenocode`` must only contain letters, numbers, or any of ``_-~``.
 
-That example file only includes the columns `assoc_files` (a list of paths) and `phenocode` (any string that works in a URL).  If you want, you can also include:
+That example file only includes the columns ``assoc_files`` (a list of paths) and ``phenocode`` (any string that works in a URL).  If you want, you can also include:
 
-- `phenostring`: a string that is more descriptive than `phenocode` and will be shown in several places
-- `category`: a string that will group together phenotypes in the PheWAS plot and also be shown in several places
-- `num_cases`, `num_controls`, and/or `num_samples`: numbers of strings which will be shown in several places
+- ``phenostring``: a string that is more descriptive than ``phenocode`` and will be shown in several places
+- ``category``: a string that will group together phenotypes in the PheWAS plot and also be shown in several places
+- ``num_cases``, ``num_controls``, and/or ``num_samples``: numbers of strings which will be shown in several places
 - anything else you want, but you'll have to modify templates to show it.
 
-There are three ways to make a `pheno-list.json`:
+There are three ways to make a ``pheno-list.json``:
 
-- (A) If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running `./phenolist.py import-phenolist "/path/to/my/pheno-list.csv"`.
+- (A) If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running ``./phenolist.py import-phenolist "/path/to/my/pheno-list.csv"``.
 
-  If you have multiple association files for each phenotype, you may put them all into a single column with `|` between them.
+  If you have multiple association files for each phenotype, you may put them all into a single column with ``|`` between them.
 
-  For example, your file `pheno-list.csv` might look like this::
+  For example, your file ``pheno-list.csv`` might look like this::
 
      phenocode,assoc_files
      eats-kimchi,/home/watman/eats-kimchi.autosomal.epacts.gz|/home/watman/eats-kimchi.X.epacts.gz
@@ -121,20 +121,20 @@ There are three ways to make a `pheno-list.json`:
 
   Suppose that your assocation files are at paths like:
 
-    - `/home/watman/eats-kimchi.epacts.gz`
-    - `/home/watman/ear-length.epacts.gz`
+    - ``/home/watman/eats-kimchi.epacts.gz``
+    - ``/home/watman/ear-length.epacts.gz``
 
-  Then you could run `./phenolist.py glob-files "/home/watman/*.epacts.gz"` to get `assoc-files`.
+  Then you could run ``./phenolist.py glob-files "/home/watman/*.epacts.gz"`` to get ``assoc-files``.
 
-  To get `phenocodes`, you can use a regex that captures the phenocode from the file path.  In this example, `./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'` would work.
+  To get ``phenocodes``, you can use a regex that captures the phenocode from the file path.  In this example, ``./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'`` would work.
 
-- (C)  If you have multiple association files for some phenotypes, you can follow the directions in (B) and then run `./phenolist unique-phenocode`.
+- (C)  If you have multiple association files for some phenotypes, you can follow the directions in (B) and then run ``./phenolist unique-phenocode``.
 
   For example, if your association files are at:
 
-    - `/home/watman/autosomal/eats-kimchi.epacts.gz`
-    - `/home/watman/X/eats-kimchi.epacts.gz`
-    - `/home/watman/all/ear-length.epacts.gz`
+  - ``/home/watman/autosomal/eats-kimchi.epacts.gz``
+  - ``/home/watman/X/eats-kimchi.epacts.gz``
+  - ``/home/watman/all/ear-length.epacts.gz``
 
   then you can run::
 
@@ -142,9 +142,9 @@ There are three ways to make a `pheno-list.json`:
      ./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
      ./phenolist.py unique-phenocode
 
-- (D) If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for `./phenolist.py`.
+- (D) If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for ``./phenolist.py``.
 
-No matter what you do, please run `./phenolist.py verify` when you are done to check that it worked correctly.  At any point, you may run `./phenolist.py view` to view the current file.
+No matter what you do, please run ``./phenolist.py verify`` when you are done to check that it worked correctly.  At any point, you may run ``./phenolist.py view`` to view the current file.
 
 
 4. Load your association files
@@ -158,12 +158,12 @@ No matter what you do, please run `./phenolist.py verify` when you are done to c
 
 2) If something breaks, read the error message.  Then,
 
-    - If you can understand the error message, modify `data/input_file_parsers/epacts.py` to handle your file type.
-      If the modification is something that pheweb should support by default, please email your changes to <pjvh@umich.edu>.
+   - If you can understand the error message, modify `data/input_file_parsers/epacts.py` to handle your file type.
+     If the modification is something that pheweb should support by default, please email your changes to <pjvh@umich.edu>.
 
-    - If you can't understand the error message, please email your error message to <pjvh@umich.edu> and hopefully I get back to you quickly.
+   - If you can't understand the error message, please email your error message to <pjvh@umich.edu> and hopefully I get back to you quickly.
 
-    Then re-run `./run_all.sh`.
+   Then re-run `./run_all.sh`.
 
 
 5. Run a simple server to check that everything loaded correctly
