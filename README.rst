@@ -3,7 +3,7 @@ How to Build a PheWeb for your Data
 
 Loading data into a new PheWeb is done in four steps, followed by two steps of polishing.
 Hopefully only steps 1 and 2 will take much effort.
-If steps 3 or 4 give you any trouble, please email me at <pjvh@umich.edu> and I'll see what I can do to improve things.
+If steps 3 or 4 give you any trouble, please email me at pjvh@umich.edu and I'll see what I can do to improve things.
 And steps 5 and 6 should only be as difficult as you want them to be.
 
 1. Install PheWeb
@@ -144,9 +144,9 @@ There are four ways to make a ``pheno-list.json``:
      pheweb phenolist extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
      pheweb phenolist unique-phenocode
 
-4. If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for ``pheweb phenolist``.
+4. If you want to do more advanced things, like merging in more information from another file, email pjvh@umich.edu and I'll write documentation for ``pheweb phenolist``.
 
-No matter what you do, please run ``pheweb phenolist.py verify`` when you are done to check that it worked correctly.  At any point, you may run ``pheweb phenolist.py view`` to view the current file.
+No matter what you do, please run ``pheweb phenolist verify`` when you are done to check that it worked correctly.  At any point, you may run ``pheweb phenolist view`` or ``pheweb phenolist print-as-csv`` to view the current file.
 
 
 4. Load your association files
@@ -160,10 +160,11 @@ No matter what you do, please run ``pheweb phenolist.py verify`` when you are do
 
 2) If something breaks, read the error message.  Then,
 
-   - If you can understand the error message, modify ``data/input_file_parsers/epacts.py`` to handle your file type.
-     If the modification is something that pheweb should support by default, please email your changes to <pjvh@umich.edu>.
+   - If you can understand the error message, modify your input files to avoid it.
 
-   - If you can't understand the error message, please email your error message to <pjvh@umich.edu> and hopefully I get back to you quickly.
+   - If the problem is something that PheWeb should support by default, feel free to email it to me at pjvh@umich.edu.
+
+   - If you can't understand the error message, please email your error message to pjvh@umich.edu and hopefully I get back to you quickly.
 
    Then re-run ``pheweb process-assoc-files``.
 
