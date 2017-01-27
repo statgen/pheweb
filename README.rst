@@ -126,9 +126,9 @@ There are four ways to make a ``pheno-list.json``:
 
    Then you could run ``pheweb phenolist glob-files "/home/watman/*.epacts.gz"`` to get ``assoc-files``.
 
-   To get ``phenocodes``, you can use a regex that captures the phenocode from the file path.  In this example, you could use::
+   To get ``phenocodes``, you can use a regex that captures the phenocode from the file path.  In most cases (including this one), just use::
 
-      pheweb phenolist extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
+      pheweb phenolist extract-phenocode-from-fname --simple
 
 3. If you have multiple association files for some phenotypes, you can follow the directions in 2and then run ``pheweb phenolist unique-phenocode``.
 
@@ -141,7 +141,7 @@ There are four ways to make a ``pheno-list.json``:
    then you can run::
 
      pheweb phenolist glob-files "/home/watman/*/*.epacts.gz"
-     pheweb phenolist extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
+     pheweb phenolist extract-phenocode-from-fname --simple
      pheweb phenolist unique-phenocode
 
 4. If you want to do more advanced things, like merging in more information from another file, email pjvh@umich.edu and I'll write documentation for ``pheweb phenolist``.
@@ -152,19 +152,15 @@ No matter what you do, please run ``pheweb phenolist verify`` when you are done 
 4. Load your association files
 ------------------------------
 
-0) If you only want variants that reach some minimum MAF, then set ``minimum_maf`` in ``config.py``.
-   Any variant that has at least that minor allele frequency (MAF) will be shown on the website, no matter what.
-   If a variant has a smaller MAF (in some phenotype), it will still be shown if it has a large enough MAF in some other phenotype.
-
 1) Run ``pheweb process-assoc-files``.
 
-2) If something breaks, read the error message.  Then,
+2) If something breaks, read the error message.
 
    - If you can understand the error message, modify your input files to avoid it.
 
    - If the problem is something that PheWeb should support by default, feel free to email it to me at pjvh@umich.edu.
 
-   - If you can't understand the error message, please email your error message to pjvh@umich.edu and hopefully I get back to you quickly.
+   - If you can't understand the error message, please email your error message to pjvh@umich.edu and hopefully I can get back to you quickly.
 
    Then re-run ``pheweb process-assoc-files``.
 
@@ -174,25 +170,25 @@ No matter what you do, please run ``pheweb phenolist verify`` when you are done 
 
 Run ``pheweb serve``.
 
-If port 5000 is already taken, choose a different port (for example, 5432) and run ``pheweb serve --port 5432`` instead.
+- If port 5000 is already taken, choose a different port (for example, 5432) and run ``pheweb serve --port 5432`` instead.
 
 Next you need to find a way to for your computer to access the server.  You have two options:
 
-A. Run Flask exposed to anybody on the internet.  This might be dangerous, but I never worry much about it.
+A. Run PheWeb exposed to anybody on the internet.  This might be dangerous, but I never worry much about it.
 
-   You need a port that can get through your firewall. 80 or 5000 probably work, though 80 will require you to run ``sudo $(which pheweb) serve --port 80``.
+   You need a port that can get through your firewall. 80 or 5000 probably work, though 80 will require you to run something like ``sudo $(which python2) $(which pheweb) serve --port 80``.
 
-   You need an IP adddress or hostname that refers to your server.  If you ssh into your server with ``ssh watman@foobar.example.com``, this is ``foobar.example.com``.
+   Find an IP adddress or hostname that refers to your server.  If you ssh into your server with ``ssh watman@foobar.example.com``, this is ``foobar.example.com``.
    If you don't know this, run ``curl http://httpbin.org/ip`` on your server to get its IP address.  (If it returns something like ``"origin": "12.34.5.678"``, your server's IP is ``12.34.5.678``).
 
    Now run ``pheweb serve --port <myport> --host <myhost>``.
-   For example, if you're using the default port (5000), and ``curl http://httpbin.org/ip`` return ``"origin": "12.34.5.678"``, then run ``pheweb serve --port 5000 --host 12.34.5.678``.
+   For example, if you're using the default port (5000), and ``curl http://httpbin.org/ip`` returns ``"origin": "12.34.5.678"``, then run ``pheweb serve --port 5000 --host 12.34.5.678``.
 
    When the server starts, it should say something like ``Running on http://12.34.5.678:5000/ (Press CTRL+C to quit)``.  Open that URL in the web browser on your computer.
 
-B. Run Flask with the default settings, then use an SSH tunnel to connect to it from your computer.
+B. Run PheWeb with the default settings, then use an SSH tunnel to connect to it from your computer.
 
-   For example, if you normally ssh in with ``ssh watman@foobar.example.com``, then the command you should run (from your local computer) is ``ssh -N -L localhost:5000:localhost:5000 watman@foobar.example.com``.  Now open <http://localhost:5000> in your web browser.
+   For example, if you normally ssh in with ``ssh watman@foobar.example.com``, then the command you should run (from your local computer) is ``ssh -N -L localhost:5000:localhost:5000 watman@foobar.example.com``.  Now open `http://localhost:5000<http://localhost:5000>`_ in your web browser.
 
 
 6. Modify templates if necessary.

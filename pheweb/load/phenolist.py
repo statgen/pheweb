@@ -504,10 +504,14 @@ def run(argv):
     @add_subcommand('extract-phenocode-from-fname')
     @modifies_phenolist
     def f(args, phenolist):
+        if args.simple:
+            args.pattern = r'.*/([^/]+?)(?:\.[^/]*)?$'
+        if not args.pattern: utils.die("You must either supply a pattern or use --simple")
         extract_phenocode_from_fname(phenolist, args.pattern)
     p = subparsers.add_parser('extract-phenocode-from-fname', help='use a regex to extract phenocodes from association filenames')
-    p.add_argument('pattern', help="a perl-compatible regex pattern with one capture group")
+    p.add_argument('pattern', nargs='?', help="a perl-compatible regex pattern with one capture group")
     p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('--simple', dest='simple', action='store_true', help="just take whatever's between the last / and the first .")
 
     @add_subcommand('unique-phenocode')
     @modifies_phenolist
