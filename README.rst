@@ -105,9 +105,9 @@ That example file only includes the columns ``assoc_files`` (a list of paths) an
 - ``num_cases``, ``num_controls``, and/or ``num_samples``: numbers of strings which will be shown in several places
 - anything else you want, but you'll have to modify templates to show it.
 
-There are three ways to make a ``pheno-list.json``:
+There are four ways to make a ``pheno-list.json``:
 
-A. If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running ``./phenolist.py import-phenolist "/path/to/my/pheno-list.csv"``.
+1. If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running ``./phenolist.py import-phenolist "/path/to/my/pheno-list.csv"``.
 
    If you have multiple association files for each phenotype, you may put them all into a single column with ``|`` between them.
 
@@ -117,7 +117,7 @@ A. If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY
       eats-kimchi,/home/watman/eats-kimchi.autosomal.epacts.gz|/home/watman/eats-kimchi.X.epacts.gz
       ear-length,/home/watman/ear-length.all.epacts.gz
 
-B. If you have one association file per phenotype, you can use a shell-glob and a regex to get assoc-files and phenocodes for them.
+2. If you have one association file per phenotype, you can use a shell-glob and a regex to get assoc-files and phenocodes for them.
 
    Suppose that your assocation files are at paths like:
 
@@ -128,7 +128,7 @@ B. If you have one association file per phenotype, you can use a shell-glob and 
 
    To get ``phenocodes``, you can use a regex that captures the phenocode from the file path.  In this example, ``./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'`` would work.
 
-C. If you have multiple association files for some phenotypes, you can follow the directions in (B) and then run ``./phenolist unique-phenocode``.
+3. If you have multiple association files for some phenotypes, you can follow the directions in 2and then run ``./phenolist unique-phenocode``.
 
    For example, if your association files are at:
 
@@ -142,7 +142,7 @@ C. If you have multiple association files for some phenotypes, you can follow th
      ./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
      ./phenolist.py unique-phenocode
 
-D. If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for ``./phenolist.py``.
+4. If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for ``./phenolist.py``.
 
 No matter what you do, please run ``./phenolist.py verify`` when you are done to check that it worked correctly.  At any point, you may run ``./phenolist.py view`` to view the current file.
 
@@ -150,48 +150,46 @@ No matter what you do, please run ``./phenolist.py verify`` when you are done to
 4. Load your association files
 ------------------------------
 
-0) If you only want variants that reach some minimum MAF, then set `minimum_maf` in `config.py`.
+0) If you only want variants that reach some minimum MAF, then set ``minimum_maf`` in ``config.py``.
    Any variant that has at least that minor allele frequency (MAF) will be shown on the website, no matter what.
    If a variant has a smaller MAF (in some phenotype), it will still be shown if it has a large enough MAF in some other phenotype.
 
-1) Run `./run_all.sh`.
+1) Run ``./run_all.sh``.
 
 2) If something breaks, read the error message.  Then,
 
-   - If you can understand the error message, modify `data/input_file_parsers/epacts.py` to handle your file type.
+   - If you can understand the error message, modify ``data/input_file_parsers/epacts.py`` to handle your file type.
      If the modification is something that pheweb should support by default, please email your changes to <pjvh@umich.edu>.
 
    - If you can't understand the error message, please email your error message to <pjvh@umich.edu> and hopefully I get back to you quickly.
 
-   Then re-run `./run_all.sh`.
+   Then re-run ``./run_all.sh``.
 
 
 5. Run a simple server to check that everything loaded correctly
 --------------------------
 
-Run `./server.py`.
+Run ``./server.py``.
 
 If port 5000 is already taken, choose a different port (for example, 5432) and run ``./server.py --port 5432`` instead.
 
-Next you need to find a way to for your computer to access the server.  You have a few options:
+Next you need to find a way to for your computer to access the server.  You have two options:
 
-- (A) Run Flask exposed to anybody on the internet.  This might be dangerous, but I never worry much about it.
+A. Run Flask exposed to anybody on the internet.  This might be dangerous, but I never worry much about it.
 
-   You need a port that can get through your firewall. 80 or 5000 probably work, though 80 will require you to run `sudo ./server.py --port 80`.
+   You need a port that can get through your firewall. 80 or 5000 probably work, though 80 will require you to run ``sudo ./server.py --port 80``.
 
-   You need an IP adddress or hostname that refers to your server.  If you ssh into your server with `ssh watman@foobar.example.com`, this is `foobar.example.com`.
-   If you don't know this, run `curl http://httpbin.org/ip` on your server to get its IP address.  (If it returns something like `"origin": "12.34.5.678"`, your server's IP is `12.34.5.678`).
+   You need an IP adddress or hostname that refers to your server.  If you ssh into your server with ``ssh watman@foobar.example.com``, this is ``foobar.example.com``.
+   If you don't know this, run ``curl http://httpbin.org/ip`` on your server to get its IP address.  (If it returns something like ``"origin": "12.34.5.678"``, your server's IP is ``12.34.5.678``).
 
-   Now run `./server.py --port <myport> --host <myhost>`.
-   For example, if you're using the default port (5000), and `curl http://httpbin.org/ip` return `"origin": "12.34.5.678"`, then run `./server.py --port 5000 --host 12.34.5.678`.
+   Now run ``./server.py --port <myport> --host <myhost>``.
+   For example, if you're using the default port (5000), and ``curl http://httpbin.org/ip`` return ``"origin": "12.34.5.678"``, then run ``./server.py --port 5000 --host 12.34.5.678``.
 
-   When the server starts, it should say something like `Running on http://12.34.5.678:5000/ (Press CTRL+C to quit)`.  Open that URL in the web browser on your computer.
+   When the server starts, it should say something like ``Running on http://12.34.5.678:5000/ (Press CTRL+C to quit)``.  Open that URL in the web browser on your computer.
 
-- (B) Run Flask with the default settings, then use an SSH tunnel to connect to it from your computer.
+B. Run Flask with the default settings, then use an SSH tunnel to connect to it from your computer.
 
-   For example, if you normally ssh in with `ssh watman@foobar.example.com`, then the command you should run (from your local computer) is `ssh -N -L localhost:5000:localhost:5000 watman@foobar.example.com`.  Now open <http://localhost:5000> in your web browser.
-
-- (C) Skip straight to step 6, then do step 5 after that.
+   For example, if you normally ssh in with ``ssh watman@foobar.example.com``, then the command you should run (from your local computer) is ``ssh -N -L localhost:5000:localhost:5000 watman@foobar.example.com``.  Now open <http://localhost:5000> in your web browser.
 
 
 6. Modify templates if necessary.
@@ -199,10 +197,10 @@ Next you need to find a way to for your computer to access the server.  You have
 
 The templates that you might want to modify are:
 
-- `templates/about.html`
-- `templates/index.html`
-- the tooltip template in `templates/pheno.html`
-- the tooltip template and `fields` in `static/region.js`.
+- ``templates/about.html``
+- ``templates/index.html``
+- the tooltip template in ``templates/pheno.html``
+- the tooltip template and ``fields`` in ``static/region.js``.
 
 As you modify templates, you might have to kill and restart your development server for the changes to take effect.  Or maybe not.  Who knows.
 
