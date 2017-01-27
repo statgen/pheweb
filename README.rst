@@ -26,6 +26,8 @@ And steps 5 and 6 should only be as difficult as you want them to be.
 
 #) Make a data directory.  It should be in a location where you can afford to store twice as much data as the size of your input files.
 
+   - All ``pheweb ...`` commands should be run while in this directory.  Alternatively, you may set the environment variable ``PHEWEB_DATADIR="/path/to/data/dir``.
+
 #) In your data directory, make a file ``config.py`` if you want to configure any options.  Options you can set:
 
    - ``minimum_maf``: any variant that has at least this minor allele frequency in some phenotype will be shown. (default: ``minimum_maf = 0``)
