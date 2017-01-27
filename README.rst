@@ -28,14 +28,14 @@ And steps 5 and 6 should only be as difficult as you want them to be.
 
 #) In your data directory, make a file ``config.py``.  Options you can set:
 
-- ``minimum_maf``: any variant that has at least this minor allele frequency in some phenotype will be shown. (default: ``minimum_maf = 0``)
-- ``cache``: a directory where files used by all datasets can be stored.  If you don't want one, set `cache = False`.  (default: ``cache = "~/.pheweb/cache/"``)
+   - ``minimum_maf``: any variant that has at least this minor allele frequency in some phenotype will be shown. (default: ``minimum_maf = 0``)
+   - ``cache``: a directory where files used by all datasets can be stored.  If you don't want one, set `cache = False`.  (default: ``cache = "~/.pheweb/cache/"``)
 
 #) Make sure you have tabix, bgzip, wget, and g++ and that they are on your ``$PATH``.  If you can't just run ``tabix``, ``bgzip``, ``wget``, and ``g++``, find a way to install them.
 
-    - on macOS, you can install ``wget`` and ``htslib`` (which includes ``tabix`` and ``bgzip``) with `homebrew`__.
-    - on linux, either use a system package manager or `linuxbrew`__.
-    - if they aren't in your ``$PATH``, you can set ``tabix_path``, ``bgzip_path``, ``wget_path``, ``gxx_path`` in ``config.py``.
+   - on macOS, you can install ``wget`` and ``htslib`` (which includes ``tabix`` and ``bgzip``) with `homebrew`__.
+   - on linux, either use a system package manager or `linuxbrew`__.
+   - if they aren't in your ``$PATH``, you can set ``tabix_path``, ``bgzip_path``, ``wget_path``, ``gxx_path`` in ``config.py``.
 
 __ http://brew.sh/
 __ http://linuxbrew.sh/
