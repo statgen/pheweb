@@ -107,7 +107,7 @@ That example file only includes the columns ``assoc_files`` (a list of paths) an
 
 There are three ways to make a ``pheno-list.json``:
 
-A) If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running ``./phenolist.py import-phenolist "/path/to/my/pheno-list.csv"``.
+A. If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running ``./phenolist.py import-phenolist "/path/to/my/pheno-list.csv"``.
 
    If you have multiple association files for each phenotype, you may put them all into a single column with ``|`` between them.
 
@@ -117,7 +117,7 @@ A) If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY
       eats-kimchi,/home/watman/eats-kimchi.autosomal.epacts.gz|/home/watman/eats-kimchi.X.epacts.gz
       ear-length,/home/watman/ear-length.all.epacts.gz
 
-B) If you have one association file per phenotype, you can use a shell-glob and a regex to get assoc-files and phenocodes for them.
+B. If you have one association file per phenotype, you can use a shell-glob and a regex to get assoc-files and phenocodes for them.
 
    Suppose that your assocation files are at paths like:
 
@@ -128,7 +128,7 @@ B) If you have one association file per phenotype, you can use a shell-glob and 
 
    To get ``phenocodes``, you can use a regex that captures the phenocode from the file path.  In this example, ``./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'`` would work.
 
-C) If you have multiple association files for some phenotypes, you can follow the directions in (B) and then run ``./phenolist unique-phenocode``.
+C. If you have multiple association files for some phenotypes, you can follow the directions in (B) and then run ``./phenolist unique-phenocode``.
 
    For example, if your association files are at:
 
@@ -142,7 +142,7 @@ C) If you have multiple association files for some phenotypes, you can follow th
      ./phenolist.py extract-phenocode-from-fname '^/home/watman/(.*).epacts.gz$'
      ./phenolist.py unique-phenocode
 
-D) If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for ``./phenolist.py``.
+D. If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for ``./phenolist.py``.
 
 No matter what you do, please run ``./phenolist.py verify`` when you are done to check that it worked correctly.  At any point, you may run ``./phenolist.py view`` to view the current file.
 
