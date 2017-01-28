@@ -25,7 +25,6 @@ conf = utils.conf
 
 import os
 import gzip
-import collections
 import csv
 import itertools
 
@@ -46,15 +45,15 @@ def get_rsid_reader(rsids_f):
             if line.startswith('#'):
                 assert line.rstrip('\n').split('\t') == '#CHROM POS ID REF ALT QUAL FILTER INFO'.split()
             else:
-                 fields = line.rstrip('\n').split('\t')
-                 chrom, pos, rsid, ref, alt_group = fields[0], int(fields[1]), fields[2], fields[3], fields[4]
-                 assert rsid.startswith('rs')
-                 # Sometimes the reference contains `N`, and that's okay.
-                 assert all(base in 'ATCGN' for base in ref), repr(ref)
-                 for alt in alt_group.split(','):
-                     # Alt can be a comma-separated list
-                     assert all(base in 'ATCGN' for base in alt), repr(alt)
-                     yield {'chrom':chrom, 'pos':int(pos), 'ref':ref, 'alt':alt, 'rsid':rsid}
+                fields = line.rstrip('\n').split('\t')
+                chrom, pos, rsid, ref, alt_group = fields[0], int(fields[1]), fields[2], fields[3], fields[4]
+                assert rsid.startswith('rs')
+                # Sometimes the reference contains `N`, and that's okay.
+                assert all(base in 'ATCGN' for base in ref), repr(ref)
+                for alt in alt_group.split(','):
+                    # Alt can be a comma-separated list
+                    assert all(base in 'ATCGN' for base in alt), repr(alt)
+                    yield {'chrom':chrom, 'pos':int(pos), 'ref':ref, 'alt':alt, 'rsid':rsid}
 
 def get_cpra_reader(cpra_f):
     '''Returns a reader which returns a list of all cpras at the next chrom-pos.'''
@@ -140,4 +139,3 @@ def run(argv):
 
 if __name__ == '__main__':
     run([])
-

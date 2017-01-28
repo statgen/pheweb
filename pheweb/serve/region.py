@@ -3,7 +3,6 @@ from __future__ import print_function, division, absolute_import
 from .. import utils
 conf = utils.conf
 
-import json
 import pysam
 
 # TODO: also get beta, sebeta, etc

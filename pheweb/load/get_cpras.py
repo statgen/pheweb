@@ -10,7 +10,6 @@ input_file_parser = utils.get_assoc_file_parser()
 import datetime
 import multiprocessing
 import csv
-import json
 import os
 
 

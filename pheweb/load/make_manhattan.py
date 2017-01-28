@@ -9,15 +9,12 @@ from .. import utils
 conf = utils.conf
 
 import glob
-import re
 import os
 import json
 import math
 import datetime
 import multiprocessing
 import csv
-import collections
-import itertools
 
 
 BIN_LENGTH = int(3e6)
@@ -135,7 +132,7 @@ def make_json_file(args):
 def get_conversions_to_do():
     for src_filename in glob.glob(conf.data_dir + '/augmented_pheno/*'):
         phenocode = os.path.basename(src_filename)
-        assert not 'tmp' in phenocode
+        assert 'tmp' not in phenocode
         dest_filename = '{}/manhattan/{}.json'.format(conf.data_dir, phenocode)
         tmp_filename = '{}/tmp/manhattan-{}.json'.format(conf.data_dir, phenocode)
         if not os.path.exists(dest_filename) or os.stat(dest_filename).st_mtime < os.stat(src_filename).st_mtime:

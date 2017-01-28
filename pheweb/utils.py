@@ -19,6 +19,7 @@ import imp
 
 conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
 
+
 def get_assoc_file_parser():
     from .load.input_file_parsers import epacts
     return epacts
@@ -26,6 +27,7 @@ def get_assoc_file_parser():
     #       if you use load_source, then it's not part of this package, so it can't do relative imports.
     # fname = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'load', 'input_file_parsers', conf['source_file_parser']+'.py')
     # return imp.load_source(conf['source_file_parser'], fname)
+
 
 def parse_variant(query, default_chrom_pos = True):
     if isinstance(query, unicode):
@@ -44,7 +46,6 @@ def parse_variant(query, default_chrom_pos = True):
     return g + tuple(itertools.repeat(None, 4-len(g)))
 
 
-
 def parse_marker_id(marker_id):
     match = parse_marker_id.regex.match(marker_id)
     if match is None:
@@ -59,6 +60,7 @@ def round_sig(x, digits):
 assert round_sig(0.00123, 2) == 0.0012
 assert round_sig(1.59e-10, 2) == 1.6e-10
 
+
 def get_phenolist():
     fname = os.path.join(conf['data_dir'], 'pheno-list.json')
     try:
@@ -66,11 +68,11 @@ def get_phenolist():
             return json.load(f)
     except IOError: # TODO: these exceptions change in python3
         die("You need a file to define your phenotypes at '{fname}'.\n".format(fname=fname) +
-                  "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
+            "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
     except ValueError:
-            print("Your file at '{fname}' contains invalid json.\n".format(fname=fname) +
-                  "The error it produced was:")
-            raise
+        print("Your file at '{fname}' contains invalid json.\n".format(fname=fname) +
+              "The error it produced was:")
+        raise
 
 def get_phenos_with_colnums(app_root_path):
     phenos_by_phenocode = {pheno['phenocode']: pheno for pheno in get_phenolist()}
@@ -90,6 +92,7 @@ def get_phenos_with_colnums(app_root_path):
 pheno_fields_to_include_with_variant = {
     'phenostring', 'category', 'num_cases', 'num_controls', 'num_samples',
 }
+
 
 def get_variant(query, phenos):
     import pysam
@@ -162,9 +165,11 @@ def get_random_page():
         offset = int(50e3)
         return '/region/{phenocode}/{chrom}:{pos1}-{pos2}'.format(pos1=hit['pos']-offset, pos2=hit['pos']+offset, **hit)
 
+
 def die(message):
     print(message, file=sys.stderr)
     raise Exception()
+
 
 def exception_printer(f):
     @functools.wraps(f)
@@ -178,7 +183,9 @@ def exception_printer(f):
             if args: print('args were: {!r}'.format(args))
             if kwargs: print('kwargs were: {!r}'.format(args))
             raise
+        return rv
     return f2
+
 
 def all_equal(iterator):
     try:
@@ -187,9 +194,11 @@ def all_equal(iterator):
         return True
     return all(it == first for it in iterator)
 
+
 def sorted_groupby(iterator, key=None):
     if key is None: key = (lambda v:v)
     return [list(group) for _, group in itertools.groupby(sorted(iterator, key=key), key=key)]
+
 
 class open_maybe_gzip(object):
     def __init__(self, fname, *args):
@@ -208,10 +217,12 @@ class open_maybe_gzip(object):
     def __exit__(self, *exc):
         self.f.close()
 
+
 def pairwise(iterable):
     "s -> (s0, s1), (s2, s3), (s4, s5), ..."
     it = iter(iterable)
     return itertools.izip(it, it)
+
 
 # TODO: chrom_order_list[25-1] = 'M', chrom_order['M'] = 25-1, chrom_order['MT'] = 25-1 ?
 #       and epacts.py should convert all chroms to chrom_idx?
@@ -233,6 +244,7 @@ def get_path(cmd, attr=None):
         raise Exception("The command '{cmd}' was not found in $PATH and was not specified (as {attr}) in config.py.".format(cmd=cmd, attr=attr))
     return path
 
+
 def run_script(script):
     script = 'set -euo pipefail\n' + script
     try:
@@ -250,6 +262,7 @@ def run_script(script):
         print(data)
         sys.exit(1)
     return data
+
 
 def run_cmd(cmd):
     '''cmd must be a list of arguments'''
@@ -270,7 +283,6 @@ def run_cmd(cmd):
     return data
 
 
-
 def dumb_cache(f):
     cache = {}
     @functools.wraps(f)
@@ -281,12 +293,13 @@ def dumb_cache(f):
         return cache[key]
     return f2
 
+
 @dumb_cache
 def ensure_conf_is_loaded():
 
     conf.data_dir = os.environ.get('PHEWEB_DATADIR', False) or os.path.abspath(os.path.curdir)
     if not os.path.isdir(conf.data_dir):
-        mkdir_p(data_dir)
+        mkdir_p(conf.data_dir)
     if not os.access(conf.data_dir, os.R_OK):
         raise Exception("Your data directory, {!r}, is not readable.".format(conf.data_dir))
 

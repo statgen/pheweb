@@ -13,8 +13,6 @@ import glob
 import re
 import itertools
 import sys
-import functools
-import sys
 import copy
 
 try:
@@ -519,9 +517,9 @@ def run(argv):
         return unique_phenocode(phenolist, args.new_column_name)
     p = subparsers.add_parser('unique-phenocode', help='if multiple rows have the same phenocode, merge them')
     p.add_argument('--columns-are-independent', action='store_true', default=None,
-                                         help="when merging rows, if multiple columns are different, just turn each of those columns into a list.")
+                   help="when merging rows, if multiple columns are different, just turn each of those columns into a list.")
     p.add_argument('--columns-are-related', dest="new_column_name", default=None,
-                                         help="when merging rows, if multiple columns are different, add a new column with this name.") 
+                   help="when merging rows, if multiple columns are different, add a new column with this name.")
     p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
 
     @add_subcommand('verify')

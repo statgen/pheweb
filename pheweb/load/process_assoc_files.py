@@ -37,7 +37,7 @@ def run(argv):
         start_time = time.time()
         try:
             script['module'].run([])
-        except Exception as exc:
+        except Exception:
             print('==> failed after {:.0f} seconds'.format(time.time() - start_time))
             raise
         else:

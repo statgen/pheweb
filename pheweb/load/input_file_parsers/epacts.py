@@ -6,7 +6,6 @@ from ... import utils
 conf = utils.conf
 
 import csv
-import gzip
 import itertools
 import functools
 
@@ -159,7 +158,8 @@ def _get_fieldnames_and_variants(src_filename, minimum_maf=None):
                     # Check that we haven't already mapped this fieldname to a header column.
                     if fieldname in colname_mapping:
                         print("Wait, what?  We found two different ways of mapping the key {!r} to the header fields {!r}.".format(fieldname, header_fields))
-                        print("For reference, the key {!r} has these aliases: {!r}.".format(fieldname, fieldname_aliases))
+                        print("For reference, the key {!r} has these aliases: {!r}.".format(
+                            fieldname, possible_fields[fieldname]['aliases']))
                         exit(1)
                     colname_mapping[fieldname] = header_fields.index(fieldname_alias)
 
@@ -205,7 +205,6 @@ def _get_fieldnames_and_variants(src_filename, minimum_maf=None):
                 assert v['pos'] == pos2, (fields, v, pos2)
 
             yield v
-
 
 
 def get_pheno_info(pheno):

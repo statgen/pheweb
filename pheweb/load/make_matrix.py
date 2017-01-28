@@ -11,9 +11,7 @@ from __future__ import print_function, division, absolute_import
 from .. import utils
 conf = utils.conf
 
-import subprocess
 import os
-import time
 import glob
 
 gxx = utils.get_path('g++', 'gxx_path')
@@ -41,7 +39,7 @@ def run(argv):
         '{matrixify_exe_fname}' '{sites_fname}' '{augmented_pheno_dir}' |
         '{bgzip}' > '{matrix_gz_fname}'
         '''.format(matrixify_exe_fname=matrixify_exe_fname, sites_fname=sites_fname, augmented_pheno_dir=augmented_pheno_dir, bgzip=bgzip, matrix_gz_fname=matrix_gz_fname))
-        utils.run_cmd([tabix, '-p' ,'vcf', matrix_gz_fname])
+        utils.run_cmd([tabix, '-p','vcf', matrix_gz_fname])
     else:
         print('matrix is up-to-date!')
 

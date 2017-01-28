@@ -22,10 +22,8 @@ import contextlib2 # python2 backport of python3.5+ contextlib
 import os
 import glob
 import random
-import errno
 import multiprocessing
 import datetime
-import itertools
 
 NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #files / #cpus?
 MIN_NUM_FILES_TO_MERGE_AT_ONCE = 4 # Try to avoid ever merging fewer than this many files at a time.
@@ -179,7 +177,6 @@ def run(argv):
             print('The list of sites is up-to-date!')
 
     else:
-
 
         print('number of files to merge: {:4}'.format(len(files_to_merge)))
 

@@ -5,7 +5,7 @@ from __future__ import print_function, division, absolute_import
 from .. import utils
 conf = utils.conf
 
-from flask import Flask, Response, jsonify, render_template, request, redirect, url_for, abort, flash, send_from_directory
+from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory
 from flask_compress import Compress
 
 from .autocomplete import Autocompleter
@@ -13,6 +13,7 @@ from . import region
 
 import re
 import traceback
+import sys
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'

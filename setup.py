@@ -46,5 +46,5 @@ setup(
         'openpyxl~=2.4',
         'scipy~=0.17',
         'attrdict~=2.0',
-     ]
+    ]
 )

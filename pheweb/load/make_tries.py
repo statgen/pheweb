@@ -31,7 +31,6 @@ def run(argv):
             lines = [parse_line(line) for line in f]
         print('done loading.')
 
-
         cpra_to_rsids_trie = marisa_trie.BytesTrie(lines, order=marisa_trie.LABEL_ORDER)
         cpra_to_rsids_trie.save(cpra_to_rsids_trie_fname)
         print('done with cpra->rsids trie at ' + cpra_to_rsids_trie_fname)

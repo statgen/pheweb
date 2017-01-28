@@ -11,9 +11,6 @@ import os
 import datetime
 import multiprocessing
 import csv
-import json
-import collections
-import itertools
 
 sites_filename = conf.data_dir + '/sites/sites.tsv'
 
