@@ -69,16 +69,20 @@ else:
 
 
 '''
-move all pheweb-generated data into `$dir/generated-by-pheweb/`.
+TODO:
 
-make a subcommand `./pheweb quickstart '/tmp/phe([0-9]+).tsv.gz'`
-- makes dir=`~/.pheweb/mine/my-phewebs/$RANDOM/`
-- prepares $dir/pheno-list.json
-- tells user to `cd $dir && pheweb prepar-assoc-files`
-- runs `pheweb serve`
-    - could it open a web browser?  how to do that on linux?  only if on macOS?
-    - could it find its own external IP, attempt to contact itself, and then provide a link if it works?
-    - and otherwise, it would just print or link to instructions?
+switch to py3.
+
+move all pheweb-generated data into `$data_dir/generated-by-pheweb/`.
+
+make a subcommand `pheweb quickstart '/tmp/phe*.tsv.gz'`, which runs:
+- pheweb phenolist glob-files <globs>...
+- pheweb extract-phenocode-from-fnames --simple
+- pheweb phenolist verify
+- pheweb process-assoc-files
+- pheweb serve
+(build it in the same folder as process-assoc-files)
+(then make a new section at the top of README.rst that uses it, and rename the current section "Advanced usage")
 
 to make templates configurable:
 - use `$data_dir/custom_templates/`
