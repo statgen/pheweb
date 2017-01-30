@@ -131,7 +131,7 @@ def make_json_file(args):
 
 
 def get_conversions_to_do():
-    phenocodes = [pheno['phenocode'] for pheno in utils.get_phenos()]
+    phenocodes = [pheno['phenocode'] for pheno in utils.get_phenolist()]
     for phenocode in phenocodes:
         src_filename = os.path.join(conf.data_dir, 'augmented_pheno', phenocode)
         dest_filename = os.path.join(conf.data_dir, 'manhattan', '{}.json'.format(phenocode))

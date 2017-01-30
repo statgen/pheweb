@@ -23,7 +23,7 @@ NUM_BINS = 1000
 NUM_MAF_RANGES = 4
 
 Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
-def get_variants(f):
+def get_variants(f, fname=None):
     for v in csv.DictReader(f, delimiter='\t'):
         pval = v['pval']
         try:
@@ -31,7 +31,10 @@ def get_variants(f):
         except ValueError:
             continue
         maf = float(v['maf'])
-        yield Variant(-math.log10(pval), maf)
+        if pval != 0:
+            yield Variant(-math.log10(pval), maf)
+        else:
+            print("Warning: There's a variant with pval 0 in {!r}.  (Variant: {!r})".format(fname, v))
 
 
 def approx_equal(a, b, tolerance=1e-4):
@@ -123,7 +126,7 @@ def make_json_file(args):
     try:
 
         with open(src_filename) as f:
-            variants = list(get_variants(f))
+            variants = list(get_variants(f, fname=src_filename))
 
         rv = {}
         if variants:
@@ -147,7 +150,7 @@ def make_json_file(args):
 
 
 def get_conversions_to_do():
-    phenocodes = [pheno['phenocode'] for pheno in utils.get_phenos()]
+    phenocodes = [pheno['phenocode'] for pheno in utils.get_phenolist()]
     for phenocode in phenocodes:
         src_filename = os.path.join(conf.data_dir, 'augmented_pheno', phenocode)
         dest_filename = os.path.join(conf.data_dir, 'qq', '{}.json'.format(phenocode))

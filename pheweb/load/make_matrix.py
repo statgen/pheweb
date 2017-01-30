@@ -26,7 +26,7 @@ augmented_pheno_dir = os.path.join(conf.data_dir, 'augmented_pheno')
 matrix_gz_fname = os.path.join(conf.data_dir, 'matrix.tsv.gz')
 
 def should_run():
-    cur_phenos = set(pheno['phenocode'] for pheno in utils.get_phenos())
+    cur_phenos = set(pheno['phenocode'] for pheno in utils.get_phenolist())
 
     # Remove files that shouldn't be there (and will confuse the glob in matrixify)
     for fname in glob.glob(os.path.join(augmented_pheno_dir, '*')):
