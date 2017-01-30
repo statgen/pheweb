@@ -63,8 +63,8 @@ def run(argv):
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
 
-    p = multiprocessing.Pool(utils.get_num_procs())
-    results = p.map_async(convert, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
+    with multiprocessing.Pool(utils.get_num_procs()) as p:
+        results = p.map(convert, conversions_to_do)
 
     bad_results = [r['args'][0]['pheno'] for r in results if not r['succeeded']]
     if bad_results: print('num phenotypes that failed:', len(bad_results))
