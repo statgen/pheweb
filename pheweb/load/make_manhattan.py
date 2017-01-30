@@ -124,6 +124,7 @@ def make_json_file(args):
     # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
     with open(tmp_filename, 'w') as f:
         json.dump(rv, f, sort_keys=True, indent=0)
+        f.flush()
         os.fsync(f.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
     print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
     os.rename(tmp_filename, dest_filename)

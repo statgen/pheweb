@@ -121,6 +121,7 @@ def merge(input_filenames, out_filename):
 
         assert not readers, readers.items()
 
+        f_out.flush()
         os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
     os.rename(tmp_filename, out_filename)
     print('{:8} variants in {} <- {}'.format(n_variants, os.path.basename(out_filename), [os.path.basename(path) for path in input_filenames]))

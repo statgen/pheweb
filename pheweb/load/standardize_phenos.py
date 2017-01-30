@@ -83,6 +83,7 @@ def _convert(pheno, out_filename):
                     pheno_variant = next(pheno_variants)
                 except StopIteration: break
 
+        f_out.flush()
         os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
 
 def get_conversions_to_do():

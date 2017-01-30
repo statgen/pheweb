@@ -30,6 +30,7 @@ def convert(conversion_to_do):
         writer.writeheader()
         writer.writerows(variants)
 
+        f_out.flush()
         os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
     print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
     os.rename(tmp_filename, dest_filename)

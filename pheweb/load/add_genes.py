@@ -98,6 +98,7 @@ def annotate_genes(file_to_annotate, temp_file, output_file, genes_file):
             chrom, pos = fields[0], int(fields[1])
             nearest_gene = ga.annotate_position(chrom, pos)
             out_f.write(line + '\t' + nearest_gene + '\n')
+            out_f.flush()
             os.fsync(out_f.fileno())
         os.rename(temp_file, output_file)
 
