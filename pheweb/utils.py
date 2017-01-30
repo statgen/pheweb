@@ -186,6 +186,18 @@ def exception_printer(f):
         return rv
     return f2
 
+def exception_tester(f):
+    @functools.wraps(f)
+    def f2(*args, **kwargs):
+        try:
+            rv = f(*args, **kwargs)
+        except:
+            traceback.print_exc()
+            print(exc)
+            return {'args': args, 'kwargs': kwargs, 'succeeded': False}
+        return {'args': args, 'kwargs': kwargs, 'succeeded': True, 'rv': rv}
+    return f2
+
 
 def all_equal(iterator):
     try:

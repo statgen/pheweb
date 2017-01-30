@@ -11,9 +11,10 @@ import datetime
 import multiprocessing
 import csv
 import os
+import json
 
 
-@utils.exception_printer
+@utils.exception_tester
 def convert(conversion_to_do):
     pheno = conversion_to_do['pheno']
     dest_filename = conversion_to_do['dest']
@@ -61,9 +62,20 @@ def run(argv):
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
 
-    p = multiprocessing.Pool(40)
-    p.map_async(convert, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
+    num_processes = multiprocessing.cpu_count() * 3//4 + 1
+    p = multiprocessing.Pool(num_processes)
+    results = p.map_async(convert, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
 
+    good_results = [r for r in results if r['succeeded']]
+    bad_results = [r for r in results if not r['succeeded']]
+    print('num phenotypes that succeeded:', len(good_results))
+    print('num phenotypes that failed:', len(bad_results))
+
+    if good_results and bad_results:
+        fname = os.path.join(conf.data_dir, 'pheno-list-successful-only.json')
+        with open(fname, 'w') as f:
+            json.dump(f, good_results)
+        print('wrote good_results into {!r}, which you should probably use to replace pheno-list.json'.format(fname))
 
 if __name__ == '__main__':
     run([])
