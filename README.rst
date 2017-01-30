@@ -1,11 +1,8 @@
 How to Build a PheWeb for your Data
 ===================================
 
-Loading data into a new PheWeb is done in four steps, followed by two
-steps of polishing. Hopefully only steps 1 and 2 will take much effort.
-If steps 3 or 4 give you any trouble, please email me at pjvh@umich.edu
-and I'll see what I can do to improve things. And steps 5 and 6 should
-only be as difficult as you want them to be.
+If any of these steps is incorrect, please email me at pjvh@umich.edu
+and I'll see what I can do to improve things.
 
 1. Install PheWeb
 -----------------
@@ -38,7 +35,7 @@ only be as difficult as you want them to be.
       frequency in some phenotype will be shown. (default:
       ``minimum_maf = 0``)
    -  ``cache``: a directory where files used by all datasets can be
-      stored. If you don't want one, set cache = False. (default:
+      stored. If you don't want one, set ``cache = False``. (default:
       ``cache = "~/.pheweb/cache/"``)
 
 4) Make sure you have tabix, bgzip, wget, and g++ and that they are on
@@ -280,21 +277,7 @@ B. Run PheWeb with the default settings, then use an SSH tunnel to
    Now open `http://localhost:5000 <http://localhost:5000>`__ in your
    web browser.
 
-6. Modify templates if necessary.
----------------------------------
-
-The templates that you might want to modify are:
-
--  ``templates/about.html``
--  ``templates/index.html``
--  the tooltip template in ``templates/pheno.html``
--  the tooltip template and ``fields`` in ``static/region.js``.
-
-As you modify templates, you might have to kill and restart your
-development server for the changes to take effect. Or maybe not. Who
-knows.
-
-7. Use a real webserver.
+6. Use a real webserver.
 ------------------------
 
 At this point your PheWeb should be working how you want it to, and
