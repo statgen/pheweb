@@ -191,7 +191,7 @@ def exception_tester(f):
     def f2(*args, **kwargs):
         try:
             rv = f(*args, **kwargs)
-        except:
+        except Exception as exc:
             traceback.print_exc()
             print(exc)
             return {'args': args, 'kwargs': kwargs, 'succeeded': False}
