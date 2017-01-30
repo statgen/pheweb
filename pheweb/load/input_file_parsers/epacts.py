@@ -182,7 +182,7 @@ def _get_fieldnames_and_variants(src_filename, minimum_maf=None):
             if len(fields) != len(header_fields):
                 print("ERROR: A line has {!r} fields, but we expected {!r}.".format(len(fields), len(header_fields)))
                 repr_fields = repr(fields)
-                if len(repr_fields) > 5000: repr_fields = repr_fields[:200] + ' ... ' + repr_fields[-200:]
+                if len(repr_fields) > 5000: repr_fields = repr_fields[:200] + ' ... ' + repr_fields[-200:] # sometimes we get VERY long strings of nulls.
                 print("- The line: {}".format(repr_fields))
                 print("- The header: {!r}".format(header_fields))
                 print("- In file: {!r}".format(src_filename))

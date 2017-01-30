@@ -186,6 +186,7 @@ def exception_printer(f):
             print(strexc)
             if args: print('args were: {!r}'.format(args))
             if kwargs: print('kwargs were: {!r}'.format(args))
+            print('')
             raise
         return rv
     return f2
@@ -202,6 +203,7 @@ def exception_tester(f):
             print(strexc)
             if args: print('args were: {!r}'.format(args))
             if kwargs: print('kwargs were: {!r}'.format(args))
+            print('')
             return {'args': args, 'kwargs': kwargs, 'succeeded': False}
         return {'args': args, 'kwargs': kwargs, 'succeeded': True, 'rv': rv}
     return f2
