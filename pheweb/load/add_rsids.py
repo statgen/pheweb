@@ -18,7 +18,7 @@ We read one full position at a time.  When we have a position-match, we find all
 # TODO:
 # - Do we need to left-normalize all indels?
 
-from __future__ import print_function, division, absolute_import
+
 
 from .. import utils
 conf = utils.conf

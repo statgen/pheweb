@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-from __future__ import print_function, division, absolute_import
+
 
 from .. import utils
 conf = utils.conf
@@ -12,7 +12,7 @@ import marisa_trie
 def parse_line(line):
     chrom, pos, ref, alt, rsid, genes = line.rstrip('\n').split('\t')
     # Keys in marisa_trie must be unicode. Values in BytesTrie must be bytes.
-    return (u'{}-{}-{}-{}'.format(chrom, pos, ref, alt), rsid)
+    return ('{}-{}-{}-{}'.format(chrom, pos, ref, alt), rsid)
 
 
 sites_fname = os.path.join(conf.data_dir, 'sites', 'sites.tsv')

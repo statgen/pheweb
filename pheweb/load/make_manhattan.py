@@ -3,7 +3,7 @@
 # TODO: copy MAX_NUM_UNBINNED from ENCORE
 # TODO: combine with QQ
 
-from __future__ import print_function, division, absolute_import
+
 
 from .. import utils
 conf = utils.conf

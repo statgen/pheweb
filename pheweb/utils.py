@@ -1,5 +1,5 @@
 
-from __future__ import print_function, division, absolute_import
+
 
 import re
 import itertools
@@ -32,7 +32,7 @@ def get_assoc_file_parser():
 
 
 def parse_variant(query, default_chrom_pos = True):
-    if isinstance(query, unicode):
+    if isinstance(query, str):
         query = query.encode('utf-8')
     chrom_pattern = r'(?:[cC][hH][rR])?([0-9XYMT]+)'
     chrom_pos_pattern = chrom_pattern + r'[-_:/ ]([0-9]+)'
@@ -68,10 +68,10 @@ def get_phenolist():
     try:
         with open(os.path.join(fname)) as f:
             return json.load(f)
-    except IOError: # TODO: these exceptions change in python3
+    except (FileNotFoundError, PermissionError):
         die("You need a file to define your phenotypes at '{fname}'.\n".format(fname=fname) +
             "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
-    except ValueError:
+    except json.JSONDecodeError:
         print("Your file at '{fname}' contains invalid json.\n".format(fname=fname) +
               "The error it produced was:")
         raise
@@ -126,7 +126,7 @@ def get_variant(query, phenos):
         'phenos': [],
     }
 
-    for phenocode, pheno in phenos.iteritems():
+    for phenocode, pheno in phenos.items():
         try:
             pval = float(matching_variant_row[pheno['colnum']['pval']])
         except ValueError:
@@ -244,7 +244,7 @@ class open_maybe_gzip(object):
 def pairwise(iterable):
     "s -> (s0, s1), (s2, s3), (s4, s5), ..."
     it = iter(iterable)
-    return itertools.izip(it, it)
+    return zip(it, it)
 
 
 # TODO: chrom_order_list[25-1] = 'M', chrom_order['M'] = 25-1, chrom_order['MT'] = 25-1 ?

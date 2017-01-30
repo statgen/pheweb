@@ -12,13 +12,12 @@ I'm reading in a full position at a time to avoid this issue that was happening 
 # TODO:
 # - split up by chromosome?
 
-from __future__ import print_function, division, absolute_import
+
 
 from .. import utils
 conf = utils.conf
 
-import contextlib2 # python2 backport of python3.5+ contextlib
-
+import contextlib
 import os
 import glob
 import random
@@ -82,7 +81,7 @@ def order_cpras(cpra_iterator):
 def merge(input_filenames, out_filename):
     tmp_filename = '{}/tmp/merging-{}'.format(conf.data_dir, random.randrange(1e10)) # I don't like tempfile.
 
-    with contextlib2.ExitStack() as es, \
+    with contextlib.ExitStack() as es, \
          open(tmp_filename, 'w') as f_out:
         f_out.write('\t'.join('chrom pos ref alt'.split()) + '\n')
 
@@ -119,7 +118,7 @@ def merge(input_filenames, out_filename):
                 else:
                     next_cpras.setdefault(next_cpra, []).append(phenocode)
 
-        assert not readers, readers.items()
+        assert not readers, list(readers.items())
 
         f_out.flush()
         os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>

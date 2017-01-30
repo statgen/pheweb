@@ -1,4 +1,4 @@
-from __future__ import print_function, division, absolute_import
+
 
 from .. import utils
 conf = utils.conf
@@ -30,9 +30,9 @@ class Autocompleter(object):
             self._autocomplete_rsid,
             self._autocomplete_phenocode,
         ]
-        if any('phenostring' in pheno for pheno in self._phenos.itervalues()):
+        if any('phenostring' in pheno for pheno in self._phenos.values()):
             self._autocompleters.append(self._autocomplete_phenostring)
-        if any('icd9_info' in pheno for pheno in self._phenos.itervalues()):
+        if any('icd9_info' in pheno for pheno in self._phenos.values()):
             self._autocompleters.extend([
                 self._autocomplete_icd9_code,
                 self._autocomplete_icd9_string,
@@ -66,7 +66,7 @@ class Autocompleter(object):
         return ' ' + cls._process_string_non_word_regex.sub(' ', string).lower().strip()
 
     def _preprocess_phenos(self):
-        for phenocode, pheno in self._phenos.iteritems():
+        for phenocode, pheno in self._phenos.items():
             pheno['--spaced--phenocode'] = self._process_string(phenocode)
             if 'phenostring' in pheno:
                 pheno['--spaced--phenostring'] = self._process_string(pheno['phenostring'])
@@ -102,7 +102,7 @@ class Autocompleter(object):
             # Even better would be to the 10 shortest children of the current string.
             # Here's an attempt at being a little better.
 
-            rsids_to_check = [key] + [u"{}{}".format(key, i) for i in range(10)]
+            rsids_to_check = [key] + ["{}{}".format(key, i) for i in range(10)]
             for rsid in rsids_to_check:
                 cpra = self._rsid_to_cpra_trie.get(rsid)
                 if cpra is not None:
@@ -125,7 +125,7 @@ class Autocompleter(object):
 
     def _autocomplete_phenocode(self, query):
         query = self._process_string(query)
-        for phenocode, pheno in self._phenos.iteritems():
+        for phenocode, pheno in self._phenos.items():
             if query in pheno['--spaced--phenocode']:
                 yield {
                     "value": phenocode,
@@ -135,7 +135,7 @@ class Autocompleter(object):
 
     def _autocomplete_phenostring(self, query):
         query = self._process_string(query)
-        for phenocode, pheno in self._phenos.iteritems():
+        for phenocode, pheno in self._phenos.items():
             if query in pheno['--spaced--phenostring']:
                 yield {
                     "value": phenocode,
@@ -146,7 +146,7 @@ class Autocompleter(object):
     _regex_get_icd9_code_autocompletion = re.compile('^\s*V?[0-9]')
     def _autocomplete_icd9_code(self, query):
         if self._regex_get_icd9_code_autocompletion.match(query):
-            for phenocode, pheno in self._phenos.iteritems():
+            for phenocode, pheno in self._phenos.items():
                 for icd9 in pheno['icd9_info']:
                     if icd9['icd9_code'].startswith(query):
                         yield {
@@ -159,7 +159,7 @@ class Autocompleter(object):
     def _autocomplete_icd9_string(self, query):
         query = self._process_string(query)
         if self._regex_get_icd9_string_autocompletion.match(query):
-            for phenocode, pheno in self._phenos.iteritems():
+            for phenocode, pheno in self._phenos.items():
                 for icd9 in pheno.get('icd9_info', []):
                     if query in icd9['--spaced--icd9_string']:
                         yield {

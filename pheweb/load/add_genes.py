@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-from __future__ import print_function, division, absolute_import
+
 
 '''
 This script takes a file with the columns [chrom, pos, ...] (but no headers) and adds a column for nearest_gene.
@@ -27,7 +27,7 @@ class BisectFinder(object):
     def __init__(self, tuples):
         '''tuples is like [(123, 'foo'),...]'''
         tuples = sorted(tuples, key=lambda t:t[0])
-        self._nums, self._values = zip(*tuples)
+        self._nums, self._values = list(zip(*tuples))
     def get_item_before(self, pos):
         '''If we get an exact match, let's return it'''
         idx = bisect.bisect_right(self._nums, pos) - 1 # note: bisect_{left,right} just deals with ties.

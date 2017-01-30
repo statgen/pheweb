@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-from __future__ import print_function, division, absolute_import
+
 
 from .. import utils
 conf = utils.conf
@@ -111,7 +111,7 @@ def check_that_all_phenotypes_have_assoc_files(phenolist):
     for pheno in phenolist:
         if 'assoc_files' not in pheno: utils.die("Some phenotypes don't have any association files")
         if not isinstance(pheno['assoc_files'], list): utils.die("Assoc_files is not a list for some phenotypes.  I don't know how that happened but it's bad.")
-        if any(not isinstance(s, (str, unicode)) for s in pheno['assoc_files']): utils.die("assoc_files contains things other than strings for some phenotypes.")
+        if any(not isinstance(s, str) for s in pheno['assoc_files']): utils.die("assoc_files contains things other than strings for some phenotypes.")
 
 def extract_info_from_assoc_files(phenolist):
     input_file_parser = utils.get_assoc_file_parser()
@@ -180,7 +180,7 @@ def _import_phenolist_xlsx(fname, has_header):
                     raise Exception()
             assert len(set(fieldnames)) == len(fieldnames), fieldnames
         else:
-            fieldnames = range(num_cols)
+            fieldnames = list(range(num_cols))
         return [{fieldnames[i]: row[i] for i in range(num_cols)} for row in rows]
     except openpyxl.utils.exceptions.InvalidFileException:
         if fname.endswith('.xlsx'):
@@ -213,7 +213,7 @@ def _import_phenolist_csv(f, has_header):
                 raise Exception()
         assert len(set(fieldnames)) == len(fieldnames)
     else:
-        fieldnames = range(num_cols)
+        fieldnames = list(range(num_cols))
     return [{fieldnames[i]: row[i] for i in range(num_cols)} for row in rows]
 
 def interpret_json(phenolist):
@@ -276,9 +276,9 @@ def print_as_csv(phenolist):
         for k in pheno:
             if isinstance(pheno[k], (int, float)):
                 pass
-            elif isinstance(pheno[k], (str,unicode)):
+            elif isinstance(pheno[k], str):
                 pass
-            elif isinstance(pheno[k], list) and len(pheno[k])>0 and all(isinstance(v,(str,unicode)) for v in pheno[k]) and all('|' not in v for v in pheno[k]):
+            elif isinstance(pheno[k], list) and len(pheno[k])>0 and all(isinstance(v,str) for v in pheno[k]) and all('|' not in v for v in pheno[k]):
                 pheno[k] = '|'.join(pheno[k])
             else:
                 pheno[k] = 'json:' + json.dumps(pheno[k])
@@ -413,7 +413,7 @@ def unique_phenocode(phenolist, new_column_name):
                         # TODO: assert that the elements of the lists are all the same type
                         items_to_add = itertools.chain.from_iterable(row[key] for row in phenocode_group)
                     else:
-                        if not isinstance(phenocode_group[0][key], (str, unicode, int, float, dict)):
+                        if not isinstance(phenocode_group[0][key], (str, int, float, dict)):
                             utils.die("Where did you even get the type {!r}?".format(type(phenocode_group[0][key])))
                         items_to_add = (row[key] for row in phenocode_group)
                     new_pheno[key] = list(set(_get_hashable(item) for item in items_to_add))

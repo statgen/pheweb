@@ -46,7 +46,6 @@ setup(
         'pysam~=0.9.1',
         'marisa-trie~=0.7',
         'flask-compress~=1.4',
-        'contextlib2~=0.5',
         'intervaltree~=2.1',
         'more_itertools~=2.5',
         'tqdm~=4.11',
