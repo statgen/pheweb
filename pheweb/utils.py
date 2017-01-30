@@ -181,7 +181,9 @@ def exception_printer(f):
         except Exception as exc:
             time.sleep(2*random.random()) # hopefully avoid interleaved printing (when using multiprocessing)
             traceback.print_exc()
-            print(exc)
+            strexc = str(exc) # parser errors can get very long
+            if len(strexc) > 10000: strexc = strexc[1000:] + '\n\n...\n\n' + strexc[-1000:]
+            print(strexc)
             if args: print('args were: {!r}'.format(args))
             if kwargs: print('kwargs were: {!r}'.format(args))
             raise
@@ -195,7 +197,11 @@ def exception_tester(f):
             rv = f(*args, **kwargs)
         except Exception as exc:
             traceback.print_exc()
-            print(exc)
+            strexc = str(exc) # parser errors can get very long
+            if len(strexc) > 10000: strexc = strexc[1000:] + '\n\n...\n\n' + strexc[-1000:]
+            print(strexc)
+            if args: print('args were: {!r}'.format(args))
+            if kwargs: print('kwargs were: {!r}'.format(args))
             return {'args': args, 'kwargs': kwargs, 'succeeded': False}
         return {'args': args, 'kwargs': kwargs, 'succeeded': True, 'rv': rv}
     return f2

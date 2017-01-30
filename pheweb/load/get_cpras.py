@@ -76,10 +76,12 @@ def run(argv):
         with open(fname, 'w') as f:
             json.dump(f, good_results)
         print('wrote good_results into {!r}, which you should probably use to replace pheno-list.json'.format(fname))
+    if bad_results:
         fname = os.path.join(conf.data_dir, 'pheno-list-bad-only.json')
         with open(fname, 'w') as f:
             json.dump(f, bad_results)
         print('wrote bad_results into {!r}'.format(fname))
+        raise Exception()
 
 if __name__ == '__main__':
     run([])
