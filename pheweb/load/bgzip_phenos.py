@@ -49,8 +49,7 @@ def run(argv):
 
     infiles = list(get_conversions_to_do())
     print('number of phenos to process:', len(infiles))
-    num_processes = multiprocessing.cpu_count() * 3//4 + 1
-    p = multiprocessing.Pool(num_processes)
+    p = multiprocessing.Pool(utils.get_num_procs())
     p.map_async(convert, infiles).get(1e8) # Makes KeyboardInterrupt work
 
 

@@ -161,8 +161,7 @@ def run(argv):
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
-    num_processes = multiprocessing.cpu_count() * 3//4 + 1
-    p = multiprocessing.Pool(num_processes)
+    p = multiprocessing.Pool(utils.get_num_procs())
     p.map_async(make_json_file, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
 
 

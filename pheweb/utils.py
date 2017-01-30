@@ -16,6 +16,8 @@ import subprocess
 import time
 import attrdict
 import imp
+import multiprocessing
+
 
 conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
 
@@ -293,6 +295,15 @@ def run_cmd(cmd):
         print(data)
         raise Exception()
     return data
+
+
+def get_num_procs():
+    if hasattr(conf, 'num_proces'):
+        return conf.num_procs
+    n_cpus = multiprocessing.cpu_count()
+    if n_cpus == 1: return 1
+    if n_cpus < 4: return n_cpus - 1
+    return n_cpus * 3//4
 
 
 def dumb_cache(f):

@@ -194,10 +194,10 @@ def run(argv):
         manna_dict = manna.dict()
         manna_dict['files_to_merge'] = files_to_merge
         manna_dict['files_being_merged'] = []
-        num_processes = multiprocessing.cpu_count() * 3//4 + 1
-        print('number of processes:', num_processes)
+        num_procs = utils.get_num_procs()
+        print('number of processes:', num_procs)
 
-        processes = [multiprocessing.Process(target=merge_files_in_queue, args=(manna_lock, manna_dict)) for _ in range(num_processes)]
+        processes = [multiprocessing.Process(target=merge_files_in_queue, args=(manna_lock, manna_dict)) for _ in range(num_procs)]
         for p in processes:
             p.start()
         failed = False
