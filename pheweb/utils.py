@@ -272,7 +272,7 @@ def run_script(script):
     try:
         with open(os.devnull) as devnull:
             # is this the right way to block stdin?
-            data = subprocess.check_output(['sh', '-c', script], stderr=subprocess.STDOUT, stdin=devnull)
+            data = subprocess.check_output(['bash', '-c', script], stderr=subprocess.STDOUT, stdin=devnull)
         status = 0
     except subprocess.CalledProcessError as ex:
         data = ex.output
