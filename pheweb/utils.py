@@ -260,7 +260,7 @@ def run_script(script):
         print('FAILED with status {}'.format(status))
         print('output was:')
         print(data)
-        sys.exit(1)
+        raise Exception()
     return data
 
 
@@ -279,7 +279,7 @@ def run_cmd(cmd):
         print('FAILED with status {}'.format(status))
         print('output was:')
         print(data)
-        sys.exit(1)
+        raise Exception()
     return data
 
 

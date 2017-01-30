@@ -75,7 +75,7 @@ def check_that_columns_are_present(phenolist, columns):
             for pheno in phenos_without_col[:3]:
                 print(pheno)
             print('')
-    if failed: exit(1)
+    if failed: raise Exception()
 
 def check_that_phenocode_is_urlsafe(phenolist):
     # TODO: use python-slugify
@@ -89,7 +89,7 @@ ERROR: The phenocode {!r} contains the characters {!r} which is not allowed beca
             print("Other phenotypes might have this problem too.")
             print("If this character IS actually urlsafe, it needs to be added to the list urlsafe_characters")
             print("If this is something you can't or don't want to fix, we can modify pheweb.")
-            exit(1)
+            raise Exception()
 
 def check_that_phenocode_is_unique(phenolist):
     phenocodes = [pheno['phenocode'] for pheno in phenolist]
@@ -98,7 +98,7 @@ def check_that_phenocode_is_unique(phenolist):
     if repeated_phenocodes:
         print("ERROR: At least one phenocode is used by multiple phenotypes.")
         print("Here are some repeated phenocodes: {!r}".format(repeated_phenocodes[:5]))
-        exit(1)
+        raise Exception()
 
 def check_that_all_phenos_have_same_columns(phenolist):
     all_columns = list(more_itertools.unique_everseen(col for pheno in phenolist for col in pheno))
@@ -155,15 +155,13 @@ def import_phenolist(fname, has_header):
             return json.load(f)
         except ValueError:
             if fname.endswith('.json'):
-                print("The filename {!r} ends with '.json' but reading it as json failed.".format(fname))
-                exit(1)
+                raise Exception("The filename {!r} ends with '.json' but reading it as json failed.".format(fname))
         # 3. try csv.reader() with csv.Sniffer().sniff()
         f.seek(0)
         phenos = _import_phenolist_csv(f, has_header)
         if phenos is not None:
             return phenos
-        print("I couldn't figure out how to open the file {!r}, sorry.".format(fname))
-        exit(1)
+        raise Exception("I couldn't figure out how to open the file {!r}, sorry.".format(fname))
 
 def _import_phenolist_xlsx(fname, has_header):
     import openpyxl
@@ -179,15 +177,14 @@ def _import_phenolist_xlsx(fname, has_header):
                 if has_header == 'augment':
                     fieldnames = [i if fieldname is None else fieldname for i, fieldname in enumerate(fieldnames)]
                 else:
-                    exit(1)
+                    raise Exception()
             assert len(set(fieldnames)) == len(fieldnames), fieldnames
         else:
             fieldnames = range(num_cols)
         return [{fieldnames[i]: row[i] for i in range(num_cols)} for row in rows]
     except openpyxl.utils.exceptions.InvalidFileException:
         if fname.endswith('.xlsx'):
-            print("The filename {!r} ends with '.xlsx' but reading it as an excel file failed.".format(fname))
-            exit(1)
+            raise Exception("The filename {!r} ends with '.xlsx' but reading it as an excel file failed.".format(fname))
         return None
 
 def _import_phenolist_csv(f, has_header):
@@ -213,7 +210,7 @@ def _import_phenolist_csv(f, has_header):
             if has_header == 'augment':
                 fieldnames = [i if fieldname is None else fieldname for i, fieldname in enumerate(fieldnames)]
             else:
-                exit(1)
+                raise Exception()
         assert len(set(fieldnames)) == len(fieldnames)
     else:
         fieldnames = range(num_cols)
