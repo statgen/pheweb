@@ -66,8 +66,8 @@ def run(argv):
     p = multiprocessing.Pool(utils.get_num_procs())
     results = p.map_async(convert, conversions_to_do).get(1e8) # Makes KeyboardInterrupt work
 
-    good_results = [r for r in results if r['succeeded']]
-    bad_results = [r for r in results if not r['succeeded']]
+    good_results = [r['args'][0]['pheno'] for r in results if r['succeeded']]
+    bad_results = [r['args'][0]['pheno'] for r in results if not r['succeeded']]
     print('num phenotypes that succeeded:', len(good_results))
     print('num phenotypes that failed:', len(bad_results))
 
@@ -76,6 +76,10 @@ def run(argv):
         with open(fname, 'w') as f:
             json.dump(f, good_results)
         print('wrote good_results into {!r}, which you should probably use to replace pheno-list.json'.format(fname))
+        fname = os.path.join(conf.data_dir, 'pheno-list-bad-only.json')
+        with open(fname, 'w') as f:
+            json.dump(f, bad_results)
+        print('wrote bad_results into {!r}'.format(fname))
 
 if __name__ == '__main__':
     run([])
