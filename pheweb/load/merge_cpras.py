@@ -165,10 +165,19 @@ def merge_files_in_queue(lock, manna_dict):
                 len(manna_dict['files_to_merge']), len(files_to_merge_now), (datetime.datetime.now() - start_time).seconds))
 
 
+def get_files_to_merge():
+    phenos = utils.get_phenolist()
+    print('number of phenos:', len(phenos))
+    for pheno in phenos:
+        fname = os.path.join(conf.data_dir, 'cpra', pheno['phenocode'])
+        assert os.path.exists(fname)
+        yield fname
+
+
 def run(argv):
 
     out_filename = conf.data_dir + '/sites/cpra.tsv'
-    files_to_merge = glob.glob(conf.data_dir + '/cpra/*')
+    files_to_merge = list(get_files_to_merge())
 
     if os.path.exists(out_filename):
         dest_file_modification_time = os.stat(out_filename).st_mtime

@@ -8,6 +8,7 @@ from __future__ import print_function, division, absolute_import
 # we can probably store the sourcecode in pkg_resources.  otherwise, a string will do.
 # later, cffi or ctypes will be good.
 
+
 from .. import utils
 conf = utils.conf
 
@@ -25,9 +26,22 @@ augmented_pheno_dir = os.path.join(conf.data_dir, 'augmented_pheno')
 matrix_gz_fname = os.path.join(conf.data_dir, 'matrix.tsv.gz')
 
 def should_run():
+    cur_phenos = set(pheno['phenocode'] for pheno in utils.get_phenos())
+
+    # Remove files that shouldn't be there (and will confuse the glob in matrixify)
+    for fname in glob.glob(os.path.join(augmented_pheno_dir, '*')):
+        if os.path.basename(fname) not in cur_phenos:
+            os.remove(fname)
+
     if not os.path.exists(matrix_gz_fname): return True
-    infiles = list(glob.glob(os.path.join(augmented_pheno_dir, '*')))
-    infiles.append(sites_fname)
+
+    # check that the current matrix is composed of the correct columns/phenotypes.  If it's changed, rebuild the matrix.
+    with gzip.open(matrix_gz_fname) as f:
+        fieldnames = next(f).split('\t')
+    prev_phenos = set(fieldname.split('@')[1] for fieldname in fieldnames if '@' in fieldname)
+    if prev_phenos != cur_phenos: return True
+
+    infiles = [os.path.join(augmented_pheno_dir, phenocode) for phenocode in cur_phenos] + [sites_fname]
     infile_modtime = max(os.stat(fn).st_mtime for fn in infiles)
     return infile_modtime > os.stat(matrix_gz_fname).st_mtime
 

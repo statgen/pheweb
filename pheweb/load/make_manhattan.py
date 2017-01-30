@@ -130,11 +130,11 @@ def make_json_file(args):
 
 
 def get_conversions_to_do():
-    for src_filename in glob.glob(conf.data_dir + '/augmented_pheno/*'):
-        phenocode = os.path.basename(src_filename)
-        assert 'tmp' not in phenocode
-        dest_filename = '{}/manhattan/{}.json'.format(conf.data_dir, phenocode)
-        tmp_filename = '{}/tmp/manhattan-{}.json'.format(conf.data_dir, phenocode)
+    phenocodes = [pheno['phenocode'] for pheno in utils.get_phenos()]
+    for phenocode in phenocodes:
+        src_filename = os.path.join(conf.data_dir, 'augmented_pheno', phenocode)
+        dest_filename = os.path.join(conf.data_dir, 'manhattan', '{}.json'.format(phenocode))
+        tmp_filename = os.path.join(conf.data_dir, 'tmp', 'manhattan-{}.json'.format(phenocode))
         if not os.path.exists(dest_filename) or os.stat(dest_filename).st_mtime < os.stat(src_filename).st_mtime:
             yield {'src':src_filename, 'dest':dest_filename, 'tmp':tmp_filename}
 
