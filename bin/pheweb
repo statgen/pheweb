@@ -4,6 +4,7 @@
 import sys
 import os
 
+from pheweb import version
 from pheweb.load import phenolist
 from pheweb.load import get_cpras
 from pheweb.load import merge_cpras
@@ -42,7 +43,9 @@ handlers['serve'] = serve_run
 
 
 def help():
-    print('''
+    print('''\
+PheWeb {}
+
 To see more information about a subcommand, run that command followed by `-h`.
 
 Subcommands:
@@ -55,7 +58,7 @@ Subcommands:
 
     pheweb serve
         host a webserver
-''')
+'''.format(version.version))
 
 subcommand = sys.argv[1] if len(sys.argv)>1 else ''
 if subcommand in ['', '-h', '--help']:

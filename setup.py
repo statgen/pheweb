@@ -1,20 +1,27 @@
 
 # to install:
 #     1. delete any build directories
-#     2. run `python2 setup.py install` (probably while in a virtualenv)
-#     2. maybe experiment with `python2 setup.py develop` (which uses a symlink)
-# to upload to pypi: `python2 setup.py sdist bdist_wheel; twine upload --skip-existing dist/*`
-# to update: `pip2 install --upgrade --upgrade-strategy only-if-needed --no-cache-dir pheweb`
+#     2. `pip install -e .`
+#        or `python2 setup.py install` (probably while in a virtualenv)
+#        or `python2 setup.py develop` (which uses a symlink)
+# to upload to pypi:
+#     1. set a new version in `pheweb/version.py`
+#     2. `python2 setup.py sdist bdist_wheel; twine upload --skip-existing dist/*`
+# to upgrade: `pip2 install --upgrade --upgrade-strategy only-if-needed --no-cache-dir pheweb`
 
 from setuptools import setup
+import imp
+import os.path
 
 def readme():
     with open('README.rst') as f:
         return f.read()
 
+version = imp.load_source('pheweb.version', os.path.join('pheweb', 'version.py')).version
+
 setup(
     name='PheWeb',
-    version='0.9.3',
+    version=version,
     description="A tool for building PheWAS websites from association files",
     long_description=readme(),
     author="Peter VandeHaar",
