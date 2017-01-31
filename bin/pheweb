@@ -25,8 +25,8 @@ for submodule in '''
     def f(submodule):
         def f(argv):
             # TODO: this is awful, how do I make it stop?  Maybe importlib (in py3) will help?
-            exec('from pheweb.load import {}'.format(submodule)) in globals(), locals()
-            exec('module = {}'.format(submodule)) in globals(), locals()
+            exec('from pheweb.load import {}'.format(submodule), globals(), locals())
+            exec('module = {}'.format(submodule), globals(), locals())
             module.run(argv)
         return f
     handlers[submodule.replace('_', '-')] = f(submodule)
