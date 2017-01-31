@@ -214,7 +214,7 @@ int main(int argc, char** argv) {
               << sites_row[SITES_REF_COL] << "\t"
               << sites_row[SITES_ALT_COL] << "\t"
               << sites_row[SITES_RSID_COL] << "\t"
-              << sites_row[SITES_GENE_COL] << "\t";
+              << sites_row[SITES_GENE_COL];
 
     int num_mafs = 0;
     double maf = 0;
@@ -262,6 +262,6 @@ int main(int argc, char** argv) {
       }
     }
 
-    std::cout << maf/num_mafs << "\t" << all_the_rest.str() << "\n";
+    std::cout << "\t" << maf/num_mafs << all_the_rest.str() << "\n";
   }
 }
