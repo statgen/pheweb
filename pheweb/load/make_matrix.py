@@ -14,6 +14,7 @@ conf = utils.conf
 
 import os
 import glob
+import gzip
 
 gxx = utils.get_path('g++', 'gxx_path')
 tabix = utils.get_path('tabix')
@@ -37,13 +38,19 @@ def should_run():
 
     # check that the current matrix is composed of the correct columns/phenotypes.  If it's changed, rebuild the matrix.
     with gzip.open(matrix_gz_fname) as f:
-        fieldnames = next(f).split('\t')
+        fieldnames = next(f).strip().split('\t')
     prev_phenos = set(fieldname.split('@')[1] for fieldname in fieldnames if '@' in fieldname)
-    if prev_phenos != cur_phenos: return True
+    if prev_phenos != cur_phenos:
+        print('rerunning because cur matrix has wrong phenos.')
+        print('phenos in pheno-list.json but not matrix.tsv.gz:', ', '.join(repr(p) for p in cur_phenos - prev_phenos))
+        print('phenos in matrix.tsv.gz but not pheno-list.json:', ', '.join(repr(p) for p in prev_phenos - cur_phenos))
+        return True
 
     infiles = [os.path.join(augmented_pheno_dir, phenocode) for phenocode in cur_phenos] + [sites_fname]
     infile_modtime = max(os.stat(fn).st_mtime for fn in infiles)
-    return infile_modtime > os.stat(matrix_gz_fname).st_mtime
+    if infile_modtime > os.stat(matrix_gz_fname).st_mtime:
+        print('rerunning because some input files are newer than matrix.tsv.gz')
+        return True
 
 def run(argv):
 
