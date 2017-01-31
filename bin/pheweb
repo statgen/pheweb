@@ -4,45 +4,38 @@
 import sys
 import os
 
-from pheweb import version
-from pheweb.load import phenolist
-from pheweb.load import get_cpras
-from pheweb.load import merge_cpras
-from pheweb.load import download_rsids
-from pheweb.load import download_genes
-from pheweb.load import add_rsids
-from pheweb.load import make_tries
-from pheweb.load import standardize_phenos
-from pheweb.load import make_manhattan
-from pheweb.load import make_qq
-from pheweb.load import make_matrix
-from pheweb.load import bgzip_phenos
-from pheweb.load import top_loci
-from pheweb.load import process_assoc_files
+handlers = {}
+for submodule in '''
+ phenolist
+ get_cpras
+ merge_cpras
+ download_rsids
+ download_genes
+ add_rsids
+ make_tries
+ standardize_phenos
+ make_manhattan
+ make_qq
+ make_matrix
+ bgzip_phenos
+ top_loci
+ process_assoc_files
+'''.split():
+    def f(argv):
+        # TODO: this is awful, how do I make it stop?  Maybe importlib (in py3) will help?
+        exec('from pheweb.load import {}'.format(submodule))
+        exec('module = {}'.format(submodule))
+        module.run(argv)
+    handlers[submodule.replace('_', '-')] = f
 
 def serve_run(argv):
     from pheweb.serve import server
     server.run(argv)
-
-handlers = {}
-handlers['phenolist'] = phenolist.run
-handlers['get-cpras'] = get_cpras.run
-handlers['merge-cpras'] = merge_cpras.run
-handlers['download-rsids'] = download_rsids.run
-handlers['download-genes'] = download_genes.run
-handlers['add-rsids'] = add_rsids.run
-handlers['make-tries'] = make_tries.run
-handlers['standarize-phenos'] = standardize_phenos.run
-handlers['make-manhattan'] = make_manhattan.run
-handlers['make-qq'] = make_qq.run
-handlers['make-matrix'] = make_matrix.run
-handlers['bgzip-phenos'] = bgzip_phenos.run
-handlers['top-loci'] = top_loci.run
-handlers['process-assoc-files'] = process_assoc_files.run
 handlers['serve'] = serve_run
 
 
 def help():
+    from pheweb import version
     print('''\
 PheWeb {}
 
