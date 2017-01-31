@@ -21,12 +21,14 @@ for submodule in '''
  top_loci
  process_assoc_files
 '''.split():
-    def f(argv):
-        # TODO: this is awful, how do I make it stop?  Maybe importlib (in py3) will help?
-        exec('from pheweb.load import {}'.format(submodule))
-        exec('module = {}'.format(submodule))
-        module.run(argv)
-    handlers[submodule.replace('_', '-')] = f
+    def f(submodule):
+        def f(argv):
+            # TODO: this is awful, how do I make it stop?  Maybe importlib (in py3) will help?
+            exec('from pheweb.load import {}'.format(submodule)) in globals(), locals()
+            exec('module = {}'.format(submodule)) in globals(), locals()
+            module.run(argv)
+        return f
+    handlers[submodule.replace('_', '-')] = f(submodule)
 
 def serve_run(argv):
     from pheweb.serve import server
