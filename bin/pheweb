@@ -20,6 +20,7 @@ for submodule in '''
  bgzip_phenos
  top_loci
  process_assoc_files
+ make_wsgi
 '''.split():
     def f(submodule):
         def f(argv):
