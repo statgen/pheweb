@@ -306,8 +306,8 @@ def run_cmd(cmd):
 
 
 def get_num_procs():
-    if hasattr(conf, 'num_proces'):
-        return conf.num_procs
+    try: return conf.num_procs
+    except: pass
     n_cpus = multiprocessing.cpu_count()
     if n_cpus == 1: return 1
     if n_cpus < 4: return n_cpus - 1
