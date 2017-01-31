@@ -9,7 +9,7 @@ conf = utils.conf
 import time
 import os.path
 
-scripts = [{'name': name} for name in '''
+scripts = '''
 get_cpras
 merge_cpras
 download_rsids
@@ -23,20 +23,18 @@ make_qq
 make_matrix
 bgzip_phenos
 top_loci
-'''.split()]
-
-my_dir = os.path.dirname(os.path.abspath(__file__))
-for script in scripts:
-    # TODO: I don't know a way to avoid exec.  imp.load_source breaks intra-package relationships.
-    exec '''from . import {}'''.format(script['name'])
-    exec '''script['module'] = {}'''.format(script['name'])
+'''.split()
 
 def run(argv):
     for script in scripts:
-        print('==> Starting', script['name'])
+        # TODO: I don't know a way to avoid exec.  imp.load_source breaks intra-package relationships.
+        exec('from . import {}'.format(script))
+        exec('module = {}'.format(script))
+
+        print('==> Starting', script)
         start_time = time.time()
         try:
-            script['module'].run([])
+            module.run([])
         except Exception:
             print('==> failed after {:.0f} seconds'.format(time.time() - start_time))
             raise
