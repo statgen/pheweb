@@ -16,8 +16,14 @@ import traceback
 import sys
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'
 Compress(app)
+app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'
+app.config['EXPLAIN_TEMPLATE_LOADING'] = True # for debugging
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 9
+
+if 'custom_templates' in conf:
+    app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
 phenos = utils.get_phenos_with_colnums(app.root_path)
 
@@ -143,19 +149,17 @@ def apply_caching(response):
 
 def run(argv):
 
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 9
-
     import argparse
     import glob
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default='0.0.0.0', help='the hostname to use to access this server')
     parser.add_argument('--port', type=int, default=5000, help='an integer for the accumulator')
     args = parser.parse_args(argv)
-    extra_files = glob.glob('templates/*.html')
     app.run(host=args.host, port=args.port,
             threaded=True, # seems to be bad at dying when I ctrl-C / SIGTERM.
             debug=True, use_evalex=False,
-            use_reloader=True, extra_files=extra_files)
+            use_reloader=True,
+    )
 
 if __name__ == '__main__':
     run(sys.argv[1:])

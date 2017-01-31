@@ -348,6 +348,9 @@ def ensure_conf_is_loaded():
     if 'source_file_parser' not in conf: # TODO: rename `association_file_parser`, relegate source_file_parser to an alias
         conf['source_file_parser'] = 'epacts'
 
+    if 'custom_templates' not in conf:
+        conf['custom_templates'] = os.path.join(conf.data_dir, 'custom_templates')
+
     def _configure_cache():
         # if conf['cache'] exists and is Falsey, don't cache.
         if 'cache' in conf and not conf['cache']:
