@@ -42,16 +42,16 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'Flask>=0.11',
-        'pysam~=0.9.0',
+        'Flask>=0.12',
+        'pysam~=0.9.1',
         'marisa-trie~=0.7',
-        'flask-compress~=1.3',
+        'flask-compress~=1.4',
         'contextlib2~=0.5',
         'intervaltree~=2.1',
-        'more_itertools~=2.4',
-        'tqdm~=4.10',
+        'more_itertools~=2.5',
+        'tqdm~=4.11',
         'openpyxl~=2.4',
-        'scipy~=0.17',
+        'scipy~=0.18',
         'attrdict~=2.0',
     ]
 )
