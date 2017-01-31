@@ -36,6 +36,7 @@ var color_by_category = (function() {
     $(function() {
         var svg_width = $('#phewas_plot_container').width();
         var svg_height = 550;
+        var significance_threshold = 3e-5;
 
         var plot_margin = {
             'left': 70,
@@ -52,10 +53,20 @@ var color_by_category = (function() {
             .domain([0, window.variant.phenos.length])
             .range([0, plot_width]);
 
-        var neglog10_min_pval = -Math.log10(d3.min(window.variant.phenos, _.property('pval')));
+        // 1.03 puts points clamped to the top (pval=0) slightly above other points.
+        var highest_plot_neglog10_pval = 1.03 * -Math.log10(
+            Math.min(significance_threshold*.8,
+                     (function() {
+                         var pvals = window.variant.phenos.map(_.property('pval'));
+                         var nonzero_pvals = pvals.filter(function(d) { return d !== 0; });
+                         return (nonzero_pvals.length > 0) ? d3.min(nonzero_pvals) : 1;
+                     })()));
+
         var y_scale = d3.scale.linear()
-            .domain([neglog10_min_pval, 0])
-            .range([0, plot_height]);
+            .domain([highest_plot_neglog10_pval, 0])
+            // 0.97 leaves a little space above points clamped to the top.
+            .range([0, plot_height*.97])
+            .clamp(true);
 
         var phewas_svg = d3.select('#phewas_plot_container').append("svg")
             .attr('id', 'phewas_svg')
@@ -68,7 +79,6 @@ var color_by_category = (function() {
             .attr("transform", fmt("translate({0},{1})", plot_margin.left, plot_margin.top));
 
         // Significance Threshold line
-        var significance_threshold = 3e-5;
         var significance_threshold_tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .html('Significance Threshold: 3E-5')

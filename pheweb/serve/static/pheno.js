@@ -85,20 +85,24 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .domain(genomic_position_extent)
             .range([0, plot_width]);
 
-        var max_neglog10_pval = (function() {
-            if (unbinned_variants.length > 0) {
-                return d3.max(unbinned_variants, function(d) {
-                    return -Math.log10(d.pval);
-                });
-            }
-            return d3.max(variant_bins, function(bin) {
-                return d3.max(bin, _.property('neglog10_pval'));
-            });
-        })();
+        // 1.03 puts points clamped to the top (pval=0) slightly above other points.
+        var highest_plot_neglog10_pval = 1.03 * -Math.log10(
+            Math.min(significance_threshold*0.8,
+                     (function() {
+                         var best_unbinned_pval = d3.min(unbinned_variants, function(d) {
+                             return (d.pval === 0) ? 1 : d.pval;
+                         });
+                         if (best_unbinned_pval !== undefined) return best_unbinned_pval;
+                         return d3.max(variant_bins, function(bin) {
+                             return d3.max(bin, _.property('neglog10_pval'));
+                         });
+                     })()));
 
         var y_scale = d3.scale.linear()
-            .domain([Math.max(10, max_neglog10_pval), 0])
-            .range([0, plot_height]);
+            .domain([highest_plot_neglog10_pval, 0])
+            // 0.97 leaves a little space above points clamped to the top.
+            .range([0, plot_height*.97])
+            .clamp(true);
 
         var color_by_chrom = d3.scale.ordinal()
             .domain(get_chrom_offsets().chroms)
