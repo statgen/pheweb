@@ -251,19 +251,20 @@ def listify_assoc_files(phenolist):
     return phenolist
 
 def numify_numeric_cols(phenolist):
-    float_regex = re.compile(r'^-?[0-9]+(?:\.[0-9]+)?(?:[Ee]-?[0-9]+)?$')
+    int_regex = re.compile(r'^-?(?:[1-9]\d)?\d$')
+    float_regex = re.compile(r'^-?(?:[1-9]\d*)?\d(?:\.\d+)?(?:[Ee]-?\d+)?$')
+    floaty = lambda value: isinstance(value, str) and float_regex.match(value)
+    inty = lambda value: isinstance(value, str) and int_regex.match(value)
     all_keys = list(set(itertools.chain.from_iterable(phenolist)))
-    int_keys = [key for key in all_keys if all(isinstance(pheno.get(key, ''), str) and pheno.get(key, '0').isdigit() for pheno in phenolist)]
-    float_keys = [key for key in all_keys if all(isinstance(pheno.get(key, ''), str) and float_regex.match(pheno.get(key, '0')) for pheno in phenolist)]
-    float_keys = set(float_keys) - set(int_keys)
-    for key in int_keys:
-        for pheno in phenolist:
-            if key in pheno:
-                pheno[key] = int(pheno[key])
-    for key in float_keys:
-        for pheno in phenolist:
-            if key in pheno:
-                pheno[key] = float(pheno[key])
+    for key in all_keys:
+        if all(inty(pheno[key]) for pheno in phenolist if key in pheno):
+            for pheno in phenolist:
+                if key in pheno:
+                    pheno[key] = int(pheno[key])
+        elif all(floaty(pheno[key]) for pheno in phenolist if key in pheno):
+            for pheno in phenolist:
+                if key in pheno:
+                    pheno[key] = float(pheno[key])
     return phenolist
 
 def print_as_csv(phenolist):
@@ -391,7 +392,12 @@ def unique_phenocode(phenolist, new_column_name):
                 columns_to_listify.add(key)
     print("NOTE: the columns {!r} sometimes have multiple values for the same phenocode so we'll combine them.".format(list(columns_to_listify)))
     if len(columns_to_listify) == 0:
-        print("Wait, no columns with multiple values? Why are we even here?")
+        print("It looks like some lines are exact dupes of others. That's easy to fix.")
+        new_phenolist = []
+        for phenocode_group in phenocode_groups:
+            assert utils.all_equal(phenocode_group)
+            new_phenolist.append(phenocode_group[0])
+        return new_phenolist
     elif len(columns_to_listify) == 1 or new_column_name is None:
         new_phenolist = []
         for phenocode_group in phenocode_groups:

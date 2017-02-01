@@ -210,6 +210,7 @@ def exception_tester(f):
 
 
 def all_equal(iterator):
+    if isinstance(iterator, list): iterator = iter(iterator)
     try:
         first = next(iterator)
     except StopIteration:
