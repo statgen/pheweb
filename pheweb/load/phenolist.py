@@ -529,7 +529,7 @@ def run(argv):
     def f(args):
         fname = args.fname or default_phenolist_fname
         phenolist = load_phenolist(fname)
-        check_that_columns_are_present(phenolist, ['phenocode'] + args.required_columns)
+        check_that_columns_are_present(phenolist, ['phenocode', 'assoc_files'] + args.required_columns)
         check_that_phenocode_is_urlsafe(phenolist)
         check_that_phenocode_is_unique(phenolist)
         check_that_all_phenotypes_have_assoc_files(phenolist)
