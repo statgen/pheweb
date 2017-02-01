@@ -1,6 +1,6 @@
 var color_by_category = (function() {
     var unique_categories = d3.set(window.variant.phenos.map(_.property('category'))).values();
-    return d3.scale.category20b()
+    return ((unique_categories.length>10) ? d3.scale.category20b() : d3.scale.category10())
         .domain(unique_categories);
 })();
 
