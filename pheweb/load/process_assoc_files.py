@@ -8,6 +8,7 @@ conf = utils.conf
 
 import time
 import os.path
+import importlib
 
 scripts = '''
 get_cpras
@@ -27,12 +28,9 @@ top_loci
 
 def run(argv):
     for script in scripts:
-        # TODO: I don't know a way to avoid exec.  imp.load_source breaks intra-package relationships.
-        exec('from . import {}'.format(script))
-        exec('module = {}'.format(script))
-
         print('==> Starting', script)
         start_time = time.time()
+        module = importlib.import_module('.{}'.format(script), __package__)
         try:
             module.run([])
         except Exception:

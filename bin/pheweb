@@ -3,6 +3,8 @@
 
 import sys
 import os
+import importlib
+import functools
 
 handlers = {}
 for submodule in '''
@@ -22,14 +24,10 @@ for submodule in '''
  process_assoc_files
  make_wsgi
 '''.split():
-    def f(submodule):
-        def f(argv):
-            # TODO: this is awful, how do I make it stop?  Maybe importlib (in py3) will help?
-            exec('from pheweb.load import {}'.format(submodule), globals(), locals())
-            exec('module = {}'.format(submodule), globals(), locals())
-            module.run(argv)
-        return f
-    handlers[submodule.replace('_', '-')] = f(submodule)
+    def f(submodule, argv):
+        module = importlib.import_module('pheweb.load.{}'.format(submodule))
+        module.run(argv)
+    handlers[submodule.replace('_', '-')] = functools.partial(f, submodule)
 
 def serve_run(argv):
     from pheweb.serve import server
