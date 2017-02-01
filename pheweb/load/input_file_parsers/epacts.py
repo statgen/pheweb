@@ -134,7 +134,7 @@ def _combine_fieldnames_variants_pairs(list_of_fieldname_variants_pairs):
 @_tuplify_headed_iterator
 def _get_fieldnames_and_variants(src_filename, minimum_maf=None):
     # return is in itertools.chain([fieldnames], variants) form but _tuplify_headed_iterator() transforms it to (fieldnames, variants)
-    with utils.open_maybe_gzip(src_filename) as f:
+    with utils.open_maybe_gzip(src_filename, 'rt') as f:
         # TODO: use `pandas.read_csv(src_filename, usecols=[...], converters={...}, iterator=True, verbose=True, na_values='.', sep=None)
         #   - first without `usecols`, to parse the column names, and then a second time with `usecols`.
 

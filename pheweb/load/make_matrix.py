@@ -38,7 +38,7 @@ def should_run():
     if not os.path.exists(matrix_gz_fname): return True
 
     # check that the current matrix is composed of the correct columns/phenotypes.  If it's changed, rebuild the matrix.
-    with gzip.open(matrix_gz_fname) as f:
+    with gzip.open(matrix_gz_fname, 'rt') as f:
         fieldnames = next(f).strip().split('\t')
     prev_phenos = set(fieldname.split('@')[1] for fieldname in fieldnames if '@' in fieldname)
     if prev_phenos != cur_phenos:
@@ -60,7 +60,12 @@ def run(argv):
         utils.run_script('''
         '{matrixify_exe_fname}' '{sites_fname}' '{augmented_pheno_dir}' |
         '{bgzip}' > '{matrix_gz_tmp_fname}'
-        '''.format(matrixify_exe_fname=matrixify_exe_fname, sites_fname=sites_fname, augmented_pheno_dir=augmented_pheno_dir, bgzip=bgzip, matrix_gz_fname=matrix_gz_fname))
+        '''.format(matrixify_exe_fname=matrixify_exe_fname,
+                   sites_fname=sites_fname,
+                   augmented_pheno_dir=augmented_pheno_dir,
+                   bgzip=bgzip,
+                   matrix_gz_fname=matrix_gz_fname,
+                   matrix_gz_tmp_fname=matrix_gz_tmp_fname))
         os.rename(matrix_gz_tmp_fname, matrix_gz_fname)
         utils.run_cmd([tabix, '-p','vcf', matrix_gz_fname])
     else:

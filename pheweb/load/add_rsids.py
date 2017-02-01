@@ -92,9 +92,9 @@ def run(argv):
         print('rsid annotation is up-to-date!')
         return
 
-    with open(cpra_filename) as cpra_f, \
-         gzip.open(rsids_filename) as rsids_f, \
-         open(out_filename, 'w') as out_f:
+    with open(cpra_filename, 'rt') as cpra_f, \
+         gzip.open(rsids_filename, 'rt') as rsids_f, \
+         open(out_filename, 'wt') as out_f:
 
         rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))
         cp_group_reader = get_one_chr_pos_at_a_time(get_cpra_reader(cpra_f))

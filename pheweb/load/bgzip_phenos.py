@@ -1,6 +1,3 @@
-#!/usr/bin/env python2
-
-
 
 from .. import utils
 conf = utils.conf
@@ -16,42 +13,43 @@ tmp_dir = os.path.join(conf.data_dir, 'tmp')
 augmented_pheno_dir = os.path.join(conf.data_dir, 'augmented_pheno')
 augmented_pheno_gz_dir = os.path.join(conf.data_dir, 'augmented_pheno_gz')
 
-def convert(infile):
-    fname = os.path.basename(infile) + '.gz'
-    tmpfile = os.path.join(tmp_dir, 'augmented_pheno_gz' + fname)
-    outfile = os.path.join(augmented_pheno_gz_dir, fname)
-    tbifile = os.path.join(augmented_pheno_gz_dir, fname + '.tbi')
-    print("{} -> {}".format(infile, outfile))
-    if not os.path.exists(outfile):
+def convert(kwargs):
+    src_fname = kwargs['src_fname']
+    tmp_fname = kwargs['tmp_fname']
+    out_fname = kwargs['out_fname']
+    tbi_fname = kwargs['tbi_fname']
+    print("{} -> {}".format(src_fname, out_fname))
+    if not os.path.exists(out_fname):
 
         utils.run_script('''
         # Tabix expects the header line to start with a '#'
-        ('{echo}' -n '#'; cat '{infile}') | '{bgzip}' > '{tmpfile}'
-        '''.format(echo=echo, infile=infile, bgzip=bgzip, tmpfile=tmpfile))
-        os.rename(tmpfile, outfile)
-        utils.run_cmd([tabix, '-p', 'vcf', outfile])
+        ('{echo}' -n '#'; cat '{src_fname}') | '{bgzip}' > '{tmp_fname}'
+        '''.format(echo=echo, src_fname=src_fname, bgzip=bgzip, tmp_fname=tmp_fname))
+        os.rename(tmp_fname, out_fname)
+        utils.run_cmd([tabix, '-p', 'vcf', out_fname])
 
-    elif not os.path.exists(tbifile):
-        utils.run_cmd([tabix, '-p', 'vcf', outfile])
-
-    # print("{} -> {}".format(infile, outfile))
+    elif not os.path.exists(tbi_fname):
+        utils.run_cmd([tabix, '-p', 'vcf', out_fname])
 
 def get_conversions_to_do():
     for fname in os.listdir(augmented_pheno_dir):
         src_fname = os.path.join(augmented_pheno_dir, fname)
-        dest_fname = os.path.join(augmented_pheno_gz_dir, fname)
-        if not os.path.exists(dest_fname) or os.stat(src_fname).st_mtime > os.stat(dest_fname).st_mtime:
-            yield src_fname
+        tmp_fname = os.path.join(tmp_dir, 'augmented_pheno_gz-{}.gz'.format(fname))
+        out_fname = os.path.join(augmented_pheno_gz_dir, '{}.gz'.format(fname))
+        tbi_fname = os.path.join(augmented_pheno_gz_dir, '{}.gz.tbi'.format(fname))
+        if not os.path.exists(out_fname) or os.stat(src_fname).st_mtime > os.stat(out_fname).st_mtime:
+            yield {
+                'src_fname': src_fname,
+                'tmp_fname': tmp_fname,
+                'out_fname': out_fname,
+                'tbi_fname': tbi_fname,
+            }
 
 def run(argv):
 
     utils.mkdir_p(augmented_pheno_gz_dir)
 
-    infiles = list(get_conversions_to_do())
-    print('number of phenos to process:', len(infiles))
+    conversions_to_do = list(get_conversions_to_do())
+    print('number of phenos to process:', len(conversions_to_do))
     with multiprocessing.Pool(utils.get_num_procs()) as p:
-        p.map(convert, infiles)
-
-
-if __name__ == '__main__':
-    run([])
+        p.map(convert, conversions_to_do)
