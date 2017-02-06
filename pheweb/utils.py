@@ -117,7 +117,7 @@ def get_variant(query, phenos):
     chrom, pos, ref, alt = parse_variant(query)
     assert None not in [chrom, pos, ref, alt]
 
-    tabix_file = pysam.TabixFile(conf['data_dir'] + '/matrix.tsv.gz')
+    tabix_file = pysam.TabixFile(os.path.join(conf['data_dir'], 'matrix.tsv.gz'))
     tabix_iter = tabix_file.fetch(chrom, pos-1, pos+1, parser = pysam.asTuple())
     for variant_row in tabix_iter:
         if int(variant_row[1]) == int(pos) and variant_row[3] == alt:
@@ -142,17 +142,19 @@ def get_variant(query, phenos):
     }
 
     for phenocode, pheno in phenos.items():
-        try:
-            pval = float(matching_variant_row[pheno['colnum']['pval']])
-        except ValueError:
-            pval = 1
-        rv['phenos'].append({
-            'phenocode': phenocode,
-            'pval': pval,
-        })
-        for key in pheno:
-            if key in pheno_fields_to_include_with_variant:
-                rv['phenos'][-1][key] = pheno[key]
+        p = {}
+        for colname, colnum in pheno['colnum'].items():
+            if matching_variant_row[colnum] != '.':
+                # um, what type is it?
+                p[colname] = matching_variant_row[colnum]
+                if colname in {'pval', 'beta', 'sebeta', 'or'}:
+                    p[colname] = float(p[colname])
+        if p:
+            p['phenocode'] = phenocode
+            for key in pheno:
+                if key in pheno_fields_to_include_with_variant:
+                    p[key] = pheno[key]
+            rv['phenos'].append(p)
     return rv
 
 
