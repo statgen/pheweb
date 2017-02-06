@@ -125,19 +125,36 @@
 </div>
 
 <script type="text/template" id="tooltip-template">
+
 <%= d.phenostring || d.phenocode %><br>
+
 <% if (d.category) { %>
 <span style="color:<%= color_by_category(d.category) %>">
 <%= d.category %>
 </span><br>
 <% } %>
+
 pval: <%= d.pval.toExponential(1) %><br>
-<% if (d.num_cases) { %>
+
+<% if (d.beta) { %>
+beta: <%= d.beta.toExponential(1) %><br>
+<% } %>
+
+<% if (d.sebeta) { %>
+sebeta: <%= d.sebeta.toExponential(1) %><br>
+<% } %>
+
+<% if (d.or) { %>
+OR: <%= d.or.toExponential(1) %><br>
+<% } %>
+
+<% if (d.num_cases && d.num_controls) { %>
 #cases: <%= d.num_cases %><br>
 #controls: <%= d.num_controls %><br>
 <% } else if (d.num_samples) { %>
 #samples: <%= d.num_samples %><br>
 <% } %>
+
 </script>
 
 <script type="text/template" id="streamtable-template">
