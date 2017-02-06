@@ -454,7 +454,7 @@ def save_phenolist(phenolist, fname=None):
     all_columns = list(more_itertools.unique_everseen(col for pheno in phenolist for col in pheno))
     print("NOTE: wrote {} phenotypes to {!r} with columns {!r}".format(len(phenolist), fname, all_columns))
 def write_phenolist_to_file(phenolist, f):
-    phenolist = sorted(phenolist, key=lambda pheno: pheno.get('phenocode', None))
+    phenolist = sorted(phenolist, key=lambda pheno: pheno.get('phenocode', ''))
     json.dump(phenolist, f, sort_keys=True, indent=1)
 
 default_phenolist_fname = os.path.join(conf.data_dir, 'pheno-list.json')

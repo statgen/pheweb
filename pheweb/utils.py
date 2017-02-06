@@ -31,9 +31,24 @@ def get_assoc_file_parser():
     # return imp.load_source(conf['source_file_parser'], fname)
 
 
+class parse_variant:
+    chrom_regex = re.compile(r'(?:[cC][hH][rR])?([0-9XYMT]+)')
+    chrom_pos_regex = re.compile(chrom_regex.pattern + r'[-_:/ ]([0-9]+)')
+    chrom_pos_ref_alt_regex = re.compile(chrom_pos_regex.pattern + r'[-_:/ ]([-AaTtCcGg\.]+)[-_:/ ]([-AaTtCcGg\.]+)')
+
+    def __call__(query, default_chrom_pos=True):
+
+        match = chrom_pos_ref_alt_regex.match(query) or chrom_pos_regex.match(query) or chrom_regex.match(query)
+        g = match.groups() if match else ()
+
+        if default_chrom_pos:
+            if len(g) == 0: g += ('1',)
+            if len(g) == 1: g += (0,)
+        if len(g) >= 2: g = (g[0], int(g[1])) + tuple([bases.upper() for bases in g[2:]])
+        return g + tuple(itertools.repeat(None, 4-len(g)))
+
+# TODO: convert to class and compile patterns once
 def parse_variant(query, default_chrom_pos = True):
-    if isinstance(query, str):
-        query = query.encode('utf-8')
     chrom_pattern = r'(?:[cC][hH][rR])?([0-9XYMT]+)'
     chrom_pos_pattern = chrom_pattern + r'[-_:/ ]([0-9]+)'
     chrom_pos_ref_alt_pattern = chrom_pos_pattern + r'[-_:/ ]([-AaTtCcGg\.]+)[-_:/ ]([-AaTtCcGg\.]+)'
@@ -78,7 +93,7 @@ def get_phenolist():
 
 def get_phenos_with_colnums(app_root_path):
     phenos_by_phenocode = {pheno['phenocode']: pheno for pheno in get_phenolist()}
-    with gzip.open(conf['data_dir'] + '/matrix.tsv.gz') as f:
+    with gzip.open(os.path.join(conf.data_dir, 'matrix.tsv.gz'), 'rt') as f:
         header = f.readline().rstrip('\r\n').split('\t')
     assert header[:7] == '#chrom pos ref alt rsids nearest_genes maf'.split()
     for phenocode in phenos_by_phenocode:

@@ -51,6 +51,7 @@ setup(
         'tqdm~=4.11',
         'openpyxl~=2.4',
         'scipy~=0.18',
+        'numpy>=1.11',
         'attrdict~=2.0',
     ]
 )

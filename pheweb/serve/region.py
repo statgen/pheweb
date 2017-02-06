@@ -4,12 +4,13 @@ from .. import utils
 conf = utils.conf
 
 import pysam
+import os
 
 # TODO: also get beta, sebeta, etc
 def get_rows(phenocode, chrom, pos_start, pos_end):
-    infile = '{}/augmented_pheno_gz/{}.gz'.format(conf.data_dir, phenocode).encode('utf-8')
+    infile = os.path.join(conf.data_dir, 'augmented_pheno_gz', '{}.gz'.format(phenocode))
     tabix_file = pysam.TabixFile(infile)
-    tabix_iter = tabix_file.fetch(chrom.encode('utf-8'), pos_start-1, pos_end+1, parser = pysam.asTuple())
+    tabix_iter = tabix_file.fetch(chrom, pos_start-1, pos_end+1, parser = pysam.asTuple())
 
     rv = {
         'data': {
