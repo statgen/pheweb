@@ -14,4 +14,4 @@ minimum_maf=0.01
 #wget_path = "/path/to/my/wget"
 
 # directory for caching large (~1GB) common files like dbsnp
-#cache = '~/.pheweb/cache/'
+cache = '../fake-cache'
