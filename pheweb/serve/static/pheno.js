@@ -397,6 +397,12 @@ function create_qq_plot(maf_ranges) {
                 return maf_ranges[parent_index].color;
             });
 
+        var attempt_two_decimals = function(x) {
+            if (x >= 0.01) return x.toFixed(2);
+            if (x >= 0.001) return x.toFixed(3);
+            return x.toExponential(0);
+        };
+
         // Legend
         qq_svg.append('g')
             .attr('transform', fmt('translate({0},{1})',
@@ -412,8 +418,8 @@ function create_qq_plot(maf_ranges) {
             })
             .text(function(d) {
                 return fmt('{0} ≤ MAF < {1} ({2})',
-                           d.maf_range[0].toFixed(2),
-                           d.maf_range[1].toFixed(2),
+                           attempt_two_decimals(d.maf_range[0]),
+                           attempt_two_decimals(d.maf_range[1]),
                            d.count);
             })
             .attr('fill', function(d) {
