@@ -6,6 +6,8 @@ from .. import utils
 conf = utils.conf
 
 import os
+import re
+import gzip
 
 gene_dir = os.path.join(conf.data_dir, 'sites', 'genes')
 bed_file = os.path.join(gene_dir, 'genes.bed')
@@ -17,6 +19,20 @@ if hasattr(conf, 'cache'):
 else:
     bed_file = os.path.join(gene_dir, 'genes.ged')
 
+
+good_genetypes = set('''
+protein_coding
+IG_V_gene
+TR_V_gene
+TR_J_gene
+IG_C_gene
+IG_D_gene
+IG_J_gene
+TR_C_gene
+TR_D_gene
+'''.split())
+
+
 def run(argv):
 
     if not os.path.exists(bed_file):
@@ -27,14 +43,25 @@ def run(argv):
             # Link from <http://www.gencodegenes.org/releases/19.html>
             utils.run_cmd([wget, '-O', gencode_file, "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz"])
 
-        # TODO: rewrite this in pure python?
-        utils.run_script(r'''
-        gzip -cd '{gencode_file}' |
-        # Remove pseudogenes and other unwanted types of genes.
-        grep -E '; gene_type "(protein_coding|IG_V_gene|TR_V_gene|TR_J_gene|IG_C_gene|IG_D_gene|IG_J_gene|TR_C_gene|TR_D_gene)";' |
-        # Remove `chr` from the beginning of the lines and print out `chr startpos endpos genename`.
-        perl -F'\t' -nale '$F[0] =~ s/chr//; print "$F[0]\t$F[3]\t$F[4]\t", m/gene_name "(.*?)";/ if $F[2] eq "gene"' > '{bed_file}'
-        '''.format(gencode_file=gencode_file, bed_file=bed_file))
+        with gzip.open(gencode_file, 'rt') as fin, \
+             open(bed_file, 'wt') as fout:
+
+            for l in fin:
+                if l.startswith('#'): continue
+                r = l.split('\t')
+                if r[2] != 'gene': continue
+
+                # Remove pseudogenes and other unwanted types of genes.
+                genetype = re.search(r'gene_type "(.+?)"', r[8]).group(1)
+                if genetype not in good_genetypes: continue
+
+                assert r[0].startswith('chr')
+                chrom = r[0][3:]
+                pos1, pos2 = int(r[3]), int(r[4])
+                assert pos1 < pos2
+                genename = re.search(r'gene_name "(.+?)"', r[8]).group(1)
+
+                fout.write('{}\t{}\t{}\t{}\n'.format(chrom, pos1, pos2, genename))
 
     else:
         print("gencode is at {bed_file!r}".format(bed_file=bed_file))
