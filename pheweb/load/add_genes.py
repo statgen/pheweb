@@ -20,6 +20,7 @@ import bisect
 import csv
 import os
 import os.path
+import more_itertools
 
 
 class BisectFinder(object):
@@ -65,7 +66,7 @@ class GeneAnnotator(object):
             return ''
         overlapping_genes = self._its[chrom].search(pos)
         if overlapping_genes:
-            return ','.join(og.data for og in overlapping_genes)
+            return ','.join(more_itertools.unique_everseen(og.data for og in overlapping_genes))
         nearest_gene_end = self._gene_ends[chrom].get_item_before(pos)
         nearest_gene_start = self._gene_starts[chrom].get_item_after(pos)
         if nearest_gene_end is None or nearest_gene_start is None:
