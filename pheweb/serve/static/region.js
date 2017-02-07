@@ -11,6 +11,27 @@ window.debug = window.debug || {};
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }])
     data_sources.add("sig", ["StaticJSON", [{ "x": 0, "y": 4.522 }, { "x": 2881033286, "y": 4.522 }] ])
 
+    LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
+        var log = -Math.log(x) / Math.LN10;
+        return Math.min(log, 100);
+    });
+
+    LocusZoom.TransformationFunctions.add("scinotation_handle_zero", function(x) {
+        if (x === 0) return "zero";
+        var log;
+        if (Math.abs(x) > 1){
+            log = Math.ceil(Math.log(x) / Math.LN10);
+        } else {
+            log = Math.floor(Math.log(x) / Math.LN10);
+        }
+        if (Math.abs(log) <= 3){
+            return x.toFixed(3);
+        } else {
+            return x.toExponential(2).replace("+", "").replace("e", " × 10^");
+        }
+    });
+
+
     var layout = {
         width: 800,
         height: 400,
@@ -255,7 +276,7 @@ window.debug = window.debug || {};
                     "class": "lz-data_layer-scatter"
                 }],
 
-                fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation", "pvalue|neglog10", "maf", "ld:state", "ld:isrefvar"],
+                fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation_handle_zero", "pvalue|neglog10_or_100", "maf", "ld:state", "ld:isrefvar"],
                 id_field: "id",
                 tooltip: {
                     "closable": true,
@@ -267,7 +288,7 @@ window.debug = window.debug || {};
                     },
                     html: "<strong>{{id}}</strong><br>" +
                         "<strong>{{rsid}}</strong><br>" +
-                        "P-value: <strong>{{pvalue|scinotation}}</strong><br>" +
+                        "P-value: <strong>{{pvalue|scinotation_handle_zero}}</strong><br>" +
                         "MAF: <strong>{{maf}}</strong><br>" +
                         "<a href='/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}'>PheWAS</a>"
                 },
@@ -279,7 +300,7 @@ window.debug = window.debug || {};
                 },
                 "y_axis": {
                     "axis": 1,
-                    "field": "pvalue|neglog10",
+                    "field": "pvalue|neglog10_or_100",
                     "floor": 0,
                     "upper_buffer": 0.1,
                     "min_extent": [0, 10]
