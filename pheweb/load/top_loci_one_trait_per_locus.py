@@ -7,6 +7,7 @@ import csv
 import os.path
 
 LOCI_SPREAD_FROM_BEST_HIT = int(500e3)
+LOCI_SPREAD_FROM_BEST_HIT_WITHIN_PHENOTYPE = int(1e6)
 PVAL_CUTOFF = 1e-6
 
 def get_hits():
@@ -30,7 +31,15 @@ def get_hits():
     for hits in hits_by_chrom.values():
         while hits:
             best_hit = min(hits, key=lambda hit: hit['pval'])
-            hits = [h for h in hits if h is not best_hit and abs(h['pos'] - best_hit['pos']) >= LOCI_SPREAD_FROM_BEST_HIT]
+            remaining_hits = []
+            for h in hits:
+                if h is best_hit: continue
+                if h['phenocode'] == best_hit['phenocode']:
+                    if abs(h['pos'] - best_hit['pos']) >= LOCI_SPREAD_FROM_BEST_HIT_WITHIN_PHENOTYPE:
+                        remaining_hits.append(h)
+                elif abs(h['pos'] - best_hit['pos']) >= LOCI_SPREAD_FROM_BEST_HIT:
+                    remaining_hits.append(h)
+            hits = remaining_hits
             yield best_hit
 
 def run(argv):
