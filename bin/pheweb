@@ -20,10 +20,10 @@ for submodule in '''
  make_qq
  make_matrix
  bgzip_phenos
- top_loci
+ top_hits
  process_assoc_files
  make_wsgi
- top_loci_one_trait_per_locus
+ top_loci
 '''.split():
     def f(submodule, argv):
         module = importlib.import_module('pheweb.load.{}'.format(submodule))

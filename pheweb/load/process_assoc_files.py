@@ -23,7 +23,7 @@ make_manhattan
 make_qq
 make_matrix
 bgzip_phenos
-top_loci
+top_hits
 '''.split()
 
 def run(argv):
