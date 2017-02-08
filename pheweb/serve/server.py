@@ -56,7 +56,7 @@ def variant_page(query):
     try:
         variant = utils.get_variant(query, phenos)
         if variant is None:
-            die("Sorry, I couldn't find the variant {}".format(query.encode('utf-8')))
+            die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
                                variant=variant)
     except Exception as exc:
@@ -90,7 +90,7 @@ def pheno_page(phenocode):
     try:
         pheno = phenos[phenocode]
     except:
-        die("Sorry, I couldn't find the pheno code {!r}".format(phenocode.encode('utf-8')))
+        die("Sorry, I couldn't find the pheno code {!r}".format(phenocode))
     return render_template('pheno.html',
                            phenocode=phenocode,
                            pheno=pheno,
@@ -101,7 +101,7 @@ def region_page(phenocode, region):
     try:
         pheno = phenos[phenocode]
     except:
-        die("Sorry, I couldn't find the phewas code {!r}".format(phenocode.encode('utf-8')))
+        die("Sorry, I couldn't find the phewas code {!r}".format(phenocode))
     pheno['phenocode'] = phenocode
     return render_template('region.html',
                            pheno=pheno,

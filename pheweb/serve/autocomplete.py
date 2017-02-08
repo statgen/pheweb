@@ -81,7 +81,6 @@ class Autocompleter(object):
         chrom, pos, ref, alt = utils.parse_variant(query, default_chrom_pos = False)
         if chrom is not None:
             key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
-            key = key.decode('ascii')
             for cpra, rsids in self._cpra_to_rsids_trie.iteritems(key):
                 cpra = cpra.replace('-', ':', 1)
                 yield {
@@ -93,7 +92,6 @@ class Autocompleter(object):
     def _autocomplete_rsid(self, query):
         query = query.lower()
         if query.startswith('rs'):
-            key = query.decode('ascii')
 
             # In Trie.iteritems, "rs100" comes before "rs1".
             # So, rsid_to_cpra_trie.iteritems("rs7412")[-1] is "rs7412".

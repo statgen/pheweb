@@ -277,7 +277,7 @@ def get_path(cmd, attr=None):
         path = getattr(conf, attr)
     else:
         try:
-            path = subprocess.check_output(['which', cmd]).strip().decode()
+            path = subprocess.check_output(['which', cmd]).strip().decode('utf8')
         except subprocess.CalledProcessError:
             pass
     if path is None:
