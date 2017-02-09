@@ -34,10 +34,13 @@ setup(
     # TODO: add test_suite (ie, make a single file that runs tests, figure out how to access input_data, make a data_dir in /tmp)
     license="MIT",
     classifiers=[
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3 :: Only',
+        'Operating System :: Unix',
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Visualization',
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
+        'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
     ],
     include_package_data=True,
     zip_safe=False,
@@ -53,5 +56,6 @@ setup(
         'scipy~=0.18',
         'numpy>=1.11',
         'attrdict~=2.0',
+        'gunicorn~=19.6',
     ]
 )
