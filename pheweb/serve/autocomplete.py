@@ -92,6 +92,7 @@ class Autocompleter(object):
     def _autocomplete_rsid(self, query):
         query = query.lower()
         if query.startswith('rs'):
+            key = query
 
             # In Trie.iteritems, "rs100" comes before "rs1".
             # So, rsid_to_cpra_trie.iteritems("rs7412")[-1] is "rs7412".
@@ -105,7 +106,7 @@ class Autocompleter(object):
                 cpra = self._rsid_to_cpra_trie.get(rsid)
                 if cpra is not None:
                     cpra = cpra[0]
-                    cpra = cpra.replace('-', ':', 1)
+                    cpra = cpra.decode('ascii').replace('-', ':', 1)
                     yield {
                         "value": cpra,
                         "display": '{} ({})'.format(rsid, cpra),
@@ -114,7 +115,7 @@ class Autocompleter(object):
 
             for rsid, cpra in self._rsid_to_cpra_trie.iteritems(key):
                 if rsid not in rsids_to_check: # don't repeat rsids we already yeld.
-                    cpra = cpra.replace('-', ':', 1)
+                    cpra = cpra.decode('ascii').replace('-', ':', 1)
                     yield {
                         "value": cpra,
                         "display": '{} ({})'.format(rsid, cpra),
