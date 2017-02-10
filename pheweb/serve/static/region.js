@@ -6,14 +6,15 @@ window.debug = window.debug || {};
     var remoteBase = "http://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
     data_sources.add("base", ["AssociationLZ", localBase]);
-    data_sources.add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10" }}]);
+    data_sources.add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10_or_100" }}]);
     data_sources.add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }]);
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }])
     data_sources.add("sig", ["StaticJSON", [{ "x": 0, "y": 4.522 }, { "x": 2881033286, "y": 4.522 }] ])
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
+        if (x === 0) return 100;
         var log = -Math.log(x) / Math.LN10;
-        return Math.min(log, 100);
+        return log;
     });
 
     LocusZoom.TransformationFunctions.add("scinotation_handle_zero", function(x) {
