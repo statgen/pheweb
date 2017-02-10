@@ -6,6 +6,10 @@ import os
 import importlib
 import functools
 
+if sys.version_info.major < 3:
+    print("Sorry, PheWeb doesn't work on Python 2.  Please use Python 3 by installing it with `pip3 install pheweb`.")
+    sys.exit(1)
+
 handlers = {}
 for submodule in '''
  phenolist
