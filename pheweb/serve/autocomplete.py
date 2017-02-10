@@ -83,6 +83,7 @@ class Autocompleter(object):
             key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
             for cpra, rsids in self._cpra_to_rsids_trie.iteritems(key):
                 cpra = cpra.replace('-', ':', 1)
+                rsids = rsids.decode('ascii')
                 yield {
                     "value": cpra,
                     "display": '{} ({})'.format(cpra, rsids) if rsids else cpra,
