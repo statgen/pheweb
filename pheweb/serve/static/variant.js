@@ -1,14 +1,13 @@
-var color_by_category = (function() {
-    var unique_categories = d3.set(window.variant.phenos.map(_.property('category'))).values();
-    return ((unique_categories.length>10) ? d3.scale.category20b() : d3.scale.category10())
-        .domain(unique_categories);
-})();
 
 (function() { // Create PheWAS plot.
 
-    window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phenocode); });
+    if (_.any(window.variant.phenos.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
+        window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return d.phenocode; });
+    } else {
+        window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phenocode); });
+    }
 
-    var first_of_each_category = (function() {
+    window.first_of_each_category = (function() {
         var categories_seen = {};
         return window.variant.phenos.filter(function(pheno) {
             if (categories_seen.hasOwnProperty(pheno.category)) {
@@ -28,11 +27,20 @@ var color_by_category = (function() {
         return rv;
     })();
 
-    // sortBy is a stable sort, so we just sort by category_order and we're good.
+    // _.sortBy is a stable sort, so we just sort by category_order and we're good.
     window.variant.phenos = _.sortBy(window.variant.phenos, function(d) {
         return category_order[d.category];
     });
 
+    window.color_by_category = (function() {
+        var unique_categories = d3.set(window.variant.phenos.map(_.property('category'))).values();
+        return ((unique_categories.length>10) ? d3.scale.category20() : d3.scale.category10())
+            .domain(unique_categories);
+    })();
+
+})();
+
+(function() { // Create PheWAS plot.
     $(function() {
         var svg_width = $('#phewas_plot_container').width();
         var svg_height = 550;
