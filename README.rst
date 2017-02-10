@@ -7,19 +7,15 @@ and I'll see what I can do to improve things.
 1. Install PheWeb
 -----------------
 
-1) Run ``pip2 install pheweb``.
+1) Run ``pip3 install pheweb``.
 
-   -  If you get an error about permissions, try
-      ``pip2 install --user pheweb``.
-   -  If that still doesn't work, make a python2 virtualenv. If you
-      don't have virtualenv installed, follow the directions
-      `here <https://virtualenv.pypa.io/en/stable/installation/>`__. Use
-      these commands to make a virtualenv and activate a virtualenv:
+   -  If that doesn't work, use a virtualenv like this:
 
       .. code:: bash
 
-          virtualenv --python=python2.7 ~/venv-python2 # Choose a path you like.
-          ~/venv-python2/bin/activate
+         python3 -m venv ~/venv3 # Choose whatever path you like.
+         ~/venv3/bin/activate
+         pip3 install pheweb
 
 2) Make a data directory. It should be in a location where you can
    afford to store twice as much data as the size of your input files.
