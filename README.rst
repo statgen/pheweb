@@ -34,16 +34,17 @@ and I'll see what I can do to improve things.
       stored. If you don't want one, set ``cache = False``. (default:
       ``cache = "~/.pheweb/cache/"``)
 
-4) Make sure you have tabix, bgzip, wget, and g++ and that they are on
-   your ``$PATH``. If you can't just run ``tabix``, ``bgzip``, ``wget``,
-   and ``g++`` from the command line, find a way to install them.
+4) Make sure you have tabix, bgzip, wget, and g++.  If you can't
+   just run ``tabix``, ``bgzip``, ``wget``, and ``g++`` from the
+   command line, find a way to install them or add them to your
+   ``$PATH``.
 
-   -  on macOS, you can install ``wget`` and ``htslib`` (which includes
-      ``tabix`` and ``bgzip``) with `homebrew <http://brew.sh>`__.
-   -  on linux, either use your system package manager or
-      `linuxbrew <http://linuxbrew.sh>`__.
-   -  if they aren't in your ``$PATH``, you can set ``tabix_path``,
-      ``bgzip_path``, ``wget_path``, and ``gxx_path`` in ``config.py``.
+   -  on macOS, run ``xcode-select --install`` to install XCode,
+      install `homebrew <http://brew.sh>`__, and run
+      ``brew install htslib wget``.
+   -  on Ubuntu, run ``apt-get install tabix g++``.  If you don't have
+      permissions, you can install `linuxbrew <http://linuxbrew.sh>`__
+      and run ``brew install htslib``.
 
 2. Prepare your association files
 ---------------------------------
