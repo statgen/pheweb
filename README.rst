@@ -279,8 +279,12 @@ B. Run PheWeb with the default settings, then use an SSH tunnel to
 At this point your PheWeb should be working how you want it to, and
 everything should be good except maybe the URL you're using.
 
-For maximum speed and safety, you should switch to running Flask behind
+To start, run Flask behind gunicorn.  To do that, run `pheweb make-wsgi`,
+to produce a file `wsgi.py`.  Then you can run
+`gunicorn -b 0.0.0.0:5000 -w4 wsgi`, to start a webserver.
+
+For maximum speed and safety, you should run gunicorn behind
 something like Apache2 or Nginx. More information about this is
-`here <http://flask.pocoo.org/docs/0.11/deploying/#deployment>`__. If
-you choose Apache2, I have some documentation for you
+`here <http://flask.pocoo.org/docs/0.12/deploying/wsgi-standalone/#gunicorn>`__.
+If you choose Apache2, I have some documentation for you
 `here <https://github.com/statgen/pheweb/tree/master/unnecessary_things/other_documentation/running_with_apache2>`__.

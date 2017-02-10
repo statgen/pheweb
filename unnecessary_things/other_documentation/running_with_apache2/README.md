@@ -1,18 +1,20 @@
 ### Running PheWeb with Apache2
 
-0. Install apache2 and `libapache2-mod-wsgi` (Ubuntu/Debian) or `mod_wsgi` (yum-based).
+0. Install apache2.
 
-1. Copy `wsgi.wsgi` somewhere.  I usually put it next to the repository or next to $data_dir.
-    - Modify the path in it so it points to your directory.  ie, if you have `/home/watman/projects/pheweb/server.py`, you need the path `/home/watman/projects/pheweb/`.
+1. Run `pheweb make-wsgi`.
 
-2. Copy `pheweb.conf` into `/etc/apache2/sites-available/`.
+2. Run `gunicorn -b 127.0.0.1:9974 -w4 wsgi` inside of `tmux` or `screen` or with `-D` to run as a daemon.
 
-    - Change the servername to what you're actually going to use.  If you're just going to use the IP address, or your server will only have one domain name, you don't need the line with `ServerName`.
-    - Modify the path in it to point to `wsgi.wsgi`.
-    - Put some email address in it, I'm not sure why.
+    - You can use whatever port you want and whatever number of workers (`-w`) you want.
 
-3. Run `a2ensite pheweb`, which should make a symlink in `/etc/apache2/sites-enabled/`
+3. Run `a2enmod proxy proxy_http`.
 
-4. Run `sudo service apache2 restart`.  You can run this command (or the faster `sudo service apache2 reload`) after changing files to update the running copy of the site.
+4. Copy `pheweb.conf` into `/etc/apache2/sites-available/`.
 
-See <http://flask.pocoo.org/docs/0.11/deploying/mod_wsgi/> or email me if you have trouble.
+    - If you need name-based virtual hosts, add `ServerName foo.example.com` into the virtualhost section.
+
+5. Run `a2ensite pheweb`, which should make a symlink in `/etc/apache2/sites-enabled/`
+
+6. Run `sudo service apache2 restart`.
+
