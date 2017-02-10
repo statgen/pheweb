@@ -28,6 +28,11 @@ from pheweb.serve.server import app as application
 
 
 def run(argv):
+    out_fname = os.path.join(conf.data_dir, 'wsgi.py')
+
+    if argv and argv[0] == '-h':
+        print('Make {}, which can be used with gunicorn or other WSGI-compatible webservers.'.format(
+        out_fname))
 
     if 'VIRTUAL_ENV' in os.environ:
         template = template1 + template2 + template3
@@ -41,5 +46,5 @@ def run(argv):
         venv_dir=venv_dir,
     )
 
-    with open(os.path.join(conf.data_dir, 'wsgi.py'), 'w') as f:
+    with open(out_fname, 'w') as f:
         f.write(wsgi)
