@@ -1,7 +1,4 @@
 
-
-
-
 from .. import utils
 conf = utils.conf
 
@@ -144,18 +141,3 @@ def error_page(message):
 def apply_caching(response):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     return response
-
-
-def run(argv):
-
-    import argparse
-    import glob
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--host', default='0.0.0.0', help='the hostname to use to access this server')
-    parser.add_argument('--port', type=int, default=5000, help='an integer for the accumulator')
-    args = parser.parse_args(argv)
-    app.run(host=args.host, port=args.port,
-            threaded=True, # seems to be bad at dying when I ctrl-C / SIGTERM.
-            debug=True, use_evalex=False,
-            use_reloader=True,
-    )

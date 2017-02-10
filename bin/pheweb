@@ -35,8 +35,8 @@ for submodule in '''
     handlers[submodule.replace('_', '-')] = functools.partial(f, submodule)
 
 def serve_run(argv):
-    from pheweb.serve import server
-    server.run(argv)
+    from pheweb.serve import serverun
+    serverun.run(argv)
 handlers['serve'] = serve_run
 
 
