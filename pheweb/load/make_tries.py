@@ -40,7 +40,3 @@ def run(argv):
         rsid_to_cpra_trie = marisa_trie.BytesTrie(reversed_lines, order=marisa_trie.LABEL_ORDER)
         rsid_to_cpra_trie.save(rsid_to_cpra_trie_fname)
         print('done with rsid->cpra trie at ' + rsid_to_cpra_trie_fname)
-
-
-if __name__ == '__main__':
-    run([])

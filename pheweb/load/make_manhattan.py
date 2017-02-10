@@ -148,7 +148,3 @@ def run(argv):
     print('number of phenos to process:', len(conversions_to_do))
     with multiprocessing.Pool(utils.get_num_procs()) as p:
         p.map(make_json_file, conversions_to_do)
-
-
-if __name__ == '__main__':
-    run([])

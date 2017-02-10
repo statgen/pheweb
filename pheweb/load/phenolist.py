@@ -635,6 +635,3 @@ def run(argv):
 
     args = parser.parse_args(argv)
     subcommand_handlers[args.subcommand](args)
-
-if __name__ == '__main__':
-    run(sys.argv[1:])

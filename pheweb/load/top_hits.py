@@ -57,7 +57,3 @@ def run(argv):
     with open(out_fname, 'w') as f:
         json.dump(hits, f, sort_keys=True, indent=0)
     print("wrote {} hits to {}".format(len(hits), out_fname))
-
-
-if __name__ == '__main__':
-    run([])

@@ -59,7 +59,3 @@ def run(argv):
         writer.writeheader()
         writer.writerows(hits)
     print("wrote {} hits to {}".format(len(hits), out_fname))
-
-
-if __name__ == '__main__':
-    run([])

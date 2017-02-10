@@ -65,7 +65,3 @@ def run(argv):
 
     else:
         print("gencode is at {bed_file!r}".format(bed_file=bed_file))
-
-
-if __name__ == '__main__':
-    run([])

@@ -120,6 +120,3 @@ def run(argv):
         print('gene annotation is up-to-date!')
     else:
         annotate_genes(input_file, temp_file, output_file, genes_file)
-
-if __name__ == '__main__':
-    run([])

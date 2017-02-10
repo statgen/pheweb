@@ -39,7 +39,3 @@ def run(argv):
 
     else:
         print("dbsnp is at '{clean_file}'".format(clean_file=clean_file))
-
-
-if __name__ == '__main__':
-    run([])

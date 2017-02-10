@@ -135,7 +135,3 @@ def run(argv):
                 # No match, just print each cpra with an empty `rsids` column
                 for cpra in cp_group:
                     print('{chrom}\t{pos}\t{ref}\t{alt}\t'.format(**cpra), file=out_f)
-
-
-if __name__ == '__main__':
-    run([])

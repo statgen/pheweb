@@ -210,7 +210,3 @@ def run(argv):
     if not failed:
         assert len(manna_dict['files_to_merge']) == 1, manna_dict['files_to_merge']
         os.rename(manna_dict['files_to_merge'][0], out_filename)
-
-
-if __name__ == '__main__':
-    run([])

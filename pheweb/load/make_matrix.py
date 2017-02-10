@@ -70,7 +70,3 @@ def run(argv):
         utils.run_cmd([tabix, '-p','vcf', matrix_gz_fname])
     else:
         print('matrix is up-to-date!')
-
-
-if __name__ == '__main__':
-    run([])

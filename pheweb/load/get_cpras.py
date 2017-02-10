@@ -83,6 +83,3 @@ def run(argv):
             json.dump(bad_results, f)
         print('wrote bad_results into {!r}'.format(fname))
         raise Exception('Cannot continue when some files failed')
-
-if __name__ == '__main__':
-    run([])

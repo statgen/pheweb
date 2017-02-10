@@ -159,6 +159,3 @@ def run(argv):
             debug=True, use_evalex=False,
             use_reloader=True,
     )
-
-if __name__ == '__main__':
-    run(sys.argv[1:])
