@@ -45,13 +45,13 @@ def get_hits():
 def run(argv):
 
     hits = sorted(get_hits(), key=lambda hit: hit['pval'])
-    out_fname = os.path.join(conf.data_dir, 'top_hits_one_trait_per_locus.json')
+    out_fname = os.path.join(conf.data_dir, 'top_loci.json')
     with open(out_fname, 'w') as f:
         json.dump(hits, f, sort_keys=True, indent=0)
     print("wrote {} hits to {}".format(len(hits), out_fname))
 
     for h in hits: h['nearest_genes'] = ','.join(h['nearest_genes'])
-    out_fname = os.path.join(conf.data_dir, 'top_hits_one_trait_per_locus.tsv')
+    out_fname = os.path.join(conf.data_dir, 'top_loci.tsv')
     with open(out_fname, 'w') as f:
         fieldnames = 'chrom pos ref alt rsids maf pval'.split()
         fieldnames = fieldnames + list(set(hits[0].keys()) - set(fieldnames))

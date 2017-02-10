@@ -57,6 +57,14 @@ Subcommands:
 
     pheweb serve
         host a webserver
+
+    pheweb make-wsgi
+        make wsgi.py, which can be used with gunicorn or other WSGI-compatible webservers.
+
+    pheweb top-loci
+        make top-loci.tsv, which contains variants with p<1e-6 that are better than
+        all other variants within 500kb and are better than all variants within 1Mb
+        in the same phenotype.
 '''.format(version.version))
 
 subcommand = sys.argv[1] if len(sys.argv)>1 else ''
