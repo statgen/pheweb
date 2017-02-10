@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+
 
 '''
 This script annotates `cpra.tsv` with rsids (comma-separated) from `sites/dbSNP/rsids.vcf.gz`.  It prints output to `cpra_rsids.tsv`.

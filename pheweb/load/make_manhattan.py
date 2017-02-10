@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+
 
 # TODO: copy MAX_NUM_UNBINNED from ENCORE
 # TODO: combine with QQ

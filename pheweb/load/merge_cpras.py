@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+
 
 '''
 I'm reading in a full position at a time to avoid this issue that was happening before:

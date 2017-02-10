@@ -245,7 +245,7 @@ A. Run PheWeb exposed to anybody on the internet. This might be
 
    You need a port that can get through your firewall. 80 or 5000
    probably work, though 80 will require you to run something like
-   ``sudo $(which python2) $(which pheweb) serve --port 80``.
+   ``sudo $(which python3) $(which pheweb) serve --port 80``.
 
    Find an IP adddress or hostname that refers to your server. If you
    ssh into your server with ``ssh watman@foobar.example.com``, this is
