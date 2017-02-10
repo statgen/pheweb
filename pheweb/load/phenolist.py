@@ -269,7 +269,7 @@ def numify_numeric_cols(phenolist):
 
 def print_as_csv(phenolist):
     phenolist = copy.deepcopy(phenolist)
-    all_columns = list(more_itertools.unique_everseen(col for pheno in phenolist for col in pheno))
+    all_columns = sorted(set(col for pheno in phenolist for col in pheno))
     w = csv.DictWriter(sys.stdout, all_columns)
     w.writeheader()
     for pheno in phenolist:

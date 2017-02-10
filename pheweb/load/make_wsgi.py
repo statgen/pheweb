@@ -20,12 +20,10 @@ with open(path) as f:
 
 template3 = '''
 sys.path.insert(0, '{pheweb_dir}')
-
 os.environ['PHEWEB_DATADIR'] = os.path.dirname(os.path.abspath(__file__))
-from pheweb import utils
 
 from pheweb.serve.server import app as application
-# The word `application` is special to WSGI
+# The variable `application` is the default for WSGI
 '''
 
 
