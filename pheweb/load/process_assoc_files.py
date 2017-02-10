@@ -27,6 +27,12 @@ top_hits
 '''.split()
 
 def run(argv):
+    if argv and argv[0] == '-h':
+        print('Run all the steps to go from a prepared phenolist to a ready-to-serve pheweb.')
+        print('This is equivalent to running:\n')
+        print(' &&\n'.join('    pheweb {}'.format(script.replace('_', '-')) for script in scripts))
+        exit(0)
+
     for script in scripts:
         print('==> Starting', script)
         start_time = time.time()
