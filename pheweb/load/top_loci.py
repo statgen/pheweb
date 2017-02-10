@@ -43,19 +43,36 @@ def get_hits():
             yield best_hit
 
 def run(argv):
+    out_fname_json = os.path.join(conf.data_dir, 'top_loci.json')
+    out_fname_tsv = os.path.join(conf.data_dir, 'top_loci.tsv')
+
+    if argv and argv[0] == '-h':
+        formatted_pval_cutoff = '{:0.0e}'.format(PVAL_CUTOFF).replace('e-0', 'e-')
+        print('''
+Make lists of top loci for this PheWeb in {} and {}.
+
+To count as a top loci, a variant must:
+- have a p-value < {}
+- have the smallest p-value within {:,} bases
+- have the smallest p-value within {:,} bases within its phenotype
+'''.format(out_fname_json,
+                   out_fname_tsv,
+                   formatted_pval_cutoff,
+                   LOCI_SPREAD_FROM_BEST_HIT,
+                   LOCI_SPREAD_FROM_BEST_HIT_WITHIN_PHENOTYPE
+        ))
+        exit(0)
 
     hits = sorted(get_hits(), key=lambda hit: hit['pval'])
-    out_fname = os.path.join(conf.data_dir, 'top_loci.json')
-    with open(out_fname, 'w') as f:
+    with open(out_fname_json, 'w') as f:
         json.dump(hits, f, sort_keys=True, indent=0)
-    print("wrote {} hits to {}".format(len(hits), out_fname))
+    print("wrote {} hits to {}".format(len(hits), out_fname_json))
 
     for h in hits: h['nearest_genes'] = ','.join(h['nearest_genes'])
-    out_fname = os.path.join(conf.data_dir, 'top_loci.tsv')
-    with open(out_fname, 'w') as f:
+    with open(out_fname_tsv, 'w') as f:
         fieldnames = 'chrom pos ref alt rsids maf pval'.split()
         fieldnames = fieldnames + list(set(hits[0].keys()) - set(fieldnames))
         writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
         writer.writerows(hits)
-    print("wrote {} hits to {}".format(len(hits), out_fname))
+    print("wrote {} hits to {}".format(len(hits), out_fname_tsv))
