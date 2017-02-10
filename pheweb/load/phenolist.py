@@ -464,6 +464,9 @@ def run(argv):
     # TODO: clean up that nasty usage, especially the {...}
     # TODO: its' awkward that some printing is to STDERR and some to STDOUT.  Use logger.
 
+    import signal
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL) # don't throw a messy exception when running `pheweb phenolist ... | head`
+
     import argparse
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='subcommand')
