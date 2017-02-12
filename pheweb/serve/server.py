@@ -8,6 +8,7 @@ from flask_compress import Compress
 from .autocomplete import Autocompleter
 from . import region
 
+import functools
 import re
 import traceback
 import sys

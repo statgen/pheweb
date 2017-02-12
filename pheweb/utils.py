@@ -1,6 +1,5 @@
 
 
-
 import re
 import itertools
 import functools
@@ -332,18 +331,7 @@ def get_num_procs():
     return n_cpus * 3//4
 
 
-def dumb_cache(f):
-    cache = {}
-    @functools.wraps(f)
-    def f2(*args, **kwargs):
-        key = (tuple(args), tuple(kwargs.items()))
-        if key not in cache:
-            cache[key] = f(*args, **kwargs)
-        return cache[key]
-    return f2
-
-
-@dumb_cache
+@functools.lru_cache(None)
 def ensure_conf_is_loaded():
 
     conf.data_dir = os.environ.get('PHEWEB_DATADIR', False) or os.path.abspath(os.path.curdir)
