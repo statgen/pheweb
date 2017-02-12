@@ -2,7 +2,7 @@
 from .. import utils
 conf = utils.conf
 
-from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory
+from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, url_for
 from flask_compress import Compress
 
 from .autocomplete import Autocompleter
@@ -94,6 +94,35 @@ def pheno_page(phenocode):
                            pheno=pheno,
     )
 
+
+@functools.lru_cache(None)
+def get_gene_region_mapping():
+    return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in utils.get_gene_tuples()}
+
+@app.route('/region/<phenocode>/gene/<genename>')
+def gene_phenocode_page(phenocode, genename):
+    # TODO: include all genes, not just {protein_coding, TR/IG_CDJV}
+    #       also, pull in synonymns from dbSNFP (or wherever Matthew decides is better)
+    try:
+        gene_region_mapping = get_gene_region_mapping()
+        chrom, start, end = gene_region_mapping[genename]
+
+        include_string = request.args.get('include', '')
+        if include_string:
+            include_chrom, include_pos = include_string.split('-')
+            include_pos = int(include_pos)
+            assert include_chrom == chrom
+            if include_pos < start: start = include_pos
+            if include_pos > end: end = include_pos
+
+        delta = max(200, (end - start) // 10)
+        start, end = max(1, start - delta), end + delta
+
+        return redirect(url_for('region_page', phenocode=phenocode, region='{}:{}-{}'.format(chrom, start, end)))
+    except Exception as exc:
+        die("Sorry, your region request didn't work", exception=exc)
+
+
 @app.route('/region/<phenocode>/<region>')
 def region_page(phenocode, region):
     try:
@@ -127,6 +156,7 @@ def die(message='no message', exception=None):
     if exception is not None:
         print(exception)
         traceback.print_exc()
+    print(message)
     flash(message)
     abort(404)
 

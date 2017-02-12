@@ -67,7 +67,11 @@
     <td><a style="color:black" href="/pheno/<%= h.phenocode %>">
         <%= h.phenostring || h.phenocode %>
     </a></td>
-    <td><i><%= h.nearest_genes.join(', ') %></i></td>
+    <td>
+      <% h.nearest_genes.forEach(function(g) { %>
+      <a style="color:black" href="/region/<%= h.phenocode %>/gene/<%= g %>?include=<%= h.chrom %>-<%= h.pos %>"><i><%= g %></i></a>
+      <% }) %>
+    </td>
     <td><%= h.maf.toPrecision(2) %></td>
     <td><%= h.pval.toExponential(1) %></td>
   </tr>
