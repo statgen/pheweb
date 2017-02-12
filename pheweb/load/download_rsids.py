@@ -11,13 +11,7 @@ dbsnp_version = 147
 dbsnp_dir = os.path.join(conf.data_dir, 'sites', 'dbSNP')
 tmp_file = os.path.join(dbsnp_dir, 'tmp-dbsnp-b{}-GRCh37.gz'.format(dbsnp_version))
 raw_file = os.path.join(dbsnp_dir, 'dbsnp-b{}-GRCh37.gz'.format(dbsnp_version))
-
-clean_file = 'rsids-{}.vcf.gz'.format(dbsnp_version)
-if hasattr(conf, 'cache'):
-    utils.mkdir_p(conf.cache)
-    clean_file = os.path.join(conf.cache, clean_file)
-else:
-    clean_file = os.path.join(dbsnp_dir, clean_file)
+clean_file = utils.get_cacheable_file_location(dbsnp_dir, 'rsids-{}.vcf.gz'.format(dbsnp_version))
 
 def run(argv):
     if not os.path.exists(clean_file):

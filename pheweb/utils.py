@@ -16,7 +16,7 @@ import time
 import attrdict
 import imp
 import multiprocessing
-
+import csv
 
 conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
 
@@ -320,6 +320,21 @@ def run_cmd(cmd):
         print(data)
         raise Exception()
     return data
+
+
+def get_cacheable_file_location(default_dir, fname):
+    if 'cache' in conf:
+        return os.path.join(conf.cache, fname)
+    return os.path.join(conf.cache, fname)
+
+
+def get_gene_tuples():
+    genes_file = get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'genes'), 'genes.bed')
+
+    with open(genes_file) as f:
+        for row in csv.reader(f, delimiter='\t'):
+            assert row[0] in chrom_order_list, row[0]
+            yield (row[0], int(row[1]), int(row[2]), row[3])
 
 
 def get_num_procs():

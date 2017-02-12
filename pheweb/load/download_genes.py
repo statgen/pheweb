@@ -12,24 +12,18 @@ import gzip
 gene_dir = os.path.join(conf.data_dir, 'sites', 'genes')
 bed_file = os.path.join(gene_dir, 'genes.bed')
 gencode_file = os.path.join(gene_dir, 'gencode.gtf.gz')
-
-if hasattr(conf, 'cache'):
-    utils.mkdir_p(conf.cache)
-    bed_file = os.path.join(conf.cache, 'genes.bed')
-else:
-    bed_file = os.path.join(gene_dir, 'genes.ged')
-
+bed_file = utils.get_cacheable_file_location(gene_dir, 'genes.bed')
 
 good_genetypes = set('''
 protein_coding
-IG_V_gene
-TR_V_gene
-TR_J_gene
 IG_C_gene
 IG_D_gene
 IG_J_gene
+IG_V_gene
 TR_C_gene
 TR_D_gene
+TR_J_gene
+TR_V_gene
 '''.split())
 
 

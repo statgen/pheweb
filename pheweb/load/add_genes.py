@@ -80,17 +80,10 @@ class GeneAnnotator(object):
             return nearest_gene_end[1]
         return nearest_gene_start[1]
 
-_legal_chroms = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M']
-def get_interval_tuples(genes_file):
-    with open(genes_file) as f:
-        for row in csv.reader(f, delimiter='\t'):
-            assert row[0] in _legal_chroms, row[0]
-            yield (row[0], int(row[1]), int(row[2]), row[3])
 
-
-def annotate_genes(file_to_annotate, temp_file, output_file, genes_file):
+def annotate_genes(file_to_annotate, temp_file, output_file):
     '''All four args are filepaths'''
-    ga = GeneAnnotator(get_interval_tuples(genes_file))
+    ga = GeneAnnotator(utils.get_gene_tuples())
     with open(file_to_annotate) as in_f, \
          open(temp_file, 'w') as out_f:
         for line in in_f:
@@ -108,10 +101,7 @@ def run(argv):
     input_file = os.path.join(conf.data_dir, 'sites/cpra_rsids.tsv')
     output_file = os.path.join(conf.data_dir, 'sites/sites.tsv')
     temp_file = os.path.join(conf.data_dir, 'tmp/sites.tsv')
-    if hasattr(conf, 'cache'):
-        genes_file = os.path.join(conf.cache, 'genes.bed')
-    else:
-        genes_file = os.path.join(conf.data_dir, 'sites', 'genes','genes.bed')
+    genes_file = utils.get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'genes'), 'genes.bed')
 
     def mod_time(fname):
         return os.stat(fname).st_mtime
@@ -119,4 +109,4 @@ def run(argv):
     if os.path.exists(output_file) and max(mod_time(genes_file), mod_time(input_file)) < mod_time(output_file):
         print('gene annotation is up-to-date!')
     else:
-        annotate_genes(input_file, temp_file, output_file, genes_file)
+        annotate_genes(input_file, temp_file, output_file)

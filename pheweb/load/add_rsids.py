@@ -29,10 +29,8 @@ import csv
 import itertools
 
 
-if hasattr(conf, 'cache'):
-    rsids_filename = os.path.join(conf.cache, 'rsids-147.vcf.gz')
-else:
-    rsids_filename = os.path.join(conf.data_dir, 'sites', 'dbSNP', 'rsids-147.vcf.gz')
+
+rsids_filename = utils.get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'dbSNP'), 'rsids-147.vcf.gz')
 cpra_filename = conf.data_dir + "/sites/cpra.tsv"
 out_filename = conf.data_dir + "/sites/cpra_rsids.tsv"
 
