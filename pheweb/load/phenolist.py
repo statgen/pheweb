@@ -253,8 +253,8 @@ def listify_assoc_files(phenolist):
 def numify_numeric_cols(phenolist):
     int_regex = re.compile(r'^-?(?:[1-9]\d)?\d$')
     float_regex = re.compile(r'^-?(?:[1-9]\d*)?\d(?:\.\d+)?(?:[Ee]-?\d+)?$')
-    floaty = lambda value: isinstance(value, str) and float_regex.match(value)
-    inty = lambda value: isinstance(value, str) and int_regex.match(value)
+    def floaty(value): return isinstance(value, str) and float_regex.match(value)
+    def inty(value): return isinstance(value, str) and int_regex.match(value)
     all_keys = list(set(itertools.chain.from_iterable(phenolist)))
     for key in all_keys:
         if all(inty(pheno[key]) for pheno in phenolist if key in pheno):

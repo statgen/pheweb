@@ -56,11 +56,11 @@ To count as a top loci, a variant must:
 - have the smallest p-value within {:,} bases
 - have the smallest p-value within {:,} bases within its phenotype
 '''.format(out_fname_json,
-                   out_fname_tsv,
-                   formatted_pval_cutoff,
-                   LOCI_SPREAD_FROM_BEST_HIT,
-                   LOCI_SPREAD_FROM_BEST_HIT_WITHIN_PHENOTYPE
-        ))
+           out_fname_tsv,
+           formatted_pval_cutoff,
+           LOCI_SPREAD_FROM_BEST_HIT,
+           LOCI_SPREAD_FROM_BEST_HIT_WITHIN_PHENOTYPE
+))
         exit(0)
 
     hits = sorted(get_hits(), key=lambda hit: hit['pval'])

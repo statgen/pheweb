@@ -7,7 +7,6 @@ from .. import utils
 conf = utils.conf
 
 import time
-import os.path
 import importlib
 
 scripts = '''

@@ -17,7 +17,6 @@ conf = utils.conf
 
 import intervaltree
 import bisect
-import csv
 import os
 import os.path
 import more_itertools

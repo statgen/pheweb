@@ -11,7 +11,6 @@ from . import region
 import functools
 import re
 import traceback
-import sys
 
 app = Flask(__name__)
 Compress(app)

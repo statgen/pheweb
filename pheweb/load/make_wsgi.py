@@ -32,7 +32,7 @@ def run(argv):
 
     if argv and argv[0] == '-h':
         print('Make {}, which can be used with gunicorn or other WSGI-compatible webservers.'.format(
-        out_fname))
+            out_fname))
 
     if 'VIRTUAL_ENV' in os.environ:
         template = template1 + template2 + template3

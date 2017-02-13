@@ -8,7 +8,6 @@
 from .. import utils
 conf = utils.conf
 
-import glob
 import os
 import json
 import math

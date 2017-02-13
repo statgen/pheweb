@@ -19,7 +19,6 @@ conf = utils.conf
 
 import contextlib
 import os
-import glob
 import random
 import multiprocessing
 import datetime
