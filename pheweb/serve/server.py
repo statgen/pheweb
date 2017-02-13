@@ -11,6 +11,8 @@ from . import region
 import functools
 import re
 import traceback
+import os
+import json
 
 app = Flask(__name__)
 Compress(app)
@@ -21,7 +23,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 9
 if 'custom_templates' in conf:
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
-phenos = utils.get_phenos_with_colnums(app.root_path)
+phenos = utils.get_phenos_with_colnums()
 
 autocompleter = Autocompleter(phenos)
 
@@ -94,33 +96,6 @@ def pheno_page(phenocode):
     )
 
 
-@functools.lru_cache(None)
-def get_gene_region_mapping():
-    return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in utils.get_gene_tuples()}
-
-@app.route('/region/<phenocode>/gene/<genename>')
-def gene_phenocode_page(phenocode, genename):
-    # TODO: include all genes, not just {protein_coding, TR/IG_CDJV}
-    #       also, pull in synonymns from dbSNFP (or wherever Matthew decides is better)
-    try:
-        gene_region_mapping = get_gene_region_mapping()
-        chrom, start, end = gene_region_mapping[genename]
-
-        include_string = request.args.get('include', '')
-        if include_string:
-            include_chrom, include_pos = include_string.split('-')
-            include_pos = int(include_pos)
-            assert include_chrom == chrom
-            if include_pos < start: start = include_pos
-            if include_pos > end: end = include_pos
-
-        delta = max(200, (end - start) // 10)
-        start, end = max(1, start - delta), end + delta
-
-        return redirect(url_for('region_page', phenocode=phenocode, region='{}:{}-{}'.format(chrom, start, end)))
-    except Exception as exc:
-        die("Sorry, your region request didn't work", exception=exc)
-
 
 @app.route('/region/<phenocode>/<region>')
 def region_page(phenocode, region):
@@ -141,6 +116,68 @@ def api_region(phenocode):
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
     rv = region.get_rows(phenocode, chrom, pos_start, pos_end)
     return jsonify(rv)
+
+
+@functools.lru_cache(None)
+def get_gene_region_mapping():
+    return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in utils.get_gene_tuples()}
+
+@app.route('/region/<phenocode>/gene/<genename>')
+def gene_phenocode_page(phenocode, genename):
+    try:
+        gene_region_mapping = get_gene_region_mapping()
+        chrom, start, end = gene_region_mapping[genename]
+
+        include_string = request.args.get('include', '')
+        if include_string:
+            include_chrom, include_pos = include_string.split('-')
+            include_pos = int(include_pos)
+            assert include_chrom == chrom
+            if include_pos < start: start = include_pos
+            if include_pos > end: end = include_pos
+        delta = max(200, (end - start) // 10)
+        start, end = max(1, start - delta), end + delta
+
+        pheno = phenos[phenocode]
+
+        best_phenos_by_gene = get_best_phenos_by_gene()
+        phenocodes = best_phenos_by_gene.get(genename, [])
+
+        return render_template('gene.html',
+                               phenocodes=[p for p in phenocodes if p != phenocode],
+                               pheno=pheno,
+                               gene_symbol=genename,
+                               region='{}:{}-{}'.format(chrom, start, end))
+    except Exception as exc:
+        die("Sorry, your region request didn't work", exception=exc)
+
+
+@functools.lru_cache(None)
+def get_best_phenos_by_gene():
+    with open(os.path.join(conf.data_dir, 'best-phenos-by-gene.json')) as f:
+        return json.load(f)
+
+@app.route('/gene/<genename>')
+def gene_page(genename):
+    try:
+        gene_region_mapping = get_gene_region_mapping()
+        chrom, start, end = gene_region_mapping[genename]
+        delta = max(200, (end - start) // 10)
+        start, end = max(1, start - delta), end + delta
+
+        best_phenos_by_gene = get_best_phenos_by_gene()
+        phenocodes = best_phenos_by_gene.get(genename, [])
+        if not phenocodes:
+            die("Sorry, that gene doesn't appear to have any associations significant enough to be shown.")
+
+        pheno = phenos[phenocodes[0]]
+        return render_template('gene.html',
+                               phenocodes=phenocodes[1:],
+                               pheno=pheno,
+                               gene_symbol=genename,
+                               region='{}:{}-{}'.format(chrom, start, end))
+    except Exception as exc:
+        die("Sorry, your region request didn't work", exception=exc)
 
 
 @app.route('/')

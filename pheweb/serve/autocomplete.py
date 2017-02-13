@@ -7,6 +7,7 @@ import itertools
 import re
 import marisa_trie
 import copy
+import os
 
 # TODO: sort suggestions better.
 # - It's good that hitting enter sends you to the thing with the highest token-ratio.
@@ -17,6 +18,7 @@ import copy
 #         - Could we send token-sort-ratio along and tell typeaheadjs to sort on it? No, b/c the query changes.
 #         - but, stringy things should just be in a streamtable anyways.
 
+
 class Autocompleter(object):
     def __init__(self, phenos):
         self._phenos = copy.deepcopy(phenos)
@@ -24,11 +26,13 @@ class Autocompleter(object):
 
         self._cpra_to_rsids_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/cpra_to_rsids_trie.marisa')
         self._rsid_to_cpra_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/rsid_to_cpra_trie.marisa')
+        self._gene_alias_trie = marisa_trie.BytesTrie().load(utils.get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'genes'), 'gene_aliases.marisa_trie'))
 
         self._autocompleters = [
             self._autocomplete_variant,
             self._autocomplete_rsid,
             self._autocomplete_phenocode,
+            self._autocomplete_gene,
         ]
         if any('phenostring' in pheno for pheno in self._phenos.values()):
             self._autocompleters.append(self._autocomplete_phenostring)
@@ -142,6 +146,31 @@ class Autocompleter(object):
                     "display": "{} ({})".format(pheno['phenostring'], phenocode),
                     "url": "/pheno/{}".format(phenocode),
                 }
+
+    def _autocomplete_gene(self, query):
+        key = query.upper()
+        if len(key) > 2:
+
+            for alias, canonical_symbol in self._gene_alias_trie.iteritems(key):
+                canonical_symbol = canonical_symbol.decode('ascii')
+                if ',' in canonical_symbol:
+                    yield {
+                        'value': canonical_symbol.split(',')[0],
+                        'display': '{} (alias for {})'.format(alias, ' and '.join(canonical_symbol.split(','))),
+                        'url': '/error/the gene {} is connected to the genes {}'.format(alias, ' and '.join(canonical_symbol.split(','))),
+                    }
+                elif canonical_symbol == alias:
+                    yield {
+                        "value": canonical_symbol,
+                        "display": canonical_symbol,
+                        "url": "/gene/{}".format(canonical_symbol),
+                    }
+                else:
+                    yield {
+                        "value": canonical_symbol,
+                        "display": '{} (alias for {})'.format(alias, canonical_symbol),
+                        "url": "/gene/{}".format(canonical_symbol),
+                    }
 
     _regex_get_icd9_code_autocompletion = re.compile('^\s*V?[0-9]')
     def _autocomplete_icd9_code(self, query):

@@ -17,19 +17,16 @@ def convert(kwargs):
     src_fname = kwargs['src_fname']
     tmp_fname = kwargs['tmp_fname']
     out_fname = kwargs['out_fname']
-    tbi_fname = kwargs['tbi_fname']
     print("{} -> {}".format(src_fname, out_fname))
-    if not os.path.exists(out_fname):
 
-        utils.run_script('''
-        # Tabix expects the header line to start with a '#'
-        ('{echo}' -n '#'; cat '{src_fname}') | '{bgzip}' > '{tmp_fname}'
-        '''.format(echo=echo, src_fname=src_fname, bgzip=bgzip, tmp_fname=tmp_fname))
-        os.rename(tmp_fname, out_fname)
-        utils.run_cmd([tabix, '-p', 'vcf', out_fname])
+    utils.run_script('''
+    # Tabix expects the header line to start with a '#'
+    ('{echo}' -n '#'; cat '{src_fname}') | '{bgzip}' > '{tmp_fname}'
+    '''.format(echo=echo, src_fname=src_fname, bgzip=bgzip, tmp_fname=tmp_fname))
+    os.rename(tmp_fname, out_fname)
 
-    elif not os.path.exists(tbi_fname):
-        utils.run_cmd([tabix, '-p', 'vcf', out_fname])
+    utils.run_cmd([tabix, '-p', 'vcf', '-f', out_fname])
+
 
 def get_conversions_to_do():
     for fname in os.listdir(augmented_pheno_dir):
@@ -37,12 +34,12 @@ def get_conversions_to_do():
         tmp_fname = os.path.join(tmp_dir, 'augmented_pheno_gz-{}.gz'.format(fname))
         out_fname = os.path.join(augmented_pheno_gz_dir, '{}.gz'.format(fname))
         tbi_fname = os.path.join(augmented_pheno_gz_dir, '{}.gz.tbi'.format(fname))
-        if not os.path.exists(out_fname) or os.stat(src_fname).st_mtime > os.stat(out_fname).st_mtime:
+        if not os.path.exists(out_fname) or not os.path.exists(tbi_fname) or \
+           os.stat(src_fname).st_mtime > min(os.stat(out_fname).st_mtime, os.stat(tbi_fname).st_mtime):
             yield {
                 'src_fname': src_fname,
                 'tmp_fname': tmp_fname,
                 'out_fname': out_fname,
-                'tbi_fname': tbi_fname,
             }
 
 def run(argv):

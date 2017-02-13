@@ -76,7 +76,7 @@ def get_phenolist():
               "The error it produced was:")
         raise
 
-def get_phenos_with_colnums(app_root_path):
+def get_phenos_with_colnums():
     phenos_by_phenocode = {pheno['phenocode']: pheno for pheno in get_phenolist()}
     with gzip.open(os.path.join(conf.data_dir, 'matrix.tsv.gz'), 'rt') as f:
         header = f.readline().rstrip('\r\n').split('\t')
@@ -314,13 +314,16 @@ def get_cacheable_file_location(default_dir, fname):
     return os.path.join(conf.cache, fname)
 
 
-def get_gene_tuples():
+def get_gene_tuples(include_ensg=False):
     genes_file = get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'genes'), 'genes.bed')
 
     with open(genes_file) as f:
         for row in csv.reader(f, delimiter='\t'):
             assert row[0] in chrom_order_list, row[0]
-            yield (row[0], int(row[1]), int(row[2]), row[3])
+            if include_ensg:
+                yield (row[0], int(row[1]), int(row[2]), row[3], row[4])
+            else:
+                yield (row[0], int(row[1]), int(row[2]), row[3])
 
 
 def get_num_procs():

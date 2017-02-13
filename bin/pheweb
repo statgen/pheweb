@@ -17,6 +17,7 @@ for submodule in '''
  merge_cpras
  download_rsids
  download_genes
+ make_gene_aliases_trie
  add_rsids
  make_tries
  standardize_phenos
@@ -25,6 +26,7 @@ for submodule in '''
  make_matrix
  bgzip_phenos
  top_hits
+ gather_pvalues_for_each_gene
  process_assoc_files
  make_wsgi
  top_loci

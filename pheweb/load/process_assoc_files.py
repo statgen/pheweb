@@ -14,6 +14,7 @@ get_cpras
 merge_cpras
 download_rsids
 download_genes
+make_gene_aliases_trie
 add_rsids
 add_genes
 make_tries
@@ -23,6 +24,7 @@ make_qq
 make_matrix
 bgzip_phenos
 top_hits
+gather_pvalues_for_each_gene
 '''.split()
 
 def run(argv):
