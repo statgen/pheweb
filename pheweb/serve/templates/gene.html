@@ -81,8 +81,8 @@
     <div class="col-md-10 col-lg-10 col-sm-10 col-xs-10">
       <p>Other phenotypes with significant associations for this gene:</p>
       <ul>
-        {% for phenocode in phenocodes %}
-        <li><a href="{{ url_for('gene_phenocode_page', phenocode=phenocode, genename=gene_symbol) }}">{{ phenocode }}</a></li>
+        {% for pheno in other_phenos %}
+        <li><a href="{{ url_for('gene_phenocode_page', phenocode=pheno['phenocode'], genename=gene_symbol) }}">{{ pheno['phenostring'] if 'phenostring' in pheno else pheno['phenocode'] }}</a></li>
         {% endfor %}
       </ul>
     </div>

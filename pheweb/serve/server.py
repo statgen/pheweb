@@ -142,8 +142,10 @@ def gene_phenocode_page(phenocode, genename):
 
         best_phenos_by_gene = get_best_phenos_by_gene()
         phenocodes = best_phenos_by_gene.get(genename, [])
+        other_phenos = [phenos[p] for p in phenocodes if p != phenocode]
 
         return render_template('gene.html',
+                               other_phenos=other_phenos,
                                phenocodes=[p for p in phenocodes if p != phenocode],
                                pheno=pheno,
                                gene_symbol=genename,
@@ -166,13 +168,15 @@ def gene_page(genename):
         start, end = max(1, start - delta), end + delta
 
         best_phenos_by_gene = get_best_phenos_by_gene()
-        phenocodes = best_phenos_by_gene.get(genename, [])
+        phenocodes = best_phenos_by_gene.get(genename, [])[1:]
+        other_phenos = [phenos[p] for p in phenocodes]
         if not phenocodes:
             die("Sorry, that gene doesn't appear to have any associations significant enough to be shown.")
 
         pheno = phenos[phenocodes[0]]
         return render_template('gene.html',
                                phenocodes=phenocodes[1:],
+                               other_phenos=other_phenos,
                                pheno=pheno,
                                gene_symbol=genename,
                                region='{}:{}-{}'.format(chrom, start, end))
