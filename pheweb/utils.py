@@ -30,14 +30,15 @@ def get_assoc_file_parser():
     # return imp.load_source(conf['source_file_parser'], fname)
 
 
-class parse_variant:
+class variant_parser:
     chrom_regex = re.compile(r'(?:[cC][hH][rR])?([0-9XYMT]+)')
     chrom_pos_regex = re.compile(chrom_regex.pattern + r'[-_:/ ]([0-9]+)')
     chrom_pos_ref_alt_regex = re.compile(chrom_pos_regex.pattern + r'[-_:/ ]([-AaTtCcGg\.]+)[-_:/ ]([-AaTtCcGg\.]+)')
 
-    def __call__(query, default_chrom_pos=True):
+    @classmethod
+    def parse(self, query, default_chrom_pos=True):
 
-        match = chrom_pos_ref_alt_regex.match(query) or chrom_pos_regex.match(query) or chrom_regex.match(query)
+        match = self.chrom_pos_ref_alt_regex.match(query) or self.chrom_pos_regex.match(query) or self.chrom_regex.match(query)
         g = match.groups() if match else ()
 
         if default_chrom_pos:
@@ -45,21 +46,6 @@ class parse_variant:
             if len(g) == 1: g += (0,)
         if len(g) >= 2: g = (g[0], int(g[1])) + tuple([bases.upper() for bases in g[2:]])
         return g + tuple(itertools.repeat(None, 4-len(g)))
-
-# TODO: convert to class and compile patterns once
-def parse_variant(query, default_chrom_pos = True):
-    chrom_pattern = r'(?:[cC][hH][rR])?([0-9XYMT]+)'
-    chrom_pos_pattern = chrom_pattern + r'[-_:/ ]([0-9]+)'
-    chrom_pos_ref_alt_pattern = chrom_pos_pattern + r'[-_:/ ]([-AaTtCcGg\.]+)[-_:/ ]([-AaTtCcGg\.]+)'
-
-    match = re.match(chrom_pos_ref_alt_pattern, query) or re.match(chrom_pos_pattern, query) or re.match(chrom_pattern, query)
-    g = match.groups() if match else ()
-
-    if default_chrom_pos:
-        if len(g) == 0: g += ('1',)
-        if len(g) == 1: g += (0,)
-    if len(g) >= 2: g = (g[0], int(g[1])) + tuple([bases.upper() for bases in g[2:]])
-    return g + tuple(itertools.repeat(None, 4-len(g)))
 
 
 def parse_marker_id(marker_id):
@@ -113,7 +99,7 @@ pheno_fields_to_include_with_variant = {
 def get_variant(query, phenos):
     import pysam
     # todo: differentiate between parse errors and variants-not-found
-    chrom, pos, ref, alt = parse_variant(query)
+    chrom, pos, ref, alt = variant_parser.parse(query)
     assert None not in [chrom, pos, ref, alt]
 
     tabix_file = pysam.TabixFile(os.path.join(conf['data_dir'], 'matrix.tsv.gz'))
