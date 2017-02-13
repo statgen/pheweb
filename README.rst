@@ -4,6 +4,24 @@ How to Build a PheWeb for your Data
 If any of these steps is incorrect, please email me at pjvh@umich.edu
 and I'll see what I can do to improve things.
 
+
+0. Quickstart
+-------------
+
+If everything goes well, you should be able to build a PheWeb with just the following commands:
+
+.. code:: bash
+
+   pip3 install pheweb
+   mkdir ~/my-new-pheweb && cd ~/my-new-pheweb
+   pheweb phenolist glob --simple-phenocode /data/my-analysis/*/*.epacts.gz
+   pheweb process-assoc-files
+   pheweb server
+   # open http://localhost:5000 in your web browser
+
+Here are more detailed instructions:
+
+
 1. Install PheWeb
 -----------------
 
