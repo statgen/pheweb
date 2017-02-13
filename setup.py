@@ -46,7 +46,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'Flask>=0.12',
-        'pysam~=0.9.1',
+        'pysam~=0.9',
         'marisa-trie~=0.7',
         'flask-compress~=1.4',
         'intervaltree~=2.1',
@@ -56,6 +56,7 @@ setup(
         'scipy~=0.18',
         'numpy>=1.11',
         'attrdict~=2.0',
+        'requests~=2.13',
         'gunicorn~=19.6',
     ]
 )
