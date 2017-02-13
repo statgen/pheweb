@@ -13,7 +13,7 @@ following commands:
 
 .. code:: bash
 
-   pip3 install pheweb
+   pip3 install git+https://github.com/statgen/pheweb.git
    mkdir ~/my-new-pheweb && cd ~/my-new-pheweb
    pheweb phenolist glob --simple-phenocode /data/my-analysis/*/*.epacts.gz
    pheweb process-assoc-files
