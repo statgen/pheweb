@@ -76,17 +76,21 @@
       <div id="lz-1" class="lz-locuszoom-container lz-container-responsive" data-region={{ region }}></div>
     </div>
   </div>
-  {% if phenocodes %}
+  {% if other_phenos %}
   <div class="row">
     <div class="col-md-10 col-lg-10 col-sm-10 col-xs-10">
-      <p>Other phenotypes with significant associations for this gene:</p>
+      <h3>Other phenotypes with significant associations for this gene:</h3>
       <ul>
-        {% for pheno in other_phenos %}
-        <li><a href="{{ url_for('gene_phenocode_page', phenocode=pheno['phenocode'], genename=gene_symbol) }}">{{ pheno['phenostring'] if 'phenostring' in pheno else pheno['phenocode'] }}</a></li>
+        {% for op in other_phenos %}
+        <li><a href="{{ url_for('gene_phenocode_page', phenocode=op['phenocode'], genename=gene_symbol) }}">
+            {{ '{:.1e}'.format(op['pval']).replace('e-0', 'e-') }}:
+            {{ op['phenostring'] if 'phenostring' in op else op['phenocode'] }}
+        </a></li>
         {% endfor %}
       </ul>
     </div>
   </div>
+  <br/>
   {% endif %}
 </div>
 {% endblock %}

@@ -122,6 +122,11 @@ def api_region(phenocode):
 def get_gene_region_mapping():
     return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in utils.get_gene_tuples()}
 
+@functools.lru_cache(None)
+def get_best_phenos_by_gene():
+    with open(os.path.join(conf.data_dir, 'best-phenos-by-gene.json')) as f:
+        return json.load(f)
+
 @app.route('/region/<phenocode>/gene/<genename>')
 def gene_phenocode_page(phenocode, genename):
     try:
@@ -133,31 +138,26 @@ def gene_phenocode_page(phenocode, genename):
             include_chrom, include_pos = include_string.split('-')
             include_pos = int(include_pos)
             assert include_chrom == chrom
-            if include_pos < start: start = include_pos
-            if include_pos > end: end = include_pos
+            start, end = min(start, include_pos), max(end, include_pos)
         delta = max(200, (end - start) // 10)
         start, end = max(1, start - delta), end + delta
 
         pheno = phenos[phenocode]
 
         best_phenos_by_gene = get_best_phenos_by_gene()
-        phenocodes = best_phenos_by_gene.get(genename, [])
-        other_phenos = [phenos[p] for p in phenocodes if p != phenocode]
+        phenos_in_gene = best_phenos_by_gene.get(genename, [])
+        phenos_in_gene = [p for p in phenos_in_gene if p['phenocode'] != phenocode]
+        for pheno_in_gene in phenos_in_gene:
+            pheno_in_gene.update(phenos[pheno_in_gene['phenocode']])
 
         return render_template('gene.html',
-                               other_phenos=other_phenos,
-                               phenocodes=[p for p in phenocodes if p != phenocode],
                                pheno=pheno,
+                               other_phenos=phenos_in_gene,
                                gene_symbol=genename,
                                region='{}:{}-{}'.format(chrom, start, end))
     except Exception as exc:
         die("Sorry, your region request didn't work", exception=exc)
 
-
-@functools.lru_cache(None)
-def get_best_phenos_by_gene():
-    with open(os.path.join(conf.data_dir, 'best-phenos-by-gene.json')) as f:
-        return json.load(f)
 
 @app.route('/gene/<genename>')
 def gene_page(genename):
@@ -168,16 +168,17 @@ def gene_page(genename):
         start, end = max(1, start - delta), end + delta
 
         best_phenos_by_gene = get_best_phenos_by_gene()
-        phenocodes = best_phenos_by_gene.get(genename, [])[1:]
-        other_phenos = [phenos[p] for p in phenocodes]
-        if not phenocodes:
-            die("Sorry, that gene doesn't appear to have any associations significant enough to be shown.")
+        phenos_in_gene = best_phenos_by_gene.get(genename, [])
+        for pheno_in_gene in phenos_in_gene:
+            pheno_in_gene.update(phenos[pheno_in_gene['phenocode']])
 
-        pheno = phenos[phenocodes[0]]
+        if not phenos_in_gene:
+            die("Sorry, that gene doesn't appear to have any associations in any phenotype")
+
+        pheno, phenos_in_gene = phenos_in_gene[0], phenos_in_gene[1:]
         return render_template('gene.html',
-                               phenocodes=phenocodes[1:],
-                               other_phenos=other_phenos,
                                pheno=pheno,
+                               other_phenos=phenos_in_gene,
                                gene_symbol=genename,
                                region='{}:{}-{}'.format(chrom, start, end))
     except Exception as exc:
