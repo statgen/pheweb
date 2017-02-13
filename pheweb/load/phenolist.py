@@ -474,6 +474,7 @@ def run(argv):
     def add_subcommand(name):
         def dec(f):
             subcommand_handlers[name] = f
+            return f
         return dec
     def modifies_phenolist(f):
         def f2(args):
@@ -492,14 +493,19 @@ def run(argv):
     p = subparsers.add_parser('view', help='just print the file')
     p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
 
+    @add_subcommand('glob')
     @add_subcommand('glob-files')
     def f(args):
         fname = args.fname or default_phenolist_fname
         phenolist = get_phenolist_with_globs(args.patterns)
+        if args.simple_phenocode:
+            pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.epacts|\.gz|\.tsv)*$'
+            extract_phenocode_from_fname(phenolist, pattern)
         save_phenolist(phenolist, fname)
     p = subparsers.add_parser('glob-files', help='use one or more shell-glob patterns to select association files')
     p.add_argument('patterns', nargs='+', help="one or more shell-glob patterns")
     p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('--simple-phenocode', dest="simple_phenocode", action="store_true", help="Extract a simple phenocode from the end of each filename")
 
     # parser_regex_files = subparsers.add_parser('regex-files', help='use one or more regex patterns to select association files. Optionally include a capture group for phenocode')
     # parser_regex_files.add_argument('patterns', nargs='+', help="one or more regex patterns")
