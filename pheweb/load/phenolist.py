@@ -494,7 +494,6 @@ def run(argv):
     p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
 
     @add_subcommand('glob')
-    @add_subcommand('glob-files')
     def f(args):
         fname = args.fname or default_phenolist_fname
         phenolist = get_phenolist_with_globs(args.patterns)
@@ -502,7 +501,7 @@ def run(argv):
             pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.epacts|\.gz|\.tsv)*$'
             extract_phenocode_from_fname(phenolist, pattern)
         save_phenolist(phenolist, fname)
-    p = subparsers.add_parser('glob-files', help='use one or more shell-glob patterns to select association files')
+    p = subparsers.add_parser('glob', help='use one or more shell-glob patterns to select association files')
     p.add_argument('patterns', nargs='+', help="one or more shell-glob patterns")
     p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
     p.add_argument('--simple-phenocode', dest="simple_phenocode", action="store_true", help="Extract a simple phenocode from the end of each filename")
