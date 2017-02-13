@@ -55,11 +55,15 @@ To count as a top loci, a variant must:
 - have a p-value < {}
 - have the smallest p-value within {:,} bases
 - have the smallest p-value within {:,} bases within its phenotype
+
+Each loci will include the phenotype that has the smallest p-value at that location.
+Even if this loci also contains significant hits for other phenotypes, they won't be
+shown.  If you want all hits, use `pheweb top-hits`.
 '''.format(out_fname_json,
            out_fname_tsv,
            formatted_pval_cutoff,
            LOCI_SPREAD_FROM_BEST_HIT,
-           LOCI_SPREAD_FROM_BEST_HIT_WITHIN_PHENOTYPE
+           LOCI_SPREAD_FROM_BEST_HIT_WITHIN_PHENOTYPE,
 ))
         exit(0)
 

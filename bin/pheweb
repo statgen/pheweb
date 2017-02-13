@@ -61,10 +61,16 @@ Subcommands:
     pheweb make-wsgi
         make wsgi.py, which can be used with gunicorn or other WSGI-compatible webservers.
 
+    pheweb top-hits
+        make top-hits.tsv, which contains variants that:
+            - have a p-value < 10^-6
+            - have a better p-value than every variant within 500kb in the same phenotype.
+
     pheweb top-loci
-        make top-loci.tsv, which contains variants with p<1e-6 that are better than
-        all other variants within 500kb and are better than all variants within 1Mb
-        in the same phenotype.
+        make top-loci.tsv, which contains variants that:
+            - have a p-value < 10^-6
+            - have a better p-value than every variant within 500kb
+            - have a better p-value than every variant within 1Mb in the same phenotype.
 '''.format(version.version))
 
 subcommand = sys.argv[1] if len(sys.argv)>1 else ''
