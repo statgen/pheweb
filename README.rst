@@ -5,10 +5,11 @@ If any of these steps is incorrect, please email me at pjvh@umich.edu
 and I'll see what I can do to improve things.
 
 
-0. Quickstart
--------------
+Quickstart
+----------
 
-If everything goes well, you should be able to build a PheWeb with just the following commands:
+If everything goes well, you should be able to build a PheWeb with the
+following commands:
 
 .. code:: bash
 
@@ -16,7 +17,7 @@ If everything goes well, you should be able to build a PheWeb with just the foll
    mkdir ~/my-new-pheweb && cd ~/my-new-pheweb
    pheweb phenolist glob --simple-phenocode /data/my-analysis/*/*.epacts.gz
    pheweb process-assoc-files
-   pheweb server
+   pheweb serve --port 5000
    # open http://localhost:5000 in your web browser
 
 Here are more detailed instructions:
