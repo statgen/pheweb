@@ -47,7 +47,9 @@
           {% elif 'num_samples' in pheno %}
             <p><b>{{ pheno.num_samples }}</b> samples</p>
           {% endif %}
-          <p>Category: <b>{{ pheno.category}}</b></p>
+          {% if pheno.category %}
+            <p>Category: <b>{{ pheno.category}}</b></p>
+          {% endif %}
       </div>
   </div>
   <br>
