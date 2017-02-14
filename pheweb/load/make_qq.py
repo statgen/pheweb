@@ -112,10 +112,12 @@ def make_qq(neglog10_pvals):
     rv['qq'] = compute_qq(neglog10_pvals) # We don't need this now.
     rv['count'] = len(neglog10_pvals)
     rv['gc_lambda'] = {}
-    rv['gc_lambda']['0.5'] = utils.round_sig(gc_value_from_list(neglog10_pvals, 0.5), 5)
-    rv['gc_lambda']['0.1'] = utils.round_sig(gc_value_from_list(neglog10_pvals, 0.1), 5)
-    rv['gc_lambda']['0.01'] = utils.round_sig(gc_value_from_list(neglog10_pvals, 0.01), 5)
-    rv['gc_lambda']['0.001'] = utils.round_sig(gc_value_from_list(neglog10_pvals, 0.001), 5)
+    for perc in ['0.5', '0.1', '0.01', '0.001']:
+        gc = gc_value_from_list(neglog10_pvals, float(perc))
+        if math.isnan(gc) or abs(gc) == math.inf:
+            print('WARNING: got gc_value {!r}'.format(gc))
+        else:
+            rv['gc_lambda'][perc] = utils.round_sig(gc, 5)
     return rv
 
 
