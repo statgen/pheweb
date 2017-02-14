@@ -1,7 +1,4 @@
 
-
-
-
 from .. import utils
 conf = utils.conf
 
@@ -26,7 +23,11 @@ def convert(conversion_to_do):
         minimum_maf = conf.minimum_maf if hasattr(conf, 'minimum_maf') else 0
         fieldnames, variants = input_file_parser.get_fieldnames_and_variants(pheno, minimum_maf=minimum_maf)
 
-        writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
+        req_fieldnames = 'chrom pos ref alt'.split()
+        for fld in req_fieldnames: assert fld in fieldnames, fld
+        variants = ({k:v for k,v in variant.items() if k in req_fieldnames} for variant in variants)
+
+        writer = csv.DictWriter(f_out, fieldnames=req_fieldnames, delimiter='\t')
         writer.writeheader()
         writer.writerows(variants)
 
