@@ -21,6 +21,7 @@
 #include <sys/resource.h> // setrlimit
 #include <stdio.h>
 #include <errno.h>
+#include <iomanip> // setprecision
 
 std::vector<std::string> glob(const std::string& pat) {
   // From <http://stackoverflow.com/a/8615450/1166306>
@@ -262,6 +263,7 @@ int main(int argc, char** argv) {
       }
     }
 
-    std::cout << "\t" << maf/num_mafs << all_the_rest.str() << "\n";
+    std::cout << "\t" << std::setprecision(3) << maf/num_mafs;
+    std::cout << all_the_rest.str() << "\n";
   }
 }

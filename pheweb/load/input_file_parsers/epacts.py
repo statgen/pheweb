@@ -18,6 +18,18 @@ def nullable_float(string):
         assert string in legitimate_null_values, string
         return '.'
 
+def nullable_float_3sigfigs(string):
+    try:
+        x = float(string)
+    except ValueError:
+        assert string in legitimate_null_values, string
+        return '.'
+    return utils.round_sig(x, 3)
+
+def float_3sigfigs(string):
+    x = float(string)
+    return utils.round_sig(x, 3)
+
 possible_fields = {
     'chrom': {
         'aliases': ['#CHROM'],
@@ -37,19 +49,19 @@ possible_fields = {
     },
     'maf': {
         'aliases': [],
-        'type': float,
+        'type': float_3sigfigs,
     },
     'pval': {
         'aliases': ['PVALUE'],
-        'type': nullable_float,
+        'type': nullable_float_3sigfigs,
     },
     'beta': {
         'aliases': [],
-        'type': nullable_float,
+        'type': nullable_float_3sigfigs,
     },
     'sebeta': {
         'aliases': [],
-        'type': nullable_float,
+        'type': nullable_float_3sigfigs,
     }
 }
 required_fields = ['chrom', 'pos', 'ref', 'alt', 'maf', 'pval']
