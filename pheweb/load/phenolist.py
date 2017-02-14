@@ -498,7 +498,7 @@ def run(argv):
         fname = args.fname or default_phenolist_fname
         phenolist = get_phenolist_with_globs(args.patterns)
         if args.simple_phenocode:
-            pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.epacts|\.gz|\.tsv)*$'
+            pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.epacts|\.gz|\.tsv|\.txt|\.csv)*$'
             extract_phenocode_from_fname(phenolist, pattern)
         save_phenolist(phenolist, fname)
     p = subparsers.add_parser('glob', help='use one or more shell-glob patterns to select association files')
