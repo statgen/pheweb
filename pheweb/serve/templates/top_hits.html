@@ -5,7 +5,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='top_hits.js') }}"></script>
 <script type="text/javascript">
   $.getJSON("/api/top_hits.json").done(function(data) {
-      window.data = data; // debugging
+      window.debug.top_hits = data;
       populate_streamtable(data);
   });
 </script>

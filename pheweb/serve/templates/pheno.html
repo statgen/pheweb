@@ -5,10 +5,10 @@
 <script type="text/javascript" src="{{ url_for('static', filename='pheno.js') }}"></script>
 <script type="text/javascript">
   window.pheno = {{ phenocode|tojson|safe }};
-  window.data = {};
+  window.debug = {};
   $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json")
   .done(function(data) {
-      window.data.manhattan = data; // debugging
+      window.debug.manhattan = data;
       create_gwas_plot(data.variant_bins, data.unbinned_variants);
       populate_streamtable(data.unbinned_variants);
   })
@@ -17,7 +17,7 @@
   });
   $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
   .done(function(data) {
-    window.data.qq = data; //debugging
+    window.debug.qq = data;
     _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
       var text = 'GC Lambda ' + d[0] + ': ' + d[1].toFixed(3);
       if (i === 0) { text = '<b>' + text + '</b>'; }
