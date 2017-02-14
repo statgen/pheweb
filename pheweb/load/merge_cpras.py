@@ -181,7 +181,7 @@ def run(argv):
     if os.path.exists(out_filename):
         dest_file_modification_time = os.stat(out_filename).st_mtime
         src_file_modification_times = [os.stat(fname).st_mtime for fname in files_to_merge]
-        if dest_file_modification_time > max(src_file_modification_times):
+        if dest_file_modification_time >= max(src_file_modification_times):
             print('The list of sites is up-to-date!')
             return
 

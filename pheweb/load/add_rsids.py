@@ -86,7 +86,7 @@ rsids_chrom_order = {chrom: index for index,chrom in enumerate(rsids_chrom_order
 
 def run(argv):
 
-    if os.path.exists(out_filename) and max(mod_time(cpra_filename), mod_time(rsids_filename)) < mod_time(out_filename):
+    if os.path.exists(out_filename) and max(mod_time(cpra_filename), mod_time(rsids_filename)) <= mod_time(out_filename):
         print('rsid annotation is up-to-date!')
         return
 

@@ -105,7 +105,7 @@ def run(argv):
     def mod_time(fname):
         return os.stat(fname).st_mtime
 
-    if os.path.exists(output_file) and max(mod_time(genes_file), mod_time(input_file)) < mod_time(output_file):
+    if os.path.exists(output_file) and max(mod_time(genes_file), mod_time(input_file)) <= mod_time(output_file):
         print('gene annotation is up-to-date!')
     else:
         annotate_genes(input_file, temp_file, output_file)
