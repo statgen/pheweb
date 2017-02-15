@@ -149,7 +149,7 @@ class Autocompleter(object):
 
     def _autocomplete_gene(self, query):
         key = query.upper()
-        if len(key) > 2:
+        if len(key) >= 2:
 
             for alias, canonical_symbol in self._gene_alias_trie.iteritems(key):
                 canonical_symbol = canonical_symbol.decode('ascii')
