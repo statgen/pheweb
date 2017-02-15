@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout-container.html" %}
 
 {% block in_head %}
 <script type="text/javascript">
@@ -51,78 +51,68 @@
 </style>
 {% endblock %}
 
-{% block body %}
-<div class="container-fluid">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <br><br> {# Dont get stuck behind the navbar #}
-            {% for message in messages %}
-              <div class="alert alert-danger" role="alert"><b>Error:</b> {{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-        <div class="row">
-            <div class="variant-info col-xs-12">
-                <h1 style="margin-top:0">
-                  {{ variant.variant_name }}
-                  {% if variant.rsids %}({{ variant.rsids }}){% endif %}
-                </h1>
-                <p>Nearest gene: <i>{{ variant.nearest_genes }}</i></p>
-                <p>MAF: {{ variant.maf }}</p>
-                <p>View on
-                  <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>
-                  {% with rsids = (variant.rsids.split(',') if variant.rsids else []) %}
-                    {% if rsids|length == 1 %}
-                      , <a href="https://www.ebi.ac.uk/gwas/search?query={{ rsids[0] }}">GWAS Catalog</a>
-                    {% else %}
-                      {% for rsid in rsids %}
-                        , <a href="https://www.ebi.ac.uk/gwas/search?query={{ rsid }}">GWAS Catalog for {{ rsid }}</a>
-                      {% endfor %}
-                    {% endif %}
-                    {% if rsids|length == 1 %}
-                      , <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ rsids[0] }}">dbSNP</a>
-                    {% else %}
-                      {% for rsid in rsids %}
-                        , <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ rsids[0] }}">dbSNP for {{ rsid }}</a>
-                      {% endfor %}
-                    {% endif %}
-                  {% endwith %}
-                  <span style="font-weight:bold" id="pubmed-link"></span>
-                  <span style="font-weight:bold" id="clinvar-link"></span>
-                </p>
-                <div id="phewas_plot_container">
-                </div>
-            </div>
+{% block contained %}
+<div class="row">
+    <div class="variant-info col-xs-12">
+        <h1 style="margin-top:0">
+          {{ variant.variant_name }}
+          {% if variant.rsids %}({{ variant.rsids }}){% endif %}
+        </h1>
+        <p>Nearest gene: <i>{{ variant.nearest_genes }}</i></p>
+        <p>MAF: {{ variant.maf }}</p>
+        <p>View on
+          <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>
+          {% with rsids = (variant.rsids.split(',') if variant.rsids else []) %}
+            {% if rsids|length == 1 %}
+              , <a href="https://www.ebi.ac.uk/gwas/search?query={{ rsids[0] }}">GWAS Catalog</a>
+            {% else %}
+              {% for rsid in rsids %}
+                , <a href="https://www.ebi.ac.uk/gwas/search?query={{ rsid }}">GWAS Catalog for {{ rsid }}</a>
+              {% endfor %}
+            {% endif %}
+            {% if rsids|length == 1 %}
+              , <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ rsids[0] }}">dbSNP</a>
+            {% else %}
+              {% for rsid in rsids %}
+                , <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ rsids[0] }}">dbSNP for {{ rsid }}</a>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          <span style="font-weight:bold" id="pubmed-link"></span>
+          <span style="font-weight:bold" id="clinvar-link"></span>
+        </p>
+        <div id="phewas_plot_container">
         </div>
-
-        <br>
-
-        <div class="row">
-          <div class="col-xs-12 col-sm-8 col-md-6">
-            <input type="text" class="form-control" id="search" placeholder="Search... &quot;427.21&quot;, &quot;Diabetes&quot;, etc.">
-          </div>
-          <div class="col-xs-12 col-sm-4 col-md-6">
-            <h5 class="pull-right"><div id="streamtable-found" class="label label-primary"></div></h5>
-          </div>
-        </div>
-        <div class="row stream_table_row">
-          <div class="col-xs-12">
-            <table id="stream_table" class="table table-striped table-bordered">
-              <thead>
-                <tr>
-                  <th>Category</th>
-                  <th>Phenotype</th>
-                  <th>P-value</th>
-                  <th>Number of samples</th>
-                </tr>
-              </thead>
-              <tbody>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
+    </div>
 </div>
+
+<br>
+
+<div class="row">
+  <div class="col-xs-12 col-sm-8 col-md-6">
+    <input type="text" class="form-control" id="search" placeholder="Search... &quot;427.21&quot;, &quot;Diabetes&quot;, etc.">
+  </div>
+  <div class="col-xs-12 col-sm-4 col-md-6">
+    <h5 class="pull-right"><div id="streamtable-found" class="label label-primary"></div></h5>
+  </div>
+</div>
+<div class="row stream_table_row">
+  <div class="col-xs-12">
+    <table id="stream_table" class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Phenotype</th>
+          <th>P-value</th>
+          <th>Number of samples</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
 <script type="text/template" id="tooltip-template">
 

@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout-container.html" %}
 
 {% block navbar_left %}{% endblock %}
 
@@ -10,34 +10,24 @@
 </style>
 {% endblock %}
 
-{% block body %}
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <br><br> {# Don't get stuck behind the navbar #}
-            {% for message in messages %}
-              <div class="alert alert-danger" role="alert"><b>Error:</b> {{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-        <div class="row" style="margin-top:7em">
-            <div class="col-xs-12">
-                <h1>{% include 'index/h1.html' %}</h1>
-                {% include 'index/below-h1.html' %}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div id="home-searchbox">
-                    <form action="/go">
-                       <fieldset>
-                          <div class="form-group">
-                            <input name="query" class="form-control typeahead" type="text" placeholder="Search for a variant or phenotype" autofocus />
-                          </div>
-                       </fieldset>
-                    </form>
-                </div>
-            </div>
+{% block contained %}
+<div class="row" style="margin-top:7em">
+    <div class="col-xs-12 col-sm-offset-1 col-sm-10">
+        <h1>{% include 'index/h1.html' %}</h1>
+        {% include 'index/below-h1.html' %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12 col-sm-offset-1 col-sm-10">
+        <div id="home-searchbox">
+            <form action="/go">
+               <fieldset>
+                  <div class="form-group">
+                    <input name="query" class="form-control typeahead" type="text" placeholder="Search for a variant or phenotype" autofocus />
+                  </div>
+               </fieldset>
+            </form>
         </div>
     </div>
+</div>
 {% endblock %}

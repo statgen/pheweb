@@ -1,4 +1,4 @@
-﻿{% extends "layout.html" %}
+﻿{% extends "layout-container.html" %}
 
 {% block in_head %}
 <script type="text/javascript">
@@ -16,65 +16,55 @@
 </style>
 {% endblock %}
 
-{% block body %}
-<div class="container-fluid">
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <br><br> {# Dont get stuck behind the navbar #}
-      {% for message in messages %}
-        <div class="alert alert-danger" role="alert"><b>Error:</b> {{ message }}</div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-  {% for key in ['num_cases', 'num_controls', 'num_samples'] %}
-   {% if key in pheno %}
-    {% if '<' in pheno[key]|string %}
-      <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div>
-    {% elif pheno[key]|int < 200 %}
-      <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div>
-    {% endif %}
-   {% endif %}
-  {% endfor %}
-  <div class="row">
-    <div class="col-xs-12">
-      <h1 style="margin-top:0">{{ pheno['phenocode'] }}{% if pheno.phenostring %}: {{ pheno.phenostring }}{% endif %}</h1>
-    </div>
+{% block contained %}
+{% for key in ['num_cases', 'num_controls', 'num_samples'] %}
+ {% if key in pheno %}
+  {% if '<' in pheno[key]|string %}
+    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div>
+  {% elif pheno[key]|int < 200 %}
+    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div>
+  {% endif %}
+ {% endif %}
+{% endfor %}
+<div class="row">
+  <div class="col-xs-12">
+    <h1 style="margin-top:0">{{ pheno['phenocode'] }}{% if pheno.phenostring %}: {{ pheno.phenostring }}{% endif %}</h1>
   </div>
-  <div class="row">
-      <div class="pheno-info col-xs-12">
-          {% if 'num_cases' in pheno %}
-            <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
-          {% elif 'num_samples' in pheno %}
-            <p><b>{{ pheno.num_samples }}</b> samples</p>
-          {% endif %}
-          {% if pheno.category %}
-            <p>Category: <b>{{ pheno.category}}</b></p>
-          {% endif %}
-      </div>
-  </div>
-  <br>
-  <div class="row">
-    <div class="col-xs-12">
-      <a href="/pheno/{{ pheno['phenocode'] }}" class="btn btn-default">Go to Manhattan Plot</a>
-      <button id="move-left-fast" type="button" class="btn btn-default" title="move 3/4 screen left">
-        <span class="glyphicon glyphicon-arrow-left"></span><span class="glyphicon glyphicon-arrow-left"></span></button>
-      <button id="move-left" type="button" class="btn btn-default" title="move 1/4 scren left">
-        <span class="glyphicon glyphicon-arrow-left"></span></button>
-      <button id="zoom-in" type="button" class="btn btn-default" title="zoom in 2x">
-        <span class="glyphicon glyphicon-zoom-in"></span></button>
-      <button id="zoom-out" type="button" class="btn btn-default" title="zoom out 2x">
-        <span class="glyphicon glyphicon-zoom-out"></span></button>
-      <button id="move-right" type="button" class="btn btn-default" title="move right 1/4 screen">
-        <span class="glyphicon glyphicon-arrow-right"></span></button>
-      <button id="move-right-fast" type="button" class="btn btn-default" title="move right 3/4 screen">
-        <span class="glyphicon glyphicon-arrow-right"></span><span class="glyphicon glyphicon-arrow-right"></span></button>
-      <br>
+</div>
+<div class="row">
+    <div class="pheno-info col-xs-12">
+        {% if 'num_cases' in pheno %}
+          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
+        {% elif 'num_samples' in pheno %}
+          <p><b>{{ pheno.num_samples }}</b> samples</p>
+        {% endif %}
+        {% if pheno.category %}
+          <p>Category: <b>{{ pheno.category}}</b></p>
+        {% endif %}
     </div>
+</div>
+<br>
+<div class="row">
+  <div class="col-xs-12">
+    <a href="/pheno/{{ pheno['phenocode'] }}" class="btn btn-default">Go to Manhattan Plot</a>
+    <button id="move-left-fast" type="button" class="btn btn-default" title="move 3/4 screen left">
+      <span class="glyphicon glyphicon-arrow-left"></span><span class="glyphicon glyphicon-arrow-left"></span></button>
+    <button id="move-left" type="button" class="btn btn-default" title="move 1/4 scren left">
+      <span class="glyphicon glyphicon-arrow-left"></span></button>
+    <button id="zoom-in" type="button" class="btn btn-default" title="zoom in 2x">
+      <span class="glyphicon glyphicon-zoom-in"></span></button>
+    <button id="zoom-out" type="button" class="btn btn-default" title="zoom out 2x">
+      <span class="glyphicon glyphicon-zoom-out"></span></button>
+    <button id="move-right" type="button" class="btn btn-default" title="move right 1/4 screen">
+      <span class="glyphicon glyphicon-arrow-right"></span></button>
+    <button id="move-right-fast" type="button" class="btn btn-default" title="move right 3/4 screen">
+      <span class="glyphicon glyphicon-arrow-right"></span><span class="glyphicon glyphicon-arrow-right"></span></button>
+    <br>
   </div>
-  <div class="row">
-    <div class="col-md-10 col-lg-10 col-sm-10 col-xs-10">
-      <div id="lz-1" class="lz-locuszoom-container lz-container-responsive" data-region={{ region }}></div>
-    </div>
+</div>
+<div class="row">
+  <div class="col-md-10 col-lg-10 col-sm-10 col-xs-10">
+    <div id="lz-1" class="lz-locuszoom-container lz-container-responsive" data-region={{ region }}></div>
   </div>
 </div>
 {% endblock %}

@@ -1,19 +1,9 @@
-{% extends "layout.html" %}
+{% extends "layout-container.html" %}
 
-{% block body %}
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <br><br> {# Don't get stuck behind the navbar #}
-            {% for message in messages %}
-              <div class="alert alert-danger" role="alert"><b>Error:</b> {{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-        <div class="row">
-            <div class="col-xs-12">
-              {% include 'about/content.html' %}
-            </div>
-        </div>
+{% block contained %}
+<div class="row">
+    <div class="col-xs-12 col-sm-offset-1 col-sm-10 col-md-8 col-lg-6">
+      {% include 'about/content.html' %}
     </div>
+</div>
 {% endblock %}
