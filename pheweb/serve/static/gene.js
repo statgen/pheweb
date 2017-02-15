@@ -1,10 +1,9 @@
-function populate_streamtable(other_phenos) {
+function populate_streamtable(data) {
     $(function() {
-        var data = other_phenos;
         // data = _.sortBy(data, _.property('pval'));
         var template = _.template($('#streamtable-template').html());
-        var view = function(op) {
-            return template({op: op});
+        var view = function(p) {
+            return template({p: p});
         };
 
         var options = {

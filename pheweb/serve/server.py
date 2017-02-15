@@ -146,13 +146,12 @@ def gene_phenocode_page(phenocode, genename):
 
         best_phenos_by_gene = get_best_phenos_by_gene()
         phenos_in_gene = best_phenos_by_gene.get(genename, [])
-        phenos_in_gene = [p for p in phenos_in_gene if p['phenocode'] != phenocode]
         for pheno_in_gene in phenos_in_gene:
             pheno_in_gene.update(phenos[pheno_in_gene['phenocode']])
 
         return render_template('gene.html',
                                pheno=pheno,
-                               other_phenos=phenos_in_gene,
+                               significant_phenos=phenos_in_gene,
                                gene_symbol=genename,
                                region='{}:{}-{}'.format(chrom, start, end))
     except Exception as exc:
@@ -175,10 +174,9 @@ def gene_page(genename):
         if not phenos_in_gene:
             die("Sorry, that gene doesn't appear to have any associations in any phenotype")
 
-        pheno, phenos_in_gene = phenos_in_gene[0], phenos_in_gene[1:]
         return render_template('gene.html',
-                               pheno=pheno,
-                               other_phenos=phenos_in_gene,
+                               pheno=phenos_in_gene[0],
+                               significant_phenos=phenos_in_gene,
                                gene_symbol=genename,
                                region='{}:{}-{}'.format(chrom, start, end))
     except Exception as exc:

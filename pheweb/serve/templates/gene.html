@@ -4,7 +4,7 @@
 {% block in_head %}
 <script type="text/javascript">
   window.pheno = {{ pheno|tojson|safe }};
-  window.other_phenos = {{ other_phenos|tojson|safe }};
+  window.significant_phenos = {{ significant_phenos|tojson|safe }};
   window.gene_symbol = {{ gene_symbol|tojson|safe }};
 </script>
 <script src="{{ url_for('static', filename='vendor/locuszoom.vendor.min.js') }}" type="text/javascript"></script>
@@ -14,7 +14,7 @@
 <script src="{{ url_for('static', filename='region.js') }}"></script>
 <script src="{{ url_for('static', filename='gene.js') }}"></script>
 <script type="text/javascript">
-  populate_streamtable(other_phenos);
+  populate_streamtable(significant_phenos);
 </script>
 
 <style type="text/css">
@@ -51,10 +51,10 @@
     </div>
 </div>
 <br>
-{% if other_phenos %}
+{% if significant_phenos %}
 <div class="row">
   <div class="col-md-10 col-lg-10 col-sm-10 col-xs-10">
-    <h4>Other phenotypes with significant associations for this gene:</h4>
+    <h4>Phenotypes with significant associations for this gene:</h4>
 
       <div class="row stream_table_row">
         <div class="col-xs-12">
@@ -100,12 +100,19 @@
 </div>
 
 <script type="text/template" id="streamtable-template">
-  <tr onclick="window.location='/region/<%= op.phenocode %>/gene/<%= gene_symbol %>'" style="cursor:pointer">
-    <td><%= op.pval.toExponential(1) %></td>
-    <td><a style="color:black" href="/region/<%= op.phenocode %>/gene/<%= gene_symbol %>">
-        <%= op.phenostring || op.phenocode %>
+  <% if (p.phenocode === pheno.phenocode) { %>
+  <tr style="background-color:lightblue">
+    <td><%= p.pval.toExponential(1) %></td>
+    <td><%= p.phenostring || p.phenocode %></td>
+  </tr>
+  <% } else { %>
+  <tr onclick="window.location='/region/<%= p.phenocode %>/gene/<%= gene_symbol %>'" style="cursor:pointer">
+    <td><%= p.pval.toExponential(1) %></td>
+    <td><a style="color:black" href="/region/<%= p.phenocode %>/gene/<%= gene_symbol %>">
+        <%= p.phenostring || p.phenocode %>
     </a></td>
   </tr>
+  <% } %>
 </script>
 
 {% endblock %}
