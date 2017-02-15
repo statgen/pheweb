@@ -24,8 +24,8 @@
       if (i === 0) { text = '<b>' + text + '</b>'; }
       text = '<br>' + text;
       $('.gc-control').append(text);
-    create_qq_plot(data.by_maf);
     });
+    create_qq_plot(data.by_maf);
   })
   .fail(function() {
     console.log("QQ XHR failed");
