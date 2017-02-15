@@ -42,9 +42,9 @@ def should_run():
         fieldnames = next(f).strip().split('\t')
     prev_phenos = set(fieldname.split('@')[1] for fieldname in fieldnames if '@' in fieldname)
     if prev_phenos != cur_phenos:
-        print('rerunning because cur matrix has wrong phenos.')
-        print('phenos in pheno-list.json but not matrix.tsv.gz:', ', '.join(repr(p) for p in cur_phenos - prev_phenos))
-        print('phenos in matrix.tsv.gz but not pheno-list.json:', ', '.join(repr(p) for p in prev_phenos - cur_phenos))
+        print('re-running because cur matrix has wrong phenos.')
+        print('- phenos in pheno-list.json but not matrix.tsv.gz:', ', '.join(repr(p) for p in cur_phenos - prev_phenos))
+        print('- phenos in matrix.tsv.gz but not pheno-list.json:', ', '.join(repr(p) for p in prev_phenos - cur_phenos))
         return True
 
     infiles = [os.path.join(augmented_pheno_dir, phenocode) for phenocode in cur_phenos] + [sites_fname]
