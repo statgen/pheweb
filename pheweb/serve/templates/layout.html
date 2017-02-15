@@ -25,6 +25,7 @@
     </script>
     {% block in_head %}{% endblock %}
 </head>
+
 <body>
 <nav class="navbar navbar-default" style="background: white;">
     <div class="container-fluid">
@@ -56,5 +57,18 @@
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
 </nav>
-{% block body %}{% endblock %}
+{% block body %}
+<div class="container-fluid">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <br><br> {# Don't get stuck behind the navbar #}
+        {% for message in messages %}
+          <div class="alert alert-danger" role="alert"><b>Error:</b> {{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block contained %}
+    {% endblock %}
+</div>
+{% endblock %}
 </body>
