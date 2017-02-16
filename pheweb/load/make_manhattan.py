@@ -28,7 +28,10 @@ class Heap():
     def add(self, item, priority):
         idx = self._idx
         self._idx += 1
-        bisect.insort(self._q, (-priority, idx))
+        if not self._q or -priority < self._q[0][0]:
+            self._q.insert(0, (-priority, idx))
+        else:
+            bisect.insort(self._q, (-priority, idx))
         self._items[idx] = item
 
     def pop(self):
