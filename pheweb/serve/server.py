@@ -138,16 +138,20 @@ def gene_phenocode_page(phenocode, genename):
             include_chrom, include_pos = include_string.split('-')
             include_pos = int(include_pos)
             assert include_chrom == chrom
-            start, end = min(start, include_pos), max(end, include_pos)
-        delta = max(200, (end - start) // 10)
-        start, end = max(1, start - delta), end + delta
+            if include_pos < start:
+                start = include_pos - (end - start) * 0.01
+            elif include_pos > end:
+                end = include_pos + (end - start) * 0.01
+        start, end = utils.pad_gene(start, end)
 
         pheno = phenos[phenocode]
 
-        best_phenos_by_gene = get_best_phenos_by_gene()
-        phenos_in_gene = best_phenos_by_gene.get(genename, [])
-        for pheno_in_gene in phenos_in_gene:
-            pheno_in_gene.update(phenos[pheno_in_gene['phenocode']])
+        phenos_in_gene = []
+        for pheno_in_gene in get_best_phenos_by_gene().get(genename, []):
+            phenos_in_gene.append({
+                'pheno': {k:v for k,v in phenos[pheno_in_gene['phenocode']].items() if k not in ['assoc_files', 'colnum']},
+                'assoc': {k:v for k,v in pheno_in_gene.items() if k != 'phenocode'},
+            })
 
         return render_template('gene.html',
                                pheno=pheno,
@@ -155,32 +159,15 @@ def gene_phenocode_page(phenocode, genename):
                                gene_symbol=genename,
                                region='{}:{}-{}'.format(chrom, start, end))
     except Exception as exc:
-        die("Sorry, your region request didn't work", exception=exc)
+        die("Sorry, your region request for phenocode {!r} and gene {!r} didn't work".format(phenocode, genename), exception=exc)
 
 
 @app.route('/gene/<genename>')
 def gene_page(genename):
-    try:
-        gene_region_mapping = get_gene_region_mapping()
-        chrom, start, end = gene_region_mapping[genename]
-        delta = max(200, (end - start) // 10)
-        start, end = max(1, start - delta), end + delta
-
-        best_phenos_by_gene = get_best_phenos_by_gene()
-        phenos_in_gene = best_phenos_by_gene.get(genename, [])
-        for pheno_in_gene in phenos_in_gene:
-            pheno_in_gene.update(phenos[pheno_in_gene['phenocode']])
-
-        if not phenos_in_gene:
-            die("Sorry, that gene doesn't appear to have any associations in any phenotype")
-
-        return render_template('gene.html',
-                               pheno=phenos_in_gene[0],
-                               significant_phenos=phenos_in_gene,
-                               gene_symbol=genename,
-                               region='{}:{}-{}'.format(chrom, start, end))
-    except Exception as exc:
-        die("Sorry, your region request didn't work", exception=exc)
+    phenos_in_gene = get_best_phenos_by_gene().get(genename, [])
+    if not phenos_in_gene:
+        die("Sorry, that gene doesn't appear to have any associations in any phenotype")
+    return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
 
 
 @app.route('/')

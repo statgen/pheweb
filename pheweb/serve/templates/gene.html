@@ -100,16 +100,16 @@
 </div>
 
 <script type="text/template" id="streamtable-template">
-  <% if (p.phenocode === pheno.phenocode) { %>
+  <% if (p.pheno.phenocode === pheno.phenocode) { %>
   <tr style="background-color:lightblue">
-    <td><%= p.pval.toExponential(1) %></td>
-    <td><%= p.phenostring || p.phenocode %></td>
+    <td><%= p.assoc.pval.toExponential(1) %></td>
+    <td><%= p.pheno.phenostring || p.pheno.phenocode %></td>
   </tr>
   <% } else { %>
-  <tr onclick="window.location='/region/<%= p.phenocode %>/gene/<%= gene_symbol %>'" style="cursor:pointer">
-    <td><%= p.pval.toExponential(1) %></td>
-    <td><a style="color:black" href="/region/<%= p.phenocode %>/gene/<%= gene_symbol %>">
-        <%= p.phenostring || p.phenocode %>
+  <tr onclick="window.location='/region/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>'" style="cursor:pointer">
+    <td><%= p.assoc.pval.toExponential(1) %></td>
+    <td><a style="color:black" href="/region/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>">
+        <%= p.pheno.phenostring || p.pheno.phenocode %>
     </a></td>
   </tr>
   <% } %>

@@ -35,7 +35,7 @@ def run(argv):
         exit(0)
 
     for script in scripts:
-        print('==> Starting', script)
+        print('==> Starting `pheweb {}`'.format(script.replace('_', '-')))
         start_time = time.time()
         module = importlib.import_module('.{}'.format(script), __package__)
         try:

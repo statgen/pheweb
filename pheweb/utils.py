@@ -16,6 +16,8 @@ import imp
 import multiprocessing
 import csv
 from boltons.fileutils import mkdir_p
+import boltons.mathutils
+
 
 conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
 
@@ -147,6 +149,25 @@ def get_variant(query, phenos):
                     p[key] = pheno[key]
             rv['phenos'].append(p)
     return rv
+
+
+def pad_gene(start, end):
+    # We'd like to get 100kb on each side of the gene.
+    # But max-region-length is 500kb, so let's try not to exceed that.
+    if start < 1e5:
+        if end > 5e5: return (0, end)
+        if end > 4e5: return (0, 5e5)
+        return (0, end + 1e5)
+    padding = boltons.mathutils.clamp(5e5 - (end - start), 0, 2e5)
+    return (int(start - padding//2), int(end + padding//2))
+assert pad_gene(1000, 2345) == (0, 102_345)
+assert pad_gene(1000, 400_000) == (0, 500_000)
+assert pad_gene(200_000, 400_000) == (100_000, 500_000)
+assert pad_gene(200_000, 500_000) == (100_000, 600_000)
+assert pad_gene(200_000, 500_001) == (100_001, 600_000)
+assert pad_gene(200_000, 600_000) == (150_000, 650_000)
+assert pad_gene(200_000, 700_000) == (200_000, 700_000)
+assert pad_gene(200_000, 800_000) == (200_000, 800_000)
 
 
 def get_random_page():

@@ -19,31 +19,49 @@ def run(argv):
         phenos = utils.get_phenos_with_colnums()
 
         for chrom, start, end, gene_symbol in utils.get_gene_tuples():
-            # TODO: make a standardized way of computing a padded [start, end]
+            start, end = utils.pad_gene(start, end)
             # This dictionary will only contain p-values < MIN_PVALUE_TO_SHOW .
-            best_pvalue_for_pheno = {}
+            best_assoc_for_pheno = {}
 
             if chrom in tabix_file.contigs:
-                tabix_iter = tabix_file.fetch(chrom, start-1, end+1, parser = pysam.asTuple())
+                tabix_iter = tabix_file.fetch(chrom, start, end+1, parser = pysam.asTuple())
                 for variant_row in tabix_iter:
                     for phenocode, pheno in phenos.items():
-                        pval_col = pheno['colnum']['pval']
-                        v = variant_row[pval_col]
-                        if v == '.': continue
-                        pval = float(v)
-                        if pval < best_pvalue_for_pheno.get(phenocode, 2):
-                            best_pvalue_for_pheno[phenocode] = pval
+                        pval = variant_row[pheno['colnum']['pval']]
+                        if pval == '.': continue
+                        pval = float(pval)
+                        if phenocode not in best_assoc_for_pheno or pval < best_assoc_for_pheno[phenocode]['pval']:
+                            assoc = {}
+                            assoc['pval'] = pval
+                            assoc['maf'] = float(variant_row[6])
+                            if variant_row[4]:
+                                assoc['rsid'] = variant_row[4]
+                            for key, colnum in pheno['colnum'].items():
+                                if key == 'pval': continue
+                                val = variant_row[colnum]
+                                if key in ['beta', 'sebeta']:
+                                    try: val = float(val)
+                                    except: pass
+                                assoc[key] = val
+                            best_assoc_for_pheno[phenocode] = assoc
 
-            if best_pvalue_for_pheno:
+            if best_assoc_for_pheno:
                 # decide how many phenotypes to include.
-                phenos_in_gene = [{'phenocode': phenocode, 'pval':pval} for phenocode, pval in best_pvalue_for_pheno.items()]
-                phenos_in_gene = sorted(phenos_in_gene, key=lambda p:p['pval'])
-                num_to_include = 3
-                for idx in range(3,10):
-                    # Nothing magic, just works decently.
-                    if len(phenos_in_gene) > idx and phenos_in_gene[idx]['pval'] < 10 ** (-4 - idx//2):
-                        num_to_include = idx + 1
-                phenos_in_gene = phenos_in_gene[:num_to_include]
+                # we want to show all significant phenotypes.
+                # we always want at least three phenotypes.
+                for phenocode, assoc in best_assoc_for_pheno.items():
+                    assoc['phenocode'] = phenocode
+                phenos_in_gene = sorted(best_assoc_for_pheno.values(), key=lambda a:a['pval'])
+                biggest_idx_to_include = 2
+                for idx in range(biggest_idx_to_include, len(phenos_in_gene)):
+                    if phenos_in_gene[idx]['pval'] < 5e-8:
+                        biggest_idx_to_include = idx
+                    elif idx < 10 and phenos_in_gene[idx]['pval'] < 10 ** (-4 - idx//2):
+                        # include at most ten phenos if they're not genome-wide significant.  I just made up this formula.
+                        biggest_idx_to_include = idx
+                    else:
+                        break
+                phenos_in_gene = phenos_in_gene[:biggest_idx_to_include + 1]
 
                 rv[gene_symbol] = phenos_in_gene
 

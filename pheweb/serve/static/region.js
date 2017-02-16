@@ -42,7 +42,7 @@ window.debug = window.debug || {};
         "resizable": "responsive",
         // aspect_ratio: 2, // do I want this?
         "min_region_scale": 2e3,
-        "max_region_scale": 3e5,
+        "max_region_scale": 5e5,
         "panel_boundaries": true,
 
         "dashboard": {

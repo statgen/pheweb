@@ -27,6 +27,7 @@ curl -sSI "http://localhost:$port/region/snowstorm/8:926279-1326279" | grep -q 2
 curl -sSI "http://localhost:$port/api/region/snowstorm/lz-results/?filter=analysis%20in%203%20and%20chromosome%20in%20%20%278%27%20and%20position%20ge%20976279%20and%20position%20le%201276279" | grep -q 200
 curl -sSI "http://localhost:$port/region/snowstorm/gene/DNAH14?include=1-225494097" | grep -q 200
 curl -sSI "http://localhost:$port/api/autocomplete?query=%20DAP-2" | grep -q 200
+curl -sS "http://localhost:$port/region/1/gene/SAMD11" | grep -q EAR-LENGTH
 kill $pid
 
 echo -e "\n\n====> SUCCESS"
