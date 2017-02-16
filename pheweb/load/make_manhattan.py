@@ -25,6 +25,7 @@ import csv
 import collections
 import heapq
 from boltons.fileutils import mkdir_p, AtomicSaver
+from boltons.queueutils import PriorityQueue # TODO: compare performance with HeapPriorityQueue
 
 def rounded_neglog10(pval, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     return round(-math.log10(pval) // neglog10_pval_bin_size * neglog10_pval_bin_size, neglog10_pval_bin_digits)
@@ -50,15 +51,9 @@ def get_pvals_and_pval_extents(pvals, neglog10_pval_bin_size):
 
 # TODO: convert bins from {(chrom, pos): []} to {chrom:{pos:[]}}?
 def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_size, neglog10_pval_bin_digits):
-    bins = {} 
-    unbinned_variant_heap = []
+    bins = {}
+    unbinned_variant_heap = PriorityQueue()
     chrom_n_bins = {}
-
-    def box(x):
-        return (-x.pval, x)
-
-    def unbox(x):
-        return x[1]
 
     def bin_variant(variant):
         chrom = variant.chrom
@@ -77,13 +72,14 @@ def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_siz
 
     # put most-significant variants into the heap and bin the rest
     for variant in variant_iterator:
-        heapq.heappush(unbinned_variant_heap, box(variant))
+        unbinned_variant_heap.add(variant, variant.pval)
         if len(unbinned_variant_heap) > n_unbinned:
-            old = heapq.heappop(unbinned_variant_heap)
-            bin_variant(unbox(old))
+            old = unbinned_variant_heap.pop()
+            bin_variant(old)
 
     unbinned_variants = []
-    for variant in (unbox(x) for x in unbinned_variant_heap):
+    while unbinned_variant_heap:
+        variant = unbinned_variant_heap.pop()
         rec = variant.other
         rec['chrom'] = variant.chrom
         rec['pos'] = variant.pos
