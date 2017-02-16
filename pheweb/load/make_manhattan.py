@@ -23,9 +23,33 @@ import datetime
 import multiprocessing
 import csv
 import collections
-import heapq
+import bisect
 from boltons.fileutils import mkdir_p, AtomicSaver
-from boltons.queueutils import PriorityQueue # TODO: compare performance with HeapPriorityQueue
+from boltons.listutils import BList
+
+class Heap():
+    def __init__(self):
+        self._q = BList()
+        self._items = {}
+        self._idx = 0
+
+    def add(self, item, priority):
+        idx = self._idx
+        self._idx += 1
+        bisect.insort(self._q, (-priority, idx))
+        self._items[idx] = item
+
+    def pop(self):
+        priority, idx = self._q.pop(0)
+        return self._items.pop(idx)
+
+    def __len__(self):
+        return len(self._q)
+
+    def __iter__(self):
+        while self._q:
+            yield self.pop()
+
 
 def rounded_neglog10(pval, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     return round(-math.log10(pval) // neglog10_pval_bin_size * neglog10_pval_bin_size, neglog10_pval_bin_digits)
@@ -52,7 +76,7 @@ def get_pvals_and_pval_extents(pvals, neglog10_pval_bin_size):
 # TODO: convert bins from {(chrom, pos): []} to {chrom:{pos:[]}}?
 def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     bins = {}
-    unbinned_variant_heap = PriorityQueue()
+    unbinned_variant_heap = Heap()
     chrom_n_bins = {}
 
     def bin_variant(variant):
@@ -78,8 +102,7 @@ def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_siz
             bin_variant(old)
 
     unbinned_variants = []
-    while unbinned_variant_heap:
-        variant = unbinned_variant_heap.pop()
+    for variant in iter(unbinned_variant_heap):
         rec = variant.other
         rec['chrom'] = variant.chrom
         rec['pos'] = variant.pos
