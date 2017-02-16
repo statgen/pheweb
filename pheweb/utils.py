@@ -17,6 +17,7 @@ import attrdict
 import imp
 import multiprocessing
 import csv
+import contextlib
 
 conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
 
@@ -215,6 +216,13 @@ def exception_tester(f):
             print('')
             return {'args': args, 'kwargs': kwargs, 'succeeded': False}
         return {'args': args, 'kwargs': kwargs, 'succeeded': True, 'rv': rv}
+    return f2
+
+
+def star_kwargs(f):
+    @functools.wraps(f)
+    def f2(kwargs):
+        return f(**kwargs)
     return f2
 
 
