@@ -9,7 +9,7 @@ window.debug = window.debug || {};
     data_sources.add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10_or_100" }}]);
     data_sources.add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }]);
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }])
-    data_sources.add("sig", ["StaticJSON", [{ "x": 0, "y": 4.522 }, { "x": 2881033286, "y": 4.522 }] ])
+    data_sources.add("sig", ["StaticJSON", [{ "x": 0, "y": 7.3 }, { "x": 2881033286, "y": 7.3 }] ])
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
