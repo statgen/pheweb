@@ -1,4 +1,3 @@
-
 (function() { // Create PheWAS plot.
 
     if (_.any(window.variant.phenos.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
@@ -44,7 +43,7 @@
     $(function() {
         var svg_width = $('#phewas_plot_container').width();
         var svg_height = 550;
-        var significance_threshold = 3e-5;
+        var significance_threshold = 0.05 / window.variant.phenos.length;
 
         var plot_margin = {
             'left': 70,
@@ -89,10 +88,9 @@
         // Significance Threshold line
         var significance_threshold_tooltip = d3.tip()
             .attr('class', 'd3-tip')
-            .html('Significance Threshold: 3E-5')
+            .html('Bonferroni Significance Threshold: ' + significance_threshold.toExponential(1))
             .offset([-8,0]);
         phewas_svg.call(significance_threshold_tooltip);
-
         phewas_plot.append('line')
             .attr('x1', 0)
             .attr('x2', plot_width)
