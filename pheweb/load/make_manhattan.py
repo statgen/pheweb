@@ -17,11 +17,11 @@ import csv
 import collections
 import bisect
 from boltons.fileutils import mkdir_p, AtomicSaver
-from boltons.listutils import BList
+import blist
 
 class Heap():
     def __init__(self):
-        self._q = BList()
+        self._q = blist.blist()
         self._items = {}
         self._idx = 0
 

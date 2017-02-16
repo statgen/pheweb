@@ -58,5 +58,6 @@ setup(
         'requests~=2.13',
         'gunicorn~=19.6',
         'boltons~=17.0',
+        'blist~=1.3',
     ]
 )
