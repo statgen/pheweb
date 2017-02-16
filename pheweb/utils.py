@@ -17,7 +17,6 @@ import multiprocessing
 import csv
 from boltons.fileutils import mkdir_p
 
-
 conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
 
 
@@ -247,12 +246,6 @@ class open_maybe_gzip(object):
         return self.f
     def __exit__(self, *exc):
         self.f.close()
-
-
-def pairwise(iterable):
-    "s -> (s0, s1), (s2, s3), (s4, s5), ..."
-    it = iter(iterable)
-    return zip(it, it)
 
 
 # TODO: chrom_order_list[25-1] = 'M', chrom_order['M'] = 25-1, chrom_order['MT'] = 25-1 ?

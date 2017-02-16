@@ -19,8 +19,9 @@ import intervaltree
 import bisect
 import os
 import os.path
-import more_itertools
 from boltons.fileutils import AtomicSaver
+import boltons.iterutils
+
 
 class BisectFinder(object):
     '''Given a list like [(123, 'foo'), (125, 'bar')...], BisectFinder helps you find the things before and after 124.'''
@@ -65,7 +66,7 @@ class GeneAnnotator(object):
             return ''
         overlapping_genes = self._its[chrom].search(pos)
         if overlapping_genes:
-            return ','.join(more_itertools.unique_everseen(og.data for og in overlapping_genes))
+            return ','.join(boltons.iterutils.unique_iter(og.data for og in overlapping_genes))
         nearest_gene_end = self._gene_ends[chrom].get_item_before(pos)
         nearest_gene_start = self._gene_starts[chrom].get_item_after(pos)
         if nearest_gene_end is None or nearest_gene_start is None:

@@ -50,7 +50,6 @@ setup(
         'marisa-trie~=0.7',
         'flask-compress~=1.4',
         'intervaltree~=2.1',
-        'more_itertools~=2.5',
         'tqdm~=4.11',
         'openpyxl~=2.4',
         'scipy~=0.18',

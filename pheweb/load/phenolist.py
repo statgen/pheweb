@@ -14,13 +14,8 @@ import re
 import itertools
 import sys
 import copy
-
-try:
-    import more_itertools
-    import tqdm
-except ImportError:
-    print("It looks like you haven't installed the dependencies.  Please see the documentation for instructions on how to install them.")
-    raise
+import boltons.iterutils
+import tqdm
 
 def get_phenolist_with_globs(globs):
     assoc_fnames = []
@@ -101,7 +96,7 @@ def check_that_phenocode_is_unique(phenolist):
         raise Exception()
 
 def check_that_all_phenos_have_same_columns(phenolist):
-    all_columns = list(more_itertools.unique_everseen(col for pheno in phenolist for col in pheno))
+    all_columns = list(boltons.iterutils.unique(col for pheno in phenolist for col in pheno))
     for pheno in phenolist:
         for col in all_columns:
             if col not in pheno:
@@ -451,7 +446,7 @@ def save_phenolist(phenolist, fname=None):
         print("NOTE: overwriting {!r}".format(fname))
     with open(os.path.join(fname), 'w') as f:
         write_phenolist_to_file(phenolist, f)
-    all_columns = list(more_itertools.unique_everseen(col for pheno in phenolist for col in pheno))
+    all_columns = list(boltons.iterutils.unique(col for pheno in phenolist for col in pheno))
     print("NOTE: wrote {} phenotypes to {!r} with columns {!r}".format(len(phenolist), fname, all_columns))
 def write_phenolist_to_file(phenolist, f):
     phenolist = sorted(phenolist, key=lambda pheno: pheno.get('phenocode', ''))
@@ -613,7 +608,7 @@ def run(argv):
     def f(args, phenolist):
         if len(args.renames) % 2 != 0:
             utils.die("You supplied {} arguments. That's not a multiple of two. How am I supposed to pair old names with new names if you don't give me the same number of each?".format(len(args.renames)))
-        for oldname, newname in utils.pairwise(args.renames):
+        for oldname, newname in boltons.iterutils.chunked_iter(args.renames, 2):
             phenolist = rename_column(phenolist, oldname, newname)
         return phenolist
     p = subparsers.add_parser('rename-columns', help='')
