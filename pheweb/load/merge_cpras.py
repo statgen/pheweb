@@ -22,6 +22,8 @@ import os
 import random
 import multiprocessing
 import datetime
+from boltons.fileutils import mkdir_p, AtomicSaver
+
 
 NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #files / #cpus?
 MIN_NUM_FILES_TO_MERGE_AT_ONCE = 4 # Try to avoid ever merging fewer than this many files at a time.
@@ -81,7 +83,7 @@ def merge(input_filenames, out_filename):
     tmp_filename = '{}/tmp/merging-{}'.format(conf.data_dir, random.randrange(1e10)) # I don't like tempfile.
 
     with contextlib.ExitStack() as es, \
-         open(tmp_filename, 'w') as f_out:
+         AtomicSaver(out_filename, text_mode=True, part_file=tmp_filename, overwrite_part=True) as f_out:
         f_out.write('\t'.join('chrom pos ref alt'.split()) + '\n')
 
         readers = {}
@@ -119,14 +121,11 @@ def merge(input_filenames, out_filename):
 
         assert not readers, list(readers.items())
 
-        f_out.flush()
-        os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
-    os.rename(tmp_filename, out_filename)
     print('{:8} variants in {} <- {}'.format(n_variants, os.path.basename(out_filename), [os.path.basename(path) for path in input_filenames]))
 
 
-utils.mkdir_p(conf.data_dir + '/sites')
-utils.mkdir_p(conf.data_dir + '/tmp')
+mkdir_p(conf.data_dir + '/sites')
+mkdir_p(conf.data_dir + '/tmp')
 
 def merge_files_in_queue(lock, manna_dict):
     # Keep a work queue of files that need to get merged.

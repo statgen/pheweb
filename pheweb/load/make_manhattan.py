@@ -24,8 +24,7 @@ import multiprocessing
 import csv
 import collections
 import heapq
-import boltons.fileutils
-
+from boltons.fileutils import mkdir_p, AtomicSaver
 
 def rounded_neglog10(pval, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     return round(-math.log10(pval) // neglog10_pval_bin_size * neglog10_pval_bin_size, neglog10_pval_bin_digits)
@@ -142,7 +141,7 @@ def make_json_file(src_filename, dest_filename):
     }
 
     tmp_fname = os.path.join(conf.data_dir, 'tmp', 'manhattan-' + os.path.basename(dest_filename))
-    with boltons.fileutils.AtomicSaver(dest_filename, text_mode=True, part_file=tmp_fname) as f:
+    with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_fname, overwrite_part=True) as f:
         json.dump(rv, f)
 
     print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
@@ -162,8 +161,8 @@ def get_conversions_to_do():
 
 def run(argv):
 
-    boltons.fileutils.mkdir_p(conf.data_dir + '/manhattan')
-    boltons.fileutils.mkdir_p(conf.data_dir + '/tmp')
+    mkdir_p(conf.data_dir + '/manhattan')
+    mkdir_p(conf.data_dir + '/tmp')
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))

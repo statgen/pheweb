@@ -1,5 +1,4 @@
 
-
 import re
 import itertools
 import functools
@@ -8,7 +7,6 @@ import math
 import json
 import gzip
 import os
-import errno
 import random
 import sys
 import subprocess
@@ -17,7 +15,8 @@ import attrdict
 import imp
 import multiprocessing
 import csv
-import contextlib
+from boltons.fileutils import mkdir_p
+
 
 conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
 
@@ -150,14 +149,6 @@ def get_variant(query, phenos):
             rv['phenos'].append(p)
     return rv
 
-
-def mkdir_p(path):
-    # like `mkdir -p`
-    try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno != errno.EEXIST or not os.path.isdir(path):
-            raise
 
 def get_random_page():
     with open(os.path.join(conf['data_dir'], 'top_hits.json')) as f:

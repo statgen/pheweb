@@ -1,7 +1,4 @@
 
-
-
-
 from .. import utils
 conf = utils.conf
 
@@ -13,6 +10,7 @@ import multiprocessing
 import scipy.stats
 import collections
 import csv
+from boltons.fileutils import mkdir_p, AtomicSaver
 
 
 NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
@@ -134,13 +132,10 @@ def make_json_file(args):
             rv['overall'] = make_qq(v.neglog10_pval for v in variants)
             rv['by_maf'] = make_qq_stratified(variants)
 
-        # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
-        with open(tmp_filename, 'w') as f:
-            json.dump(rv, f, sort_keys=True, indent=0)
-            f.flush()
-            os.fsync(f.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
+        with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_filename, overwrite_part=True) as f:
+            json.dump(rv, f)
         print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
-        os.rename(tmp_filename, dest_filename)
+
     except Exception as exc:
         print('ERROR OCCURRED WHEN MAKING QQ FILE {!r} FROM FILE {!r} (TMP FILE AT {!r})'.format(
             dest_filename, src_filename, tmp_filename))
@@ -161,8 +156,8 @@ def get_conversions_to_do():
 
 def run(argv):
 
-    utils.mkdir_p(conf.data_dir + '/qq')
-    utils.mkdir_p(conf.data_dir + '/tmp')
+    mkdir_p(conf.data_dir + '/qq')
+    mkdir_p(conf.data_dir + '/tmp')
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))

@@ -7,6 +7,7 @@ import re
 import gzip
 import csv
 import collections
+from boltons.fileutils import mkdir_p
 
 def run(argv):
     # I need these genenames to be unique. So, if a SYMBOL is not unique, I use the ENSG instead.
@@ -17,7 +18,7 @@ def run(argv):
 
     if not os.path.exists(bed_file):
         print('genes.bed will be stored at {bed_file!r}'.format(bed_file=bed_file))
-        utils.mkdir_p(gene_dir)
+        mkdir_p(gene_dir)
         if not os.path.exists(gencode_file):
             wget = utils.get_path('wget')
             # Link from <http://www.gencodegenes.org/releases/19.html>

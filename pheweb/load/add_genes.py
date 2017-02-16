@@ -20,7 +20,7 @@ import bisect
 import os
 import os.path
 import more_itertools
-
+from boltons.fileutils import AtomicSaver
 
 class BisectFinder(object):
     '''Given a list like [(123, 'foo'), (125, 'bar')...], BisectFinder helps you find the things before and after 124.'''
@@ -84,16 +84,13 @@ def annotate_genes(file_to_annotate, temp_file, output_file):
     '''All four args are filepaths'''
     ga = GeneAnnotator(utils.get_gene_tuples())
     with open(file_to_annotate) as in_f, \
-         open(temp_file, 'w') as out_f:
+         AtomicSaver(output_file, text_mode=True, part_file=temp_file, overwrite_part=True) as out_f:
         for line in in_f:
             line = line.rstrip('\n\r')
             fields = line.split('\t')
             chrom, pos = fields[0], int(fields[1])
             nearest_gene = ga.annotate_position(chrom, pos)
             out_f.write(line + '\t' + nearest_gene + '\n')
-            out_f.flush()
-            os.fsync(out_f.fileno())
-        os.rename(temp_file, output_file)
 
 
 def run(argv):

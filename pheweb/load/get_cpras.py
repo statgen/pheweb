@@ -9,16 +9,14 @@ import multiprocessing
 import csv
 import os
 import json
+from boltons.fileutils import mkdir_p, AtomicSaver
 
 
 @utils.exception_tester
-def convert(conversion_to_do):
-    pheno = conversion_to_do['pheno']
-    dest_filename = conversion_to_do['dest']
-    tmp_filename = conversion_to_do['tmp']
+@utils.star_kwargs
+def convert(pheno, dest_filename, tmp_filename):
 
-    # Avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
-    with open(tmp_filename, 'w') as f_out:
+    with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_filename, overwrite_part=True) as f_out:
 
         minimum_maf = conf.minimum_maf if hasattr(conf, 'minimum_maf') else 0
         fieldnames, variants = input_file_parser.get_fieldnames_and_variants(pheno, minimum_maf=minimum_maf)
@@ -31,10 +29,7 @@ def convert(conversion_to_do):
         writer.writeheader()
         writer.writerows(variants)
 
-        f_out.flush()
-        os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
     print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
-    os.rename(tmp_filename, dest_filename)
 
 def get_conversions_to_do():
     phenos = utils.get_phenolist()
@@ -52,14 +47,14 @@ def get_conversions_to_do():
         if should_write_file:
             yield {
                 'pheno': pheno,
-                'dest': dest_filename,
-                'tmp': tmp_filename,
+                'dest_filename': dest_filename,
+                'tmp_filename': tmp_filename,
             }
 
 def run(argv):
 
-    utils.mkdir_p(conf.data_dir + '/cpra')
-    utils.mkdir_p(conf.data_dir + '/tmp')
+    mkdir_p(conf.data_dir + '/cpra')
+    mkdir_p(conf.data_dir + '/tmp')
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))

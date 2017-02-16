@@ -4,6 +4,7 @@ conf = utils.conf
 
 import os
 import multiprocessing
+from boltons.fileutils import mkdir_p
 
 echo = utils.get_path('echo')
 tabix = utils.get_path('tabix')
@@ -44,7 +45,7 @@ def get_conversions_to_do():
 
 def run(argv):
 
-    utils.mkdir_p(augmented_pheno_gz_dir)
+    mkdir_p(augmented_pheno_gz_dir)
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))

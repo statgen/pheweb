@@ -1,7 +1,4 @@
 
-
-
-
 from .. import utils
 conf = utils.conf
 
@@ -11,6 +8,8 @@ import os
 import datetime
 import multiprocessing
 import csv
+from boltons.fileutils import mkdir_p, AtomicSaver
+
 
 sites_filename = conf.data_dir + '/sites/sites.tsv'
 
@@ -28,16 +27,6 @@ def write_variant(writer, site_variant, pheno_variant):
     site_variant.update(pheno_variant)
     writer.writerow(site_variant)
 
-@utils.exception_printer
-def convert(conversion_to_do):
-    # Use tmp_filename to avoid getting killed while writing dest_filename, to stay idempotent despite me frequently killing the program
-    pheno = conversion_to_do['pheno']
-    dest_filename = conversion_to_do['dest']
-    tmp_filename = conversion_to_do['tmp']
-    _convert(pheno, tmp_filename)
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
-    os.rename(tmp_filename, dest_filename)
-
 def _which_variant_is_bigger(v1, v2):
     # 1 means v1 is bigger.  2 means v2 is bigger. 0 means tie.
     if v1['chrom_idx'] == v2['chrom_idx']:
@@ -50,8 +39,12 @@ def _which_variant_is_bigger(v1, v2):
         return 1 if v1['pos'] > v2['pos'] else 2
     return 1 if v1['chrom_idx'] > v2['chrom_idx'] else 2
 
-def _convert(pheno, out_filename):
-    with open(out_filename, 'w') as f_out:
+
+@utils.exception_printer
+@utils.star_kwargs
+def convert(pheno, dest_filename, tmp_filename):
+
+    with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_filename, overwrite_part=True) as f_out:
 
         pheno_fieldnames, pheno_variants = input_file_parser.get_fieldnames_and_variants(pheno, keep_chrom_idx=True)
         site_variants = get_site_variants(sites_filename)
@@ -83,8 +76,7 @@ def _convert(pheno, out_filename):
                     pheno_variant = next(pheno_variants)
                 except StopIteration: break
 
-        f_out.flush()
-        os.fsync(f_out.fileno()) # Recommended by <http://stackoverflow.com/a/2333979/1166306>
+    print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
 
 def get_conversions_to_do():
     phenos = utils.get_phenolist()
@@ -102,14 +94,14 @@ def get_conversions_to_do():
         if should_write_file:
             yield {
                 'pheno': pheno,
-                'dest': dest_filename,
-                'tmp': tmp_filename,
+                'dest_filename': dest_filename,
+                'tmp_filename': tmp_filename,
             }
 
 def run(argv):
 
-    utils.mkdir_p(conf.data_dir + '/augmented_pheno')
-    utils.mkdir_p(conf.data_dir + '/tmp')
+    mkdir_p(conf.data_dir + '/augmented_pheno')
+    mkdir_p(conf.data_dir + '/tmp')
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
