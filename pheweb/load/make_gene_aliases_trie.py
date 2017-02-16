@@ -6,7 +6,6 @@ import os
 import re
 import requests
 import csv
-import json
 import marisa_trie
 
 
@@ -38,10 +37,6 @@ def run(argv):
             aliases = set(s.upper() for s in aliases if all(l.isalnum() or l in '-._' for l in s))
             aliases = set(s for s in aliases if s not in canonical_symbols)
             aliases_for_ensg[ensg] = (aliases_for_ensg[ensg][0], aliases)
-
-        #rv = {symbol: [ensg]+list(symbols) for ensg, (symbol, symbols) in aliases.items()}
-        #with open(aliases_file, 'w') as f:
-        #    json.dump(rv, f, indent=0)
 
         # rv maps `alias` -> `canonical_symbol,...`
         mapping = {}

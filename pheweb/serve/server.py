@@ -2,7 +2,7 @@
 from .. import utils
 conf = utils.conf
 
-from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, url_for
+from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory
 from flask_compress import Compress
 
 from .autocomplete import Autocompleter
