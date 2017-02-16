@@ -216,20 +216,6 @@ def star_kwargs(f):
     return f2
 
 
-def all_equal(iterator):
-    if isinstance(iterator, list): iterator = iter(iterator)
-    try:
-        first = next(iterator)
-    except StopIteration:
-        return True
-    return all(it == first for it in iterator)
-
-
-def sorted_groupby(iterator, key=None):
-    if key is None: key = (lambda v:v)
-    return [list(group) for _, group in itertools.groupby(sorted(iterator, key=key), key=key)]
-
-
 class open_maybe_gzip(object):
     def __init__(self, fname, *args):
         self.fname = fname

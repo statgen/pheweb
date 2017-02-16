@@ -1,7 +1,4 @@
 
-
-
-
 from .. import utils
 conf = utils.conf
 
@@ -16,6 +13,7 @@ import sys
 import copy
 import boltons.iterutils
 import tqdm
+
 
 def get_phenolist_with_globs(globs):
     assoc_fnames = []
@@ -88,7 +86,7 @@ ERROR: The phenocode {!r} contains the characters {!r} which is not allowed beca
 
 def check_that_phenocode_is_unique(phenolist):
     phenocodes = [pheno['phenocode'] for pheno in phenolist]
-    phenocode_groups = utils.sorted_groupby(phenocodes)
+    phenocode_groups = boltons.iterutils.bucketize(phenocodes, key=lambda p:p).values()
     repeated_phenocodes = [phenocode_group for phenocode_group in phenocode_groups if len(phenocode_group) > 1]
     if repeated_phenocodes:
         print("ERROR: At least one phenocode is used by multiple phenotypes.")
@@ -377,20 +375,20 @@ def unique_phenocode(phenolist, new_column_name):
     # notice how we can still see that `a` goes with `5` and `b` with `2`.
     if not all('phenocode' in pheno for pheno in phenolist):
         utils.die("At least one pheno doesn't have a 'phenocode', so you can't run unique-phenocode")
-    if not utils.all_equal(pheno.keys() for pheno in phenolist):
+    if not boltons.iterutils.same(pheno.keys() for pheno in phenolist):
         utils.die("Not all phenotypes have the same columns.  That probably not a problem, but I haven't thought through the implications yet.")
-    phenocode_groups = utils.sorted_groupby(phenolist, lambda p: p['phenocode'])
+    phenocode_groups = boltons.iterutils.bucketize(phenolist, lambda p: p['phenocode']).values()
     columns_to_listify = set()
     for phenocode_group in phenocode_groups:
         for key in phenocode_group[0]:
-            if not utils.all_equal(pheno[key] for pheno in phenocode_group):
+            if not boltons.iterutils.same(pheno[key] for pheno in phenocode_group):
                 columns_to_listify.add(key)
     print("NOTE: the columns {!r} sometimes have multiple values for the same phenocode so we'll combine them.".format(list(columns_to_listify)))
     if len(columns_to_listify) == 0:
         print("It looks like some lines are exact dupes of others. That's easy to fix.")
         new_phenolist = []
         for phenocode_group in phenocode_groups:
-            assert utils.all_equal(phenocode_group)
+            assert boltons.iterutils.same(phenocode_group)
             new_phenolist.append(phenocode_group[0])
         return new_phenolist
     elif len(columns_to_listify) == 1 or new_column_name is None:
@@ -402,7 +400,7 @@ def unique_phenocode(phenolist, new_column_name):
                     new_pheno[key] = phenocode_group[0][key]
                     assert all(row[key] == phenocode_group[0][key] for row in phenocode_group)
                 else:
-                    if not utils.all_equal(type(row[key]) for row in phenocode_group):
+                    if not boltons.iterutils.same(type(row[key]) for row in phenocode_group):
                         utils.die("ERROR: there are multiple types in the column {!r}, so I don't want to make it a list".format(key))
                     if isinstance(phenocode_group[0][key], list):
                         # TODO: assert that the elements of the lists are all the same type
