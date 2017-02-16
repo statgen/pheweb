@@ -10,7 +10,6 @@ def run(argv):
     from . import server
     server.app.run(
         host=args.host, port=args.port,
-        threaded=True, # seems to be bad at dying when I ctrl-C / SIGTERM.
         debug=True, use_evalex=False,
         use_reloader=True,
     )
