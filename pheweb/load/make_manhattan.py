@@ -5,14 +5,6 @@ This script creates json files which can be used to render Manhattan plots.
 
 # TODO: combine with QQ?
 
-'''
-copying from Encore:
-- Do I want JSONOutFile?  Does it make code shorter?
-- Can I keep process_file() as-is and make run() Pool.map() it?
-    - then add a decorator "star_args_kwargs"
-'''
-
-
 from .. import utils
 conf = utils.conf
 
@@ -102,7 +94,7 @@ def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_siz
             bin_variant(old)
 
     unbinned_variants = []
-    for variant in iter(unbinned_variant_heap):
+    for variant in unbinned_variant_heap:
         rec = variant.other
         rec['chrom'] = variant.chrom
         rec['pos'] = variant.pos
