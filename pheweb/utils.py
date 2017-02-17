@@ -160,14 +160,14 @@ def pad_gene(start, end):
         return (0, end + 1e5)
     padding = boltons.mathutils.clamp(5e5 - (end - start), 0, 2e5)
     return (int(start - padding//2), int(end + padding//2))
-assert pad_gene(1000, 2345) == (0, 102_345)
-assert pad_gene(1000, 400_000) == (0, 500_000)
-assert pad_gene(200_000, 400_000) == (100_000, 500_000)
-assert pad_gene(200_000, 500_000) == (100_000, 600_000)
-assert pad_gene(200_000, 500_001) == (100_001, 600_000)
-assert pad_gene(200_000, 600_000) == (150_000, 650_000)
-assert pad_gene(200_000, 700_000) == (200_000, 700_000)
-assert pad_gene(200_000, 800_000) == (200_000, 800_000)
+assert pad_gene(1000,     2345) == (0,      102345)
+assert pad_gene(1000  , 400000) == (0,      500000)
+assert pad_gene(200000, 400000) == (100000, 500000)
+assert pad_gene(200000, 500000) == (100000, 600000)
+assert pad_gene(200000, 500001) == (100001, 600000)
+assert pad_gene(200000, 600000) == (150000, 650000)
+assert pad_gene(200000, 700000) == (200000, 700000)
+assert pad_gene(200000, 800000) == (200000, 800000)
 
 
 def get_random_page():
