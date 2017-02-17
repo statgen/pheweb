@@ -17,37 +17,15 @@
 
 
 {% block contained %}
-{% for key in ['num_cases', 'num_controls', 'num_samples'] %}
- {% if key in pheno %}
-  {% if '<' in pheno[key]|string %}
-    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div>
-  {% elif pheno[key]|int < 200 %}
-    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div>
-  {% endif %}
- {% endif %}
-{% endfor %}
 <div class="row">
   <div class="col-xs-12">
     <h1 style="margin-top:0">{{ gene_symbol }}</h1>
   </div>
 </div>
-<div class="row">
-    <div class="pheno-info col-xs-12">
-        {% if 'num_cases' in pheno %}
-          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
-        {% elif 'num_samples' in pheno %}
-          <p><b>{{ pheno.num_samples }}</b> samples</p>
-        {% endif %}
-        {% if pheno.category %}
-          <p>Category: <b>{{ pheno.category}}</b></p>
-        {% endif %}
-    </div>
-</div>
-<br>
 {% if significant_phenos %}
 <div class="row">
   <div class="col-md-10 col-lg-10 col-sm-10 col-xs-10">
-    <h4>Phenotypes with the most-significant associations for this gene:</h4>
+    <p>Phenotypes with the most-significant associations for this locus:</p>
 
       <div class="row stream_table_row">
         <div class="col-xs-12">
@@ -68,6 +46,29 @@
 </div>
 <br/>
 {% endif %}
+{% for key in ['num_cases', 'num_controls', 'num_samples'] %}
+ {% if key in pheno %}
+  {% if '<' in pheno[key]|string %}
+    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div>
+  {% elif pheno[key]|int < 200 %}
+    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div>
+  {% endif %}
+ {% endif %}
+{% endfor %}
+<div class="row">
+    <div class="pheno-info col-xs-12">
+        {% if 'num_cases' in pheno %}
+          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
+        {% elif 'num_samples' in pheno %}
+          <p><b>{{ pheno.num_samples }}</b> samples</p>
+        {% endif %}
+        {% if pheno.category %}
+          <p>Category: <b>{{ pheno.category}}</b></p>
+        {% endif %}
+    </div>
+</div>
+<br>
+
 <div class="row">
   <div class="col-xs-12">
     <a href="/pheno/{{ pheno['phenocode'] }}" class="btn btn-default">Go to Manhattan Plot</a>
