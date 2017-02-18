@@ -1,55 +1,23 @@
 {% extends "layout.html" %}
 
+
 {% block in_head %}
 <script type="text/javascript">
   window.variant = {{ variant|tojson(separators=(',',':'))|safe }};
+  window.debug = {};
 </script>
 <script type="text/javascript" src="{{ url_for('static', filename='vendor/stream_table.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/locuszoom.vendor.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='vendor/locuszoom-0.5.4.app.js') }}" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/locuszoom-0.5.4.css') }}">
 <script type="text/javascript" src="{{ url_for('static', filename='variant.js') }}"></script>
 <style type="text/css">
-.d3-tip {
-  line-height: 1;
-  max-width: 175px;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  border-radius: 4px;
-  pointer-events: none;
-}
-/* Creates a small triangle extender for the tooltip */
-.d3-tip:after {
-  display: inline;
-  font-size: 10px;
-  width: 100%;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.8);
-  position: absolute;
-  pointer-events: none;
-}
-/* Northward tooltips */
-.d3-tip.n:after {
-  content: "\25BC";
-  margin: -3px 0 0 0;
-  top: 100%;
-  left: 0;
-  text-align: center;
-}
-
-.axis > path.domain {
-  stroke-width: 2px;
-  stroke: #666;
-  fill: none;
-}
-
-.variant-info > p {
-  margin-bottom: 0;
-}
-
 #phewas_plot_container {
   min-width: 700px;
 }
 </style>
 {% endblock %}
+
 
 {% block contained %}
 <div class="row">
@@ -113,7 +81,7 @@
   </div>
 </div>
 
-
+<!--
 <script type="text/template" id="tooltip-template">
 
 <%= d.phenostring || d.phenocode %><br>
@@ -145,11 +113,11 @@ OR: <%= d.or.toExponential(1) %><br>
 #samples: <%= d.num_samples %><br>
 <% } %>
 
-</script>
+</script> -->
 
 <script type="text/template" id="streamtable-template">
   <tr>
-    <td style="color:<%= color_by_category(d.category) %>">
+    <td>
       <%= d.category %>
     </td>
     <td><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
