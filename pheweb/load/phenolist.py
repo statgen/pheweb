@@ -313,7 +313,7 @@ def merge_in_info(phenolist, more_info_rows):
     "This function assumes that every pheno in phenolist has exactly one match (ie, same phenocode) in more_info_rows"
     # TODO: rename "more_info_rows" something else.
     for t in [phenolist, more_info_rows]:
-        check_that_all_phenos_have_same_columns(t)
+        #check_that_all_phenos_have_same_columns(t)
         check_that_phenocode_is_unique(t)
         check_that_columns_are_present(t, ['phenocode'])
     keys_to_add = set(itertools.chain.from_iterable(more_info_rows)) - set(itertools.chain.from_iterable(phenolist))
