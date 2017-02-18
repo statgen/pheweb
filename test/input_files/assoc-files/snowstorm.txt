@@ -1,4 +1,5 @@
 ref	alt	beg	chrom	maf	pval
+G	A	869339	1	.1	2e-4
 T	C	1930553	1	.1	2e-4
 A	T	1931299	1	.5	3e-11
 G	C	1932181	1	.04	1e-12
