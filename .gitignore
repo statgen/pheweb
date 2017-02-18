@@ -5,3 +5,4 @@ test/fake-cache/*
 !test/fake-cache/rsids-147.vcf.gz
 !test/data_dir/config.py
 !test/data_dir/make_phenolist.py
+!test/data_dir/custom_templates
