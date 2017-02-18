@@ -88,7 +88,8 @@ function deepcopy(obj) {
     phewas_panel.data_layers[1].tooltip.html =
         "<div><strong>{{phewas_string}}</strong></div>" +
         "<div><strong style='color:{{color}}'>{{category_name}}</strong></div>" +
-        "<div>P Value: <strong>{{pval|scinotation}}</strong></div>";
+        "<div>P Value: <strong>{{pval|scinotation}}</strong></div>" +
+        "<div><a href='/pheno/{{phewas_code}}'>Manhattan Plot</a></div>";
     phewas_panel.data_layers[1].label.filters[0].value = neglog10_significance_threshold;
     phewas_panel.data_layers[1].color.parameters.categories = window.unique_categories;
     phewas_panel.data_layers[1].color.parameters.values = window.unique_categories.map(function(cat) { return window.color_by_category(cat); });
