@@ -12,6 +12,9 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/locuszoom-0.5.4.css') }}">
 <script type="text/javascript" src="{{ url_for('static', filename='variant.js') }}"></script>
 <style type="text/css">
+.variant-info > p {
+  margin-bottom: 0;
+}
 #phewas_plot_container {
   min-width: 700px;
 }
@@ -117,7 +120,7 @@ OR: <%= d.or.toExponential(1) %><br>
 
 <script type="text/template" id="streamtable-template">
   <tr>
-    <td>
+    <td style="color:<%= d.color %>">
       <%= d.category %>
     </td>
     <td><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>

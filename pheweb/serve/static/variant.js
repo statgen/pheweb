@@ -83,7 +83,6 @@ function deepcopy(obj) {
         { "x": 0, "y": neglog10_significance_threshold }, { "x": 1448, "y": neglog10_significance_threshold }]]);
 
     // TODO: add optional elements (beta, sebeta) using new conditional syntax
-    //       if that's not possible, then instead monkeypatch updateTooltip()
     var phewas_panel = LocusZoom.Layouts.get("panel", "phewas");
     phewas_panel.data_layers[1].tooltip.html =
         "<div><strong>{{phewas_code}}</strong></div>" +
@@ -123,7 +122,6 @@ function deepcopy(obj) {
         panels: [phewas_panel]
     }
     window.debug.layout = layout;
-    // TODO: override layout.
 
     $(function() {
         var plot = LocusZoom.populate("#phewas_plot_container", data_sources, layout);
