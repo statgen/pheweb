@@ -39,8 +39,8 @@ function deepcopy(obj) {
             .domain(unique_categories);
 
         window.variant.phenos.forEach(function(d, i) {
-            d.phewas_code = d.phewas_string = d.phenocode;
-            d.num_cases = d.num_controls = d.num_samples;
+            d.phewas_code = d.phenocode;
+            d.phewas_string = (d.phenostring || d.phenocode);
             d.category_name = d.category;
             d.color = color_by_category(d.category);
             d.idx = i;
@@ -86,9 +86,12 @@ function deepcopy(obj) {
     //       if that's not possible, then instead monkeypatch updateTooltip()
     var phewas_panel = LocusZoom.Layouts.get("panel", "phewas");
     phewas_panel.data_layers[1].tooltip.html =
+        "<div><strong>{{phewas_code}}</strong></div>" +
         "<div><strong>{{phewas_string}}</strong></div>" +
         "<div><strong style='color:{{color}}'>{{category_name}}</strong></div>" +
         "<div>P Value: <strong>{{pval|scinotation}}</strong></div>" +
+        "<div>#cases: <strong>{{num_cases}}</strong></div>" +
+        "<div>#controls: <strong>{{num_controls}}</strong></div>" +
         "<div><a href='/pheno/{{phewas_code}}'>Manhattan Plot</a></div>";
     phewas_panel.data_layers[1].label.filters[0].value = neglog10_significance_threshold;
     phewas_panel.data_layers[1].color.parameters.categories = window.unique_categories;
@@ -101,6 +104,7 @@ function deepcopy(obj) {
             x: pheno.idx,
         };
     });
+    phewas_panel.axes.y1.label = "-log\u2081\u2080(p-value)";
     window.debug.phewas_panel = phewas_panel;
     var layout = {
         state: {
