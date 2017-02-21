@@ -19,7 +19,7 @@ def run(argv):
         aliases_for_ensg = {ensg: (canonical_symbol, []) for _, _, _, canonical_symbol, ensg in utils.get_gene_tuples(include_ensg=True)}
         print('num canonical gene names:', len(aliases_for_ensg))
         canonical_symbols = set(v[0].upper() for v in aliases_for_ensg.values())
-        assert all(all(l.isalnum() or l in '-._' for l in canonical_symbol) for canonical_symbol in canonical_symbols)
+        for cs in canonical_symbols: assert cs and all(l.isalnum() or l in '-._' for l in cs), cs
 
         r = requests.get('http://www.genenames.org/cgi-bin/download?col=gd_app_sym&col=gd_prev_sym&col=gd_aliases&col=gd_pub_ensembl_id&status=Approved&status=Entry+Withdrawn&status_opt=2&where=&order_by=gd_app_sym_sort&format=text&limit=&hgnc_dbtag=on&submit=submit')
         r.raise_for_status()
