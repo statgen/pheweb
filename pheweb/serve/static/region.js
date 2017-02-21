@@ -64,7 +64,7 @@ window.debug = window.debug || {};
                 "bottom": 40,
                 "left": 50
             },
-            "inner_border": "rgba(210, 210, 210, 0.85)",
+            "inner_border": "rgb(210, 210, 210)",
             "dashboard": {
                 "components": [{
                     "type": "toggle_legend",
@@ -207,6 +207,7 @@ window.debug = window.debug || {};
                         "values": ["#357ebd", "#46b8da", "#5cb85c", "#eea236", "#d43f3a"]
                     }
                 }, "#B8B8B8"],
+                fill_opacity: 0.7,
                 "legend": [{
                     "shape": "diamond",
                     "color": "#9632b8",
@@ -253,6 +254,11 @@ window.debug = window.debug || {};
 
                 fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation_handle_zero", "pvalue|neglog10_or_100", "maf", "ld:state", "ld:isrefvar"],
                 id_field: "id",
+                behaviors: {
+                    onmouseover: [{action: "set", status:"selected"}],
+                    onmouseout: [{action: "unset", status:"selected"}],
+                    onclick: [{action: "link", href:"/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}"}],
+                },
                 tooltip: {
                     "closable": true,
                     "show": {
@@ -264,8 +270,7 @@ window.debug = window.debug || {};
                     html: "<strong>{{id}}</strong><br>" +
                         "<strong>{{rsid}}</strong><br>" +
                         "P-value: <strong>{{pvalue|scinotation_handle_zero}}</strong><br>" +
-                        "MAF: <strong>{{maf}}</strong><br>" +
-                        "<a href='/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}'>PheWAS</a>"
+                        "MAF: <strong>{{maf}}</strong><br>"
                 },
                 "z_index": 2,
                 "x_axis": {
@@ -280,14 +285,6 @@ window.debug = window.debug || {};
                     "min_extent": [0, 10]
                 },
                 "transition": false,
-                "highlighted": {
-                    "onmouseover": "on",
-                    "onmouseout": "off"
-                },
-                "selected": {
-                    "onclick": "toggle_exclusive",
-                    "onshiftclick": "toggle"
-                }
             }],
             "description": null,
             "y_index": 0,
@@ -351,6 +348,11 @@ window.debug = window.debug || {};
                     "onshiftclick": "toggle"
                 },
                 "transition": false,
+                behaviors: {
+                    onclick: [{action: "toggle", status: "selected", exclusive: true}],
+                    onmouseover: [{action: "set", status: "highlighted"}],
+                    onmouseout: [{action: "unset", status: "unhighlighted"}],
+                },
                 "tooltip": {
                     "closable": true,
                     "show": {
