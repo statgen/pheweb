@@ -47,20 +47,6 @@ window.debug = window.debug || {};
 
         "dashboard": {
             "components": [{
-            //     "type": "title",
-            //     "title": "LocusZoom",
-            //     "subtitle": "<a href=\"https://statgen.github.io/locuszoom/\" target=\"_blank\">v0.4.8</a>",
-            //     "position": "left",
-            //     "color": "gray"
-            // }, {
-            //     "type": "dimensions",
-            //     "position": "right",
-            //     "color": "gray"
-            // }, {
-            //     "type": "region_scale",
-            //     "position": "right",
-            //     "color": "gray"
-            // }, {
                 "type": "download",
                 "position": "right",
                 "color": "gray"
@@ -81,18 +67,6 @@ window.debug = window.debug || {};
             "inner_border": "rgba(210, 210, 210, 0.85)",
             "dashboard": {
                 "components": [{
-                //     "type": "remove_panel",
-                //     "position": "right",
-                //     "color": "red"
-                // }, {
-                //     "type": "move_panel_up",
-                //     "position": "right",
-                //     "color": "gray"
-                // }, {
-                //     "type": "move_panel_down",
-                //     "position": "right",
-                //     "color": "gray"
-                // }, {
                     "type": "toggle_legend",
                     "position": "right",
                     "color": "green"
@@ -293,7 +267,6 @@ window.debug = window.debug || {};
                         "MAF: <strong>{{maf}}</strong><br>" +
                         "<a href='/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}'>PheWAS</a>"
                 },
-
                 "z_index": 2,
                 "x_axis": {
                     "field": "position",
@@ -327,14 +300,6 @@ window.debug = window.debug || {};
                 "y": 0
             },
             "background_click": "clear_selections",
-            "cliparea": {
-                "height": 150,
-                "width": 700,
-                "origin": {
-                    "x": 50,
-                    "y": 35
-                }
-            }
         }, {
             "id": "genes",
             "proportional_height": 0.5,
@@ -347,15 +312,9 @@ window.debug = window.debug || {};
                 "left": 50
             },
             "axes": {
-                "x": {
-                    "render": false
-                },
-                "y1": {
-                    "render": false
-                },
-                "y2": {
-                    "render": false
-                }
+                "x": {"render": false},
+                "y1": {"render": false},
+                "y2": {"render": false}
             },
             "interaction": {
                 "drag_background_to_pan": true,
@@ -369,18 +328,6 @@ window.debug = window.debug || {};
             },
             "dashboard": {
                 "components": [{
-                //     "type": "remove_panel",
-                //     "position": "right",
-                //     "color": "red"
-                // }, {
-                //     "type": "move_panel_up",
-                //     "position": "right",
-                //     "color": "gray"
-                // }, {
-                //     "type": "move_panel_down",
-                //     "position": "right",
-                //     "color": "gray"
-                // }, {
                     "type": "resize_to_data",
                     "position": "right",
                     "color": "blue"
@@ -393,7 +340,6 @@ window.debug = window.debug || {};
                 },
                 "id": "genes",
                 "type": "genes",
-                // "fields": ["gene:gene", "constraint:constraint"],
                 "fields": ["gene:gene"],
                 "id_field": "gene_id",
                 "highlighted": {
@@ -442,14 +388,6 @@ window.debug = window.debug || {};
                 "y": 0.5
             },
             "background_click": "clear_selections",
-            "cliparea": {
-                "height": 185,
-                "width": 700,
-                "origin": {
-                    "x": 50,
-                    "y": 20
-                }
-            },
             "legend": null
         }]
     }
