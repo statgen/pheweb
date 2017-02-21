@@ -291,50 +291,24 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 }
 
 
-function create_qq_plot(maf_ranges) {
+function create_qq_plot(maf_ranges, qq_ci) {
 
     maf_ranges.forEach(function(maf_range, i) {
         maf_range.color = ['#e66101', '#fdb863', '#b2abd2', '#5e3c99'][i];
     })
 
-    // TODO: adjust this for fewer variants in each maf_range?  `nvar <- nvar / 4`?
-    // Generated in R with:
-    // nvar <- 7741774
-    // get.x.y0.y1 <- function(i) c(-log10((i-.5)/nvar), -log10(qbeta(.05/2, i, nvar-i)), -log10(qbeta(1-.05/2, i, nvar-i)))
-    // m <- t(sapply(c(nvar-1,2^(22:0)), get.x.y0.y1))
-    // cat('[\n', paste(apply(m, 1, function(x) {paste0('[', paste(x, collapse=', '), ']')}), collapse=',\n'), '\n]\n', sep='')
-    var qq_ci_trumpet_points = [
-        [8.41463191637995e-08, 2.06937091984728e-07, 1.42026694351221e-09],
-        [2.66180636288143e-01, 2.66462030395762e-01, 2.65899337287824e-01],
-        [5.6721068372407e-01, 5.67712677422238e-01, 5.66708883205101e-01],
-        [8.68240782931961e-01, 8.69013887987563e-01, 8.67468067199388e-01],
-        [1.16927098568384e+00, 1.17040644058532e+00, 1.16813631239316e+00],
-        [1.4703013955239e+00, 1.47193629381956e+00, 1.46866806341512e+00],
-        [1.77133221954124e+00, 1.77366493805335e+00, 1.76900263637013e+00],
-        [2.07236387191668e+00, 2.07567792384905e+00, 2.06905609364153e+00],
-        [2.37339718102252e+00, 2.37809579805874e+00, 2.36871111430798e+00],
-        [2.67443380364607e+00, 2.68108942684051e+00, 2.66780328423004e+00],
-        [2.97547705353256e+00, 2.98490200133311e+00, 2.96610231693523e+00],
-        [3.27653355885515e+00, 3.28988107575576e+00, 3.26328647005259e+00],
-        [3.57761657869133e+00, 3.59652585605225e+00, 3.55890817139793e+00],
-        [3.87875264212526e+00, 3.90555820542648e+00, 3.85234886553959e+00],
-        [4.17999485107561e+00, 4.21803168233452e+00, 4.14276177058554e+00],
-        [4.48144958465306e+00, 4.5355039743129e+00, 4.42900339626155e+00],
-        [4.78333030435382e+00, 4.86032012266057e+00, 4.70955967275273e+00],
-        [5.08606676383181e+00, 5.19610062771554e+00, 4.98248235352387e+00],
-        [5.39052993533419e+00, 5.54863456742877e+00, 5.24536812930765e+00],
-        [5.6985087909535e+00, 5.92763839672079e+00, 5.49543716880598e+00],
-        [6.01377922573209e+00, 6.35053910237972e+00, 5.72979481308295e+00],
-        [6.34477244477351e+00, 6.85146752472168e+00, 5.94597606127947e+00],
-        [6.71274923006811e+00, 7.5046496357087e+00, 6.14285724932233e+00],
-        [7.18987048478777e+00, 8.48541433197784e+00, 6.32194607299163e+00]
-    ];
     $(function() {
 
         var exp_max = d3.max(maf_ranges, function(maf_range) { return d3.max(maf_range.qq, _.property(0)); });
         var obs_max = d3.max(maf_ranges, function(maf_range) { return d3.max(maf_range.qq, _.property(1))});
-        // Constrain obs_max in [exp_max, 9.01]. `9.01` preserves the tick `9`.
-        obs_max = Math.max(exp_max, Math.min(9.01, obs_max));
+        // Constrain obs_max in [exp_max, Math.ceil(exp_max*2)+.01]. The `.01` preserves the highest integer tick.
+        obs_max = Math.max(exp_max, Math.min(Math.ceil(exp_max*2)+.01, obs_max));
+        var visible_obs_max = d3.max(maf_ranges, function(maf_range) {
+            return d3.max(maf_range.qq, function(bin) {
+                return (bin[1] <= obs_max) ? bin[1] : 0;
+            })
+        });
+        obs_max = Math.min(obs_max, Math.ceil(visible_obs_max*1.05)+.01);
 
         var svg_width = $('#qq_plot_container').width();
         var plot_margin = {
@@ -366,18 +340,17 @@ function create_qq_plot(maf_ranges) {
             .range([plot_height, 0]);
 
         // "trumpet" CI path
-        var area = d3.svg.area()
-        .x( function(d) {
-            return x_scale(d[0]);
-        }).y0( function(d) {
-            return y_scale(d[1] + .05);
-        }).y1( function(d) {
-            return y_scale(d[2] - .05);
-        });
         qq_plot.append('path')
             .attr('class', 'trumpet_ci')
-            .datum(qq_ci_trumpet_points)
-            .attr("d", area)
+            .datum(qq_ci)
+            .attr("d", d3.svg.area()
+                  .x( function(d) {
+                      return x_scale(d.x);
+                  }).y0( function(d) {
+                      return y_scale(d.y_max + .05)
+                  }).y1( function(d) {
+                      return y_scale(Math.max(0, d.y_min - .05));
+                  }))
             .style("fill", "lightgray");
 
         // points

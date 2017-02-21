@@ -3,11 +3,9 @@
 This script creates json files which can be used to render QQ plots.
 '''
 
-# TODO: share the list `variants` with Manhattan and top_{hits,loci}.
+# TODO: share the `VariantFileReader` with `manhattan.py`.
 # TODO: make gc_lambda for maf strata, and show them if they're >1.1?
-# TODO: copy changes from <https://github.com/statgen/encore/blob/master/plot-epacts-output/make_qq_json.py> and then copy js too.
-#    - unbinned_variants
-#    - get_conf_int()
+# TODO: copy some changes from <https://github.com/statgen/encore/blob/master/plot-epacts-output/make_qq_json.py>
 
 from ..utils import round_sig, approx_equal
 from ..file_utils import VariantFileReader, write_json, common_filepaths
@@ -41,8 +39,10 @@ def make_json_file(pheno):
         if variants[0].maf is not None:
             rv['overall'] = make_qq_unstratified(variants, include_qq=False)
             rv['by_maf'] = make_qq_stratified(variants)
+            rv['ci'] = get_confidence_intervals(len(variants)/4)
         else:
             rv['overall'] = make_qq_unstratified(variants, include_qq=True)
+            rv['ci'] = get_confidence_intervals(len(variants))
     write_json(filepath=common_filepaths['qq'](pheno['phenocode']), data=rv)
 
 
@@ -137,3 +137,25 @@ def augment_variants(variants, pheno):
         neglog10_pval = -math.log10(v['pval'])
         maf = get_maf(v, pheno)
         yield Variant(neglog10_pval=neglog10_pval, maf=maf)
+
+
+def get_confidence_intervals(nvar):
+    # 95% CI
+    # TODO: always have ten slices (and overshoot a little)
+    #       but I don't understand how these are used, so I'm not sure what gets replaced.
+    # TODO: rename `slices` to `variant_count_x_ticks` or `variant_counts` or something else
+    slices = []
+    for x in range(0, int(math.ceil(math.log2(nvar)))):
+        slices.append(2**x)
+    slices.append(nvar-1)
+    slices.reverse()
+
+    points = []
+    for slice in slices:
+        rv = scipy.stats.beta(slice, nvar-slice)
+        points.append({
+            'x': round(-math.log10((slice-0.5)/nvar),2),
+            'y_min': round(-math.log10(rv.ppf(1-(0.05/2))),2),
+            'y_max': round(-math.log10(rv.ppf(0.05/2)),2),
+        })
+    return points
