@@ -124,7 +124,7 @@ def run(argv):
                     except StopIteration:
                         break
 
-            if rsid_group[0]['chrom'] == cp_group[0]['chrom'] and rsid_group[0]['pos'] >= cp_group[0]['pos']:
+            if rsid_group[0]['chrom'] == cp_group[0]['chrom'] and rsid_group[0]['pos'] == cp_group[0]['pos']:
                 # Woohoo a match!
                 for cpra in cp_group:
                     rsids = (rsid['rsid'] for rsid in rsid_group if cpra['ref'] == rsid['ref'] and are_match(cpra['alt'], rsid['alt']))
