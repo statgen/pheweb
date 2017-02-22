@@ -36,7 +36,7 @@ def run(argv):
         print('done with cpra->rsids trie at ' + cpra_to_rsids_trie_fname)
 
         # TODO: What if several different chrom-pos-ref-alts have the same rsid?  Do we only get the first? Or the last?
-        reversed_lines = ((rsid.decode(), cpra.encode()) for (cpra, rsids) in lines for rsid in rsids.split(b','))
+        reversed_lines = ((rsid.decode(), cpra.encode()) for (cpra, rsids) in lines for rsid in rsids.split(b',') if rsid)
         rsid_to_cpra_trie = marisa_trie.BytesTrie(reversed_lines, order=marisa_trie.LABEL_ORDER)
         rsid_to_cpra_trie.save(rsid_to_cpra_trie_fname)
         print('done with rsid->cpra trie at ' + rsid_to_cpra_trie_fname)
