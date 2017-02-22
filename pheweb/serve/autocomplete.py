@@ -85,7 +85,8 @@ class Autocompleter(object):
         chrom, pos, ref, alt = utils.variant_parser.parse(query, default_chrom_pos = False)
         if chrom is not None:
             key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
-            for cpra, rsids in self._cpra_to_rsids_trie.iteritems(key):
+
+            def f(cpra, rsids):
                 cpra = cpra.replace('-', ':', 1)
                 rsids = rsids.decode('ascii')
                 yield {
@@ -93,6 +94,14 @@ class Autocompleter(object):
                     "display": '{} ({})'.format(cpra, rsids) if rsids else cpra,
                     "url": "/variant/{}".format(cpra)
                 }
+
+            rsids = self._cpra_to_rsids_trie.get(key)
+            if rsids is not None:
+                yield from f(key, rsids[0])
+
+            for cpra, rsids in self._cpra_to_rsids_trie.iteritems(key):
+                if cpra != key:
+                    yield from f(cpra, rsids)
 
     def _autocomplete_rsid(self, query):
         query = query.lower()
@@ -106,26 +115,25 @@ class Autocompleter(object):
             # Even better would be to the 10 shortest children of the current string.
             # Here's an attempt at being a little better.
 
+            def f(rsid, cpra):
+                cpra = cpra.decode('ascii').replace('-', ':', 1)
+                yield {
+                    "value": cpra,
+                    "display": '{} ({})'.format(rsid, cpra),
+                    "url": "/variant/{}".format(cpra)
+                }
+
             rsids_to_check = [key] + ["{}{}".format(key, i) for i in range(10)]
             for rsid in rsids_to_check:
                 cpra = self._rsid_to_cpra_trie.get(rsid)
                 if cpra is not None:
-                    cpra = cpra[0]
-                    cpra = cpra.decode('ascii').replace('-', ':', 1)
-                    yield {
-                        "value": cpra,
-                        "display": '{} ({})'.format(rsid, cpra),
-                        "url": "/variant/{}".format(cpra)
-                    }
+                    print(cpra)
+                    yield from f(rsid, cpra[0])
 
             for rsid, cpra in self._rsid_to_cpra_trie.iteritems(key):
                 if rsid not in rsids_to_check: # don't repeat rsids we already yeld.
-                    cpra = cpra.decode('ascii').replace('-', ':', 1)
-                    yield {
-                        "value": cpra,
-                        "display": '{} ({})'.format(rsid, cpra),
-                        "url": "/variant/{}".format(cpra)
-                    }
+                    print(cpra)
+                    yield from f(rsid, cpra)
 
     def _autocomplete_phenocode(self, query):
         query = self._process_string(query)
@@ -151,13 +159,15 @@ class Autocompleter(object):
         key = query.upper()
         if len(key) >= 2:
 
-            for alias, canonical_symbol in self._gene_alias_trie.iteritems(key):
+            def f(alias, canonical_symbol):
                 canonical_symbol = canonical_symbol.decode('ascii')
                 if ',' in canonical_symbol:
                     yield {
                         'value': canonical_symbol.split(',')[0],
-                        'display': '{} (alias for {})'.format(alias, ' and '.join(canonical_symbol.split(','))),
-                        'url': '/error/the gene {} is connected to the genes {}'.format(alias, ' and '.join(canonical_symbol.split(','))),
+                        'display': '{} (alias for {})'.format(
+                            alias, ' and '.join(canonical_symbol.split(','))),
+                        'url': '/error/the alias {} is connected to the genes {}'.format(
+                            alias, ' and '.join(canonical_symbol.split(','))),
                     }
                 elif canonical_symbol == alias:
                     yield {
@@ -171,6 +181,14 @@ class Autocompleter(object):
                         "display": '{} (alias for {})'.format(alias, canonical_symbol),
                         "url": "/gene/{}".format(canonical_symbol),
                     }
+
+            canonical_symbol = self._gene_alias_trie.get(key)
+            if canonical_symbol is not None:
+                yield from f(key, canonical_symbol[0])
+
+            for alias, canonical_symbol in self._gene_alias_trie.iteritems(key):
+                if alias != key:
+                    yield from f(alias, canonical_symbol)
 
     _regex_get_icd9_code_autocompletion = re.compile('^\s*V?[0-9]')
     def _autocomplete_icd9_code(self, query):
