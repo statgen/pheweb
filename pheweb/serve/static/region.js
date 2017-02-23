@@ -16,22 +16,6 @@ window.debug = window.debug || {};
         return log;
     });
 
-    LocusZoom.TransformationFunctions.add("scinotation_handle_zero", function(x) {
-        if (x === 0) return "zero";
-        var log;
-        if (Math.abs(x) > 1){
-            log = Math.ceil(Math.log(x) / Math.LN10);
-        } else {
-            log = Math.floor(Math.log(x) / Math.LN10);
-        }
-        if (Math.abs(log) <= 3){
-            return x.toFixed(3);
-        } else {
-            return x.toExponential(2).replace("+", "").replace("e", " × 10^");
-        }
-    });
-
-
     var layout = {
         width: 800,
         height: 400,
@@ -231,7 +215,7 @@ window.debug = window.debug || {};
                     "class": "lz-data_layer-scatter"
                 }],
 
-                fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation_handle_zero", "pvalue|neglog10_or_100", "maf", "ld:state", "ld:isrefvar"],
+                fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation", "pvalue|neglog10_or_100", "maf", "ld:state", "ld:isrefvar"],
                 id_field: "id",
                 behaviors: {
                     onmouseover: [{action: "set", status:"selected"}],
@@ -248,7 +232,7 @@ window.debug = window.debug || {};
                     },
                     html: "<strong>{{id}}</strong><br>" +
                         "<strong>{{rsid}}</strong><br>" +
-                        "P-value: <strong>{{pvalue|scinotation_handle_zero}}</strong><br>" +
+                        "P-value: <strong>{{pvalue|scinotation}}</strong><br>" +
                         "MAF: <strong>{{maf}}</strong><br>"
                 },
                 "z_index": 2,
