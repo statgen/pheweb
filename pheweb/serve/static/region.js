@@ -9,7 +9,6 @@ window.debug = window.debug || {};
     data_sources.add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10_or_100" }}]);
     data_sources.add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }]);
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }])
-    data_sources.add("sig", ["StaticJSON", [{ "x": 0, "y": 7.3 }, { "x": 2881033286, "y": 7.3 }] ])
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
@@ -117,30 +116,10 @@ window.debug = window.debug || {};
                 "y2_linked": false
             },
             "data_layers": [{
-                "namespace": {
-                    "sig": "sig"
-                },
                 "id": "significance",
-                "type": "line",
-                "fields": ["sig:x", "sig:y"],
-                "z_index": 0,
-                "style": {
-                    "stroke": "#D3D3D3",
-                    "stroke-width": "3px",
-                    "stroke-dasharray": "10px 10px",
-                    "fill": "none"
-                },
-                "x_axis": {
-                    "field": "sig:x",
-                    "decoupled": true,
-                    "axis": 1
-                },
-                "y_axis": {
-                    "axis": 1,
-                    "field": "sig:y"
-                },
-                "interpolate": "linear",
-                "hitarea_width": 5
+                type: "orthogonal_line",
+                orientation: "horizontal",
+                offset: -Math.log10(5e-8),
             }, {
                 "namespace": {
                     "recomb": "recomb"

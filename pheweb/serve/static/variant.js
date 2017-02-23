@@ -78,12 +78,15 @@ function deepcopy(obj) {
     // Define data sources object
     var neglog10_significance_threshold = -Math.log10(0.05 / window.variant.phenos.length);
     var data_sources = new LocusZoom.DataSources()
-      .add("base", ["PheWASLZ", { url: "/api/variant/" }])
-      .add("sig", ["StaticJSON", [
-        { "x": 0, "y": neglog10_significance_threshold }, { "x": 1448, "y": neglog10_significance_threshold }]]);
+      .add("base", ["PheWASLZ", {url: '/this/is/not/used'}])
+
+    var phewas_panel = LocusZoom.Layouts.get("panel", "phewas");
+
+    // Make sig line, and always show it.
+    phewas_panel.data_layers[0].offset = neglog10_significance_threshold;
+    phewas_panel.data_layers[1].y_axis.min_extent = [0, neglog10_significance_threshold*1.05];
 
     // TODO: add optional elements (beta, sebeta) using new conditional syntax
-    var phewas_panel = LocusZoom.Layouts.get("panel", "phewas");
     phewas_panel.data_layers[1].tooltip.html =
         "<div><strong>{{phewas_code}}</strong></div>" +
         "<div><strong>{{phewas_string}}</strong></div>" +
