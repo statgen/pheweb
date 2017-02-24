@@ -57,13 +57,8 @@ function deepcopy(obj) {
     LocusZoom.Data.PheWASSource = LocusZoom.Data.Source.extend(function(init) {
       this.parseInit(init);
     }, "PheWASLZ");
-    ['getRequest', 'fetchRequest'].forEach(function (fname) {
-        LocusZoom.Data.PheWASSource.prototype[fname] = function() {
-            console.log([fname, arguments]);
-        };
-    });
     LocusZoom.Data.PheWASSource.prototype.getData = function(state, fields, outnames, trans) {
-        window.debug.getURL_args = [state, fields, outnames, trans];
+        window.debug.getData_args = [state, fields, outnames, trans];
         trans = trans || [];
 
         var data = deepcopy(window.variant.phenos);
@@ -107,9 +102,14 @@ function deepcopy(obj) {
     phewas_panel.data_layers[1].fields.push('pval|neglog10_or_100');
     phewas_panel.data_layers[1].y_axis.field = 'pval|neglog10_or_100';
 
+    // Show labels only above the sig line.
     phewas_panel.data_layers[1].label.filters[0].value = neglog10_significance_threshold;
+
+    // Color points by category.
     phewas_panel.data_layers[1].color.parameters.categories = window.unique_categories;
     phewas_panel.data_layers[1].color.parameters.values = window.unique_categories.map(function(cat) { return window.color_by_category(cat); });
+
+    // Use categories as x ticks.
     phewas_panel.axes.x.ticks = window.first_of_each_category.map(function(pheno) {
         return {
             style: {fill: pheno.color, "font-size":"11px", "font-weight":"bold", "text-anchor":"start"},
@@ -118,7 +118,9 @@ function deepcopy(obj) {
             x: pheno.idx,
         };
     });
+
     phewas_panel.axes.y1.label = "-log\u2081\u2080(p-value)";
+
     window.debug.phewas_panel = phewas_panel;
     var layout = {
         state: {

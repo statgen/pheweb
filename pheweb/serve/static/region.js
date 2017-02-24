@@ -21,7 +21,7 @@ window.debug = window.debug || {};
         height: 400,
         "min_width": 800,
         "min_height": 400,
-        responsive_resize: true, // is this supposed to be here?
+        responsive_resize: true,
         "resizable": "responsive",
         // aspect_ratio: 2, // do I want this?
         "min_region_scale": 2e4,
