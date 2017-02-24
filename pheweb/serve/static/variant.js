@@ -2,50 +2,52 @@ function deepcopy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
-(function() { // Create PheWAS plot.
+(function() {
+    // sort phenotypes
+    if (_.any(window.variant.phenos.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
+        window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return d.phenocode; });
+    } else {
+        window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phenocode); });
+    }
 
-    (function() {
-        // sort phenotypes
-        if (_.any(window.variant.phenos.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
-            window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return d.phenocode; });
-        } else {
-            window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phenocode); });
-        }
-
-        window.first_of_each_category = (function() {
-            var categories_seen = {};
-            return window.variant.phenos.filter(function(pheno) {
-                if (categories_seen.hasOwnProperty(pheno.category)) {
-                    return false;
-                } else {
-                    categories_seen[pheno.category] = 1;
-                    return true;
-                }
-            });
-        })();
-        var category_order = (function() {
-            var rv = {};
-            first_of_each_category.forEach(function(pheno, i) {
-                rv[pheno.category] = i;
-            });
-            return rv;
-        })();
-        // _.sortBy is a stable sort, so we just sort by category_order and we're good.
-        window.variant.phenos = _.sortBy(window.variant.phenos, function(d) {
-            return category_order[d.category];
-        });
-        window.unique_categories = d3.set(window.variant.phenos.map(_.property('category'))).values();
-        window.color_by_category = ((unique_categories.length>10) ? d3.scale.category20() : d3.scale.category10())
-            .domain(unique_categories);
-
-        window.variant.phenos.forEach(function(d, i) {
-            d.phewas_code = d.phenocode;
-            d.phewas_string = (d.phenostring || d.phenocode);
-            d.category_name = d.category;
-            d.color = color_by_category(d.category);
-            d.idx = i;
+    window.first_of_each_category = (function() {
+        var categories_seen = {};
+        return window.variant.phenos.filter(function(pheno) {
+            if (categories_seen.hasOwnProperty(pheno.category)) {
+                return false;
+            } else {
+                categories_seen[pheno.category] = 1;
+                return true;
+            }
         });
     })();
+    var category_order = (function() {
+        var rv = {};
+        first_of_each_category.forEach(function(pheno, i) {
+            rv[pheno.category] = i;
+        });
+        return rv;
+    })();
+    // _.sortBy is a stable sort, so we just sort by category_order and we're good.
+    window.variant.phenos = _.sortBy(window.variant.phenos, function(d) {
+        return category_order[d.category];
+    });
+    window.unique_categories = d3.set(window.variant.phenos.map(_.property('category'))).values();
+    window.color_by_category = ((unique_categories.length>10) ? d3.scale.category20() : d3.scale.category10())
+        .domain(unique_categories);
+
+    window.variant.phenos.forEach(function(d, i) {
+        d.phewas_code = d.phenocode;
+        d.phewas_string = (d.phenostring || d.phenocode);
+        d.category_name = d.category;
+        d.color = color_by_category(d.category);
+        d.idx = i;
+    });
+})();
+
+
+(function() { // Create PheWAS plot.
+
 
     LocusZoom.Data.PheWASSource = LocusZoom.Data.Source.extend(function(init) {
       this.parseInit(init);
