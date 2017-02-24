@@ -48,6 +48,11 @@ function deepcopy(obj) {
 
 (function() { // Create PheWAS plot.
 
+    LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
+        if (x === 0) return 100;
+        var log = -Math.log(x) / Math.LN10;
+        return log;
+    });
 
     LocusZoom.Data.PheWASSource = LocusZoom.Data.Source.extend(function(init) {
       this.parseInit(init);
@@ -97,6 +102,11 @@ function deepcopy(obj) {
         "<div>#cases: <strong>{{num_cases}}</strong></div>" +
         "<div>#controls: <strong>{{num_controls}}</strong></div>" +
         "<div><a href='/pheno/{{phewas_code}}'>Manhattan Plot</a></div>";
+
+    // Use `neglog10_or_100` to handle pval=0 variants a little better.
+    phewas_panel.data_layers[1].fields.push('pval|neglog10_or_100');
+    phewas_panel.data_layers[1].y_axis.field = 'pval|neglog10_or_100';
+
     phewas_panel.data_layers[1].label.filters[0].value = neglog10_significance_threshold;
     phewas_panel.data_layers[1].color.parameters.categories = window.unique_categories;
     phewas_panel.data_layers[1].color.parameters.values = window.unique_categories.map(function(cat) { return window.color_by_category(cat); });
