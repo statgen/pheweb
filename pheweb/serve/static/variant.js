@@ -87,6 +87,7 @@ function deepcopy(obj) {
     // Make sig line, and always show it.
     phewas_panel.data_layers[0].offset = neglog10_significance_threshold;
     phewas_panel.data_layers[1].y_axis.min_extent = [0, neglog10_significance_threshold*1.05];
+    phewas_panel.data_layers[1].y_axis.upper_buffer = 0.1;
 
     // TODO: add optional elements (beta, sebeta) using new conditional syntax
     phewas_panel.data_layers[1].tooltip.html =

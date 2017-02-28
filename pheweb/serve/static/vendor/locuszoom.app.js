@@ -2049,6 +2049,11 @@ LocusZoom.DataLayer.prototype.getAxisExtent = function(dimension){
             return +f.resolve(d);
         }.bind(this));
 
+        // Extend to meet floor/ceiling, if applicable
+        if (!isNaN(this.layout[axis].floor)){ extent.push(this.layout[axis].floor); }
+        if (!isNaN(this.layout[axis].ceiling)){ extent.push(this.layout[axis].ceiling); }
+        extent = d3.extent(extent);
+
         // Apply upper/lower buffers, if applicable
         var original_extent_span = extent[1] - extent[0];
         if (!isNaN(this.layout[axis].lower_buffer)){ extent.push(extent[0] - (original_extent_span * this.layout[axis].lower_buffer)); }
