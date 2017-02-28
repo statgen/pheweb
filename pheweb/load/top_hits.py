@@ -29,8 +29,6 @@ def get_hits(pheno):
         while hits:
             best_hit = min(hits, key=lambda hit: hit['pval'])
             best_hit['nearest_genes'] = sorted(best_hit['nearest_genes'].split(','))
-            if 'show_gene' in best_hit:
-                del best_hit['show_gene']
             remaining_hits = []
             for hit in hits:
                 if hit is best_hit:

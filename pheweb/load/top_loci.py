@@ -22,7 +22,6 @@ def get_hits():
         for v in variants:
             if v['pval'] <= PVAL_CUTOFF:
                 v['phenocode'] = pheno['phenocode']
-                v.pop('show_gene', None)
                 try: v['phenostring'] = pheno['phenostring']
                 except KeyError: pass
                 v['nearest_genes'] = sorted(v['nearest_genes'].split(','))
