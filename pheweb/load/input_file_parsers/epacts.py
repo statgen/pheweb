@@ -11,6 +11,13 @@ import functools
 
 legitimate_null_values = ['.', 'NA']
 
+def nullable_int(string):
+    try:
+        return int(string)
+    except ValueError:
+        assert string in legitimate_null_values, string
+        return '.'
+
 def nullable_float(string):
     try:
         return float(string)
@@ -66,9 +73,27 @@ possible_fields = {
 }
 required_fields = ['chrom', 'pos', 'ref', 'alt', 'maf', 'pval']
 
+possible_info_fields = {
+    'num_cases': {
+        'aliases': ['NS.CASE', 'N_cases'],
+        'type': nullable_int,
+    },
+    'num_controls': {
+        'aliases': ['NS.CTRL', 'N_controls'],
+        'type': nullable_int,
+    },
+    'num_samples': {
+        'aliases': ['NS', 'N'],
+        'type': nullable_int,
+    },
+}
+
 # make all aliases lowercase.
-for fieldname in possible_fields:
-    possible_fields[fieldname]['aliases'] = [alias.lower() for alias in [fieldname] + possible_fields[fieldname]['aliases']]
+for fieldname, value in possible_fields.items():
+    value['aliases'] = [fieldname.lower()] + [alias.lower() for alias in value['aliases']]
+for fieldname, value in possible_info_fields.items():
+    value['aliases'] = [fieldname.lower()] + [alias.lower() for alias in value['aliases']]
+
 
 def exit(*args, **kwargs):
     # It seems like exit(1) just hangs when used in multiprocessing, unlike raise, which kills all processes.
@@ -242,13 +267,14 @@ def _get_lines_metadata_infos(pheno):
                 yield (line, metadata, _get_pheno_info_from_line(line, metadata))
 
 def _get_pheno_info_from_line(line, line_metadata):
-    rv = {}
-    if 'NS.CASE' in line:
-        rv['num_cases'] = int(line['NS.CASE'])
-    if 'NS.CTRL' in line:
-        rv['num_controls'] = int(line['NS.CTRL'])
-    if 'NS' in line:
-        rv['num_samples'] = int(line['NS'])
+    ret = {}
+    for fieldname in possible_info_fields:
+        for fieldname_alias in possible_info_fields[fieldname]['aliases']:
+            if fieldname_alias in line:
+                if fieldname in ret:
+                    print('Error: two columns in {!r} both map to the key {!r}.'.format(list(line.keys()), fieldname))
+                    exit(1)
+                ret[fieldname] = possible_info_fields['type'](line[fieldname_alias])
     if all(key in rv for key in ['num_cases', 'num_controls', 'num_samples']):
         if rv['num_cases'] + rv['num_controls'] != rv['num_samples']:
             utils.die("The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
