@@ -351,7 +351,7 @@ window.debug = window.debug || {};
                 behaviors: {
                     onclick: [{action: "toggle", status: "selected", exclusive: true}],
                     onmouseover: [{action: "set", status: "highlighted"}],
-                    onmouseout: [{action: "unset", status: "unhighlighted"}],
+                    onmouseout: [{action: "unset", status: "highlighted"}],
                 },
                 "tooltip": {
                     "closable": true,
