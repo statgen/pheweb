@@ -54,9 +54,6 @@ function deepcopy(obj) {
         return log;
     });
 
-    LocusZoom.Data.PheWASSource = LocusZoom.Data.Source.extend(function(init) {
-      this.parseInit(init);
-    }, "PheWASLZ");
     LocusZoom.Data.PheWASSource.prototype.getData = function(state, fields, outnames, trans) {
         window.debug.getData_args = [state, fields, outnames, trans];
         trans = trans || [];
