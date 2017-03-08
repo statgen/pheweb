@@ -46,7 +46,7 @@
 /* eslint-disable no-console */
 
 var LocusZoom = {
-    version: "0.5.4"
+    version: "0.5.5-pjvh"
 };
     
 // Populate a single element with a LocusZoom plot.
@@ -362,13 +362,21 @@ LocusZoom.parseFields = function (data, html) {
     if (typeof html != "string"){
         throw ("LocusZoom.parseFields invalid arguments: html is not a string");
     }
-    var regex, replace;
-    for (var field in data) {
-        if (!data.hasOwnProperty(field)){ continue; }
-        if (typeof data[field] != "string" && typeof data[field] != "number" && typeof data[field] != "boolean" && data[field] != null){ continue; }
-        regex = new RegExp("\\{\\{" + field.replace("|","\\|").replace(":","\\:") + "\\}\\}","g");
-        replace = (data[field] == null ? "" : data[field]);
-        html = html.replace(regex, replace);
+    // Match all things that look like fields in the HTML
+    var matches = html.match(/{{[A-Za-z0-9_:|]+}}/g);
+    if (matches){
+        // Remove duplicates
+        matches.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+        // Replace matches with resolved values from the data object
+        matches.forEach(function(match){
+            var field = new LocusZoom.Data.Field(match.substring(2, match.length-2));
+            var value = field.resolve(data);
+            if (["string","number","boolean"].indexOf(typeof value) != -1){
+                html = html.replace(match, value);
+            } else if (value == null){
+                html = html.replace(match, "");
+            }
+        });
     }
     return html;
 };
@@ -888,7 +896,11 @@ LocusZoom.Layouts.add("data_layer", "phewas_pvalues", {
     point_shape: "circle",
     point_size: 70,
     id_field: "{{namespace}}id",
+    fields: ["{{namespace}}phewas"],
+    /*
+    id_field: "{{namespace}}id",
     fields: ["{{namespace}}id", "{{namespace}}x", "{{namespace}}category_name", "{{namespace}}num_cases", "{{namespace}}num_controls", "{{namespace}}phewas_string", "{{namespace}}phewas_code", "{{namespace}}pval|scinotation", "{{namespace}}pval|neglog10"],
+    */
     x_axis: {
         field: "{{namespace}}x"
     },
@@ -2006,7 +2018,8 @@ LocusZoom.DataLayer.prototype.resolveScalableParameter = function(layout, data){
             break;
         case "object":
             if (layout.scale_function && layout.field) {
-                ret = LocusZoom.ScaleFunctions.get(layout.scale_function, layout.parameters || {}, data[layout.field]);
+                var f = new LocusZoom.Data.Field(layout.field);
+                ret = LocusZoom.ScaleFunctions.get(layout.scale_function, layout.parameters || {}, f.resolve(data));
             }
             break;
         }
@@ -2032,7 +2045,8 @@ LocusZoom.DataLayer.prototype.getAxisExtent = function(dimension){
     if (this.layout[axis].field && this.data && this.data.length){
 
         var extent = d3.extent(this.data, function(d) {
-            return +d[this.layout[axis].field];
+            var f = new LocusZoom.Data.Field(this.layout[axis].field);
+            return +f.resolve(d);
         }.bind(this));
 
         // Apply upper/lower buffers, if applicable
@@ -3064,12 +3078,14 @@ LocusZoom.DataLayers.add("scatter", function(layout){
        
         // Apply mouse behaviors
         this.applyBehaviors(selection);
-
+        
         // Apply method to keep labels from overlapping each other
         if (this.layout.label){
             this.flip_labels();
             this.seperate_iterations = 0;
             this.separate_labels();
+            // Extend mouse behaviors to labels
+            this.applyBehaviors(this.label_texts);
         }
         
     };
@@ -3420,7 +3436,6 @@ LocusZoom.DataLayers.add("orthogonal_line", function(layout){
     this.render = function(){
 
         // Several vars needed to be in scope
-        var data_layer = this;
         var panel = this.parent;
         var x_scale = "x_scale";
         var y_scale = "y" + this.layout.y_axis.axis + "_scale";
@@ -4111,7 +4126,7 @@ LocusZoom.DataLayers.add("intervals", function(layout){
             this.group_hover_elements = {};
         }
 
-        var width, height, x, y, fill;
+        var width, height, x, y, fill, fill_opacity;
             
         // Render interval groups
         var selection = this.svg.group.selectAll("g.lz-data_layer-intervals")
@@ -6353,13 +6368,54 @@ LocusZoom.DataSources.prototype.toJSON = function() {
     return this.sources;
 };
 
+LocusZoom.Data.Field = function(field){
+    
+    var parts = /^(?:([^:]+):)?([^:\|]*)(\|.+)*$/.exec(field);
+
+    this.full_name = field;
+    
+    this.namespace = parts[1] || null;
+    this.name = parts[2] || null;
+    this.transformations = [];
+    
+    if (typeof parts[3] == "string" && parts[3].length > 1){
+        this.transformations = parts[3].substring(1).split("|");
+        this.transformations.forEach(function(transform, i){
+            this.transformations[i] = LocusZoom.TransformationFunctions.get(transform);
+        }.bind(this));
+    }
+
+    this.applyTransformations = function(val){
+        this.transformations.forEach(function(transform){
+            val = transform(val);
+        });
+        return val;
+    };
+
+    // Resolve the field for a given data element.
+    // First look for a full match with transformations already applied by the data requester.
+    // Otherwise prefer a namespace match and fall back to just a name match, applying transformations on the fly.
+    this.resolve = function(d){
+        if (typeof d[this.full_name] != "undefined"){
+            return d[this.full_name];
+        } else {
+            var val = null;
+            if (typeof d[this.namespace+":"+this.name] != "undefined"){ val = d[this.namespace+":"+this.name]; }
+            else if (typeof d[this.name] != "undefined"){ val = d[this.name]; }
+            d[this.full_name] = this.applyTransformations(val);
+            return d[this.full_name];
+        }
+    };
+    
+};
+
 /* The Requester passes state information to data sources to pull data */
 
 LocusZoom.Data.Requester = function(sources) {
 
     function split_requests(fields) {
         var requests = {};
-        // Regular expressopn finds namespace:field|trans
+        // Regular expression finds namespace:field|trans
         var re = /^(?:([^:]+):)?([^:\|]*)(\|.+)*$/;
         fields.forEach(function(raw) {
             var parts = re.exec(raw);
@@ -6555,7 +6611,7 @@ LocusZoom.Data.Source.prototype.toJSON = function() {
 };
 
 /**
-  Known Data Source for Association Data
+  Data Source for Association Data
 */
 LocusZoom.Data.AssociationSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
@@ -6582,7 +6638,7 @@ LocusZoom.Data.AssociationSource.prototype.getURL = function(state, chain, field
 };
 
 /**
-  Known Data Source for LD Data
+  Data Source for LD Data
 */
 LocusZoom.Data.LDSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
@@ -6719,7 +6775,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
 };
 
 /**
-  Known Data Source for Gene Data
+  Data Source for Gene Data
 */
 LocusZoom.Data.GeneSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
@@ -6739,7 +6795,7 @@ LocusZoom.Data.GeneSource.prototype.parseResponse = function(resp, chain, fields
 };
 
 /**
-  Known Data Source for Gene Constraint Data
+  Data Source for Gene Constraint Data
 */
 LocusZoom.Data.GeneConstraintSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
@@ -6798,7 +6854,7 @@ LocusZoom.Data.GeneConstraintSource.prototype.parseResponse = function(resp, cha
 };
 
 /**
-  Known Data Source for Recombination Rate Data
+  Data Source for Recombination Rate Data
 */
 LocusZoom.Data.RecombinationRateSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
@@ -6813,7 +6869,7 @@ LocusZoom.Data.RecombinationRateSource.prototype.getURL = function(state, chain,
 };
 
 /**
-  Known Data Source for Interval Annotation Data (e.g. BED Tracks)
+  Data Source for Interval Annotation Data (e.g. BED Tracks)
 */
 
 LocusZoom.Data.IntervalSource = LocusZoom.Data.Source.extend(function(init) {
@@ -6829,7 +6885,7 @@ LocusZoom.Data.IntervalSource.prototype.getURL = function(state, chain, fields) 
 };
 
 /**
-  Known Data Source for Static JSON Data
+  Data Source for Static JSON Data
 */
 LocusZoom.Data.StaticSource = LocusZoom.Data.Source.extend(function(data) {
     this._data = data;
@@ -6841,6 +6897,24 @@ LocusZoom.Data.StaticSource.prototype.getRequest = function(state, chain, fields
 
 LocusZoom.Data.StaticSource.prototype.toJSON = function() {
     return [Object.getPrototypeOf(this).constructor.SOURCE_NAME, this._data];
+};
+
+/**
+  Data source for PheWAS data served from JSON files
+*/
+LocusZoom.Data.PheWASSource = LocusZoom.Data.Source.extend(function(init) {
+    this.parseInit(init);
+}, "PheWASLZ");
+LocusZoom.Data.PheWASSource.prototype.getURL = function(state, chain, fields) {
+    return this.url + state.variant + ".json";
+};
+LocusZoom.Data.PheWASSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+    var data = JSON.parse(resp);
+    data.forEach(function(d, i){
+        data[i].x = i;
+        data[i].id = i.toString();
+    });
+    return {header: chain.header, body: data};
 };
 
 /* global d3,Q,LocusZoom */
