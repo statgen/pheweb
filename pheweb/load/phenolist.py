@@ -13,21 +13,37 @@ import sys
 import copy
 import boltons.iterutils
 import tqdm
+import datetime
+import shutil
 
 
-def get_phenolist_with_globs(globs):
-    assoc_fnames = []
+def get_phenolist_with_globs(globs, star_is_phenocode):
+    phenolist = []
     with tqdm.tqdm(total=int(1e100), bar_format='Found {n:7} files') as progressbar:
         for g in globs:
             num_files_in_this_glob = 0
             for fname in glob.iglob(g):
                 num_files_in_this_glob += 1
-                assoc_fnames.append(os.path.abspath(fname))
-                progressbar.update() # TODO: Check whether this actually makes a decent progressbar
+                phenolist.append({'assoc_files': [os.path.abspath(fname)]})
+                if star_is_phenocode:
+                    phenolist[-1]['phenocode'] = _extract_star(g, fname)
+                progressbar.update()
             if num_files_in_this_glob == 0:
                 progressbar.write("\rWARNING: the shell-glob {!r} didn't match any files\n".format(g))
-    print("NOTE: found {} association files".format(len(assoc_fnames)))
-    return [{'assoc_files': [fname]} for fname in assoc_fnames]
+    print("NOTE: found {} association files".format(len(phenolist)))
+    return phenolist
+
+def _extract_star(glob_pattern, fname):
+    if '*' not in glob_pattern:
+        raise Exception("You tried to use --star-is-phenocode, but your pattern {!r} doesn't contain any *s.  If you tried to use a *, maybe wrap your pattern in single-quotes (') to prevent your shell from expanding it.")
+    regex = '^{}$'.format(re.escape(glob_pattern).replace('\*', '([^/]*)'))
+    matches = re.match(regex, fname).groups()
+    if boltons.iterutils.same(matches):
+        return matches[0]
+    raise Exception("You used --star-is-phenocode with the pattern {!r} which found the file {!r}, but the *s appeared to match {!r}, which are different.".format(
+        glob, fname, matches))
+assert _extract_star('/foo/pheno-*.epacts.gz', '/foo/pheno-bar.epacts.gz') == 'bar'
+assert _extract_star('/foo/*/pheno-*.epacts.gz', '/foo/bar/pheno-bar.epacts.gz') == 'bar'
 
 def extract_phenocode_from_fname(phenolist, regex):
     print("NOTE: working with {} phenos".format(len(phenolist)))
@@ -439,13 +455,18 @@ def load_phenolist(fname):
         return phenolist
 
 def save_phenolist(phenolist, fname=None):
-    # TODO: if overwriting a file, copy that file to $data_dir/phenolist-backups/$(date +%Y-%m-%d-%H-%M-%S-%N)
     if os.path.exists(fname):
-        print("NOTE: overwriting {!r}".format(fname))
+        backup_phenolist(phenolist, fname)
     with open(os.path.join(fname), 'w') as f:
         write_phenolist_to_file(phenolist, f)
     all_columns = list(boltons.iterutils.unique(col for pheno in phenolist for col in pheno))
     print("NOTE: wrote {} phenotypes to {!r} with columns {!r}".format(len(phenolist), fname, all_columns))
+def backup_phenolist(phenolist, fname='pheno-list.json'):
+    backup_dir = os.path.join(conf.data_dir, 'phenolist-backups')
+    boltons.fileutils.mkdir_p(backup_dirname)
+    backup_fname = os.path.join(backup_dirname, '{}-{}'.format(datetime.datetime.isoformat(datetime.datetime.now()), os.path.basename(fname)))
+    print("NOTE: moving the old {!r} to {!r}".format(fname, backup_fname))
+    shutil.move(fname, backup_fname)
 def write_phenolist_to_file(phenolist, f):
     phenolist = sorted(phenolist, key=lambda pheno: pheno.get('phenocode', ''))
     json.dump(phenolist, f, sort_keys=True, indent=1)
@@ -488,8 +509,10 @@ def run(argv):
 
     @add_subcommand('glob')
     def f(args):
+        if args.simple_phenocode and args.star_is_phenocode:
+            raise Exception('You cannot use --star-is-phenocode and --simple-phenocode at the same time.')
         fname = args.fname or default_phenolist_fname
-        phenolist = get_phenolist_with_globs(args.patterns)
+        phenolist = get_phenolist_with_globs(args.patterns, star_is_phenocode=args.star_is_phenocode)
         if args.simple_phenocode:
             pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.epacts|\.gz|\.tsv|\.txt|\.csv)*$'
             extract_phenocode_from_fname(phenolist, pattern)
@@ -498,10 +521,8 @@ def run(argv):
     p.add_argument('patterns', nargs='+', help="one or more shell-glob patterns")
     p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
     p.add_argument('--simple-phenocode', dest="simple_phenocode", action="store_true", help="Extract a simple phenocode from the end of each filename")
-
-    # parser_regex_files = subparsers.add_parser('regex-files', help='use one or more regex patterns to select association files. Optionally include a capture group for phenocode')
-    # parser_regex_files.add_argument('patterns', nargs='+', help="one or more regex patterns")
-    # parser_regex_files.add_argument('-f', dest="fname", help="output filename (default: pheno-list.json)")
+    p.add_argument('--star-is-phenocode', dest="star_is_phenocode", action="store_true",
+                   help="Turn whatever text the * matches into the phenocode. Put quotes around the pattern, so that the shell doesn't interpret the *.")
 
     @add_subcommand('extract-phenocode-from-fname')
     @modifies_phenolist
