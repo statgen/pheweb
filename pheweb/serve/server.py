@@ -20,6 +20,8 @@ app.config['COMPRESS_LEVEL'] = 2 # Since we don't cache, faster=better
 app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 9
+if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
+    app.config['GOOGLE_ANALYTICS_TRACKING_ID'] = conf['GOOGLE_ANALYTICS_TRACKING_ID']
 
 if 'custom_templates' in conf:
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
