@@ -1,5 +1,5 @@
 
-from .. import utils
+from ... import utils
 conf = utils.conf
 
 import os
@@ -463,8 +463,8 @@ def save_phenolist(phenolist, fname=None):
     print("NOTE: wrote {} phenotypes to {!r} with columns {!r}".format(len(phenolist), fname, all_columns))
 def backup_phenolist(phenolist, fname='pheno-list.json'):
     backup_dir = os.path.join(conf.data_dir, 'phenolist-backups')
-    boltons.fileutils.mkdir_p(backup_dirname)
-    backup_fname = os.path.join(backup_dirname, '{}-{}'.format(datetime.datetime.isoformat(datetime.datetime.now()), os.path.basename(fname)))
+    boltons.fileutils.mkdir_p(backup_dir)
+    backup_fname = os.path.join(backup_dir, '{}-{}'.format(datetime.datetime.isoformat(datetime.datetime.now()), os.path.basename(fname)))
     print("NOTE: moving the old {!r} to {!r}".format(fname, backup_fname))
     shutil.move(fname, backup_fname)
 def write_phenolist_to_file(phenolist, f):

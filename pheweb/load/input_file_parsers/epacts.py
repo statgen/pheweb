@@ -275,11 +275,11 @@ def _get_pheno_info_from_line(line, line_metadata):
                     print('Error: two columns in {!r} both map to the key {!r}.'.format(list(line.keys()), fieldname))
                     exit(1)
                 ret[fieldname] = possible_info_fields['type'](line[fieldname_alias])
-    if all(key in rv for key in ['num_cases', 'num_controls', 'num_samples']):
-        if rv['num_cases'] + rv['num_controls'] != rv['num_samples']:
+    if all(key in ret for key in ['num_cases', 'num_controls', 'num_samples']):
+        if ret['num_cases'] + ret['num_controls'] != ret['num_samples']:
             utils.die("The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
                       "- the filename: {!r}\n".format(line_metadata['filename']) +
                       "- the line number: {}".format(line_metadata['line_num']+1) +
                       "- parsed line: [{!r}]\n".format(line))
-        del rv['num_samples'] # don't need it.
-    return rv
+        del ret['num_samples'] # don't need it.
+    return ret
