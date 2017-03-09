@@ -297,9 +297,9 @@ def print_as_csv(phenolist):
 def rename_column(phenolist, old_name, new_name):
     for pheno in phenolist:
         if new_name in pheno:
-            utils.die("ERROR: You're renameing the column {!r} to {!r}, but {!r} already exists in the phenotype {!r}.".format(old_name, new_name, new_name, pheno))
+            utils.die("ERROR: You're renaming the column {!r} to {!r}, but {!r} already exists in the phenotype {!r}.".format(old_name, new_name, new_name, pheno))
         if old_name not in pheno:
-            utils.die("ERROR: You're renameing the column {!r} to {!r}, but {!r} doesn't exist in the phenotype {!r}.".format(old_name, new_name, old_name, pheno))
+            utils.die("ERROR: You're renaming the column {!r} to {!r}, but {!r} doesn't exist in the phenotype {!r}.".format(old_name, new_name, old_name, pheno))
         pheno[new_name] = pheno[old_name]
         del pheno[old_name]
     return phenolist
