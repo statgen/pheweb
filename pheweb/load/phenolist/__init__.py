@@ -86,20 +86,6 @@ def check_that_columns_are_present(phenolist, columns):
             print('')
     if failed: raise Exception()
 
-def check_that_phenocode_is_urlsafe(phenolist):
-    # TODO: use python-slugify
-    urlsafe_characters = string.ascii_letters + string.digits + '_-~. ' # TODO: Is this complete?  Am I missing some characters?  Is space okay?
-    for pheno in phenolist:
-        bad_chars = list(set(char for char in pheno['phenocode'] if char not in urlsafe_characters))
-        if bad_chars:
-            print("""\
-ERROR: The phenocode {!r} contains the characters {!r} which is not allowed because phenocodes are used in URLs
-""".format(pheno['phenocode'], bad_chars))
-            print("Other phenotypes might have this problem too.")
-            print("If this character IS actually urlsafe, it needs to be added to the list urlsafe_characters")
-            print("If this is something you can't or don't want to fix, we can modify pheweb.")
-            raise Exception()
-
 def check_that_phenocode_is_unique(phenolist):
     phenocodes = [pheno['phenocode'] for pheno in phenolist]
     phenocode_groups = boltons.iterutils.bucketize(phenocodes, key=lambda p:p).values()
@@ -552,7 +538,6 @@ def run(argv):
         fname = args.fname or default_phenolist_fname
         phenolist = load_phenolist(fname)
         check_that_columns_are_present(phenolist, ['phenocode', 'assoc_files'] + args.required_columns)
-        check_that_phenocode_is_urlsafe(phenolist)
         check_that_phenocode_is_unique(phenolist)
         check_that_all_phenotypes_have_assoc_files(phenolist)
         print("The phenotypes in {!r} look good.".format(fname))

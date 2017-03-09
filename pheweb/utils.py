@@ -17,6 +17,7 @@ import multiprocessing
 import csv
 from boltons.fileutils import mkdir_p
 import boltons.mathutils
+import urllib
 
 
 conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
@@ -75,7 +76,7 @@ def get_phenolist():
     fname = os.path.join(conf['data_dir'], 'pheno-list.json')
     try:
         with open(os.path.join(fname)) as f:
-            return json.load(f)
+            phenolist = json.load(f)
     except (FileNotFoundError, PermissionError):
         die("You need a file to define your phenotypes at '{fname}'.\n".format(fname=fname) +
             "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
@@ -83,6 +84,9 @@ def get_phenolist():
         print("Your file at '{fname}' contains invalid json.\n".format(fname=fname) +
               "The error it produced was:")
         raise
+    for pheno in phenolist:
+        pheno['phenocode'] = urllib.parse.quote_plus(pheno['phenocode'])
+    return phenolist
 
 def get_phenos_with_colnums():
     phenos_by_phenocode = {pheno['phenocode']: pheno for pheno in get_phenolist()}
