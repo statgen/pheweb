@@ -127,12 +127,10 @@ class Autocompleter(object):
             for rsid in rsids_to_check:
                 cpra = self._rsid_to_cpra_trie.get(rsid)
                 if cpra is not None:
-                    print(cpra)
                     yield from f(rsid, cpra[0])
 
             for rsid, cpra in self._rsid_to_cpra_trie.iteritems(key):
                 if rsid not in rsids_to_check: # don't repeat rsids we already yeld.
-                    print(cpra)
                     yield from f(rsid, cpra)
 
     def _autocomplete_phenocode(self, query):
