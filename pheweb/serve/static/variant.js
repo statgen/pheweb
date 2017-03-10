@@ -60,6 +60,10 @@ function deepcopy(obj) {
 
         var data = deepcopy(window.variant.phenos);
         data.forEach(function(d, i) {
+            if (!isNaN(d.beta)) { d.effect_direction = (d.beta > 0) ? 1 : (d.beta < 0) ? -1 : 0 }
+            else if (!isNaN(d.or)) { d.effect_direction = (d.or > 1) ? 1 : (d.or < 1) ? -1 : 0 }
+            else d.effect_direction = 0;
+
             data[i].x = i;
             data[i].id = i.toString();
             trans.forEach(function(transformation, t){
@@ -106,6 +110,16 @@ function deepcopy(obj) {
     // Color points by category.
     phewas_panel.data_layers[1].color.parameters.categories = window.unique_categories;
     phewas_panel.data_layers[1].color.parameters.values = window.unique_categories.map(function(cat) { return window.color_by_category(cat); });
+
+    // Shape points by effect direction.
+    phewas_panel.data_layers[1].point_shape = {
+        scale_function: 'categorical_bin',
+        field: 'effect_direction',
+        parameters: {
+            categories: [-1, 0, 1],
+            values: ['triangle-down', 'circle', 'triangle-up'],
+        }
+    }
 
     // Use categories as x ticks.
     phewas_panel.axes.x.ticks = window.first_of_each_category.map(function(pheno) {
