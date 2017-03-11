@@ -17,7 +17,7 @@ import multiprocessing
 import csv
 from boltons.fileutils import mkdir_p
 import boltons.mathutils
-import urllib
+import urllib.parse
 
 
 conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
