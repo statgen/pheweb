@@ -233,6 +233,8 @@ window.debug = window.debug || {};
                     html: "<strong>{{id}}</strong><br>" +
                         "{{#if rsid}}<strong>{{rsid}}</strong><br>{{/if}}" +
                         "P-value: <strong>{{pvalue|scinotation}}</strong><br>" +
+                        "{{#if beta}}MAF: <strong>{{beta}}{{#if sebeta}} ({{sebeta}}){{/if}}</strong><br>{{/if}}" +
+                        "{{#if or}}MAF: <strong>{{or}}</strong><br>{{/if}}" +
                         "{{#if maf}}MAF: <strong>{{maf}}</strong><br>{{/if}}"
                 },
                 "z_index": 2,

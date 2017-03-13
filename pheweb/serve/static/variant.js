@@ -96,9 +96,11 @@ function deepcopy(obj) {
         "<div><strong>{{phewas_string}}</strong></div>" +
         "<div><strong style='color:{{color}}'>{{category_name}}</strong></div>" +
         "<div>P Value: <strong>{{pval|scinotation}}</strong></div>" +
-        "<div>#cases: <strong>{{num_cases}}</strong></div>" +
-        "<div>#controls: <strong>{{num_controls}}</strong></div>" +
-        "<div><a href='/pheno/{{phewas_code}}'>Manhattan Plot</a></div>";
+        "{{#if num_samples}}<div>#samples: <strong>{{num_samples}}</strong></div>{{/if}}" +
+        "{{#if num_cases}}<div>#cases: <strong>{{num_cases}}</strong></div>{{/if}}" +
+        "{{#if num_controls}}<div>#controls: <strong>{{num_controls}}</strong></div>{{/if}}" +
+        "{{#if beta}}<div>beta: <strong>{{beta}}{{#if sebeta}} ({{sebeta}}){{/if}}</strong></div>{{/if}}" +
+        "{{#if or}}<div>odds ratio: <strong>{{or}}</strong></div>{{/if}}";
 
     // Use `neglog10_or_100` to handle pval=0 variants a little better.
     phewas_panel.data_layers[1].fields.push('pval|neglog10_or_100');
