@@ -231,9 +231,9 @@ window.debug = window.debug || {};
                         "and": ["unhighlighted", "unselected"]
                     },
                     html: "<strong>{{id}}</strong><br>" +
-                        "<strong>{{rsid}}</strong><br>" +
+                        "{{#if rsid}}<strong>{{rsid}}</strong><br>{{/if}}" +
                         "P-value: <strong>{{pvalue|scinotation}}</strong><br>" +
-                        "MAF: <strong>{{maf}}</strong><br>"
+                        "{{#if maf}}MAF: <strong>{{maf}}</strong><br>{{/if}}"
                 },
                 "z_index": 2,
                 "x_axis": {
