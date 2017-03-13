@@ -79,7 +79,8 @@ function deepcopy(obj) {
     };
 
     // Define data sources object
-    var neglog10_significance_threshold = -Math.log10(0.05 / window.variant.phenos.length);
+    var significance_threshold = 0.05 / window.variant.phenos.length;
+    var neglog10_significance_threshold = -Math.log10(significance_threshold);
     var data_sources = new LocusZoom.DataSources()
       .add("base", ["PheWASLZ", {url: '/this/is/not/used'}])
 
@@ -107,7 +108,7 @@ function deepcopy(obj) {
     phewas_panel.data_layers[1].y_axis.field = 'pval|neglog10_or_100';
 
     // Show labels only above the sig line.
-    phewas_panel.data_layers[1].label.filters[0].value = neglog10_significance_threshold;
+    phewas_panel.data_layers[1].label.filters = [{field:"pval", operator:"<", value:significance_threshold}];
 
     // Color points by category.
     phewas_panel.data_layers[1].color.parameters.categories = window.unique_categories;
