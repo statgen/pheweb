@@ -27,6 +27,7 @@ window.debug = window.debug || {};
         "min_region_scale": 2e4,
         "max_region_scale": 5e5,
         "panel_boundaries": true,
+        mouse_guide: true,
 
         "dashboard": {
             "components": [{

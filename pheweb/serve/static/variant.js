@@ -154,7 +154,8 @@ function deepcopy(obj) {
         width: 800,
         min_width: 500,
         responsive_resize: true,
-        panels: [phewas_panel]
+        panels: [phewas_panel],
+        mouse_guide: false
     }
     window.debug.layout = layout;
 
