@@ -34,11 +34,6 @@ def get_variants(f, fname=None):
             print("Warning: There's a variant with pval 0 in {!r}.  (Variant: {!r})".format(fname, v))
 
 
-def approx_equal(a, b, tolerance=1e-4):
-    return abs(a-b) <= max(abs(a), abs(b)) * tolerance
-assert approx_equal(42, 42.0000001)
-assert not approx_equal(42, 42.01)
-
 def gc_value_from_list(neglog10_pvals, quantile=0.5):
     # neglog10_pvals must be in decreasing order.
     assert all(neglog10_pvals[i] >= neglog10_pvals[i+1] for i in range(len(neglog10_pvals)-1))
@@ -48,10 +43,10 @@ def gc_value_from_list(neglog10_pvals, quantile=0.5):
 def gc_value(pval, quantile=0.5):
     # This should be equivalent to this R: `qchisq(p, df=1, lower.tail=F) / qchisq(.5, df=1, lower.tail=F)`
     return scipy.stats.chi2.ppf(1 - pval, 1) / scipy.stats.chi2.ppf(1 - quantile, 1)
-assert approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
-assert approx_equal(gc_value(0.5), 1)
-assert approx_equal(gc_value(0.50001), 0.9999533)
-assert approx_equal(gc_value(0.6123), 0.5645607)
+assert utils.approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
+assert utils.approx_equal(gc_value(0.5), 1)
+assert utils.approx_equal(gc_value(0.50001), 0.9999533)
+assert utils.approx_equal(gc_value(0.6123), 0.5645607)
 
 
 def compute_qq(neglog10_pvals):

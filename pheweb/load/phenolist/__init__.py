@@ -109,9 +109,9 @@ def check_that_all_phenotypes_have_assoc_files(phenolist):
         if any(not isinstance(s, str) for s in pheno['assoc_files']): utils.die("assoc_files contains things other than strings for some phenotypes.")
 
 def extract_info_from_assoc_files(phenolist):
-    input_file_parser = utils.get_assoc_file_parser()
+    PhenoReader = utils.get_PhenoReader()
     for pheno in tqdm.tqdm(phenolist, bar_format='Read {n:7} files'):
-        pheno.update(input_file_parser.get_pheno_info(pheno))
+        pheno.update(PhenoReader(pheno['assoc_files']).get_info())
     return phenolist
 
 def filter_phenolist(phenolist, filter_func, name_for_debugging=''):
@@ -500,7 +500,7 @@ def run(argv):
         fname = args.fname or default_phenolist_fname
         phenolist = get_phenolist_with_globs(args.patterns, star_is_phenocode=args.star_is_phenocode)
         if args.simple_phenocode:
-            pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.epacts|\.gz|\.tsv|\.txt|\.csv)*$'
+            pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.chr(?:[1-9][0-9]?|X|Y|MT?)|\.epacts|\.gz|\.tsv|\.txt|\.csv)*$'
             extract_phenocode_from_fname(phenolist, pattern)
         save_phenolist(phenolist, fname)
     p = subparsers.add_parser('glob', help='use one or more shell-glob patterns to select association files')

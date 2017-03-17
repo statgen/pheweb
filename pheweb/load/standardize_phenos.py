@@ -2,7 +2,7 @@
 from .. import utils
 conf = utils.conf
 
-input_file_parser = utils.get_assoc_file_parser()
+PhenoReader = utils.get_PhenoReader()
 
 import os
 import datetime
@@ -46,11 +46,12 @@ def convert(pheno, dest_filename, tmp_filename):
 
     with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_filename, overwrite_part=True) as f_out:
 
-        pheno_fieldnames, pheno_variants = input_file_parser.get_fieldnames_and_variants(pheno, keep_chrom_idx=True)
+        pheno_reader = PhenoReader(pheno['assoc_files'], keep_chrom_idx=True)
+        pheno_variants = pheno_reader.get_variants()
         site_variants = get_site_variants(sites_filename)
 
         sites_fieldnames = 'chrom pos ref alt rsids nearest_genes maf pval'.split()
-        fieldnames = sites_fieldnames + list(set(pheno_fieldnames) - set(sites_fieldnames))
+        fieldnames = sites_fieldnames + list(set(pheno_reader.fields) - set(sites_fieldnames))
         writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
 

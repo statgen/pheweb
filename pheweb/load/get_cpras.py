@@ -2,7 +2,7 @@
 from .. import utils
 conf = utils.conf
 
-input_file_parser = utils.get_assoc_file_parser()
+PhenoReader = utils.get_PhenoReader()
 
 import datetime
 import multiprocessing
@@ -18,16 +18,13 @@ def convert(pheno, dest_filename, tmp_filename):
 
     with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_filename, overwrite_part=True) as f_out:
 
-        minimum_maf = conf.minimum_maf if hasattr(conf, 'minimum_maf') else 0
-        fieldnames, variants = input_file_parser.get_fieldnames_and_variants(pheno, minimum_maf=minimum_maf)
+        minimum_maf = conf.minimum_maf if hasattr(conf, 'minimum_maf') else None
+        pheno_reader = PhenoReader(pheno['assoc_files'], only_cpra=True, minimum_maf=minimum_maf)
+        assert set(pheno_reader.fields) == set(['chrom', 'pos', 'ref', 'alt'])
 
-        req_fieldnames = 'chrom pos ref alt'.split()
-        for fld in req_fieldnames: assert fld in fieldnames, fld
-        variants = ({k:v for k,v in variant.items() if k in req_fieldnames} for variant in variants)
-
-        writer = csv.DictWriter(f_out, fieldnames=req_fieldnames, delimiter='\t')
+        writer = csv.DictWriter(f_out, fieldnames=pheno_reader.fields, delimiter='\t')
         writer.writeheader()
-        writer.writerows(variants)
+        writer.writerows(pheno_reader.get_variants())
 
     print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
 

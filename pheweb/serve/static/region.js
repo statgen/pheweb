@@ -16,6 +16,11 @@
         return log;
     });
 
+    // TODO: copying the whole layout was a bad choice.
+    //       I should just have copied the standard and adjusted it like in variant.js
+    //       That makes it more clear when I've changed things from the default.
+    //       It means that I often have to change my code when the default changes,
+    //       But I already usually have to make changes when the default changes, and they'd be easier.
     var layout = {
         width: 800,
         height: 400,

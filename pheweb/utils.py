@@ -23,13 +23,9 @@ import urllib.parse
 conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
 
 
-def get_assoc_file_parser():
+def get_PhenoReader():
     from .load.input_file_parsers import epacts
-    return epacts
-    # TODO: how do I make this configurable?  I can't find the right syntax with imp.load_*.  Maybe in py3?
-    #       if you use load_source, then it's not part of this package, so it can't do relative imports.
-    # fname = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'load', 'input_file_parsers', conf['source_file_parser']+'.py')
-    # return imp.load_source(conf['source_file_parser'], fname)
+    return epacts.PhenoReader
 
 
 class variant_parser:
@@ -50,14 +46,6 @@ class variant_parser:
         return g + tuple(itertools.repeat(None, 4-len(g)))
 
 
-def parse_marker_id(marker_id):
-    match = parse_marker_id.regex.match(marker_id)
-    if match is None:
-        raise Exception("ERROR: MARKER_ID didn't match our MARKER_ID pattern: {!r}".format(marker_id))
-    chrom, pos, ref, alt = match.groups()
-    return chrom, int(pos), ref, alt
-parse_marker_id.regex = re.compile(r'([^:]+):([0-9]+)_([-ATCG\.]+)/([-ATCG\.]+)')
-
 
 def round_sig(x, digits):
     if x == 0:
@@ -70,6 +58,11 @@ def round_sig(x, digits):
         return round(x, digits - 1 - digits_above_zero)
 assert round_sig(0.00123, 2) == 0.0012
 assert round_sig(1.59e-10, 2) == 1.6e-10
+
+def approx_equal(a, b, tolerance=1e-4):
+    return abs(a-b) <= max(abs(a), abs(b)) * tolerance
+assert approx_equal(42, 42.0000001)
+assert not approx_equal(42, 42.01)
 
 
 def get_phenolist():
