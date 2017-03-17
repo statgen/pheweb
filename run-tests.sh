@@ -1,4 +1,5 @@
 #!/bin/bash
+# NOTE: set environment variable `PHEWEB_DEBUG` to get an ipdb shell on failure
 
 set -euo pipefail
 
