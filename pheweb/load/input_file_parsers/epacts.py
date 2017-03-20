@@ -5,84 +5,85 @@ conf = utils.conf
 import csv
 import itertools
 import re
+from collections import OrderedDict
 import boltons.iterutils
 
 
 legitimate_null_values = ['.', 'NA']
 
-per_variant_fields = {
-    'chrom': {
+per_variant_fields = OrderedDict([
+    ('chrom', {
         'aliases': ['#CHROM'],
         'required': True,
         'type': str,
-    },
-    'pos': {
+    }),
+    ('pos', {
         'aliases': ['BEG', 'BEGIN'],
         'required': True,
         'type': int,
         'range': [0, None],
-    },
-    'ref': {
+    }),
+    ('ref', {
         'aliases': ['reference'],
         'required': True,
         'type': str,
-    },
-    'alt': {
+    }),
+    ('alt', {
         'aliases': ['alternate'],
         'required': True,
         'type': str,
-    },
-}
+    }),
+])
 
-per_assoc_fields = {
-    'maf': {
+per_assoc_fields = OrderedDict([
+    ('maf', {
         'aliases': [],
         'type': float,
         'range': [0, 0.5],
         'sigfigs': 3,
-    },
-    'pval': {
+    }),
+    ('pval', {
         'aliases': ['PVALUE'],
         'required': True,
         'type': float,
         'nullable': True,
         'range': [0, 1],
         'sigfigs': 3,
-    },
-    'beta': {
+    }),
+    ('beta', {
         'aliases': [],
         'type': float,
         'nullable': True,
         'sigfigs': 3,
-    },
-    'sebeta': {
+    }),
+    ('sebeta', {
         'aliases': [],
         'type': float,
         'nullable': True,
         'sigfigs': 3,
-    },
-}
+    }),
+])
 
-per_pheno_fields = {
-    'num_cases': {
+per_pheno_fields = OrderedDict([
+    ('num_cases', {
         'aliases': ['NS.CASE', 'N_cases'],
         'type': int,
         'nullable': True,
         'range': [0, None],
-    },
-    'num_controls': {
+    }),
+    ('num_controls', {
         'aliases': ['NS.CTRL', 'N_controls'],
         'type': int,
         'nullable': True,
         'range': [0, None],
-    },
-    'num_samples': {
+    }),
+    ('num_samples', {
         'aliases': ['NS', 'N'],
         'type': int,
         'nullable': True,
         'range': [0, None],
-    },
-}
+    }),
+])
 
 all_possible_fields = dict(itertools.chain(per_variant_fields.items(), per_assoc_fields.items(), per_pheno_fields.items()))
 assert len(all_possible_fields) == len(per_variant_fields) + len(per_assoc_fields) + len(per_pheno_fields) # no overlaps!
