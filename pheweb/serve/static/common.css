@@ -33,3 +33,8 @@
   margin-bottom: 10px;
 }
 /* ---- */
+
+.lz-data_layer-tooltip {
+    pointer-events: none;
+}
+
