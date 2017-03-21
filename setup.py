@@ -28,9 +28,7 @@ setup(
     author_email="pjvh@umich.edu",
     url="https://github.com/statgen/pheweb",
     packages=['pheweb'],
-    scripts=['bin/pheweb'],
-    # TODO: use: entry_points={'console_scripts': ['pheweb=pheweb.command_line:main']},
-    #       see <https://python-packaging.readthedocs.io/en/latest/everything.html>
+    entry_points={'console_scripts': ['pheweb=pheweb.command_line:main']},
     # TODO: add test_suite (ie, make a single file that runs tests, figure out how to access input_data, make a data_dir in /tmp)
     license="MIT",
     classifiers=[

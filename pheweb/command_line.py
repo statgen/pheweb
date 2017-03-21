@@ -80,11 +80,13 @@ Subcommands:
             - have a better p-value than every variant within 1Mb in the same phenotype.
 '''.format(version.version))
 
-subcommand = sys.argv[1] if len(sys.argv)>1 else ''
-if subcommand in ['', '-h', '--help']:
-    help()
-elif subcommand not in handlers:
-    print('Unknown subcommand {!r}'.format(subcommand))
-    help()
-else:
-    handlers[subcommand](sys.argv[2:])
+
+def main():
+    subcommand = sys.argv[1] if len(sys.argv)>1 else ''
+    if subcommand in ['', '-h', '--help']:
+        help()
+    elif subcommand not in handlers:
+        print('Unknown subcommand {!r}'.format(subcommand))
+        help()
+    else:
+        handlers[subcommand](sys.argv[2:])
