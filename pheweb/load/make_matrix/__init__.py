@@ -1,15 +1,6 @@
 
 
-
-
-# TODO:
-# when we make a package, maybe `g++ matrixify.cpp` won't work.
-# so pipe source into `g++ -x c++ - -o $data_dir/matrixify` instead. (how to pipe: http://stackoverflow.com/a/165662/1166306)
-# we can probably store the sourcecode in pkg_resources.  otherwise, a string will do.
-# later, cffi or ctypes will be good.
-
-
-from .. import utils
+from ... import utils
 conf = utils.conf
 
 import os
