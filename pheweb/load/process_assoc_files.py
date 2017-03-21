@@ -1,7 +1,6 @@
 
 
-
-# TODO: color lines with ==> using colors like $(tput setab 3 2>/dev/null; tput setaf 0 2>/dev/null) $text $(tput sgr0 2>/dev/null)
+# TODO: color lines with ==> using `colorama`
 
 from .. import utils
 conf = utils.conf
