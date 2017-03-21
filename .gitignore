@@ -6,3 +6,5 @@ test/fake-cache/*
 !test/data_dir/config.py
 !test/data_dir/make_phenolist.py
 !test/data_dir/custom_templates
+PheWeb.egg-info
+build

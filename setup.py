@@ -27,9 +27,6 @@ setup(
     author="Peter VandeHaar",
     author_email="pjvh@umich.edu",
     url="https://github.com/statgen/pheweb",
-    packages=['pheweb'],
-    entry_points={'console_scripts': ['pheweb=pheweb.command_line:main']},
-    # TODO: add test_suite (ie, make a single file that runs tests, figure out how to access input_data, make a data_dir in /tmp)
     license="MIT",
     classifiers=[
         'Programming Language :: Python :: 3 :: Only',
@@ -40,6 +37,10 @@ setup(
         'Topic :: Scientific/Engineering :: Bio-Informatics',
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
     ],
+
+    packages=['pheweb'],
+    entry_points={'console_scripts': ['pheweb=pheweb.command_line:main']},
+    # TODO: add test_suite (ie, make a single file that runs tests, figure out how to access input_data, make a data_dir in /tmp)
     include_package_data=True,
     zip_safe=False,
     install_requires=[

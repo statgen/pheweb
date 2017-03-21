@@ -37,7 +37,7 @@ for submodule in '''
  top_loci
 '''.split():
     def f(submodule, argv):
-        module = importlib.import_module('pheweb.load.{}'.format(submodule))
+        module = importlib.import_module('.load.{}'.format(submodule), __package__)
         module.run(argv)
     handlers[submodule.replace('_', '-')] = functools.partial(f, submodule)
 

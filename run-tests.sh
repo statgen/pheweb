@@ -1,14 +1,19 @@
 #!/bin/bash
-# NOTE: set environment variable `PHEWEB_DEBUG` to get an ipdb shell on failure
 
 set -euo pipefail
 
-rm -rf "/tmp/pheweb-test-venv-${USER}-"*
+rm -rf "/tmp/pheweb-test-venv-${USER}-"* # pre-clean
 
-if [[ "${1:-}" == install ]]; then
+if echo "${1:-}" | grep -q d; then
+    export PHEWEB_DEBUG=1
+fi
+if echo "${1:-}" | grep -q g; then # install globally
+    pip3 install --upgrade .
+    echo -e "\n\n===> \`pheweb\` is $(which pheweb)"
+elif echo "${1:-}" | grep -q i; then # install in virtualenv in /tmp
     tempdir="$(mktemp -d "/tmp/pheweb-test-${USER}-XXXX")"
     pushd "$tempdir" > /dev/null
-    echo -e "\n\n====> populating /$tempdir/venv3"
+    echo -e "\n\n====> populating $tempdir/venv3"
     virtualenv -p python3 ./venv3
     set +u && source ./venv3/bin/activate && set -u
     popd > /dev/null
@@ -47,4 +52,4 @@ kill $pid
 
 echo -e "\n\n====> SUCCESS"
 
-rm -rf "/tmp/pheweb-test-venv-${USER}-"*
+rm -rf "/tmp/pheweb-test-venv-${USER}-"* # post-clean
