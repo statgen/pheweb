@@ -26,7 +26,7 @@ Here are more detailed instructions:
 1. Install PheWeb
 -----------------
 
-1) Run ``pip3 install pheweb``.
+1) Run ``pip3 install git+https://github.com/statgen/pheweb.git``.
 
    -  If that doesn't work, use a virtualenv like this:
 
@@ -34,7 +34,7 @@ Here are more detailed instructions:
 
          python3 -m venv ~/venv3 # Choose whatever path you like.
          ~/venv3/bin/activate
-         pip3 install pheweb
+         pip3 install git+https://github.com/statgen/pheweb.git
 
 2) Make a data directory. It should be in a location where you can
    afford to store twice as much data as the size of your input files.
@@ -44,12 +44,12 @@ Here are more detailed instructions:
       ``PHEWEB_DATADIR="/path/to/data/dir``.
 
 3) In your data directory, make a file ``config.py`` if you want to
-   configure any options. Options you can set:
+   configure any options. Some options you can set:
 
    -  ``minimum_maf``: any variant that has at least this minor allele
       frequency in some phenotype will be shown. (default:
       ``minimum_maf = 0``)
-   -  ``cache``: a directory where files used by all datasets can be
+   -  ``cache``: a directory where files common to all datasets can be
       stored. If you don't want one, set ``cache = False``. (default:
       ``cache = "~/.pheweb/cache/"``)
 
