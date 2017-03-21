@@ -3,11 +3,25 @@
 
 set -euo pipefail
 
+rm -rf "/tmp/pheweb-test-venv-${USER}-"*
+
+if [[ "${1:-}" == install ]]; then
+    tempdir="$(mktemp -d "/tmp/pheweb-test-${USER}-XXXX")"
+    pushd "$tempdir" > /dev/null
+    echo -e "\n\n====> populating /$tempdir/venv3"
+    virtualenv -p python3 ./venv3
+    set +u && source ./venv3/bin/activate && set -u
+    popd > /dev/null
+    pip3 install .
+    echo -e "\n\n===> \`pheweb\` is $(which pheweb)"
+    which pheweb | grep -q "$tempdir"
+fi
+
 cd test/data_dir
 
 rm -rf pheno-list.json cpra/
 
-echo -e "====> ./make_phenolist.sh"
+echo -e "\n\n\n====> ./make_phenolist.sh"
 ./make_phenolist.sh
 
 echo -e "\n\n\n====> pheweb process-assoc-files"
@@ -32,3 +46,5 @@ curl -sS "http://localhost:$port/region/1/gene/SAMD11" | grep -q EAR-LENGTH
 kill $pid
 
 echo -e "\n\n====> SUCCESS"
+
+rm -rf "/tmp/pheweb-test-venv-${USER}-"*
