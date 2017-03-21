@@ -165,7 +165,7 @@ def pad_gene(start, end):
     padding = boltons.mathutils.clamp(5e5 - (end - start), 0, 2e5)
     return (int(start - padding//2), int(end + padding//2))
 assert pad_gene(1000,     2345) == (0,      102345)
-assert pad_gene(1000  , 400000) == (0,      500000)
+assert pad_gene(1000,   400000) == (0,      500000)
 assert pad_gene(200000, 400000) == (100000, 500000)
 assert pad_gene(200000, 500000) == (100000, 600000)
 assert pad_gene(200000, 500001) == (100001, 600000)

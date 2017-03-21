@@ -6,7 +6,6 @@ import os
 import re
 import gzip
 import csv
-import collections
 from boltons.fileutils import mkdir_p
 import boltons.iterutils
 
@@ -45,7 +44,6 @@ vaultRNA
 '''.split()).union(good_genetypes)
 
 def get_all_genes(gencode_file):
-    all_genetypes = set()
     with gzip.open(gencode_file, 'rt') as f:
         for l in f:
             if l.startswith('#'): continue
@@ -98,7 +96,7 @@ def dedup_symbol(genes):
         if len(symbol_group) == 1:
             yield symbol_group[0]
         elif (boltons.iterutils.same(g['chrom'] for g in symbol_group) and
-            all(g1['end'] + 400e3 > g2['start'] for g1,g2 in boltons.iterutils.pairwise(sorted(symbol_group, key=lambda g:g['start'])))):
+              all(g1['end'] + 400e3 > g2['start'] for g1,g2 in boltons.iterutils.pairwise(sorted(symbol_group, key=lambda g:g['start'])))):
             # 400kb is long enough to resolve all problems.
             yield {
                 'chrom': symbol_group[0]['chrom'],
