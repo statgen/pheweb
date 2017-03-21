@@ -48,11 +48,14 @@ function deepcopy(obj) {
 
 (function() { // Create PheWAS plot.
 
-    LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
-        if (x === 0) return 100;
+    var best_neglog10_pval = d3.max(window.variant.phenos.map(function(x) { return LocusZoom.TransformationFunctions.get('neglog10')(x.pval); }));
+
+    var neglog10_handle0 = function(x) {
+        if (x === 0) return best_neglog10_pval * 1.1;
         var log = -Math.log(x) / Math.LN10;
         return log;
-    });
+    };
+    LocusZoom.TransformationFunctions.set("neglog10_handle0", neglog10_handle0);
 
     LocusZoom.Data.PheWASSource.prototype.getData = function(state, fields, outnames, trans) {
         window.debug.getData_args = [state, fields, outnames, trans];
@@ -91,7 +94,6 @@ function deepcopy(obj) {
     phewas_panel.data_layers[1].y_axis.min_extent = [0, neglog10_significance_threshold*1.05];
     phewas_panel.data_layers[1].y_axis.upper_buffer = 0.1;
 
-    // TODO: add optional elements (beta, sebeta) using new conditional syntax
     phewas_panel.data_layers[1].tooltip.html =
         "<div><strong>{{phewas_code}}</strong></div>" +
         "<div><strong>{{phewas_string}}</strong></div>" +
@@ -103,12 +105,16 @@ function deepcopy(obj) {
         "{{#if beta}}<div>beta: <strong>{{beta}}{{#if sebeta}} ({{sebeta}}){{/if}}</strong></div>{{/if}}" +
         "{{#if or}}<div>odds ratio: <strong>{{or}}</strong></div>{{/if}}";
 
-    // Use `neglog10_or_100` to handle pval=0 variants a little better.
-    phewas_panel.data_layers[1].fields.push('pval|neglog10_or_100');
-    phewas_panel.data_layers[1].y_axis.field = 'pval|neglog10_or_100';
+    // Use `neglog10_handle0` to handle pval=0 variants a little better.
+    phewas_panel.data_layers[1].fields.push('pval|neglog10_handle0');
+    phewas_panel.data_layers[1].y_axis.field = 'pval|neglog10_handle0';
 
     // Show labels only above the sig line.
-    phewas_panel.data_layers[1].label.filters = [{field:"pval", operator:"<", value:significance_threshold}];
+    console.log(best_neglog10_pval / 4);
+    phewas_panel.data_layers[1].label.filters = [
+        {field:"pval|neglog10_handle0", operator:">", value:neglog10_significance_threshold/2},
+        {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 4},
+    ];
 
     // Color points by category.
     phewas_panel.data_layers[1].color.parameters.categories = window.unique_categories;
