@@ -40,6 +40,10 @@ setup(
     # TODO: add test_suite (ie, make a single file that runs tests, figure out how to access input_data, make a data_dir in /tmp)
     include_package_data=True,
     zip_safe=False,
+    cffi_modules=['pheweb/load/make_matrix/ffibuilder.py:ffibuilder'],
+    setup_requires=[
+        'cffi~=1.9',
+    ],
     install_requires=[
         'Flask>=0.12',
         'pysam~=0.9',
@@ -55,5 +59,6 @@ setup(
         'gunicorn~=19.6',
         'boltons~=17.0',
         'blist~=1.3',
+        'cffi~=1.9',
     ]
 )

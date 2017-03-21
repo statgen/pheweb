@@ -128,7 +128,7 @@ void set_ulimit_num_files(unsigned num_files) {
   }
 }
 
-int main(int argc, char** argv) {
+int run(int argc, char** argv) {
 
   //sites file
   std::string sites_fname = argv[1];
@@ -265,5 +265,11 @@ int main(int argc, char** argv) {
 
     std::cout << "\t" << std::setprecision(3) << maf/num_mafs;
     std::cout << all_the_rest.str() << "\n";
+  }
+}
+
+extern "C" {
+  extern int cffi_run(int argc, char *argv[]) {
+    return run(argc, argv);
   }
 }
