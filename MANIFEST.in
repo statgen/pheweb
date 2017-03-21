@@ -1,5 +1,0 @@
-include pheweb/load/make_matrix/matrixify.cpp
-include README.rst
-recursive-include pheweb/serve/static *
-recursive-include pheweb/serve/templates *
-recursive-include pheweb *.py
