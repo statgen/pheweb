@@ -46,7 +46,7 @@
 /* eslint-disable no-console */
 
 var LocusZoom = {
-    version: "0.5.5-4b6c2e2"
+    version: "0.5.6"
 };
     
 // Populate a single element with a LocusZoom plot.
@@ -1803,8 +1803,7 @@ LocusZoom.Layouts.add("plot", "standard_association", {
     panels: [
         LocusZoom.Layouts.get("panel", "association", { unnamespaced: true, proportional_height: 0.5 }),
         LocusZoom.Layouts.get("panel", "genes", { unnamespaced: true, proportional_height: 0.5 })
-    ],
-    mouse_guide: true
+    ]
 });
 
 // Shortcut to "StandardLayout" for backward compatibility
@@ -1848,8 +1847,7 @@ LocusZoom.Layouts.add("plot", "interval_association", {
         LocusZoom.Layouts.get("panel", "association", { unnamespaced: true, width: 800, proportional_height: (225/570) }),
         LocusZoom.Layouts.get("panel", "intervals", { unnamespaced: true, proportional_height: (120/570) }),
         LocusZoom.Layouts.get("panel", "genes", { unnamespaced: true, width: 800, proportional_height: (225/570) })
-    ],
-    mouse_guide: true
+    ]
 });
 
 /* global d3,LocusZoom */
@@ -2061,9 +2059,13 @@ LocusZoom.DataLayer.prototype.resolveScalableParameter = function(layout, data){
             ret = layout;
             break;
         case "object":
-            if (layout.scale_function && layout.field) {
-                var f = new LocusZoom.Data.Field(layout.field);
-                ret = LocusZoom.ScaleFunctions.get(layout.scale_function, layout.parameters || {}, f.resolve(data));
+            if (layout.scale_function){
+                if(layout.field) {
+                    var f = new LocusZoom.Data.Field(layout.field);
+                    ret = LocusZoom.ScaleFunctions.get(layout.scale_function, layout.parameters || {}, f.resolve(data));
+                } else {
+                    ret = LocusZoom.ScaleFunctions.get(layout.scale_function, layout.parameters || {}, data);
+                }
             }
             break;
         }
@@ -2171,8 +2173,7 @@ LocusZoom.DataLayer.prototype.updateTooltip = function(d, id){
     // If the layout allows tool tips on this data layer to be closable then add the close button
     // and add padding to the tooltip to accomodate it
     if (this.layout.tooltip.closable){
-        this.tooltips[id].selector.style("padding-right", "24px");
-        this.tooltips[id].selector.append("button")
+        this.tooltips[id].selector.insert("button", ":first-child")
             .attr("class", "lz-tooltip-close-button")
             .attr("title", "Close")
             .text("×")
@@ -5064,7 +5065,7 @@ LocusZoom.ScaleFunctions = (function() {
     return obj;
 })();
 
-// Boolean scale function: bin a dataset numerically by matching against an array of distinct values
+// If scale function: apply a boolean conditional to a single field
 LocusZoom.ScaleFunctions.add("if", function(parameters, input){
     if (typeof input == "undefined" || parameters.field_value != input){
         if (typeof parameters.else != "undefined"){
@@ -6903,6 +6904,9 @@ LocusZoom.Data.GeneConstraintSource.prototype.fetchRequest = function(state, cha
 };
 
 LocusZoom.Data.GeneConstraintSource.prototype.parseResponse = function(resp, chain, fields, outnames) {
+    if (!resp){
+        return { header: chain.header, body: chain.body };
+    }
     var data = JSON.parse(resp);
     // Loop through the array of genes in the body and match each to a result from the contraints request
     var constraint_fields = ["bp", "exp_lof", "exp_mis", "exp_syn", "lof_z", "mis_z", "mu_lof", "mu_mis","mu_syn", "n_exons", "n_lof", "n_mis", "n_syn", "pLI", "syn_z"]; 
@@ -6926,7 +6930,7 @@ LocusZoom.Data.GeneConstraintSource.prototype.parseResponse = function(resp, cha
             }
         });
     });
-    return {header: chain.header, body: chain.body};
+    return { header: chain.header, body: chain.body };
 };
 
 /**
@@ -7145,7 +7149,8 @@ LocusZoom.Plot.DefaultLayout = {
     dashboard: {
         components: []
     },
-    panel_boundaries: true
+    panel_boundaries: true,
+    mouse_guide: true
 };
 
 // Helper method to sum the proportional dimensions of panels, a value that's checked often as panels are added/removed

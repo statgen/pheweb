@@ -212,9 +212,11 @@ div.lz-data_layer-tooltip {
     color: rgba(24, 24, 24, 0.4);
     border: 1px solid rgba(24, 24, 24, 0.4);
     background-color: rgba(235, 235, 235, 0.4);
-    position: absolute;
-    right: -1px;
-    top: -1px; }
+    float: right;
+    position: relative;
+    top: -6px;
+    right: -6px;
+    margin: 0px 0px 6px 6px; }
 
 div.lz-data_layer-tooltip-arrow_up {
   width: 0;
