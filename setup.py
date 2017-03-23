@@ -2,7 +2,7 @@
 # to upload to pypi:
 #     0. have a good `~/.pypirc`
 #     1. set a new version in `pheweb/version.py`
-#     2. `python3 setup.py sdist bdist_wheel; twine upload --skip-existing dist/*`
+#     2. `python3 setup.py sdist bdist_wheel && twine upload --skip-existing dist/*`
 # to upgrade: `pip3 install --upgrade --upgrade-strategy only-if-needed --no-cache-dir pheweb`
 
 
