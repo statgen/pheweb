@@ -108,12 +108,12 @@ def dedup_symbol(genes):
         else:
             print('broken symbol_group:')
             for g in symbol_group:
-                print(f'- {g["start"]:12,}\t{g["end"]:12,} -', g)
+                print('- {:12,}\t{:12,}\t{}'.format(g['start'], g['end'], g))
             raise
 
 def run(argv):
     gene_dir = os.path.join(conf.data_dir, 'sites', 'genes')
-    gencode_file = os.path.join(gene_dir, 'gencode.gtf.gz')
+    gencode_file = os.path.join(gene_dir, 'gencode-v25.gtf.gz')
     bed_file = utils.get_cacheable_file_location(gene_dir, 'genes.bed')
 
     if not os.path.exists(bed_file):
