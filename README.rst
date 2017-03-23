@@ -13,7 +13,7 @@ following commands:
 
 .. code:: bash
 
-   pip3 install git+https://github.com/statgen/pheweb.git
+   pip3 install pheweb
    mkdir ~/my-new-pheweb && cd ~/my-new-pheweb
    pheweb phenolist glob --simple-phenocode /data/my-analysis/*/*.epacts.gz
    pheweb process-assoc-files
@@ -26,7 +26,7 @@ Here are more detailed instructions:
 1. Install PheWeb
 -----------------
 
-1) Run ``pip3 install git+https://github.com/statgen/pheweb.git``.
+1) Run ``pip3 install pheweb``.
 
    -  If that doesn't work, use a virtualenv like this:
 
@@ -34,7 +34,7 @@ Here are more detailed instructions:
 
          python3 -m venv ~/venv3 # Choose whatever path you like.
          ~/venv3/bin/activate
-         pip3 install git+https://github.com/statgen/pheweb.git
+         pip3 install pheweb
 
 2) Make a data directory. It should be in a location where you can
    afford to store twice as much data as the size of your input files.
