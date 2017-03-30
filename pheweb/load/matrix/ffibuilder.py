@@ -7,7 +7,7 @@ with open(cxx_path) as f:
     src = f.read()
 
 ffibuilder = cffi.FFI()
-ffibuilder.set_source('pheweb.load.make_matrix._matrixify',
+ffibuilder.set_source('pheweb.load.matrix._matrixify',
                       src,
                       source_extension='.cpp',
                       extra_compile_args=['--std=c++11'],

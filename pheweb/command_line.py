@@ -31,14 +31,14 @@ for submodule in '''
  add_rsids
  make_tries
  standardize_phenos
- make_manhattan
- make_qq
- make_matrix
+ manhattan
+ qq
+ matrix
  bgzip_phenos
  top_hits
  gather_pvalues_for_each_gene
  process_assoc_files
- make_wsgi
+ wsgi
  top_loci
 '''.split():
     def f(submodule, argv):
@@ -76,7 +76,7 @@ Subcommands:
     pheweb serve
         host a webserver
 
-    pheweb make-wsgi
+    pheweb wsgi
         make wsgi.py, which can be used with gunicorn or other WSGI-compatible webservers.
 
     pheweb top-hits

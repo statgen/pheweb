@@ -40,7 +40,7 @@ setup(
     # TODO: add test_suite (ie, make a single file that runs tests, figure out how to access input_data, make a data_dir in /tmp)
     include_package_data=True,
     zip_safe=False,
-    cffi_modules=['pheweb/load/make_matrix/ffibuilder.py:ffibuilder'],
+    cffi_modules=['pheweb/load/matrix/ffibuilder.py:ffibuilder'],
     setup_requires=[
         'cffi~=1.9',
     ],

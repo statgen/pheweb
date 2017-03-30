@@ -2,7 +2,7 @@
 
 0. Install apache2.
 
-1. Run `pheweb make-wsgi`.
+1. Run `pheweb wsgi`.
 
 2. Run `gunicorn -b 127.0.0.1:9974 -w4 wsgi` inside of a `tmux` or `screen` or with `-D` to run as a daemon.
 

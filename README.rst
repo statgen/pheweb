@@ -310,7 +310,7 @@ B. Run PheWeb with the default settings, then use an SSH tunnel to
 At this point your PheWeb should be working how you want it to, and
 everything should be good except maybe the URL you're using.
 
-To start, run Flask behind gunicorn.  To do that, run ``pheweb make-wsgi``,
+To start, run Flask behind gunicorn.  To do that, run ``pheweb wsgi``,
 to produce a file ``wsgi.py``.  Then you can run
 ``gunicorn -b 0.0.0.0:5000 -w4 wsgi``, to start a webserver.
 

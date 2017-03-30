@@ -18,9 +18,9 @@ add_rsids
 add_genes
 make_tries
 standardize_phenos
-make_manhattan
-make_qq
-make_matrix
+manhattan
+qq
+matrix
 bgzip_phenos
 top_hits
 gather_pvalues_for_each_gene
