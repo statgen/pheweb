@@ -319,3 +319,57 @@ something like Apache2 or Nginx. More information about this is
 `here <http://flask.pocoo.org/docs/0.12/deploying/wsgi-standalone/#gunicorn>`__.
 If you choose Apache2, I have some documentation for you
 `here <https://github.com/statgen/pheweb/tree/master/unnecessary_things/other_documentation/running_with_apache2>`__.
+
+
+Data flow
+=========
+
+::
+
+                     input-association-files (eg, EPACTS)
+                      |         |         |
+                      |         v         |
+                      |  pheno-list.json  |
+                      |   |           |   |
+                      v   v           |   |
+                      cpra/*          |   |
+                         |            |   |
+               genes.bed |            |   |
+             rsids.tsv | |            |   |
+         annotations | | |            |   |
+                   | | | |            |   |
+                   v v v v            |   |
+                  sites.tsv           |   |
+                  |   |   |           v   v
+                  |   |   +--> augmented_pheno/*
+                  v   |        |     |   |   |
+    cpra-rsids-tries  |        |     |   |   v
+                      v        v     |   |  augmented_pheno_gz/*
+                    matrix.tsv.gz    |   v
+                    |     |          |   manhattan/*
+                    v     |          v      |   |
+       matrix.tsv.gz.tbi  |         qq/*    |   v
+                      |   |                 |  top_hits.json/tsv
+                      v   v                 v
+         best-phenos-by-gene.json          top_loci.json/tsv
+
+
+- ``cpra/*`` just has chrom-pos-ref-alt
+- ``annotations`` is a not-yet-built mechanism for importing only per-variant fields from a file (eg, VEP VCF)
+- ``sites.tsv`` has chrom-pos-ref-alt and some of the per-variant fields
+- ``augmented_pheno/*`` have all available per-assoc fields and per-variant fields (any per-variant fields in the input files must EXACTLY match any in sites.tsv)
+    - each file must contain all required per-variant fields.
+    - some might include optional per-variant fields that others are missing.  To avoid that, tag those as ``annotation`` files to be used to make ``sites.tsv``.
+        - PheWeb should warn about different optional-per-variant-fields per file that when building ``matrix.tsv.gz``
+        - alternatively, we could error if some of ``augmented_pheno/*`` have optional-per-variant-fields that others don't.
+            - if we did that, we could require per-variant-fields to go before per-assoc-fields in ``augmented_pheno/*``, and to always be in the same order, which would simplify ``matrixify``.
+                - I like this plan.
+- cpra-rsid-tries are for autocomplete suggestions.  They need to be replaced by numerically-sorted tabix files or sqlite3 tables, so that I can just do iterative x10^i queries.
+- ``matrix.tsv.gz`` contains all per-variant fields at the beginning (confirmed to EXACTLY match any file among [augmented_pheno/* , sites.tsv] where they exist) and ``<per-assoc-field>@<pheno-id>``.
+- ``top_hits.json`` contains all variants (and their per-variant and per-assoc fields) that (a) pval<1e-6, (b) smallest pval in 500kb in own phenotype
+- ``top_loci.json`` contains all variants (and their per-variant and per-assoc fields) that (a) pval<1e-6, (b) smallest pval in 500kb, (c) smallest pval in 1Mb in own phenotype
+    - this should be a subset of ``top_hits.json``
+- ``best-phenos-by-gene.json`` will be superceded by a generalized best-phenos-by-region mechanism later on.
+- ``manhattan/*`` and ``qq/*`` should probably share their unbinned variants, especially if we move from a list-of-dicts to a dict-of-lists API.
+
+

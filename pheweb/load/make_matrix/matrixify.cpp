@@ -9,6 +9,37 @@
 // Every augmented pheno file must be a subsequence of the sites file.
 // This program will print the full matrix to stdout.
 
+/*
+ Current overall flow:
+- get cpras from each input file -> cpra/<pheno_id>
+- merge them -> cpras.tsv
+- annotate that -> sites.tsv
+- sites.tsv + each input file -> augmented_pheno/<pheno_id>
+- sites.tsv + augmented_pheno/* -> matrix.tsv.gz
+
+Flow for per-variant info:
+- sites.tsv is just cpra.tsv + per-variant annotations.  Allow users to merge more annotations into that file.
+    - those fields must be documented in possible_fields, so that we can auto-tooltip them.
+    - use annotation_files=[{...},...] in config.py
+        - make it work for VEP with special fields.
+- read from input files -> augmented_pheno/<pheno_id>
+- assert that they are the same in every augmented_pheno/<pheno_id> in matrix.tsv.gz
+- so, matrixify.cpp must directly include EVERY column in sites.tsv.
+- augmented_pheno/<pheno_id> must have every field from sites.tsv.
+*/
+
+// TODO:
+// 0. Map out current algorithm.
+//   - make sure that $datadir/augmented_phenos contains exactly the right phenos.
+//   - check whether matrix.tsv.gz includes all source phenos and if its newer-or-equal to them all.
+//   - open every source file
+//   - const per-variant columns (TODO: can these be constant in the new version?
+//
+// 1. Map out how things should work.
+//   - Replace ColIdx with a dictionary
+//   - what to pass in?  per_variant, per_assoc?
+
+
 #include <iterator>
 #include <iostream>
 #include <fstream>
@@ -22,6 +53,188 @@
 #include <stdio.h>
 #include <errno.h>
 #include <iomanip> // setprecision
+
+
+// ------
+// BGZIP-writing code
+
+// references:
+// - htslib-cffi @ <https://github.com/quinlan-lab/hts-python/blob/master/hts/hts_concat.h>
+
+// todo:
+// 1. drop this into matrixify.cpp and get it working with c++ on test data.
+// 2. get it working with cffi.
+// 3. understand tabix and build .tbi on-the-fly.
+//   - see <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3042176/>
+//   - see <https://samtools.github.io/hts-specs/tabix.pdf>
+
+//#include <iostream> // redundant
+//#include <fstream> // redundant
+//#include <sys/stat.h> // struct stat // TODO: should we be using stat to get the system's preferred blocksize?
+#include <zlib.h>
+#include <assert.h>
+#include <fcntl.h> // O_WRONLY &c
+
+class Compressor {
+// This is adapted from <https://github.com/samtools/htslib/blob/master/bgzf.c>,
+// referencing <http://github.com/samtools/htslib/blob/master/bgzip.c>
+public:
+    Compressor(std::string fname) {
+        assert(compressBound(BGZF_BLOCK_SIZE) < BGZF_MAX_BLOCK_SIZE); // sanity-check
+        _fname = fname;
+        _file.open(fname.c_str(), std::ios::binary | std::ios::out);
+        _uncompressed_block = new uint8_t[2*BGZF_MAX_BLOCK_SIZE];
+        _compressed_block = _uncompressed_block + BGZF_MAX_BLOCK_SIZE;
+        _uncompressed_block_size = 0;
+    }
+    void close() {
+        // Make one empty block at the end to indicate EOF (as per samtools unofficial spec)
+        if (_uncompressed_block_size) flush_uncompressed();
+        flush_uncompressed();
+    }
+    ~Compressor() { close(); }
+    void write(const char* src_buffer, size_t src_len) {
+        while (src_len > 0) {
+            int copy_length = BGZF_BLOCK_SIZE - _uncompressed_block_size;
+            if (copy_length > src_len) {
+                copy_length = src_len;
+            }
+            memcpy(_uncompressed_block + _uncompressed_block_size, src_buffer, copy_length);
+            _uncompressed_block_size += copy_length;
+            src_buffer += copy_length;
+            src_len -= copy_length;
+            if (_uncompressed_block_size == BGZF_BLOCK_SIZE) {
+                flush_uncompressed();
+            } else if (_uncompressed_block_size > BGZF_BLOCK_SIZE) {
+                std::cerr << "oh no why is BGZF_BLOCK_SIZE longer than _uncompressed_block_size??" << std::endl;
+            }
+        }
+    }
+    void write(const std::string src_string) {
+        write(src_string.c_str(), src_string.length());
+    }
+    void write(const std::string chrom, uint64_t pos, const std::string rest) {
+        write(chrom); write("\t");
+        write(std::to_string(pos)); write("\t");
+        write(rest); write("\n");
+    }
+private:
+     static inline void packInt16(uint8_t *buffer, uint16_t value) {
+        buffer[0] = value;
+        buffer[1] = value >> 8;
+    }
+    static inline int unpackInt16(const uint8_t *buffer) {
+        return buffer[0] | buffer[1] << 8;
+    }
+    static inline void packInt32(uint8_t *buffer, uint32_t value) {
+        buffer[0] = value;
+        buffer[1] = value >> 8;
+        buffer[2] = value >> 16;
+        buffer[3] = value >> 24;
+    }
+    static const char *zerr(int errnum, z_stream *zs) {
+        static char buffer[32];
+        /* Return zs->msg if available.
+           zlib doesn't set this very reliably.  Looking at the source suggests
+           that it may get set to a useful message for deflateInit2, inflateInit2
+           and inflate when it returns Z_DATA_ERROR. For inflate with other
+           return codes, deflate, deflateEnd and inflateEnd it doesn't appear
+           to be useful.  For the likely non-useful cases, the caller should
+           pass NULL into zs. */
+        if (zs && zs->msg) return zs->msg;
+        // gzerror OF((gzFile file, int *errnum)
+        switch (errnum) {
+        case Z_ERRNO:
+            return strerror(errno);
+        case Z_STREAM_ERROR:
+            return "invalid parameter/compression level, or inconsistent stream state";
+        case Z_DATA_ERROR:
+            return "invalid or incomplete IO";
+        case Z_MEM_ERROR:
+            return "out of memory";
+        case Z_BUF_ERROR:
+            return "progress temporarily not possible, or in() / out() returned an error";
+        case Z_VERSION_ERROR:
+            return "zlib version mismatch";
+        case Z_OK: // 0: maybe gzgets error Z_NULL
+        default:
+            snprintf(buffer, sizeof(buffer), "[%d] unknown", errnum);
+            return buffer;
+        }
+    }
+    static void bgzf_compress(uint8_t *dst, size_t &dlen, const uint8_t *src, size_t slen) {
+        // TODO: return compressed_len
+        uint32_t crc;
+        z_stream zs;
+        // compress the body
+        zs.zalloc = NULL; zs.zfree = NULL;
+        zs.msg = NULL;
+        zs.next_in  = (Bytef*)src;
+        zs.avail_in = slen;
+        zs.next_out = dst + BLOCK_HEADER_LENGTH;
+        zs.avail_out = dlen - BLOCK_HEADER_LENGTH - BLOCK_FOOTER_LENGTH;
+        int ret = deflateInit2(&zs, COMPRESSION_LEVEL, Z_DEFLATED, -15, 8, Z_DEFAULT_STRATEGY); // -15 to disable zlib header/footer
+        if (ret != Z_OK) {
+            fprintf(stderr, "[E::%s] deflateInit2 failed: %s\n", __func__, zerr(ret, &zs));
+            throw std::runtime_error("?");
+        }
+        if ((ret = deflate(&zs, Z_FINISH)) != Z_STREAM_END) {
+            fprintf(stderr, "[E::%s] deflate failed: %s\n", __func__, zerr(ret, ret == Z_DATA_ERROR ? &zs : NULL));
+            throw std::runtime_error("??");
+        }
+        if ((ret = deflateEnd(&zs)) != Z_OK) {
+            fprintf(stderr, "[E::%s] deflateEnd failed: %s\n", __func__, zerr(ret, NULL));
+            throw std::runtime_error("???");
+        }
+        dlen = zs.total_out + BLOCK_HEADER_LENGTH + BLOCK_FOOTER_LENGTH;
+        // write the header
+        memcpy(dst, BLOCK_HEADER, BLOCK_HEADER_LENGTH); // the last two bytes are a place holder for the length of the block
+        packInt16(&dst[16], dlen - 1); // write the compressed length; -1 to fit 2 bytes
+        // write the footer
+        crc = crc32(crc32(0L, NULL, 0L), (Bytef*)src, slen);
+        packInt32((uint8_t*)&dst[dlen - 8], crc);
+        packInt32((uint8_t*)&dst[dlen - 4], slen);
+    }
+    // flush_uncompressed compresses _uncompressed_block into _file
+    void flush_uncompressed() {
+        size_t compressed_block_size = BGZF_MAX_BLOCK_SIZE;
+        bgzf_compress(_compressed_block, compressed_block_size, _uncompressed_block, _uncompressed_block_size);
+        _file.write( (const char*)_compressed_block, compressed_block_size);
+        _uncompressed_block_size = 0;
+    }
+    std::string _fname;
+    std::ofstream _file;
+    uint8_t *_uncompressed_block; //  64KiB
+    uint8_t *_compressed_block; // 64KiB
+    size_t _uncompressed_block_size; // num bytes occupied
+static const size_t BGZF_BLOCK_SIZE = 0xff00; // 255*256
+static const size_t BGZF_MAX_BLOCK_SIZE = 0x10000; //64K
+static const size_t WINDOW_SIZE = 0x10000; //64K
+static const int COMPRESSION_LEVEL = Z_DEFAULT_COMPRESSION; // currently 6
+static const int BLOCK_HEADER_LENGTH = 18;
+static const int BLOCK_FOOTER_LENGTH = 8;
+static constexpr const char* BLOCK_HEADER =
+  "\x1f\x8b\x08\x04" // magic number, DEFLATE, extra field
+  "\0\0\0\0" // no timestamp, what a waste
+  "\0\xff" // no info about compression method or OS
+  "\x06\0BC\x02\0\0"/*implicit \0*/; // 6-byte extra field named BC with 2-byte value (currently empty)
+};
+
+// int main() {
+//     Compressor comp("matrix.tsv.gz");
+//     std::string chrom[] = {"X", "Y", "28"};
+//     for (int i=0; i<3; i++) {
+//       for (uint64_t j=1; j < 900000; j+=10) {
+//         comp.write(chrom[i], j, "foo-bar-baz-quux-wat-maltlickey-texas");
+//       }
+//     }
+//       return 0;
+// }
+
+
+
+// ------
+// CSV-reading code
 
 std::vector<std::string> glob(const std::string& pat) {
   // From <http://stackoverflow.com/a/8615450/1166306>
@@ -59,7 +272,6 @@ public:
 private:
   std::vector<std::string> m_data;
 };
-
 std::istream& operator>>(std::istream& str, CSVRow& data) {
   data.readNextRow(str);
   return str;
@@ -118,6 +330,10 @@ bool is_empty(std::ifstream& f)
   return f.peek() == std::ifstream::traits_type::eof();
 }
 
+
+// ------
+// &c
+
 void set_ulimit_num_files(unsigned num_files) {
   struct rlimit limit;
   limit.rlim_cur = num_files;
@@ -127,6 +343,10 @@ void set_ulimit_num_files(unsigned num_files) {
     exit(1);
   }
 }
+
+
+// ------
+// main
 
 int run(int argc, char** argv) {
 
@@ -267,6 +487,9 @@ int run(int argc, char** argv) {
     std::cout << all_the_rest.str() << "\n";
   }
 }
+
+
+
 
 extern "C" {
   extern int cffi_run(int argc, char *argv[]) {
