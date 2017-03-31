@@ -38,22 +38,23 @@ Here are more detailed instructions:
       - install PheWeb through `miniconda <https://conda.io/miniconda.html>`__
         by running::
 
-         curl -O install-miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh # if on macOS
-         curl -O install-miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh #  if on Linux
+         if uname -a | grep -q Darwin; then # macOS
+           curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > install-miniconda.sh
+         fi
+         if uname -a | grep -q Linux; then
+           curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > install-miniconda.sh
+         fi
          bash install-miniconda.sh # just accept everything they suggest, including modifying your PATH
-         . ~/.bash_profile    # reloads your environment, or close and reopen your shell
-         python3 -m pip3 install pheweb
+         . ~/.bash_profile    # reloads your environment (alternatively, just close and reopen your terminal)
+         python3 -m pip install pheweb
 
 
 2) Make a data directory. It should be in a location where you can
    afford to store twice as much data as the size of your input files.
+   All ``pheweb ...`` commands should be run in this directory.
 
-   -  All ``pheweb ...`` commands should be run while in this directory.
-      Alternatively, you may set the environment variable
-      ``PHEWEB_DATADIR="/path/to/data/dir``.
-
-3) In your data directory, make a file ``config.py`` if you want to
-   configure any options. Some options you can set:
+3) If you want to configure any options, make a file ``config.py``
+   in your data directory. Some options you can set are:
 
    -  ``minimum_maf``: any variant that has at least this minor allele
       frequency in some phenotype will be shown. (default:
