@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# use system python
+export PATH="$(echo $PATH | tr : "\n" | grep -v $HOME | tr "\n" : | perl -ple 's{^:|:$}{}g')"
+
 rm -rf "/tmp/pheweb-test-venv-${USER}-"* # pre-clean
 
 if echo "${1:-}" | grep -q d; then
@@ -13,14 +16,20 @@ if echo "${1:-}" | grep -q g; then # install globally
 elif echo "${1:-}" | grep -q i; then # install in virtualenv in /tmp
     tempdir="$(mktemp -d "/tmp/pheweb-test-${USER}-XXXX")"
     pushd "$tempdir" > /dev/null
-    echo -e "\n\n====> populating $tempdir/venv3"
-    virtualenv -p python3 ./venv3
-    set +u && source ./venv3/bin/activate && set -u
+    echo -e "\n\n====> populating $tempdir/venv"
+    python3 -m pip install -t venvdir virtualenv
+    python3 ./venvdir/virtualenv.py venv
+    set +u && source ./venv/bin/activate && set -u
     popd > /dev/null
     pip3 install .
-    echo -e "\n\n===> \`pheweb\` is $(which pheweb)"
     which pheweb | grep -q "$tempdir"
 fi
+
+echo -e "\n\n===> \`pheweb\` is $(which pheweb)"
+first_line="$(head -n1 $(which pheweb))"
+echo "pheweb will run with: '$first_line'"
+python_runner="$(echo "$first_line" | perl -nale 'print $1 if m{#!/usr/bin/env (.*)}')"
+if [[ -n $python_runner ]]; then echo "- in which $python_runner refers to $(which $python_runner)"; fi
 
 cd test/data_dir
 

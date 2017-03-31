@@ -5,10 +5,15 @@ import sys
 import os
 import importlib
 import functools
+import math
 
 if sys.version_info.major < 3:
     print("Sorry, PheWeb doesn't work on Python 2.  Please use Python 3 by installing it with `pip3 install pheweb`.")
     sys.exit(1)
+
+# math.inf was introduced in python3.5
+try: math.inf
+except AttributeError: math.inf = float('inf')
 
 if 'PHEWEB_DEBUG' in os.environ:
     # from <http://ipython.readthedocs.io/en/stable/interactive/reference.html#post-mortem-debugging>
