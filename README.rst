@@ -38,16 +38,18 @@ Here are more detailed instructions:
       - install PheWeb through `miniconda <https://conda.io/miniconda.html>`__
         by running::
 
-         if uname -a | grep -q Darwin; then # macOS
+         if uname -a | grep -q Darwin; then
            curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > install-miniconda.sh
          fi
          if uname -a | grep -q Linux; then
            curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > install-miniconda.sh
          fi
-         bash install-miniconda.sh # just accept everything they suggest, including modifying your PATH
-         . ~/.bash_profile    # reloads your environment (alternatively, just close and reopen your terminal)
+         bash install-miniconda.sh
+         # hit "q" when you're done with reading the terms
+         # then hit enter at every ">>>" prompt
+         # they'll create ~/miniconda3 and modify your ~/.bash_profile
+         # now close and re-open your terminal and then run:
          python3 -m pip install pheweb
-
 
 2) Make a data directory. It should be in a location where you can
    afford to store twice as much data as the size of your input files.
