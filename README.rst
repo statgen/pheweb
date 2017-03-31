@@ -1,3 +1,6 @@
+For a demo, see the `Michigan Genomics Initiative PheWeb <http://pheweb.sph.umich.edu>`__.
+
+
 How to Build a PheWeb for your Data
 ===================================
 
@@ -149,8 +152,7 @@ that looks like this:
      {
       "assoc_files": ["/home/watman/eats-kimchi.X.epacts.gz","/home/watman/eats-kimchi.autosomal.epacts.gz"],
       "phenocode": "eats-kimchi"
-     },
-     ...
+     }
     ]
 
 ``phenocode`` must only contain letters, numbers, or any of ``_-~``.
