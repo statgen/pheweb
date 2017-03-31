@@ -31,13 +31,20 @@ Here are more detailed instructions:
 
 1) Run ``pip3 install pheweb``.
 
-   -  If that doesn't work, use a virtualenv like this:
+   -  If that doesn't work, either:
 
-      .. code:: bash
+      - install as root with ``sudo pip3 install pheweb``, or
 
-         python3 -m venv ~/venv3 # Choose whatever path you like.
-         ~/venv3/bin/activate
-         pip3 install pheweb
+      - install PheWeb through `miniconda <https://conda.io/miniconda.html>`__
+        by running:
+
+        .. code: bash
+
+           curl -O install-miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh # if on macOS
+           curl -O install-miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh #  if on Linux
+           bash install-miniconda.sh # and accept their offer to modify your .bashrc
+           pip3 install pheweb
+
 
 2) Make a data directory. It should be in a location where you can
    afford to store twice as much data as the size of your input files.
