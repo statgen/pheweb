@@ -1,5 +1,7 @@
 'use strict';
 
+window.debug = window.debug || {};
+
 (function() {
     // It's unfortunate that these are hard-coded, but it works pretty great, so I won't change it now.
     var autocomplete_bloodhound = new Bloodhound({

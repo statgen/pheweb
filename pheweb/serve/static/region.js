@@ -1,7 +1,5 @@
 'use strict';
 
-window.debug = window.debug || {};
-
 (function() {
     // Define LocusZoom Data Sources object
     var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";

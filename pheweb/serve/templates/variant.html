@@ -4,7 +4,6 @@
 {% block in_head %}
 <script type="text/javascript">
   window.variant = {{ variant|tojson(separators=(',',':'))|safe }};
-  window.debug = {};
 </script>
 <script type="text/javascript" src="{{ url_for('static', filename='vendor/stream_table.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/locuszoom.vendor.min.js') }}" type="text/javascript"></script>

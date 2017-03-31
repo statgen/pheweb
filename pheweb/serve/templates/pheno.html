@@ -6,7 +6,6 @@
 <script type="text/javascript" src="{{ url_for('static', filename='pheno.js') }}"></script>
 <script type="text/javascript">
   window.pheno = {{ phenocode|tojson|safe }};
-  window.debug = {};
   $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json")
   .done(function(data) {
       window.debug.manhattan = data;
