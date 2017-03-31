@@ -1,3 +1,5 @@
+'use strict';
+
 function populate_streamtable(data) {
     $(function() {
         // data = _.sortBy(data, _.property('pval'));

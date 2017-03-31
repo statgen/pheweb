@@ -1,6 +1,8 @@
+'use strict';
+
 (function() {
     // It's unfortunate that these are hard-coded, but it works pretty great, so I won't change it now.
-    autocomplete_bloodhound = new Bloodhound({
+    var autocomplete_bloodhound = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('display'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         identify: function(sugg) { return sugg.display; }, // maybe allows Bloodhound to `.get()`  objects

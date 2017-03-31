@@ -1,3 +1,5 @@
+'use strict';
+
 window.debug = window.debug || {};
 
 (function() {

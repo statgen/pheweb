@@ -1,3 +1,5 @@
+'use strict';
+
 function populate_streamtable(hits) {
     $(function() {
         // This is mostly copied from <https://michigangenomics.org/health_data.html>.

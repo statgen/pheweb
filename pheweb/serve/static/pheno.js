@@ -1,3 +1,4 @@
+'use strict';
 
 function create_gwas_plot(variant_bins, unbinned_variants) {
 
