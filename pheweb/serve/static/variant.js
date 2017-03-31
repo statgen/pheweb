@@ -111,12 +111,15 @@ function deepcopy(obj) {
     phewas_panel.data_layers[1].fields.push('pval|neglog10_handle0');
     phewas_panel.data_layers[1].y_axis.field = 'pval|neglog10_handle0';
 
-    // Show labels only above the sig line.
-    console.log(best_neglog10_pval / 4);
+    // Show only labels for top 10 phenos above half of sig threshold
     phewas_panel.data_layers[1].label.filters = [
         {field:"pval|neglog10_handle0", operator:">", value:neglog10_significance_threshold/2},
-        {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 4},
+        // {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 3},
     ];
+    if (window.variant.phenos.length > 10) {
+        phewas_panel.data_layers[1].label.filters.push(
+            {field:"pval", operator:"<", value:window.variant.phenos.map(_.property('pval')).sort()[10]});
+    }
 
     // Color points by category.
     phewas_panel.data_layers[1].color.parameters.categories = window.unique_categories;
