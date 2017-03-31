@@ -36,14 +36,13 @@ Here are more detailed instructions:
       - install as root with ``sudo pip3 install pheweb``, or
 
       - install PheWeb through `miniconda <https://conda.io/miniconda.html>`__
-        by running:
+        by running::
 
-        .. code: bash
-
-           curl -O install-miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh # if on macOS
-           curl -O install-miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh #  if on Linux
-           bash install-miniconda.sh # and accept their offer to modify your .bashrc
-           pip3 install pheweb
+         curl -O install-miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh # if on macOS
+         curl -O install-miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh #  if on Linux
+         bash install-miniconda.sh # just accept everything they suggest, including modifying your PATH
+         . ~/.bash_profile    # reloads your environment, or close and reopen your shell
+         python3 -m pip3 install pheweb
 
 
 2) Make a data directory. It should be in a location where you can
