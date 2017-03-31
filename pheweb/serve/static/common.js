@@ -55,3 +55,9 @@ function fmt(format) {
         return (typeof args[number] != 'undefined') ? args[number] : match;
     });
 }
+
+// deal with IE11 problems
+if (!Number.parseFloat) { Number.parseFloat = parseFloat; }
+if (!Number.parseInt) { Number.parseInt = parseInt; }
+if (!Math.log10) { Math.log10 = function(x) { return Math.log(x) / Math.LN10; }; }
+if (!!window.MSInputMethodContext && !!document.documentMode) { /*ie11*/ $('<style type=text/css>.lz-locuszoom {height: 400px;}</style>').appendTo($('head')); }

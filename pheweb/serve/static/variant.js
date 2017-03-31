@@ -150,7 +150,7 @@ function deepcopy(obj) {
     window.debug.phewas_panel = phewas_panel;
     var layout = {
         state: {
-            variant: ['chrom', 'pos', 'ref', 'alt'].map(d => window.variant[d]).join("-"),
+            variant: ['chrom', 'pos', 'ref', 'alt'].map(function(d) { return window.variant[d];}).join("-"),
         },
         dashboard: {
             components: [
