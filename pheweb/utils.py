@@ -371,6 +371,8 @@ def ensure_conf_is_loaded():
     if 'custom_templates' not in conf:
         conf['custom_templates'] = os.path.join(conf.data_dir, 'custom_templates')
 
+    if 'debug' not in conf: conf.debug = False
+
     def _configure_cache():
         # if conf['cache'] exists and is Falsey, don't cache.
         if 'cache' in conf and not conf['cache']:

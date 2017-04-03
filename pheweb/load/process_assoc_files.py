@@ -34,6 +34,10 @@ def run(argv):
         print(' &&\n'.join('    pheweb {}'.format(script.replace('_', '-')) for script in scripts))
         exit(0)
 
+    if '--debug' in argv:
+        print('ENABLING DEBUG MODE')
+        conf.debug = True
+
     for script in scripts:
         print('==> Starting `pheweb {}`'.format(script.replace('_', '-')))
         start_time = time.time()

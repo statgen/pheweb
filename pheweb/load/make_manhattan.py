@@ -180,5 +180,9 @@ def run(argv):
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
-    with multiprocessing.Pool(utils.get_num_procs()) as p:
-        p.map(make_json_file, conversions_to_do)
+    if conf.debug:
+        for c in conversions_to_do:
+            make_json_file(c)
+    else:
+        with multiprocessing.Pool(utils.get_num_procs()) as p:
+            p.map(make_json_file, conversions_to_do)

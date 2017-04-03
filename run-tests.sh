@@ -39,6 +39,7 @@ echo -e "\n\n\n====> ./make_phenolist.sh"
 ./make_phenolist.sh
 
 echo -e "\n\n\n====> pheweb process-assoc-files"
+#pheweb process-assoc-files --debug
 pheweb process-assoc-files
 
 port="$(python3 -c "print(__import__('random').randrange(8000,9000))")"
