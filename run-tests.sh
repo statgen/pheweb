@@ -5,7 +5,7 @@ set -euo pipefail
 # use system python
 export PATH="$(echo $PATH | tr : "\n" | grep -v $HOME | tr "\n" : | perl -ple 's{^:|:$}{}g')"
 
-rm -rf "/tmp/pheweb-test-venv-${USER}-"* # pre-clean
+rm -rf "/tmp/pheweb-test-${USER}-"* # pre-clean
 
 if echo "${1:-}" | grep -q d; then
     export PHEWEB_DEBUG=1
@@ -17,8 +17,8 @@ elif echo "${1:-}" | grep -q i; then # install in virtualenv in /tmp
     tempdir="$(mktemp -d "/tmp/pheweb-test-${USER}-XXXX")"
     pushd "$tempdir" > /dev/null
     echo -e "\n\n====> populating $tempdir/venv"
-    python3 -m pip install -t venvdir virtualenv
-    python3 ./venvdir/virtualenv.py venv
+    python3 -m pip install -I --prefix venvdir virtualenv
+    ./venvdir/bin/virtualenv venv
     set +u && source ./venv/bin/activate && set -u
     popd > /dev/null
     pip3 install .
