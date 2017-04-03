@@ -144,11 +144,15 @@ def make_json_file(src_filename, dest_filename):
     NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
     N_UNBINNED = 2000
 
+    if conf.debug: print('{}\t{} -> {} (START)'.format(datetime.datetime.now(), src_filename, dest_filename))
     with open(src_filename) as f:
+        if conf.debug: print('{}\tOPENED {}'.format(datetime.datetime.now(), src_filename))
         variants = get_variants(f)
+        if conf.debug: print('{}\tOPENED VARIANTS'.format(datetime.datetime.now()))
         variant_bins, unbinned_variants = bin_variants(
             variants, BIN_LENGTH, N_UNBINNED, NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
-
+        if conf.debug: print('{}\tBINNED VARIANTS'.format(datetime.datetime.now()))
+    if conf.debug: print('{}\tCLOSED FILE'.format(datetime.datetime.now()))
     rv = {
         'variant_bins': variant_bins,
         'unbinned_variants': unbinned_variants,
