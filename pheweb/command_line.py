@@ -15,7 +15,7 @@ if sys.version_info.major < 3:
 try: math.inf
 except AttributeError: math.inf = float('inf')
 
-if 'PHEWEB_DEBUG' in os.environ:
+if 'PHEWEB_IPDB' in os.environ:
     # from <http://ipython.readthedocs.io/en/stable/interactive/reference.html#post-mortem-debugging>
     from IPython.core import ultratb
     sys.excepthook = ultratb.FormattedTB(mode='Verbose', color_scheme='Linux', call_pdb=1)

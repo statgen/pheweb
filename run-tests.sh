@@ -7,13 +7,13 @@ export PATH="$(echo $PATH | tr : "\n" | grep -v $HOME | tr "\n" : | perl -ple 's
 
 rm -rf "/tmp/pheweb-test-${USER}-"* # pre-clean
 
-if echo "${1:-}" | grep -q d; then
-    export PHEWEB_DEBUG=1
+if echo "${1:-}" | grep -q e; then
+    export PHEWEB_IPDB=1
 fi
 if echo "${1:-}" | grep -q g; then # install globally
     pip3 install --upgrade .
     echo -e "\n\n===> \`pheweb\` is $(which pheweb)"
-elif echo "${1:-}" | grep -q i; then # install in virtualenv in /tmp
+elif echo "${1:-}" | grep -q v; then # install in virtualenv in /tmp
     tempdir="$(mktemp -d "/tmp/pheweb-test-${USER}-XXXX")"
     pushd "$tempdir" > /dev/null
     echo -e "\n\n====> populating $tempdir/venv"
@@ -23,6 +23,18 @@ elif echo "${1:-}" | grep -q i; then # install in virtualenv in /tmp
     popd > /dev/null
     pip3 install .
     which pheweb | grep -q "$tempdir"
+elif echo "${1:-}" | grep -q c; then # use currently-install pheweb
+    :
+else
+    echo "Please pass in one of:"
+    echo "   g : install pheweb globally and test it"
+    echo "   v : install pheweb in a virtualenv and test it"
+    echo "   c : test currently-installed pheweb"
+    echo
+    echo "You can also pass any of:"
+    echo "   e : drop into IPython Debugger on an uncaught exception (equivalent to 'export PHEWEB_IPDB=1')"
+    echo "   d : run pheweb in debug mode"
+    exit 1
 fi
 
 echo -e "\n\n===> \`pheweb\` is $(which pheweb)"
@@ -39,8 +51,11 @@ echo -e "\n\n\n====> ./make_phenolist.sh"
 ./make_phenolist.sh
 
 echo -e "\n\n\n====> pheweb process-assoc-files"
-#pheweb process-assoc-files --debug
-pheweb process-assoc-files
+if echo "${1:-}" | grep -q d; then
+    pheweb process-assoc-files --debug
+else
+    pheweb process-assoc-files
+fi
 
 port="$(python3 -c "print(__import__('random').randrange(8000,9000))")"
 echo -e "\n\n\n====> pheweb serve --port $port"
