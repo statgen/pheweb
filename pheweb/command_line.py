@@ -51,6 +51,12 @@ def serve_run(argv):
     serverun.run(argv)
 handlers['serve'] = serve_run
 
+def debug(argv):
+    from . import utils
+    utils.conf.debug = True
+    run(argv)
+handlers['debug'] = debug
+
 
 def help():
     from pheweb import version
@@ -86,12 +92,15 @@ Subcommands:
 '''.format(version.version))
 
 
-def main():
-    subcommand = sys.argv[1] if len(sys.argv)>1 else ''
+def run(argv):
+    subcommand = argv[0] if argv else ''
     if subcommand in ['', '-h', '--help']:
         help()
     elif subcommand not in handlers:
         print('Unknown subcommand {!r}'.format(subcommand))
         help()
     else:
-        handlers[subcommand](sys.argv[2:])
+        handlers[subcommand](argv[1:])
+
+def main():
+    run(sys.argv[1:])

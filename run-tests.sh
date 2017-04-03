@@ -52,7 +52,7 @@ echo -e "\n\n\n====> ./make_phenolist.sh"
 
 echo -e "\n\n\n====> pheweb process-assoc-files"
 if echo "${1:-}" | grep -q d; then
-    pheweb process-assoc-files --debug
+    pheweb debug process-assoc-files
 else
     pheweb process-assoc-files
 fi
