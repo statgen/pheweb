@@ -12,4 +12,4 @@ ffibuilder.set_source('pheweb.load.matrix._matrixify',
                       source_extension='.cpp',
                       extra_compile_args=['--std=c++11'],
 )
-ffibuilder.cdef("int cffi_run(int argc, char *argv[]);")
+ffibuilder.cdef("int cffi_run(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname);")
