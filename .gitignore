@@ -9,3 +9,5 @@ test/fake-cache/*
 !test/data_dir/custom_templates
 PheWeb.egg-info
 build
+dist
+pheweb/load/matrix/_matrixify*
