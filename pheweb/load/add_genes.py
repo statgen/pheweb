@@ -87,8 +87,8 @@ def annotate_genes(file_to_annotate, temp_file, output_file):
     with open(file_to_annotate) as in_f, \
          AtomicSaver(output_file, text_mode=True, part_file=temp_file, overwrite_part=True) as out_f:
         header = next(in_f).rstrip('\n\r').split('\t')
-        assert header == 'chrom pos ref alt rsid'.split()
-        out_f.write('\t'.join('chrom pos ref alt rsid nearest_genes'.split()) + '\n')
+        assert header == 'chrom pos ref alt rsids'.split()
+        out_f.write('\t'.join('chrom pos ref alt rsids nearest_genes'.split()) + '\n')
         for line in in_f:
             line = line.rstrip('\n\r')
             fields = line.split('\t')

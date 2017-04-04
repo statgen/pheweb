@@ -29,7 +29,7 @@ def run(argv):
     else:
         with open(sites_fname, 'rt') as f:
             header = next(f).rstrip('\n').split('\t')
-            assert header == 'chrom pos ref alt rsid nearest_genes'.split(), header
+            assert header == 'chrom pos ref alt rsids nearest_genes'.split(), header
             lines = [parse_line(line) for line in f]
         print('done loading.')
 

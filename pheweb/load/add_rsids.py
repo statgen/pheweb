@@ -94,7 +94,7 @@ def run(argv):
          gzip.open(rsids_filename, 'rt') as rsids_f, \
          open(out_filename, 'wt') as out_f:
 
-        out_f.write("chrom\tpos\tref\talt\trsid\n")
+        out_f.write("chrom\tpos\tref\talt\trsids\n")
 
         rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))
         cp_group_reader = get_one_chr_pos_at_a_time(get_cpra_reader(cpra_f))

@@ -16,7 +16,7 @@ sites_filename = conf.data_dir + '/sites/sites.tsv'
 def get_site_variants(sites_filename):
     with open(sites_filename) as f:
         header = next(f).rstrip('\n\r').split('\t')
-        assert header == 'chrom pos ref alt rsid nearest_genes'.split()
+        assert header == 'chrom pos ref alt rsids nearest_genes'.split()
         for line in f:
             fields = line.rstrip('\n\r').split('\t')
             chrom = fields[0]
