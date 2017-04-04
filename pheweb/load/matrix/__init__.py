@@ -7,12 +7,10 @@ import os
 import glob
 import gzip
 
-gxx = utils.get_path('g++', 'gxx_path')
+from pheweb.load.matrix._matrixify import ffi, lib
 tabix = utils.get_path('tabix')
-bgzip = utils.get_path('bgzip')
+
 my_dir = os.path.dirname(os.path.abspath(__file__))
-matrixify_cpp_fname = os.path.join(my_dir, 'matrixify.cpp')
-matrixify_exe_fname = os.path.join(conf.data_dir, 'tmp', 'matrixify')
 sites_fname = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
 augmented_pheno_dir = os.path.join(conf.data_dir, 'augmented_pheno')
 matrix_gz_tmp_fname = os.path.join(conf.data_dir, 'tmp', 'matrix.tsv.gz')
@@ -47,16 +45,12 @@ def should_run():
 def run(argv):
 
     if should_run():
-        utils.run_cmd([gxx, '--std=c++11', matrixify_cpp_fname, '-O3', '-o', matrixify_exe_fname])
-        utils.run_script('''
-        '{matrixify_exe_fname}' '{sites_fname}' '{augmented_pheno_dir}' |
-        '{bgzip}' > '{matrix_gz_tmp_fname}'
-        '''.format(matrixify_exe_fname=matrixify_exe_fname,
-                   sites_fname=sites_fname,
-                   augmented_pheno_dir=augmented_pheno_dir,
-                   bgzip=bgzip,
-                   matrix_gz_fname=matrix_gz_fname,
-                   matrix_gz_tmp_fname=matrix_gz_tmp_fname))
+        args = [
+            ffi.new('char[]', sites_fname.encode('utf8')),
+            ffi.new('char[]', '{}/*'.format(augmented_pheno_dir).encode('utf8')),
+            ffi.new('char[]', matrix_gz_tmp_fname.encode('utf8'))
+        ]
+        lib.cffi_run(*args)
         os.rename(matrix_gz_tmp_fname, matrix_gz_fname)
         utils.run_cmd([tabix, '-p','vcf', matrix_gz_fname])
     else:
