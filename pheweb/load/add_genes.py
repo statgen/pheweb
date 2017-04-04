@@ -86,12 +86,15 @@ def annotate_genes(file_to_annotate, temp_file, output_file):
     ga = GeneAnnotator(utils.get_gene_tuples())
     with open(file_to_annotate) as in_f, \
          AtomicSaver(output_file, text_mode=True, part_file=temp_file, overwrite_part=True) as out_f:
+        header = next(in_f).rstrip('\n\r').split('\t')
+        assert header == 'chrom pos ref alt rsid'.split()
+        out_f.write('\t'.join('chrom pos ref alt rsid nearest_genes'.split()) + '\n')
         for line in in_f:
             line = line.rstrip('\n\r')
             fields = line.split('\t')
             chrom, pos = fields[0], int(fields[1])
-            nearest_gene = ga.annotate_position(chrom, pos)
-            out_f.write(line + '\t' + nearest_gene + '\n')
+            nearest_genes = ga.annotate_position(chrom, pos)
+            out_f.write(line + '\t' + nearest_genes + '\n')
 
 
 def run(argv):

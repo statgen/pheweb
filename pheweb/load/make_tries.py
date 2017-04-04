@@ -27,7 +27,9 @@ def run(argv):
         print('tries are up-to-date!')
 
     else:
-        with open(os.path.join(conf.data_dir, 'sites', 'sites.tsv'), 'rt') as f:
+        with open(sites_fname, 'rt') as f:
+            header = next(f).rstrip('\n').split('\t')
+            assert header == 'chrom pos ref alt rsid nearest_genes'.split(), header
             lines = [parse_line(line) for line in f]
         print('done loading.')
 
