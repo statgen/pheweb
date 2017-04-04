@@ -1,18 +1,5 @@
-// This program takes two args:
-// 1. the path to the sites file, like /foo/sites/sites.tsv
-// 2. the path to the augmented pheno directory, like /foo/augmented_phenos/
-// The augmented pheno files must look somewhat like:
-//      chr    pos  ref  alt       rsids  nearest_genes      maf     pval
-//        1  49298    T    C  rs10399793         OR4G4P  0.36596  0.73483
-//        1  54676    C    T   rs2462492         OR4G4P   0.3857  0.52691
-// The sites file is like that but with only [chr, pos, ref, alt, rsid, nearest_genes] and without headers.
-// Every augmented pheno file must be a subsequence of the sites file.
 
-
-// Compile with -std=c++11 -lz
-// test with:
-// clear&& g++ -Wall -Wextra -std=c++11 -lz matrixify.cpp &&echo --&& ./a.out 4 ~/PROJECTS/pheweb/test/data_dir/sites/sites.tsv '/Users/peter/PROJECTS/pheweb/test/data_dir/augmented_pheno/*' ~/PROJECTS/pheweb/test/data_dir/matrix.tsv.gz &&echo --&& zcat /Users/peter/PROJECTS/pheweb/test/data_dir/matrix.tsv.gz | head
-
+// Compile with -std=c++11 -lz -Wall -Wextra matrixify.cpp
 
 #include <iostream>
 #include <fstream>
@@ -33,9 +20,6 @@
 
 // ------
 // BGZIP-writer
-
-// references:
-// - htslib-cffi (for ffibuilder) @ <https://github.com/quinlan-lab/hts-python/blob/master/hts/hts_concat.h>
 
 // todo: understand tabix and build .tbi on-the-fly.
 //       - see <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3042176/>
@@ -62,35 +46,24 @@ public:
     void write(const char* src_buffer, size_t src_len) {
         while (src_len > 0) {
             size_t copy_length = BGZF_BLOCK_SIZE - _uncompressed_block_size;
-            if (copy_length > src_len) {
-                copy_length = src_len;
-            }
+            if (copy_length > src_len) copy_length = src_len;
             memcpy(_uncompressed_block + _uncompressed_block_size, src_buffer, copy_length);
             _uncompressed_block_size += copy_length;
             src_buffer += copy_length;
             src_len -= copy_length;
-            if (_uncompressed_block_size == BGZF_BLOCK_SIZE) {
+            if (_uncompressed_block_size >= BGZF_BLOCK_SIZE) {
+                assert (_uncompressed_block_size == BGZF_BLOCK_SIZE);
                 flush_uncompressed();
-            } else if (_uncompressed_block_size > BGZF_BLOCK_SIZE) {
-                std::cerr << "oh no why is BGZF_BLOCK_SIZE longer than _uncompressed_block_size??" << std::endl;
             }
         }
     }
     void write(const std::string src_string) {
         write(src_string.c_str(), src_string.length());
     }
-    void write(const std::string chrom, uint64_t pos, const std::string rest) {
-        write(chrom); write("\t");
-        write(std::to_string(pos)); write("\t");
-        write(rest); write("\n");
-    }
 private:
      static inline void packInt16(uint8_t *buffer, uint16_t value) {
         buffer[0] = value;
         buffer[1] = value >> 8;
-    }
-    static inline int unpackInt16(const uint8_t *buffer) {
-        return buffer[0] | buffer[1] << 8;
     }
     static inline void packInt32(uint8_t *buffer, uint32_t value) {
         buffer[0] = value;
@@ -108,28 +81,18 @@ private:
            to be useful.  For the likely non-useful cases, the caller should
            pass NULL into zs. */
         if (zs && zs->msg) return zs->msg;
-        // gzerror OF((gzFile file, int *errnum)
         switch (errnum) {
-        case Z_ERRNO:
-            return strerror(errno);
-        case Z_STREAM_ERROR:
-            return "invalid parameter/compression level, or inconsistent stream state";
-        case Z_DATA_ERROR:
-            return "invalid or incomplete IO";
-        case Z_MEM_ERROR:
-            return "out of memory";
-        case Z_BUF_ERROR:
-            return "progress temporarily not possible, or in() / out() returned an error";
-        case Z_VERSION_ERROR:
-            return "zlib version mismatch";
-        case Z_OK: // 0: maybe gzgets error Z_NULL
-        default:
-            snprintf(buffer, sizeof(buffer), "[%d] unknown", errnum);
-            return buffer;
+        case Z_ERRNO: return strerror(errno);
+        case Z_STREAM_ERROR: return "invalid parameter/compression level, or inconsistent stream state";
+        case Z_DATA_ERROR: return "invalid or incomplete IO";
+        case Z_MEM_ERROR: return "out of memory";
+        case Z_BUF_ERROR: return "progress temporarily not possible, or in() / out() returned an error";
+        case Z_VERSION_ERROR: return "zlib version mismatch";
+        case Z_OK:
+        default: snprintf(buffer, sizeof(buffer), "[%d] unknown", errnum); return buffer;
         }
     }
     static inline void bgzf_compress(uint8_t *dst, size_t &dlen, const uint8_t *src, size_t slen) {
-        // TODO: return compressed_len
         uint32_t crc;
         z_stream zs;
         // compress the body
@@ -183,7 +146,7 @@ private:
         "\x1f\x8b\x08\x04" // magic number, DEFLATE, extra field
         "\0\0\0\0" // no timestamp, what a waste
         "\0\xff" // no info about compression method or OS
-        "\x06\0BC\x02\0\0"/*implicit \0*/; // 6-byte extra field named BC with 2-byte value (currently empty)
+        "\x06\0BC\x02\0\0"/* implicit \0 */; // 6-byte extra field named BC with 2-byte value (currently empty)
 };
 
 
@@ -331,6 +294,10 @@ int run(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname) {
 
     return 0;
 }
+
+
+// ------
+// entry points
 
 int main(int argc, char *argv[]) {
     return run(argv[2], argv[3], argv[4]);

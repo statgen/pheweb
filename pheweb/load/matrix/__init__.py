@@ -52,6 +52,6 @@ def run(argv):
         ]
         lib.cffi_run(*args)
         os.rename(matrix_gz_tmp_fname, matrix_gz_fname)
-        utils.run_cmd([tabix, '-p','vcf', matrix_gz_fname])
+        utils.run_cmd([tabix, '-f', '-s1', '-b2', '-e2', matrix_gz_fname]) # TODO: pysam.tabix_index()
     else:
         print('matrix is up-to-date!')

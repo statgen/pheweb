@@ -26,7 +26,7 @@ def convert(kwargs):
     '''.format(echo=echo, src_fname=src_fname, bgzip=bgzip, tmp_fname=tmp_fname))
     os.rename(tmp_fname, out_fname)
 
-    utils.run_cmd([tabix, '-p', 'vcf', '-f', out_fname])
+    utils.run_cmd([tabix, '-f', '-s1', '-b2', '-e2', out_fname])
 
 
 def get_conversions_to_do():
