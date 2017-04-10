@@ -97,7 +97,6 @@ function deepcopy(obj) {
     phewas_panel.data_layers[1].y_axis.upper_buffer = 0.1;
 
     phewas_panel.data_layers[1].tooltip.html =
-        "<div><strong>{{phewas_code}}</strong></div>" +
         "<div><strong>{{phewas_string}}</strong></div>" +
         "<div><strong style='color:{{color}}'>{{category_name}}</strong></div>" +
         "<div>P Value: <strong>{{pval|scinotation}}</strong></div>" +
