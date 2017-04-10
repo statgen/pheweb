@@ -117,7 +117,7 @@ function deepcopy(obj) {
     ];
     if (window.variant.phenos.length > 10) {
         phewas_panel.data_layers[1].label.filters.push(
-            {field:"pval", operator:"<", value:window.variant.phenos.map(_.property('pval')).sort()[10]});
+            {field:"pval", operator:"<", value:_.sortBy(window.variant.phenos.map(_.property('pval')))[10]});
     }
 
     // Color points by category.
