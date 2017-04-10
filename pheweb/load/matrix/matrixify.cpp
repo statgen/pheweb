@@ -176,11 +176,17 @@ public:
 // utility functions
 
 static inline void set_ulimit_num_files(unsigned num_files) {
-  struct rlimit limit;
-  limit.rlim_cur = num_files;
-  limit.rlim_max = num_files;
-  if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
+  struct rlimit old_limit, new_limit;
+  getrlimit(RLIMIT_NOFILE, &old_limit);
+  if (num_files > old_limit.rlim_max) {
+    std::cerr << "You're trying to open " << num_files << " files at once, but your ulimit only allows you to open " << old_limit.rlim_max << ".  Use administrative rights to raise your limit." << std::endl;
+    exit(1);
+  }
+  new_limit.rlim_cur = num_files;
+  new_limit.rlim_max = num_files;
+  if (setrlimit(RLIMIT_NOFILE, &new_limit) != 0) {
     std::cerr << "setrlimit() failed with errno=" << errno << "\n";
+    std::cerr << "current soft limit is " << old_limit.rlim_cur << ", hard limit is " << old_limit.rlim_max << ", requested new limit is " << num_files << std::endl;
     exit(1);
   }
 }
@@ -228,7 +234,7 @@ int run(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname) {
     std::vector<LineReader> aug_readers(N_phenos);
     std::vector<std::string> aug_fnames(N_phenos);
     std::vector<unsigned> aug_n_per_assoc_fields(N_phenos); // initialized to 0s.
-    set_ulimit_num_files(N_phenos + 10000); // are python files still open?
+    set_ulimit_num_files(N_phenos + 100); // are python files still open?
     for (size_t i = 0; i < N_phenos; i++) {
         aug_readers[i].attach(aug_fpaths[i]);
         aug_fnames[i] = aug_fpaths[i];

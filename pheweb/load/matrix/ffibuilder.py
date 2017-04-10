@@ -13,7 +13,7 @@ ffibuilder.set_source('pheweb.load.matrix._matrixify',
                       src,
                       source_extension='.cpp',
                       extra_compile_args=['--std=c++11'],
-                      # libraries=['z'], # why does it work without this?
+                      libraries=['z'], # needed on Linux but not macOS
 )
 ffibuilder.cdef("int cffi_run(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname);")
 
