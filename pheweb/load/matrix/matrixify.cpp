@@ -1,6 +1,9 @@
 
 // Compile with -std=c++11 -lz -Wall -Wextra matrixify.cpp
 
+#include <cstring> // memcpy on Linux
+#include <algorithm> // count on Linux
+#include <stdexcept>  // runtime_error on Linux
 #include <iostream>
 #include <fstream>
 #include <sstream>
