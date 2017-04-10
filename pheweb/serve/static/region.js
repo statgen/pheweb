@@ -224,7 +224,7 @@
                     onclick: [{action: "link", href:"/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}"}],
                 },
                 tooltip: {
-                    "closable": true,
+                    closable: false,
                     "show": {
                         "or": ["highlighted", "selected"]
                     },

@@ -105,6 +105,7 @@ function deepcopy(obj) {
         "{{#if num_controls}}<div>#controls: <strong>{{num_controls}}</strong></div>{{/if}}" +
         "{{#if beta}}<div>beta: <strong>{{beta}}{{#if sebeta}} ({{sebeta}}){{/if}}</strong></div>{{/if}}" +
         "{{#if or}}<div>odds ratio: <strong>{{or}}</strong></div>{{/if}}";
+    phewas_panel.data_layers[1].tooltip.closable = false;
 
     // Use `neglog10_handle0` to handle pval=0 variants a little better.
     phewas_panel.data_layers[1].fields.push('pval|neglog10_handle0');
