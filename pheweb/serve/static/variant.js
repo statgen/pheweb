@@ -110,10 +110,10 @@ function deepcopy(obj) {
     phewas_panel.data_layers[1].fields.push('pval|neglog10_handle0');
     phewas_panel.data_layers[1].y_axis.field = 'pval|neglog10_handle0';
 
-    // Show only labels for top 10 phenos above half of sig threshold
+    // Show only labels that are: at least halfway up to the sig threshold visually, in the top 80% visually, and in the top 10.
     phewas_panel.data_layers[1].label.filters = [
         {field:"pval|neglog10_handle0", operator:">", value:neglog10_significance_threshold/2},
-        // {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 3},
+        {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 5},
     ];
     if (window.variant.phenos.length > 10) {
         phewas_panel.data_layers[1].label.filters.push(
