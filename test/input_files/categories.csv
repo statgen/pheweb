@@ -7,3 +7,19 @@ EAR-LENGTH,category1
 KIMCHI-PER-DAY,category2
 snowstorm,category3
 "*&\+. !`(%@)", category3
+has-fields-,other
+has-fields-ac-af-maf-ns,other
+has-fields-ac-af-maf,other
+has-fields-ac-af-ns,other
+has-fields-ac-af,other
+has-fields-ac-maf-ns,other
+has-fields-ac-maf,other
+has-fields-ac-ns,other
+has-fields-ac,other
+has-fields-af-maf-ns,other
+has-fields-af-maf,other
+has-fields-af-ns,other
+has-fields-af,other
+has-fields-maf-ns,other
+has-fields-maf,other
+has-fields-ns,other
