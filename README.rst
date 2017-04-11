@@ -51,6 +51,11 @@ Here are more detailed instructions:
 
            python3 -m pip install pheweb
 
+        Finally, because miniconda makes ``python`` refer to ``python3``,
+        (which most users don't want) you should probably run::
+
+           rm ~/miniconda3/bin/python
+
 2) Make a data directory. It should be in a location where you can
    afford to store twice as much data as the size of your input files.
    All ``pheweb ...`` commands should be run in this directory.
