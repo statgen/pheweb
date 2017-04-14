@@ -28,7 +28,7 @@ def run(argv):
                 for variant_row in tabix_iter:
                     for phenocode, pheno in phenos.items():
                         pval = variant_row[pheno['colnum']['pval']]
-                        if pval == '.': continue
+                        if pval == '': continue
                         pval = float(pval)
                         if phenocode not in best_assoc_for_pheno or pval < best_assoc_for_pheno[phenocode]['pval']:
                             assoc = {}

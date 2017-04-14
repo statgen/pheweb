@@ -109,6 +109,7 @@ def run(argv):
                 raise Exception()
             if rsids_chrom_order[cp_group[0]['chrom']] < cpra_largest_index_in_rsids_chrom_order:
                 print("Your chromosomes are in the wrong order!  See `rsids_chrom_order` in this file for the right order.")
+                print("The first problematic variant is: {chrom}:{pos}".format(**cp_group[0]))
                 raise Exception()
             cpra_largest_index_in_rsids_chrom_order = rsids_chrom_order[cp_group[0]['chrom']]
 

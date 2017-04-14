@@ -33,6 +33,8 @@ per_variant_fields = OrderedDict([
         'required': True,
         'type': str,
     }),
+    # rsids
+    # nearest_genes
 ])
 
 per_assoc_fields = OrderedDict([
@@ -94,7 +96,7 @@ class Field:
     def parse(self, value):
         # nullable
         if 'nullable' in self._d and value in legitimate_null_values:
-            return '.' # I wish that we could use None, but I prefer parsing a '.'
+            return ''
         # type
         x = self._d['type'](value)
         # range
@@ -115,7 +117,6 @@ for field, value in all_possible_fields.items():
 
 class PhenoReader:
     '''Manages ordering of files and ordering of variants.'''
-    # TODO: actually hande __init__ args. 
 
     def __init__(self, assoc_fnames, minimum_maf=None, keep_chrom_idx=False, only_cpra=False):
         self._only_cpra = only_cpra
@@ -150,6 +151,7 @@ class PhenoReader:
                 print("In your file, the position {!r} came after the position {!r} on chromsome {!r}".format(
                     cp[1], prev_pos, cp[0]))
                 raise Exception()
+            prev_chrom_index, prev_pos = chrom_index, cp[1]
             for v in sorted(tied_variants, key=lambda v:(v['ref'], v['alt'])):
                 if self._keep_chrom_idx:
                     v['chrom_idx'] = chrom_index

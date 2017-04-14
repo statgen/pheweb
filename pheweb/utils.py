@@ -134,8 +134,7 @@ def get_variant(query, phenos):
     for phenocode, pheno in phenos.items():
         p = {}
         for colname, colnum in pheno['colnum'].items():
-            if matching_variant_row[colnum] != '.':
-                # um, what type is it?
+            if matching_variant_row[colnum] != '':
                 p[colname] = matching_variant_row[colnum]
                 if colname in {'pval', 'beta', 'sebeta', 'or'}:
                     p[colname] = float(p[colname])
