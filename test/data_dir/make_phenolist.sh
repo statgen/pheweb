@@ -5,7 +5,7 @@ set -x
 
 p='pheweb phenolist'
 
-$p glob --simple-phenocode ../input_files/assoc-files/*
+$p glob --simple-phenocode '../input_files/assoc-files/*'
 $p unique-phenocode
 $p read-info-from-association-files
 $p hide-small-numbers-of-samples --minimum-visible-number 50

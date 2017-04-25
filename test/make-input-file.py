@@ -63,6 +63,6 @@ def make_pheno(pheno_name, use_maf, use_af, use_ac, use_ns):
                 writer.writerow(d)
 
 for x in itertools.product(*[(True, False)]*4):
-    args = dict(zip('af maf ac ns'.split(), x))
+    args = dict(zip('maf af ac ns'.split(), x))
     name = 'has-fields-' + '-'.join(k for k in sorted(args) if args[k])
     make_pheno(name, *x)

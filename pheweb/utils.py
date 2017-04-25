@@ -11,7 +11,6 @@ import random
 import sys
 import subprocess
 import time
-import attrdict
 import imp
 import multiprocessing
 import csv
@@ -20,12 +19,30 @@ import boltons.mathutils
 import urllib.parse
 
 
-conf = attrdict.AttrDict() # this gets populated by `ensure_conf_is_loaded()`, which is run-once and called at the bottom of this module.
+## Functions required by `conf`
+
+def round_sig(x, digits):
+    if x == 0:
+        return 0
+    elif abs(x) == math.inf or math.isnan(x):
+        raise ValueError("Cannot round infinity or NaN")
+    else:
+        log = math.log10(abs(x))
+        digits_above_zero = int(math.floor(log))
+        return round(x, digits - 1 - digits_above_zero)
+assert round_sig(0.00123, 2) == 0.0012
+assert round_sig(1.59e-10, 2) == 1.6e-10
+
+def approx_equal(a, b, tolerance=1e-4):
+    return abs(a-b) <= max(abs(a), abs(b)) * tolerance
+assert approx_equal(42, 42.0000001)
+assert not approx_equal(42, 42.01)
 
 
-def get_PhenoReader():
-    from .load.input_file_parsers import epacts
-    return epacts.PhenoReader
+## Functions requiring `conf`
+
+from . import conf_utils
+conf = conf_utils.conf
 
 
 class variant_parser:
@@ -46,23 +63,6 @@ class variant_parser:
         return g + tuple(itertools.repeat(None, 4-len(g)))
 
 
-
-def round_sig(x, digits):
-    if x == 0:
-        return 0
-    elif abs(x) == math.inf or math.isnan(x):
-        raise ValueError("Cannot round infinity or NaN")
-    else:
-        log = math.log10(abs(x))
-        digits_above_zero = int(math.floor(log))
-        return round(x, digits - 1 - digits_above_zero)
-assert round_sig(0.00123, 2) == 0.0012
-assert round_sig(1.59e-10, 2) == 1.6e-10
-
-def approx_equal(a, b, tolerance=1e-4):
-    return abs(a-b) <= max(abs(a), abs(b)) * tolerance
-assert approx_equal(42, 42.0000001)
-assert not approx_equal(42, 42.01)
 
 
 def get_phenolist():
@@ -251,6 +251,14 @@ class open_maybe_gzip(object):
         self.f.close()
 
 
+def peek(iterator):
+    reader = csv.DictReader(f, dialect='unix', delimiter='\t')
+    first = next(reader)
+    reader = itertools.chain([first], reader)
+    return first, reader
+
+
+
 # TODO: chrom_order_list[25-1] = 'M', chrom_order['M'] = 25-1, chrom_order['MT'] = 25-1 ?
 #       and epacts.py should convert all chroms to chrom_idx?
 chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
@@ -313,7 +321,7 @@ def run_cmd(cmd):
 def get_cacheable_file_location(default_dir, fname):
     if 'cache' in conf:
         return os.path.join(conf.cache, fname)
-    return os.path.join(conf.cache, fname)
+    return os.path.join(default_dir, fname)
 
 
 def get_gene_tuples(include_ensg=False):
@@ -329,6 +337,7 @@ def get_gene_tuples(include_ensg=False):
 
 
 def get_num_procs():
+    if conf.debug: return 1
     try: return conf.num_procs
     except: pass
     n_cpus = multiprocessing.cpu_count()
@@ -337,56 +346,3 @@ def get_num_procs():
     return n_cpus * 3//4
 
 
-@functools.lru_cache(None)
-def ensure_conf_is_loaded():
-
-    conf.data_dir = os.environ.get('PHEWEB_DATADIR', False) or os.path.abspath(os.path.curdir)
-    if not os.path.isdir(conf.data_dir):
-        mkdir_p(conf.data_dir)
-    if not os.access(conf.data_dir, os.R_OK):
-        raise Exception("Your data directory, {!r}, is not readable.".format(conf.data_dir))
-
-    config_file = os.path.join(conf.data_dir, 'config.py')
-    if os.path.isfile(config_file):
-        try:
-            conf_module = imp.load_source('config', config_file)
-        except:
-            raise Exception("PheWeb tried to load your config.py at {!r} but it failed.".format(config_file))
-        else:
-            for key in dir(conf_module):
-                if not key.startswith('_'):
-                    conf[key] = getattr(conf_module, key)
-
-    if 'source_file_parser' not in conf: # TODO: rename `association_file_parser`, relegate source_file_parser to an alias
-        conf['source_file_parser'] = 'epacts'
-
-    if 'custom_templates' not in conf:
-        conf['custom_templates'] = os.path.join(conf.data_dir, 'custom_templates')
-
-    if 'debug' not in conf: conf.debug = False
-
-    def _configure_cache():
-        # if conf['cache'] exists and is Falsey, don't cache.
-        if 'cache' in conf and not conf['cache']:
-            del conf['cache']
-            return
-        # if it doesn't exist, use the default.
-        if 'cache' not in conf:
-            conf['cache'] = '~/.pheweb/cache'
-
-        conf['cache'] = os.path.expanduser(conf['cache'])
-        # check whether dir exists
-        if not os.path.isdir(conf['cache']):
-            try:
-                mkdir_p(conf['cache'])
-            except:
-                print("Warning: caching is disabled because the directory {!r} can't be created.\n".format(conf['cache']) +
-                      "If you don't want caching, set `cache = False` in your config.py.")
-                del conf['cache']
-                return
-        if not os.access(conf['cache'], os.R_OK):
-            print('Warning: the directory {!r} is configured to be your cache directory but it is not readable.\n'.format(conf['cache']) +
-                  "If you don't want caching, set `cache = False` in your config.py.")
-            del conf['cache']
-    _configure_cache()
-ensure_conf_is_loaded()

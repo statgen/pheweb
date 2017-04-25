@@ -54,7 +54,6 @@ setup(
         'openpyxl~=2.4',
         'scipy~=0.18',
         'numpy>=1.11',
-        'attrdict~=2.0',
         'requests~=2.13',
         'gunicorn~=19.6',
         'boltons~=17.0',

@@ -2,6 +2,8 @@
 from ... import utils
 conf = utils.conf
 
+from ..read_input_file import PhenoReader
+
 import os
 import string
 import json
@@ -109,9 +111,8 @@ def check_that_all_phenotypes_have_assoc_files(phenolist):
         if any(not isinstance(s, str) for s in pheno['assoc_files']): utils.die("assoc_files contains things other than strings for some phenotypes.")
 
 def extract_info_from_assoc_files(phenolist):
-    PhenoReader = utils.get_PhenoReader()
     for pheno in tqdm.tqdm(phenolist, bar_format='Read {n:7} files'):
-        pheno.update(PhenoReader(pheno['assoc_files']).get_info())
+        pheno.update(PhenoReader(pheno).get_info())
     return phenolist
 
 def filter_phenolist(phenolist, filter_func, name_for_debugging=''):

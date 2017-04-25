@@ -1,12 +1,11 @@
 
 
-
-
 from .. import utils
 conf = utils.conf
 
-import os
+from .internal_file import VariantFileReader
 
+import os
 import marisa_trie
 
 def parse_line(line):
@@ -27,18 +26,16 @@ def run(argv):
         print('tries are up-to-date!')
 
     else:
-        with open(sites_fname, 'rt') as f:
-            header = next(f).rstrip('\n').split('\t')
-            assert header == 'chrom pos ref alt rsids nearest_genes'.split(), header
-            lines = [parse_line(line) for line in f]
+        with VariantFileReader(sites_fname) as reader:
+            cpras_and_rsids = [('{chrom}-{pos}-{ref}-{alt}'.format(**v), v['rsids'].encode('ascii')) for v in reader]
         print('done loading.')
 
-        cpra_to_rsids_trie = marisa_trie.BytesTrie(lines, order=marisa_trie.LABEL_ORDER)
+        cpra_to_rsids_trie = marisa_trie.BytesTrie(cpras_and_rsids, order=marisa_trie.LABEL_ORDER)
         cpra_to_rsids_trie.save(cpra_to_rsids_trie_fname)
         print('done with cpra->rsids trie at ' + cpra_to_rsids_trie_fname)
 
         # TODO: What if several different chrom-pos-ref-alts have the same rsid?  Do we only get the first? Or the last?
-        reversed_lines = ((rsid.decode(), cpra.encode()) for (cpra, rsids) in lines for rsid in rsids.split(b',') if rsid)
-        rsid_to_cpra_trie = marisa_trie.BytesTrie(reversed_lines, order=marisa_trie.LABEL_ORDER)
+        rsids_and_cpras = ((rsid, cpra.encode('ascii')) for (cpra, rsids) in cpras_and_rsids for rsid in rsids.decode('ascii').split(',') if rsid)
+        rsid_to_cpra_trie = marisa_trie.BytesTrie(rsids_and_cpras, order=marisa_trie.LABEL_ORDER)
         rsid_to_cpra_trie.save(rsid_to_cpra_trie_fname)
         print('done with rsid->cpra trie at ' + rsid_to_cpra_trie_fname)

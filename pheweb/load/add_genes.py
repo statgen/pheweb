@@ -1,8 +1,6 @@
 
-
-
 '''
-This script takes a file with the columns [chrom, pos, ...] (but no headers) and adds a column for nearest_gene.
+This script takes a file with the columns [chrom, pos, ...] (but no headers) and adds the field `gene`.
 '''
 
 '''
@@ -14,6 +12,8 @@ TODO:
 
 from .. import utils
 conf = utils.conf
+
+from .internal_file import VariantFileWriter, VariantFileReader
 
 import intervaltree
 import bisect
@@ -81,26 +81,18 @@ class GeneAnnotator(object):
         return nearest_gene_start[1]
 
 
-def annotate_genes(file_to_annotate, temp_file, output_file):
-    '''All four args are filepaths'''
+def annotate_genes(input_file, output_file):
+    '''Both args are filepaths'''
     ga = GeneAnnotator(utils.get_gene_tuples())
-    with open(file_to_annotate) as in_f, \
-         AtomicSaver(output_file, text_mode=True, part_file=temp_file, overwrite_part=True) as out_f:
-        header = next(in_f).rstrip('\n\r').split('\t')
-        assert header == 'chrom pos ref alt rsids'.split()
-        out_f.write('\t'.join('chrom pos ref alt rsids nearest_genes'.split()) + '\n')
-        for line in in_f:
-            line = line.rstrip('\n\r')
-            fields = line.split('\t')
-            chrom, pos = fields[0], int(fields[1])
-            nearest_genes = ga.annotate_position(chrom, pos)
-            out_f.write(line + '\t' + nearest_genes + '\n')
-
+    with VariantFileWriter(output_file) as out_f, \
+         VariantFileReader(input_file) as variants:
+        for v in variants:
+            v['nearest_genes'] = ga.annotate_position(v['chrom'], v['pos'])
+            out_f.write(v)
 
 def run(argv):
     input_file = os.path.join(conf.data_dir, 'sites/cpra_rsids.tsv')
     output_file = os.path.join(conf.data_dir, 'sites/sites.tsv')
-    temp_file = os.path.join(conf.data_dir, 'tmp/sites.tsv')
     genes_file = utils.get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'genes'), 'genes.bed')
 
     def mod_time(fname):
@@ -109,4 +101,4 @@ def run(argv):
     if os.path.exists(output_file) and max(mod_time(genes_file), mod_time(input_file)) <= mod_time(output_file):
         print('gene annotation is up-to-date!')
     else:
-        annotate_genes(input_file, temp_file, output_file)
+        annotate_genes(input_file, output_file)

@@ -8,6 +8,8 @@ This script creates json files which can be used to render Manhattan plots.
 from .. import utils
 conf = utils.conf
 
+from .internal_file import VariantFileReader, write_json
+
 import os
 import json
 import math
@@ -118,22 +120,22 @@ def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_siz
     return binned_variants, unbinned_variants
 
 
-AssocResult = collections.namedtuple('AssocResult', 'chrom pos pval other'.split())
-def get_variants(f):
-    reader = csv.DictReader(f, delimiter='\t')
-    for v in reader:
-        chrom = v.pop('chrom')
-        pos = int(v.pop('pos'))
-        try:
-            pval = float(v.pop('pval'))
-        except ValueError:
-            continue
-        for key in ['maf', 'beta', 'sebeta']:
-            try:
-                v[key] = float(v[key])
-            except (ValueError, KeyError):
-                continue
-        yield AssocResult(chrom, pos, pval, v)
+# AssocResult = collections.namedtuple('AssocResult', 'chrom pos pval other'.split())
+# def get_variants(f):
+#     reader = csv.DictReader(f, delimiter='\t')
+#     for v in reader:
+#         chrom = v.pop('chrom')
+#         pos = int(v.pop('pos'))
+#         try:
+#             pval = float(v.pop('pval'))
+#         except ValueError:
+#             continue
+#         for key in ['maf', 'beta', 'sebeta']:
+#             try:
+#                 v[key] = float(v[key])
+#             except (ValueError, KeyError):
+#                 continue
+#         yield AssocResult(chrom, pos, pval, v)
 
 
 @utils.star_kwargs
@@ -145,10 +147,10 @@ def make_json_file(src_filename, dest_filename):
     N_UNBINNED = 2000
 
     if conf.debug: print('{}\t{} -> {} (START)'.format(datetime.datetime.now(), src_filename, dest_filename))
-    with open(src_filename) as f:
+    with VariantFileReader(src_filename) as variants:
+    # with open(src_filename) as f:
         if conf.debug: print('{}\tOPENED {}'.format(datetime.datetime.now(), src_filename))
-        variants = get_variants(f)
-        if conf.debug: print('{}\tOPENED VARIANTS'.format(datetime.datetime.now()))
+        # variants = get_variants(f)
         variant_bins, unbinned_variants = bin_variants(
             variants, BIN_LENGTH, N_UNBINNED, NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
         if conf.debug: print('{}\tBINNED VARIANTS'.format(datetime.datetime.now()))
@@ -158,10 +160,10 @@ def make_json_file(src_filename, dest_filename):
         'unbinned_variants': unbinned_variants,
     }
 
-    tmp_fname = os.path.join(conf.data_dir, 'tmp', 'manhattan-' + os.path.basename(dest_filename))
-    with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_fname, overwrite_part=True) as f:
-        json.dump(rv, f)
-
+    write_json(dest_filename, rv)
+    # tmp_fname = os.path.join(conf.data_dir, 'tmp', 'manhattan-' + os.path.basename(dest_filename))
+    # with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_fname, overwrite_part=True) as f:
+    #     json.dump(rv, f)
     print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
 
 

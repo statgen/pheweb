@@ -2,7 +2,8 @@
 from .. import utils
 conf = utils.conf
 
-PhenoReader = utils.get_PhenoReader()
+from .read_input_file import PhenoReader
+from .internal_file import VariantFileReader, VariantFileWriter
 
 import os
 import datetime
@@ -10,27 +11,10 @@ import multiprocessing
 import csv
 from boltons.fileutils import mkdir_p, AtomicSaver
 
-
-sites_filename = conf.data_dir + '/sites/sites.tsv'
-
-def get_site_variants(sites_filename):
-    with open(sites_filename) as f:
-        header = next(f).rstrip('\n\r').split('\t')
-        assert header == 'chrom pos ref alt rsids nearest_genes'.split()
-        for line in f:
-            fields = line.rstrip('\n\r').split('\t')
-            chrom = fields[0]
-            pos = int(fields[1])
-            chrom_idx = utils.chrom_order[chrom]
-            yield dict(chrom=chrom, chrom_idx=chrom_idx, pos=pos, ref=fields[2], alt=fields[3], rsids=fields[4], nearest_genes=fields[5])
-
-
-def write_variant(writer, site_variant, pheno_variant):
-    site_variant.update(pheno_variant)
-    writer.writerow(site_variant)
+sites_filename = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
 
 def _which_variant_is_bigger(v1, v2):
-    # 1 means v1 is bigger.  2 means v2 is bigger. 0 means tie.
+    '''1 means v1 is bigger.  2 means v2 is bigger. 0 means tie.'''
     if v1['chrom_idx'] == v2['chrom_idx']:
         if v1['pos'] == v2['pos']:
             if v1['ref'] == v2['ref']:
@@ -44,38 +28,38 @@ def _which_variant_is_bigger(v1, v2):
 
 @utils.exception_printer
 @utils.star_kwargs
-def convert(pheno, dest_filename, tmp_filename):
+def convert(pheno, dest_filename):
 
-    with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_filename, overwrite_part=True) as f_out:
+    pheno_reader = PhenoReader(pheno, keep_chrom_idx=True)
+    pheno_variants = pheno_reader.get_variants()
 
-        pheno_reader = PhenoReader(pheno['assoc_files'], keep_chrom_idx=True)
-        pheno_variants = pheno_reader.get_variants()
-        site_variants = get_site_variants(sites_filename)
+    with VariantFileReader(sites_filename) as sites_reader, \
+         VariantFileWriter(dest_filename) as writer:
+        sites_variants = iter(sites_reader)
 
-        sites_fieldnames = 'chrom pos ref alt rsids nearest_genes maf pval'.split()
-        fieldnames = sites_fieldnames + list(set(pheno_reader.fields) - set(sites_fieldnames))
-        writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter='\t')
-        writer.writeheader()
+        def write_variant(sites_variant, pheno_variant):
+            sites_variant.update(pheno_variant)
+            writer.writerow(sites_variant)
 
         try: pheno_variant = next(pheno_variants)
         except: raise Exception("It appears that the phenotype {!r} has no variants.".format(pheno['phenocode']))
-        try: site_variant = next(site_variants)
+        try: sites_variant = next(sites_variants)
         except: raise Exception("It appears that your sites file (at {!r}) has no variants.".format(sites_filename))
         while True:
-            cmp = _which_variant_is_bigger(pheno_variant, site_variant)
+            cmp = _which_variant_is_bigger(pheno_variant, sites_variant)
             if cmp == 1:
-                try: site_variant = next(site_variants)
+                try: sites_variant = next(sites_variants)
                 except StopIteration: break
             elif cmp == 2:
                 try: pheno_variant = next(pheno_variants)
                 except StopIteration: break
             else: # equal
                 # TODO: do I need this?
-                del site_variant['chrom_idx']
+                del sites_variant['chrom_idx']
                 del pheno_variant['chrom_idx']
-                write_variant(writer, site_variant, pheno_variant)
+                write_variant(sites_variant, pheno_variant)
                 try:
-                    site_variant = next(site_variants)
+                    sites_variant = next(sites_variants)
                     pheno_variant = next(pheno_variants)
                 except StopIteration: break
 
@@ -86,7 +70,6 @@ def get_conversions_to_do():
     print('number of phenos:', len(phenos))
     for pheno in phenos:
         dest_filename = '{}/augmented_pheno/{}'.format(conf.data_dir, pheno['phenocode'])
-        tmp_filename = '{}/tmp/augmented_pheno-{}'.format(conf.data_dir, pheno['phenocode'])
         should_write_file = not os.path.exists(dest_filename)
         if not should_write_file:
             dest_file_mtime = os.stat(dest_filename).st_mtime
@@ -98,7 +81,6 @@ def get_conversions_to_do():
             yield {
                 'pheno': pheno,
                 'dest_filename': dest_filename,
-                'tmp_filename': tmp_filename,
             }
 
 def run(argv):

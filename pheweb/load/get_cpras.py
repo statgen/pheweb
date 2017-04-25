@@ -2,7 +2,8 @@
 from .. import utils
 conf = utils.conf
 
-PhenoReader = utils.get_PhenoReader()
+from .read_input_file import PhenoReader
+from .internal_file import VariantFileWriter
 
 import datetime
 import multiprocessing
@@ -14,27 +15,20 @@ from boltons.fileutils import mkdir_p, AtomicSaver
 
 @utils.exception_tester
 @utils.star_kwargs
-def convert(pheno, dest_filename, tmp_filename):
-
-    with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_filename, overwrite_part=True) as f_out:
-
+def convert(pheno, dest_filename):
+    with VariantFileWriter(dest_filename) as writer:
         minimum_maf = conf.minimum_maf if hasattr(conf, 'minimum_maf') else None
-        pheno_reader = PhenoReader(pheno['assoc_files'], only_cpra=True, minimum_maf=minimum_maf)
+        pheno_reader = PhenoReader(pheno, only_cpra=True, minimum_maf=minimum_maf)
         assert set(pheno_reader.fields) == set(['chrom', 'pos', 'ref', 'alt'])
-
-        writer = csv.DictWriter(f_out, fieldnames=pheno_reader.fields, delimiter='\t')
-        writer.writeheader()
-        writer.writerows(pheno_reader.get_variants())
-
+        writer.write_all(pheno_reader.get_variants())
     print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
+
 
 def get_conversions_to_do():
     phenos = utils.get_phenolist()
     print('number of phenos:', len(phenos))
     for pheno in phenos:
-        dest_filename = '{}/cpra/{}'.format(conf.data_dir, pheno['phenocode'])
-        tmp_filename = '{}/tmp/cpra-{}'.format(conf.data_dir, pheno['phenocode'])
-
+        dest_filename = os.path.join(conf.data_dir, 'cpra', pheno['phenocode'])
         should_write_file = not os.path.exists(dest_filename)
         if not should_write_file:
             dest_file_mtime = os.stat(dest_filename).st_mtime
@@ -45,7 +39,6 @@ def get_conversions_to_do():
             yield {
                 'pheno': pheno,
                 'dest_filename': dest_filename,
-                'tmp_filename': tmp_filename,
             }
 
 def run(argv):

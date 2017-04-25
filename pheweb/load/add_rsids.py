@@ -17,11 +17,15 @@ We read one full position at a time.  When we have a position-match, we find all
 
 # TODO:
 # - Do we need to left-normalize all indels?
-
+# - sorting (chr&pos) is already taken care of for sites.tsv, so remove the assertions.
+#   instead, assert that (1) rsids_chrom_order matches utils.chrom_order and (2) rsids follow rsids_chrom_order (in get_rsid_reader)
+#   so, move rsids_chrom_order inside get_rsid_reader
 
 
 from .. import utils
 conf = utils.conf
+
+from .internal_file import VariantFileReader, VariantFileWriter
 
 import os
 import gzip
@@ -53,16 +57,6 @@ def get_rsid_reader(rsids_f):
                     assert all(base in 'ATCGN' for base in alt), repr(alt)
                     yield {'chrom':chrom, 'pos':int(pos), 'ref':ref, 'alt':alt, 'rsid':rsid}
 
-def get_cpra_reader(cpra_f):
-    '''Returns a reader which returns a list of all cpras at the next chrom-pos.'''
-    cpra_reader = csv.DictReader(cpra_f, delimiter='\t')
-    for cpra in cpra_reader:
-        yield {
-            'chrom': cpra['chrom'],
-            'pos': int(cpra['pos']),
-            'ref': cpra['ref'],
-            'alt': cpra['alt'],
-        }
 
 def get_one_chr_pos_at_a_time(iterator):
     '''Turns
@@ -75,6 +69,7 @@ def get_one_chr_pos_at_a_time(iterator):
         yield list(g)
 
 def are_match(seq1, seq2):
+    '''Compares nucleotide sequences.  Eg, "A" == "A", "A" == "N", "A" != "AN".'''
     if seq1 == seq2: return True
     if len(seq1) == len(seq2) and 'N' in seq1 or 'N' in seq2:
         return all(b1 == b2 or b1 == 'N' or b2 == 'N' for b1, b2 in zip(seq1, seq2))
@@ -90,14 +85,12 @@ def run(argv):
         print('rsid annotation is up-to-date!')
         return
 
-    with open(cpra_filename, 'rt') as cpra_f, \
+    with VariantFileReader(cpra_filename) as cpra_reader, \
          gzip.open(rsids_filename, 'rt') as rsids_f, \
-         open(out_filename, 'wt') as out_f:
-
-        out_f.write("chrom\tpos\tref\talt\trsids\n")
+         VariantFileWriter(out_filename) as writer:
 
         rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))
-        cp_group_reader = get_one_chr_pos_at_a_time(get_cpra_reader(cpra_f))
+        cp_group_reader = get_one_chr_pos_at_a_time(cpra_reader)
 
         cpra_largest_index_in_rsids_chrom_order = -1
         rsid_group = next(rsid_group_reader)
@@ -128,11 +121,15 @@ def run(argv):
                         break
 
             if rsid_group[0]['chrom'] == cp_group[0]['chrom'] and rsid_group[0]['pos'] == cp_group[0]['pos']:
-                # Woohoo a match!
+                # we have rsids at this position!  will they match on ref/alt?
                 for cpra in cp_group:
-                    rsids = (rsid['rsid'] for rsid in rsid_group if cpra['ref'] == rsid['ref'] and are_match(cpra['alt'], rsid['alt']))
-                    print('{chrom}\t{pos}\t{ref}\t{alt}\t{0}'.format(','.join(rsids), **cpra), file=out_f)
+                    rsids = [rsid['rsid'] for rsid in rsid_group if cpra['ref'] == rsid['ref'] and are_match(cpra['alt'], rsid['alt'])]
+                    if len(rsids) > 1:
+                        print('WARNING: the variant {chrom}-{pos}-{ref}-{alt} has multiple rsids: {rsids}'.format(**cpra, rsids=rsids))
+                    cpra['rsids'] = ','.join(rsids)
+                    writer.write(cpra)
             else:
                 # No match, just print each cpra with an empty `rsids` column
                 for cpra in cp_group:
-                    print('{chrom}\t{pos}\t{ref}\t{alt}\t'.format(**cpra), file=out_f)
+                    cpra['rsids'] = ''
+                    writer.write(cpra)

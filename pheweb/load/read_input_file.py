@@ -1,136 +1,36 @@
 
-from ... import utils
+from .. import utils
 conf = utils.conf
 
-import csv
 import itertools
 import re
-from collections import OrderedDict
 import boltons.iterutils
 
-
-legitimate_null_values = ['.', 'NA']
-
-per_variant_fields = OrderedDict([
-    ('chrom', {
-        'aliases': ['#CHROM'],
-        'required': True,
-        'type': str,
-    }),
-    ('pos', {
-        'aliases': ['BEG', 'BEGIN'],
-        'required': True,
-        'type': int,
-        'range': [0, None],
-    }),
-    ('ref', {
-        'aliases': ['reference'],
-        'required': True,
-        'type': str,
-    }),
-    ('alt', {
-        'aliases': ['alternate'],
-        'required': True,
-        'type': str,
-    }),
-    # rsids
-    # nearest_genes
-])
-
-per_assoc_fields = OrderedDict([
-    ('maf', {
-        'aliases': [],
-        'type': float,
-        'range': [0, 0.5],
-        'sigfigs': 3,
-    }),
-    ('pval', {
-        'aliases': ['PVALUE'],
-        'required': True,
-        'type': float,
-        'nullable': True,
-        'range': [0, 1],
-        'sigfigs': 3,
-    }),
-    ('beta', {
-        'aliases': [],
-        'type': float,
-        'nullable': True,
-        'sigfigs': 3,
-    }),
-    ('sebeta', {
-        'aliases': [],
-        'type': float,
-        'nullable': True,
-        'sigfigs': 3,
-    }),
-])
-
-per_pheno_fields = OrderedDict([
-    ('num_cases', {
-        'aliases': ['NS.CASE', 'N_cases'],
-        'type': int,
-        'nullable': True,
-        'range': [0, None],
-    }),
-    ('num_controls', {
-        'aliases': ['NS.CTRL', 'N_controls'],
-        'type': int,
-        'nullable': True,
-        'range': [0, None],
-    }),
-    ('num_samples', {
-        'aliases': ['NS', 'N'],
-        'type': int,
-        'nullable': True,
-        'range': [0, None],
-    }),
-])
-
-all_possible_fields = dict(itertools.chain(per_variant_fields.items(), per_assoc_fields.items(), per_pheno_fields.items()))
-assert len(all_possible_fields) == len(per_variant_fields) + len(per_assoc_fields) + len(per_pheno_fields) # no overlaps!
-
-class Field:
-    def __init__(self, d):
-        self._d = d
-    def parse(self, value):
-        # nullable
-        if 'nullable' in self._d and value in legitimate_null_values:
-            return ''
-        # type
-        x = self._d['type'](value)
-        # range
-        if 'range' in self._d:
-            assert self._d['range'][0] is None or x >= self._d['range'][0]
-            assert self._d['range'][1] is None or x <= self._d['range'][1]
-        if 'sigfigs' in self._d:
-            x = utils.round_sig(x, self._d['sigfigs'])
-        return x
-
-
-# make all aliases lowercase and add parsers
-for field, value in all_possible_fields.items():
-    value['aliases'] = [field.lower()] + [alias.lower() for alias in value['aliases']]
-    value['_parse'] = Field(value).parse
 
 
 
 class PhenoReader:
-    '''Manages ordering of files and ordering of variants.'''
+    '''
+    Reads variants (in order) and other info for a phenotype.
+    It only returns variants that have a pvalue.
+    If `only_cpra`, it only returns the fields [chrom pos ref alt].
+    If `minimum_maf` is defined, variants that don't meet that threshold (via MAF, AF, or AC/NS) are dropped.
+    '''
 
-    def __init__(self, assoc_fnames, minimum_maf=None, keep_chrom_idx=False, only_cpra=False):
+    def __init__(self, pheno, minimum_maf=None, keep_chrom_idx=False, only_cpra=False):
+        self._pheno = pheno
         self._only_cpra = only_cpra
         self._minimum_maf = minimum_maf
         self._keep_chrom_idx = keep_chrom_idx
-        self.fields, self.fnames = self._get_fields_and_fnames(assoc_fnames)
+        self.fields, self.fnames = self._get_fields_and_fnames(pheno['assoc_files'])
 
     def get_variants(self):
         yield from self._order_refalt_lexicographically(
             itertools.chain.from_iterable(
-                AssocFileReader(fname).get_variants(only_cpra=self._only_cpra) for fname in self.fnames))
+                AssocFileReader(fname, self._pheno).get_variants(only_cpra=self._only_cpra) for fname in self.fnames))
 
     def get_info(self):
-        infos = [AssocFileReader(fname).get_info() for fname in self.fnames]
+        infos = [AssocFileReader(fname, self._pheno).get_info() for fname in self.fnames]
         assert boltons.iterutils.same(infos)
         return infos[0]
 
@@ -161,7 +61,7 @@ class PhenoReader:
         # also sets `self._fields`
         assoc_files = [{'fname': fname} for fname in fnames]
         for assoc_file in assoc_files:
-            ar = AssocFileReader(assoc_file['fname'])
+            ar = AssocFileReader(assoc_file['fname'], self._pheno)
             v = next(ar.get_variants(only_cpra=self._only_cpra))
             assoc_file['chrom'], assoc_file['pos'] = v['chrom'], v['pos']
             assoc_file['fields'] = list(v)
@@ -191,14 +91,15 @@ class AssocFileReader:
     # TODO: use `pandas.read_csv(src_filename, usecols=[...], converters={...}, iterator=True, verbose=True, na_values='.', sep=None)
     #   - first without `usecols`, to parse the column names, and then a second time with `usecols`.
 
-    def __init__(self, fname):
+    def __init__(self, fname, pheno):
         self.fname = fname
+        self._num_samples = pheno.get('num_samples', None)
 
     def get_variants(self, minimum_maf=None, only_cpra=False):
 
-        fields_to_check = dict(itertools.chain(per_variant_fields.items(), per_assoc_fields.items()))
+        fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(conf.parse.per_variant_fields.items(), conf.parse.per_assoc_fields.items()) if fieldval['from_assoc_files']}
         if only_cpra:
-            fields_to_check = {k:v for k,v in fields_to_check.items() if k in ['chrom', 'pos', 'ref', 'alt']}
+            fields_to_check = {k:v for k,v in fields_to_check.items() if k in ['chrom', 'pos', 'ref', 'alt', 'pval']}
 
         with utils.open_maybe_gzip(self.fname, 'rt') as f:
 
@@ -219,6 +120,10 @@ class AssocFileReader:
                 values = line.rstrip('\n\r').split('\t')
                 variant = self._parse_variant(values, len(colnames), colidx_for_field)
 
+                if variant['pval'] == '': continue
+                if only_cpra:
+                    del variant['pval']
+
                 if 'maf' in variant and 'af' in variant:
                     maf2 = af if af<0.5 else 1 - af
                     if not utils.approx_equal(maf2, maf):
@@ -228,8 +133,11 @@ class AssocFileReader:
                     if 'maf' in variant:
                         if variant['maf'] < minimum_maf:
                             continue
-                    elif 'af' in variant:
+                    if 'af' in variant:
                         if not minimum_maf < variant['af'] < 1-minimum_maf:
+                            continue
+                    if 'ac' in variant and self._num_samples is not None:
+                        if not minimum_maf < variant['ac'] / self._num_samples < 1-minimum_maf:
                             continue
 
                 if marker_id_col is not None:
@@ -253,7 +161,7 @@ class AssocFileReader:
 
     def _get_infos(self, limit=1000):
         # return the per-pheno info for each of the first `limit` variants
-        fields_to_check = per_pheno_fields
+        fields_to_check = conf.parse.per_pheno_fields
         with utils.open_maybe_gzip(self.fname, 'rt') as f:
             colnames = [colname.strip('"\' ').lower() for colname in next(f).rstrip('\n\r').split('\t')]
             colidx_for_field = self._parse_header(colnames, fields_to_check)
@@ -287,13 +195,13 @@ class AssocFileReader:
         variant = {}
         for field, colidx in colidx_for_field.items():
             if colidx is not None:
-                parse = all_possible_fields[field]['_parse']
+                parse = conf.parse.fields[field]['_parse']
                 value = values[colidx]
                 try:
                     variant[field] = parse(value)
                 except Exception as exc:
                     raise Exception("failed on field {!r} attempting to convert value {!r} to type {!r} with constraints {!r} in {!r} on line with values {!r}".format(
-                        field, values[colidx], all_possible_fields[field]['type'], all_possible_fields[field], self.fname, values)) from exc
+                        field, values[colidx], conf.parse.fields[field]['type'], conf.parse.fields[field], self.fname, values)) from exc
 
         return variant
 
