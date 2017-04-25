@@ -54,8 +54,10 @@ echo -e "\n\n\n====> pheweb process-assoc-files"
 if echo "${1:-}" | grep -q d; then
     echo "DEBUG"
     pheweb debug process-assoc-files
+    pheweb debug top-loci
 else
     pheweb process-assoc-files
+    pheweb top-loci
 fi
 
 port="$(python3 -c "print(__import__('random').randrange(8000,9000))")"

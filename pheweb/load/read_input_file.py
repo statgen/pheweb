@@ -93,7 +93,7 @@ class AssocFileReader:
 
     def __init__(self, fname, pheno):
         self.fname = fname
-        self._num_samples = pheno.get('num_samples', None)
+        self._pheno = pheno
 
     def get_variants(self, minimum_maf=None, only_cpra=False):
 
@@ -118,27 +118,22 @@ class AssocFileReader:
 
             for line in f:
                 values = line.rstrip('\n\r').split('\t')
-                variant = self._parse_variant(values, len(colnames), colidx_for_field)
+                variant = self._parse_variant(values, colnames, colidx_for_field)
 
                 if variant['pval'] == '': continue
                 if only_cpra:
                     del variant['pval']
 
                 if 'maf' in variant and 'af' in variant:
+                    af = variant['af']
                     maf2 = af if af<0.5 else 1 - af
-                    if not utils.approx_equal(maf2, maf):
-                        print("You have both AF ({!r}) and MAF ({!r}), but they're different.".format(af, maf))
+                    if not utils.approx_equal(maf2, variant['maf']):
+                        print("You have both AF ({!r}) and MAF ({!r}), but they're different.".format(af, variant['maf']))
 
                 if minimum_maf is not None:
-                    if 'maf' in variant:
-                        if variant['maf'] < minimum_maf:
-                            continue
-                    if 'af' in variant:
-                        if not minimum_maf < variant['af'] < 1-minimum_maf:
-                            continue
-                    if 'ac' in variant and self._num_samples is not None:
-                        if not minimum_maf < variant['ac'] / self._num_samples < 1-minimum_maf:
-                            continue
+                    maf = utils.get_maf(variant, self._pheno)
+                    if maf < minimum_maf:
+                        continue
 
                 if marker_id_col is not None:
                     chrom2, pos2, variant['ref'], variant['alt'] = AssocFileReader.parse_marker_id(values[marker_id_col])
@@ -153,10 +148,9 @@ class AssocFileReader:
         for info in infos:
             if info != first_info:
                 utils.die("The pheno info parsed from some lines disagrees.\n" +
-                          "- on line {line_num} of file {filename!r}, parsed:\n".format(**first_line_metadata) +
-                          "    {}".format(first_line) +
-                          "- on line {line_num} of file {filename!r}, parsed:\n".format(**line_metadata) +
-                          "    {}".format(line))
+                          "- in the file {}".format(self.fname) +
+                          "- parsed from first line:\n    {}".format(first_info) +
+                          "- parsed from a later line:\n    {}".format(info))
         return first_info
 
     def _get_infos(self, limit=1000):
@@ -166,25 +160,25 @@ class AssocFileReader:
             colnames = [colname.strip('"\' ').lower() for colname in next(f).rstrip('\n\r').split('\t')]
             colidx_for_field = self._parse_header(colnames, fields_to_check)
             self._assert_all_fields_mapped(colnames, fields_to_check, colidx_for_field)
-            for line in itertools.islice(f, 0, limit):
+            for linenum, line in enumerate(itertools.islice(f, 0, limit)):
                 values = line.rstrip('\n\r').split('\t')
-                variant = self._parse_variant(values, len(colnames), colidx_for_field)
+                variant = self._parse_variant(values, colnames, colidx_for_field)
                 # Check that num_cases + num_controls == num_samples
                 if all(key in variant for key in ['num_cases', 'num_controls', 'num_samples']):
                     if variant['num_cases'] + variant['num_controls'] != variant['num_samples']:
                         utils.die("The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
-                                  "- the filename: {!r}\n".format(line_metadata['filename']) +
-                                  "- the line number: {}".format(line_metadata['line_num']+1) +
+                                  "- the filename: {!r}\n".format(self.fname) +
+                                  "- the line number: {}".format(linenum+1) +
                                   "- parsed line: [{!r}]\n".format(line))
                     del variant['num_samples'] # don't need it.
                 yield variant
 
 
-    def _parse_variant(self, values, num_columns, colidx_for_field):
+    def _parse_variant(self, values, colnames, colidx_for_field):
         # `values`: [str]
 
-        if len(values) != num_columns:
-            print("ERROR: A line has {!r} values, but we expected {!r}.".format(len(values), num_columns))
+        if len(values) != len(colnames):
+            print("ERROR: A line has {!r} values, but we expected {!r}.".format(len(values), len(colnames)))
             repr_values = repr(values)
             if len(repr_values) > 5000: repr_values = repr_values[:200] + ' ... ' + repr_values[-200:] # sometimes we get VERY long strings of nulls.
             print("- The line: {}".format(repr_values))
@@ -230,7 +224,7 @@ class AssocFileReader:
             print("The fields that were required but not present are: {!r}".format(missing_required_fields))
             print("Their accepted aliases are:")
             for field in missing_required_fields:
-                print("- {}: {!r}".format(fields, possible_fields[field]['aliases']))
+                print("- {}: {!r}".format(field, possible_fields[field]['aliases']))
             print("Here are all the columns that WERE present: {!r}".format(colnames))
             raise Exception()
 

@@ -29,7 +29,6 @@ from .internal_file import VariantFileReader, VariantFileWriter
 
 import os
 import gzip
-import csv
 import itertools
 
 

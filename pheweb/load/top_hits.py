@@ -29,6 +29,7 @@ def get_hits(pheno):
         while hits:
             best_hit = min(hits, key=lambda hit: hit['pval'])
             best_hit['nearest_genes'] = sorted(best_hit['nearest_genes'].split(','))
+
             remaining_hits = []
             for hit in hits:
                 if hit is best_hit:
@@ -36,6 +37,7 @@ def get_hits(pheno):
                 elif abs(hit['pos'] - best_hit['pos']) >= LOCI_SPREAD_FROM_BEST_HIT:
                     remaining_hits.append(hit)
             hits = remaining_hits
+
             try: best_hit['phenostring'] = pheno['phenostring']
             except KeyError: pass
             yield best_hit

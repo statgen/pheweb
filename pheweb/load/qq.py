@@ -1,16 +1,26 @@
 
+'''
+This script creates json files which can be used to render QQ plots.
+'''
+
+# TODO: share the list `variants` with Manhattan and top_{hits,loci}.
+# TODO: make gc_lambda for maf strata, and show them if they're >1.1?
+# TODO: copy changes from <https://github.com/statgen/encore/blob/master/plot-epacts-output/make_qq_json.py> and then copy js too.
+#    - unbinned_variants
+#    - get_conf_int()
+
 from .. import utils
 conf = utils.conf
 
+from .internal_file import VariantFileReader, write_json
+
+import collections
 import os
-import json
 import math
 import datetime
 import multiprocessing
 import scipy.stats
-import collections
-import csv
-from boltons.fileutils import mkdir_p, AtomicSaver
+from boltons.fileutils import mkdir_p
 
 
 NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
@@ -18,20 +28,6 @@ NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 NUM_BINS = 1000
 
 NUM_MAF_RANGES = 4
-
-Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
-def get_variants(f, fname=None):
-    for v in csv.DictReader(f, delimiter='\t'):
-        pval = v['pval']
-        try:
-            pval = float(pval)
-        except ValueError:
-            continue
-        maf = float(v['maf'])
-        if pval != 0:
-            yield Variant(-math.log10(pval), maf)
-        else:
-            print("Warning: There's a variant with pval 0 in {!r}.  (Variant: {!r})".format(fname, v))
 
 
 def gc_value_from_list(neglog10_pvals, quantile=0.5):
@@ -84,25 +80,26 @@ def compute_qq(neglog10_pvals):
 def make_qq_stratified(variants):
     variants = sorted(variants, key=lambda v: v.maf)
 
-    qqs = [dict() for i in range(NUM_MAF_RANGES)]
-    for qq_i in range(NUM_MAF_RANGES):
+    def make_strata(idx):
         # Note: slice_indices[1] is the same as slice_indices[0] of the next slice.
         # But that's not a problem, because range() ignores the last index.
-        slice_indices = (len(variants) * qq_i//NUM_MAF_RANGES,
-                         len(variants) * (qq_i+1)//NUM_MAF_RANGES)
-        qqs[qq_i]['maf_range'] = (variants[slice_indices[0]].maf,
-                                  variants[slice_indices[1]-1].maf)
+        slice_indices = (len(variants) * idx//NUM_MAF_RANGES,
+                         len(variants) * (idx+1)//NUM_MAF_RANGES)
         neglog10_pvals = sorted((variants[i].neglog10_pval for i in range(*slice_indices)), reverse=True)
-        qqs[qq_i]['count'] = len(neglog10_pvals)
-        qqs[qq_i]['qq'] = compute_qq(neglog10_pvals)
+        return {
+            'maf_range': (variants[slice_indices[0]].maf,
+                          variants[slice_indices[1]-1].maf),
+            'count': len(neglog10_pvals),
+            'qq': compute_qq(neglog10_pvals),
+        }
 
-    return qqs
+    return [make_strata(i) for i in range(NUM_MAF_RANGES)]
 
-
-def make_qq(neglog10_pvals):
-    neglog10_pvals = sorted(neglog10_pvals, reverse=True)
+def make_qq_unstratified(variants, include_qq):
+    neglog10_pvals = sorted((v.neglog10_pval for v in variants), reverse=True)
     rv = {}
-    rv['qq'] = compute_qq(neglog10_pvals) # We don't need this now.
+    if include_qq:
+        rv['qq'] = compute_qq(neglog10_pvals)
     rv['count'] = len(neglog10_pvals)
     rv['gc_lambda'] = {}
     for perc in ['0.5', '0.1', '0.01', '0.001']:
@@ -114,40 +111,39 @@ def make_qq(neglog10_pvals):
     return rv
 
 
+
+Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf', 'v'])
+def augment_variants(variants, pheno):
+    for v in variants:
+        if v['pval'] == 0:
+            print("Warning: There's a variant with pval 0 in {!r}.  (Variant: {!r})".format(pheno['phenocode'], v))
+            continue
+        neglog10_pval = -math.log10(v['pval'])
+        maf = utils.get_maf(v, pheno)
+        yield Variant(neglog10_pval=neglog10_pval, maf=maf, v=v)
+
 @utils.exception_printer
-def make_json_file(args):
-    src_filename, dest_filename, tmp_filename = args['src'], args['dest'], args['tmp']
-    try:
-
-        with open(src_filename) as f:
-            variants = list(get_variants(f, fname=src_filename))
-
-        rv = {}
-        if variants:
-            rv['overall'] = make_qq(v.neglog10_pval for v in variants)
+@utils.star_kwargs
+def make_json_file(src_filename, dest_filename, pheno):
+    with VariantFileReader(src_filename) as variant_dicts:
+        variants = list(augment_variants(variant_dicts, pheno))
+    rv = {}
+    if variants:
+        if variants[0].maf is not None:
+            rv['overall'] = make_qq_unstratified(variants, include_qq=False)
             rv['by_maf'] = make_qq_stratified(variants)
-
-        with AtomicSaver(dest_filename, text_mode=True, part_file=tmp_filename, overwrite_part=True) as f:
-            json.dump(rv, f)
-        print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
-
-    except Exception as exc:
-        print('ERROR OCCURRED WHEN MAKING QQ FILE {!r} FROM FILE {!r} (TMP FILE AT {!r})'.format(
-            dest_filename, src_filename, tmp_filename))
-        print('ERROR WAS:')
-        print(exc)
-        print('---')
-        raise
+        else:
+            rv['overall'] = make_qq_unstratified(variants, include_qq=True)
+    write_json(filename=dest_filename, data=rv)
+    print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
 
 
 def get_conversions_to_do():
-    phenocodes = [pheno['phenocode'] for pheno in utils.get_phenolist()]
-    for phenocode in phenocodes:
-        src_filename = os.path.join(conf.data_dir, 'augmented_pheno', phenocode)
-        dest_filename = os.path.join(conf.data_dir, 'qq', '{}.json'.format(phenocode))
-        tmp_filename = os.path.join(conf.data_dir, 'tmp', 'qq-{}.json'.format(phenocode))
+    for pheno in utils.get_phenolist():
+        src_filename = os.path.join(conf.data_dir, 'augmented_pheno', pheno['phenocode'])
+        dest_filename = os.path.join(conf.data_dir, 'qq', '{}.json'.format(pheno['phenocode']))
         if not os.path.exists(dest_filename) or os.stat(dest_filename).st_mtime < os.stat(src_filename).st_mtime:
-            yield {'src':src_filename, 'dest':dest_filename, 'tmp':tmp_filename}
+            yield {'src_filename':src_filename, 'dest_filename':dest_filename, 'pheno':pheno}
 
 def run(argv):
 

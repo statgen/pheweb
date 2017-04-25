@@ -19,7 +19,6 @@ import intervaltree
 import bisect
 import os
 import os.path
-from boltons.fileutils import AtomicSaver
 import boltons.iterutils
 
 

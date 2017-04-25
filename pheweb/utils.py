@@ -11,12 +11,12 @@ import random
 import sys
 import subprocess
 import time
-import imp
 import multiprocessing
 import csv
-from boltons.fileutils import mkdir_p
 import boltons.mathutils
 import urllib.parse
+import blist
+import bisect
 
 
 ## Functions required by `conf`
@@ -100,6 +100,21 @@ pheno_fields_to_include_with_variant = {
     'phenostring', 'category', 'num_cases', 'num_controls', 'num_samples',
 }
 
+def get_maf(variant, pheno):
+    mafs = []
+    if 'maf' in variant:
+        mafs.append(variant['maf'])
+    if 'af' in variant:
+        mafs.append(min(variant['af'], 1-variant['af']))
+    if 'ac' in variant and 'num_samples' in pheno:
+        mafs.append(variant['ac'] / pheno['num_samples'])
+    if not mafs: return None
+    if len(mafs) > 1:
+        if not approx_equal(min(mafs), max(mafs), tolerance=0.1):
+            raise Exception("Error: the variant {} has two ways of computing maf, resulting in the mafs {}, which differ by more than 10%.")
+        return sum(mafs[0])/len(mafs)
+    return mafs[0]
+
 
 def get_variant(query, phenos):
     import pysam
@@ -169,11 +184,11 @@ assert pad_gene(200000, 800000) == (200000, 800000)
 def get_random_page():
     with open(os.path.join(conf['data_dir'], 'top_hits.json')) as f:
         hits = json.load(f)
-        hits_to_choose_from = [hit for hit in hits if hit['pval'] < 5e-8]
-        if not hits_to_choose_from:
-            hits_to_choose_from = hits
-        if not hits:
-            return None
+    hits_to_choose_from = [hit for hit in hits if hit['pval'] < 5e-8]
+    if not hits_to_choose_from:
+        hits_to_choose_from = hits
+    if not hits:
+        return None
     hit = random.choice(hits_to_choose_from)
     r = random.random()
     if r < 0.4:
@@ -227,6 +242,7 @@ def exception_tester(f):
 
 
 def star_kwargs(f):
+    # LATER: use multiprocessing.Pool().starmap(func, [(arg1, arg2), ...]) instead.
     @functools.wraps(f)
     def f2(kwargs):
         return f(**kwargs)
@@ -251,14 +267,6 @@ class open_maybe_gzip(object):
         self.f.close()
 
 
-def peek(iterator):
-    reader = csv.DictReader(f, dialect='unix', delimiter='\t')
-    first = next(reader)
-    reader = itertools.chain([first], reader)
-    return first, reader
-
-
-
 # TODO: chrom_order_list[25-1] = 'M', chrom_order['M'] = 25-1, chrom_order['MT'] = 25-1 ?
 #       and epacts.py should convert all chroms to chrom_idx?
 chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
@@ -268,13 +276,11 @@ chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
 def get_path(cmd, attr=None):
     if attr is None: attr = '{}_path'.format(cmd)
     path = None
-    if hasattr(conf, attr):
-        path = getattr(conf, attr)
+    if attr in conf:
+        path = conf[attr]
     else:
-        try:
-            path = subprocess.check_output(['which', cmd]).strip().decode('utf8')
-        except subprocess.CalledProcessError:
-            pass
+        try: path = subprocess.check_output(['which', cmd]).strip().decode('utf8')
+        except subprocess.CalledProcessError: pass
     if path is None:
         raise Exception("The command '{cmd}' was not found in $PATH and was not specified (as {attr}) in config.py.".format(cmd=cmd, attr=attr))
     return path
@@ -346,3 +352,29 @@ def get_num_procs():
     return n_cpus * 3//4
 
 
+class Heap():
+    '''Unlike most heaps, this heap can safely store uncomparable values'''
+    def __init__(self):
+        self._q = blist.blist()
+        self._items = {}
+        self._idx = 0
+
+    def add(self, item, priority):
+        idx = self._idx
+        self._idx += 1
+        if not self._q or -priority < self._q[0][0]:
+            self._q.insert(0, (-priority, idx))
+        else:
+            bisect.insort(self._q, (-priority, idx))
+        self._items[idx] = item
+
+    def pop(self):
+        priority, idx = self._q.pop(0)
+        return self._items.pop(idx)
+
+    def __len__(self):
+        return len(self._q)
+
+    def __iter__(self):
+        while self._q:
+            yield self.pop()

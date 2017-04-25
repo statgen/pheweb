@@ -8,8 +8,7 @@ from .internal_file import VariantFileReader, VariantFileWriter
 import os
 import datetime
 import multiprocessing
-import csv
-from boltons.fileutils import mkdir_p, AtomicSaver
+from boltons.fileutils import mkdir_p
 
 sites_filename = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
 
@@ -33,13 +32,13 @@ def convert(pheno, dest_filename):
     pheno_reader = PhenoReader(pheno, keep_chrom_idx=True)
     pheno_variants = pheno_reader.get_variants()
 
-    with VariantFileReader(sites_filename) as sites_reader, \
+    with VariantFileReader(sites_filename, chrom_idx=True) as sites_reader, \
          VariantFileWriter(dest_filename) as writer:
         sites_variants = iter(sites_reader)
 
         def write_variant(sites_variant, pheno_variant):
             sites_variant.update(pheno_variant)
-            writer.writerow(sites_variant)
+            writer.write(sites_variant)
 
         try: pheno_variant = next(pheno_variants)
         except: raise Exception("It appears that the phenotype {!r} has no variants.".format(pheno['phenocode']))

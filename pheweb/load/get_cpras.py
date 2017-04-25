@@ -3,14 +3,13 @@ from .. import utils
 conf = utils.conf
 
 from .read_input_file import PhenoReader
-from .internal_file import VariantFileWriter
+from .internal_file import VariantFileWriter, write_json
 
 import datetime
 import multiprocessing
-import csv
 import os
 import json
-from boltons.fileutils import mkdir_p, AtomicSaver
+from boltons.fileutils import mkdir_p
 
 
 @utils.exception_tester
@@ -53,19 +52,18 @@ def run(argv):
         results = p.map(convert, conversions_to_do)
 
     bad_results = [r['args'][0]['pheno'] for r in results if not r['succeeded']]
-    if bad_results: print('num phenotypes that failed:', len(bad_results))
-
     if bad_results:
+        print('num phenotypes that failed:', len(bad_results))
+
         bad_result_phenocodes = {p['phenocode'] for p in bad_results}
         phenos = utils.get_phenolist()
         good_results = [p for p in phenos if p['phenocode'] not in bad_result_phenocodes]
-        fname = os.path.join(conf.data_dir, 'pheno-list-successful-only.json')
-        with open(fname, 'w') as f:
-            json.dump(good_results, f)
-        print('wrote {} good_results (of {} total) into {!r}, which you should probably use to replace pheno-list.json'.format(len(good_results), len(phenos), fname))
 
+        fname = os.path.join(conf.data_dir, 'pheno-list-successful-only.json')
+        write_json(filename=fname, data=good_results, pretty=True)
+        print('wrote {} good_results (of {} total) into {!r}, which you should probably use to replace pheno-list.json'.format(len(good_results), len(phenos), fname))
         fname = os.path.join(conf.data_dir, 'pheno-list-bad-only.json')
-        with open(fname, 'w') as f:
-            json.dump(bad_results, f)
+        write_json(filename=fname, data=bad_results, pretty=True)
         print('wrote bad_results into {!r}'.format(fname))
+
         raise Exception('Cannot continue when some files failed')

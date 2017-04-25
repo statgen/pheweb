@@ -92,28 +92,9 @@ class _w:
         for v in variants:
             self.write(v)
 
-# @contextlib.contextmanager
-# def RowFileWriter(fname):
-#     '''
-#     Writes variants (represented by tuples/dicts) to an internal file.
-#
-#         with RowFileWriter(conf.data_dir+'/a.tsv') as writer:
-#             writer.write(['chrom', 'pos', 'ref', 'alt'])
-#             writer.write(['2', 432, 'A', 'G'])
-#     '''
-#     part_file = _get_part_file(fname)
-#     with AtomicSaver(fname, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
-#         yield _w2(f)
-# class _w2:
-#     def __init__(self, f):
-#         self._writer = csv.writer(f, dialect='pheweb-internal-dialect')
-#     def write(self, row):
-#         self._writer.writerow(row)
-#     def write_all(self, rows):
-#         for row in rows:
-#             self.write(row)
-
-def write_json(fname, data):
-    part_file = _get_part_file(fname)
-    with AtomicSaver(fname, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
-        json.dump(f, data)
+def write_json(*, filename=None, data=None, pretty=False):
+    assert filename is not None and data is not None
+    part_file = _get_part_file(filename)
+    with AtomicSaver(filename, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
+        if pretty: json.dump(data, f, indent=1, sort_keys=True)
+        else: json.dump(data, f)

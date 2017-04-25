@@ -24,7 +24,7 @@ import os
 import random
 import multiprocessing
 import datetime
-from boltons.fileutils import mkdir_p, AtomicSaver
+from boltons.fileutils import mkdir_p
 
 
 NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #files / #cpus?

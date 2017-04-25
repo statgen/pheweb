@@ -2,16 +2,17 @@
 # This module creates the object `conf`.
 # It also offers some configuration-related utility functions.
 
-import functools
 import os
 import imp
 from collections import OrderedDict
+from boltons.fileutils import mkdir_p
 import itertools
 from . import utils
 
 class _Attrdict(dict):
     def __getattr__(self, attr):
-        return self[attr]
+        try: return self[attr]
+        except KeyError: raise AttributeError()
     def __setattr__(self, attr, val):
         self[attr] = val
 conf = _Attrdict()

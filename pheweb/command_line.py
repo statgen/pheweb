@@ -57,8 +57,12 @@ def debug(argv):
     run(argv)
 handlers['debug'] = debug
 
+def help(argv):
+    run(argv[0:1] + ['-h'])
+handlers['help'] = help
 
-def help():
+
+def print_help_message():
     from pheweb import version
     print('''\
 PheWeb {}
@@ -95,12 +99,14 @@ Subcommands:
 def run(argv):
     subcommand = argv[0] if argv else ''
     if subcommand in ['', '-h', '--help']:
-        help()
+        print_help_message()
     elif subcommand not in handlers:
         print('Unknown subcommand {!r}'.format(subcommand))
-        help()
+        print_help_message()
     else:
         handlers[subcommand](argv[1:])
 
+
+# this is in `entry_points` in setup.py:
 def main():
     run(sys.argv[1:])
