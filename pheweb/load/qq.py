@@ -12,7 +12,7 @@ This script creates json files which can be used to render QQ plots.
 from .. import utils
 conf = utils.conf
 
-from .internal_file import VariantFileReader, write_json
+from ..file_utils import VariantFileReader, write_json
 
 import collections
 import os

@@ -1,5 +1,5 @@
 
-from .. import utils
+from . import utils
 conf = utils.conf
 
 import os

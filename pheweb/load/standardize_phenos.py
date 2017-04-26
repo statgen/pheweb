@@ -3,7 +3,7 @@ from .. import utils
 conf = utils.conf
 
 from .read_input_file import PhenoReader
-from .internal_file import VariantFileReader, VariantFileWriter
+from ..file_utils import VariantFileReader, VariantFileWriter
 
 import os
 import datetime

@@ -3,7 +3,7 @@
 from .. import utils
 conf = utils.conf
 
-from .internal_file import VariantFileReader
+from ..file_utils import VariantFileReader
 
 import os
 import marisa_trie

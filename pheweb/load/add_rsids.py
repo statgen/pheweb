@@ -25,7 +25,7 @@ We read one full position at a time.  When we have a position-match, we find all
 from .. import utils
 conf = utils.conf
 
-from .internal_file import VariantFileReader, VariantFileWriter
+from ..file_utils import VariantFileReader, VariantFileWriter
 
 import os
 import gzip

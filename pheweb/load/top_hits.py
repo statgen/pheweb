@@ -2,7 +2,7 @@
 from .. import utils
 conf = utils.conf
 
-from .internal_file import write_json, VariantFileWriter
+from ..file_utils import write_json, VariantFileWriter
 
 import os
 import json

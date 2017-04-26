@@ -17,7 +17,7 @@ I'm reading in a full position at a time to avoid this issue that was happening 
 from .. import utils
 conf = utils.conf
 
-from .internal_file import VariantFileReader, VariantFileWriter
+from ..file_utils import VariantFileReader, VariantFileWriter
 
 import contextlib
 import os

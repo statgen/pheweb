@@ -3,7 +3,7 @@ from .. import utils
 conf = utils.conf
 
 from .read_input_file import PhenoReader
-from .internal_file import VariantFileWriter, write_json
+from ..file_utils import VariantFileWriter, write_json
 
 import datetime
 import multiprocessing
