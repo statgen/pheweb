@@ -60,10 +60,10 @@ def run(argv):
         good_results = [p for p in phenos if p['phenocode'] not in bad_result_phenocodes]
 
         fname = os.path.join(conf.data_dir, 'pheno-list-successful-only.json')
-        write_json(filename=fname, data=good_results, pretty=True)
+        write_json(filename=fname, data=good_results, indent=2, sort_keys=True)
         print('wrote {} good_results (of {} total) into {!r}, which you should probably use to replace pheno-list.json'.format(len(good_results), len(phenos), fname))
         fname = os.path.join(conf.data_dir, 'pheno-list-bad-only.json')
-        write_json(filename=fname, data=bad_results, pretty=True)
+        write_json(filename=fname, data=bad_results, indent=2, sort_keys=True)
         print('wrote bad_results into {!r}'.format(fname))
 
         raise Exception('Cannot continue when some files failed')

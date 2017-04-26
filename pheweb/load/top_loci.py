@@ -2,6 +2,8 @@
 from .. import utils
 conf = utils.conf
 
+from .internal_file import write_json, VariantFileWriter
+
 import json
 import csv
 import os.path
@@ -67,15 +69,10 @@ shown.  If you want all hits, use `pheweb top-hits`.
         exit(0)
 
     hits = sorted(get_hits(), key=lambda hit: hit['pval'])
-    with open(out_fname_json, 'w') as f:
-        json.dump(hits, f, sort_keys=True, indent=0)
+    write_json(filename=out_fname_json, data=hits, sort_keys=True)
     print("wrote {} hits to {}".format(len(hits), out_fname_json))
 
     for h in hits: h['nearest_genes'] = ','.join(h['nearest_genes'])
-    with open(out_fname_tsv, 'w') as f:
-        fieldnames = 'chrom pos ref alt rsids maf pval'.split()
-        fieldnames = fieldnames + list(set(hits[0].keys()) - set(fieldnames))
-        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
-        writer.writeheader()
-        writer.writerows(hits)
+    with VariantFileWriter(out_fname_tsv, allow_extra_fields=True) as writer:
+        writer.write_all(hits)
     print("wrote {} hits to {}".format(len(hits), out_fname_tsv))

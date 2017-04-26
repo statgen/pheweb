@@ -66,7 +66,7 @@ def _get_part_file(fname):
     return os.path.join(conf.data_dir, 'tmp', part_file.replace(os.path.sep, '-'))
 
 @contextlib.contextmanager
-def VariantFileWriter(fname):
+def VariantFileWriter(fname, allow_extra_fields=False):
     '''
     Writes variants (represented by dictionaries) to an internal file.
 
@@ -75,26 +75,32 @@ def VariantFileWriter(fname):
     '''
     part_file = _get_part_file(fname)
     with AtomicSaver(fname, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
-        yield _w(f)
+        yield _w(f, allow_extra_fields, fname)
 class _w:
-    def __init__(self, f):
+    def __init__(self, f, allow_extra_fields, fname):
         self._f = f
+        self._allow_extra_fields = allow_extra_fields
+        self._fname = fname
     def write(self, variant):
         if not hasattr(self, '_writer'):
             fields = []
-            for field in itertools.chain(conf.parse.per_variant_fields, conf.parse.per_assoc_fields):
+            for field in conf.parse.fields:
                 if field in variant: fields.append(field)
+            extra_fields = list(set(variant.keys()) - set(fields))
+            if extra_fields:
+                if not self._allow_extra_fields:
+                    raise Exception("ERROR: found unexpected fields {!r} among the expected fields {!r} while writing {!r}.".format(
+                                    extra_fields, fields, self._fname))
+                fields += extra_fields
             self._writer = csv.DictWriter(self._f, fieldnames=fields, dialect='pheweb-internal-dialect')
             self._writer.writeheader()
-        else:
-            self._writer.writerow(variant)
+        self._writer.writerow(variant)
     def write_all(self, variants):
         for v in variants:
             self.write(v)
 
-def write_json(*, filename=None, data=None, pretty=False):
+def write_json(*, filename=None, data=None, indent=None, sort_keys=False):
     assert filename is not None and data is not None
     part_file = _get_part_file(filename)
     with AtomicSaver(filename, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
-        if pretty: json.dump(data, f, indent=1, sort_keys=True)
-        else: json.dump(data, f)
+        json.dump(data, f, indent=indent, sort_keys=sort_keys)

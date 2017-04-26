@@ -10,6 +10,7 @@ import itertools
 from . import utils
 
 class _Attrdict(dict):
+    '''Just a dictionary where dict.key is a proxy for dict[key]'''
     def __getattr__(self, attr):
         try: return self[attr]
         except KeyError: raise AttributeError()
@@ -158,14 +159,16 @@ default_per_pheno_fields = OrderedDict([
     }),
 ])
 
+# TODO: move utils.pheno_fields_to_include_with_variant here.  How should people configure which of their extra fields is sent to the client?
+
 
 conf.parse.null_values = default_null_values
 conf.parse.per_variant_fields = default_per_variant_fields
 conf.parse.per_assoc_fields = default_per_assoc_fields
 conf.parse.per_pheno_fields = default_per_pheno_fields
-conf.parse.fields = dict(itertools.chain(conf.parse.per_variant_fields.items(),
-                                             conf.parse.per_assoc_fields.items(),
-                                             conf.parse.per_pheno_fields.items()))
+conf.parse.fields = OrderedDict(itertools.chain(conf.parse.per_variant_fields.items(),
+                                                conf.parse.per_assoc_fields.items(),
+                                                conf.parse.per_pheno_fields.items()))
 assert len(conf.parse.fields) == len(conf.parse.per_variant_fields) + len(conf.parse.per_assoc_fields) + len(conf.parse.per_pheno_fields) # no overlaps!
 
 class Field:
