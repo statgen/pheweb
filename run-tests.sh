@@ -11,7 +11,7 @@ if echo "${1:-}" | grep -q e; then
     export PHEWEB_IPDB=1
 fi
 if echo "${1:-}" | grep -q g; then # install globally
-    pip3 install --upgrade .
+    pip3 install --upgrade -e .
     echo -e "\n\n===> \`pheweb\` is $(which pheweb)"
 elif echo "${1:-}" | grep -q v; then # install in virtualenv in /tmp
     tempdir="$(mktemp -d "/tmp/pheweb-test-${USER}-XXXX")"

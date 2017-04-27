@@ -253,6 +253,7 @@ int run(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname) {
     for (size_t i=0; i < N_phenos; i++) {
         assert(0 == aug_readers[i].line.compare(0, sites_reader.line.size(), sites_reader.line));
     }
+    writer.write("#"); // tabix needs the header commented.
     writer.write(sites_reader.line); // no trailing \t or \n
     for (size_t i=0; i < N_phenos; i++) {
         std::string per_assoc_fields = aug_readers[i].line.substr(sites_reader.line.size(), std::string::npos);

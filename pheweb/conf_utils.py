@@ -157,9 +157,9 @@ default_per_pheno_fields = OrderedDict([
         'nullable': True,
         'range': [0, None],
     }),
+    # TODO: phenocode, phenostring, category, &c?
+    # TODO: include `assoc_files` with {never_send: True}?
 ])
-
-# TODO: move utils.pheno_fields_to_include_with_variant here.  How should people configure which of their extra fields is sent to the client?
 
 
 conf.parse.null_values = default_null_values
@@ -175,6 +175,7 @@ class Field:
     def __init__(self, d):
         self._d = d
     def parse(self, value):
+        '''parse from input file'''
         # nullable
         if 'nullable' in self._d and value in conf.parse.null_values:
             return ''
@@ -187,6 +188,15 @@ class Field:
         if 'sigfigs' in self._d:
             x = utils.round_sig(x, self._d['sigfigs'])
         return x
+    def read(self, value):
+        '''read from internal file'''
+        if 'nullable' in self._d and value == '':
+            return ''
+        x = self._d['type'](value)
+        if 'range' in self._d:
+            assert self._d['range'][0] is None or x >= self._d['range'][0]
+            assert self._d['range'][1] is None or x <= self._d['range'][1]
+        return x
 
 # make all aliases lowercase and add parsers
 for field_name, field_dict in conf.parse.fields.items():
@@ -194,3 +204,4 @@ for field_name, field_dict in conf.parse.fields.items():
         field_dict.setdefault(k, v)
     field_dict['aliases'] = [field_name.lower()] + [alias.lower() for alias in field_dict['aliases']]
     field_dict['_parse'] = Field(field_dict).parse
+    field_dict['_read']  = Field(field_dict).read

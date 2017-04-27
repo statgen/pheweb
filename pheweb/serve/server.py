@@ -26,7 +26,7 @@ if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
 if 'custom_templates' in conf:
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
-phenos = utils.get_phenos_with_colnums()
+phenos = {pheno['phenocode']: pheno for pheno in utils.get_phenolist()}
 
 autocompleter = Autocompleter(phenos)
 

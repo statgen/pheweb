@@ -63,7 +63,6 @@ class variant_parser:
         return g + tuple(itertools.repeat(None, 4-len(g)))
 
 
-
 def get_phenolist():
     # TODO: should this be memoized?
     fname = os.path.join(conf.data_dir, 'pheno-list.json')
@@ -81,24 +80,6 @@ def get_phenolist():
         pheno['phenocode'] = urllib.parse.quote_plus(pheno['phenocode'])
     return phenolist
 
-def get_phenos_with_colnums():
-    phenos_by_phenocode = {pheno['phenocode']: pheno for pheno in get_phenolist()}
-    with gzip.open(os.path.join(conf.data_dir, 'matrix.tsv.gz'), 'rt') as f:
-        header = f.readline().rstrip('\r\n').split('\t')
-    assert header[:7] == '#chrom pos ref alt rsids nearest_genes maf'.split()
-    for phenocode in phenos_by_phenocode:
-        phenos_by_phenocode[phenocode]['colnum'] = {}
-    for colnum, colname in enumerate(header[7:], start=7):
-        label, phenocode = colname.split('@')
-        phenos_by_phenocode[phenocode]['colnum'][label] = colnum
-    for phenocode in phenos_by_phenocode:
-        assert 'pval' in phenos_by_phenocode[phenocode]['colnum'], (phenocode, phenos_by_phenocode[phenocode])
-    return phenos_by_phenocode
-
-
-pheno_fields_to_include_with_variant = {
-    'phenostring', 'category', 'num_cases', 'num_controls', 'num_samples',
-}
 
 def get_maf(variant, pheno):
     mafs = []
@@ -114,52 +95,6 @@ def get_maf(variant, pheno):
             raise Exception("Error: the variant {} has two ways of computing maf, resulting in the mafs {}, which differ by more than 10%.")
         return sum(mafs[0])/len(mafs)
     return mafs[0]
-
-
-def get_variant(query, phenos):
-    import pysam
-    # todo: differentiate between parse errors and variants-not-found
-    chrom, pos, ref, alt = variant_parser.parse(query)
-    assert None not in [chrom, pos, ref, alt]
-
-    tabix_file = pysam.TabixFile(os.path.join(conf['data_dir'], 'matrix.tsv.gz'))
-    tabix_iter = tabix_file.fetch(chrom, pos-1, pos+1, parser = pysam.asTuple())
-    for variant_row in tabix_iter:
-        if int(variant_row[1]) == int(pos) and variant_row[3] == alt:
-            matching_variant_row = tuple(variant_row)
-            break
-    else: # didn't break
-        return None
-
-    maf = round_sig(float(matching_variant_row[6]), 3)
-    assert 0 < maf <= 0.5
-
-    rv = {
-        'variant_name': '{} : {:,} {}>{}'.format(chrom, pos, ref, alt),
-        'chrom': chrom,
-        'pos': pos,
-        'ref': ref,
-        'alt': alt,
-        'maf': maf,
-        'rsids': matching_variant_row[4],
-        'nearest_genes': matching_variant_row[5],
-        'phenos': [],
-    }
-
-    for phenocode, pheno in phenos.items():
-        p = {}
-        for colname, colnum in pheno['colnum'].items():
-            if matching_variant_row[colnum] != '':
-                p[colname] = matching_variant_row[colnum]
-                if colname in {'pval', 'beta', 'sebeta', 'or'}:
-                    p[colname] = float(p[colname])
-        if p:
-            p['phenocode'] = phenocode
-            for key in pheno:
-                if key in pheno_fields_to_include_with_variant:
-                    p[key] = pheno[key]
-            rv['phenos'].append(p)
-    return rv
 
 
 def pad_gene(start, end):
