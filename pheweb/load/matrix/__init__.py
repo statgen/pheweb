@@ -3,6 +3,9 @@
 from ... import utils
 conf = utils.conf
 
+from ...file_utils import MatrixReader
+
+
 import os
 import glob
 import gzip
@@ -27,10 +30,11 @@ def should_run():
     if not os.path.exists(matrix_gz_fname): return True
 
     # check that the current matrix is composed of the correct columns/phenotypes.  If it's changed, rebuild the matrix.
-    with gzip.open(matrix_gz_fname, 'rt') as f:
-        fieldnames = next(f).strip().split('\t')
-    prev_phenos = set(fieldname.split('@')[1] for fieldname in fieldnames if '@' in fieldname)
-    if prev_phenos != cur_phenos:
+    try:
+        matrix_phenocodes = MatrixReader().get_phenos()
+    except:
+        return True # if something broke, let's just rebuild the matrix.
+    if matrix_phenocodes != cur_phenos:
         print('re-running because cur matrix has wrong phenos.')
         print('- phenos in pheno-list.json but not matrix.tsv.gz:', ', '.join(repr(p) for p in cur_phenos - prev_phenos))
         print('- phenos in matrix.tsv.gz but not pheno-list.json:', ', '.join(repr(p) for p in prev_phenos - cur_phenos))

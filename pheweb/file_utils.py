@@ -88,6 +88,9 @@ class MatrixReader:
                 assert field in conf.parse.fields, (field)
                 self._colidxs[field] = colnum
 
+    def get_phenos(self):
+        return list(self._colidxs_for_pheno)
+
     @contextlib.contextmanager
     def context(self):
         with pysam.TabixFile(self._fname, parser=None) as tabix_file: # TODO: tell tabix which line is chrom and which is pos
