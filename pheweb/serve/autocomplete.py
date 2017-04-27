@@ -82,7 +82,7 @@ class Autocompleter(object):
     def _autocomplete_variant(self, query):
         # chrom-pos-ref-alt format
         query = query.replace(',', '')
-        chrom, pos, ref, alt = utils.variant_parser.parse(query, default_chrom_pos = False)
+        chrom, pos, ref, alt = utils.parse_variant(query, default_chrom_pos = False)
         if chrom is not None:
             key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
 

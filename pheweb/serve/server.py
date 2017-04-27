@@ -50,13 +50,13 @@ def go():
 
 @app.route('/api/variant/<query>')
 def api_variant(query):
-    variant = utils.get_variant(query, phenos)
+    variant = utils.get_variant(query)
     return jsonify(variant)
 
 @app.route('/variant/<query>')
 def variant_page(query):
     try:
-        variant = utils.get_variant(query, phenos)
+        variant = utils.get_variant(query)
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',

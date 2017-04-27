@@ -115,7 +115,7 @@ class _mr:
             raise
 
     def _parse_variant_row(self, variant_row):
-        variant = {'pheno': {}}
+        variant = {'phenos': {}}
         for field in self._colidxs:
             variant[field] = self._parse_field(variant_row, field)
         for phenocode, fields in self._colidxs_for_pheno.items():
@@ -124,7 +124,7 @@ class _mr:
                 for field in fields:
                     p[field] = self._parse_field(variant_row, field, phenocode)
                 p.update(self._info_for_pheno[phenocode])
-                variant['pheno'][phenocode] = p
+                variant['phenos'][phenocode] = p
         return variant
 
     def get_variant(self, chrom, pos, ref, alt):
@@ -132,12 +132,12 @@ class _mr:
         tabix_iter = self._tabix_file.fetch(chrom, pos-1, pos+1, parser=None)
         reader = csv.reader(tabix_iter, dialect='pheweb-internal-dialect')
         for variant_row in reader:
-            if self.parse_field(variant_row, 'pos') != pos:
+            if self._parse_field(variant_row, 'pos') != pos:
                 print('WARNING: while looking for variant {}-{}-{}-{}, saw {!r}'.format(
                     chrom, pos, ref, alt, variant_row))
                 continue
-            if self.parse_field(variant_row, 'ref') != ref: continue
-            if self.parse_field(variant_row, 'alt') != alt: continue
+            if self._parse_field(variant_row, 'ref') != ref: continue
+            if self._parse_field(variant_row, 'alt') != alt: continue
             return self._parse_variant_row(variant_row)
         return None # none matched
 
@@ -145,7 +145,7 @@ class _mr:
         '''
         return is like [{
               'chrom': 'X', 'pos': 43254, ...,
-              'pheno': { '<phenocode>': {'pval': 2e-4, 'ac': 32}, ... }
+              'phenos': { '<phenocode>': {'pval': 2e-4, 'ac': 32}, ... }
             }, ...]
         '''
         if chrom not in self._tabix_file.contigs:

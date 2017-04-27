@@ -45,14 +45,11 @@ from . import conf_utils
 conf = conf_utils.conf
 
 
-class variant_parser:
+class _ParseVariant:
     chrom_regex = re.compile(r'(?:[cC][hH][rR])?([0-9XYMT]+)')
     chrom_pos_regex = re.compile(chrom_regex.pattern + r'[-_:/ ]([0-9]+)')
     chrom_pos_ref_alt_regex = re.compile(chrom_pos_regex.pattern + r'[-_:/ ]([-AaTtCcGg\.]+)[-_:/ ]([-AaTtCcGg\.]+)')
-
-    @classmethod
-    def parse(self, query, default_chrom_pos=True):
-
+    def parse_variant(self, query, default_chrom_pos=True):
         match = self.chrom_pos_ref_alt_regex.match(query) or self.chrom_pos_regex.match(query) or self.chrom_regex.match(query)
         g = match.groups() if match else ()
 
@@ -61,7 +58,7 @@ class variant_parser:
             if len(g) == 1: g += (0,)
         if len(g) >= 2: g = (g[0], int(g[1])) + tuple([bases.upper() for bases in g[2:]])
         return g + tuple(itertools.repeat(None, 4-len(g)))
-
+parse_variant = _ParseVariant().parse_variant
 
 def get_phenolist():
     # TODO: should this be memoized?
@@ -80,6 +77,19 @@ def get_phenolist():
         pheno['phenocode'] = urllib.parse.quote_plus(pheno['phenocode'])
     return phenolist
 
+class _GetVariant:
+    def get_variant(self, query):
+        chrom, pos, ref, alt = parse_variant(query)
+        assert None not in [chrom, pos, ref, alt]
+        if not hasattr(self, '_matrix_reader'):
+            from .file_utils import MatrixReader
+            self._matrix_reader = MatrixReader()
+            # LATER: matrix_reader = MatrixReader().context().__enter__()
+        v = self._matrix_reader.get_variant(chrom, pos, ref, alt)
+        if v is None: return None
+        v['phenos'] = list(v['phenos'].values())
+        return v
+get_variant = _GetVariant().get_variant
 
 def get_maf(variant, pheno):
     mafs = []

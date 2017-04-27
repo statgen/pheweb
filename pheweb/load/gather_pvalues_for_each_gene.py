@@ -30,7 +30,7 @@ def run(argv):
                 # }
 
                 for variant in matrix_reader.get_region(chrom, start, end+1):
-                    for phenocode, pheno in variant['pheno'].items():
+                    for phenocode, pheno in variant['phenos'].items():
                         assert pheno['pval'] != ''
                         if (phenocode not in best_assoc_for_pheno or
                             pheno['pval'] < best_assoc_for_pheno[phenocode]['pval']):
