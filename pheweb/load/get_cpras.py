@@ -8,7 +8,6 @@ from ..file_utils import VariantFileWriter, write_json
 import datetime
 import multiprocessing
 import os
-import json
 from boltons.fileutils import mkdir_p
 
 

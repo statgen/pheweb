@@ -64,8 +64,8 @@ class variant_parser:
 
 
 
-
 def get_phenolist():
+    # TODO: should this be memoized?
     fname = os.path.join(conf.data_dir, 'pheno-list.json')
     try:
         with open(os.path.join(fname)) as f:

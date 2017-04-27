@@ -5,7 +5,6 @@ conf = utils.conf
 from ..file_utils import write_json, VariantFileWriter
 
 import json
-import csv
 import os.path
 
 LOCI_SPREAD_FROM_BEST_HIT = int(500e3)

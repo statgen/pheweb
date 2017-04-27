@@ -6,7 +6,6 @@ from ..file_utils import write_json, VariantFileWriter
 
 import os
 import json
-import csv
 
 # TODO:
 # - it'd be great if they also listed all the rsids and variants, so that on-click we could display a variants-in-this-loci table.
