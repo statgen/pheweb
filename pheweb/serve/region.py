@@ -1,49 +1,39 @@
 
 
-from .. import utils
-conf = utils.conf
+from ..file_utils import IndexedVariantFileReader
 
-import pysam
-import os
+import itertools
 
-# TODO: also get beta, sebeta, etc
+def _rename(d, oldkey, newkey):
+    d[newkey] = d[oldkey]
+    del d[oldkey]
+
+def _dataframify(list_of_dicts):
+    '''converts [{a:1,b:2}, {a:11,b:12}] -> {a:[1,11], b:[2,12]}'''
+    keys = set(itertools.chain.from_iterable(list_of_dicts))
+    dataframe = {k:[] for k in keys}
+    for d in list_of_dicts:
+        for k,v in d.items():
+            dataframe[k].append(v)
+    return dataframe
+
+# TODO: move this into server.api_region
 def get_rows(phenocode, chrom, pos_start, pos_end):
-    infile = os.path.join(conf.data_dir, 'augmented_pheno_gz', '{}.gz'.format(phenocode))
-    tabix_file = pysam.TabixFile(infile)
-    tabix_iter = tabix_file.fetch(chrom, pos_start-1, pos_end+1, parser = pysam.asTuple())
 
-    rv = {
-        'data': {
-            'id': [], # chr:pos_ref/alt
-            'chr': [],
-            'position': [],
-            'ref': [],
-            'alt': [],
-            'rsid': [],
-            'maf': [],
-            'pvalue': [],
-        },
+    variants = []
+    with IndexedVariantFileReader(phenocode) as reader:
+        for v in reader.get_region(chrom, pos_start, pos_end+1):
+            v['id'] = '{chrom}:{pos}_{ref}/{alt}'.format(**v)
+            v['end'] = v['pos']
+            _rename(v, 'chrom', 'chr')
+            _rename(v, 'pos', 'position')
+            _rename(v, 'rsids', 'rsid')
+            _rename(v, 'pval', 'pvalue') # TODO: change JS to make these unnecessary
+            variants.append(v)
+
+    df = _dataframify(variants)
+
+    return {
+        'data': df,
         'lastpage': None,
     }
-
-    for v in tabix_iter:
-        try:
-            pval = float(v[7])
-        except ValueError:
-            continue
-
-        chrom, pos = v[0], int(v[1])
-        rv['data']['chr'].append(chrom)
-        rv['data']['position'].append(pos)
-        rv['data']['ref'].append(v[2])
-        rv['data']['alt'].append(v[3])
-        rv['data']['id'].append('{}:{}_{}/{}'.format(chrom, pos, v[2], v[3]))
-        rv['data']['rsid'].append(v[4])
-        rv['data']['pvalue'].append(pval)
-
-        maf = utils.round_sig(float(v[6]), 3)
-        assert 0 < maf <= 0.5
-        rv['data']['maf'].append(maf)
-
-    rv['data']['end'] = rv['data']['position']
-    return rv

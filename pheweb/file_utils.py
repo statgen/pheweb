@@ -4,7 +4,7 @@ conf = utils.conf
 
 import os
 import csv
-import contextlib
+from contextlib import contextmanager
 import json
 import gzip
 from boltons.fileutils import AtomicSaver
@@ -25,7 +25,7 @@ csv.register_dialect(
 
 ## Readers
 
-@contextlib.contextmanager
+@contextmanager
 def VariantFileReader(fname, chrom_idx=False):
     '''
     Reads variants (as dictionaries) from an internal file.  Iterable.  Exposes `.fields`.
@@ -38,8 +38,8 @@ def VariantFileReader(fname, chrom_idx=False):
         fields = next(reader)
         for field in fields:
             assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields
-        yield _r(fields, reader, chrom_idx=chrom_idx)
-class _r:
+        yield _vfr(fields, reader, chrom_idx=chrom_idx)
+class _vfr:
     def __init__(self, fields, reader, chrom_idx):
         self.fields = fields
         self._reader = reader
@@ -54,6 +54,72 @@ class _r:
             if self._chrom_idx:
                 variant['chrom_idx'] = utils.chrom_order[variant['chrom']]
             yield variant
+
+@contextmanager
+def IndexedVariantFileReader(phenocode):
+    fname = os.path.join(conf.data_dir, 'augmented_pheno_gz', '{}.gz'.format(phenocode))
+
+    with gzip.open(fname, 'rt') as f:
+        reader = csv.reader(f, dialect='pheweb-internal-dialect')
+        colnames = next(reader)
+    assert colnames[0].startswith('#')
+    colnames[0] = colnames[0][1:]
+    for field in colnames:
+        assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields, (field)
+    colidxs = {field: colnum for colnum, field in enumerate(colnames)}
+
+    with pysam.TabixFile(fname, parser=None) as tabix_file:
+        yield _ivfr(tabix_file, colidxs)
+class _ivfr:
+    def __init__(self, _tabix_file, _colidxs):
+        self._tabix_file=_tabix_file
+        self._colidxs=_colidxs
+
+    def _parse_variant_row(self, variant_row):
+        variant = {}
+        for field in self._colidxs:
+            val = variant_row[self._colidxs[field]]
+            parser = conf.parse.fields[field]['_read']
+            try:
+                variant[field] = parser(val)
+            except:
+                print('ERROR: Failed to parse the value {!r} for field {!r} in file {!r}'.format(val, field, self._tabix_file.filename))
+                raise
+        return variant
+
+    def get_region(self, chrom, start, end):
+        '''
+        includes `start`, does not include `end`
+        return is like [{
+              'chrom': 'X', 'pos': 43254, ...,
+            }, ...]
+        '''
+        if start < 1: start = 1
+        if start >= end: return []
+        if chrom not in self._tabix_file.contigs: return []
+
+        # I do not understand why I need to use `pos-1`.
+        # The pysam docs talk about being zero-based or one-based. Is this what they're referring to?
+        # Doesn't make much sense to me.  There must be a reason that I don't understand.
+        try:
+            tabix_iter = self._tabix_file.fetch(chrom, start-1, end-1, parser=None)
+        except:
+            print('ERROR when fetching {}-{}-{} from {}'.format(chrom, start-1, end-1, self._tabix_file.filename))
+            raise
+        reader = csv.reader(tabix_iter, dialect='pheweb-internal-dialect')
+        for variant_row in reader:
+            yield self._parse_variant_row(variant_row)
+
+    def get_variant(self, chrom, pos, ref, alt):
+        x = self.get_region(chrom, pos, pos+1)
+        for variant in x:
+            if variant['pos'] != pos:
+                print('WARNING: while looking for variant {}-{}-{}-{}, saw {!r}'.format(
+                    chrom, pos, ref, alt, variant))
+                continue
+            if variant['ref'] == ref and variant['alt'] == alt and variant:
+                return variant
+        return None
 
 
 class MatrixReader:
@@ -91,20 +157,16 @@ class MatrixReader:
     def get_phenocodes(self):
         return list(self._colidxs_for_pheno)
 
-    @contextlib.contextmanager
+    @contextmanager
     def context(self):
-        with pysam.TabixFile(self._fname, parser=None) as tabix_file: # TODO: tell tabix which line is chrom and which is pos
-            yield _mr(_tabix_file=tabix_file, _colidxs=self._colidxs, _colidxs_for_pheno=self._colidxs_for_pheno, _info_for_pheno=self._info_for_pheno)
-    def get_variant(self, chrom, pos, ref, alt):
-        with self.context() as mr:
-            return mr.get_variant(chrom, pos, ref, alt)
-    def get_region(self, chrom, start, end):
-        with self.context() as mr:
-            return mr.get_region(chrom, start, end)
-
-class _mr:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+        with pysam.TabixFile(self._fname, parser=None) as tabix_file:
+            yield _mr(tabix_file, self._colidxs, self._colidxs_for_pheno, self._info_for_pheno)
+class _mr(_ivfr):
+    def __init__(self, _tabix_file, _colidxs, _colidxs_for_pheno, _info_for_pheno):
+        self._tabix_file=_tabix_file
+        self._colidxs=_colidxs
+        self._colidxs_for_pheno=_colidxs_for_pheno
+        self._info_for_pheno=_info_for_pheno
 
     def _parse_field(self, variant_row, field, phenocode=None):
         colidx = self._colidxs[field] if phenocode is None else self._colidxs_for_pheno[phenocode][field]
@@ -126,59 +188,9 @@ class _mr:
                 p = {}
                 for field in fields:
                     p[field] = self._parse_field(variant_row, field, phenocode)
-                p.update(self._info_for_pheno[phenocode])
-                variant['phenos'][phenocode] = p
+                    p.update(self._info_for_pheno[phenocode])
+                    variant['phenos'][phenocode] = p
         return variant
-
-    def get_variant(self, chrom, pos, ref, alt):
-        if chrom not in self._tabix_file.contigs: return None
-        tabix_iter = self._tabix_file.fetch(chrom, pos-1, pos+1, parser=None)
-        reader = csv.reader(tabix_iter, dialect='pheweb-internal-dialect')
-        for variant_row in reader:
-            if self._parse_field(variant_row, 'pos') != pos:
-                print('WARNING: while looking for variant {}-{}-{}-{}, saw {!r}'.format(
-                    chrom, pos, ref, alt, variant_row))
-                continue
-            if self._parse_field(variant_row, 'ref') != ref: continue
-            if self._parse_field(variant_row, 'alt') != alt: continue
-            return self._parse_variant_row(variant_row)
-        return None # none matched
-
-    def get_region(self, chrom, start, end):
-        '''
-        return is like [{
-              'chrom': 'X', 'pos': 43254, ...,
-              'phenos': { '<phenocode>': {'pval': 2e-4, 'ac': 32}, ... }
-            }, ...]
-        '''
-        if chrom not in self._tabix_file.contigs:
-            return []
-        tabix_iter = self._tabix_file.fetch(chrom, start, end+1, parser=None)
-        reader = csv.reader(tabix_iter, dialect='pheweb-internal-dialect')
-        for variant_row in reader:
-            yield self._parse_variant_row(variant_row)
-
-
-class IndexedVariantFileReader:
-    # this obsolesces get_phenos_with_colnums()
-    # this will be used by:
-    #  1. region.py for augmented_pheno/*
-    #  2. get_variant() for matrix.tsv.gz
-    #  3. gather_pvalues_for_each_gene for matrix.tsv.gz
-    # how do each of those hold an instance?  should they keep their file open?
-    #  - only parses the header once.
-    #  - makes pysam.TabixFile on each call.
-    def __init__(self, fname):
-        self.fname = fname
-
-    def __enter__(self):
-        # open pysam.TabixFile
-        # return a thing that has .get_variant and .get_region
-        # use `parser=None` and then use csv.reader(dialect='pheweb-internal-dialect') on the line.
-        pass
-    def __exit__(self, *args):
-        pass
-
 
 
 
@@ -193,7 +205,7 @@ def _get_part_file(fname):
         print("WARNING: outfile {!r} didn't start with conf.data_dir {!r}".format(fname, conf.data_dir))
     return os.path.join(conf.data_dir, 'tmp', part_file.replace(os.path.sep, '-'))
 
-@contextlib.contextmanager
+@contextmanager
 def VariantFileWriter(fname, allow_extra_fields=False):
     '''
     Writes variants (represented by dictionaries) to an internal file.
@@ -203,8 +215,8 @@ def VariantFileWriter(fname, allow_extra_fields=False):
     '''
     part_file = _get_part_file(fname)
     with AtomicSaver(fname, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
-        yield _w(f, allow_extra_fields, fname)
-class _w:
+        yield _vfw(f, allow_extra_fields, fname)
+class _vfw:
     def __init__(self, f, allow_extra_fields, fname):
         self._f = f
         self._allow_extra_fields = allow_extra_fields

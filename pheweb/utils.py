@@ -84,7 +84,8 @@ class _GetVariant:
         if not hasattr(self, '_matrix_reader'):
             from .file_utils import MatrixReader
             self._matrix_reader = MatrixReader()
-        v = self._matrix_reader.get_variant(chrom, pos, ref, alt)
+        with self._matrix_reader.context() as mr:
+            v = mr.get_variant(chrom, pos, ref, alt)
         if v is None: return None
         v['phenos'] = list(v['phenos'].values())
         return v
@@ -109,6 +110,7 @@ def get_maf(variant, pheno):
 def pad_gene(start, end):
     # We'd like to get 100kb on each side of the gene.
     # But max-region-length is 500kb, so let's try not to exceed that.
+    # Maybe this should only go down to 1 instead of 0. That's confusing, let's just hope this works.
     if start < 1e5:
         if end > 5e5: return (0, end)
         if end > 4e5: return (0, 5e5)
