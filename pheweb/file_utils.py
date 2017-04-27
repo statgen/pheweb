@@ -88,7 +88,7 @@ class MatrixReader:
                 assert field in conf.parse.fields, (field)
                 self._colidxs[field] = colnum
 
-    def get_phenos(self):
+    def get_phenocodes(self):
         return list(self._colidxs_for_pheno)
 
     @contextlib.contextmanager

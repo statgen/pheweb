@@ -84,7 +84,6 @@ class _GetVariant:
         if not hasattr(self, '_matrix_reader'):
             from .file_utils import MatrixReader
             self._matrix_reader = MatrixReader()
-            # LATER: matrix_reader = MatrixReader().context().__enter__()
         v = self._matrix_reader.get_variant(chrom, pos, ref, alt)
         if v is None: return None
         v['phenos'] = list(v['phenos'].values())
