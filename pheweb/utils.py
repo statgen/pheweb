@@ -72,7 +72,7 @@ assert pad_gene(200000, 800000) == (200000, 800000)
 #       and epacts.py should convert all chroms to chrom_idx?
 chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
 chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
-
+chrom_aliases = {'23': 'X', '24': 'Y', '25': 'MT', 'M': 'MT'}
 
 def get_cacheable_file_location(default_dir, fname):
     if 'cache' in conf:

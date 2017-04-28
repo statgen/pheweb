@@ -1,5 +1,5 @@
 
-from ..utils import conf, chrom_order, get_cacheable_file_location
+from ..utils import conf, chrom_order, chrom_aliases, get_cacheable_file_location
 
 import os
 import re
@@ -58,7 +58,8 @@ def get_all_genes(gencode_file):
 
                 assert r[0].startswith('chr')
                 chrom = r[0][3:]
-                if chrom not in chrom_order: continue
+                if chrom in chrom_aliases: chrom = chrom_aliases[chrom]
+                elif chrom not in chrom_order: continue
                 pos1, pos2 = int(r[3]), int(r[4])
                 assert pos1 < pos2
                 symbol = re.search(r'gene_name "(.+?)"', r[8]).group(1)

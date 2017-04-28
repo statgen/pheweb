@@ -1,5 +1,5 @@
 
-from ..utils import conf, chrom_order, chrom_order_list, die
+from ..utils import conf, chrom_order, chrom_order_list, chrom_aliases, die
 from .load_utils import open_maybe_gzip, get_maf
 
 import itertools
@@ -134,6 +134,9 @@ class AssocFileReader:
                     chrom2, pos2, variant['ref'], variant['alt'] = AssocFileReader.parse_marker_id(values[marker_id_col])
                     assert variant['chrom'] == chrom2, (values, variant, chrom2)
                     assert variant['pos'] == pos2, (values, variant, pos2)
+
+                if variant['chrom'] in chrom_aliases:
+                    variant['chrom'] = chrom_aliases[variant['chrom']]
 
                 yield variant
 
