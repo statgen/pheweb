@@ -1,13 +1,13 @@
 
 from ..utils import conf
-from .load_utils import get_path, run_script, run_cmd, get_num_procs
+from .load_utils import get_path, run_script, get_num_procs
 
 import os
 import multiprocessing
+import pysam
 from boltons.fileutils import mkdir_p
 
 echo = get_path('echo')
-tabix = get_path('tabix')
 bgzip = get_path('bgzip')
 
 tmp_dir = os.path.join(conf.data_dir, 'tmp')
@@ -26,7 +26,10 @@ def convert(kwargs):
     '''.format(echo=echo, src_fname=src_fname, bgzip=bgzip, tmp_fname=tmp_fname))
     os.rename(tmp_fname, out_fname)
 
-    run_cmd([tabix, '-f', '-s1', '-b2', '-e2', out_fname])
+    pysam.tabix_index(
+        filename=out_fname, force=True,
+        seq_col=0, start_col=1, end_col=1 # note: these are 0-based, but `/usr/bin/tabix` is 1-based
+    )
 
 
 def get_conversions_to_do():

@@ -123,24 +123,6 @@ def run_script(script):
         raise Exception()
     return data
 
-def run_cmd(cmd):
-    '''cmd must be a list of arguments'''
-    try:
-        with open(os.devnull) as devnull:
-            # is this the right way to block stdin?
-            data = subprocess.check_output(cmd, stderr=subprocess.STDOUT, stdin=devnull)
-        status = 0
-    except subprocess.CalledProcessError as ex:
-        data = ex.output
-        status = ex.returncode
-    data = data.decode('utf8')
-    if status != 0:
-        print('FAILED with status {}'.format(status))
-        print('output was:')
-        print(data)
-        raise Exception()
-    return data
-
 
 def get_num_procs():
     if conf.debug: return 1

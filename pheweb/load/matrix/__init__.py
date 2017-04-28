@@ -1,14 +1,12 @@
 
-
 from ...utils import conf, get_phenolist
 from ...file_utils import MatrixReader
-from ..load_utils import get_path, run_cmd
 
 import os
 import glob
+import pysam
 
 from pheweb.load.matrix._matrixify import ffi, lib
-tabix = get_path('tabix')
 
 my_dir = os.path.dirname(os.path.abspath(__file__))
 sites_fname = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
@@ -53,6 +51,9 @@ def run(argv):
         ]
         lib.cffi_run(*args)
         os.rename(matrix_gz_tmp_fname, matrix_gz_fname)
-        run_cmd([tabix, '-f', '-s1', '-b2', '-e2', matrix_gz_fname]) # TODO: pysam.tabix_index()
+        pysam.tabix_index(
+            filename=matrix_gz_fname, force=True,
+            seq_col=0, start_col=1, end_col=1 # note: these are 0-based, but `/usr/bin/tabix` is 1-based
+        )
     else:
         print('matrix is up-to-date!')
