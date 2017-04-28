@@ -2,15 +2,18 @@
 # This module creates the object `conf`.
 # It also offers some configuration-related utility functions.
 
-import os
-import imp
-from collections import OrderedDict
-from boltons.fileutils import mkdir_p
-import itertools
 from . import utils
 
+import os
+import imp
+import itertools
+from collections import OrderedDict
+from copy import deepcopy
+from boltons.fileutils import mkdir_p
+
+
 class _Attrdict(dict):
-    '''Just a dictionary where dict.key is a proxy for dict[key]'''
+    '''a dictionary where dict.key is a proxy for dict[key]'''
     def __getattr__(self, attr):
         try: return self[attr]
         except KeyError: raise AttributeError()
@@ -75,7 +78,34 @@ _configure_cache()
 
 ### Parsing
 
-default_null_values = ['.', 'NA']
+class Field:
+    def __init__(self, d):
+        self._d = d
+    def parse(self, value):
+        '''parse from input file'''
+        # nullable
+        if self._d['nullable'] and value in conf.parse.null_values:
+            return ''
+        # type
+        x = self._d['type'](value)
+        # range
+        if 'range' in self._d:
+            assert self._d['range'][0] is None or x >= self._d['range'][0]
+            assert self._d['range'][1] is None or x <= self._d['range'][1]
+        if 'sigfigs' in self._d:
+            x = utils.round_sig(x, self._d['sigfigs'])
+        return x
+    def read(self, value):
+        '''read from internal file'''
+        if self._d['nullable'] and value == '':
+            return ''
+        x = self._d['type'](value)
+        if 'range' in self._d:
+            assert self._d['range'][0] is None or x >= self._d['range'][0]
+            assert self._d['range'][1] is None or x <= self._d['range'][1]
+        return x
+
+default_null_values = ['.', 'NA', 'nan', 'NaN']
 
 default_field = {
     'aliases': [],
@@ -87,21 +117,21 @@ default_field = {
 
 default_per_variant_fields = OrderedDict([
     ('chrom', {
-        'aliases': ['#CHROM'],
+        'aliases': ['#CHROM', 'chr'],
         'required': True,
     }),
     ('pos', {
-        'aliases': ['BEG', 'BEGIN'],
+        'aliases': ['BEG', 'BEGIN', 'BP'],
         'required': True,
         'type': int,
         'range': [0, None],
     }),
     ('ref', {
-        'aliases': ['reference'],
+        'aliases': ['reference', 'allele0'],
         'required': True,
     }),
     ('alt', {
-        'aliases': ['alternate'],
+        'aliases': ['alternate', 'allele1'],
         'required': True,
     }),
     ('rsids', {
@@ -180,47 +210,26 @@ default_per_pheno_fields = OrderedDict([
     # TODO: include `assoc_files` with {never_send: True}?
 ])
 
-
-conf.parse.null_values = default_null_values
-conf.parse.per_variant_fields = default_per_variant_fields
-conf.parse.per_assoc_fields = default_per_assoc_fields
-conf.parse.per_pheno_fields = default_per_pheno_fields
+conf.parse.null_values = deepcopy(default_null_values)
+conf.parse.per_variant_fields = deepcopy(default_per_variant_fields)
+conf.parse.per_assoc_fields = deepcopy(default_per_assoc_fields)
+conf.parse.per_pheno_fields = deepcopy(default_per_pheno_fields)
 conf.parse.fields = OrderedDict(itertools.chain(conf.parse.per_variant_fields.items(),
                                                 conf.parse.per_assoc_fields.items(),
                                                 conf.parse.per_pheno_fields.items()))
 assert len(conf.parse.fields) == len(conf.parse.per_variant_fields) + len(conf.parse.per_assoc_fields) + len(conf.parse.per_pheno_fields) # no overlaps!
 
-class Field:
-    def __init__(self, d):
-        self._d = d
-    def parse(self, value):
-        '''parse from input file'''
-        # nullable
-        if self._d['nullable'] and value in conf.parse.null_values:
-            return ''
-        # type
-        x = self._d['type'](value)
-        # range
-        if 'range' in self._d:
-            assert self._d['range'][0] is None or x >= self._d['range'][0]
-            assert self._d['range'][1] is None or x <= self._d['range'][1]
-        if 'sigfigs' in self._d:
-            x = utils.round_sig(x, self._d['sigfigs'])
-        return x
-    def read(self, value):
-        '''read from internal file'''
-        if self._d['nullable'] and value == '':
-            return ''
-        x = self._d['type'](value)
-        if 'range' in self._d:
-            assert self._d['range'][0] is None or x >= self._d['range'][0]
-            assert self._d['range'][1] is None or x <= self._d['range'][1]
-        return x
+if 'aliases' in conf:
+    for alias, field in conf.aliases.items():
+        conf.parse.fields[field].setdefault('aliases', []).append(alias)
+
+if 'null_values' in conf:
+    conf.parse.null_values.extend(conf.null_values)
 
 # make all aliases lowercase and add parsers
 for field_name, field_dict in conf.parse.fields.items():
     for k,v in default_field.items():
         field_dict.setdefault(k, v)
-    field_dict['aliases'] = [field_name.lower()] + [alias.lower() for alias in field_dict['aliases']]
+    field_dict['aliases'] = list(set([field_name.lower()] + [alias.lower() for alias in field_dict['aliases']]))
     field_dict['_parse'] = Field(field_dict).parse
     field_dict['_read']  = Field(field_dict).read
