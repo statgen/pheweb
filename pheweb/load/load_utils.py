@@ -92,19 +92,6 @@ class open_maybe_gzip(object):
         self.f.close()
 
 
-
-def get_path(cmd, attr=None):
-    if attr is None: attr = '{}_path'.format(cmd)
-    path = None
-    if attr in conf:
-        path = conf[attr]
-    else:
-        try: path = subprocess.check_output(['which', cmd]).strip().decode('utf8')
-        except subprocess.CalledProcessError: pass
-    if path is None:
-        raise Exception("The command '{cmd}' was not found in $PATH and was not specified (as {attr}) in config.py.".format(cmd=cmd, attr=attr))
-    return path
-
 def run_script(script):
     script = 'set -euo pipefail\n' + script
     try:

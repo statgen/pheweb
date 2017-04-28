@@ -35,15 +35,10 @@ public:
     BgzipWriter(std::string fname) {
         assert(compressBound(BGZF_BLOCK_SIZE) < BGZF_MAX_BLOCK_SIZE); // sanity-check
         _fname = fname;
-        _file.open(fname.c_str(), std::ios::binary | std::ios::out);
+        _file.open(fname.c_str(), std::ios::out | std::ios::binary);
         _uncompressed_block = new uint8_t[2*BGZF_MAX_BLOCK_SIZE];
         _compressed_block = _uncompressed_block + BGZF_MAX_BLOCK_SIZE;
         _uncompressed_block_size = 0;
-    }
-    void close() {
-        // Make one empty block at the end to indicate EOF (as per samtools unofficial spec)
-        if (_uncompressed_block_size) flush_uncompressed();
-        flush_uncompressed();
     }
     ~BgzipWriter() { close(); }
     void write(const char* src_buffer, size_t src_len) {
@@ -64,6 +59,11 @@ public:
         write(src_string.c_str(), src_string.length());
     }
 private:
+    void close() {
+        // Make one empty block at the end to indicate EOF (as per samtools unofficial spec)
+        if (_uncompressed_block_size) flush_uncompressed();
+        flush_uncompressed();
+    }
      static inline void packInt16(uint8_t *buffer, uint16_t value) {
         buffer[0] = value;
         buffer[1] = value >> 8;
@@ -223,7 +223,7 @@ static inline size_t n_fields(std::string str) {
 // ------
 // main
 
-int run(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname) {
+int make_matrix(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname) {
     BgzipWriter writer(matrix_fname);
 
     LineReader sites_reader;
@@ -306,15 +306,38 @@ int run(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname) {
 }
 
 
+int bgzip_file(char *in_fname, char *out_fname, char *prepend_bytes) {
+
+  BgzipWriter writer(out_fname);
+  std::string prepend_bytes_string(prepend_bytes);
+  writer.write(prepend_bytes_string);
+
+  std::ifstream reader(in_fname, std::ios::in | std::ios::binary);
+
+  static const size_t BLOCK_SIZE = 256 * 1024; // number is arbitrary
+  char *buffer = new char[BLOCK_SIZE];
+
+  while (!reader.eof()) {
+    reader.read(buffer, BLOCK_SIZE);
+    size_t num_bytes_read = reader.gcount();
+    assert(reader.eof() || num_bytes_read == BLOCK_SIZE);
+    writer.write(buffer, num_bytes_read);
+  }
+
+  return 0;
+}
+
+
+
 // ------
 // entry points
 
-int main(int argc, char *argv[]) {
-    return run(argv[2], argv[3], argv[4]);
-}
-
 extern "C" {
-  extern int cffi_run(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname) {
-    return run(sites_fname, augmented_pheno_glob, matrix_fname);
+  extern int cffi_make_matrix(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname) {
+    return make_matrix(sites_fname, augmented_pheno_glob, matrix_fname);
+  }
+
+  extern int cffi_bgzip_file(char *in_fname, char *out_fname, char *prepend_bytes) {
+    return bgzip_file(in_fname, out_fname, prepend_bytes);
   }
 }

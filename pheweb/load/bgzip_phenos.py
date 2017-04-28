@@ -1,29 +1,29 @@
 
 from ..utils import conf
-from .load_utils import get_path, run_script, get_num_procs
+from .load_utils import get_num_procs, star_kwargs, exception_printer
+from .cffi._x import ffi, lib
 
 import os
 import multiprocessing
 import pysam
 from boltons.fileutils import mkdir_p
 
-echo = get_path('echo')
-bgzip = get_path('bgzip')
 
 tmp_dir = os.path.join(conf.data_dir, 'tmp')
 augmented_pheno_dir = os.path.join(conf.data_dir, 'augmented_pheno')
 augmented_pheno_gz_dir = os.path.join(conf.data_dir, 'augmented_pheno_gz')
 
-def convert(kwargs):
-    src_fname = kwargs['src_fname']
-    tmp_fname = kwargs['tmp_fname']
-    out_fname = kwargs['out_fname']
+@exception_printer
+@star_kwargs
+def convert(src_fname, tmp_fname, out_fname):
     print("{} -> {}".format(src_fname, out_fname))
 
-    run_script('''
-    # Tabix expects the header line to start with a '#'
-    ('{echo}' -n '#'; cat '{src_fname}') | '{bgzip}' > '{tmp_fname}'
-    '''.format(echo=echo, src_fname=src_fname, bgzip=bgzip, tmp_fname=tmp_fname))
+    args = [
+        ffi.new('char[]', src_fname.encode('utf8')),
+        ffi.new('char[]', tmp_fname.encode('utf8')),
+        ffi.new('char[]', b'#'),
+    ]
+    lib.cffi_bgzip_file(*args)
     os.rename(tmp_fname, out_fname)
 
     pysam.tabix_index(

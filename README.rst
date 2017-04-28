@@ -70,17 +70,6 @@ Here are more detailed instructions:
       stored. If you don't want one, set ``cache = False``. (default:
       ``cache = "~/.pheweb/cache/"``)
 
-4) Make sure you have tabix and bgzip installed.  If you can't
-   just run ``tabix`` and ``bgzip`` from the command line, find a
-   way to install them or add them to your ``$PATH``.
-
-   -  on macOS, run ``xcode-select --install`` to install XCode,
-      install `homebrew <http://brew.sh>`__, and run
-      ``brew install htslib``.
-   -  on Ubuntu, run ``apt-get install tabix``.  If you don't have
-      permissions, you can install `linuxbrew <http://linuxbrew.sh>`__
-      and run ``brew install htslib``.
-
 2. Prepare your association files
 ---------------------------------
 

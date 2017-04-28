@@ -1,14 +1,12 @@
 
-from ...utils import conf, get_phenolist
-from ...file_utils import MatrixReader
+from ..utils import conf, get_phenolist
+from ..file_utils import MatrixReader
+from .cffi._x import ffi, lib
 
 import os
 import glob
 import pysam
 
-from pheweb.load.matrix._matrixify import ffi, lib
-
-my_dir = os.path.dirname(os.path.abspath(__file__))
 sites_fname = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
 augmented_pheno_dir = os.path.join(conf.data_dir, 'augmented_pheno')
 matrix_gz_tmp_fname = os.path.join(conf.data_dir, 'tmp', 'matrix.tsv.gz')
@@ -49,7 +47,7 @@ def run(argv):
             ffi.new('char[]', '{}/*'.format(augmented_pheno_dir).encode('utf8')),
             ffi.new('char[]', matrix_gz_tmp_fname.encode('utf8'))
         ]
-        lib.cffi_run(*args)
+        lib.cffi_make_matrix(*args)
         os.rename(matrix_gz_tmp_fname, matrix_gz_fname)
         pysam.tabix_index(
             filename=matrix_gz_fname, force=True,

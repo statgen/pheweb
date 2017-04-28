@@ -10,4 +10,4 @@ test/fake-cache/*
 PheWeb.egg-info
 build
 dist
-pheweb/load/matrix/_matrixify*
+pheweb/load/cffi/_x*
