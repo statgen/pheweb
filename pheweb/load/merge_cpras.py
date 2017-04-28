@@ -12,12 +12,9 @@ I'm reading in a full position at a time to avoid this issue that was happening 
 # TODO:
 # - split up by chromosome?
 
-
-
-from .. import utils
-conf = utils.conf
-
+from ..utils import conf, chrom_order, chrom_order_list, get_phenolist
 from ..file_utils import VariantFileReader, VariantFileWriter
+from .load_utils import get_num_procs
 
 import contextlib
 import os
@@ -31,10 +28,10 @@ NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #files / 
 MIN_NUM_FILES_TO_MERGE_AT_ONCE = 4 # Try to avoid ever merging fewer than this many files at a time.
 
 def key_from_variant(v):
-    return (utils.chrom_order[v['chrom']], v['pos'], v['ref'], v['alt'])
+    return (chrom_order[v['chrom']], v['pos'], v['ref'], v['alt'])
 
 def variant_from_key(k):
-    return dict(chrom=utils.chrom_order_list[k[0]], pos=k[1], ref=k[2], alt=k[3])
+    return dict(chrom=chrom_order_list[k[0]], pos=k[1], ref=k[2], alt=k[3])
 
 def merge(input_filenames, out_filename):
     with contextlib.ExitStack() as exit_stack, \
@@ -121,7 +118,7 @@ def merge_files_in_queue(lock, manna_dict):
 
 
 def get_files_to_merge():
-    phenos = utils.get_phenolist()
+    phenos = get_phenolist()
     print('number of phenos:', len(phenos))
     for pheno in phenos:
         fname = os.path.join(conf.data_dir, 'cpra', pheno['phenocode'])
@@ -148,7 +145,7 @@ def run(argv):
     manna_dict = manna.dict()
     manna_dict['files_to_merge'] = files_to_merge
     manna_dict['files_being_merged'] = []
-    num_procs = utils.get_num_procs()
+    num_procs = get_num_procs()
     print('number of processes:', num_procs)
 
     processes = [multiprocessing.Process(target=merge_files_in_queue, args=(manna_lock, manna_dict)) for _ in range(num_procs)]

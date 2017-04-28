@@ -1,18 +1,17 @@
 
-from .. import utils
-conf = utils.conf
+from ..utils import conf, get_phenolist, get_gene_tuples, pad_gene
+from .server_utils import get_variant, get_random_page, get_pheno_region
+from .autocomplete import Autocompleter
 
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory
 from flask_compress import Compress
-
-from .autocomplete import Autocompleter
-from . import region
 
 import functools
 import re
 import traceback
 import os
 import json
+
 
 app = Flask(__name__)
 Compress(app)
@@ -26,7 +25,7 @@ if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
 if 'custom_templates' in conf:
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
-phenos = {pheno['phenocode']: pheno for pheno in utils.get_phenolist()}
+phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
 autocompleter = Autocompleter(phenos)
 
@@ -50,13 +49,13 @@ def go():
 
 @app.route('/api/variant/<query>')
 def api_variant(query):
-    variant = utils.get_variant(query)
+    variant = get_variant(query)
     return jsonify(variant)
 
 @app.route('/variant/<query>')
 def variant_page(query):
     try:
-        variant = utils.get_variant(query)
+        variant = get_variant(query)
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
@@ -82,7 +81,7 @@ def top_hits_page():
 
 @app.route('/random')
 def random_page():
-    url = utils.get_random_page()
+    url = get_random_page()
     if url is None:
         die("Sorry, it looks like no hits in this pheweb reached the significance threshold.")
     return redirect(url)
@@ -117,13 +116,13 @@ def api_region(phenocode):
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
-    rv = region.get_rows(phenocode, chrom, pos_start, pos_end)
+    rv = get_pheno_region(phenocode, chrom, pos_start, pos_end)
     return jsonify(rv)
 
 
 @functools.lru_cache(None)
 def get_gene_region_mapping():
-    return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in utils.get_gene_tuples()}
+    return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
 
 @functools.lru_cache(None)
 def get_best_phenos_by_gene():
@@ -145,7 +144,7 @@ def gene_phenocode_page(phenocode, genename):
                 start = include_pos - (end - start) * 0.01
             elif include_pos > end:
                 end = include_pos + (end - start) * 0.01
-        start, end = utils.pad_gene(start, end)
+        start, end = pad_gene(start, end)
 
         pheno = phenos[phenocode]
 

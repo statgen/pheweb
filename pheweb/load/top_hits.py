@@ -1,7 +1,5 @@
 
-from .. import utils
-conf = utils.conf
-
+from ..utils import conf, get_phenolist
 from ..file_utils import write_json, VariantFileWriter
 
 import os
@@ -66,7 +64,7 @@ just the top phenotype for each, use `pheweb top-loci`.
 ))
         exit(0)
 
-    phenos = utils.get_phenolist()
+    phenos = get_phenolist()
 
     hits = []
     for pheno in phenos:

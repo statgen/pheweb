@@ -1,7 +1,6 @@
 
-
-from .. import utils
-conf = utils.conf
+from ..utils import conf, get_cacheable_file_location
+from .server_utils import parse_variant
 
 import itertools
 import re
@@ -26,7 +25,7 @@ class Autocompleter(object):
 
         self._cpra_to_rsids_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/cpra_to_rsids_trie.marisa')
         self._rsid_to_cpra_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/rsid_to_cpra_trie.marisa')
-        self._gene_alias_trie = marisa_trie.BytesTrie().load(utils.get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'genes'), 'gene_aliases.marisa_trie'))
+        self._gene_alias_trie = marisa_trie.BytesTrie().load(get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'genes'), 'gene_aliases.marisa_trie'))
 
         self._autocompleters = [
             self._autocomplete_variant,
@@ -82,7 +81,7 @@ class Autocompleter(object):
     def _autocomplete_variant(self, query):
         # chrom-pos-ref-alt format
         query = query.replace(',', '')
-        chrom, pos, ref, alt = utils.parse_variant(query, default_chrom_pos = False)
+        chrom, pos, ref, alt = parse_variant(query, default_chrom_pos = False)
         if chrom is not None:
             key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
 

@@ -1,7 +1,6 @@
 
-from ... import utils
-conf = utils.conf
-
+from ...utils import die, conf
+from ..load_utils import open_maybe_gzip
 from ..read_input_file import PhenoReader
 
 import os
@@ -53,23 +52,23 @@ def extract_phenocode_from_fname(phenolist, regex):
         regex = re.compile(regex)
     for pheno in phenolist:
         if 'assoc_files' not in pheno:
-            utils.die("ERROR: At least one phenotype doesn't have the key 'assoc_files'.")
+            die("ERROR: At least one phenotype doesn't have the key 'assoc_files'.")
         if not pheno['assoc_files']:
-            utils.die("ERROR: At least one phenotype has an empty 'assoc_files' list.")
+            die("ERROR: At least one phenotype has an empty 'assoc_files' list.")
         phenocodes = []
         for assoc_fname in pheno['assoc_files']:
             match = re.search(regex, assoc_fname)
             if match is None:
-                utils.die("ERROR: The regex {!r} doesn't match the filename {!r}".format(regex.pattern, assoc_fname))
+                die("ERROR: The regex {!r} doesn't match the filename {!r}".format(regex.pattern, assoc_fname))
             groups = match.groups()
             if len(groups) != 1:
-                utils.die("ERROR: The regex {!r} doesn't capture any groups on the filename {!r}!  You're using parentheses without backslashes, right?".format(regex.pattern, assoc_fname))
+                die("ERROR: The regex {!r} doesn't capture any groups on the filename {!r}!  You're using parentheses without backslashes, right?".format(regex.pattern, assoc_fname))
             phenocodes.append(groups[0])
         if len(set(phenocodes)) != 1:
-            utils.die("ERROR: At least one phenotype gets multiple different phenocodes from its several association filenames.  Here they are: {!r}".format(list(set(phenocodes))))
+            die("ERROR: At least one phenotype gets multiple different phenocodes from its several association filenames.  Here they are: {!r}".format(list(set(phenocodes))))
         if 'phenocode' in pheno:
             if pheno['phenocode'] != phenocodes[0]:
-                utils.die("""\
+                die("""\
 ERROR: The regex {!r} matched the filenames {!r} to produce the phenocode {!r}.  But that phenotype already had a phenocode, {!r}.
 """.format(regex.pattern, pheno['assoc_files'], phenocodes[0], pheno['phenocode']))
         pheno['phenocode'] = phenocodes[0]
@@ -102,13 +101,13 @@ def check_that_all_phenos_have_same_columns(phenolist):
     for pheno in phenolist:
         for col in all_columns:
             if col not in pheno:
-                utils.die("ERROR: the column {!r} is in at least one phenotype but not in {!r}".format(col, pheno))
+                die("ERROR: the column {!r} is in at least one phenotype but not in {!r}".format(col, pheno))
 
 def check_that_all_phenotypes_have_assoc_files(phenolist):
     for pheno in phenolist:
-        if 'assoc_files' not in pheno: utils.die("Some phenotypes don't have any association files")
-        if not isinstance(pheno['assoc_files'], list): utils.die("Assoc_files is not a list for some phenotypes.  I don't know how that happened but it's bad.")
-        if any(not isinstance(s, str) for s in pheno['assoc_files']): utils.die("assoc_files contains things other than strings for some phenotypes.")
+        if 'assoc_files' not in pheno: die("Some phenotypes don't have any association files")
+        if not isinstance(pheno['assoc_files'], list): die("Assoc_files is not a list for some phenotypes.  I don't know how that happened but it's bad.")
+        if any(not isinstance(s, str) for s in pheno['assoc_files']): die("assoc_files contains things other than strings for some phenotypes.")
 
 def extract_info_from_assoc_files(phenolist):
     for pheno in tqdm.tqdm(phenolist, bar_format='Read {n:7} files'):
@@ -140,12 +139,12 @@ def import_phenolist(fname, has_header):
     # Return a list-of-dicts with the original column names, or integers if none.
     # It'd be great to use pandas for this.
     if not os.path.exists(fname):
-        utils.die("ERROR: unable to import {!r} because it doesn't exist".format(fname))
+        die("ERROR: unable to import {!r} because it doesn't exist".format(fname))
     # 1. try openpyxl.
     phenos = _import_phenolist_xlsx(fname, has_header)
     if phenos is not None:
         return phenos
-    with utils.open_maybe_gzip(fname) as f:
+    with open_maybe_gzip(fname) as f:
         # 2. try json.load(f)
         try:
             return json.load(f)
@@ -191,9 +190,9 @@ def _import_phenolist_csv(f, has_header):
         dialect = csv.Sniffer().sniff(f.read(4096))
     except Exception as exc:
         print(exc)
-        utils.die("Sniffing csv format failed.  Check that your csv file is well-formed.  If it is, try delimiting with tabs or semicolons.")
+        die("Sniffing csv format failed.  Check that your csv file is well-formed.  If it is, try delimiting with tabs or semicolons.")
     if dialect.delimiter in string.ascii_letters or dialect.delimiter in string.digits:
-        utils.die("Our csv sniffer decided that {!r} looks like the most likely delimiter in your csv file, but that's crazy.")
+        die("Our csv sniffer decided that {!r} looks like the most likely delimiter in your csv file, but that's crazy.")
     f.seek(0)
     try:
         rows = list(csv.reader(f, dialect))
@@ -221,7 +220,7 @@ def interpret_json(phenolist):
                     pheno[k] = json.loads(s)
                 except Exception as exc:
                     print(exc)
-                    utils.die("The input file contained an invalid field marked to be interpreted as json: {!r}".format(pheno[k]))
+                    die("The input file contained an invalid field marked to be interpreted as json: {!r}".format(pheno[k]))
     return phenolist
 
 def split_values_on_pipes(phenolist):
@@ -242,7 +241,7 @@ def listify_assoc_files(phenolist):
     for pheno in phenolist:
         if 'assoc_files' in pheno and not isinstance(pheno['assoc_files'], list):
             if not isinstance(pheno['assoc_files'], str):
-                utils.die("assoc_files is of unsupported type({!r}). value: {!r}".format(type(pheno['assoc_files']), pheno['assoc_files']))
+                die("assoc_files is of unsupported type({!r}). value: {!r}".format(type(pheno['assoc_files']), pheno['assoc_files']))
             pheno['assoc_files'] = [pheno['assoc_files']]
     return phenolist
 
@@ -284,9 +283,9 @@ def print_as_csv(phenolist):
 def rename_column(phenolist, old_name, new_name):
     for pheno in phenolist:
         if new_name in pheno:
-            utils.die("ERROR: You're renaming the column {!r} to {!r}, but {!r} already exists in the phenotype {!r}.".format(old_name, new_name, new_name, pheno))
+            die("ERROR: You're renaming the column {!r} to {!r}, but {!r} already exists in the phenotype {!r}.".format(old_name, new_name, new_name, pheno))
         if old_name not in pheno:
-            utils.die("ERROR: You're renaming the column {!r} to {!r}, but {!r} doesn't exist in the phenotype {!r}.".format(old_name, new_name, old_name, pheno))
+            die("ERROR: You're renaming the column {!r} to {!r}, but {!r} doesn't exist in the phenotype {!r}.".format(old_name, new_name, old_name, pheno))
         pheno[new_name] = pheno[old_name]
         del pheno[old_name]
     return phenolist
@@ -325,7 +324,7 @@ def merge_in_info(phenolist, more_info_rows):
     for pheno in phenolist:
         row = more_info_by_phenocode.get(pheno['phenocode'], None)
         if row is None:
-            utils.die("ERROR: there's no row in your info-to-merge file with the phenocode {!r}".format(pheno['phenocode']))
+            die("ERROR: there's no row in your info-to-merge file with the phenocode {!r}".format(pheno['phenocode']))
         for key in keys_to_add:
             pheno[key] = row[key]
     return phenolist
@@ -377,9 +376,9 @@ def unique_phenocode(phenolist, new_column_name):
     # so, for example, [{LDL, a, 5}, {LDL, b, 2}] -> [{LDL, [{a,5},{b,2}]}].
     # notice how we can still see that `a` goes with `5` and `b` with `2`.
     if not all('phenocode' in pheno for pheno in phenolist):
-        utils.die("At least one pheno doesn't have a 'phenocode', so you can't run unique-phenocode")
+        die("At least one pheno doesn't have a 'phenocode', so you can't run unique-phenocode")
     if not boltons.iterutils.same(pheno.keys() for pheno in phenolist):
-        utils.die("Not all phenotypes have the same columns.  That probably not a problem, but I haven't thought through the implications yet.")
+        die("Not all phenotypes have the same columns.  That probably not a problem, but I haven't thought through the implications yet.")
     phenocode_groups = boltons.iterutils.bucketize(phenolist, lambda p: p['phenocode']).values()
     columns_to_listify = set()
     for phenocode_group in phenocode_groups:
@@ -404,13 +403,13 @@ def unique_phenocode(phenolist, new_column_name):
                     assert all(row[key] == phenocode_group[0][key] for row in phenocode_group)
                 else:
                     if not boltons.iterutils.same(type(row[key]) for row in phenocode_group):
-                        utils.die("ERROR: there are multiple types in the column {!r}, so I don't want to make it a list".format(key))
+                        die("ERROR: there are multiple types in the column {!r}, so I don't want to make it a list".format(key))
                     if isinstance(phenocode_group[0][key], list):
                         # TODO: assert that the elements of the lists are all the same type
                         items_to_add = itertools.chain.from_iterable(row[key] for row in phenocode_group)
                     else:
                         if not isinstance(phenocode_group[0][key], (str, int, float, dict)):
-                            utils.die("Where did you even get the type {!r}?".format(type(phenocode_group[0][key])))
+                            die("Where did you even get the type {!r}?".format(type(phenocode_group[0][key])))
                         items_to_add = (row[key] for row in phenocode_group)
                     new_pheno[key] = list(set(_get_hashable(item) for item in items_to_add))
             new_phenolist.append(new_pheno)
@@ -433,12 +432,12 @@ def unique_phenocode(phenolist, new_column_name):
 
 def load_phenolist(fname):
     if not os.path.exists(fname):
-        utils.die("The filename {!r} does not exist.".format(fname))
+        die("The filename {!r} does not exist.".format(fname))
     with open(fname) as f:
         try:
             phenolist = json.load(f)
         except:
-            utils.die("Failed to load json from {!r}.".format(fname))
+            die("Failed to load json from {!r}.".format(fname))
         return phenolist
 
 def save_phenolist(phenolist, fname=None):
@@ -516,7 +515,7 @@ def run(argv):
     def f(args, phenolist):
         if args.simple:
             args.pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.epacts|\.gz|\.tsv)*$'
-        if not args.pattern: utils.die("You must either supply a pattern or use --simple")
+        if not args.pattern: die("You must either supply a pattern or use --simple")
         extract_phenocode_from_fname(phenolist, args.pattern)
     p = subparsers.add_parser('extract-phenocode-from-fname', help='use a regex to extract phenocodes from association filenames')
     p.add_argument('pattern', nargs='?', help="a perl-compatible regex pattern with one capture group")
@@ -612,7 +611,7 @@ def run(argv):
     @modifies_phenolist
     def f(args, phenolist):
         if len(args.renames) % 2 != 0:
-            utils.die("You supplied {} arguments. That's not a multiple of two. How am I supposed to pair old names with new names if you don't give me the same number of each?".format(len(args.renames)))
+            die("You supplied {} arguments. That's not a multiple of two. How am I supposed to pair old names with new names if you don't give me the same number of each?".format(len(args.renames)))
         for oldname, newname in boltons.iterutils.chunked_iter(args.renames, 2):
             phenolist = rename_column(phenolist, oldname, newname)
         return phenolist

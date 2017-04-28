@@ -1,16 +1,14 @@
 
 
-from ... import utils
-conf = utils.conf
-
+from ...utils import conf, get_phenolist
 from ...file_utils import MatrixReader
-
+from ..load_utils import get_path, run_cmd
 
 import os
 import glob
 
 from pheweb.load.matrix._matrixify import ffi, lib
-tabix = utils.get_path('tabix')
+tabix = get_path('tabix')
 
 my_dir = os.path.dirname(os.path.abspath(__file__))
 sites_fname = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
@@ -19,7 +17,7 @@ matrix_gz_tmp_fname = os.path.join(conf.data_dir, 'tmp', 'matrix.tsv.gz')
 matrix_gz_fname = os.path.join(conf.data_dir, 'matrix.tsv.gz')
 
 def should_run():
-    cur_phenocodes = set(pheno['phenocode'] for pheno in utils.get_phenolist())
+    cur_phenocodes = set(pheno['phenocode'] for pheno in get_phenolist())
 
     # Remove files that shouldn't be there (and will confuse the glob in matrixify)
     for fname in glob.glob(os.path.join(augmented_pheno_dir, '*')):
@@ -55,6 +53,6 @@ def run(argv):
         ]
         lib.cffi_run(*args)
         os.rename(matrix_gz_tmp_fname, matrix_gz_fname)
-        utils.run_cmd([tabix, '-f', '-s1', '-b2', '-e2', matrix_gz_fname]) # TODO: pysam.tabix_index()
+        run_cmd([tabix, '-f', '-s1', '-b2', '-e2', matrix_gz_fname]) # TODO: pysam.tabix_index()
     else:
         print('matrix is up-to-date!')

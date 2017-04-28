@@ -2,9 +2,6 @@
 
 # TODO: color lines with ==> using `colorama`
 
-from .. import utils
-conf = utils.conf
-
 import time
 import importlib
 

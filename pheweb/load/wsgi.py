@@ -1,8 +1,6 @@
 
-from __future__ import print_function, division, absolute_import
-
 from .. import utils
-conf = utils.conf
+from ..utils import conf
 
 import os
 

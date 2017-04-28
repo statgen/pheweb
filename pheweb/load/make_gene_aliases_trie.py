@@ -1,6 +1,5 @@
 
-from .. import utils
-conf = utils.conf
+from ..utils import conf, get_cacheable_file_location, get_gene_tuples
 
 import os
 import re
@@ -12,11 +11,11 @@ import marisa_trie
 def run(argv):
 
     gene_dir = os.path.join(conf.data_dir, 'sites', 'genes')
-    aliases_file = utils.get_cacheable_file_location(gene_dir, 'gene_aliases.marisa_trie')
+    aliases_file = get_cacheable_file_location(gene_dir, 'gene_aliases.marisa_trie')
     if not os.path.exists(aliases_file):
         print('gene aliases will be stored at {aliases_file!r}'.format(aliases_file=aliases_file))
 
-        aliases_for_ensg = {ensg: (canonical_symbol, []) for _, _, _, canonical_symbol, ensg in utils.get_gene_tuples(include_ensg=True)}
+        aliases_for_ensg = {ensg: (canonical_symbol, []) for _, _, _, canonical_symbol, ensg in get_gene_tuples(include_ensg=True)}
         print('num canonical gene names:', len(aliases_for_ensg))
         canonical_symbols = set(v[0].upper() for v in aliases_for_ensg.values())
         for cs in canonical_symbols: assert cs and all(l.isalnum() or l in '-._' for l in cs), cs

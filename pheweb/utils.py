@@ -1,25 +1,14 @@
 
-import re
-import itertools
-import functools
-import traceback
 import math
 import json
-import gzip
 import os
-import random
-import sys
-import subprocess
-import time
-import multiprocessing
 import csv
 import boltons.mathutils
 import urllib.parse
-import blist
-import bisect
+import sys
 
+from .conf_utils import conf
 
-## Functions required by `conf`
 
 def round_sig(x, digits):
     if x == 0:
@@ -39,26 +28,6 @@ assert approx_equal(42, 42.0000001)
 assert not approx_equal(42, 42.01)
 
 
-## Functions requiring `conf`
-
-from . import conf_utils
-conf = conf_utils.conf
-
-
-class _ParseVariant:
-    chrom_regex = re.compile(r'(?:[cC][hH][rR])?([0-9XYMT]+)')
-    chrom_pos_regex = re.compile(chrom_regex.pattern + r'[-_:/ ]([0-9]+)')
-    chrom_pos_ref_alt_regex = re.compile(chrom_pos_regex.pattern + r'[-_:/ ]([-AaTtCcGg\.]+)[-_:/ ]([-AaTtCcGg\.]+)')
-    def parse_variant(self, query, default_chrom_pos=True):
-        match = self.chrom_pos_ref_alt_regex.match(query) or self.chrom_pos_regex.match(query) or self.chrom_regex.match(query)
-        g = match.groups() if match else ()
-
-        if default_chrom_pos:
-            if len(g) == 0: g += ('1',)
-            if len(g) == 1: g += (0,)
-        if len(g) >= 2: g = (g[0], int(g[1])) + tuple([bases.upper() for bases in g[2:]])
-        return g + tuple(itertools.repeat(None, 4-len(g)))
-parse_variant = _ParseVariant().parse_variant
 
 def get_phenolist():
     # TODO: should this be memoized?
@@ -67,8 +36,9 @@ def get_phenolist():
         with open(os.path.join(fname)) as f:
             phenolist = json.load(f)
     except (FileNotFoundError, PermissionError):
-        die("You need a file to define your phenotypes at '{fname}'.\n".format(fname=fname) +
-            "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
+        print("You need a file to define your phenotypes at '{fname}'.\n".format(fname=fname) +
+              "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
+        raise Exception()
     except json.JSONDecodeError:
         print("Your file at '{fname}' contains invalid json.\n".format(fname=fname) +
               "The error it produced was:")
@@ -76,35 +46,6 @@ def get_phenolist():
     for pheno in phenolist:
         pheno['phenocode'] = urllib.parse.quote_plus(pheno['phenocode'])
     return phenolist
-
-class _GetVariant:
-    def get_variant(self, query):
-        chrom, pos, ref, alt = parse_variant(query)
-        assert None not in [chrom, pos, ref, alt]
-        if not hasattr(self, '_matrix_reader'):
-            from .file_utils import MatrixReader
-            self._matrix_reader = MatrixReader()
-        with self._matrix_reader.context() as mr:
-            v = mr.get_variant(chrom, pos, ref, alt)
-        if v is None: return None
-        v['phenos'] = list(v['phenos'].values())
-        return v
-get_variant = _GetVariant().get_variant
-
-def get_maf(variant, pheno):
-    mafs = []
-    if 'maf' in variant:
-        mafs.append(variant['maf'])
-    if 'af' in variant:
-        mafs.append(min(variant['af'], 1-variant['af']))
-    if 'ac' in variant and 'num_samples' in pheno:
-        mafs.append(variant['ac'] / pheno['num_samples'])
-    if not mafs: return None
-    if len(mafs) > 1:
-        if not approx_equal(min(mafs), max(mafs), tolerance=0.1):
-            raise Exception("Error: the variant {} has two ways of computing maf, resulting in the mafs {}, which differ by more than 10%.")
-        return sum(mafs[0])/len(mafs)
-    return mafs[0]
 
 
 def pad_gene(start, end):
@@ -127,147 +68,10 @@ assert pad_gene(200000, 700000) == (200000, 700000)
 assert pad_gene(200000, 800000) == (200000, 800000)
 
 
-def get_random_page():
-    with open(os.path.join(conf['data_dir'], 'top_hits.json')) as f:
-        hits = json.load(f)
-    hits_to_choose_from = [hit for hit in hits if hit['pval'] < 5e-8]
-    if not hits_to_choose_from:
-        hits_to_choose_from = hits
-    if not hits:
-        return None
-    hit = random.choice(hits_to_choose_from)
-    r = random.random()
-    if r < 0.4:
-        return '/pheno/{}'.format(hit['phenocode'])
-    elif r < 0.8:
-        return '/variant/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
-    else:
-        offset = int(50e3)
-        return '/region/{phenocode}/{chrom}:{pos1}-{pos2}'.format(pos1=hit['pos']-offset, pos2=hit['pos']+offset, **hit)
-
-
-def die(message):
-    print(message, file=sys.stderr)
-    raise Exception()
-
-
-def exception_printer(f):
-    @functools.wraps(f)
-    def f2(*args, **kwargs):
-        try:
-            rv = f(*args, **kwargs)
-        except Exception as exc:
-            time.sleep(2*random.random()) # hopefully avoid interleaved printing (when using multiprocessing)
-            traceback.print_exc()
-            strexc = str(exc) # parser errors can get very long
-            if len(strexc) > 10000: strexc = strexc[1000:] + '\n\n...\n\n' + strexc[-1000:]
-            print(strexc)
-            if args: print('args were: {!r}'.format(args))
-            if kwargs: print('kwargs were: {!r}'.format(args))
-            print('')
-            raise
-        return rv
-    return f2
-
-def exception_tester(f):
-    @functools.wraps(f)
-    def f2(*args, **kwargs):
-        try:
-            rv = f(*args, **kwargs)
-        except Exception as exc:
-            traceback.print_exc()
-            strexc = str(exc) # parser errors can get very long
-            if len(strexc) > 10000: strexc = strexc[1000:] + '\n\n...\n\n' + strexc[-1000:]
-            print(strexc)
-            if args: print('args were: {!r}'.format(args))
-            if kwargs: print('kwargs were: {!r}'.format(args))
-            print('')
-            return {'args': args, 'kwargs': kwargs, 'succeeded': False}
-        return {'args': args, 'kwargs': kwargs, 'succeeded': True, 'rv': rv}
-    return f2
-
-
-def star_kwargs(f):
-    # LATER: use multiprocessing.Pool().starmap(func, [(arg1, arg2), ...]) instead.
-    @functools.wraps(f)
-    def f2(kwargs):
-        return f(**kwargs)
-    return f2
-
-
-class open_maybe_gzip(object):
-    def __init__(self, fname, *args):
-        self.fname = fname
-        self.args = args
-    def __enter__(self):
-        is_gzip = False
-        with open(self.fname, 'rb') as f:
-            if f.read(3) == b'\x1f\x8b\x08':
-                is_gzip = True
-        if is_gzip:
-            self.f = gzip.open(self.fname, *self.args)
-        else:
-            self.f = open(self.fname, *self.args)
-        return self.f
-    def __exit__(self, *exc):
-        self.f.close()
-
-
 # TODO: chrom_order_list[25-1] = 'M', chrom_order['M'] = 25-1, chrom_order['MT'] = 25-1 ?
 #       and epacts.py should convert all chroms to chrom_idx?
 chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
 chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
-
-
-def get_path(cmd, attr=None):
-    if attr is None: attr = '{}_path'.format(cmd)
-    path = None
-    if attr in conf:
-        path = conf[attr]
-    else:
-        try: path = subprocess.check_output(['which', cmd]).strip().decode('utf8')
-        except subprocess.CalledProcessError: pass
-    if path is None:
-        raise Exception("The command '{cmd}' was not found in $PATH and was not specified (as {attr}) in config.py.".format(cmd=cmd, attr=attr))
-    return path
-
-
-def run_script(script):
-    script = 'set -euo pipefail\n' + script
-    try:
-        with open(os.devnull) as devnull:
-            # is this the right way to block stdin?
-            data = subprocess.check_output(['bash', '-c', script], stderr=subprocess.STDOUT, stdin=devnull)
-        status = 0
-    except subprocess.CalledProcessError as ex:
-        data = ex.output
-        status = ex.returncode
-    data = data.decode('utf8')
-    if status != 0:
-        print('FAILED with status {}'.format(status))
-        print('output was:')
-        print(data)
-        raise Exception()
-    return data
-
-
-def run_cmd(cmd):
-    '''cmd must be a list of arguments'''
-    try:
-        with open(os.devnull) as devnull:
-            # is this the right way to block stdin?
-            data = subprocess.check_output(cmd, stderr=subprocess.STDOUT, stdin=devnull)
-        status = 0
-    except subprocess.CalledProcessError as ex:
-        data = ex.output
-        status = ex.returncode
-    data = data.decode('utf8')
-    if status != 0:
-        print('FAILED with status {}'.format(status))
-        print('output was:')
-        print(data)
-        raise Exception()
-    return data
 
 
 def get_cacheable_file_location(default_dir, fname):
@@ -288,39 +92,6 @@ def get_gene_tuples(include_ensg=False):
                 yield (row[0], int(row[1]), int(row[2]), row[3])
 
 
-def get_num_procs():
-    if conf.debug: return 1
-    try: return conf.num_procs
-    except: pass
-    n_cpus = multiprocessing.cpu_count()
-    if n_cpus == 1: return 1
-    if n_cpus < 4: return n_cpus - 1
-    return n_cpus * 3//4
-
-
-class Heap():
-    '''Unlike most heaps, this heap can safely store uncomparable values'''
-    def __init__(self):
-        self._q = blist.blist()
-        self._items = {}
-        self._idx = 0
-
-    def add(self, item, priority):
-        idx = self._idx
-        self._idx += 1
-        if not self._q or -priority < self._q[0][0]:
-            self._q.insert(0, (-priority, idx))
-        else:
-            bisect.insort(self._q, (-priority, idx))
-        self._items[idx] = item
-
-    def pop(self):
-        priority, idx = self._q.pop(0)
-        return self._items.pop(idx)
-
-    def __len__(self):
-        return len(self._q)
-
-    def __iter__(self):
-        while self._q:
-            yield self.pop()
+def die(message):
+    print(message, file=sys.stdout)
+    raise Exception()

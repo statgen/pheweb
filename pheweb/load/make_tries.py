@@ -1,8 +1,6 @@
 
 
-from .. import utils
-conf = utils.conf
-
+from ..utils import conf
 from ..file_utils import VariantFileReader
 
 import os

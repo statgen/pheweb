@@ -18,13 +18,11 @@ We read one full position at a time.  When we have a position-match, we find all
 # TODO:
 # - Do we need to left-normalize all indels?
 # - sorting (chr&pos) is already taken care of for sites.tsv, so remove the assertions.
-#   instead, assert that (1) rsids_chrom_order matches utils.chrom_order and (2) rsids follow rsids_chrom_order (in get_rsid_reader)
+#   instead, assert that (1) rsids_chrom_order matches chrom_order and (2) rsids follow rsids_chrom_order (in get_rsid_reader)
 #   so, move rsids_chrom_order inside get_rsid_reader
 
 
-from .. import utils
-conf = utils.conf
-
+from ..utils import conf, get_cacheable_file_location
 from ..file_utils import VariantFileReader, VariantFileWriter
 
 import os
@@ -33,7 +31,7 @@ import itertools
 
 
 
-rsids_filename = utils.get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'dbSNP'), 'rsids-147.vcf.gz')
+rsids_filename = get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'dbSNP'), 'rsids-147.vcf.gz')
 cpra_filename = conf.data_dir + "/sites/cpra.tsv"
 out_filename = conf.data_dir + "/sites/cpra_rsids.tsv"
 

@@ -1,6 +1,6 @@
 
-from .. import utils
-conf = utils.conf
+from ..utils import conf, chrom_order, get_cacheable_file_location
+from .load_utils import get_path, run_cmd
 
 import os
 import re
@@ -58,7 +58,7 @@ def get_all_genes(gencode_file):
 
                 assert r[0].startswith('chr')
                 chrom = r[0][3:]
-                if chrom not in utils.chrom_order: continue
+                if chrom not in chrom_order: continue
                 pos1, pos2 = int(r[3]), int(r[4])
                 assert pos1 < pos2
                 symbol = re.search(r'gene_name "(.+?)"', r[8]).group(1)
@@ -114,14 +114,14 @@ def dedup_symbol(genes):
 def run(argv):
     gene_dir = os.path.join(conf.data_dir, 'sites', 'genes')
     gencode_file = os.path.join(gene_dir, 'gencode-v25.gtf.gz')
-    bed_file = utils.get_cacheable_file_location(gene_dir, 'genes.bed')
+    bed_file = get_cacheable_file_location(gene_dir, 'genes.bed')
 
     if not os.path.exists(bed_file):
         print('genes.bed will be stored at {bed_file!r}'.format(bed_file=bed_file))
         mkdir_p(gene_dir)
         if not os.path.exists(gencode_file):
-            wget = utils.get_path('wget')
-            utils.run_cmd([wget, '-O', gencode_file, "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"])
+            wget = get_path('wget')
+            run_cmd([wget, '-O', gencode_file, "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"])
 
         genes = get_all_genes(gencode_file)
         genes = dedup_ensg(genes)

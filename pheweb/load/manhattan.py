@@ -5,10 +5,9 @@ This script creates json files which can be used to render Manhattan plots.
 
 # TODO: combine with QQ.
 
-from .. import utils
-conf = utils.conf
-
+from ..utils import conf, chrom_order, get_phenolist
 from ..file_utils import VariantFileReader, write_json
+from .load_utils import Heap, star_kwargs, get_num_procs
 
 import os
 import math
@@ -42,11 +41,11 @@ def get_pvals_and_pval_extents(pvals, neglog10_pval_bin_size):
 # TODO: convert bins from {(chrom, pos): []} to {chrom:{pos:[]}}?
 def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     bins = {}
-    unbinned_variant_heap = utils.Heap()
+    unbinned_variant_heap = Heap()
     chrom_n_bins = {}
 
     def bin_variant(variant):
-        chrom_key = utils.chrom_order[variant['chrom']]
+        chrom_key = chrom_order[variant['chrom']]
         pos_bin = variant['pos'] // bin_length
         chrom_n_bins[chrom_key] = max(chrom_n_bins.get(chrom_key,0), pos_bin)
         if (chrom_key, pos_bin) in bins:
@@ -83,7 +82,7 @@ def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_siz
 
 
 
-@utils.star_kwargs
+@star_kwargs
 def make_json_file(src_filename, dest_filename):
 
     BIN_LENGTH = int(3e6)
@@ -108,7 +107,7 @@ def make_json_file(src_filename, dest_filename):
 
 
 def get_conversions_to_do():
-    phenocodes = [pheno['phenocode'] for pheno in utils.get_phenolist()]
+    phenocodes = [pheno['phenocode'] for pheno in get_phenolist()]
     for phenocode in phenocodes:
         src_filename = os.path.join(conf.data_dir, 'augmented_pheno', phenocode)
         dest_filename = os.path.join(conf.data_dir, 'manhattan', '{}.json'.format(phenocode))
@@ -130,5 +129,5 @@ def run(argv):
         for c in conversions_to_do:
             make_json_file(c)
     else:
-        with multiprocessing.Pool(utils.get_num_procs()) as p:
+        with multiprocessing.Pool(get_num_procs()) as p:
             p.map(make_json_file, conversions_to_do)

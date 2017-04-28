@@ -1,14 +1,14 @@
 
-from .. import utils
-conf = utils.conf
-
-from .read_input_file import PhenoReader
+from ..utils import conf, get_phenolist
 from ..file_utils import VariantFileReader, VariantFileWriter
+from .read_input_file import PhenoReader
+from .load_utils import exception_printer, star_kwargs, get_num_procs
 
 import os
 import datetime
 import multiprocessing
 from boltons.fileutils import mkdir_p
+
 
 sites_filename = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
 
@@ -25,8 +25,8 @@ def _which_variant_is_bigger(v1, v2):
     return 1 if v1['chrom_idx'] > v2['chrom_idx'] else 2
 
 
-@utils.exception_printer
-@utils.star_kwargs
+@exception_printer
+@star_kwargs
 def convert(pheno, dest_filename):
 
     pheno_reader = PhenoReader(pheno, keep_chrom_idx=True)
@@ -65,7 +65,7 @@ def convert(pheno, dest_filename):
     print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
 
 def get_conversions_to_do():
-    phenos = utils.get_phenolist()
+    phenos = get_phenolist()
     print('number of phenos:', len(phenos))
     for pheno in phenos:
         dest_filename = '{}/augmented_pheno/{}'.format(conf.data_dir, pheno['phenocode'])
@@ -89,5 +89,5 @@ def run(argv):
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
-    with multiprocessing.Pool(utils.get_num_procs()) as p:
+    with multiprocessing.Pool(get_num_procs()) as p:
         p.map(convert, conversions_to_do)

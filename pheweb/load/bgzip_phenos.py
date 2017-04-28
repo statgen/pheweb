@@ -1,14 +1,14 @@
 
-from .. import utils
-conf = utils.conf
+from ..utils import conf
+from .load_utils import get_path, run_script, run_cmd, get_num_procs
 
 import os
 import multiprocessing
 from boltons.fileutils import mkdir_p
 
-echo = utils.get_path('echo')
-tabix = utils.get_path('tabix')
-bgzip = utils.get_path('bgzip')
+echo = get_path('echo')
+tabix = get_path('tabix')
+bgzip = get_path('bgzip')
 
 tmp_dir = os.path.join(conf.data_dir, 'tmp')
 augmented_pheno_dir = os.path.join(conf.data_dir, 'augmented_pheno')
@@ -20,13 +20,13 @@ def convert(kwargs):
     out_fname = kwargs['out_fname']
     print("{} -> {}".format(src_fname, out_fname))
 
-    utils.run_script('''
+    run_script('''
     # Tabix expects the header line to start with a '#'
     ('{echo}' -n '#'; cat '{src_fname}') | '{bgzip}' > '{tmp_fname}'
     '''.format(echo=echo, src_fname=src_fname, bgzip=bgzip, tmp_fname=tmp_fname))
     os.rename(tmp_fname, out_fname)
 
-    utils.run_cmd([tabix, '-f', '-s1', '-b2', '-e2', out_fname])
+    run_cmd([tabix, '-f', '-s1', '-b2', '-e2', out_fname])
 
 
 def get_conversions_to_do():
@@ -49,5 +49,5 @@ def run(argv):
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
-    with multiprocessing.Pool(utils.get_num_procs()) as p:
+    with multiprocessing.Pool(get_num_procs()) as p:
         p.map(convert, conversions_to_do)

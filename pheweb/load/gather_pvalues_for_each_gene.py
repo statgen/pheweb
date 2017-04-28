@@ -1,7 +1,5 @@
 
-from .. import utils
-conf = utils.conf
-
+from ..utils import conf, get_gene_tuples, pad_gene
 from ..file_utils import MatrixReader, write_json
 
 import os
@@ -17,8 +15,8 @@ def run(argv):
 
         with MatrixReader().context() as matrix_reader:
 
-            for chrom, start, end, gene_symbol in utils.get_gene_tuples():
-                start, end = utils.pad_gene(start, end)
+            for chrom, start, end, gene_symbol in get_gene_tuples():
+                start, end = pad_gene(start, end)
                 # This dictionary will only contain p-values < MIN_PVALUE_TO_SHOW .
                 best_assoc_for_pheno = {}
 

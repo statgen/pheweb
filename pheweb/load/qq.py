@@ -9,10 +9,9 @@ This script creates json files which can be used to render QQ plots.
 #    - unbinned_variants
 #    - get_conf_int()
 
-from .. import utils
-conf = utils.conf
-
+from ..utils import conf, round_sig, approx_equal, get_phenolist
 from ..file_utils import VariantFileReader, write_json
+from .load_utils import get_maf, exception_printer, star_kwargs, get_num_procs
 
 import collections
 import os
@@ -39,10 +38,10 @@ def gc_value_from_list(neglog10_pvals, quantile=0.5):
 def gc_value(pval, quantile=0.5):
     # This should be equivalent to this R: `qchisq(p, df=1, lower.tail=F) / qchisq(.5, df=1, lower.tail=F)`
     return scipy.stats.chi2.ppf(1 - pval, 1) / scipy.stats.chi2.ppf(1 - quantile, 1)
-assert utils.approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
-assert utils.approx_equal(gc_value(0.5), 1)
-assert utils.approx_equal(gc_value(0.50001), 0.9999533)
-assert utils.approx_equal(gc_value(0.6123), 0.5645607)
+assert approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
+assert approx_equal(gc_value(0.5), 1)
+assert approx_equal(gc_value(0.50001), 0.9999533)
+assert approx_equal(gc_value(0.6123), 0.5645607)
 
 
 def compute_qq(neglog10_pvals):
@@ -107,7 +106,7 @@ def make_qq_unstratified(variants, include_qq):
         if math.isnan(gc) or abs(gc) == math.inf:
             print('WARNING: got gc_value {!r}'.format(gc))
         else:
-            rv['gc_lambda'][perc] = utils.round_sig(gc, 5)
+            rv['gc_lambda'][perc] = round_sig(gc, 5)
     return rv
 
 
@@ -119,11 +118,11 @@ def augment_variants(variants, pheno):
             print("Warning: There's a variant with pval 0 in {!r}.  (Variant: {!r})".format(pheno['phenocode'], v))
             continue
         neglog10_pval = -math.log10(v['pval'])
-        maf = utils.get_maf(v, pheno)
+        maf = get_maf(v, pheno)
         yield Variant(neglog10_pval=neglog10_pval, maf=maf, v=v)
 
-@utils.exception_printer
-@utils.star_kwargs
+@exception_printer
+@star_kwargs
 def make_json_file(src_filename, dest_filename, pheno):
     with VariantFileReader(src_filename) as variant_dicts:
         variants = list(augment_variants(variant_dicts, pheno))
@@ -139,7 +138,7 @@ def make_json_file(src_filename, dest_filename, pheno):
 
 
 def get_conversions_to_do():
-    for pheno in utils.get_phenolist():
+    for pheno in get_phenolist():
         src_filename = os.path.join(conf.data_dir, 'augmented_pheno', pheno['phenocode'])
         dest_filename = os.path.join(conf.data_dir, 'qq', '{}.json'.format(pheno['phenocode']))
         if not os.path.exists(dest_filename) or os.stat(dest_filename).st_mtime < os.stat(src_filename).st_mtime:
@@ -152,5 +151,5 @@ def run(argv):
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
-    with multiprocessing.Pool(utils.get_num_procs()) as p:
+    with multiprocessing.Pool(get_num_procs()) as p:
         p.map(make_json_file, conversions_to_do)

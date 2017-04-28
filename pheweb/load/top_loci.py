@@ -1,18 +1,17 @@
 
-from .. import utils
-conf = utils.conf
-
+from ..utils import conf, get_phenolist
 from ..file_utils import write_json, VariantFileWriter
 
 import json
 import os.path
+
 
 LOCI_SPREAD_FROM_BEST_HIT = int(500e3)
 LOCI_SPREAD_FROM_BEST_HIT_WITHIN_PHENOTYPE = int(1e6)
 PVAL_CUTOFF = 1e-6
 
 def get_hits():
-    phenos = utils.get_phenolist()
+    phenos = get_phenolist()
 
     hits_by_chrom = dict()
     for pheno in phenos:

@@ -1,6 +1,6 @@
 
-from .. import utils
-conf = utils.conf
+from ..utils import conf, chrom_order, chrom_order_list, die, approx_equal
+from .load_utils import open_maybe_gzip, get_maf
 
 import itertools
 import re
@@ -42,9 +42,9 @@ class PhenoReader:
             chrom_index = self._get_chrom_index(cp[0])
             if chrom_index < prev_chrom_index:
                 print("The chromosomes in your file appear to be in the wrong order.")
-                print("The required order is: {!r}".format(utils.chrom_order_list))
+                print("The required order is: {!r}".format(chrom_order_list))
                 print("But in your file, the chromosome {!r} came after the chromosome {!r}".format(
-                    cp[0], utils.chrom_order_list[prev_chrom_index]))
+                    cp[0], chrom_order_list[prev_chrom_index]))
                 raise Exception()
             if chrom_index == prev_chrom_index and cp[1] < prev_pos:
                 print("The positions in your file appear to be in the wrong order.")
@@ -78,7 +78,7 @@ class PhenoReader:
     @staticmethod
     def _get_chrom_index(chrom):
         try:
-            return utils.chrom_order[chrom]
+            return chrom_order[chrom]
         except KeyError:
             print("\nIt looks like one of your variants has the chromosome {!r}, but PheWeb doesn't handle that chromosome.".format(chrom))
             print("I bet you could fix it by running code like this on each of your input files:")
@@ -101,7 +101,7 @@ class AssocFileReader:
         if only_cpra:
             fields_to_check = {k:v for k,v in fields_to_check.items() if k in ['chrom', 'pos', 'ref', 'alt', 'pval']}
 
-        with utils.open_maybe_gzip(self.fname, 'rt') as f:
+        with open_maybe_gzip(self.fname, 'rt') as f:
 
             colnames = [colname.strip('"\' ').lower() for colname in next(f).rstrip('\n\r').split('\t')]
             colidx_for_field = self._parse_header(colnames, fields_to_check)
@@ -127,11 +127,11 @@ class AssocFileReader:
                 if 'maf' in variant and 'af' in variant:
                     af = variant['af']
                     maf2 = af if af<0.5 else 1 - af
-                    if not utils.approx_equal(maf2, variant['maf']):
+                    if not approx_equal(maf2, variant['maf']):
                         print("You have both AF ({!r}) and MAF ({!r}), but they're different.".format(af, variant['maf']))
 
                 if minimum_maf is not None:
-                    maf = utils.get_maf(variant, self._pheno)
+                    maf = get_maf(variant, self._pheno)
                     if maf < minimum_maf:
                         continue
 
@@ -147,7 +147,7 @@ class AssocFileReader:
         first_info = next(infos)
         for info in infos:
             if info != first_info:
-                utils.die("The pheno info parsed from some lines disagrees.\n" +
+                die("The pheno info parsed from some lines disagrees.\n" +
                           "- in the file {}".format(self.fname) +
                           "- parsed from first line:\n    {}".format(first_info) +
                           "- parsed from a later line:\n    {}".format(info))
@@ -156,7 +156,7 @@ class AssocFileReader:
     def _get_infos(self, limit=1000):
         # return the per-pheno info for each of the first `limit` variants
         fields_to_check = conf.parse.per_pheno_fields
-        with utils.open_maybe_gzip(self.fname, 'rt') as f:
+        with open_maybe_gzip(self.fname, 'rt') as f:
             colnames = [colname.strip('"\' ').lower() for colname in next(f).rstrip('\n\r').split('\t')]
             colidx_for_field = self._parse_header(colnames, fields_to_check)
             self._assert_all_fields_mapped(colnames, fields_to_check, colidx_for_field)
@@ -166,10 +166,10 @@ class AssocFileReader:
                 # Check that num_cases + num_controls == num_samples
                 if all(key in variant for key in ['num_cases', 'num_controls', 'num_samples']):
                     if variant['num_cases'] + variant['num_controls'] != variant['num_samples']:
-                        utils.die("The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
-                                  "- the filename: {!r}\n".format(self.fname) +
-                                  "- the line number: {}".format(linenum+1) +
-                                  "- parsed line: [{!r}]\n".format(line))
+                        die("The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
+                            "- the filename: {!r}\n".format(self.fname) +
+                            "- the line number: {}".format(linenum+1) +
+                            "- parsed line: [{!r}]\n".format(line))
                     del variant['num_samples'] # don't need it.
                 yield variant
 
