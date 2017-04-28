@@ -40,6 +40,7 @@ variants = sorted(variants, key=lambda v: (chroms.index(v['chrom']), v['pos']))
 def make_pheno(pheno_name, use_maf, use_af, use_ac, use_ns):
 
     ns = random.randrange(100, 10_000)
+    num_chromosomes = ns*2
 
     with TSVWriter(f'input_files/assoc-files/{pheno_name}.txt') as writer:
 
@@ -53,9 +54,9 @@ def make_pheno(pheno_name, use_maf, use_af, use_ac, use_ns):
                     alt=v['alt'],
                     pval=format_float(random.random()),
                 )
-                ac = random.randrange(0,ns+1) # allow MAF=0 b/c I'm sure somebody will.
-                af = ac / ns
-                if use_maf: d['maf'] = format_float(af if af < 0.5 else 1-af)
+                ac = random.randrange(0,num_chromosomes+1) # allow MAF=0 b/c I'm sure somebody will.
+                af = ac / num_chromosomes
+                if use_maf: d['maf'] = format_float(min(af, 1-af))
                 if use_af: d['af'] = format_float(af)
                 if use_ac: d['ac'] = ac
                 if use_ns: d['ns'] = ns
