@@ -173,6 +173,7 @@ default_per_assoc_fields = OrderedDict([
         'sigfigs': 2,
     }),
     ('af', {
+        'aliases': ['A1FREQ'],
         'type': float,
         'range': [0, 1],
         'sigfigs': 2, # TODO: never round 99.99% to 100%.  Make sure MAF would have the right sigfigs.
@@ -234,6 +235,6 @@ for field_name, field_dict in conf.parse.fields.items():
     field_dict['_parse'] = Field(field_dict).parse
     field_dict['_read']  = Field(field_dict).read
 
-_repeated_aliases = [alias for alias,count in Counter(itertools.chain.from_iterable(f['aliases'] for f in conf.parse.fields)).most_common() if count > 1]
+_repeated_aliases = [alias for alias,count in Counter(itertools.chain.from_iterable(f['aliases'] for f in conf.parse.fields.values())).most_common() if count > 1]
 if _repeated_aliases:
     raise Exception('The following aliases appear for multiple fields: {}'.format(_repeated_aliases))
