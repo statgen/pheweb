@@ -61,22 +61,27 @@ else
 fi
 
 port="$(python3 -c "print(__import__('random').randrange(8000,9000))")"
-echo -e "\n\n\n====> pheweb serve --port $port"
-pheweb serve --port "$port" &
+echo -e "\n\n\n====> pheweb serve --port $port --no-reloader"
+pheweb serve --port "$port" --no-reloader &
 pid=$!
 sleep 1
-curl -sSI "http://localhost:$port/" | grep -q 200
-curl -sSI "http://localhost:$port/variant/15-55447871-C-T" | grep -q 200
-curl -sSI "http://localhost:$port/static/variant.js" | grep -q 200
-curl -sSI "http://localhost:$port/pheno/snowstorm" | grep -q 200
-curl -sSI "http://localhost:$port/api/manhattan/pheno/snowstorm.json" | grep -q 200
-curl -sSI "http://localhost:$port/api/qq/pheno/snowstorm.json" | grep -q 200
-curl -sSI "http://localhost:$port/region/snowstorm/8:926279-1326279" | grep -q 200
-curl -sSI "http://localhost:$port/api/region/snowstorm/lz-results/?filter=analysis%20in%203%20and%20chromosome%20in%20%20%278%27%20and%20position%20ge%20976279%20and%20position%20le%201276279" | grep -q 200
-curl -sSI "http://localhost:$port/region/snowstorm/gene/DNAH14?include=1-225494097" | grep -q 200
-curl -sSI "http://localhost:$port/api/autocomplete?query=%20DAP-2" | grep -q 200
-curl -sS "http://localhost:$port/region/1/gene/SAMD11" | grep -q EAR-LENGTH
+check_url() { url="$1"; echo "$url"; curl -sSI "$url" | grep -q 200; }
+grep_url()  { url="$1"; echo "$url"; pattern="$2"; curl -sS "$url" | grep -q "$pattern"; }
+if check_url "http://localhost:$port/" &&
+   check_url "http://localhost:$port/variant/15-55447871-C-T"&&
+   check_url "http://localhost:$port/static/variant.js" &&
+   check_url "http://localhost:$port/pheno/snowstorm" &&
+   check_url "http://localhost:$port/api/manhattan/pheno/snowstorm.json" &&
+   check_url "http://localhost:$port/api/qq/pheno/snowstorm.json" &&
+   check_url "http://localhost:$port/region/snowstorm/8:926279-1326279" &&
+   check_url "http://localhost:$port/api/region/snowstorm/lz-results/?filter=analysis%20in%203%20and%20chromosome%20in%20%20%278%27%20and%20position%20ge%20976279%20and%20position%20le%201276279" &&
+   check_url "http://localhost:$port/region/snowstorm/gene/DNAH14?include=1-225494097" &&
+   check_url "http://localhost:$port/api/autocomplete?query=%20DAP-2" &&
+   grep_url "http://localhost:$port/region/1/gene/SAMD11" "EAR-LENGTH"
+then passed=false
+fi
 kill $pid
+if [[ ${failed:-} = false ]]; then exit 1; fi
 
 echo -e "\n\n====> SUCCESS"
 
