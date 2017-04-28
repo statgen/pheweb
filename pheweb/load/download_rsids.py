@@ -6,7 +6,7 @@ import os
 import wget
 from boltons.fileutils import mkdir_p
 
-dbsnp_version = 147
+dbsnp_version = 150
 dbsnp_dir = os.path.join(conf.data_dir, 'sites', 'dbSNP')
 raw_tmpfile = os.path.join(dbsnp_dir, 'tmp-dbsnp-b{}-GRCh37.gz'.format(dbsnp_version))
 raw_file = os.path.join(dbsnp_dir, 'dbsnp-b{}-GRCh37.gz'.format(dbsnp_version))
@@ -18,12 +18,17 @@ def run(argv):
         print('dbsnp will be stored at {clean_file!r}'.format(clean_file=clean_file))
         mkdir_p(dbsnp_dir)
         if not os.path.exists(raw_file):
+
+            # dbSNP downloads are described at <https://www.ncbi.nlm.nih.gov/variation/docs/human_variation_vcf/>
+            # This file includes chr-pos-ref-alt-rsid and 4X a bunch of useless columns:
+            dbsnp_url = 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170403.vcf.gz'
+
             print('Downloading dbsnp!')
-            dbsnp_url = 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz'
-            #dbsnp_url= 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/database/organism_data/b147_SNPChrPosOnRef_105.bcp.gz'
             wget.download(url=dbsnp_url, out=raw_tmpfile)
             os.rename(raw_tmpfile, raw_file)
+            print('Done downloading.')
 
+        print('Converting {raw_file} -> {clean_file}'.format(raw_file=raw_file, clean_file=clean_file))
         run_script(r'''
         gzip -cd '{raw_file}' |
         grep -v '^#' |
@@ -32,5 +37,4 @@ def run(argv):
         '''.format(raw_file=raw_file, clean_tmpfile=clean_tmpfile))
         os.rename(clean_tmpfile, clean_file)
 
-    else:
-        print("dbsnp is at '{clean_file}'".format(clean_file=clean_file))
+    print("dbsnp is at '{clean_file}'".format(clean_file=clean_file))

@@ -22,16 +22,15 @@ We read one full position at a time.  When we have a position-match, we find all
 #   so, move rsids_chrom_order inside get_rsid_reader
 
 
-from ..utils import conf, get_cacheable_file_location
+from ..utils import conf
 from ..file_utils import VariantFileReader, VariantFileWriter
+from .download_rsids import clean_file as rsids_filename
 
 import os
 import gzip
 import itertools
 
 
-
-rsids_filename = get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'dbSNP'), 'rsids-147.vcf.gz')
 cpra_filename = conf.data_dir + "/sites/cpra.tsv"
 out_filename = conf.data_dir + "/sites/cpra_rsids.tsv"
 
