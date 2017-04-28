@@ -7,7 +7,7 @@ from . import utils
 import os
 import imp
 import itertools
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from copy import deepcopy
 from boltons.fileutils import mkdir_p
 
@@ -233,3 +233,7 @@ for field_name, field_dict in conf.parse.fields.items():
     field_dict['aliases'] = list(set([field_name.lower()] + [alias.lower() for alias in field_dict['aliases']]))
     field_dict['_parse'] = Field(field_dict).parse
     field_dict['_read']  = Field(field_dict).read
+
+_repeated_aliases = [alias for alias,count in Counter(itertools.chain.from_iterable(f['aliases'] for f in conf.parse.fields)).most_common() if count > 1]
+if _repeated_aliases:
+    raise Exception('The following aliases appear for multiple fields: {}'.format(_repeated_aliases))

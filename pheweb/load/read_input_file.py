@@ -1,5 +1,5 @@
 
-from ..utils import conf, chrom_order, chrom_order_list, die, approx_equal
+from ..utils import conf, chrom_order, chrom_order_list, die
 from .load_utils import open_maybe_gzip, get_maf
 
 import itertools
