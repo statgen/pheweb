@@ -57,6 +57,12 @@ def debug(argv):
     run(argv)
 handlers['debug'] = debug
 
+def quick(argv):
+    from . import utils
+    utils.conf.quick = True
+    run(argv)
+handlers['quick'] = quick
+
 def help(argv):
     run(argv[0:1] + ['-h'])
 handlers['help'] = help

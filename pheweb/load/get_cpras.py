@@ -4,6 +4,7 @@ from ..file_utils import VariantFileWriter, write_json
 from .read_input_file import PhenoReader
 from .load_utils import exception_tester, star_kwargs, get_num_procs
 
+import itertools
 import datetime
 import multiprocessing
 import os
@@ -17,7 +18,9 @@ def convert(pheno, dest_filename):
         minimum_maf = conf.minimum_maf if hasattr(conf, 'minimum_maf') else None
         pheno_reader = PhenoReader(pheno, only_cpra=True, minimum_maf=minimum_maf)
         assert set(pheno_reader.fields) == set(['chrom', 'pos', 'ref', 'alt'])
-        writer.write_all(pheno_reader.get_variants())
+        variants = pheno_reader.get_variants()
+        if conf.get('quick', False): variants = itertools.islice(variants, 0, 10000)
+        writer.write_all(variants)
     print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
 
 
