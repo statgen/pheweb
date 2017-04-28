@@ -12,7 +12,6 @@ num_procs = 2 # makes debugging a little nicer
 # But, if you can't just run `bgzip` and `tabix` from the commandline, you need to put their paths here.
 #tabix_path = "/path/to/my/tabix"
 #bgzip_path = "/path/to/my/bgzip"
-#wget_path = "/path/to/my/wget"
 
 # directory for caching large (~1GB) common files like dbsnp
 cache = '../fake-cache'

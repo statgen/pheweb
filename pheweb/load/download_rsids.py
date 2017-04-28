@@ -1,8 +1,9 @@
 
 from ..utils import conf, get_cacheable_file_location
-from .load_utils import get_path, run_script, run_cmd
+from .load_utils import run_script
 
 import os
+import wget
 from boltons.fileutils import mkdir_p
 
 dbsnp_version = 147
@@ -18,16 +19,15 @@ def run(argv):
         mkdir_p(dbsnp_dir)
         if not os.path.exists(raw_file):
             print('Downloading dbsnp!')
-            wget = get_path('wget')
             dbsnp_url = 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz'
             #dbsnp_url= 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/database/organism_data/b147_SNPChrPosOnRef_105.bcp.gz'
-            run_cmd([wget, '-O', raw_tmpfile, dbsnp_url])
+            wget.download(url=dbsnp_url, out=raw_tmpfile)
             os.rename(raw_tmpfile, raw_file)
 
         run_script(r'''
         gzip -cd '{raw_file}' |
         grep -v '^#' |
-        perl -F'\t' -nale 'print "$F[0]\t$F[1]\t$F[2]\t$F[3]\t$F[4]"' | # Gotta declare that it's tab-delimited, else it's '\s'-delimited I think.
+        perl -F'\t' -nale 'print "$F[0]\t$F[1]\t$F[2]\t$F[3]\t$F[4]"' | # Gotta declare that it's tab-delimited, else it's '\s+'-delimited I think.
         gzip > '{clean_tmpfile}'
         '''.format(raw_file=raw_file, clean_tmpfile=clean_tmpfile))
         os.rename(clean_tmpfile, clean_file)

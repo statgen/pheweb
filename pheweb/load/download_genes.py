@@ -1,11 +1,11 @@
 
 from ..utils import conf, chrom_order, get_cacheable_file_location
-from .load_utils import get_path, run_cmd
 
 import os
 import re
 import gzip
 import csv
+import wget
 from boltons.fileutils import mkdir_p
 import boltons.iterutils
 
@@ -120,9 +120,10 @@ def run(argv):
         print('genes.bed will be stored at {bed_file!r}'.format(bed_file=bed_file))
         mkdir_p(gene_dir)
         if not os.path.exists(gencode_file):
-            wget = get_path('wget')
-            run_cmd([wget, '-O', gencode_file, "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"])
-
+            wget.download(
+                url="ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz",
+                out=gencode_file
+            )
         genes = get_all_genes(gencode_file)
         genes = dedup_ensg(genes)
         genes = dedup_symbol(genes)

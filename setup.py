@@ -59,5 +59,6 @@ setup(
         'boltons~=17.0',
         'blist~=1.3',
         'cffi~=1.9',
+        'wget~=3.2',
     ]
 )
