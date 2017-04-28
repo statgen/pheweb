@@ -74,15 +74,15 @@ _configure_cache()
 
 
 ### Parsing
-# These attributes are used by [input_parser, Manhattan, QQ, get_variant(), region()] to determine [float, int, str]
 
 default_null_values = ['.', 'NA']
 
 default_field = {
+    'aliases': [],
     'required': False,
     'type': str,
+    'nullable': False,
     'from_assoc_files': True, # if this is False, then the field will not be parsed from input files, because annotation will add it.
-    'aliases': [],
 }
 
 default_per_variant_fields = OrderedDict([
@@ -113,28 +113,47 @@ default_per_variant_fields = OrderedDict([
 ])
 
 default_per_assoc_fields = OrderedDict([
-    ('maf', {
-        'type': float,
-        'range': [0, 0.5],
-        'sigfigs': 3,
-    }),
     ('pval', {
         'aliases': ['PVALUE'],
         'required': True,
         'type': float,
         'nullable': True,
         'range': [0, 1],
-        'sigfigs': 3,
+        'sigfigs': 2,
     }),
     ('beta', {
         'type': float,
         'nullable': True,
-        'sigfigs': 3,
+        'sigfigs': 2,
     }),
     ('sebeta', {
         'type': float,
         'nullable': True,
-        'sigfigs': 3,
+        'sigfigs': 2,
+    }),
+    ('or', {
+        'type': float,
+        'nullable': True,
+        'range': [0, None],
+        'sigfigs': 2,
+    }),
+    ('maf', {
+        'type': float,
+        'range': [0, 0.5],
+        'sigfigs': 2,
+    }),
+    ('af', {
+        'type': float,
+        'range': [0, 1],
+        'sigfigs': 2, # TODO: never round 99.99% to 100%.  Make sure MAF would have the right sigfigs.
+    }),
+    ('ac', {
+        'type': float,
+        'range': [0, None],
+    }),
+    ('r2', {
+        'type': float,
+        'nullable': True,
     }),
 ])
 
@@ -177,7 +196,7 @@ class Field:
     def parse(self, value):
         '''parse from input file'''
         # nullable
-        if 'nullable' in self._d and value in conf.parse.null_values:
+        if self._d['nullable'] and value in conf.parse.null_values:
             return ''
         # type
         x = self._d['type'](value)
@@ -190,7 +209,7 @@ class Field:
         return x
     def read(self, value):
         '''read from internal file'''
-        if 'nullable' in self._d and value == '':
+        if self._d['nullable'] and value == '':
             return ''
         x = self._d['type'](value)
         if 'range' in self._d:

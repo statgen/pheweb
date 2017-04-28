@@ -95,9 +95,10 @@ class AssocFileReader:
         self.fname = fname
         self._pheno = pheno
 
-    def get_variants(self, minimum_maf=None, only_cpra=False):
+    _fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(conf.parse.per_variant_fields.items(), conf.parse.per_assoc_fields.items()) if fieldval['from_assoc_files']}
 
-        fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(conf.parse.per_variant_fields.items(), conf.parse.per_assoc_fields.items()) if fieldval['from_assoc_files']}
+    def get_variants(self, minimum_maf=None, only_cpra=False):
+        fields_to_check = self._fields_to_check
         if only_cpra:
             fields_to_check = {k:v for k,v in fields_to_check.items() if k in ['chrom', 'pos', 'ref', 'alt', 'pval']}
 
@@ -124,14 +125,8 @@ class AssocFileReader:
                 if only_cpra:
                     del variant['pval']
 
-                if 'maf' in variant and 'af' in variant:
-                    af = variant['af']
-                    maf2 = af if af<0.5 else 1 - af
-                    if not approx_equal(maf2, variant['maf']):
-                        print("You have both AF ({!r}) and MAF ({!r}), but they're different.".format(af, variant['maf']))
-
+                maf = get_maf(variant, self._pheno) # checks for agreement
                 if minimum_maf is not None:
-                    maf = get_maf(variant, self._pheno)
                     if maf < minimum_maf:
                         continue
 

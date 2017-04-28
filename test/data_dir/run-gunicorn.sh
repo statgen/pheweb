@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gunicorn --error-logfile=- --access-logfile=- -w4 --reload wsgi
+python3 "$(which gunicorn)" --error-logfile=- --access-logfile=- -w4 --reload --pythonpath ../../ pheweb.serve.server:app

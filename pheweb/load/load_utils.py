@@ -10,7 +10,7 @@ import blist
 import bisect
 import random
 
-from ..utils import approx_equal, conf
+from ..utils import conf, round_sig
 
 
 def get_maf(variant, pheno):
@@ -20,12 +20,15 @@ def get_maf(variant, pheno):
     if 'af' in variant:
         mafs.append(min(variant['af'], 1-variant['af']))
     if 'ac' in variant and 'num_samples' in pheno:
-        mafs.append(variant['ac'] / pheno['num_samples'])
+        x = variant['ac'] / 2 / pheno['num_samples']
+        mafs.append(min(x, 1-x))
     if not mafs: return None
     if len(mafs) > 1:
-        if not approx_equal(min(mafs), max(mafs), tolerance=0.1):
-            raise Exception("Error: the variant {} has two ways of computing maf, resulting in the mafs {}, which differ by more than 10%.")
-        return sum(mafs[0])/len(mafs)
+        if max(mafs) - min(mafs) > 0.05:
+            raise Exception(
+                "Error: the variant {} in pheno {} has two ways of computing maf, resulting in the mafs {}, which differ by more than 0.05.".format(
+                    variant, pheno, mafs))
+        return round_sig(sum(mafs)/len(mafs), conf.parse.fields['maf']['sigfigs'])
     return mafs[0]
 
 
