@@ -2,8 +2,8 @@
 
 
 {% block in_head %}
-<script type="text/javascript" src="{{ url_for('static', filename='vendor/stream_table.min.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='pheno.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='pheno.js') }}" type="text/javascript"></script>
 <script type="text/javascript">
   window.pheno = {{ phenocode|tojson|safe }};
   $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json")
