@@ -3,6 +3,7 @@ from ..utils import conf, get_gene_tuples, pad_gene
 from ..file_utils import MatrixReader, write_json
 
 import os
+import tqdm
 
 def run(argv):
 
@@ -15,7 +16,7 @@ def run(argv):
 
         with MatrixReader().context() as matrix_reader:
 
-            for chrom, start, end, gene_symbol in get_gene_tuples():
+            for chrom, start, end, gene_symbol in tqdm.tqdm(list(get_gene_tuples()), bar_format='Read {n:5} genes'):
                 start, end = pad_gene(start, end)
                 # This dictionary will only contain p-values < MIN_PVALUE_TO_SHOW .
                 best_assoc_for_pheno = {}
