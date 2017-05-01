@@ -41,16 +41,17 @@ def get_rsid_reader(rsids_f):
     for line in rsids_f:
         if not line.startswith('##'):
             if line.startswith('#'):
-                assert line.rstrip('\n').split('\t') == '#CHROM POS ID REF ALT QUAL FILTER INFO'.split()
+                assert line.rstrip('\n').split('\t') == '#CHROM POS ID REF ALT QUAL FILTER INFO'.split(), repr(line)
             else:
                 fields = line.rstrip('\n').split('\t')
                 chrom, pos, rsid, ref, alt_group = fields[0], int(fields[1]), fields[2], fields[3], fields[4]
                 assert rsid.startswith('rs')
                 # Sometimes the reference contains `N`, and that's okay.
-                assert all(base in 'ATCGN' for base in ref), repr(ref)
+                assert all(base in 'ATCGN' for base in ref), (chrom, pos, ref, alt)
                 for alt in alt_group.split(','):
                     # Alt can be a comma-separated list
-                    assert all(base in 'ATCGN' for base in alt), repr(alt)
+                    if alt == '.': continue # TODO: I don't understand what this means or why it happens.
+                    assert all(base in 'ATCGN' for base in alt), (chrom, pos, ref, alt)
                     yield {'chrom':chrom, 'pos':int(pos), 'ref':ref, 'alt':alt, 'rsid':rsid}
 
 
@@ -120,8 +121,8 @@ def run(argv):
                 # we have rsids at this position!  will they match on ref/alt?
                 for cpra in cp_group:
                     rsids = [rsid['rsid'] for rsid in rsid_group if cpra['ref'] == rsid['ref'] and are_match(cpra['alt'], rsid['alt'])]
-                    if len(rsids) > 1:
-                        print('WARNING: the variant {chrom}-{pos}-{ref}-{alt} has multiple rsids: {rsids}'.format(**cpra, rsids=rsids))
+                    # if len(rsids) > 1:
+                    #     print('WARNING: the variant {chrom}-{pos}-{ref}-{alt} has multiple rsids: {rsids}'.format(**cpra, rsids=rsids))
                     cpra['rsids'] = ','.join(rsids)
                     writer.write(cpra)
             else:
