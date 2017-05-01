@@ -65,7 +65,7 @@
         <i><%= g %></i></a><%= (i+1 !== h.nearest_genes.length)?',':'' %>
       <% }) %>
     </td>
-    <td><%= h.maf.toPrecision(2) %></td>
+    <td><%= (h.maf)? h.maf.toPrecision(2) : (h.af)? h.af.toPrecision(2) : (h.ac)? h.ac : "" %></td>
     <td><%= h.pval.toExponential(1) %></td>
   </tr>
 </script>

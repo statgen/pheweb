@@ -170,15 +170,15 @@
 <script type="text/template" id="tooltip-template">
 <%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> &gt; <%= d.alt %><br>
 pval: <%= d.pval.toExponential(1) %><br>
-MAF: <%= d.maf.toPrecision(2) %><br>
 nearest gene<%= (d.nearest_genes.indexOf(',') !== -1) ? 's' : '' %>: <i><%= d.nearest_genes.replace(/,/g, ', ') %></i><br>
-<% if (d.rsids) { %>
-rsid<%= (d.rsids.indexOf(',') !== -1) ? 's' : '' %>: <%= d.rsids.replace(/,/g, ', ') %><br>
-<% } %>
-<% _.each(['beta', 'sebeta'], function(key) { %>
-<% if (_.has(d, key)) { %>
-<%= key %>: <%= d[key] %><br>
-<% } %>
+<% _.each((d.rsids||"").split(","), function(rsid) { %>
+rsid: <%= rsid %><br>
+<% }) %>
+<% _.each(['maf', 'af'], function(key) { %>
+<% (_.has(d, key))? key + ": " + d[key].toPrecision(3) : ""; %>
+<% }) %>
+<% _.each(['ac', 'beta', 'sebeta'], function(key) { %>
+<% (_.has(d, key))? key + ": " + d[key] : ""; %>
 <% }) %>
 </script>
 
@@ -189,7 +189,7 @@ rsid<%= (d.rsids.indexOf(',') !== -1) ? 's' : '' %>: <%= d.rsids.replace(/,/g, '
     <% if (v.rsids) { %>(<%= v.rsids.replace(/,/g, ', ') %>)<% } %>
 </a></td>
 <td><i><%= v.nearest_genes.replace(/,/g, ', ') %></i></td>
-<td><%= v.maf.toPrecision(2) %></td>
+<td><%= (v.maf)? v.maf.toPrecision(2) : (v.af)? v.af.toPrecision(2) : (v.ac)? v.ac : "" %></td>
 <td><%= v.pval.toExponential(1) %></td>
 </tr>
 </script>
