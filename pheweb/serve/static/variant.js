@@ -104,7 +104,10 @@ function deepcopy(obj) {
         "{{#if num_cases}}<div>#cases: <strong>{{num_cases}}</strong></div>{{/if}}" +
         "{{#if num_controls}}<div>#controls: <strong>{{num_controls}}</strong></div>{{/if}}" +
         "{{#if beta}}<div>beta: <strong>{{beta}}{{#if sebeta}} ({{sebeta}}){{/if}}</strong></div>{{/if}}" +
-        "{{#if or}}<div>odds ratio: <strong>{{or}}</strong></div>{{/if}}";
+        "{{#if or}}<div>odds ratio: <strong>{{or}}</strong></div>{{/if}}" +
+        "{{#if af}}<div>AF: <strong>{{af}}</strong></div>{{/if}}" +
+        "{{#if maf}}<div>MAF: <strong>{{maf}}</strong></div>{{/if}}" +
+        "{{#if ac}}<div>AC: <strong>{{ac}}</strong></div>{{/if}}";
     phewas_panel.data_layers[1].tooltip.closable = false;
 
     // Use `neglog10_handle0` to handle pval=0 variants a little better.
@@ -174,6 +177,35 @@ function deepcopy(obj) {
         var plot = LocusZoom.populate("#phewas_plot_container", data_sources, layout);
         window.debug.plot = plot;
     });
+})();
+
+
+// Check MAF/AF/AC and render
+(function() {
+    var isnum = function(d) { return typeof d == "number"; };
+    var mafs = window.variant.phenos.map(function(v) {
+        if (isnum(v.maf))  { return v.maf; }
+        else if (isnum(v.af)) { return v.af; }
+        else if (isnum(v.ac) && isnum(v.num_samples)) { return v.ac / v.num_samples; }
+        else { return undefined; }
+    });
+    console.log(mafs);
+    window.debug.mafs = mafs;
+    var num_phenos_with_maf = _.filter(mafs, function(d) { return isnum(d) }).length;
+    console.log(num_phenos_with_maf);
+    if (num_phenos_with_maf === mafs.length) {
+        var range = d3.extent(mafs);
+        $(function() {
+            $('#maf-range').html('<p>MAF ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + '</p>');
+            $('#maf-range p').css('margin-bottom', '0');
+        });
+    } else if (num_phenos_with_maf > 0) {
+        var range = d3.extent(mafs);
+        $(function() {
+            $('#maf-range').html('<p>MAF ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ' for phenotypes where it is defined</p>');
+            $('#maf-range p').css('margin-bottom', '0');
+        });
+    }
 })();
 
 

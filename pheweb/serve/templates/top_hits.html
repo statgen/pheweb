@@ -2,7 +2,7 @@
 
 
 {% block in_head %}
-<script src="{{ url_for('static', filename='vendor/stream_table.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='top_hits.js') }}" type="text/javascript"></script>
 <script type="text/javascript">
   $.getJSON("/api/top_hits.json").done(function(data) {

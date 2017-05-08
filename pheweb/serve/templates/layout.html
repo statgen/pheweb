@@ -55,6 +55,10 @@
                 <li><a href="/random" style="color: #333; font-weight: bold;">Random</a></li>
                 <li><a href="/top_hits" style="color: #333; font-weight: bold;">Top Hits</a></li>
                 <li><a href="/about" style="color: #333; font-weight: bold;">About</a></li>
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('logout') }}" style="color: #333; font-weight: bold;">Logout ({{ current_user.email }})</a></li>
+                {% endif %}
+
             </ul>
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
