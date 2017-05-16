@@ -50,7 +50,7 @@ def get_rsid_reader(rsids_f):
                 assert all(base in 'ATCGN' for base in ref), (chrom, pos, ref, alt)
                 for alt in alt_group.split(','):
                     # Alt can be a comma-separated list
-                    if alt == '.': continue # TODO: I don't understand what this means or why it happens.
+                    if alt == '.': continue # TODO: I don't understand what this means or why it happens.  Probably it should match any alt.
                     assert all(base in 'ATCGN' for base in alt), (chrom, pos, ref, alt)
                     yield {'chrom':chrom, 'pos':int(pos), 'ref':ref, 'alt':alt, 'rsid':rsid}
 
