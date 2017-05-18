@@ -32,16 +32,16 @@ if not os.path.isdir(conf.data_dir):
 if not os.access(conf.data_dir, os.R_OK):
     raise Exception("Your data directory, {!r}, is not readable.".format(conf.data_dir))
 
-config_file = os.path.join(conf.data_dir, 'config.py')
-if os.path.isfile(config_file):
+_config_file = os.path.join(conf.data_dir, 'config.py')
+if os.path.isfile(_config_file):
     try:
-        conf_module = imp.load_source('config', config_file)
+        _conf_module = imp.load_source('config', _config_file)
     except:
-        raise Exception("PheWeb tried to load your config.py at {!r} but it failed.".format(config_file))
+        raise Exception("PheWeb tried to load your config.py at {!r} but it failed.".format(_config_file))
     else:
-        for key in dir(conf_module):
+        for key in dir(_conf_module):
             if not key.startswith('_'):
-                conf[key] = getattr(conf_module, key)
+                conf[key] = getattr(_conf_module, key)
 
 if 'custom_templates' not in conf:
     conf['custom_templates'] = os.path.join(conf.data_dir, 'custom_templates')
