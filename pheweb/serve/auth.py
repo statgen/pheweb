@@ -35,7 +35,7 @@ class GoogleSignIn(object):
             response_type='code',
             prompt='select_account',
             redirect_uri=self.get_callback_url())
-            )
+        )
 
     def get_callback_url(self):
         return url_for('oauth_callback_google',

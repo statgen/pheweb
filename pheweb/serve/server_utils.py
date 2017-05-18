@@ -1,12 +1,10 @@
 
-from ..utils import conf
-from ..file_utils import MatrixReader, IndexedVariantFileReader
+from ..file_utils import MatrixReader, IndexedVariantFileReader, get_generated_path
 
 import random
 import re
 import itertools
 import json
-import os
 
 
 class _Get_Pheno_Region:
@@ -80,7 +78,7 @@ get_variant = _GetVariant().get_variant
 
 
 def get_random_page():
-    with open(os.path.join(conf.data_dir, 'top_hits.json')) as f:
+    with open(get_generated_path('top_hits.json')) as f:
         hits = json.load(f)
     hits_to_choose_from = [hit for hit in hits if hit['pval'] < 5e-8]
     if not hits_to_choose_from:

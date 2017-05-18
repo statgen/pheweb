@@ -12,8 +12,8 @@ I'm reading in a full position at a time to avoid this issue that was happening 
 # TODO:
 # - split up by chromosome?
 
-from ..utils import conf, chrom_order, chrom_order_list, get_phenolist
-from ..file_utils import VariantFileReader, VariantFileWriter
+from ..utils import chrom_order, chrom_order_list, get_phenolist
+from ..file_utils import VariantFileReader, VariantFileWriter, get_generated_path, make_basedir
 from .load_utils import get_num_procs
 
 import contextlib
@@ -76,9 +76,6 @@ def merge(input_filenames, out_filename):
     print('{:8} variants in {} <- {}'.format(n_variants, os.path.basename(out_filename), [os.path.basename(path) for path in input_filenames]))
 
 
-mkdir_p(conf.data_dir + '/sites')
-mkdir_p(conf.data_dir + '/tmp')
-
 def merge_files_in_queue(lock, manna_dict):
     '''
     Keep a work queue of files that need to get merged.
@@ -101,13 +98,13 @@ def merge_files_in_queue(lock, manna_dict):
             else:
                 return
 
-        out_filename = '{}/tmp/merging-{}'.format(conf.data_dir, random.randrange(1e10)) # I don't like tempfile.
+        out_filename = get_generated_path('tmp', 'merging-{}'.format(random.randrange(1e10))) # I don't like tempfile
 
         start_time = datetime.datetime.now()
         merge(files_to_merge_now, out_filename)
 
         for filename in files_to_merge_now:
-            if filename.startswith('{}/tmp/merging-'.format(conf.data_dir)):
+            if filename.startswith(get_generated_path('tmp','merging-')):
                 os.remove(filename)
 
         with lock:
@@ -121,14 +118,15 @@ def get_files_to_merge():
     phenos = get_phenolist()
     print('number of phenos:', len(phenos))
     for pheno in phenos:
-        fname = os.path.join(conf.data_dir, 'cpra', pheno['phenocode'])
+        fname = get_generated_path('cpra', pheno['phenocode'])
         assert os.path.exists(fname)
         yield fname
 
 
 def run(argv):
+    mkdir_p(get_generated_path('tmp'))
 
-    out_filename = conf.data_dir + '/sites/cpra.tsv'
+    out_filename = get_generated_path('sites/cpra.tsv')
     files_to_merge = list(get_files_to_merge())
 
     if os.path.exists(out_filename):
@@ -163,4 +161,5 @@ def run(argv):
         raise Exception("Failed to merge.")
     else:
         assert len(manna_dict['files_to_merge']) == 1, manna_dict['files_to_merge']
+        make_basedir(out_filename)
         os.rename(manna_dict['files_to_merge'][0], out_filename)

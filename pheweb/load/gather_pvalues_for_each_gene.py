@@ -1,14 +1,14 @@
 
-from ..utils import conf, get_gene_tuples, pad_gene
-from ..file_utils import MatrixReader, write_json
+from ..utils import get_gene_tuples, pad_gene
+from ..file_utils import MatrixReader, write_json, get_generated_path
 
 import os
 import tqdm
 
 def run(argv):
 
-    out_fname = os.path.join(conf.data_dir, 'best-phenos-by-gene.json')
-    matrix_fname = os.path.join(conf.data_dir, 'matrix.tsv.gz')
+    out_fname = get_generated_path('best-phenos-by-gene.json')
+    matrix_fname = get_generated_path('matrix.tsv.gz')
 
     if not os.path.exists(out_fname) or os.stat(matrix_fname).st_mtime > os.stat(out_fname).st_mtime:
 

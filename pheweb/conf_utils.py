@@ -48,6 +48,9 @@ if 'custom_templates' not in conf:
 
 if 'debug' not in conf: conf.debug = False
 
+if conf.get('login', {}).get('whitelist', None):
+    conf.login['whitelist'] = [addr.lower() for addr in conf.login['whitelist']]
+
 
 ### Cache
 
@@ -59,7 +62,7 @@ def _configure_cache():
     # if it doesn't exist, use the default.
     if 'cache' not in conf:
         conf.cache = '~/.pheweb/cache'
-    conf.cache = os.path.expanduser(conf['cache'])
+    conf.cache = os.path.abspath(os.path.expanduser(conf['cache']))
     # check whether dir exists
     if not os.path.isdir(conf['cache']):
         try:

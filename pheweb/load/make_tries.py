@@ -1,7 +1,5 @@
 
-
-from ..utils import conf
-from ..file_utils import VariantFileReader
+from ..file_utils import VariantFileReader, get_generated_path
 
 import os
 import marisa_trie
@@ -12,9 +10,9 @@ def parse_line(line):
     return ('{}-{}-{}-{}'.format(chrom, pos, ref, alt), rsid.encode())
 
 
-sites_fname = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
-cpra_to_rsids_trie_fname = os.path.join(conf.data_dir, 'sites', 'cpra_to_rsids_trie.marisa')
-rsid_to_cpra_trie_fname = os.path.join(conf.data_dir, 'sites', 'rsid_to_cpra_trie.marisa')
+sites_fname = get_generated_path('sites/sites.tsv')
+cpra_to_rsids_trie_fname = get_generated_path('sites/cpra_to_rsids_trie.marisa')
+rsid_to_cpra_trie_fname  = get_generated_path('sites/rsid_to_cpra_trie.marisa')
 def should_replace(fname):
     return not os.path.exists(fname) or os.stat(fname).st_mtime < os.stat(sites_fname).st_mtime
 

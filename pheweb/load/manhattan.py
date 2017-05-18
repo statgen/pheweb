@@ -6,14 +6,13 @@ This script creates json files which can be used to render Manhattan plots.
 # TODO: combine with QQ.
 
 from ..utils import conf, chrom_order, get_phenolist
-from ..file_utils import VariantFileReader, write_json
+from ..file_utils import VariantFileReader, write_json, get_generated_path
 from .load_utils import Heap, star_kwargs, get_num_procs
 
 import os
 import math
 import datetime
 import multiprocessing
-from boltons.fileutils import mkdir_p
 
 
 def rounded_neglog10(pval, neglog10_pval_bin_size, neglog10_pval_bin_digits):
@@ -109,8 +108,8 @@ def make_json_file(src_filename, dest_filename):
 def get_conversions_to_do():
     phenocodes = [pheno['phenocode'] for pheno in get_phenolist()]
     for phenocode in phenocodes:
-        src_filename = os.path.join(conf.data_dir, 'augmented_pheno', phenocode)
-        dest_filename = os.path.join(conf.data_dir, 'manhattan', '{}.json'.format(phenocode))
+        src_filename = get_generated_path('augmented_pheno', phenocode)
+        dest_filename = get_generated_path('manhattan', '{}.json'.format(phenocode))
         if not os.path.exists(dest_filename) or os.stat(dest_filename).st_mtime < os.stat(src_filename).st_mtime:
             yield {
                 'src_filename': src_filename,
@@ -119,9 +118,6 @@ def get_conversions_to_do():
 
 
 def run(argv):
-
-    mkdir_p(conf.data_dir + '/manhattan')
-    mkdir_p(conf.data_dir + '/tmp')
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))

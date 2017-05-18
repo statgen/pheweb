@@ -1,12 +1,8 @@
 *.pyc
-flask_config.py
-test/data_dir/*
+test/data_dir/pheno-list-categories.json
+test/data_dir/generated-by-pheweb
 test/fake-cache/*
 !test/fake-cache/rsids-147.vcf.gz
-!test/data_dir/config.py
-!test/data_dir/make_phenolist.py
-!test/data_dir/run-gunicorn.sh
-!test/data_dir/custom_templates
 PheWeb.egg-info
 build
 dist

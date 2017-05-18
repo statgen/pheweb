@@ -1,8 +1,7 @@
 
-from ..utils import conf, get_phenolist
-from ..file_utils import write_json, VariantFileWriter
+from ..utils import get_phenolist
+from ..file_utils import write_json, VariantFileWriter, get_generated_path
 
-import os
 import json
 
 # TODO:
@@ -14,7 +13,7 @@ LOCI_SPREAD_FROM_BEST_HIT = int(500e3)
 PVAL_CUTOFF = 1e-6
 
 def get_hits(pheno):
-    fname = os.path.join(conf.data_dir, 'manhattan/{}.json'.format(pheno['phenocode']))
+    fname = get_generated_path('manhattan', '{}.json'.format(pheno['phenocode']))
     with open(fname) as f:
         variants = json.load(f)['unbinned_variants']
 
@@ -43,8 +42,8 @@ def get_hits(pheno):
 
 
 def run(argv):
-    out_fname_json = os.path.join(conf.data_dir, 'top_hits.json')
-    out_fname_tsv = os.path.join(conf.data_dir, 'top_hits.tsv')
+    out_fname_json = get_generated_path('top_hits.json')
+    out_fname_tsv = get_generated_path('top_hits.tsv')
 
     if argv and argv[0] == '-h':
         formatted_pval_cutoff = '{:0.0e}'.format(PVAL_CUTOFF).replace('e-0', 'e-')

@@ -1,16 +1,15 @@
 
-from ..utils import conf, get_phenolist
-from ..file_utils import VariantFileReader, VariantFileWriter
+from ..utils import get_phenolist
+from ..file_utils import VariantFileReader, VariantFileWriter, get_generated_path
 from .read_input_file import PhenoReader
 from .load_utils import exception_printer, star_kwargs, get_num_procs
 
 import os
 import datetime
 import multiprocessing
-from boltons.fileutils import mkdir_p
 
 
-sites_filename = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
+sites_filename = get_generated_path('sites/sites.tsv')
 
 def _which_variant_is_bigger(v1, v2):
     '''1 means v1 is bigger.  2 means v2 is bigger. 0 means tie.'''
@@ -68,7 +67,7 @@ def get_conversions_to_do():
     phenos = get_phenolist()
     print('number of phenos:', len(phenos))
     for pheno in phenos:
-        dest_filename = '{}/augmented_pheno/{}'.format(conf.data_dir, pheno['phenocode'])
+        dest_filename = get_generated_path('augmented_pheno', pheno['phenocode'])
         should_write_file = not os.path.exists(dest_filename)
         if not should_write_file:
             dest_file_mtime = os.stat(dest_filename).st_mtime
@@ -83,9 +82,6 @@ def get_conversions_to_do():
             }
 
 def run(argv):
-
-    mkdir_p(conf.data_dir + '/augmented_pheno')
-    mkdir_p(conf.data_dir + '/tmp')
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))

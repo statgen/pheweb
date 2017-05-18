@@ -1,6 +1,6 @@
 
 from ..utils import conf, get_phenolist
-from ..file_utils import VariantFileWriter, write_json
+from ..file_utils import VariantFileWriter, write_json, get_generated_path
 from .read_input_file import PhenoReader
 from .load_utils import exception_tester, star_kwargs, get_num_procs
 
@@ -8,7 +8,6 @@ import itertools
 import datetime
 import multiprocessing
 import os
-from boltons.fileutils import mkdir_p
 
 
 @exception_tester
@@ -28,7 +27,7 @@ def get_conversions_to_do():
     phenos = get_phenolist()
     print('number of phenos:', len(phenos))
     for pheno in phenos:
-        dest_filename = os.path.join(conf.data_dir, 'cpra', pheno['phenocode'])
+        dest_filename = get_generated_path('cpra', pheno['phenocode'])
         should_write_file = not os.path.exists(dest_filename)
         if not should_write_file:
             dest_file_mtime = os.stat(dest_filename).st_mtime
@@ -42,9 +41,6 @@ def get_conversions_to_do():
             }
 
 def run(argv):
-
-    mkdir_p(conf.data_dir + '/cpra')
-    mkdir_p(conf.data_dir + '/tmp')
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
@@ -60,10 +56,10 @@ def run(argv):
         phenos = get_phenolist()
         good_results = [p for p in phenos if p['phenocode'] not in bad_result_phenocodes]
 
-        fname = os.path.join(conf.data_dir, 'pheno-list-successful-only.json')
+        fname = get_generated_path('tmp', 'pheno-list-successful-only.json')
         write_json(filename=fname, data=good_results, indent=2, sort_keys=True)
         print('wrote {} good_results (of {} total) into {!r}, which you should probably use to replace pheno-list.json'.format(len(good_results), len(phenos), fname))
-        fname = os.path.join(conf.data_dir, 'pheno-list-bad-only.json')
+        fname = get_generated_path('tmp', 'pheno-list-bad-only.json')
         write_json(filename=fname, data=bad_results, indent=2, sort_keys=True)
         print('wrote bad_results into {!r}'.format(fname))
 

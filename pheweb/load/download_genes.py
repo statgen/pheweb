@@ -1,12 +1,12 @@
 
-from ..utils import conf, chrom_order, chrom_aliases, get_cacheable_file_location
+from ..utils import chrom_order, chrom_aliases, get_cacheable_file_location, genes_version
+from ..file_utils import get_generated_path, make_basedir
 
 import os
 import re
 import gzip
 import csv
 import wget
-from boltons.fileutils import mkdir_p
 import boltons.iterutils
 
 
@@ -113,14 +113,13 @@ def dedup_symbol(genes):
             raise
 
 def run(argv):
-    gene_dir = os.path.join(conf.data_dir, 'sites', 'genes')
-    gencode_file = os.path.join(gene_dir, 'gencode-v25.gtf.gz')
-    bed_file = get_cacheable_file_location(gene_dir, 'genes.bed')
+    gencode_file = get_generated_path('sites/genes/gencode-{}.gtf.gz'.format(genes_version))
+    bed_file = get_cacheable_file_location('sites/genes', 'genes-{}.bed'.format(genes_version))
 
     if not os.path.exists(bed_file):
-        print('genes.bed will be stored at {bed_file!r}'.format(bed_file=bed_file))
-        mkdir_p(gene_dir)
+        print('genes-{version}.bed will be stored at {bed_file!r}'.format(version=genes_version, bed_file=bed_file))
         if not os.path.exists(gencode_file):
+            make_basedir(gencode_file)
             wget.download(
                 url="ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz",
                 out=gencode_file
@@ -129,6 +128,7 @@ def run(argv):
         genes = dedup_ensg(genes)
         genes = dedup_symbol(genes)
 
+        make_basedir(bed_file)
         with open(bed_file, 'w') as f:
             writer = csv.DictWriter(f, delimiter='\t', fieldnames='chrom start end symbol ensg'.split(), lineterminator='\n')
             writer.writerows(genes)

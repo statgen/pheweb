@@ -1,17 +1,17 @@
 
 from ..utils import conf, get_phenolist, get_gene_tuples, pad_gene
+from ..file_utils import get_generated_path
 from .server_utils import get_variant, get_random_page, get_pheno_region
 from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
 
-from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, session, url_for
+from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 
 import functools
 import re
 import traceback
-import os
 import json
 
 
@@ -36,16 +36,16 @@ def check_auth(func):
     If they haven't, their intended destination is stored and they're sent to get authorized.
     It has to be placed AFTER @app.route() so that it can capture `request.path`.
     """
+    if 'login' not in conf:
+        return func
     # inspired by <https://flask-login.readthedocs.org/en/latest/_modules/flask_login.html#login_required>
     @functools.wraps(func)
     def decorated_view(*args, **kwargs):
-        if conf.login:
-            if current_user.is_anonymous:
-                print('unauthorized user {!r} visited the url [{!r}]'.format(current_user, request.path))
-                session['original_destination'] = request.path
-                return redirect(url_for('get_authorized'))
-            else:
-                assert current_user.email.lower() in conf.login['whitelist'], current_user
+        if current_user.is_anonymous:
+            print('unauthorized user {!r} visited the url [{!r}]'.format(current_user, request.path))
+            session['original_destination'] = request.path
+            return redirect(url_for('get_authorized'))
+        assert current_user.email.lower() in conf.login['whitelist'], current_user
         return func(*args, **kwargs)
     return decorated_view
 
@@ -92,17 +92,17 @@ def variant_page(query):
 @app.route('/api/manhattan/pheno/<filename>')
 @check_auth
 def api_pheno(filename):
-    return send_from_directory(conf.data_dir + '/manhattan/', filename)
+    return send_from_directory(get_generated_path('manhattan'), filename)
 
 @app.route('/api/top_hits.json')
 @check_auth
 def api_top_hits():
-    return send_from_directory(conf.data_dir, 'top_hits.json')
+    return send_file(get_generated_path('top_hits.json'))
 
 @app.route('/api/qq/pheno/<filename>')
 @check_auth
 def api_pheno_qq(filename):
-    return send_from_directory(conf.data_dir + '/qq/', filename)
+    return send_from_directory(get_generated_path('qq'), filename)
 
 @app.route('/top_hits')
 @check_auth
@@ -160,7 +160,7 @@ def get_gene_region_mapping():
 
 @functools.lru_cache(None)
 def get_best_phenos_by_gene():
-    with open(os.path.join(conf.data_dir, 'best-phenos-by-gene.json')) as f:
+    with open(get_generated_path('best-phenos-by-gene.json')) as f:
         return json.load(f)
 
 @app.route('/region/<phenocode>/gene/<genename>')
@@ -237,78 +237,81 @@ def apply_caching(response):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     return response
 
+
 ### OAUTH2
-google_sign_in = GoogleSignIn(app)
-
-lm = LoginManager(app)
-lm.login_view = 'homepage'
-
-class User(UserMixin):
-    "A user's id is their email address."
-    def __init__(self, username=None, email=None):
-        self.username = username
-        self.email = email
-    def get_id(self):
-        return self.email
-    def __repr__(self):
-        return "<User email={!r}>".format(self.email)
-
-@lm.user_loader
-def load_user(id):
-    print('id', id)
-    if id in conf.login['whitelist']:
-        return User(email=id)
-    return None
+if 'login' in conf:
+    google_sign_in = GoogleSignIn(app)
 
 
-@app.route('/logout')
-def logout():
-    print('logging out user {!r}'.format(current_user))
-    logout_user()
-    return redirect(url_for('homepage'))
+    lm = LoginManager(app)
+    lm.login_view = 'homepage'
 
-@app.route('/login_with_google')
-def login_with_google():
-    "this route is for the login button"
-    session['original_destination'] = url_for('homepage')
-    return redirect(url_for('get_authorized'))
+    class User(UserMixin):
+        "A user's id is their email address."
+        def __init__(self, username=None, email=None):
+            self.username = username
+            self.email = email
+        def get_id(self):
+            return self.email
+        def __repr__(self):
+            return "<User email={!r}>".format(self.email)
 
-@app.route('/get_authorized')
-def get_authorized():
-    "This route tries to be clever and handle lots of situations."
-    if current_user.is_anonymous:
-        return google_sign_in.authorize()
-    else:
-        if 'original_destination' in session:
-            orig_dest = session['original_destination']
-            del session['original_destination'] # We don't want old destinations hanging around.  If this leads to problems with re-opening windows, disable this line.
+    @lm.user_loader
+    def load_user(id):
+        print('id', id)
+        if id in conf.login['whitelist']:
+            return User(email=id)
+        return None
+
+
+    @app.route('/logout')
+    def logout():
+        print('logging out user {!r}'.format(current_user))
+        logout_user()
+        return redirect(url_for('homepage'))
+
+    @app.route('/login_with_google')
+    def login_with_google():
+        "this route is for the login button"
+        session['original_destination'] = url_for('homepage')
+        return redirect(url_for('get_authorized'))
+
+    @app.route('/get_authorized')
+    def get_authorized():
+        "This route tries to be clever and handle lots of situations."
+        if current_user.is_anonymous:
+            return google_sign_in.authorize()
         else:
-            orig_dest = url_for('homepage')
-        return redirect(orig_dest)
+            if 'original_destination' in session:
+                orig_dest = session['original_destination']
+                del session['original_destination'] # We don't want old destinations hanging around.  If this leads to problems with re-opening windows, disable this line.
+            else:
+                orig_dest = url_for('homepage')
+            return redirect(orig_dest)
 
-@app.route('/callback/google')
-def oauth_callback_google():
-    if not current_user.is_anonymous:
-        return redirect(url_for('homepage'))
-    try:
-        username, email = google_sign_in.callback() # oauth.callback reads request.args.
-    except Exception as exc:
-        print('Error in google_sign_in.callback():')
-        print(exc)
-        print(traceback.format_exc())
-        flash('Something is wrong with authentication.  Please email pjvh@umich.edu')
-        return redirect(url_for('homepage'))
-    if email is None:
-        # I need a valid email address for my user identification
-        flash('Authentication failed by failing to get an email address.  Please email pjvh@umich.edu')
-        return redirect(url_for('homepage'))
+    @app.route('/callback/google')
+    def oauth_callback_google():
+        if not current_user.is_anonymous:
+            return redirect(url_for('homepage'))
+        try:
+            username, email = google_sign_in.callback() # oauth.callback reads request.args.
+        except Exception as exc:
+            print('Error in google_sign_in.callback():')
+            print(exc)
+            print(traceback.format_exc())
+            flash('Something is wrong with authentication.  Please email pjvh@umich.edu')
+            return redirect(url_for('homepage'))
+        if email is None:
+            # I need a valid email address for my user identification
+            flash('Authentication failed by failing to get an email address.  Please email pjvh@umich.edu')
+            return redirect(url_for('homepage'))
 
-    if email.lower() not in conf.login['whitelist']:
-        flash('Your email, {!r}, is not in the list of allowed emails.'.format(email))
-        redirect(url_for('homepage'))
+        if email.lower() not in conf.login['whitelist']:
+            flash('Your email, {!r}, is not in the list of allowed emails.'.format(email))
+            redirect(url_for('homepage'))
 
-    # Log in the user, by default remembering them for their next visit.
-    user = User(username, email)
-    login_user(user, remember=True)
+        # Log in the user, by default remembering them for their next visit.
+        user = User(username, email)
+        login_user(user, remember=True)
 
-    return redirect(url_for('get_authorized'))
+        return redirect(url_for('get_authorized'))

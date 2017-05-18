@@ -9,8 +9,8 @@ This script creates json files which can be used to render QQ plots.
 #    - unbinned_variants
 #    - get_conf_int()
 
-from ..utils import conf, round_sig, approx_equal, get_phenolist
-from ..file_utils import VariantFileReader, write_json
+from ..utils import round_sig, approx_equal, get_phenolist
+from ..file_utils import VariantFileReader, write_json, get_generated_path
 from .load_utils import get_maf, exception_printer, star_kwargs, get_num_procs
 
 import collections
@@ -19,7 +19,6 @@ import math
 import datetime
 import multiprocessing
 import scipy.stats
-from boltons.fileutils import mkdir_p
 
 
 NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
@@ -139,16 +138,12 @@ def make_json_file(src_filename, dest_filename, pheno):
 
 def get_conversions_to_do():
     for pheno in get_phenolist():
-        src_filename = os.path.join(conf.data_dir, 'augmented_pheno', pheno['phenocode'])
-        dest_filename = os.path.join(conf.data_dir, 'qq', '{}.json'.format(pheno['phenocode']))
+        src_filename = get_generated_path('augmented_pheno', pheno['phenocode'])
+        dest_filename = get_generated_path('qq', '{}.json'.format(pheno['phenocode']))
         if not os.path.exists(dest_filename) or os.stat(dest_filename).st_mtime < os.stat(src_filename).st_mtime:
             yield {'src_filename':src_filename, 'dest_filename':dest_filename, 'pheno':pheno}
 
 def run(argv):
-
-    mkdir_p(conf.data_dir + '/qq')
-    mkdir_p(conf.data_dir + '/tmp')
-
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
     with multiprocessing.Pool(get_num_procs()) as p:

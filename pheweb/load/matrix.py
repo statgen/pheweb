@@ -1,16 +1,16 @@
 
-from ..utils import conf, get_phenolist
-from ..file_utils import MatrixReader
+from ..utils import get_phenolist
+from ..file_utils import MatrixReader, get_generated_path, get_tmp_path
 from .cffi._x import ffi, lib
 
 import os
 import glob
 import pysam
 
-sites_fname = os.path.join(conf.data_dir, 'sites', 'sites.tsv')
-augmented_pheno_dir = os.path.join(conf.data_dir, 'augmented_pheno')
-matrix_gz_tmp_fname = os.path.join(conf.data_dir, 'tmp', 'matrix.tsv.gz')
-matrix_gz_fname = os.path.join(conf.data_dir, 'matrix.tsv.gz')
+sites_fname = get_generated_path('sites/sites.tsv')
+augmented_pheno_dir = get_generated_path('augmented_pheno')
+matrix_gz_fname = get_generated_path('matrix.tsv.gz')
+matrix_gz_tmp_fname = get_tmp_path(matrix_gz_fname)
 
 def should_run():
     cur_phenocodes = set(pheno['phenocode'] for pheno in get_phenolist())

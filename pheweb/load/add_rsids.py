@@ -22,8 +22,7 @@ We read one full position at a time.  When we have a position-match, we find all
 #   so, move rsids_chrom_order inside get_rsid_reader
 
 
-from ..utils import conf
-from ..file_utils import VariantFileReader, VariantFileWriter
+from ..file_utils import VariantFileReader, VariantFileWriter, get_generated_path
 from .download_rsids import clean_file as rsids_filename
 
 import os
@@ -31,8 +30,8 @@ import gzip
 import itertools
 
 
-cpra_filename = conf.data_dir + "/sites/cpra.tsv"
-out_filename = conf.data_dir + "/sites/cpra_rsids.tsv"
+cpra_filename = get_generated_path("sites/cpra.tsv")
+out_filename = get_generated_path("sites/cpra_rsids.tsv")
 
 def mod_time(fname): return os.stat(fname).st_mtime
 
@@ -47,7 +46,7 @@ def get_rsid_reader(rsids_f):
                 chrom, pos, rsid, ref, alt_group = fields[0], int(fields[1]), fields[2], fields[3], fields[4]
                 assert rsid.startswith('rs')
                 # Sometimes the reference contains `N`, and that's okay.
-                assert all(base in 'ATCGN' for base in ref), (chrom, pos, ref, alt)
+                assert all(base in 'ATCGN' for base in ref), (chrom, pos, ref, alt_group)
                 for alt in alt_group.split(','):
                     # Alt can be a comma-separated list
                     if alt == '.': continue # TODO: I don't understand what this means or why it happens.  Probably it should match any alt.

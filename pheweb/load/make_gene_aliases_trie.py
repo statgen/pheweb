@@ -1,5 +1,5 @@
 
-from ..utils import conf, get_cacheable_file_location, get_gene_tuples
+from ..utils import get_cacheable_file_location, get_gene_tuples
 
 import os
 import re
@@ -10,8 +10,7 @@ import marisa_trie
 
 def run(argv):
 
-    gene_dir = os.path.join(conf.data_dir, 'sites', 'genes')
-    aliases_file = get_cacheable_file_location(gene_dir, 'gene_aliases.marisa_trie')
+    aliases_file = get_cacheable_file_location('sites/genes', 'gene_aliases.marisa_trie')
     if not os.path.exists(aliases_file):
         print('gene aliases will be stored at {aliases_file!r}'.format(aliases_file=aliases_file))
 

@@ -7,8 +7,24 @@ import csv
 from contextlib import contextmanager
 import json
 import gzip
-from boltons.fileutils import AtomicSaver
+from boltons.fileutils import AtomicSaver, mkdir_p
 import pysam
+
+
+def get_generated_path(*path_parts):
+    return os.path.join(conf.data_dir, 'generated-by-pheweb', *path_parts)
+
+def make_basedir(path):
+    mkdir_p(os.path.dirname(path))
+
+def get_tmp_path(fname):
+    if fname.startswith(get_generated_path()):
+        mkdir_p(get_generated_path('tmp'))
+        tmp_basename = fname[len(get_generated_path()):].lstrip(os.path.sep).replace(os.path.sep, '-')
+        return get_generated_path('tmp', tmp_basename)
+    elif fname.startswith(os.path.sep):
+        return fname + '.tmp'
+    else: raise Exception(fname)
 
 
 csv.register_dialect(
@@ -57,7 +73,7 @@ class _vfr:
 
 @contextmanager
 def IndexedVariantFileReader(phenocode):
-    fname = os.path.join(conf.data_dir, 'augmented_pheno_gz', '{}.gz'.format(phenocode))
+    fname = get_generated_path('augmented_pheno_gz', '{}.gz'.format(phenocode))
 
     with gzip.open(fname, 'rt') as f:
         reader = csv.reader(f, dialect='pheweb-internal-dialect')
@@ -123,7 +139,7 @@ class _ivfr:
 
 
 class MatrixReader:
-    _fname = os.path.join(conf.data_dir, 'matrix.tsv.gz')
+    _fname = get_generated_path('matrix.tsv.gz')
 
     def __init__(self):
         phenos = utils.get_phenolist()
@@ -197,23 +213,16 @@ class _mr(_ivfr):
 
 ## Writers
 
-def _get_part_file(fname):
-    part_file = fname
-    if part_file.startswith(conf.data_dir):
-        part_file = part_file[len(conf.data_dir):].lstrip(os.path.sep)
-    else:
-        print("WARNING: outfile {!r} didn't start with conf.data_dir {!r}".format(fname, conf.data_dir))
-    return os.path.join(conf.data_dir, 'tmp', part_file.replace(os.path.sep, '-'))
-
 @contextmanager
 def VariantFileWriter(fname, allow_extra_fields=False):
     '''
     Writes variants (represented by dictionaries) to an internal file.
 
-        with VariantFileWriter(conf.data_dir+'/a.tsv') as writer:
+        with VariantFileWriter('a.tsv') as writer:
             writer.write({'chrom': '2', 'pos': 47, ...})
     '''
-    part_file = _get_part_file(fname)
+    part_file = get_tmp_path(fname)
+    make_basedir(fname)
     with AtomicSaver(fname, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
         yield _vfw(f, allow_extra_fields, fname)
 class _vfw:
@@ -239,8 +248,28 @@ class _vfw:
         for v in variants:
             self.write(v)
 
+def convert_VariantFile_to_IndexedVariantFile(vf_path, ivf_path):
+    from .load.cffi._x import ffi, lib
+    make_basedir(ivf_path)
+    tmp_path = get_tmp_path(ivf_path)
+    args = [
+        ffi.new('char[]', vf_path.encode('utf8')),
+        ffi.new('char[]', tmp_path.encode('utf8')),
+        ffi.new('char[]', b'#'),
+    ]
+    lib.cffi_bgzip_file(*args)
+    os.rename(tmp_path, ivf_path)
+
+    pysam.tabix_index(
+        filename=ivf_path, force=True,
+        seq_col=0, start_col=1, end_col=1 # note: these are 0-based, but `/usr/bin/tabix` is 1-based
+    )
+
+
+
 def write_json(*, filename=None, data=None, indent=None, sort_keys=False):
     assert filename is not None and data is not None
-    part_file = _get_part_file(filename)
+    part_file = get_tmp_path(filename)
+    make_basedir(filename)
     with AtomicSaver(filename, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
         json.dump(data, f, indent=indent, sort_keys=sort_keys)

@@ -1,12 +1,12 @@
 
-from ..utils import conf, get_cacheable_file_location
+from ..utils import get_cacheable_file_location
+from ..file_utils import get_generated_path
 from .server_utils import parse_variant
 
 import itertools
 import re
 import marisa_trie
 import copy
-import os
 
 # TODO: sort suggestions better.
 # - It's good that hitting enter sends you to the thing with the highest token-ratio.
@@ -23,9 +23,9 @@ class Autocompleter(object):
         self._phenos = copy.deepcopy(phenos)
         self._preprocess_phenos()
 
-        self._cpra_to_rsids_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/cpra_to_rsids_trie.marisa')
-        self._rsid_to_cpra_trie = marisa_trie.BytesTrie().load(conf.data_dir + '/sites/rsid_to_cpra_trie.marisa')
-        self._gene_alias_trie = marisa_trie.BytesTrie().load(get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'genes'), 'gene_aliases.marisa_trie'))
+        self._cpra_to_rsids_trie = marisa_trie.BytesTrie().load(get_generated_path('sites/cpra_to_rsids_trie.marisa'))
+        self._rsid_to_cpra_trie = marisa_trie.BytesTrie().load(get_generated_path('sites/rsid_to_cpra_trie.marisa'))
+        self._gene_alias_trie = marisa_trie.BytesTrie().load(get_cacheable_file_location('sites/genes', 'gene_aliases.marisa_trie'))
 
         self._autocompleters = [
             self._autocomplete_variant,

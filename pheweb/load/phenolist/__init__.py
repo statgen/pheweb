@@ -1,5 +1,6 @@
 
-from ...utils import die, conf
+from ...utils import die
+from ...file_utils import get_generated_path, make_basedir
 from ..load_utils import open_maybe_gzip
 from ..read_input_file import PhenoReader
 
@@ -441,23 +442,24 @@ def load_phenolist(fname):
         return phenolist
 
 def save_phenolist(phenolist, fname=None):
-    if os.path.exists(fname):
-        backup_phenolist(phenolist, fname)
+    fname = os.path.abspath(fname)
+    if os.path.exists(fname): backup_phenolist(fname)
+    else: make_basedir(fname)
     with open(os.path.join(fname), 'w') as f:
         write_phenolist_to_file(phenolist, f)
     all_columns = list(boltons.iterutils.unique(col for pheno in phenolist for col in pheno))
     print("NOTE: wrote {} phenotypes to {!r} with columns {!r}".format(len(phenolist), fname, all_columns))
-def backup_phenolist(phenolist, fname='pheno-list.json'):
-    backup_dir = os.path.join(conf.data_dir, 'phenolist-backups')
-    boltons.fileutils.mkdir_p(backup_dir)
-    backup_fname = os.path.join(backup_dir, '{}-{}'.format(datetime.datetime.isoformat(datetime.datetime.now()), os.path.basename(fname)))
+def backup_phenolist(fname):
+    backup_fname = '{}-{}'.format(datetime.datetime.isoformat(datetime.datetime.now()), os.path.basename(fname))
+    backup_fname = get_generated_path('phenolist-backups', backup_fname)
+    make_basedir(backup_fname)
     print("NOTE: moving the old {!r} to {!r}".format(fname, backup_fname))
     shutil.move(fname, backup_fname)
 def write_phenolist_to_file(phenolist, f):
     phenolist = sorted(phenolist, key=lambda pheno: pheno.get('phenocode', ''))
     json.dump(phenolist, f, sort_keys=True, indent=1)
 
-default_phenolist_fname = os.path.join(conf.data_dir, 'pheno-list.json')
+default_phenolist_fname = get_generated_path('pheno-list.json')
 
 def run(argv):
     # TODO: replace -f with -p .  That's more clear for import-phenolist.
@@ -631,11 +633,6 @@ def run(argv):
     p = subparsers.add_parser('merge-in-info', help='')
     p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
     p.add_argument('file_with_more_info', help="a pheno-list file with more information to add to the main pheno-list file")
-
-    @add_subcommand('history')
-    def f(): pass
-    # show all past commands and where their input & output pheno-lists are backed up to.
-    # say "to get an old pheno-list back, just run `cp {} $data_dir/pheno-list.json`." (and use shlex.quote())
 
     args = parser.parse_args(argv)
     subcommand_handlers[args.subcommand](args)

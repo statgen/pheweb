@@ -6,8 +6,10 @@ import csv
 import boltons.mathutils
 import urllib.parse
 import sys
+from boltons.fileutils import mkdir_p
 
 from .conf_utils import conf
+from . import file_utils
 
 
 def round_sig(x, digits):
@@ -31,7 +33,7 @@ assert not approx_equal(42, 42.01)
 
 def get_phenolist():
     # TODO: should this be memoized?
-    fname = os.path.join(conf.data_dir, 'pheno-list.json')
+    fname = file_utils.get_generated_path('pheno-list.json')
     try:
         with open(os.path.join(fname)) as f:
             phenolist = json.load(f)
@@ -74,14 +76,16 @@ chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
 chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
 chrom_aliases = {'23': 'X', '24': 'Y', '25': 'MT', 'M': 'MT'}
 
-def get_cacheable_file_location(default_dir, fname):
+def get_cacheable_file_location(default_relative_dir, fname):
     if 'cache' in conf:
         return os.path.join(conf.cache, fname)
-    return os.path.join(default_dir, fname)
+    mkdir_p(file_utils.get_generated_path(default_relative_dir))
+    return file_utils.get_generated_path(default_relative_dir, fname)
 
 
+genes_version = 'v25'
 def get_gene_tuples(include_ensg=False):
-    genes_file = get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'genes'), 'genes.bed')
+    genes_file = get_cacheable_file_location('sites/genes', 'genes-{}.bed'.format(genes_version))
 
     with open(genes_file) as f:
         for row in csv.reader(f, delimiter='\t'):

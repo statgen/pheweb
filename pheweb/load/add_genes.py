@@ -10,8 +10,8 @@ TODO:
 - are these gene ranges the whole transcript, including UTRs?
 '''
 
-from ..utils import conf, get_gene_tuples, get_cacheable_file_location
-from ..file_utils import VariantFileReader, VariantFileWriter
+from ..utils import get_gene_tuples, get_cacheable_file_location, genes_version
+from ..file_utils import VariantFileReader, VariantFileWriter, get_generated_path
 
 import intervaltree
 import bisect
@@ -88,9 +88,9 @@ def annotate_genes(input_file, output_file):
             out_f.write(v)
 
 def run(argv):
-    input_file = os.path.join(conf.data_dir, 'sites/cpra_rsids.tsv')
-    output_file = os.path.join(conf.data_dir, 'sites/sites.tsv')
-    genes_file = get_cacheable_file_location(os.path.join(conf.data_dir, 'sites', 'genes'), 'genes.bed')
+    input_file = get_generated_path('sites/cpra_rsids.tsv')
+    output_file = get_generated_path('sites/sites.tsv')
+    genes_file = get_cacheable_file_location('sites/genes', 'genes-{}.bed'.format(genes_version))
 
     def mod_time(fname):
         return os.stat(fname).st_mtime
