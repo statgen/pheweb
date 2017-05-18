@@ -43,6 +43,7 @@ def get_hits(pheno):
 
 def run(argv):
     out_fname_json = get_generated_path('top_hits.json')
+    out_fname_1k_json = get_generated_path('top_hits_1k.json')
     out_fname_tsv = get_generated_path('top_hits.tsv')
 
     if argv and argv[0] == '-h':
@@ -72,6 +73,9 @@ just the top phenotype for each, use `pheweb top-loci`.
     hits = sorted(hits, key=lambda hit: hit['pval'])
     write_json(filename=out_fname_json, data=hits, sort_keys=True)
     print("wrote {} hits to {}".format(len(hits), out_fname_json))
+
+    write_json(filename=out_fname_1k_json, data=hits[:1000], sort_keys=True)
+    print("wrote {} hits to {}".format(len(hits), out_fname_1k_json))
 
     for h in hits: h['nearest_genes'] = ','.join(h['nearest_genes'])
     with VariantFileWriter(out_fname_tsv, allow_extra_fields=True) as writer:

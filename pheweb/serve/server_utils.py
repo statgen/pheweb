@@ -78,13 +78,13 @@ get_variant = _GetVariant().get_variant
 
 
 def get_random_page():
-    with open(get_generated_path('top_hits.json')) as f:
+    with open(get_generated_path('top_hits_1k.json')) as f:
         hits = json.load(f)
-    hits_to_choose_from = [hit for hit in hits if hit['pval'] < 5e-8]
-    if not hits_to_choose_from:
-        hits_to_choose_from = hits
     if not hits:
         return None
+    hits_to_choose_from = [hit for hit in hits if hit['pval'] < 5e-8]
+    if len(hits_to_choose_from) < 10:
+        hits_to_choose_from = hits[:10]
     hit = random.choice(hits_to_choose_from)
     r = random.random()
     if r < 0.4:
@@ -94,3 +94,4 @@ def get_random_page():
     else:
         offset = int(50e3)
         return '/region/{phenocode}/{chrom}:{pos1}-{pos2}'.format(pos1=hit['pos']-offset, pos2=hit['pos']+offset, **hit)
+    # TODO: also include gene pages

@@ -97,7 +97,7 @@ def api_pheno(filename):
 @app.route('/api/top_hits.json')
 @check_auth
 def api_top_hits():
-    return send_file(get_generated_path('top_hits.json'))
+    return send_file(get_generated_path('top_hits_1k.json'))
 
 @app.route('/api/qq/pheno/<filename>')
 @check_auth
