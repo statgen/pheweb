@@ -85,7 +85,9 @@ def variant_page(query):
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
-                               variant=variant)
+                               variant=variant,
+                               tooltip_lztemplate=conf.parse.tooltip_lztemplate,
+        )
     except Exception as exc:
         die('Oh no, something went wrong', exc)
 
@@ -127,6 +129,7 @@ def pheno_page(phenocode):
     return render_template('pheno.html',
                            phenocode=phenocode,
                            pheno=pheno,
+                           tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
     )
 
 
@@ -142,6 +145,7 @@ def region_page(phenocode, region):
     return render_template('region.html',
                            pheno=pheno,
                            region=region,
+                           tooltip_lztemplate=conf.parse.tooltip_lztemplate,
     )
 
 @app.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
@@ -194,7 +198,9 @@ def gene_phenocode_page(phenocode, genename):
                                pheno=pheno,
                                significant_phenos=phenos_in_gene,
                                gene_symbol=genename,
-                               region='{}:{}-{}'.format(chrom, start, end))
+                               region='{}:{}-{}'.format(chrom, start, end),
+                               tooltip_lztemplate=conf.parse.tooltip_lztemplate,
+        )
     except Exception as exc:
         die("Sorry, your region request for phenocode {!r} and gene {!r} didn't work".format(phenocode, genename), exception=exc)
 
@@ -258,7 +264,6 @@ if 'login' in conf:
 
     @lm.user_loader
     def load_user(id):
-        print('id', id)
         if id in conf.login['whitelist']:
             return User(email=id)
         return None
@@ -314,4 +319,5 @@ if 'login' in conf:
         user = User(username, email)
         login_user(user, remember=True)
 
+        print('logged in', id)
         return redirect(url_for('get_authorized'))

@@ -168,18 +168,7 @@
 </div>
 
 <script type="text/template" id="tooltip-template">
-<%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> &gt; <%= d.alt %><br>
-pval: <%= d.pval.toExponential(1) %><br>
-nearest gene<%= (d.nearest_genes.indexOf(',') !== -1) ? 's' : '' %>: <i><%= d.nearest_genes.replace(/,/g, ', ') %></i><br>
-<% _.each((d.rsids||"").split(","), function(rsid) { %>
-rsid: <%= rsid %><br>
-<% }) %>
-<% _.each(['maf', 'af'], function(key) { %>
-<% (_.has(d, key))? key + ": " + d[key].toPrecision(3) : ""; %>
-<% }) %>
-<% _.each(['ac', 'beta', 'sebeta'], function(key) { %>
-<% (_.has(d, key))? key + ": " + d[key] : ""; %>
-<% }) %>
+{{ tooltip_underscoretemplate|safe }}
 </script>
 
 <script type="text/template" id="streamtable-template">

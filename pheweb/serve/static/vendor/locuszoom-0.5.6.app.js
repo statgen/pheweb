@@ -377,7 +377,7 @@ LocusZoom.parseFields = function (data, html) {
     }
     var astify = function() {
         var token = tokens.shift();
-        if (token.text || token.variable) {
+        if (token.text !== undefined || token.variable) {
             return token;
         } else if (token.condition) {
             token.then = [];
@@ -404,7 +404,7 @@ LocusZoom.parseFields = function (data, html) {
     };
     resolve.cache = {};
     var render_node = function(node) {
-        if (node.text) {
+        if (node.text !== undefined) {
             return node.text;
         } else if (node.variable) {
             try {
@@ -415,10 +415,11 @@ LocusZoom.parseFields = function (data, html) {
             return "{{" + node.variable + "}}";
         } else if (node.condition) {
             try {
-                if (resolve(node.condition)) {
+                var condition = resolve(node.condition);
+                if (condition || condition === 0) {
                     return node.then.map(render_node).join("");
                 }
-            } catch (error) { console.error("Error while processign condition " + JSON.stringify(node.variable)); }
+            } catch (error) { console.error("Error while processing condition " + JSON.stringify(node.variable)); }
             return "";
         } else { console.error("Error rendering tooltip due to unknown AST node " + JSON.stringify(node)); }
     };

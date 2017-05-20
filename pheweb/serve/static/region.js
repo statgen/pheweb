@@ -236,14 +236,7 @@
                     "hide": {
                         "and": ["unhighlighted", "unselected"]
                     },
-                    html: "<strong>{{id}}</strong><br>" +
-                        "{{#if rsid}}<strong>{{rsid}}</strong><br>{{/if}}" +
-                        "P-value: <strong>{{pvalue|scinotation}}</strong><br>" +
-                        "{{#if beta}}Beta: <strong>{{beta}}{{#if sebeta}} ({{sebeta}}){{/if}}</strong><br>{{/if}}" +
-                        "{{#if or}}OR: <strong>{{or}}</strong><br>{{/if}}" +
-                        "{{#if maf}}MAF: <strong>{{maf}}</strong><br>{{/if}}" +
-                        "{{#if af}}AF: <strong>{{af}}</strong><br>{{/if}}" +
-                        "{{#if ac}}AC: <strong>{{ac}}</strong><br>{{/if}}"
+                    html: '<strong>{{id}}</strong><br>\n\n' + window.model.tooltip_lztemplate
                 },
                 "z_index": 2,
                 "x_axis": {

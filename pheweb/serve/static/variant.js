@@ -97,21 +97,12 @@ function deepcopy(obj) {
     phewas_panel.data_layers[1].y_axis.upper_buffer = 0.1;
 
     phewas_panel.data_layers[1].tooltip.html =
-        "<div><strong>{{phewas_string}}</strong></div>" +
-        "<div><strong style='color:{{color}}'>{{category_name}}</strong></div>" +
-        "<div>P Value: <strong>{{pval|scinotation}}</strong></div>" +
-        "{{#if num_samples}}<div>#samples: <strong>{{num_samples}}</strong></div>{{/if}}" +
-        "{{#if num_cases}}<div>#cases: <strong>{{num_cases}}</strong></div>{{/if}}" +
-        "{{#if num_controls}}<div>#controls: <strong>{{num_controls}}</strong></div>{{/if}}" +
-        "{{#if beta}}<div>beta: <strong>{{beta}}{{#if sebeta}} ({{sebeta}}){{/if}}</strong></div>{{/if}}" +
-        "{{#if or}}<div>odds ratio: <strong>{{or}}</strong></div>{{/if}}" +
-        "{{#if af}}<div>AF: <strong>{{af}}</strong></div>{{/if}}" +
-        "{{#if maf}}<div>MAF: <strong>{{maf}}</strong></div>{{/if}}" +
-        "{{#if ac}}<div>AC: <strong>{{ac}}</strong></div>{{/if}}";
+        "<div><strong>{{phewas_string}}</strong></div>\n" +
+        "<div><strong style='color:{{color}}'>{{category_name}}</strong></div>\n\n" +
+        window.model.tooltip_lztemplate;
     phewas_panel.data_layers[1].tooltip.closable = false;
 
     // Use `neglog10_handle0` to handle pval=0 variants a little better.
-    phewas_panel.data_layers[1].fields.push('pval|neglog10_handle0');
     phewas_panel.data_layers[1].y_axis.field = 'pval|neglog10_handle0';
 
     // Show only labels that are: in the top 10, and (by neglog10) at least 75% of sig threshold and 25% of best.
@@ -189,10 +180,8 @@ function deepcopy(obj) {
         else if (isnum(v.ac) && isnum(v.num_samples)) { return v.ac / v.num_samples; }
         else { return undefined; }
     });
-    console.log(mafs);
     window.debug.mafs = mafs;
     var num_phenos_with_maf = _.filter(mafs, function(d) { return isnum(d) }).length;
-    console.log(num_phenos_with_maf);
     if (num_phenos_with_maf === mafs.length) {
         var range = d3.extent(mafs);
         $(function() {

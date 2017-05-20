@@ -122,26 +122,38 @@ default_per_variant_fields = OrderedDict([
     ('chrom', {
         'aliases': ['#CHROM', 'chr'],
         'required': True,
+        'tooltip_underscoretemplate': '<b><%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> &gt; <%= d.alt %></b><br>',
+        'tooltip_lztemplate': False,
     }),
     ('pos', {
         'aliases': ['BEG', 'BEGIN', 'BP'],
         'required': True,
         'type': int,
         'range': [0, None],
+        'tooltip_underscoretemplate': False,
+        'tooltip_lztemplate': False,
     }),
     ('ref', {
         'aliases': ['reference', 'allele0'],
         'required': True,
+        'tooltip_underscoretemplate': False,
+        'tooltip_lztemplate': False,
     }),
     ('alt', {
         'aliases': ['alternate', 'allele1'],
         'required': True,
+        'tooltip_underscoretemplate': False,
+        'tooltip_lztemplate': False,
     }),
     ('rsids', {
         'from_assoc_files': False,
+        'tooltip_underscoretemplate': '<% _.each(_.filter((d.rsids||"").split(",")), function(rsid) { %>rsid: <%= rsid %><br><% }) %>',
+        'tooltip_lztemplate': {'condition': 'rsid', 'template': '<strong>{{rsid}}</strong><br>'},
     }),
     ('nearest_genes', {
         'from_assoc_files': False,
+        'tooltip_underscoretemplate': 'nearest gene<%= _.contains(d.nearest_genes, ",")? "s":"" %>: <%= d.nearest_genes %><br>',
+        'tooltip_lztemplate': False,
     }),
 ])
 
@@ -153,41 +165,59 @@ default_per_assoc_fields = OrderedDict([
         'nullable': True,
         'range': [0, 1],
         'sigfigs': 2,
+        'tooltip_lztemplate': {
+            'condition': False,
+            'template': ('{{#if pvalue}}P-value: <strong>{{pvalue|scinotation}}</strong><br>{{/if}}\n' +
+                         '{{#if pval}}P-value: <strong>{{pval|scinotation}}</strong><br>{{/if}}'),
+        },
+        'display': 'P-value',
     }),
     ('beta', {
         'type': float,
         'nullable': True,
         'sigfigs': 2,
+        'tooltip_underscoretemplate': 'Beta: <%= d.beta %><% if(_.has(d, "sebeta")){ %> (<%= d.sebeta %>)<% } %><br>',
+        'tooltip_lztemplate': 'Beta: <strong>{{beta}}</strong>{{#if sebeta}} ({{sebeta}}){{/if}}<br>',
+        'display': 'Beta',
     }),
     ('sebeta', {
         'type': float,
         'nullable': True,
         'sigfigs': 2,
+        'tooltip_underscoretemplate': False,
+        'tooltip_lztemplate': False,
     }),
     ('or', {
         'type': float,
         'nullable': True,
         'range': [0, None],
         'sigfigs': 2,
+        'display': 'Odds Ratio',
     }),
     ('maf', {
         'type': float,
         'range': [0, 0.5],
         'sigfigs': 2,
+        'tooltip_lztemplate': {'transform': '|scinotation'},
+        'display': 'MAF',
     }),
     ('af', {
         'aliases': ['A1FREQ'],
         'type': float,
         'range': [0, 1],
         'sigfigs': 2, # TODO: never round 99.99% to 100%.  Make sure MAF would have the right sigfigs.
+        'tooltip_lztemplate': {'transform': '|scinotation'},
+        'display': 'AF',
     }),
     ('ac', {
         'type': float,
         'range': [0, None],
+        'display': 'AC',
     }),
     ('r2', {
         'type': float,
         'nullable': True,
+        'display': 'R2',
     }),
 ])
 
@@ -197,18 +227,21 @@ default_per_pheno_fields = OrderedDict([
         'type': int,
         'nullable': True,
         'range': [0, None],
+        'display': '#cases',
     }),
     ('num_controls', {
         'aliases': ['NS.CTRL', 'N_controls'],
         'type': int,
         'nullable': True,
         'range': [0, None],
+        'display': '#controls',
     }),
     ('num_samples', {
         'aliases': ['NS', 'N'],
         'type': int,
         'nullable': True,
         'range': [0, None],
+        'display': '#samples',
     }),
     # TODO: phenocode, phenostring, category, &c?
     # TODO: include `assoc_files` with {never_send: True}?
@@ -241,3 +274,37 @@ for field_name, field_dict in conf.parse.fields.items():
 _repeated_aliases = [alias for alias,count in Counter(itertools.chain.from_iterable(f['aliases'] for f in conf.parse.fields.values())).most_common() if count > 1]
 if _repeated_aliases:
     raise Exception('The following aliases appear for multiple fields: {}'.format(_repeated_aliases))
+
+
+def get_tooltip_underscoretemplate():
+    template = ''
+    for fieldname, field in conf.parse.fields.items():
+        if 'tooltip_underscoretemplate' in field:
+            if field['tooltip_underscoretemplate'] is False:
+                continue
+            else:
+                template += '<% if(_.has(d, ' + repr(fieldname) + ')) { %>' + field['tooltip_underscoretemplate'] + '<% } %>\n'
+        else:
+            template += '<% if(_.has(d, ' + repr(fieldname) + ')) { %>' + field.get('display', fieldname) + ': <%= d[' + repr(fieldname) + '] %><br><% } %>\n'
+    return template
+conf.parse.tooltip_underscoretemplate = get_tooltip_underscoretemplate()
+
+def get_tooltip_lztemplate():
+    template = ''
+    for fieldname, field in conf.parse.fields.items():
+        lzt = field.get('tooltip_lztemplate', {})
+        if lzt is False:
+            continue
+        if isinstance(lzt, str):
+            lzt = {'template': lzt}
+        if 'template' not in lzt:
+            lzt['template'] = field.get('display', fieldname) + ': <strong>{{' + fieldname + lzt.get('transform','') + '}}</strong><br>'
+        if 'condition' not in lzt:
+            lzt['condition'] = fieldname
+
+        if not lzt['condition']:
+            template += lzt['template'] + '\n'
+        else:
+            template += '{{#if ' + lzt['condition'] + '}}' + lzt['template'] + '{{/if}}\n'
+    return template
+conf.parse.tooltip_lztemplate = get_tooltip_lztemplate()

@@ -3,7 +3,9 @@
 
 {% block in_head %}
 <script type="text/javascript">
+  window.model = window.model || {};
   window.variant = {{ variant|tojson(separators=(',',':'))|safe }};
+  window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
 </script>
 <script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/locuszoom-0.5.6.vendor.min.js') }}" type="text/javascript"></script>
