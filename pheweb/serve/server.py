@@ -42,9 +42,10 @@ def check_auth(func):
     @functools.wraps(func)
     def decorated_view(*args, **kwargs):
         if current_user.is_anonymous:
-            print('unauthorized user {!r} visited the url [{!r}]'.format(current_user, request.path))
+            print('unauthorized user visited {!r}'.format(request.path))
             session['original_destination'] = request.path
             return redirect(url_for('get_authorized'))
+        print('{} visited {!r}'.format(current_user.email, request.path))
         assert current_user.email.lower() in conf.login['whitelist'], current_user
         return func(*args, **kwargs)
     return decorated_view
@@ -271,7 +272,7 @@ if 'login' in conf:
 
     @app.route('/logout')
     def logout():
-        print('logging out user {!r}'.format(current_user))
+        print(current_user.email, 'logged out')
         logout_user()
         return redirect(url_for('homepage'))
 
@@ -319,5 +320,5 @@ if 'login' in conf:
         user = User(username, email)
         login_user(user, remember=True)
 
-        print('logged in', id)
+        print(user.email, 'logged in')
         return redirect(url_for('get_authorized'))
