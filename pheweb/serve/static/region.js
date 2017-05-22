@@ -221,7 +221,8 @@
                     "class": "lz-data_layer-scatter"
                 }],
 
-                fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation", "pvalue|neglog10_or_100", "ld:state", "ld:isrefvar"],
+                fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation", "pvalue|neglog10_or_100", "ld:state", "ld:isrefvar",
+                        "pvalue", "beta", "sebeta", "af"], // TODO: remove these.
                 id_field: "id",
                 behaviors: {
                     onmouseover: [{action: "set", status:"selected"}],
