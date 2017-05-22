@@ -122,7 +122,7 @@ default_per_variant_fields = OrderedDict([
     ('chrom', {
         'aliases': ['#CHROM', 'chr'],
         'required': True,
-        'tooltip_underscoretemplate': '<b><%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> &gt; <%= d.alt %></b><br>',
+        'tooltip_underscoretemplate': '<b><%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> / <%= d.alt %></b><br>',
         'tooltip_lztemplate': False,
     }),
     ('pos', {

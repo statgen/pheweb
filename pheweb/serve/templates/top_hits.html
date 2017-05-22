@@ -53,7 +53,7 @@
 <script type="text/template" id="streamtable-template">
   <tr>
     <td><a style="color:black" href="/variant/<%= h.chrom %>-<%= h.pos %>-<%= h.ref %>-<%= h.alt %>">
-        <%= h.chrom %>:<%= h.pos.toLocaleString() %> <%= h.ref %> &gt; <%= h.alt %>
+        <%= h.chrom %>:<%= h.pos.toLocaleString() %> <%= h.ref %> / <%= h.alt %>
         <% if (h.rsids) { %>(<%= h.rsids.replace(/,/g, ', ') %>)<% } %>
     </a></td>
     <td><a style="color:black" href="/pheno/<%= h.phenocode %>">

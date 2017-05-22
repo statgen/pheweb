@@ -174,7 +174,7 @@
 <script type="text/template" id="streamtable-template">
 <tr>
 <td><a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>">
-    <%= v.chrom %>:<%= v.pos.toLocaleString() %> <%= v.ref %> &gt; <%= v.alt %>
+    <%= v.chrom %>:<%= v.pos.toLocaleString() %> <%= v.ref %> / <%= v.alt %>
     <% if (v.rsids) { %>(<%= v.rsids.replace(/,/g, ', ') %>)<% } %>
 </a></td>
 <td><i><%= v.nearest_genes.replace(/,/g, ', ') %></i></td>
