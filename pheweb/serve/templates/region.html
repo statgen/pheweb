@@ -28,7 +28,7 @@
 {% endfor %}
 <div class="row">
   <div class="col-xs-12">
-    <h1 style="margin-top:0">{{ pheno['phenocode'] }}{% if pheno.phenostring %}: {{ pheno.phenostring }}{% endif %}</h1>
+    <h1 style="margin-top:0">{% include "region/h1.html" %}</h1>
   </div>
 </div>
 <div class="row">
