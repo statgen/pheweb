@@ -35,7 +35,7 @@ def gc_value_from_list(neglog10_pvals, quantile=0.5):
     pval = 10 ** -neglog10_pval
     return gc_value(pval, quantile)
 def gc_value(pval, quantile=0.5):
-    # This should be equivalent to this R: `qchisq(p, df=1, lower.tail=F) / qchisq(.5, df=1, lower.tail=F)`
+    # This should be equivalent to this R: `qchisq(median_pval, df=1, lower.tail=F) / qchisq(quantile, df=1, lower.tail=F)`
     return scipy.stats.chi2.ppf(1 - pval, 1) / scipy.stats.chi2.ppf(1 - quantile, 1)
 assert approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
 assert approx_equal(gc_value(0.5), 1)

@@ -363,6 +363,8 @@
 
     window.debug.data_sources = data_sources;
     window.debug.layout = layout;
+    window.debug.assoc_data_layer = layout.panels[0].data_layers[2];
+
     $(function() {
         // Populate the div with a LocusZoom plot using the default layout
         window.plot = LocusZoom.populate("#lz-1", data_sources, layout);
