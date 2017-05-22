@@ -63,11 +63,23 @@ function deepcopy(obj) {
         window.debug.getData_args = [state, fields, outnames, trans];
         trans = trans || [];
 
-        var data = deepcopy(window.variant.phenos);
+        var data = deepcopy(window.variant.phenos); //otherwise LZ adds attributes I don't want to the original data.
         data.forEach(function(d, i) {
-            if (!isNaN(d.beta)) { d.effect_direction = (d.beta > 0) ? 1 : (d.beta < 0) ? -1 : 0 }
-            else if (!isNaN(d.or)) { d.effect_direction = (d.or > 1) ? 1 : (d.or < 1) ? -1 : 0 }
-            else d.effect_direction = 0;
+
+            if (!isNaN(d.beta)) {
+                if (!isNaN(d.sebeta)) {
+                    if      (d.beta - 2*d.sebeta > 0) { d.effect_direction = 1; }
+                    else if (d.beta + 2*d.sebeta < 0) { d.effect_direction = -1; }
+                } else {
+                    if      (d.beta > 0) { d.effect_direction = 1; }
+                    else if (d.beta > 0) { d.effect_direction = 1; }
+                }
+            }
+            if (!isNaN(d.or)) {
+                if      (d.or > 0) { d.effect_direction = 1; }
+                else if (d.or < 0) { d.effect_direction = -1; }
+            }
+            if (isNaN(d.effect_direction)) { d.effect_direction = 0; }
 
             data[i].x = i;
             data[i].id = i.toString();
@@ -93,6 +105,12 @@ function deepcopy(obj) {
 
     // Make sig line, and always show it.
     phewas_panel.data_layers[0].offset = neglog10_significance_threshold;
+    phewas_panel.data_layers[0].tooltip = { //TODO: modify LZ to support tooltips on a line. right now this doesn't do anything.
+        closable: true,
+        html: 'foo',
+        hide: { 'and': ['unhighlighted', 'unselected'] },
+        show: { 'or': ['highlighted', 'selected'] }
+    };
     phewas_panel.data_layers[1].y_axis.min_extent = [0, neglog10_significance_threshold*1.05];
     phewas_panel.data_layers[1].y_axis.upper_buffer = 0.1;
 
