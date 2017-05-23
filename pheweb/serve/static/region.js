@@ -1,5 +1,43 @@
 'use strict';
 
+LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fields, outnames, trans) {
+    // This overrides the default to keep all fields in `x` (the response)
+    // If <https://github.com/statgen/locuszoom/pull/102> gets accepted, it won't be necessary.
+
+    //intended for an object of arrays
+    //{"id":[1,2], "val":[5,10]}
+    var records = [];
+    fields.forEach(function(f, i) {
+        if (!(f in x)) {throw "field " + f + " not found in response for " + outnames[i];}
+    });
+    var x_keys = Object.keys(x);
+    var N = x[x_keys[0]].length; // NOTE: this was [1] before, why?
+    x_keys.forEach(function(key) {
+        if (x[key].length !== N) {
+            throw "the response column " + key + " had " + x[key].length.toString() +
+                " elements but " + x_keys[0] + " had " + N.toString();
+        }
+    });
+    var nonfield_keys = x_keys.filter(function(key) {
+        return fields.indexOf(key) === -1;
+    });
+    for(var i = 0; i < N; i++) {
+        var record = {};
+        for(var j=0; j<fields.length; j++) {
+            var val = x[fields[j]][i];
+            if (trans && trans[j]) {
+                val = trans[j](val);
+            }
+            record[outnames[j]] = val;
+        }
+        for(var j=0; j<nonfield_keys.length; j++) {
+            record[nonfield_keys[j]] = x[nonfield_keys[j]][i];
+        }
+        records.push(record);
+    }
+    return records;
+};
+
 (function() {
     // Define LocusZoom Data Sources object
     var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";
@@ -221,8 +259,7 @@
                     "class": "lz-data_layer-scatter"
                 }],
 
-                fields: ["id", "chr", "position", "ref", "alt", "rsid", "pvalue|scinotation", "pvalue|neglog10_or_100", "ld:state", "ld:isrefvar",
-                        "pvalue", "beta", "sebeta", "af"], // TODO: remove these.
+                fields: ["id", "chr", "position", "ref", "alt", "pvalue", "ld:state", "ld:isrefvar"],
                 id_field: "id",
                 behaviors: {
                     onmouseover: [{action: "set", status:"selected"}],
