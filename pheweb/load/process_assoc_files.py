@@ -6,15 +6,15 @@ import time
 import importlib
 
 scripts = '''
-get_cpras
-merge_cpras
+parse_input_files
+sites
 download_rsids
 download_genes
 make_gene_aliases_trie
 add_rsids
 add_genes
 make_tries
-standardize_phenos
+augment_phenos
 manhattan
 qq
 matrix

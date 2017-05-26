@@ -1,13 +1,13 @@
 
 
 '''
-This script annotates `cpra.tsv` with rsids (comma-separated) from `sites/dbSNP/rsids.vcf.gz`.  It prints output to `cpra_rsids.tsv`.
+This script annotates `sites/sites-unannotated.tsv` with rsids (comma-separated) from `sites/dbSNP/rsids.vcf.gz`.  It prints output to `sites-rsids.tsv`.
 
 It relies on both being ordered like [1-22,X,Y,MT] and having positions sorted.
 
 Notes:
 
-`sites/cpra.tsv` can have multi-allelic positions.
+`sites/sites-unannotated.tsv` can have multi-allelic positions.
 `sites/dbSNP/rsids.vcf.gz` can have multi-allelic variants and multiple rsids for the same chr-pos-ref-alt.
 
 In `sites/dbSNP/rsids.vcf.gz`, sometimes `alt` contains `N`, which matches any nucleotide I think.
@@ -16,34 +16,52 @@ We read one full position at a time.  When we have a position-match, we find all
 '''
 
 # TODO:
-# - Do we need to left-normalize all indels?
-# - sorting (chr&pos) is already taken care of for sites.tsv, so remove the assertions.
-#   instead, assert that (1) rsids_chrom_order matches chrom_order and (2) rsids follow rsids_chrom_order (in get_rsid_reader)
-#   so, move rsids_chrom_order inside get_rsid_reader
+# - do we need to left-normalize all indels?
+# - rename `cpra` to something else to reflect that it can also contain other per-variant fields
 
 
-from ..file_utils import VariantFileReader, VariantFileWriter, get_generated_path
-from .download_rsids import clean_file as rsids_filename
+from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, open_maybe_gzip
+from ..utils import chrom_order, chrom_order_list
 
 import os
 import gzip
 import itertools
 
+in_filepath = common_filepaths['unanno']
+out_filepath = common_filepaths['sites-rsids']
+rsids_filepath = common_filepaths['rsids']
 
-cpra_filename = get_generated_path("sites/cpra.tsv")
-out_filename = get_generated_path("sites/cpra_rsids.tsv")
-
-def mod_time(fname): return os.stat(fname).st_mtime
+def mod_time(filepath): return os.stat(filepath).st_mtime
 
 def get_rsid_reader(rsids_f):
-    # TODO: add assertions about ordering?
+    prev_chrom_idx = -1
+    prev_pos = -1
     for line in rsids_f:
         if not line.startswith('##'):
             if line.startswith('#'):
-                assert line.rstrip('\n').split('\t') == '#CHROM POS ID REF ALT QUAL FILTER INFO'.split(), repr(line)
+                assert line.rstrip('\r\n').split('\t') == '#CHROM POS ID REF ALT QUAL FILTER INFO'.split(), repr(line)
             else:
-                fields = line.rstrip('\n').split('\t')
+                fields = line.rstrip('\r\n').split('\t')
+                if len(fields) != 5:
+                    raise Exception('Line has wrong number of fields: {!r} - {!r}'.format(line, fields))
                 chrom, pos, rsid, ref, alt_group = fields[0], int(fields[1]), fields[2], fields[3], fields[4]
+                if chrom not in chrom_order:
+                    try:
+                        chrom = chrom_aliases[chrom]
+                    except KeyError:
+                        raise Exception(('The rsids file, {!r}, contains the unknown chromsome {!r}.' +
+                                         'The recognized chromosomes are: {!r}.' +
+                                         'Recognized aliases are: {!r}.').format(
+                                             rsids_filepath, chrom, list(chrom_order.keys()), list(chrom_aliases.keys())))
+                chrom_idx = chrom_order[chrom]
+                if prev_chrom_idx > chrom_idx:
+                    raise Exception(('The rsids file, {!r}, contains chromosomes in the wrong order.' +
+                                     'The order should be: {!r}' +
+                                     'but instead {} came before {}').format(
+                                         rsids_filepath, chrom_order_list, chrom_order_list[prev_chrom_idx], chrom_order_list[chrom_idx]))
+                if prev_chrom_idx == chrom_idx and prev_pos > pos:
+                    raise Exception('The rsids file, {!r}, on chromosome {!r}, has position {} before {}.'.format(
+                        rsids_filepath, chrom_order_list[chrom_idx], prev_pos, pos))
                 assert rsid.startswith('rs')
                 # Sometimes the reference contains `N`, and that's okay.
                 assert all(base in 'ATCGN' for base in ref), (chrom, pos, ref, alt_group)
@@ -72,42 +90,28 @@ def are_match(seq1, seq2):
     return False
 
 
-rsids_chrom_order = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
-rsids_chrom_order = {chrom: index for index,chrom in enumerate(rsids_chrom_order)}
-
 def run(argv):
 
-    if os.path.exists(out_filename) and max(mod_time(cpra_filename), mod_time(rsids_filename)) <= mod_time(out_filename):
+    if os.path.exists(out_filepath) and max(mod_time(in_filepath), mod_time(rsids_filepath)) <= mod_time(out_filepath):
         print('rsid annotation is up-to-date!')
         return
 
-    with VariantFileReader(cpra_filename) as cpra_reader, \
-         gzip.open(rsids_filename, 'rt') as rsids_f, \
-         VariantFileWriter(out_filename) as writer:
+    with VariantFileReader(in_filepath) as in_reader, \
+         open_maybe_gzip(rsids_filepath, 'rt') as rsids_f, \
+         VariantFileWriter(out_filepath) as writer:
 
         rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))
-        cp_group_reader = get_one_chr_pos_at_a_time(cpra_reader)
+        cp_group_reader = get_one_chr_pos_at_a_time(in_reader)
 
-        cpra_largest_index_in_rsids_chrom_order = -1
         rsid_group = next(rsid_group_reader)
         for cp_group in cp_group_reader:
-            if cp_group[0]['chrom'] not in rsids_chrom_order:
-                print("Your input has a chromosome {!r}, which we don't have rsids for.".format(cp_group[0]['chrom']))
-                print("That wouldn't be a big problem, but I'm using the rsid chromosome order for sanity-checking.")
-                print("So you're going to have to remove this message and fix some stuff related to rsids_chrom_order")
-                raise Exception()
-            if rsids_chrom_order[cp_group[0]['chrom']] < cpra_largest_index_in_rsids_chrom_order:
-                print("Your chromosomes are in the wrong order!  See `rsids_chrom_order` in this file for the right order.")
-                print("The first problematic variant is: {chrom}:{pos}".format(**cp_group[0]))
-                raise Exception()
-            cpra_largest_index_in_rsids_chrom_order = rsids_chrom_order[cp_group[0]['chrom']]
 
             # Advance rsid_group until it is up to/past cp_group
             while True:
                 if rsid_group[0]['chrom'] == cp_group[0]['chrom']:
                     rsid_is_not_behind = rsid_group[0]['pos'] >= cp_group[0]['pos']
                 else:
-                    rsid_is_not_behind = rsids_chrom_order[rsid_group[0]['chrom']] >= rsids_chrom_order[cp_group[0]['chrom']]
+                    rsid_is_not_behind = chrom_order[rsid_group[0]['chrom']] >= chrom_order[cp_group[0]['chrom']]
                 if rsid_is_not_behind:
                     break
                 else:

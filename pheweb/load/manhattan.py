@@ -7,7 +7,7 @@ This script creates json files which can be used to render Manhattan plots.
 
 from ..utils import conf, chrom_order, get_phenolist
 from ..file_utils import VariantFileReader, write_json, get_generated_path
-from .load_utils import Heap, star_kwargs, get_num_procs
+from .load_utils import MaxPriorityQueue, star_kwargs, exception_printer, get_num_procs
 
 import os
 import math
@@ -40,7 +40,7 @@ def get_pvals_and_pval_extents(pvals, neglog10_pval_bin_size):
 # TODO: convert bins from {(chrom, pos): []} to {chrom:{pos:[]}}?
 def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     bins = {}
-    unbinned_variant_heap = Heap()
+    unbinned_variant_pq = MaxPriorityQueue()
     chrom_n_bins = {}
 
     def bin_variant(variant):
@@ -57,14 +57,14 @@ def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_siz
             bins[(chrom_key, pos_bin)] = bin
         bin["neglog10_pvals"].add(rounded_neglog10(variant['pval'], neglog10_pval_bin_size, neglog10_pval_bin_digits))
 
-    # put most-significant variants into the heap and bin the rest
+    # put most-significant variants into the priorityqueue and bin the rest
     for variant in variant_iterator:
-        unbinned_variant_heap.add(variant, variant['pval'])
-        if len(unbinned_variant_heap) > n_unbinned:
-            old = unbinned_variant_heap.pop()
+        unbinned_variant_pq.add(variant, variant['pval'])
+        if len(unbinned_variant_pq) > n_unbinned:
+            old = unbinned_variant_pq.pop()
             bin_variant(old)
 
-    unbinned_variants = list(iter(unbinned_variant_heap))
+    unbinned_variants = list(unbinned_variant_pq.pop_all())
 
     # unroll bins into simple array (preserving chromosomal order)
     binned_variants = []
@@ -81,17 +81,18 @@ def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_siz
 
 
 
+@exception_printer
 @star_kwargs
-def make_json_file(src_filename, dest_filename):
+def make_json_file(src_filepath, dest_filepath):
 
     BIN_LENGTH = int(3e6)
     NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
     NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
     N_UNBINNED = 2000
 
-    if conf.debug: print('{}\t{} -> {} (START)'.format(datetime.datetime.now(), src_filename, dest_filename))
-    with VariantFileReader(src_filename) as variants:
-        if conf.debug: print('{}\tOPENED {}'.format(datetime.datetime.now(), src_filename))
+    if conf.debug: print('{}\t{} -> {} (START)'.format(datetime.datetime.now(), src_filepath, dest_filepath))
+    with VariantFileReader(src_filepath) as variants:
+        if conf.debug: print('{}\tOPENED {}'.format(datetime.datetime.now(), src_filepath))
         variant_bins, unbinned_variants = bin_variants(
             variants, BIN_LENGTH, N_UNBINNED, NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
         if conf.debug: print('{}\tBINNED VARIANTS'.format(datetime.datetime.now()))
@@ -101,19 +102,19 @@ def make_json_file(src_filename, dest_filename):
         'unbinned_variants': unbinned_variants,
     }
 
-    write_json(filename=dest_filename, data=rv)
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
+    write_json(filepath=dest_filepath, data=rv)
+    print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filepath, dest_filepath))
 
 
 def get_conversions_to_do():
     phenocodes = [pheno['phenocode'] for pheno in get_phenolist()]
     for phenocode in phenocodes:
-        src_filename = get_generated_path('augmented_pheno', phenocode)
-        dest_filename = get_generated_path('manhattan', '{}.json'.format(phenocode))
-        if not os.path.exists(dest_filename) or os.stat(dest_filename).st_mtime < os.stat(src_filename).st_mtime:
+        src_filepath = get_generated_path('augmented_pheno', phenocode)
+        dest_filepath = get_generated_path('manhattan', '{}.json'.format(phenocode))
+        if not os.path.exists(dest_filepath) or os.stat(dest_filepath).st_mtime < os.stat(src_filepath).st_mtime:
             yield {
-                'src_filename': src_filename,
-                'dest_filename': dest_filename,
+                'src_filepath': src_filepath,
+                'dest_filepath': dest_filepath,
             }
 
 

@@ -9,6 +9,7 @@ import multiprocessing
 import blist
 import bisect
 import random
+import itertools
 
 from ..utils import conf, round_sig
 
@@ -77,24 +78,6 @@ def star_kwargs(f):
     return f2
 
 
-class open_maybe_gzip(object):
-    def __init__(self, fname, *args):
-        self.fname = fname
-        self.args = args
-    def __enter__(self):
-        is_gzip = False
-        with open(self.fname, 'rb') as f:
-            if f.read(3) == b'\x1f\x8b\x08':
-                is_gzip = True
-        if is_gzip:
-            self.f = gzip.open(self.fname, *self.args)
-        else:
-            self.f = open(self.fname, *self.args)
-        return self.f
-    def __exit__(self, *exc):
-        self.f.close()
-
-
 def run_script(script):
     script = 'set -euo pipefail\n' + script
     try:
@@ -125,29 +108,33 @@ def get_num_procs():
 
 
 
-class Heap():
-    '''Unlike most heaps, this heap can safely store uncomparable values'''
+class MaxPriorityQueue:
+    '''
+    .pop() returns the item with the largest priority.
+    .popall() iteratively .pop()s until empty.
+    priorities must be comparable (duh).
+    '''
     def __init__(self):
-        self._q = blist.blist()
-        self._items = {}
-        self._idx = 0
+        self._q = blist.blist() # a sorted list of [(priority, idx), ...]
+        self._items = {} # maps idx -> item
+        self._counter = itertools.count()
 
     def add(self, item, priority):
-        idx = self._idx
-        self._idx += 1
-        if not self._q or -priority < self._q[0][0]:
-            self._q.insert(0, (-priority, idx))
+        idx = next(self._counter)
+        if self._q and priority > self._q[-1][0]:
+            # optimization for use case where new item has largest priority
+            self._q.append((priority, idx))
         else:
-            bisect.insort(self._q, (-priority, idx))
+            bisect.insort(self._q, (priority, idx))
         self._items[idx] = item
 
     def pop(self):
-        priority, idx = self._q.pop(0)
+        priority, idx = self._q.pop()
         return self._items.pop(idx)
 
     def __len__(self):
         return len(self._q)
 
-    def __iter__(self):
+    def pop_all(self):
         while self._q:
             yield self.pop()

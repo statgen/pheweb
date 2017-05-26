@@ -208,7 +208,7 @@ There are four ways to make a ``pheno-list.json``:
 
    ::
 
-       pheweb phenolist extract-phenocode-from-fname --simple
+       pheweb phenolist extract-phenocode-from-filepath --simple
 
 3. If you have multiple association files for some phenotypes, you can
    follow the directions in 2 and then run
@@ -225,7 +225,7 @@ There are four ways to make a ``pheno-list.json``:
    ::
 
        pheweb phenolist glob-files "/home/watman/*/*.epacts.gz"
-       pheweb phenolist extract-phenocode-from-fname --simple
+       pheweb phenolist extract-phenocode-from-filepath --simple
        pheweb phenolist unique-phenocode
 
 4. If you want to do more advanced things, like merging in more

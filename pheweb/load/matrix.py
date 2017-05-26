@@ -1,26 +1,26 @@
 
 from ..utils import get_phenolist
-from ..file_utils import MatrixReader, get_generated_path, get_tmp_path
+from ..file_utils import MatrixReader, get_generated_path, get_tmp_path, common_filepaths
 from .cffi._x import ffi, lib
 
 import os
 import glob
 import pysam
 
-sites_fname = get_generated_path('sites/sites.tsv')
+sites_filepath = common_filepaths['sites']
 augmented_pheno_dir = get_generated_path('augmented_pheno')
-matrix_gz_fname = get_generated_path('matrix.tsv.gz')
-matrix_gz_tmp_fname = get_tmp_path(matrix_gz_fname)
+matrix_gz_filepath = common_filepaths['matrix']
+matrix_gz_tmp_filepath = get_tmp_path(matrix_gz_filepath)
 
 def should_run():
     cur_phenocodes = set(pheno['phenocode'] for pheno in get_phenolist())
 
     # Remove files that shouldn't be there (and will confuse the glob in matrixify)
-    for fname in glob.glob(os.path.join(augmented_pheno_dir, '*')):
-        if os.path.basename(fname) not in cur_phenocodes:
-            os.remove(fname)
+    for filepath in glob.glob(os.path.join(augmented_pheno_dir, '*')):
+        if os.path.basename(filepath) not in cur_phenocodes:
+            os.remove(filepath)
 
-    if not os.path.exists(matrix_gz_fname): return True
+    if not os.path.exists(matrix_gz_filepath): return True
 
     # check that the current matrix is composed of the correct columns/phenotypes.  If it's changed, rebuild the matrix.
     try:
@@ -33,9 +33,9 @@ def should_run():
         print('- phenos in matrix.tsv.gz but not pheno-list.json:', ', '.join(repr(p) for p in matrix_phenocodes - cur_phenocodes))
         return True
 
-    infiles = [os.path.join(augmented_pheno_dir, phenocode) for phenocode in cur_phenocodes] + [sites_fname]
-    infile_modtime = max(os.stat(fn).st_mtime for fn in infiles)
-    if infile_modtime > os.stat(matrix_gz_fname).st_mtime:
+    infilepaths = [os.path.join(augmented_pheno_dir, phenocode) for phenocode in cur_phenocodes] + [sites_filepath]
+    infile_modtime = max(os.stat(filepath).st_mtime for filepath in infilepaths)
+    if infile_modtime > os.stat(matrix_gz_filepath).st_mtime:
         print('rerunning because some input files are newer than matrix.tsv.gz')
         return True
 
@@ -43,14 +43,14 @@ def run(argv):
 
     if should_run():
         args = [
-            ffi.new('char[]', sites_fname.encode('utf8')),
+            ffi.new('char[]', sites_filepath.encode('utf8')),
             ffi.new('char[]', '{}/*'.format(augmented_pheno_dir).encode('utf8')),
-            ffi.new('char[]', matrix_gz_tmp_fname.encode('utf8'))
+            ffi.new('char[]', matrix_gz_tmp_filepath.encode('utf8'))
         ]
         lib.cffi_make_matrix(*args)
-        os.rename(matrix_gz_tmp_fname, matrix_gz_fname)
+        os.rename(matrix_gz_tmp_filepath, matrix_gz_filepath)
         pysam.tabix_index(
-            filename=matrix_gz_fname, force=True,
+            filename=matrix_gz_filepath, force=True,
             seq_col=0, start_col=1, end_col=1 # note: these are 0-based, but `/usr/bin/tabix` is 1-based
         )
     else:

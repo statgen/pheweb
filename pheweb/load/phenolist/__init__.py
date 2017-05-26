@@ -1,7 +1,6 @@
 
 from ...utils import die
-from ...file_utils import get_generated_path, make_basedir
-from ..load_utils import open_maybe_gzip
+from ...file_utils import get_generated_path, make_basedir, common_filepaths, open_maybe_gzip
 from ..read_input_file import PhenoReader
 
 import os
@@ -24,30 +23,30 @@ def get_phenolist_with_globs(globs, star_is_phenocode):
     with tqdm.tqdm(total=int(1e100), bar_format='Found {n:7} files') as progressbar:
         for g in globs:
             num_files_in_this_glob = 0
-            for fname in glob.iglob(g):
+            for filepath in glob.iglob(g):
                 num_files_in_this_glob += 1
-                phenolist.append({'assoc_files': [os.path.abspath(fname)]})
+                phenolist.append({'assoc_files': [os.path.abspath(filepath)]})
                 if star_is_phenocode:
-                    phenolist[-1]['phenocode'] = _extract_star(g, fname)
+                    phenolist[-1]['phenocode'] = _extract_star(g, filepath)
                 progressbar.update()
             if num_files_in_this_glob == 0:
                 progressbar.write("\rWARNING: the shell-glob {!r} didn't match any files\n".format(g))
     print("NOTE: found {} association files".format(len(phenolist)))
     return phenolist
 
-def _extract_star(glob_pattern, fname):
+def _extract_star(glob_pattern, filepath):
     if '*' not in glob_pattern:
         raise Exception("You tried to use --star-is-phenocode, but your pattern {!r} doesn't contain any *s.  If you tried to use a *, maybe wrap your pattern in single-quotes (') to prevent your shell from expanding it.")
     regex = '^{}$'.format(re.escape(glob_pattern).replace('\*', '([^/]*)'))
-    matches = re.match(regex, fname).groups()
+    matches = re.match(regex, filepath).groups()
     if boltons.iterutils.same(matches):
         return matches[0]
     raise Exception("You used --star-is-phenocode with the pattern {!r} which found the file {!r}, but the *s appeared to match {!r}, which are different.".format(
-        glob, fname, matches))
+        glob, filepath, matches))
 assert _extract_star('/foo/pheno-*.epacts.gz', '/foo/pheno-bar.epacts.gz') == 'bar'
 assert _extract_star('/foo/*/pheno-*.epacts.gz', '/foo/bar/pheno-bar.epacts.gz') == 'bar'
 
-def extract_phenocode_from_fname(phenolist, regex):
+def extract_phenocode_from_filepath(phenolist, regex):
     print("NOTE: working with {} phenos".format(len(phenolist)))
     if not isinstance(regex, re._pattern_type):
         regex = re.compile(regex)
@@ -57,20 +56,20 @@ def extract_phenocode_from_fname(phenolist, regex):
         if not pheno['assoc_files']:
             die("ERROR: At least one phenotype has an empty 'assoc_files' list.")
         phenocodes = []
-        for assoc_fname in pheno['assoc_files']:
-            match = re.search(regex, assoc_fname)
+        for assoc_filepath in pheno['assoc_files']:
+            match = re.search(regex, assoc_filepath)
             if match is None:
-                die("ERROR: The regex {!r} doesn't match the filename {!r}".format(regex.pattern, assoc_fname))
+                die("ERROR: The regex {!r} doesn't match the filepath {!r}".format(regex.pattern, assoc_filepath))
             groups = match.groups()
             if len(groups) != 1:
-                die("ERROR: The regex {!r} doesn't capture any groups on the filename {!r}!  You're using parentheses without backslashes, right?".format(regex.pattern, assoc_fname))
+                die("ERROR: The regex {!r} doesn't capture any groups on the filepath {!r}!  You're using parentheses without backslashes, right?".format(regex.pattern, assoc_filepath))
             phenocodes.append(groups[0])
         if len(set(phenocodes)) != 1:
-            die("ERROR: At least one phenotype gets multiple different phenocodes from its several association filenames.  Here they are: {!r}".format(list(set(phenocodes))))
+            die("ERROR: At least one phenotype gets multiple different phenocodes from its several association filepaths.  Here they are: {!r}".format(list(set(phenocodes))))
         if 'phenocode' in pheno:
             if pheno['phenocode'] != phenocodes[0]:
                 die("""\
-ERROR: The regex {!r} matched the filenames {!r} to produce the phenocode {!r}.  But that phenotype already had a phenocode, {!r}.
+ERROR: The regex {!r} matched the filepaths {!r} to produce the phenocode {!r}.  But that phenotype already had a phenocode, {!r}.
 """.format(regex.pattern, pheno['assoc_files'], phenocodes[0], pheno['phenocode']))
         pheno['phenocode'] = phenocodes[0]
     return phenolist
@@ -136,33 +135,33 @@ def hide_small_numbers_of_samples(phenolist, minimum_visible_number=50):
                 pheno[key] = '<{}'.format(minimum_visible_number)
     return phenolist
 
-def import_phenolist(fname, has_header):
+def import_phenolist(filepath, has_header):
     # Return a list-of-dicts with the original column names, or integers if none.
     # It'd be great to use pandas for this.
-    if not os.path.exists(fname):
-        die("ERROR: unable to import {!r} because it doesn't exist".format(fname))
+    if not os.path.exists(filepath):
+        die("ERROR: unable to import {!r} because it doesn't exist".format(filepath))
     # 1. try openpyxl.
-    phenos = _import_phenolist_xlsx(fname, has_header)
+    phenos = _import_phenolist_xlsx(filepath, has_header)
     if phenos is not None:
         return phenos
-    with open_maybe_gzip(fname) as f:
+    with open_maybe_gzip(filepath) as f:
         # 2. try json.load(f)
         try:
             return json.load(f)
         except ValueError:
-            if fname.endswith('.json'):
-                raise Exception("The filename {!r} ends with '.json' but reading it as json failed.".format(fname))
+            if filepath.endswith('.json'):
+                raise Exception("The filepath {!r} ends with '.json' but reading it as json failed.".format(filepath))
         # 3. try csv.reader() with csv.Sniffer().sniff()
         f.seek(0)
         phenos = _import_phenolist_csv(f, has_header)
         if phenos is not None:
             return phenos
-        raise Exception("I couldn't figure out how to open the file {!r}, sorry.".format(fname))
+        raise Exception("I couldn't figure out how to open the file {!r}, sorry.".format(filepath))
 
-def _import_phenolist_xlsx(fname, has_header):
+def _import_phenolist_xlsx(filepath, has_header):
     import openpyxl
     try:
-        wb = openpyxl.load_workbook(fname)
+        wb = openpyxl.load_workbook(filepath)
         assert len(wb.worksheets) == 1
         sheet = wb.worksheets[0]
         rows = [[cell.value for cell in row] for row in sheet.rows]
@@ -179,8 +178,8 @@ def _import_phenolist_xlsx(fname, has_header):
             fieldnames = list(range(num_cols))
         return [{fieldnames[i]: row[i] for i in range(num_cols)} for row in rows]
     except openpyxl.utils.exceptions.InvalidFileException:
-        if fname.endswith('.xlsx'):
-            raise Exception("The filename {!r} ends with '.xlsx' but reading it as an excel file failed.".format(fname))
+        if filepath.endswith('.xlsx'):
+            raise Exception("The filepath {!r} ends with '.xlsx' but reading it as an excel file failed.".format(filepath))
         return None
 
 def _import_phenolist_csv(f, has_header):
@@ -431,35 +430,35 @@ def unique_phenocode(phenolist, new_column_name):
             new_phenolist.append(new_pheno)
         return new_phenolist
 
-def load_phenolist(fname):
-    if not os.path.exists(fname):
-        die("The filename {!r} does not exist.".format(fname))
-    with open(fname) as f:
+def load_phenolist(filepath):
+    if not os.path.exists(filepath):
+        die("The filepath {!r} does not exist.".format(filepath))
+    with open(filepath) as f:
         try:
             phenolist = json.load(f)
         except:
-            die("Failed to load json from {!r}.".format(fname))
+            die("Failed to load json from {!r}.".format(filepath))
         return phenolist
 
-def save_phenolist(phenolist, fname=None):
-    fname = os.path.abspath(fname)
-    if os.path.exists(fname): backup_phenolist(fname)
-    else: make_basedir(fname)
-    with open(os.path.join(fname), 'w') as f:
+def save_phenolist(phenolist, filepath=None):
+    filepath = os.path.abspath(filepath)
+    if os.path.exists(filepath): backup_phenolist(filepath)
+    else: make_basedir(filepath)
+    with open(os.path.join(filepath), 'w') as f:
         write_phenolist_to_file(phenolist, f)
     all_columns = list(boltons.iterutils.unique(col for pheno in phenolist for col in pheno))
-    print("NOTE: wrote {} phenotypes to {!r} with columns {!r}".format(len(phenolist), fname, all_columns))
-def backup_phenolist(fname):
-    backup_fname = '{}-{}'.format(datetime.datetime.isoformat(datetime.datetime.now()), os.path.basename(fname))
-    backup_fname = get_generated_path('phenolist-backups', backup_fname)
-    make_basedir(backup_fname)
-    print("NOTE: moving the old {!r} to {!r}".format(fname, backup_fname))
-    shutil.move(fname, backup_fname)
+    print("NOTE: wrote {} phenotypes to {!r} with columns {!r}".format(len(phenolist), filepath, all_columns))
+def backup_phenolist(filepath):
+    backup_filepath = '{}-{}'.format(datetime.datetime.isoformat(datetime.datetime.now()), os.path.basename(filepath))
+    backup_filepath = get_generated_path('phenolist-backups', backup_filepath)
+    make_basedir(backup_filepath)
+    print("NOTE: moving the old {!r} to {!r}".format(filepath, backup_filepath))
+    shutil.move(filepath, backup_filepath)
 def write_phenolist_to_file(phenolist, f):
     phenolist = sorted(phenolist, key=lambda pheno: pheno.get('phenocode', ''))
     json.dump(phenolist, f, sort_keys=True, indent=1)
 
-default_phenolist_fname = get_generated_path('pheno-list.json')
+default_phenolist_filepath = common_filepaths['phenolist']
 
 def run(argv):
     # TODO: replace -f with -p .  That's more clear for import-phenolist.
@@ -480,48 +479,48 @@ def run(argv):
         return dec
     def modifies_phenolist(f):
         def f2(args):
-            fname = args.fname or default_phenolist_fname
-            phenolist = load_phenolist(fname)
+            filepath = args.filepath or default_phenolist_filepath
+            phenolist = load_phenolist(filepath)
             v = f(args, phenolist)
             if v is not None: phenolist = v
-            save_phenolist(phenolist, fname)
+            save_phenolist(phenolist, filepath)
         return f2
 
     @add_subcommand('view')
     def f(args):
-        fname = args.fname or default_phenolist_fname
-        phenolist = load_phenolist(fname)
+        filepath = args.filepath or default_phenolist_filepath
+        phenolist = load_phenolist(filepath)
         write_phenolist_to_file(phenolist, sys.stdout)
     p = subparsers.add_parser('view', help='just print the file')
-    p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="output filepath (default: {!r})".format(default_phenolist_filepath))
 
     @add_subcommand('glob')
     def f(args):
         if args.simple_phenocode and args.star_is_phenocode:
             raise Exception('You cannot use --star-is-phenocode and --simple-phenocode at the same time.')
-        fname = args.fname or default_phenolist_fname
+        filepath = args.filepath or default_phenolist_filepath
         phenolist = get_phenolist_with_globs(args.patterns, star_is_phenocode=args.star_is_phenocode)
         if args.simple_phenocode:
             pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.chr(?:[1-9][0-9]?|X|Y|MT?)|\.epacts|\.gz|\.tsv|\.txt|\.csv)*$'
-            extract_phenocode_from_fname(phenolist, pattern)
-        save_phenolist(phenolist, fname)
+            extract_phenocode_from_filepath(phenolist, pattern)
+        save_phenolist(phenolist, filepath)
     p = subparsers.add_parser('glob', help='use one or more shell-glob patterns to select association files')
     p.add_argument('patterns', nargs='+', help="one or more shell-glob patterns")
-    p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
-    p.add_argument('--simple-phenocode', dest="simple_phenocode", action="store_true", help="Extract a simple phenocode from the end of each filename")
+    p.add_argument('-f', dest="filepath", help="output filepath (default: {!r})".format(default_phenolist_filepath))
+    p.add_argument('--simple-phenocode', dest="simple_phenocode", action="store_true", help="Extract a simple phenocode from the end of each filepath")
     p.add_argument('--star-is-phenocode', dest="star_is_phenocode", action="store_true",
                    help="Turn whatever text the * matches into the phenocode. Put quotes around the pattern, so that the shell doesn't interpret the *.")
 
-    @add_subcommand('extract-phenocode-from-fname')
+    @add_subcommand('extract-phenocode-from-filepath')
     @modifies_phenolist
     def f(args, phenolist):
         if args.simple:
             args.pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.epacts|\.gz|\.tsv)*$'
         if not args.pattern: die("You must either supply a pattern or use --simple")
-        extract_phenocode_from_fname(phenolist, args.pattern)
-    p = subparsers.add_parser('extract-phenocode-from-fname', help='use a regex to extract phenocodes from association filenames')
+        extract_phenocode_from_filepath(phenolist, args.pattern)
+    p = subparsers.add_parser('extract-phenocode-from-filepath', help='use a regex to extract phenocodes from association filepaths')
     p.add_argument('pattern', nargs='?', help="a perl-compatible regex pattern with one capture group")
-    p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="pheno-list filepath, used for both input and output (default: {!r})".format(default_phenolist_filepath))
     p.add_argument('--simple', dest='simple', action='store_true', help="just take whatever's between the last / and the first .")
 
     @add_subcommand('unique-phenocode')
@@ -533,18 +532,18 @@ def run(argv):
                    help="when merging rows, if multiple columns are different, just turn each of those columns into a list.")
     p.add_argument('--columns-are-related', dest="new_column_name", default=None,
                    help="when merging rows, if multiple columns are different, add a new column with this name.")
-    p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="pheno-list filepath, used for both input and output (default: {!r})".format(default_phenolist_filepath))
 
     @add_subcommand('verify')
     def f(args):
-        fname = args.fname or default_phenolist_fname
-        phenolist = load_phenolist(fname)
+        filepath = args.filepath or default_phenolist_filepath
+        phenolist = load_phenolist(filepath)
         check_that_columns_are_present(phenolist, ['phenocode', 'assoc_files'] + args.required_columns)
         check_that_phenocode_is_unique(phenolist)
         check_that_all_phenotypes_have_assoc_files(phenolist)
-        print("The phenotypes in {!r} look good.".format(fname))
+        print("The phenotypes in {!r} look good.".format(filepath))
     p = subparsers.add_parser('verify', help='check that pheno-list is well-formed and could plausibly be used to make a pheweb')
-    p.add_argument('-f', dest="fname", help="pheno-list filename to check (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="pheno-list filepath to check (default: {!r})".format(default_phenolist_filepath))
     p.add_argument('--required-columns', dest='required_columns', nargs='+', default=[], help="a list of column names that must be included in all phenotypes")
 
     @add_subcommand('filter-phenotypes')
@@ -555,7 +554,7 @@ def run(argv):
         if args.minimum_num_samples is not None: phenolist = filter_phenolist(phenolist, lambda p: p.get('num_samples', float('inf')) >= args.minimum_num_samples, 'minimum_num_samples')
         return phenolist
     p = subparsers.add_parser('filter-phenotypes', help='filter the phenotypes using various rules')
-    p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="pheno-list filepath, used for both input and output (default: {!r})".format(default_phenolist_filepath))
     p.add_argument('--minimum-num-cases', dest='minimum_num_cases', type=int, help="remove any phenotypes with fewer than this number of cases")
     p.add_argument('--minimum-num-controls', dest='minimum_num_controls', type=int, help="remove any phenotypes with fewer than this number of controls")
     p.add_argument('--minimum-num-samples', dest='minimum_num_samples', type=int, help="remove any phenotypes with fewer than this number of samples")
@@ -565,7 +564,7 @@ def run(argv):
     def f(args, phenolist):
         return hide_small_numbers_of_samples(phenolist, args.minimum_visible_number)
     p = subparsers.add_parser('hide-small-numbers-of-samples', help="if a phenotype has too few samples, cases, or controls, don't show the number")
-    p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="pheno-list filepath, used for both input and output (default: {!r})".format(default_phenolist_filepath))
     p.add_argument('--minimum-visible-number', dest='minimum_visible_number', type=int, help="the minimum number of samples, cases, or controls that will be visible")
 
     @add_subcommand('read-info-from-association-files')
@@ -573,32 +572,32 @@ def run(argv):
     def f(args, phenolist):
         return extract_info_from_assoc_files(phenolist)
     p = subparsers.add_parser('read-info-from-association-files', help="if a phenotype has too few samples, cases, or controls, don't show the number")
-    p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="pheno-list filepath, used for both input and output (default: {!r})".format(default_phenolist_filepath))
 
     @add_subcommand('import-phenolist')
     def f(args):
-        fname = args.fname or default_phenolist_fname
-        phenolist = import_phenolist(args.input_filename, not args.no_header)
+        filepath = args.filepath or default_phenolist_filepath
+        phenolist = import_phenolist(args.input_filepath, not args.no_header)
         phenolist = interpret_json(phenolist)
         if args.delimit_lists_with_pipe:
             phenolist = split_values_on_pipes(phenolist)
         phenolist = listify_assoc_files(phenolist)
         phenolist = numify_numeric_cols(phenolist)
-        save_phenolist(phenolist, fname)
+        save_phenolist(phenolist, filepath)
     p = subparsers.add_parser('import-phenolist', help='read a csv, tsv, gzipped csv, gzipped tsv, or xlsx file and produce a json file')
-    p.add_argument('input_filename', help="input filename")
-    p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
-    p.add_argument('--no-header', dest="no_header", action="store_true", help="whether input_filename has no header, in which case columns will just be numbered")
+    p.add_argument('input_filepath', help="input filepath")
+    p.add_argument('-f', dest="filepath", help="output filepath (default: {!r})".format(default_phenolist_filepath))
+    p.add_argument('--no-header', dest="no_header", action="store_true", help="whether input_filepath has no header, in which case columns will just be numbered")
     p.add_argument('--never-delimit-lists-with-pipe', dest="delimit_lists_with_pipe", action="store_false", help="whether to split any fields that contain pipes into lists")
     # TODO: add option to strictly read a comma-delimited double-doublequote-escaped csv
 
     @add_subcommand('print-as-csv')
     def f(args):
-        fname = args.fname or default_phenolist_fname
-        phenolist = load_phenolist(fname)
+        filepath = args.filepath or default_phenolist_filepath
+        phenolist = load_phenolist(filepath)
         print_as_csv(phenolist)
     p = subparsers.add_parser('print-as-csv', help='Produce a csv file that could be read in by import-phenolist')
-    p.add_argument('-f', dest="fname", help="output filename (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="output filepath (default: {!r})".format(default_phenolist_filepath))
     # TODO: maybe make this be `view --csv`
 
     @add_subcommand('keep-only-columns')
@@ -606,7 +605,7 @@ def run(argv):
     def f(args, phenolist):
         return keep_only_columns(phenolist, args.columns_to_keep)
     p = subparsers.add_parser('keep-only-columns', help='')
-    p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="pheno-list filepath, used for both input and output (default: {!r})".format(default_phenolist_filepath))
     p.add_argument('columns_to_keep', nargs='+', help="a list of column names to keep in phenotypes -- the rest will be deleted")
 
     @add_subcommand('rename-columns')
@@ -618,7 +617,7 @@ def run(argv):
             phenolist = rename_column(phenolist, oldname, newname)
         return phenolist
     p = subparsers.add_parser('rename-columns', help='')
-    p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="pheno-list filepath, used for both input and output (default: {!r})".format(default_phenolist_filepath))
     p.add_argument('renames', nargs='+', help="columns to rename, in pairs, like this: <oldname> <newname> <oldname> <newname>...")
 
     # TODO:
@@ -631,7 +630,7 @@ def run(argv):
         phenolist = merge_in_info(phenolist, more_info_file)
         return phenolist
     p = subparsers.add_parser('merge-in-info', help='')
-    p.add_argument('-f', dest="fname", help="pheno-list filename, used for both input and output (default: {!r})".format(default_phenolist_fname))
+    p.add_argument('-f', dest="filepath", help="pheno-list filepath, used for both input and output (default: {!r})".format(default_phenolist_filepath))
     p.add_argument('file_with_more_info', help="a pheno-list file with more information to add to the main pheno-list file")
 
     args = parser.parse_args(argv)

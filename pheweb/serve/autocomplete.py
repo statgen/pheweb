@@ -1,6 +1,5 @@
 
-from ..utils import get_cacheable_file_location
-from ..file_utils import get_generated_path
+from ..file_utils import common_filepaths
 from .server_utils import parse_variant
 
 import itertools
@@ -23,9 +22,9 @@ class Autocompleter(object):
         self._phenos = copy.deepcopy(phenos)
         self._preprocess_phenos()
 
-        self._cpra_to_rsids_trie = marisa_trie.BytesTrie().load(get_generated_path('sites/cpra_to_rsids_trie.marisa'))
-        self._rsid_to_cpra_trie = marisa_trie.BytesTrie().load(get_generated_path('sites/rsid_to_cpra_trie.marisa'))
-        self._gene_alias_trie = marisa_trie.BytesTrie().load(get_cacheable_file_location('sites/genes', 'gene_aliases.marisa_trie'))
+        self._cpra_to_rsids_trie = marisa_trie.BytesTrie().load(common_filepaths['cpra-to-rsids-trie'])
+        self._rsid_to_cpra_trie = marisa_trie.BytesTrie().load(common_filepaths['rsid-to-cpra-trie'])
+        self._gene_alias_trie = marisa_trie.BytesTrie().load(common_filepaths['gene-aliases-trie'])
 
         self._autocompleters = [
             self._autocomplete_variant,

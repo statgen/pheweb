@@ -32,10 +32,10 @@ class BgzipWriter {
 // This is adapted from <https://github.com/samtools/htslib/blob/master/bgzf.c>,
 // referencing <http://github.com/samtools/htslib/blob/master/bgzip.c>
 public:
-    BgzipWriter(std::string fname) {
+    BgzipWriter(std::string filepath) {
         assert(compressBound(BGZF_BLOCK_SIZE) < BGZF_MAX_BLOCK_SIZE); // sanity-check
-        _fname = fname;
-        _file.open(fname.c_str(), std::ios::out | std::ios::binary);
+        _filepath = filepath;
+        _file.open(filepath.c_str(), std::ios::out | std::ios::binary);
         _uncompressed_block = new uint8_t[2*BGZF_MAX_BLOCK_SIZE];
         _compressed_block = _uncompressed_block + BGZF_MAX_BLOCK_SIZE;
         _uncompressed_block_size = 0;
@@ -134,7 +134,7 @@ private:
         _file.write( (const char*)_compressed_block, compressed_block_size);
         _uncompressed_block_size = 0;
     }
-    std::string _fname;
+    std::string _filepath;
     std::ofstream _file;
     uint8_t *_uncompressed_block; //  64KiB
     uint8_t *_compressed_block; // 64KiB
@@ -158,8 +158,8 @@ private:
 
 class LineReader {
 public:
-    inline void attach(std::string fpath) {
-        stream.open(fpath);
+    inline void attach(std::string filepath) {
+        stream.open(filepath);
         next();
     }
     inline void next() {
@@ -223,24 +223,24 @@ static inline size_t n_fields(std::string str) {
 // ------
 // main
 
-int make_matrix(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname) {
-    BgzipWriter writer(matrix_fname);
+int make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_filepath) {
+    BgzipWriter writer(matrix_filepath);
 
     LineReader sites_reader;
-    sites_reader.attach(sites_fname);
+    sites_reader.attach(sites_filepath);
 
-    std::vector<std::string> aug_fpaths = glob(augmented_pheno_glob);
-    size_t N_phenos = aug_fpaths.size();
+    std::vector<std::string> aug_filepaths = glob(augmented_pheno_glob);
+    size_t N_phenos = aug_filepaths.size();
     std::vector<LineReader> aug_readers(N_phenos);
-    std::vector<std::string> aug_fnames(N_phenos);
+    std::vector<std::string> aug_basenames(N_phenos);
     std::vector<unsigned> aug_n_per_assoc_fields(N_phenos); // initialized to 0s.
     set_ulimit_num_files(N_phenos + 100); // are python files still open?
     for (size_t i = 0; i < N_phenos; i++) {
-        aug_readers[i].attach(aug_fpaths[i]);
-        aug_fnames[i] = aug_fpaths[i];
-        size_t last_slash_idx = aug_fnames[i].find_last_of("/");
+        aug_readers[i].attach(aug_filepaths[i]);
+        aug_basenames[i] = aug_filepaths[i];
+        size_t last_slash_idx = aug_basenames[i].find_last_of("/");
         if (std::string::npos != last_slash_idx) {
-          aug_fnames[i].erase(0, last_slash_idx + 1);
+          aug_basenames[i].erase(0, last_slash_idx + 1);
         }
     }
 
@@ -264,7 +264,7 @@ int make_matrix(char *sites_fname, char *augmented_pheno_glob, char *matrix_fnam
             writer.write("\t");
             writer.write(field);
             writer.write("@");
-            writer.write(aug_fnames[i]);
+            writer.write(aug_basenames[i]);
             aug_n_per_assoc_fields[i]++;
         }
     }
@@ -306,13 +306,13 @@ int make_matrix(char *sites_fname, char *augmented_pheno_glob, char *matrix_fnam
 }
 
 
-int bgzip_file(char *in_fname, char *out_fname, char *prepend_bytes) {
+int bgzip_file(char *in_filepath, char *out_filepath, char *prepend_bytes) {
 
-  BgzipWriter writer(out_fname);
+  BgzipWriter writer(out_filepath);
   std::string prepend_bytes_string(prepend_bytes);
   writer.write(prepend_bytes_string);
 
-  std::ifstream reader(in_fname, std::ios::in | std::ios::binary);
+  std::ifstream reader(in_filepath, std::ios::in | std::ios::binary);
 
   static const size_t BLOCK_SIZE = 256 * 1024; // number is arbitrary
   char *buffer = new char[BLOCK_SIZE];
@@ -333,11 +333,11 @@ int bgzip_file(char *in_fname, char *out_fname, char *prepend_bytes) {
 // entry points
 
 extern "C" {
-  extern int cffi_make_matrix(char *sites_fname, char *augmented_pheno_glob, char *matrix_fname) {
-    return make_matrix(sites_fname, augmented_pheno_glob, matrix_fname);
+  extern int cffi_make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_filepath) {
+    return make_matrix(sites_filepath, augmented_pheno_glob, matrix_filepath);
   }
 
-  extern int cffi_bgzip_file(char *in_fname, char *out_fname, char *prepend_bytes) {
-    return bgzip_file(in_fname, out_fname, prepend_bytes);
+  extern int cffi_bgzip_file(char *in_filepath, char *out_filepath, char *prepend_bytes) {
+    return bgzip_file(in_filepath, out_filepath, prepend_bytes);
   }
 }

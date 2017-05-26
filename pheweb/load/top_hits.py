@@ -1,6 +1,6 @@
 
 from ..utils import get_phenolist
-from ..file_utils import write_json, VariantFileWriter, get_generated_path
+from ..file_utils import write_json, VariantFileWriter, get_generated_path, common_filepaths
 
 import json
 
@@ -13,8 +13,8 @@ LOCI_SPREAD_FROM_BEST_HIT = int(500e3)
 PVAL_CUTOFF = 1e-6
 
 def get_hits(pheno):
-    fname = get_generated_path('manhattan', '{}.json'.format(pheno['phenocode']))
-    with open(fname) as f:
+    filepath = get_generated_path('manhattan', '{}.json'.format(pheno['phenocode']))
+    with open(filepath) as f:
         variants = json.load(f)['unbinned_variants']
 
     hits_by_chrom = dict()
@@ -42,9 +42,9 @@ def get_hits(pheno):
 
 
 def run(argv):
-    out_fname_json = get_generated_path('top_hits.json')
-    out_fname_1k_json = get_generated_path('top_hits_1k.json')
-    out_fname_tsv = get_generated_path('top_hits.tsv')
+    out_filepath_json = common_filepaths['top-hits']
+    out_filepath_1k_json = common_filepaths['top-hits-1k']
+    out_filepath_tsv = common_filepaths['top-hits-tsv']
 
     if argv and argv[0] == '-h':
         formatted_pval_cutoff = '{:0.0e}'.format(PVAL_CUTOFF).replace('e-0', 'e-')
@@ -57,8 +57,8 @@ To count as a top hit, a variant must:
 
 Some loci may have hits for multiple phenotypes.  If you want a list of loci with
 just the top phenotype for each, use `pheweb top-loci`.
-'''.format(out_fname_json,
-           out_fname_tsv,
+'''.format(out_filepath_json,
+           out_filepath_tsv,
            formatted_pval_cutoff,
            LOCI_SPREAD_FROM_BEST_HIT,
 ))
@@ -71,13 +71,13 @@ just the top phenotype for each, use `pheweb top-loci`.
         hits.extend(get_hits(pheno))
 
     hits = sorted(hits, key=lambda hit: hit['pval'])
-    write_json(filename=out_fname_json, data=hits, sort_keys=True)
-    print("wrote {} hits to {}".format(len(hits), out_fname_json))
+    write_json(filepath=out_filepath_json, data=hits, sort_keys=True)
+    print("wrote {} hits to {}".format(len(hits), out_filepath_json))
 
-    write_json(filename=out_fname_1k_json, data=hits[:1000], sort_keys=True)
-    print("wrote {} hits to {}".format(len(hits), out_fname_1k_json))
+    write_json(filepath=out_filepath_1k_json, data=hits[:1000], sort_keys=True)
+    print("wrote {} hits to {}".format(len(hits), out_filepath_1k_json))
 
     for h in hits: h['nearest_genes'] = ','.join(h['nearest_genes'])
-    with VariantFileWriter(out_fname_tsv, allow_extra_fields=True) as writer:
+    with VariantFileWriter(out_filepath_tsv, allow_extra_fields=True) as writer:
         writer.write_all(hits)
-    print("wrote {} hits to {}".format(len(hits), out_fname_tsv))
+    print("wrote {} hits to {}".format(len(hits), out_filepath_tsv))

@@ -1,5 +1,6 @@
 
-from ..utils import get_cacheable_file_location, get_gene_tuples
+from ..utils import get_gene_tuples
+from ..file_utils import common_filepaths
 
 import os
 import re
@@ -10,9 +11,9 @@ import marisa_trie
 
 def run(argv):
 
-    aliases_file = get_cacheable_file_location('sites/genes', 'gene_aliases.marisa_trie')
-    if not os.path.exists(aliases_file):
-        print('gene aliases will be stored at {aliases_file!r}'.format(aliases_file=aliases_file))
+    aliases_filepath = common_filepaths['gene-aliases-trie']
+    if not os.path.exists(aliases_filepath):
+        print('gene aliases will be stored at {!r}'.format(aliases_filepath))
 
         aliases_for_ensg = {ensg: (canonical_symbol, []) for _, _, _, canonical_symbol, ensg in get_gene_tuples(include_ensg=True)}
         print('num canonical gene names:', len(aliases_for_ensg))
@@ -49,7 +50,7 @@ def run(argv):
             assert re.match(r'^[-A-Z0-9\._]+$', k), repr(k)
         mapping = [(a, cs.encode('ascii')) for a,cs in mapping.items()]
         aliases_trie = marisa_trie.BytesTrie(mapping)
-        aliases_trie.save(aliases_file)
+        aliases_trie.save(aliases_filepath)
 
     else:
-        print('gene aliases are at {aliases_file!r}'.format(aliases_file=aliases_file))
+        print('gene aliases are at {!r}'.format(aliases_filepath))

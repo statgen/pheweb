@@ -6,11 +6,9 @@ import csv
 import boltons.mathutils
 import urllib.parse
 import sys
-from boltons.fileutils import mkdir_p
 
 from .conf_utils import conf
 from . import file_utils
-
 
 def round_sig(x, digits):
     if x == 0:
@@ -33,16 +31,16 @@ assert not approx_equal(42, 42.01)
 
 def get_phenolist():
     # TODO: should this be memoized?
-    fname = file_utils.get_generated_path('pheno-list.json')
+    filepath = file_utils.common_filepaths['phenolist']
     try:
-        with open(os.path.join(fname)) as f:
+        with open(os.path.join(filepath)) as f:
             phenolist = json.load(f)
     except (FileNotFoundError, PermissionError):
-        print("You need a file to define your phenotypes at '{fname}'.\n".format(fname=fname) +
+        print("You need a file to define your phenotypes at '{}'.\n".format(filepath) +
               "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
         raise Exception()
     except json.JSONDecodeError:
-        print("Your file at '{fname}' contains invalid json.\n".format(fname=fname) +
+        print("Your file at '{}' contains invalid json.\n".format(filepath) +
               "The error it produced was:")
         raise
     for pheno in phenolist:
@@ -70,26 +68,15 @@ assert pad_gene(200000, 700000) == (200000, 700000)
 assert pad_gene(200000, 800000) == (200000, 800000)
 
 
-# TODO: chrom_order_list[25-1] = 'M', chrom_order['M'] = 25-1, chrom_order['MT'] = 25-1 ?
-#       and epacts.py should convert all chroms to chrom_idx?
-chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'M', 'MT']
+chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
 chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
 chrom_aliases = {'23': 'X', '24': 'Y', '25': 'MT', 'M': 'MT'}
 
-def get_cacheable_file_location(default_relative_dir, fname):
-    if 'cache' in conf:
-        return os.path.join(conf.cache, fname)
-    mkdir_p(file_utils.get_generated_path(default_relative_dir))
-    return file_utils.get_generated_path(default_relative_dir, fname)
 
-
-genes_version = 'v25'
 def get_gene_tuples(include_ensg=False):
-    genes_file = get_cacheable_file_location('sites/genes', 'genes-{}.bed'.format(genes_version))
-
-    with open(genes_file) as f:
+    with open(file_utils.common_filepaths['genes']) as f:
         for row in csv.reader(f, delimiter='\t'):
-            assert row[0] in chrom_order_list, row[0]
+            assert row[0] in chrom_order, row[0]
             if include_ensg:
                 yield (row[0], int(row[1]), int(row[2]), row[3], row[4])
             else:

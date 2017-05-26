@@ -14,17 +14,46 @@ import pysam
 def get_generated_path(*path_parts):
     return os.path.join(conf.data_dir, 'generated-by-pheweb', *path_parts)
 
+def get_cacheable_file_location(default_relative_dir, filepath):
+    if 'cache' in conf:
+        return os.path.join(conf.cache, filepath)
+    mkdir_p(get_generated_path(default_relative_dir))
+    return get_generated_path(default_relative_dir, filepath)
+
+dbsnp_version = '150'
+genes_version = 'v25'
+
+common_filepaths = {
+    'phenolist': get_generated_path('pheno-list.json'),
+    'genes': get_cacheable_file_location('sites/genes', 'genes-{}.bed'.format(genes_version)),
+    'gene-aliases-trie': get_cacheable_file_location('sites/genes', 'gene_aliases.marisa_trie'),
+    'rsids': get_cacheable_file_location('sites/dbSNP', 'rsids-{}.vcf.gz'.format(dbsnp_version)),
+    'unanno': get_generated_path('sites/sites-unannotated.tsv'),
+    'sites-rsids': get_generated_path('sites/sites-rsids.tsv'),
+    'sites': get_generated_path('sites/sites.tsv'),
+    'best-phenos-by-gene': get_generated_path('best-phenos-by-gene.json'),
+    'cpra-to-rsids-trie': get_generated_path('sites/cpra_to_rsids_trie.marisa'),
+    'rsid-to-cpra-trie': get_generated_path('sites/rsid_to_cpra_trie.marisa'),
+    'matrix': get_generated_path('matrix.tsv.gz'),
+    'top-hits': get_generated_path('top_hits.json'),
+    'top-hits-1k': get_generated_path('top_hits_1k.json'),
+    'top-hits-tsv': get_generated_path('top_hits.tsv'),
+    'top-loci': get_generated_path('top_loci.json'),
+    'top-loci-tsv': get_generated_path('top_loci.tsv'),
+}
+
+
 def make_basedir(path):
     mkdir_p(os.path.dirname(path))
 
-def get_tmp_path(fname):
-    if fname.startswith(get_generated_path()):
+def get_tmp_path(filepath):
+    if filepath.startswith(get_generated_path()):
         mkdir_p(get_generated_path('tmp'))
-        tmp_basename = fname[len(get_generated_path()):].lstrip(os.path.sep).replace(os.path.sep, '-')
+        tmp_basename = filepath[len(get_generated_path()):].lstrip(os.path.sep).replace(os.path.sep, '-')
         return get_generated_path('tmp', tmp_basename)
-    elif fname.startswith(os.path.sep):
-        return fname + '.tmp'
-    else: raise Exception(fname)
+    elif filepath.startswith(os.path.sep):
+        return filepath + '.tmp'
+    else: raise Exception(filepath)
 
 
 csv.register_dialect(
@@ -42,24 +71,26 @@ csv.register_dialect(
 ## Readers
 
 @contextmanager
-def VariantFileReader(fname, chrom_idx=False):
+def VariantFileReader(filepath, only_per_variant_fields=False):
     '''
     Reads variants (as dictionaries) from an internal file.  Iterable.  Exposes `.fields`.
 
         with VariantFileReader('a.tsv') as reader:
             print(list(reader.values()))
     '''
-    with open(fname, 'rt') as f:
+    with open(filepath, 'rt') as f:
         reader = csv.reader(f, dialect='pheweb-internal-dialect')
         fields = next(reader)
         for field in fields:
             assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields
-        yield _vfr(fields, reader, chrom_idx=chrom_idx)
+        if only_per_variant_fields:
+            yield _vfr_only_per_variant_fields(fields, reader)
+        else:
+            yield _vfr(fields, reader)
 class _vfr:
-    def __init__(self, fields, reader, chrom_idx):
+    def __init__(self, fields, reader):
         self.fields = fields
         self._reader = reader
-        self._chrom_idx = chrom_idx
     def __iter__(self):
         return self._get_variants()
     def _get_variants(self):
@@ -67,15 +98,27 @@ class _vfr:
         for unparsed_variant in self._reader:
             assert len(unparsed_variant) == len(self.fields)
             variant = {field: parser(value) for parser,field,value in zip(parsers, self.fields, unparsed_variant)}
-            if self._chrom_idx:
-                variant['chrom_idx'] = utils.chrom_order[variant['chrom']]
             yield variant
+class _vfr_only_per_variant_fields:
+    def __init__(self, fields, reader):
+        self._all_fields = fields
+        self._extractors = [(conf.parse.fields[field]['_read'], field, colidx) for colidx,field in enumerate(fields) if field in conf.parse.per_variant_fields]
+        self.fields = [e[1] for e in self._extractors]
+        self._reader = reader
+    def __iter__(self):
+        return self._get_variants()
+    def _get_variants(self):
+        for unparsed_variant in self._reader:
+            assert len(unparsed_variant) == len(self._all_fields)
+            variant = {field: parser(unparsed_variant[colidx]) for parser,field,colidx in self._extractors}
+            yield variant
+
 
 @contextmanager
 def IndexedVariantFileReader(phenocode):
-    fname = get_generated_path('augmented_pheno_gz', '{}.gz'.format(phenocode))
+    filepath = get_generated_path('augmented_pheno_gz', '{}.gz'.format(phenocode))
 
-    with gzip.open(fname, 'rt') as f:
+    with gzip.open(filepath, 'rt') as f:
         reader = csv.reader(f, dialect='pheweb-internal-dialect')
         colnames = next(reader)
     assert colnames[0].startswith('#')
@@ -84,7 +127,7 @@ def IndexedVariantFileReader(phenocode):
         assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields, (field)
     colidxs = {field: colnum for colnum, field in enumerate(colnames)}
 
-    with pysam.TabixFile(fname, parser=None) as tabix_file:
+    with pysam.TabixFile(filepath, parser=None) as tabix_file:
         yield _ivfr(tabix_file, colidxs)
 class _ivfr:
     def __init__(self, _tabix_file, _colidxs):
@@ -139,7 +182,7 @@ class _ivfr:
 
 
 class MatrixReader:
-    _fname = get_generated_path('matrix.tsv.gz')
+    _filepath = get_generated_path('matrix.tsv.gz')
 
     def __init__(self):
         phenos = utils.get_phenolist()
@@ -149,7 +192,7 @@ class MatrixReader:
             for pheno in phenos
         }
 
-        with gzip.open(self._fname, 'rt') as f:
+        with gzip.open(self._filepath, 'rt') as f:
             reader = csv.reader(f, dialect='pheweb-internal-dialect')
             colnames = next(reader)
         assert colnames[0].startswith('#')
@@ -175,7 +218,7 @@ class MatrixReader:
 
     @contextmanager
     def context(self):
-        with pysam.TabixFile(self._fname, parser=None) as tabix_file:
+        with pysam.TabixFile(self._filepath, parser=None) as tabix_file:
             yield _mr(tabix_file, self._colidxs, self._colidxs_for_pheno, self._info_for_pheno)
 class _mr(_ivfr):
     def __init__(self, _tabix_file, _colidxs, _colidxs_for_pheno, _info_for_pheno):
@@ -209,27 +252,50 @@ class _mr(_ivfr):
         return variant
 
 
+def with_chrom_idx(variants):
+    for v in variants:
+        v['chrom_idx'] = utils.chrom_order[v['chrom']]
+        yield v
+
+
+class open_maybe_gzip(object):
+    def __init__(self, filepath, *args):
+        self.filepath = filepath
+        self.args = args
+    def __enter__(self):
+        is_gzip = False
+        with open(self.filepath, 'rb') as f:
+            if f.read(3) == b'\x1f\x8b\x08':
+                is_gzip = True
+        if is_gzip:
+            self.f = gzip.open(self.filepath, *self.args)
+        else:
+            self.f = open(self.filepath, *self.args)
+        return self.f
+    def __exit__(self, *exc):
+        self.f.close()
+
 
 
 ## Writers
 
 @contextmanager
-def VariantFileWriter(fname, allow_extra_fields=False):
+def VariantFileWriter(filepath, allow_extra_fields=False):
     '''
     Writes variants (represented by dictionaries) to an internal file.
 
         with VariantFileWriter('a.tsv') as writer:
             writer.write({'chrom': '2', 'pos': 47, ...})
     '''
-    part_file = get_tmp_path(fname)
-    make_basedir(fname)
-    with AtomicSaver(fname, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
-        yield _vfw(f, allow_extra_fields, fname)
+    part_file = get_tmp_path(filepath)
+    make_basedir(filepath)
+    with AtomicSaver(filepath, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
+        yield _vfw(f, allow_extra_fields, filepath)
 class _vfw:
-    def __init__(self, f, allow_extra_fields, fname):
+    def __init__(self, f, allow_extra_fields, filepath):
         self._f = f
         self._allow_extra_fields = allow_extra_fields
-        self._fname = fname
+        self._filepath = filepath
     def write(self, variant):
         if not hasattr(self, '_writer'):
             fields = []
@@ -239,7 +305,7 @@ class _vfw:
             if extra_fields:
                 if not self._allow_extra_fields:
                     raise Exception("ERROR: found unexpected fields {!r} among the expected fields {!r} while writing {!r}.".format(
-                                    extra_fields, fields, self._fname))
+                                    extra_fields, fields, self._filepath))
                 fields += extra_fields
             self._writer = csv.DictWriter(self._f, fieldnames=fields, dialect='pheweb-internal-dialect')
             self._writer.writeheader()
@@ -267,9 +333,9 @@ def convert_VariantFile_to_IndexedVariantFile(vf_path, ivf_path):
 
 
 
-def write_json(*, filename=None, data=None, indent=None, sort_keys=False):
-    assert filename is not None and data is not None
-    part_file = get_tmp_path(filename)
-    make_basedir(filename)
-    with AtomicSaver(filename, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
+def write_json(*, filepath=None, data=None, indent=None, sort_keys=False):
+    assert filepath is not None and data is not None
+    part_file = get_tmp_path(filepath)
+    make_basedir(filepath)
+    with AtomicSaver(filepath, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
         json.dump(data, f, indent=indent, sort_keys=sort_keys)

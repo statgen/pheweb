@@ -23,14 +23,14 @@ if 'PHEWEB_IPDB' in os.environ:
 handlers = {}
 for submodule in '''
  phenolist
- get_cpras
- merge_cpras
+ parse_input_files
+ sites
  download_rsids
  download_genes
  make_gene_aliases_trie
  add_rsids
  make_tries
- standardize_phenos
+ augment_phenos
  manhattan
  qq
  matrix

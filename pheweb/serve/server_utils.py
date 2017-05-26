@@ -1,5 +1,5 @@
 
-from ..file_utils import MatrixReader, IndexedVariantFileReader, get_generated_path
+from ..file_utils import MatrixReader, IndexedVariantFileReader, common_filepaths
 
 import random
 import re
@@ -79,7 +79,7 @@ get_variant = _GetVariant().get_variant
 
 
 def get_random_page():
-    with open(get_generated_path('top_hits_1k.json')) as f:
+    with open(common_filepaths['top-hits-1k']) as f:
         hits = json.load(f)
     if not hits:
         return None

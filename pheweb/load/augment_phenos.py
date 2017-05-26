@@ -1,7 +1,6 @@
 
 from ..utils import get_phenolist
-from ..file_utils import VariantFileReader, VariantFileWriter, get_generated_path
-from .read_input_file import PhenoReader
+from ..file_utils import VariantFileReader, VariantFileWriter, get_generated_path, common_filepaths, with_chrom_idx
 from .load_utils import exception_printer, star_kwargs, get_num_procs
 
 import os
@@ -9,7 +8,7 @@ import datetime
 import multiprocessing
 
 
-sites_filename = get_generated_path('sites/sites.tsv')
+sites_filepath = common_filepaths['sites']
 
 def _which_variant_is_bigger(v1, v2):
     '''1 means v1 is bigger.  2 means v2 is bigger. 0 means tie.'''
@@ -26,14 +25,14 @@ def _which_variant_is_bigger(v1, v2):
 
 @exception_printer
 @star_kwargs
-def convert(pheno, dest_filename):
+def convert(pheno, dest_filepath):
 
-    pheno_reader = PhenoReader(pheno, keep_chrom_idx=True)
-    pheno_variants = pheno_reader.get_variants()
-
-    with VariantFileReader(sites_filename, chrom_idx=True) as sites_reader, \
-         VariantFileWriter(dest_filename) as writer:
-        sites_variants = iter(sites_reader)
+    pheno_filepath = get_generated_path('parsed', pheno['phenocode'])
+    with VariantFileReader(sites_filepath) as sites_reader, \
+         VariantFileReader(pheno_filepath) as pheno_reader, \
+         VariantFileWriter(dest_filepath) as writer:
+        sites_variants = with_chrom_idx(iter(sites_reader))
+        pheno_variants = with_chrom_idx(iter(pheno_reader))
 
         def write_variant(sites_variant, pheno_variant):
             sites_variant.update(pheno_variant)
@@ -42,7 +41,7 @@ def convert(pheno, dest_filename):
         try: pheno_variant = next(pheno_variants)
         except: raise Exception("It appears that the phenotype {!r} has no variants.".format(pheno['phenocode']))
         try: sites_variant = next(sites_variants)
-        except: raise Exception("It appears that your sites file (at {!r}) has no variants.".format(sites_filename))
+        except: raise Exception("It appears that your sites file (at {!r}) has no variants.".format(sites_filepath))
         while True:
             cmp = _which_variant_is_bigger(pheno_variant, sites_variant)
             if cmp == 1:
@@ -61,24 +60,24 @@ def convert(pheno, dest_filename):
                     pheno_variant = next(pheno_variants)
                 except StopIteration: break
 
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filename))
+    print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filepath))
 
 def get_conversions_to_do():
     phenos = get_phenolist()
     print('number of phenos:', len(phenos))
     for pheno in phenos:
-        dest_filename = get_generated_path('augmented_pheno', pheno['phenocode'])
-        should_write_file = not os.path.exists(dest_filename)
+        dest_filepath = get_generated_path('augmented_pheno', pheno['phenocode'])
+        should_write_file = not os.path.exists(dest_filepath)
         if not should_write_file:
-            dest_file_mtime = os.stat(dest_filename).st_mtime
-            src_file_mtimes = [os.stat(fname).st_mtime for fname in pheno['assoc_files']]
-            src_file_mtimes.append(os.stat(sites_filename).st_mtime)
+            dest_file_mtime = os.stat(dest_filepath).st_mtime
+            src_file_mtimes = [os.stat(filepath).st_mtime for filepath in pheno['assoc_files']]
+            src_file_mtimes.append(os.stat(sites_filepath).st_mtime)
             if dest_file_mtime < max(src_file_mtimes):
                 should_write_file = True
         if should_write_file:
             yield {
                 'pheno': pheno,
-                'dest_filename': dest_filename,
+                'dest_filepath': dest_filepath,
             }
 
 def run(argv):

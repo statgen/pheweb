@@ -19,10 +19,10 @@ def format_float(x):
     return rv
 
 class TSVWriter:
-    def __init__(self, fname):
-        self.fname = fname
+    def __init__(self, filepath):
+        self.filepath = filepath
     def __enter__(self):
-        self.f = open(self.fname, 'w')
+        self.f = open(self.filepath, 'w')
         return self
     def writerow(self, dct):
         if not hasattr(self, 'writer'):

@@ -1,16 +1,16 @@
 
 from ..utils import get_gene_tuples, pad_gene
-from ..file_utils import MatrixReader, write_json, get_generated_path
+from ..file_utils import MatrixReader, write_json, common_filepaths
 
 import os
 import tqdm
 
 def run(argv):
 
-    out_fname = get_generated_path('best-phenos-by-gene.json')
-    matrix_fname = get_generated_path('matrix.tsv.gz')
+    out_filepath = common_filepaths['best-phenos-by-gene']
+    matrix_filepath = common_filepaths['matrix']
 
-    if not os.path.exists(out_fname) or os.stat(matrix_fname).st_mtime > os.stat(out_fname).st_mtime:
+    if not os.path.exists(out_filepath) or os.stat(matrix_filepath).st_mtime > os.stat(out_filepath).st_mtime:
 
         rv = {}
 
@@ -54,7 +54,7 @@ def run(argv):
                     rv[gene_symbol] = phenos_in_gene[:biggest_idx_to_include + 1]
 
 
-        write_json(filename=out_fname, data=rv)
-        print('Wrote best-phenos-by-gene to {!r}'.format(out_fname))
+        write_json(filepath=out_filepath, data=rv)
+        print('Wrote best-phenos-by-gene to {!r}'.format(out_filepath))
     else:
-        print('{} is up-to-date!'.format(out_fname))
+        print('{} is up-to-date!'.format(out_filepath))

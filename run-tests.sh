@@ -45,7 +45,7 @@ if [[ -n $python_runner ]]; then echo "- in which $python_runner refers to $(whi
 
 cd test/data_dir
 
-rm -rf pheno-list.json cpra/
+rm -rf pheno-list.json generated-by-pheweb
 
 echo -e "\n\n\n====> ./make_phenolist.sh"
 ./make_phenolist.sh

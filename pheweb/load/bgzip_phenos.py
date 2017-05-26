@@ -9,21 +9,21 @@ import multiprocessing
 
 @exception_printer
 @star_kwargs
-def convert(src_fname, out_fname):
-    print("{} -> {}".format(src_fname, out_fname))
-    convert_VariantFile_to_IndexedVariantFile(src_fname, out_fname)
+def convert(src_filepath, out_filepath):
+    print("{} -> {}".format(src_filepath, out_filepath))
+    convert_VariantFile_to_IndexedVariantFile(src_filepath, out_filepath)
 
 def get_conversions_to_do():
     phenocodes = [pheno['phenocode'] for pheno in get_phenolist()]
     for phenocode in phenocodes:
-        src_fname = get_generated_path('augmented_pheno', phenocode)
-        out_fname = get_generated_path('augmented_pheno_gz', '{}.gz'.format(phenocode))
-        tbi_fname = out_fname + '.tbi'
-        if not os.path.exists(out_fname) or not os.path.exists(tbi_fname) or \
-           os.stat(src_fname).st_mtime > min(os.stat(out_fname).st_mtime, os.stat(tbi_fname).st_mtime):
+        src_filepath = get_generated_path('augmented_pheno', phenocode)
+        out_filepath = get_generated_path('augmented_pheno_gz', '{}.gz'.format(phenocode))
+        tbi_filepath = out_filepath + '.tbi'
+        if not os.path.exists(out_filepath) or not os.path.exists(tbi_filepath) or \
+           os.stat(src_filepath).st_mtime > min(os.stat(out_filepath).st_mtime, os.stat(tbi_filepath).st_mtime):
             yield {
-                'src_fname': src_fname,
-                'out_fname': out_fname,
+                'src_filepath': src_filepath,
+                'out_filepath': out_filepath,
             }
 
 def run(argv):

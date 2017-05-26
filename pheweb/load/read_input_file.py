@@ -1,6 +1,7 @@
 
 from ..utils import conf, chrom_order, chrom_order_list, chrom_aliases, die
-from .load_utils import open_maybe_gzip, get_maf
+from ..file_utils import open_maybe_gzip
+from .load_utils import get_maf
 
 import itertools
 import re
@@ -22,15 +23,15 @@ class PhenoReader:
         self._only_cpra = only_cpra
         self._minimum_maf = minimum_maf
         self._keep_chrom_idx = keep_chrom_idx
-        self.fields, self.fnames = self._get_fields_and_fnames(pheno['assoc_files'])
+        self.fields, self.filepaths = self._get_fields_and_filepaths(pheno['assoc_files'])
 
     def get_variants(self):
         yield from self._order_refalt_lexicographically(
             itertools.chain.from_iterable(
-                AssocFileReader(fname, self._pheno).get_variants(only_cpra=self._only_cpra) for fname in self.fnames))
+                AssocFileReader(filepath, self._pheno).get_variants(only_cpra=self._only_cpra) for filepath in self.filepaths))
 
     def get_info(self):
-        infos = [AssocFileReader(fname, self._pheno).get_info() for fname in self.fnames]
+        infos = [AssocFileReader(filepath, self._pheno).get_info() for filepath in self.filepaths]
         assert boltons.iterutils.same(infos)
         return infos[0]
 
@@ -57,11 +58,11 @@ class PhenoReader:
                     v['chrom_idx'] = chrom_index
                 yield v
 
-    def _get_fields_and_fnames(self, fnames):
+    def _get_fields_and_filepaths(self, filepaths):
         # also sets `self._fields`
-        assoc_files = [{'fname': fname} for fname in fnames]
+        assoc_files = [{'filepath': filepath} for filepath in filepaths]
         for assoc_file in assoc_files:
-            ar = AssocFileReader(assoc_file['fname'], self._pheno)
+            ar = AssocFileReader(assoc_file['filepath'], self._pheno)
             v = next(ar.get_variants(only_cpra=self._only_cpra))
             assoc_file['chrom'], assoc_file['pos'] = v['chrom'], v['pos']
             assoc_file['fields'] = list(v)
@@ -69,7 +70,7 @@ class PhenoReader:
         assoc_files = sorted(assoc_files, key=self._variant_chrpos_order_key)
         return (
             assoc_files[0]['fields'],
-            [assoc_file['fname'] for assoc_file in assoc_files]
+            [assoc_file['filepath'] for assoc_file in assoc_files]
         )
 
     @staticmethod
@@ -88,11 +89,11 @@ class PhenoReader:
 
 class AssocFileReader:
     '''Has no concern for ordering, only in charge of parsing one associations file.'''
-    # TODO: use `pandas.read_csv(src_filename, usecols=[...], converters={...}, iterator=True, verbose=True, na_values='.', sep=None)
+    # TODO: use `pandas.read_csv(src_filepath, usecols=[...], converters={...}, iterator=True, verbose=True, na_values='.', sep=None)
     #   - first without `usecols`, to parse the column names, and then a second time with `usecols`.
 
-    def __init__(self, fname, pheno):
-        self.fname = fname
+    def __init__(self, filepath, pheno):
+        self.filepath = filepath
         self._pheno = pheno
 
     _fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(conf.parse.per_variant_fields.items(), conf.parse.per_assoc_fields.items()) if fieldval['from_assoc_files']}
@@ -102,7 +103,7 @@ class AssocFileReader:
         if only_cpra:
             fields_to_check = {k:v for k,v in fields_to_check.items() if k in ['chrom', 'pos', 'ref', 'alt', 'pval']}
 
-        with open_maybe_gzip(self.fname, 'rt') as f:
+        with open_maybe_gzip(self.filepath, 'rt') as f:
 
             colnames = [colname.strip('"\' ').lower() for colname in next(f).rstrip('\n\r').split('\t')]
             colidx_for_field = self._parse_header(colnames, fields_to_check)
@@ -146,7 +147,7 @@ class AssocFileReader:
         for info in infos:
             if info != first_info:
                 die("The pheno info parsed from some lines disagrees.\n" +
-                          "- in the file {}".format(self.fname) +
+                          "- in the file {}".format(self.filepath) +
                           "- parsed from first line:\n    {}".format(first_info) +
                           "- parsed from a later line:\n    {}".format(info))
         return first_info
@@ -154,7 +155,7 @@ class AssocFileReader:
     def _get_infos(self, limit=1000):
         # return the per-pheno info for each of the first `limit` variants
         fields_to_check = conf.parse.per_pheno_fields
-        with open_maybe_gzip(self.fname, 'rt') as f:
+        with open_maybe_gzip(self.filepath, 'rt') as f:
             colnames = [colname.strip('"\' ').lower() for colname in next(f).rstrip('\n\r').split('\t')]
             colidx_for_field = self._parse_header(colnames, fields_to_check)
             self._assert_all_fields_mapped(colnames, fields_to_check, colidx_for_field)
@@ -165,7 +166,7 @@ class AssocFileReader:
                 if all(key in variant for key in ['num_cases', 'num_controls', 'num_samples']):
                     if variant['num_cases'] + variant['num_controls'] != variant['num_samples']:
                         die("The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
-                            "- the filename: {!r}\n".format(self.fname) +
+                            "- the filepath: {!r}\n".format(self.filepath) +
                             "- the line number: {}".format(linenum+1) +
                             "- parsed line: [{!r}]\n".format(line))
                     del variant['num_samples'] # don't need it.
@@ -181,7 +182,7 @@ class AssocFileReader:
             if len(repr_values) > 5000: repr_values = repr_values[:200] + ' ... ' + repr_values[-200:] # sometimes we get VERY long strings of nulls.
             print("- The line: {}".format(repr_values))
             print("- The header: {!r}".format(colnames))
-            print("- In file: {!r}".format(self.fname))
+            print("- In file: {!r}".format(self.filepath))
             raise Exception()
 
         variant = {}
@@ -193,7 +194,7 @@ class AssocFileReader:
                     variant[field] = parse(value)
                 except Exception as exc:
                     raise Exception("failed on field {!r} attempting to convert value {!r} to type {!r} with constraints {!r} in {!r} on line with values {!r}".format(
-                        field, values[colidx], conf.parse.fields[field]['type'], conf.parse.fields[field], self.fname, values)) from exc
+                        field, values[colidx], conf.parse.fields[field]['type'], conf.parse.fields[field], self.filepath, values)) from exc
 
         return variant
 
@@ -208,7 +209,7 @@ class AssocFileReader:
                         print("Wait, what?  We found two different ways of mapping the field {!r} to the columns {!r}.".format(field, colnames))
                         print("For reference, the field {!r} can come from columns by any of these aliases: {!r}.".format(
                             field, possible_fields[field]['aliases']))
-                        print("File:", self.fname)
+                        print("File:", self.filepath)
                         raise Exception()
                     colidx_for_field[field] = colnames.index(field_alias)
         return colidx_for_field
@@ -218,7 +219,7 @@ class AssocFileReader:
         missing_required_fields = [field for field in required_fields if field not in colidx_for_field]
         if missing_required_fields:
             print("Some required fields weren't successfully mapped to the columns of an input file.")
-            print("The file is {!r}.".format(self.fname))
+            print("The file is {!r}.".format(self.filepath))
             print("The fields that were required but not present are: {!r}".format(missing_required_fields))
             print("Their accepted aliases are:")
             for field in missing_required_fields:

@@ -122,8 +122,8 @@ def augment_variants(variants, pheno):
 
 @exception_printer
 @star_kwargs
-def make_json_file(src_filename, dest_filename, pheno):
-    with VariantFileReader(src_filename) as variant_dicts:
+def make_json_file(src_filepath, dest_filepath, pheno):
+    with VariantFileReader(src_filepath) as variant_dicts:
         variants = list(augment_variants(variant_dicts, pheno))
     rv = {}
     if variants:
@@ -132,16 +132,16 @@ def make_json_file(src_filename, dest_filename, pheno):
             rv['by_maf'] = make_qq_stratified(variants)
         else:
             rv['overall'] = make_qq_unstratified(variants, include_qq=True)
-    write_json(filename=dest_filename, data=rv)
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filename, dest_filename))
+    write_json(filepath=dest_filepath, data=rv)
+    print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filepath, dest_filepath))
 
 
 def get_conversions_to_do():
     for pheno in get_phenolist():
-        src_filename = get_generated_path('augmented_pheno', pheno['phenocode'])
-        dest_filename = get_generated_path('qq', '{}.json'.format(pheno['phenocode']))
-        if not os.path.exists(dest_filename) or os.stat(dest_filename).st_mtime < os.stat(src_filename).st_mtime:
-            yield {'src_filename':src_filename, 'dest_filename':dest_filename, 'pheno':pheno}
+        src_filepath = get_generated_path('augmented_pheno', pheno['phenocode'])
+        dest_filepath = get_generated_path('qq', '{}.json'.format(pheno['phenocode']))
+        if not os.path.exists(dest_filepath) or os.stat(dest_filepath).st_mtime < os.stat(src_filepath).st_mtime:
+            yield {'src_filepath':src_filepath, 'dest_filepath':dest_filepath, 'pheno':pheno}
 
 def run(argv):
     conversions_to_do = list(get_conversions_to_do())

@@ -10,8 +10,8 @@ TODO:
 - are these gene ranges the whole transcript, including UTRs?
 '''
 
-from ..utils import get_gene_tuples, get_cacheable_file_location, genes_version
-from ..file_utils import VariantFileReader, VariantFileWriter, get_generated_path
+from ..utils import get_gene_tuples
+from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths
 
 import intervaltree
 import bisect
@@ -78,24 +78,24 @@ class GeneAnnotator(object):
         return nearest_gene_start[1]
 
 
-def annotate_genes(input_file, output_file):
+def annotate_genes(in_filepath, out_filepath):
     '''Both args are filepaths'''
     ga = GeneAnnotator(get_gene_tuples())
-    with VariantFileWriter(output_file) as out_f, \
-         VariantFileReader(input_file) as variants:
+    with VariantFileWriter(out_filepath) as out_f, \
+         VariantFileReader(in_filepath) as variants:
         for v in variants:
             v['nearest_genes'] = ga.annotate_position(v['chrom'], v['pos'])
             out_f.write(v)
 
 def run(argv):
-    input_file = get_generated_path('sites/cpra_rsids.tsv')
-    output_file = get_generated_path('sites/sites.tsv')
-    genes_file = get_cacheable_file_location('sites/genes', 'genes-{}.bed'.format(genes_version))
 
-    def mod_time(fname):
-        return os.stat(fname).st_mtime
+    input_filepath = common_filepaths['sites-rsids']
+    genes_filepath = common_filepaths['genes']
+    out_filepath = common_filepaths['sites']
 
-    if os.path.exists(output_file) and max(mod_time(genes_file), mod_time(input_file)) <= mod_time(output_file):
+    def mod_time(filepath):
+        return os.stat(filepath).st_mtime
+    if os.path.exists(out_filepath) and max(mod_time(genes_filepath), mod_time(input_filepath)) <= mod_time(out_filepath):
         print('gene annotation is up-to-date!')
     else:
-        annotate_genes(input_file, output_file)
+        annotate_genes(input_filepath, out_filepath)

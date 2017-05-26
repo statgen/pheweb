@@ -24,11 +24,11 @@ from pheweb.serve.server import app as application
 '''
 
 def run(argv):
-    out_fname = get_generated_path('wsgi.py')
+    out_filepath = get_generated_path('wsgi.py')
 
     if argv and argv[0] == '-h':
         print('Make {}, which can be used with gunicorn or other WSGI-compatible webservers.'.format(
-            out_fname))
+            out_filepath))
         return
 
     venv_dir = os.environ.get('VIRTUAL_ENV', '')
@@ -37,5 +37,5 @@ def run(argv):
 
     pheweb_dir = os.path.dirname(os.path.dirname(utils.__file__))
     wsgi = template.format(pheweb_dir=pheweb_dir, venv_dir=venv_dir)
-    with open(out_fname, 'w') as f:
+    with open(out_filepath, 'w') as f:
         f.write(wsgi)

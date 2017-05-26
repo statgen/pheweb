@@ -1,6 +1,6 @@
 
 from ..utils import conf, get_phenolist, get_gene_tuples, pad_gene
-from ..file_utils import get_generated_path
+from ..file_utils import get_generated_path, common_filepaths
 from .server_utils import get_variant, get_random_page, get_pheno_region
 from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
@@ -92,20 +92,20 @@ def variant_page(query):
     except Exception as exc:
         die('Oh no, something went wrong', exc)
 
-@app.route('/api/manhattan/pheno/<filename>')
+@app.route('/api/manhattan/pheno/<phenocode>')
 @check_auth
-def api_pheno(filename):
-    return send_from_directory(get_generated_path('manhattan'), filename)
+def api_pheno(phenocode):
+    return send_from_directory(get_generated_path('manhattan'), phenocode)
 
 @app.route('/api/top_hits.json')
 @check_auth
 def api_top_hits():
-    return send_file(get_generated_path('top_hits_1k.json'))
+    return send_file(common_filepaths['top-hits-1k'])
 
-@app.route('/api/qq/pheno/<filename>')
+@app.route('/api/qq/pheno/<phenocode>')
 @check_auth
-def api_pheno_qq(filename):
-    return send_from_directory(get_generated_path('qq'), filename)
+def api_pheno_qq(phenocode):
+    return send_from_directory(get_generated_path('qq'), phenocode)
 
 @app.route('/top_hits')
 @check_auth
@@ -165,7 +165,7 @@ def get_gene_region_mapping():
 
 @functools.lru_cache(None)
 def get_best_phenos_by_gene():
-    with open(get_generated_path('best-phenos-by-gene.json')) as f:
+    with open(common_filepaths['best-phenos-by-gene']) as f:
         return json.load(f)
 
 @app.route('/region/<phenocode>/gene/<genename>')

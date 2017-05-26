@@ -1,6 +1,6 @@
 
 from ..utils import get_phenolist
-from ..file_utils import write_json, VariantFileWriter, get_generated_path
+from ..file_utils import write_json, VariantFileWriter, get_generated_path, common_filepaths
 
 import json
 
@@ -14,8 +14,8 @@ def get_hits():
 
     hits_by_chrom = dict()
     for pheno in phenos:
-        fname = get_generated_path('manhattan', '{}.json'.format(pheno['phenocode']))
-        with open(fname) as f:
+        filepath = get_generated_path('manhattan', '{}.json'.format(pheno['phenocode']))
+        with open(filepath) as f:
             variants = json.load(f)['unbinned_variants']
 
         for v in variants:
@@ -41,8 +41,8 @@ def get_hits():
             yield best_hit
 
 def run(argv):
-    out_fname_json = get_generated_path('top_loci.json')
-    out_fname_tsv = get_generated_path('top_loci.tsv')
+    out_filepath_json = common_filepaths['top-loci']
+    out_filepath_tsv = common_filepaths['top-loci-tsv']
 
     if argv and argv[0] == '-h':
         formatted_pval_cutoff = '{:0.0e}'.format(PVAL_CUTOFF).replace('e-0', 'e-')
@@ -57,8 +57,8 @@ To count as a top loci, a variant must:
 Each loci will include the phenotype that has the smallest p-value at that location.
 Even if this loci also contains significant hits for other phenotypes, they won't be
 shown.  If you want all hits, use `pheweb top-hits`.
-'''.format(out_fname_json,
-           out_fname_tsv,
+'''.format(out_filepath_json,
+           out_filepath_tsv,
            formatted_pval_cutoff,
            LOCI_SPREAD_FROM_BEST_HIT,
            LOCI_SPREAD_FROM_BEST_HIT_WITHIN_PHENOTYPE,
@@ -66,10 +66,10 @@ shown.  If you want all hits, use `pheweb top-hits`.
         exit(0)
 
     hits = sorted(get_hits(), key=lambda hit: hit['pval'])
-    write_json(filename=out_fname_json, data=hits, sort_keys=True)
-    print("wrote {} hits to {}".format(len(hits), out_fname_json))
+    write_json(filepath=out_filepath_json, data=hits, sort_keys=True)
+    print("wrote {} hits to {}".format(len(hits), out_filepath_json))
 
     for h in hits: h['nearest_genes'] = ','.join(h['nearest_genes'])
-    with VariantFileWriter(out_fname_tsv, allow_extra_fields=True) as writer:
+    with VariantFileWriter(out_filepath_tsv, allow_extra_fields=True) as writer:
         writer.write_all(hits)
-    print("wrote {} hits to {}".format(len(hits), out_fname_tsv))
+    print("wrote {} hits to {}".format(len(hits), out_filepath_tsv))

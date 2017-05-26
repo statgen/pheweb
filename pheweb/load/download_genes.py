@@ -1,6 +1,6 @@
 
-from ..utils import chrom_order, chrom_aliases, get_cacheable_file_location, genes_version
-from ..file_utils import get_generated_path, make_basedir
+from ..utils import chrom_order, chrom_aliases
+from ..file_utils import get_generated_path, make_basedir, genes_version, common_filepaths
 
 import os
 import re
@@ -43,8 +43,8 @@ TEC
 vaultRNA
 '''.split()).union(good_genetypes)
 
-def get_all_genes(gencode_file):
-    with gzip.open(gencode_file, 'rt') as f:
+def get_all_genes(gencode_filepath):
+    with gzip.open(gencode_filepath, 'rt') as f:
         for l in f:
             if l.startswith('#'): continue
             r = l.split('\t')
@@ -112,26 +112,27 @@ def dedup_symbol(genes):
                 print('- {:12,}\t{:12,}\t{}'.format(g['start'], g['end'], g))
             raise
 
-def run(argv):
-    gencode_file = get_generated_path('sites/genes/gencode-{}.gtf.gz'.format(genes_version))
-    bed_file = get_cacheable_file_location('sites/genes', 'genes-{}.bed'.format(genes_version))
 
-    if not os.path.exists(bed_file):
-        print('genes-{version}.bed will be stored at {bed_file!r}'.format(version=genes_version, bed_file=bed_file))
-        if not os.path.exists(gencode_file):
-            make_basedir(gencode_file)
+def run(argv):
+    gencode_filepath = get_generated_path('sites/genes/gencode-{}.gtf.gz'.format(genes_version))
+    genes_filepath = common_filepaths['genes']
+
+    if not os.path.exists(genes_filepath):
+        print('genes-{}.bed will be stored at {!r}'.format(genes_version, genes_filepath))
+        if not os.path.exists(gencode_filepath):
+            make_basedir(gencode_filepath)
             wget.download(
                 url="ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz",
-                out=gencode_file
+                out=gencode_filepath
             )
-        genes = get_all_genes(gencode_file)
+        genes = get_all_genes(gencode_filepath)
         genes = dedup_ensg(genes)
         genes = dedup_symbol(genes)
 
-        make_basedir(bed_file)
-        with open(bed_file, 'w') as f:
+        make_basedir(genes_filepath)
+        with open(genes_filepath, 'w') as f:
             writer = csv.DictWriter(f, delimiter='\t', fieldnames='chrom start end symbol ensg'.split(), lineterminator='\n')
             writer.writerows(genes)
 
     else:
-        print("gencode is at {bed_file!r}".format(bed_file=bed_file))
+        print("gencode is at {!r}".format(genes_filepath))
