@@ -15,10 +15,24 @@ if sys.version_info.major < 3:
 try: math.inf
 except AttributeError: math.inf = float('inf')
 
-if 'PHEWEB_IPDB' in os.environ:
+
+def enable_ipdb():
     # from <http://ipython.readthedocs.io/en/stable/interactive/reference.html#post-mortem-debugging>
     from IPython.core import ultratb
     sys.excepthook = ultratb.FormattedTB(mode='Verbose', color_scheme='Linux', call_pdb=1)
+def enable_debug():
+    from . import utils
+    utils.conf.debug = True
+def enable_quick():
+    from . import utils
+    utils.conf.quick = True
+
+# handle environ
+if 'PHEWEB_IPDB' in os.environ:
+    enable_ipdb()
+if 'PHEWEB_DEBUG' in os.environ:
+    enable_debug()
+
 
 handlers = {}
 for submodule in '''
@@ -52,16 +66,19 @@ def serve(argv):
 handlers['serve'] = serve
 
 def debug(argv):
-    from . import utils
-    utils.conf.debug = True
+    enable_debug()
     run(argv)
 handlers['debug'] = debug
 
 def quick(argv):
-    from . import utils
-    utils.conf.quick = True
+    enable_quick()
     run(argv)
 handlers['quick'] = quick
+
+def ipdb(argv):
+    enable_ipdb()
+    run(argv)
+handlers['ipdb'] = ipdb
 
 def help(argv):
     run(argv[0:1] + ['-h'])

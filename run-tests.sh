@@ -7,9 +7,6 @@ export PATH="$(echo $PATH | tr : "\n" | grep -v $HOME | tr "\n" : | perl -ple 's
 
 rm -rf "/tmp/pheweb-test-${USER}-"* # pre-clean
 
-if echo "${1:-}" | grep -q e; then
-    export PHEWEB_IPDB=1
-fi
 if echo "${1:-}" | grep -q g; then # install globally
     pip3 install --upgrade -e .
     echo -e "\n\n===> \`pheweb\` is $(which pheweb)"
@@ -37,6 +34,13 @@ else
     exit 1
 fi
 
+if echo "${1:-}" | grep -q e; then
+    export PHEWEB_IPDB=1
+fi
+if echo "${1:-}" | grep -q e; then
+    export PHEWEB_DEBUG=1
+fi
+
 echo -e "\n\n===> \`pheweb\` is $(which pheweb)"
 first_line="$(head -n1 $(which pheweb))"
 echo "pheweb will run with: '$first_line'"
@@ -51,14 +55,8 @@ echo -e "\n\n\n====> ./make_phenolist.sh"
 ./make_phenolist.sh
 
 echo -e "\n\n\n====> pheweb process-assoc-files"
-if echo "${1:-}" | grep -q d; then
-    echo "DEBUG"
-    pheweb debug process-assoc-files
-    pheweb debug top-loci
-else
-    pheweb process-assoc-files
-    pheweb top-loci
-fi
+pheweb process-assoc-files
+pheweb top-loci
 
 port="$(python3 -c "print(__import__('random').randrange(8000,9000))")"
 echo -e "\n\n\n====> pheweb serve --port $port --no-reloader"
