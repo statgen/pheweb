@@ -86,9 +86,9 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
             "min_width": 400,
             "min_height": 100,
             "margin": {
-                "top": 35,
+                "top": 10,
                 "right": 50,
-                "bottom": 40,
+                "bottom": 20,
                 "left": 50
             },
             "inner_border": "rgb(210, 210, 210)",
@@ -307,7 +307,7 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
             "min_width": 400,
             "min_height": 100,
             "margin": {
-                "top": 20,
+                "top": 17,
                 "right": 50,
                 "bottom": 20,
                 "left": 50
