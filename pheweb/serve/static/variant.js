@@ -167,6 +167,9 @@ function deepcopy(obj) {
 
     phewas_panel.axes.y1.label = "-log\u2081\u2080(p-value)";
 
+    // add a little padding so that no points intersect the edge.
+    phewas_panel.data_layers[1].x_axis.min_extent = [-1, window.variant.phenos.length];
+
     window.debug.phewas_panel = phewas_panel;
     var layout = {
         state: {
