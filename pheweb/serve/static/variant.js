@@ -83,7 +83,6 @@ function deepcopy(obj) {
 
         var data = deepcopy(window.variant.phenos); //otherwise LZ adds attributes I don't want to the original data.
         data.forEach(function(d, i) {
-
             data[i].x = i;
             data[i].id = i.toString();
             trans.forEach(function(transformation, t){
@@ -105,43 +104,46 @@ function deepcopy(obj) {
       .add("base", ["PheWASLZ", {url: '/this/is/not/used'}])
 
     var phewas_panel = LocusZoom.Layouts.get("panel", "phewas");
+    var sig_data_layer = phewas_panel.data_layers[0]; //significance line
+    var pval_data_layer = phewas_panel.data_layers[1];
 
     // Make sig line, and always show it.
-    phewas_panel.data_layers[0].offset = neglog10_significance_threshold;
-    phewas_panel.data_layers[0].tooltip = { //TODO: modify LZ to support tooltips on a line. right now this doesn't do anything.
+    sig_data_layer.offset = neglog10_significance_threshold;
+    sig_data_layer.tooltip = { //TODO: modify LZ to support tooltips on a line. right now this doesn't do anything.
         closable: true,
         html: 'foo',
         hide: { 'and': ['unhighlighted', 'unselected'] },
         show: { 'or': ['highlighted', 'selected'] }
     };
-    phewas_panel.data_layers[1].y_axis.min_extent = [0, neglog10_significance_threshold*1.05];
-    phewas_panel.data_layers[1].y_axis.upper_buffer = 0.1;
+    pval_data_layer.y_axis.min_extent = [0, neglog10_significance_threshold*1.05];
+    pval_data_layers.y_axis.upper_buffer = 0.1;
 
-    phewas_panel.data_layers[1].tooltip.html =
+    // tooltips
+    pval_data_layer.tooltip.html =
         "<div><strong>{{phewas_string}}</strong></div>\n" +
         "<div><strong style='color:{{color}}'>{{category_name}}</strong></div>\n\n" +
         window.model.tooltip_lztemplate;
-    phewas_panel.data_layers[1].tooltip.closable = false;
+    pval_data_layer.tooltip.closable = false;
 
     // Use `neglog10_handle0` to handle pval=0 variants a little better.
-    phewas_panel.data_layers[1].y_axis.field = 'pval|neglog10_handle0';
+    pval_data_layer.y_axis.field = 'pval|neglog10_handle0';
 
-    // Show only labels that are: in the top 10, and (by neglog10) at least 75% of sig threshold and 25% of best.
-    phewas_panel.data_layers[1].label.filters = [
+    // Show labels that are: in the top 10, and (by neglog10) >=75% of sig threshold, and >=25% of best.
+    pval_data_layer.label.filters = [
         {field:"pval|neglog10_handle0", operator:">", value:neglog10_significance_threshold * 3/4},
         {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 4},
     ];
     if (window.variant.phenos.length > 10) {
-        phewas_panel.data_layers[1].label.filters.push(
+        pval_data_layer.label.filters.push(
             {field:"pval", operator:"<", value:_.sortBy(window.variant.phenos.map(_.property('pval')))[10]});
     }
 
     // Color points by category.
-    phewas_panel.data_layers[1].color.parameters.categories = window.unique_categories;
-    phewas_panel.data_layers[1].color.parameters.values = window.unique_categories.map(function(cat) { return window.color_by_category(cat); });
+    pval_data_layer.color.parameters.categories = window.unique_categories;
+    pval_data_layer.color.parameters.values = window.unique_categories.map(function(cat) { return window.color_by_category(cat); });
 
     // Shape points by effect direction.
-    phewas_panel.data_layers[1].point_shape = [
+    pval_data_layer.point_shape = [
         {
             scale_function: 'effect_direction',
             parameters: {
@@ -153,7 +155,7 @@ function deepcopy(obj) {
     ];
 
     // Make points clickable
-    phewas_panel.data_layers[1].behaviors.onclick = [{action:"link", href:"/pheno/{{phewas_code}}"}];
+    pval_data_layer.behaviors.onclick = [{action:"link", href:"/pheno/{{phewas_code}}"}];
 
     // Use categories as x ticks.
     phewas_panel.axes.x.ticks = window.first_of_each_category.map(function(pheno) {
@@ -167,10 +169,12 @@ function deepcopy(obj) {
 
     phewas_panel.axes.y1.label = "-log\u2081\u2080(p-value)";
 
-    // add a little padding so that no points intersect the edge.
-    phewas_panel.data_layers[1].x_axis.min_extent = [-1, window.variant.phenos.length];
+    // add a little x-padding so that no points intersect the edge
+    pval_data_layer.x_axis.min_extent = [-1, window.variant.phenos.length];
+
 
     window.debug.phewas_panel = phewas_panel;
+    window.debug.pval_data_layer = pval_data_layer;
     var layout = {
         state: {
             variant: ['chrom', 'pos', 'ref', 'alt'].map(function(d) { return window.variant[d];}).join("-"),
