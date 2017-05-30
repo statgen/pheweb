@@ -1,6 +1,6 @@
 
 from ..utils import get_phenolist
-from ..file_utils import write_json, VariantFileWriter, get_generated_path, common_filepaths
+from ..file_utils import write_json, VariantFileWriter, common_filepaths
 
 import json
 
@@ -13,7 +13,7 @@ LOCI_SPREAD_FROM_BEST_HIT = int(500e3)
 PVAL_CUTOFF = 1e-6
 
 def get_hits(pheno):
-    filepath = get_generated_path('manhattan', '{}.json'.format(pheno['phenocode']))
+    filepath = common_filepaths['manhattan'](pheno['phenocode'])
     with open(filepath) as f:
         variants = json.load(f)['unbinned_variants']
 

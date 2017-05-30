@@ -1,6 +1,6 @@
 
 from ..utils import get_phenolist
-from ..file_utils import get_generated_path, convert_VariantFile_to_IndexedVariantFile
+from ..file_utils import common_filepaths, convert_VariantFile_to_IndexedVariantFile
 from .load_utils import get_num_procs, star_kwargs, exception_printer
 
 import os
@@ -16,8 +16,8 @@ def convert(src_filepath, out_filepath):
 def get_conversions_to_do():
     phenocodes = [pheno['phenocode'] for pheno in get_phenolist()]
     for phenocode in phenocodes:
-        src_filepath = get_generated_path('augmented_pheno', phenocode)
-        out_filepath = get_generated_path('augmented_pheno_gz', '{}.gz'.format(phenocode))
+        src_filepath = common_filepaths['pheno'](phenocode)
+        out_filepath = common_filepaths['pheno_gz'](phenocode)
         tbi_filepath = out_filepath + '.tbi'
         if not os.path.exists(out_filepath) or not os.path.exists(tbi_filepath) or \
            os.stat(src_filepath).st_mtime > min(os.stat(out_filepath).st_mtime, os.stat(tbi_filepath).st_mtime):

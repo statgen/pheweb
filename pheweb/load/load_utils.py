@@ -2,7 +2,6 @@
 import functools
 import traceback
 import time
-import gzip
 import os
 import subprocess
 import multiprocessing

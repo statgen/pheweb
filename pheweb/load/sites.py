@@ -156,7 +156,7 @@ class VariantListMerger:
 
 def get_files_to_merge():
     for pheno in get_phenolist():
-        filepath = get_generated_path('parsed', pheno['phenocode'])
+        filepath = common_filepaths['parsed'](pheno['phenocode'])
         assert os.path.exists(filepath)
         yield {
             'type': 'input',

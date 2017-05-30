@@ -21,10 +21,9 @@ We read one full position at a time.  When we have a position-match, we find all
 
 
 from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, open_maybe_gzip
-from ..utils import chrom_order, chrom_order_list
+from ..utils import chrom_order, chrom_order_list, chrom_aliases
 
 import os
-import gzip
 import itertools
 
 in_filepath = common_filepaths['unanno']

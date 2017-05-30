@@ -40,6 +40,11 @@ common_filepaths = {
     'top-hits-tsv': get_generated_path('top_hits.tsv'),
     'top-loci': get_generated_path('top_loci.json'),
     'top-loci-tsv': get_generated_path('top_loci.tsv'),
+    'parsed':    (lambda phenocode: get_generated_path('parsed', phenocode)),
+    'pheno':     (lambda phenocode: get_generated_path('pheno', phenocode)),
+    'pheno_gz':  (lambda phenocode: get_generated_path('pheno_gz', '{}.gz'.format(phenocode))),
+    'manhattan': (lambda phenocode: get_generated_path('manhattan', '{}.json'.format(phenocode) if phenocode else '')),
+    'qq':        (lambda phenocode: get_generated_path('qq', '{}.json'.format(phenocode) if phenocode else '')),
 }
 
 
@@ -116,7 +121,7 @@ class _vfr_only_per_variant_fields:
 
 @contextmanager
 def IndexedVariantFileReader(phenocode):
-    filepath = get_generated_path('augmented_pheno_gz', '{}.gz'.format(phenocode))
+    filepath = common_filepaths['pheno_gz'](phenocode)
 
     with gzip.open(filepath, 'rt') as f:
         reader = csv.reader(f, dialect='pheweb-internal-dialect')

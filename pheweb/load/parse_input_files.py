@@ -1,6 +1,6 @@
 
 from ..utils import conf, get_phenolist
-from ..file_utils import VariantFileWriter, write_json, get_generated_path
+from ..file_utils import VariantFileWriter, write_json, get_generated_path, common_filepaths
 from .read_input_file import PhenoReader
 from .load_utils import exception_tester, star_kwargs, get_num_procs
 
@@ -26,7 +26,7 @@ def get_conversions_to_do():
     phenos = get_phenolist()
     print('number of phenos:', len(phenos))
     for pheno in phenos:
-        dest_filepath = get_generated_path('parsed', pheno['phenocode'])
+        dest_filepath = common_filepaths['parsed'](pheno['phenocode'])
         should_write_file = not os.path.exists(dest_filepath)
         if not should_write_file:
             dest_file_mtime = os.stat(dest_filepath).st_mtime

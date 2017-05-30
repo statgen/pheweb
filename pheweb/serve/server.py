@@ -1,6 +1,6 @@
 
 from ..utils import conf, get_phenolist, get_gene_tuples, pad_gene
-from ..file_utils import get_generated_path, common_filepaths
+from ..file_utils import common_filepaths
 from .server_utils import get_variant, get_random_page, get_pheno_region
 from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
@@ -95,7 +95,7 @@ def variant_page(query):
 @app.route('/api/manhattan/pheno/<phenocode>')
 @check_auth
 def api_pheno(phenocode):
-    return send_from_directory(get_generated_path('manhattan'), phenocode)
+    return send_from_directory(common_filepaths['manhattan'](''), phenocode)
 
 @app.route('/api/top_hits.json')
 @check_auth
@@ -105,7 +105,7 @@ def api_top_hits():
 @app.route('/api/qq/pheno/<phenocode>')
 @check_auth
 def api_pheno_qq(phenocode):
-    return send_from_directory(get_generated_path('qq'), phenocode)
+    return send_from_directory(common_filepaths['qq'](''), phenocode)
 
 @app.route('/top_hits')
 @check_auth

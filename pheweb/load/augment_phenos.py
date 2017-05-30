@@ -1,6 +1,6 @@
 
 from ..utils import get_phenolist
-from ..file_utils import VariantFileReader, VariantFileWriter, get_generated_path, common_filepaths, with_chrom_idx
+from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, with_chrom_idx
 from .load_utils import exception_printer, star_kwargs, get_num_procs
 
 import os
@@ -27,7 +27,7 @@ def _which_variant_is_bigger(v1, v2):
 @star_kwargs
 def convert(pheno, dest_filepath):
 
-    pheno_filepath = get_generated_path('parsed', pheno['phenocode'])
+    pheno_filepath = common_filepaths['parsed'](pheno['phenocode'])
     with VariantFileReader(sites_filepath) as sites_reader, \
          VariantFileReader(pheno_filepath) as pheno_reader, \
          VariantFileWriter(dest_filepath) as writer:
@@ -66,7 +66,7 @@ def get_conversions_to_do():
     phenos = get_phenolist()
     print('number of phenos:', len(phenos))
     for pheno in phenos:
-        dest_filepath = get_generated_path('augmented_pheno', pheno['phenocode'])
+        dest_filepath = common_filepaths['pheno'](pheno['phenocode'])
         should_write_file = not os.path.exists(dest_filepath)
         if not should_write_file:
             dest_file_mtime = os.stat(dest_filepath).st_mtime

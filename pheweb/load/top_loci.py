@@ -1,6 +1,6 @@
 
 from ..utils import get_phenolist
-from ..file_utils import write_json, VariantFileWriter, get_generated_path, common_filepaths
+from ..file_utils import write_json, VariantFileWriter, common_filepaths
 
 import json
 
@@ -14,7 +14,7 @@ def get_hits():
 
     hits_by_chrom = dict()
     for pheno in phenos:
-        filepath = get_generated_path('manhattan', '{}.json'.format(pheno['phenocode']))
+        filepath = common_filepaths['manhattan'](pheno['phenocode'])
         with open(filepath) as f:
             variants = json.load(f)['unbinned_variants']
 

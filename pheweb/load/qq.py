@@ -10,7 +10,7 @@ This script creates json files which can be used to render QQ plots.
 #    - get_conf_int()
 
 from ..utils import round_sig, approx_equal, get_phenolist
-from ..file_utils import VariantFileReader, write_json, get_generated_path
+from ..file_utils import VariantFileReader, write_json, common_filepaths
 from .load_utils import get_maf, exception_printer, star_kwargs, get_num_procs
 
 import collections
@@ -138,8 +138,8 @@ def make_json_file(src_filepath, dest_filepath, pheno):
 
 def get_conversions_to_do():
     for pheno in get_phenolist():
-        src_filepath = get_generated_path('augmented_pheno', pheno['phenocode'])
-        dest_filepath = get_generated_path('qq', '{}.json'.format(pheno['phenocode']))
+        src_filepath = common_filepaths['pheno'](pheno['phenocode'])
+        dest_filepath = common_filepaths['qq'](pheno['phenocode'])
         if not os.path.exists(dest_filepath) or os.stat(dest_filepath).st_mtime < os.stat(src_filepath).st_mtime:
             yield {'src_filepath':src_filepath, 'dest_filepath':dest_filepath, 'pheno':pheno}
 
