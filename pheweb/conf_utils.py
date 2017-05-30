@@ -122,38 +122,55 @@ default_per_variant_fields = OrderedDict([
     ('chrom', {
         'aliases': ['#CHROM', 'chr'],
         'required': True,
-        'tooltip_underscoretemplate': '<b><%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> / <%= d.alt %></b><br>',
         'tooltip_lztemplate': False,
+        'tooltip_underscoretemplate': '<b><%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> / <%= d.alt %></b><br>',
+        'table_underscoretemplate': {
+            'head': 'Variant',
+            'cell': '<%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> / <%= d.alt %><% if (d.rsid) { %> (<%= d.rsid %>)<% } %>',
+            'link': 'variant',
+        },
     }),
     ('pos', {
         'aliases': ['BEG', 'BEGIN', 'BP'],
         'required': True,
         'type': int,
         'range': [0, None],
-        'tooltip_underscoretemplate': False,
         'tooltip_lztemplate': False,
+        'tooltip_underscoretemplate': False,
+        'table_underscoretemplate': False,
     }),
     ('ref', {
         'aliases': ['reference', 'allele0'],
         'required': True,
-        'tooltip_underscoretemplate': False,
         'tooltip_lztemplate': False,
+        'tooltip_underscoretemplate': False,
+        'table_underscoretemplate': False,
     }),
     ('alt', {
         'aliases': ['alternate', 'allele1'],
         'required': True,
-        'tooltip_underscoretemplate': False,
         'tooltip_lztemplate': False,
+        'tooltip_underscoretemplate': False,
+        'table_underscoretemplate': False,
     }),
     ('rsids', {
         'from_assoc_files': False,
-        'tooltip_underscoretemplate': '<% _.each(_.filter((d.rsids||"").split(",")), function(rsid) { %>rsid: <%= rsid %><br><% }) %>',
         'tooltip_lztemplate': {'condition': 'rsid', 'template': '<strong>{{rsid}}</strong><br>'},
+        'tooltip_underscoretemplate': '<% _.each(_.filter((d.rsids||"").split(",")), function(rsid) { %>rsid: <%= rsid %><br><% }) %>',
+        'table_underscoretemplate': False,
     }),
     ('nearest_genes', {
         'from_assoc_files': False,
-        'tooltip_underscoretemplate': 'nearest gene<%= _.contains(d.nearest_genes, ",")? "s":"" %>: <%= d.nearest_genes %><br>',
         'tooltip_lztemplate': False,
+        'tooltip_underscoretemplate': 'nearest gene<%= _.contains(d.nearest_genes, ",")? "s":"" %>: <%= d.nearest_genes %><br>',
+        'table_underscoretemplate': { # TODO: on pheno.html variants don't contain `.phenocode`.
+            'head': 'Nearest Gene(s)',
+            'cell': '<% d.nearest_genes.forEach(function(g, i) { %>' +
+            '<a style="color:black" href="/region/<%= d.phenocode %>/gene/<%= g %>?include=<%= d.chrom %>-<%= d.pos %>">' +
+            '<i><%= g %></i>' +
+            "</a><%= (i+1 !== d.nearest_genes.length)?',':'' %>" +
+            "<% }) %>",
+        },
     }),
 ])
 
@@ -176,16 +193,21 @@ default_per_assoc_fields = OrderedDict([
         'type': float,
         'nullable': True,
         'sigfigs': 2,
-        'tooltip_underscoretemplate': 'Beta: <%= d.beta %><% if(_.has(d, "sebeta")){ %> (<%= d.sebeta %>)<% } %><br>',
         'tooltip_lztemplate': 'Beta: <strong>{{beta}}</strong>{{#if sebeta}} ({{sebeta}}){{/if}}<br>',
+        'tooltip_underscoretemplate': 'Beta: <%= d.beta %><% if(_.has(d, "sebeta")){ %> (<%= d.sebeta %>)<% } %><br>',
+        'table_underscoretemplate': {
+            'head': 'Beta (se)',
+            'cell': '<%= d.beta %><% if(_.has(d, "sebeta")){ %> (<%= d.sebeta %>)<% } %>',
+        },
         'display': 'Beta',
     }),
     ('sebeta', {
         'type': float,
         'nullable': True,
         'sigfigs': 2,
-        'tooltip_underscoretemplate': False,
         'tooltip_lztemplate': False,
+        'tooltip_underscoretemplate': False,
+        'table_underscoretemplate': False,
     }),
     ('or', {
         'type': float,
@@ -200,6 +222,10 @@ default_per_assoc_fields = OrderedDict([
         'sigfigs': 2,
         'tooltip_lztemplate': {'transform': '|scinotation'},
         'display': 'MAF',
+        'table_underscoretemplate': {
+            'cell': '<%= (_.has(d, "maf"))?d.maf: (_.has(d,"af"))? Math.min(d.af, 1-d.af): "" %>', # TODO include ac/num_samples
+            'include_if': ['maf', 'af'],
+        }
     }),
     ('af', {
         'aliases': ['A1FREQ'],
@@ -207,11 +233,13 @@ default_per_assoc_fields = OrderedDict([
         'range': [0, 1],
         'sigfigs': 2, # TODO: never round 99.99% to 100%.  Make sure MAF would have the right sigfigs.
         'tooltip_lztemplate': {'transform': '|scinotation'},
+        'table_underscoretemplate': False,
         'display': 'AF',
     }),
     ('ac', {
         'type': float,
         'range': [0, None],
+        'table_underscoretemplate': False,
         'display': 'AC',
     }),
     ('r2', {
@@ -227,6 +255,7 @@ default_per_pheno_fields = OrderedDict([
         'type': int,
         'nullable': True,
         'range': [0, None],
+        # TODO: merge these three into one 'table_underscoretemplate' column.
         'display': '#cases',
     }),
     ('num_controls', {
@@ -247,10 +276,26 @@ default_per_pheno_fields = OrderedDict([
     # TODO: include `assoc_files` with {never_send: True}?
 ])
 
+default_template_only_fields = OrderedDict([
+    ('phenocode', {
+        'display': 'Phenotype',
+        'table_underscoretemplate': {
+            'cell': '<%= d.phenostring || d.phenocode %>',
+            'link': 'pheno',
+        },
+    }),
+    ('category', {
+        'display': 'Category',
+    }),
+])
+
 conf.parse.null_values = deepcopy(default_null_values)
 conf.parse.per_variant_fields = deepcopy(default_per_variant_fields)
 conf.parse.per_assoc_fields = deepcopy(default_per_assoc_fields)
 conf.parse.per_pheno_fields = deepcopy(default_per_pheno_fields)
+for field in conf.parse.per_variant_fields.values(): field['per'] = 'variant'
+for field in conf.parse.per_assoc_fields.values(): field['per'] = 'assoc'
+for field in conf.parse.per_pheno_fields.values(): field['per'] = 'pheno'
 conf.parse.fields = OrderedDict(itertools.chain(conf.parse.per_variant_fields.items(),
                                                 conf.parse.per_assoc_fields.items(),
                                                 conf.parse.per_pheno_fields.items()))
@@ -276,6 +321,25 @@ if _repeated_aliases:
     raise Exception('The following aliases appear for multiple fields: {}'.format(_repeated_aliases))
 
 
+def get_tooltip_lztemplate():
+    template = ''
+    for fieldname, field in conf.parse.fields.items():
+        lzt = field.get('tooltip_lztemplate', {})
+        if lzt is False:
+            continue
+        if isinstance(lzt, str):
+            lzt = {'template': lzt}
+        if 'template' not in lzt:
+            lzt['template'] = field.get('display', fieldname) + ': <strong>{{' + fieldname + lzt.get('transform','') + '}}</strong><br>'
+        if 'condition' not in lzt:
+            lzt['condition'] = fieldname
+        if not lzt['condition']:
+            template += lzt['template'] + '\n'
+        else:
+            template += '{{#if ' + lzt['condition'] + '}}' + lzt['template'] + '{{/if}}\n'
+    return template
+conf.parse.tooltip_lztemplate = get_tooltip_lztemplate()
+
 def get_tooltip_underscoretemplate():
     template = ''
     for fieldname, field in conf.parse.fields.items():
@@ -289,22 +353,34 @@ def get_tooltip_underscoretemplate():
     return template
 conf.parse.tooltip_underscoretemplate = get_tooltip_underscoretemplate()
 
-def get_tooltip_lztemplate():
-    template = ''
-    for fieldname, field in conf.parse.fields.items():
-        lzt = field.get('tooltip_lztemplate', {})
-        if lzt is False:
+def get_table_underscoretemplate():
+    '''returns [{
+    "fields": ["af", "ac", "maf", "genoct"], # include this column if any row has any of these fields
+    "head": "...", "cell": "...",
+    # I'd love to pass a single object into the template that would expose all the dataframed properties and the once-per-page properties together transparently.
+            - option 1: variants.each( v => template(deepcopy(v.update(const_properties))).render())
+            - option 2: make a proxy-view object with `Object.defineProperty` or maybe just do `obj.get(fieldname)`
+    }, ...]
+    '''
+    ret = []
+    for fieldname, field in itertools.chain(conf.parse.fields.items(), default_template_only_fields.items()):
+        tut = field.get('table_underscoretemplate', {})
+        if tut is False:
             continue
-        if isinstance(lzt, str):
-            lzt = {'template': lzt}
-        if 'template' not in lzt:
-            lzt['template'] = field.get('display', fieldname) + ': <strong>{{' + fieldname + lzt.get('transform','') + '}}</strong><br>'
-        if 'condition' not in lzt:
-            lzt['condition'] = fieldname
-
-        if not lzt['condition']:
-            template += lzt['template'] + '\n'
-        else:
-            template += '{{#if ' + lzt['condition'] + '}}' + lzt['template'] + '{{/if}}\n'
-    return template
-conf.parse.tooltip_lztemplate = get_tooltip_lztemplate()
+        if 'include_if' not in tut:
+            tut['include_if'] = [fieldname]
+        elif not isinstance(tut['include_if'], list):
+            assert isinstance(tut['include_if'], str)
+            tut['include_if'] = [tut['include_if']]
+        if 'head' not in tut:
+            tut['head'] = field.get('display', fieldname)
+        if 'cell' not in tut:
+            tut['cell'] = '<% if (_.has(d, ' + repr(fieldname) + ')) { %><%= d[' + repr(fieldname) + '] %><% } %>'
+        if 'link' in tut:
+            if tut['link'] == 'variant': tut['cell'] = '<a href="/variant/<%= d.chom %>-<%= d.pos %>-<%= d.ref %>-<%= d.alt %>">' + tut['cell'] + '</a>'
+            if tut['link'] == 'pheno':   tut['cell'] = '<a href="/pheno/<%= d.pheno %>">' + tut['cell'] + '</a>'
+        tut['head'] = '<th>' + tut['head'] + '</th>\n'
+        tut['cell'] = '<td>' + tut['cell'] + '</th>\n'
+        ret.append(tut)
+    return ret
+conf.parse.table_underscoretemplate = get_table_underscoretemplate()
