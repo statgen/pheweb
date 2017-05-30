@@ -19,9 +19,8 @@ following commands:
    pip3 install pheweb
    mkdir ~/my-new-pheweb && cd ~/my-new-pheweb
    pheweb phenolist glob --simple-phenocode /data/my-analysis/*/*.epacts.gz
-   pheweb process-assoc-files
-   pheweb serve --port 5000
-   # open http://localhost:5000 in your web browser
+   pheweb process
+   pheweb serve --open
 
 Here are more detailed instructions:
 
@@ -253,64 +252,50 @@ the current file.
 
    Then re-run ``pheweb process-assoc-files``.
 
-5. Run a simple server to check that everything loaded correctly
-----------------------------------------------------------------
+5. Run a server to check that everything loaded correctly
+---------------------------------------------------------
 
-Run ``pheweb serve``.
+Run ``pheweb serve --open``.
 
--  If port 5000 is already taken, choose a different port (for example,
-   5432) and run ``pheweb serve --port 5432`` instead.
+If that succeeds and you are able to view the site in a web browser,
+you're done with this section.
 
-Next you need to find a way to for your computer to access the server.
-You have two options:
+If port 5000 is already taken, choose a different port (for example,
+5432) and run ``pheweb serve --port 5432`` instead.
 
-A. Run PheWeb exposed to anybody on the internet. This might be
-   dangerous, but I never worry much about it.
+If the server works but you can't open it in a web browser,
+you have two options:
+
+A. Run PheWeb on the open internet.
 
    You need a port that can get through your firewall. 80 or 5000
-   probably work, though 80 will require you to run something like
+   probably work. 80 will require you to run something like
    ``sudo $(which python3) $(which pheweb) serve --port 80``.
 
-   Find an IP adddress or hostname that refers to your server. If you
-   ssh into your server with ``ssh watman@foobar.example.com``, this is
-   ``foobar.example.com``. If you don't know this, run
-   ``curl http://httpbin.org/ip`` on your server to get its IP address.
-   (If it returns something like ``"origin": "12.34.5.678"``, your
-   server's IP is ``12.34.5.678``).
-
-   Now run ``pheweb serve --port <myport> --host <myhost>``. For
-   example, if you're using the default port (5000), and
-   ``curl http://httpbin.org/ip`` returns ``"origin": "12.34.5.678"``,
-   then run ``pheweb serve --port 5000 --host 12.34.5.678``.
-
-   When the server starts, it should say something like
-   ``Running on http://12.34.5.678:5000/ (Press CTRL+C to quit)``. Open
-   that URL in the web browser on your computer.
+   Then run ``pheweb serve --guess-address`` and open the two URLs it
+   provides.
 
 B. Run PheWeb with the default settings, then use an SSH tunnel to
    connect to it from your computer.
 
    For example, if you normally ssh in with
-   ``ssh watman@foobar.example.com``, then the command you should run
-   (from your local computer) is
-   ``ssh -N -L localhost:5000:localhost:5000 watman@foobar.example.com``.
+   ``ssh watman@x.example.com``, then the command you should run
+   (on the computer you're sitting at) is
+   ``ssh -N -L localhost:5000:localhost:5000 watman@x.example.com``.
    Now open `http://localhost:5000 <http://localhost:5000>`__ in your
    web browser.
 
-6. Use a real webserver.
-------------------------
+6. Use a real webserver (optional)
+----------------------------------
 
 At this point your PheWeb should be working how you want it to, and
 everything should be good except maybe the URL you're using.
 
-To start, run Flask behind gunicorn.  To do that, run ``pheweb wsgi``,
-to produce a file ``wsgi.py``.  Then you can run
-``gunicorn -b 0.0.0.0:5000 -w4 wsgi``, to start a webserver.
-
+``pheweb serve`` already uses gunicorn.
 For maximum speed and safety, you should run gunicorn behind
 something like Apache2 or Nginx. More information about this is
 `here <http://flask.pocoo.org/docs/0.12/deploying/wsgi-standalone/#gunicorn>`__.
-If you choose Apache2, I have some documentation for you
+If you choose Apache2, I have some documentation
 `here <https://github.com/statgen/pheweb/tree/master/unnecessary_things/other_documentation/running_with_apache2>`__.
 
 
@@ -319,44 +304,47 @@ Data flow
 
 ::
 
-                     input-association-files (eg, EPACTS)
-                      |         |         |
-                      |         v         |
-                      |  pheno-list.json  |
-                      |   |           |   |
-                      v   v           |   |
-                      cpra/*          |   |
-                         |            |   |
-                         v            |   |
-                      cpra.tsv        |   |
-               genes.bed |            |   |
-             rsids.tsv | |            |   |
-                     | | |            |   |
-                     v v v            |   |
-                  sites.tsv           |   |
-                  |   |   |           v   v
-                  |   |   +--> augmented_pheno/*
-                  v   |        |     |   |   |
-    cpra-rsids-tries  |        |     |   |   v
-                      v        v     |   |  augmented_pheno_gz/*
-                    matrix.tsv.gz    |   v
-                    |     |          |   manhattan/*
-                    v     |          v      |   |
-       matrix.tsv.gz.tbi  |         qq/*    |   v
-                      |   |                 |  top_hits.json/tsv
-                      v   v                 v
-         best-phenos-by-gene.json          top_loci.json/tsv
+                 input-association-files (epacts, plink, snptest, &c)
+                      |         |
+                      |         v
+                      |  pheno-list.json
+                      |   |           |
+                      v   v           |
+                     parsed/*----+    |
+                         |       |    |
+                         v       |    |
+                       unanno    |    |
+               genes.bed |       |    |
+             rsids.tsv | |       |    |
+                     | | |       |    |
+                     v v v       |    |
+                  sites.tsv      |    |
+                  |   |   |      v    v
+                  |   |   +----> pheno/*
+                  v   |          | | | |
+    cpra-rsids-tries  |          | | | v
+                      v          v | | augmented_pheno_gz/*
+                     matrix.tsv.gz | v
+                      |    |       | manhattan/*
+                      v    |       v         |
+       matrix.tsv.gz.tbi   |      qq/*       v
+                      |    |                top_{loci,hits{,_1k}}.{json,tsv}
+                      v    v
+         best-phenos-by-gene.json
 
 
-- ``cpra/*`` and ``cpra.tsv`` just have chrom-pos-ref-alt
-- ``sites.tsv`` has chrom-pos-ref-alt and [nearest_genes, rsids]
-- ``augmented_pheno/*`` have all available per-assoc fields and per-variant fields (any per-variant fields in the input files must EXACTLY match any in sites.tsv)
-    - each file must contain all required per-variant fields
-    - all must include the same optional per-variant fields
+- ``parsed/*`` have all per-variant and per-assoc fields from the input files
+- ``unanno`` (unannotated) has all per-variant fields from ``parsed/*``
+- ``sites.tsv`` has ``unanno``'s fields and also ``rsids`` and ``nearest_genes``
+- ``pheno/*`` have ``parsed/*``'s fields and also ``rsids`` and ``nearest_genes``
+    - all must include the same optional per-variant fields, and all per-variant fields must be in the same order, due to the implemention of the ``matrix.tsv.gz``-maker
 - cpra-rsid-tries are for autocomplete suggestions.
-- ``matrix.tsv.gz`` contains all per-variant fields at the beginning (confirmed to EXACTLY match any file among [augmented_pheno/* , sites.tsv] where they exist) and ``<per-assoc-field>@<pheno-id>``.
-- ``top_hits.json`` contains all variants (and their per-variant and per-assoc fields) that (a) pval<1e-6, (b) smallest pval in 500kb in own phenotype
-    - well, in theory, but the implementation doesn't quite fit that definition.
-- ``top_loci.json`` contains all variants (and their per-variant and per-assoc fields) that (a) pval<1e-6, (b) smallest pval in 500kb, (c) smallest pval in 1Mb in own phenotype
-    - this is not currently guaranteed to be a subset of top_hits due to a bad implementation/definition.
+- ``matrix.tsv.gz`` contains all per-variant fields at the beginning (confirmed to EXACTLY match any file among [augmented_pheno/* , sites.tsv] where they exist) and all per-assoc fields (with header format ``<per-assoc-field>@<pheno-id>``).
+- ``top_hits.json`` contains variants (and their per-variant and per-assoc fields) that passed this algorithm:
+    - start with all variants with pval<1e-6
+    - iteratively take the association with the most-significant pval, and mask all variants within 500kb in its phenotype
+- ``top_loci.json`` contains variants (and their per-variant and per-assoc fields) that passed this algorithm:
+    - start with all variants with pval<1e-6
+    - iteratively take the association with the most-significant pval, and mask all variants within 1Mb in its phenotype or within 500kb in any phenotype
+    - this might not be a subset of top_hits.
 - ``best-phenos-by-gene.json`` includes the best phenos in/near a gene, and the best association for each.

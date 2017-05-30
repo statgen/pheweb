@@ -59,6 +59,7 @@ for submodule in '''
         module = importlib.import_module('.load.{}'.format(submodule), __package__)
         module.run(argv)
     handlers[submodule.replace('_', '-')] = functools.partial(f, submodule)
+handlers['process'] = handlers['process-assoc-files']
 
 def serve(argv):
     from pheweb.serve.run import run
