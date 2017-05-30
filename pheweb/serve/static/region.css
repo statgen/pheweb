@@ -1,0 +1,8 @@
+.lz-dashboard.lz-plot-dashboard { text-align: center; padding-bottom: 0; }
+.lz-dashboard-left, .lz-dashboard-right { display: inline-block; }
+.lz-dashboard-group-start, .lz-dashboard-group-middle, .lz-dashboard-group-end { float: none !important; }
+/* TODO:
+   1. merge dashboard-component-centering into LZ. (should it be the default?)
+      - if not, make it explicit.  it's bad that I'm just centering anything with `.lz-dashboard-group-*`.
+   2. stop text-align:center from cascading downward through descendants
+*/

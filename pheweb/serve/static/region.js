@@ -54,6 +54,60 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
         return log;
     });
 
+    // dashboard components
+    LocusZoom.Dashboard.Components.add("region", function(layout){
+        LocusZoom.Dashboard.Component.apply(this, arguments);
+        this.update = function(){
+            if (!isNaN(this.parent_plot.state.chr) && !isNaN(this.parent_plot.state.start) && !isNaN(this.parent_plot.state.end)
+                && this.parent_plot.state.chr != null && this.parent_plot.state.start != null && this.parent_plot.state.end != null){
+                this.selector.style("display", null);
+                this.selector.text(
+                    'chr' + this.parent_plot.state.chr.toString() + ': ' +
+                    LocusZoom.positionIntToString(this.parent_plot.state.start, 6, true).replace(' ','') + ' - ' +
+                    LocusZoom.positionIntToString(this.parent_plot.state.end, 6, true).replace(' ', ''));
+            } else {
+                this.selector.style("display", "none");
+            }
+            if (layout.class){ this.selector.attr("class", layout.class); }
+            if (layout.style){ this.selector.style(layout.style); }
+            return this;
+        };
+    });
+
+    function add_dashboard_button(name, func) {
+        LocusZoom.Dashboard.Components.add(name, function(layout){
+            LocusZoom.Dashboard.Component.apply(this, arguments);
+            this.update = function(){
+                if (this.button)
+                    return this;
+                this.button = new LocusZoom.Dashboard.Component.Button(this)
+                    .setColor(layout.color).setText(layout.text).setTitle(layout.title)
+                    .setOnclick(func(layout).bind(this));
+                this.button.show();
+                return this.update();
+            };
+        });
+    }
+
+    add_dashboard_button('link', function(layout) {
+        return function() {
+            window.location.href = layout.url;
+        };
+    });
+    add_dashboard_button('move', function(layout) {
+        // see also the default component `shift_region`
+        return function() {
+            var start = this.parent_plot.state.start;
+            var end = this.parent_plot.state.end;
+            var shift = Math.floor(end - start) * layout.direction;
+            this.parent_plot.applyState({
+                chr: this.parent_plot.state.chr,
+                start: start + shift,
+                end: end + shift
+            });
+        }
+    });
+
     // TODO: copying the whole layout was a bad choice.
     //       I should just have copied the standard and adjusted it like in variant.js
     //       That makes it more clear when I've changed things from the default.
@@ -74,9 +128,49 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
 
         "dashboard": {
             "components": [{
+                type: 'link',
+                title: 'Go to Manhattan Plot',
+                text:' Manhattan Plot',
+                url: '/pheno/' + window.pheno.phenocode
+            },{
+                type: 'move',
+                text: '<<',
+                title: 'Shift view 1/4 to the left',
+                direction: -0.75,
+                group_position: "start",
+            },{
+                type: 'move',
+                text: '<',
+                title: 'Shift view 1/4 to the left',
+                direction: -0.25,
+                group_position: "middle",
+            },{
+                type: 'zoom_region',
+                button_html: 'z+',
+                title: 'zoom in 2x',
+                step: -0.5,
+                group_position: "middle",
+            },{
+                type: 'zoom_region',
+                button_html: 'z-',
+                title: 'zoom out 2x',
+                step: 1,
+                group_position: "middle",
+            },{
+                type: 'move',
+                text: '>',
+                title: 'Shift view 1/4 to the right',
+                direction: 0.25,
+                group_position: "middle",
+            },{
+                type: 'move',
+                text: '>>',
+                title: 'Shift view 3/4 to the right',
+                direction: 0.75,
+                group_position: "end",
+            },{
                 "type": "download",
                 "position": "right",
-                "color": "gray"
             }]
         },
         "panels": [{
@@ -88,7 +182,7 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
             "margin": {
                 "top": 10,
                 "right": 50,
-                "bottom": 20,
+                "bottom": 40,
                 "left": 50
             },
             "inner_border": "rgb(210, 210, 210)",
@@ -106,7 +200,7 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
                     "tick_format": "region",
                     "extent": "state",
                     "render": true,
-                    "label": null
+                    "label": "Chromosome {{chr}} (Mb)"
                 },
                 "y1": {
                     "label": "-log10 p-value",
@@ -259,7 +353,8 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
                     "class": "lz-data_layer-scatter"
                 }],
 
-                fields: ["id", "chr", "position", "ref", "alt", "pvalue", "ld:state", "ld:isrefvar"],
+                fields: ["id", "chr", "position", "ref", "alt", "pvalue", "pvalue|neglog10_or_100", "ld:state", "ld:isrefvar"],
+                // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
                 id_field: "id",
                 behaviors: {
                     onmouseover: [{action: "set", status:"selected"}],
@@ -405,49 +500,5 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
     $(function() {
         // Populate the div with a LocusZoom plot using the default layout
         window.plot = LocusZoom.populate("#lz-1", data_sources, layout);
-
-        $('#move-left').on('click', function() { move(-0.5); });
-        $('#move-left-fast').on('click', function() { move(-1.5); });
-        $('#move-right').on('click', function() { move(0.5); });
-        $('#move-right-fast').on('click', function() { move(1.5); });
-        $('#zoom-out').on('click', function() { zoom(2); });
-        $('#zoom-in').on('click', function() { zoom(0.5); });
     });
-
-    function move(direction) {
-        // 1 means right, -1 means left.
-        var start = window.plot.state.start;
-        var end = window.plot.state.end;
-        var shift = Math.floor((end - start) / 2) * direction;
-        window.plot.applyState({
-            chr: window.plot.state.chr,
-            start: start + shift,
-            end: end + shift
-        });
-    }
-
-    function zoom(growth_factor){
-        // 2 means bigger view, 0.5 means zoom in.
-        growth_factor = parseFloat(growth_factor);
-        var delta = (plot.state.end - plot.state.start) * (growth_factor - 1) / 2;
-        var new_start = Math.max(Math.round(plot.state.start - delta), 1);
-        var new_end   = Math.round(plot.state.end + delta);
-        if (new_start == new_end){ new_end++; }
-        var new_state = {
-            start: new_start,
-            end: new_end
-        };
-        if (new_state.end - new_state.start > plot.layout.max_region_scale){
-            delta = Math.round(((new_state.end - new_state.start) - plot.layout.max_region_scale) / 2);
-            new_state.start += delta;
-            new_state.end -= delta;
-        }
-        if (new_state.end - new_state.start < plot.layout.min_region_scale){
-            delta = Math.round((plot.layout.min_region_scale - (new_state.end - new_state.start)) / 2);
-            new_state.start -= delta;
-            new_state.end += delta;
-        }
-        plot.applyState(new_state);
-    }
-
 })();

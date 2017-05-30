@@ -116,7 +116,7 @@ function deepcopy(obj) {
         show: { 'or': ['highlighted', 'selected'] }
     };
     pval_data_layer.y_axis.min_extent = [0, neglog10_significance_threshold*1.05];
-    pval_data_layers.y_axis.upper_buffer = 0.1;
+    pval_data_layer.y_axis.upper_buffer = 0.1;
 
     // tooltips
     pval_data_layer.tooltip.html =
