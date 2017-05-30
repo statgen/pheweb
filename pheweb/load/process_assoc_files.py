@@ -6,6 +6,7 @@ import time
 import importlib
 
 scripts = '''
+phenolist verify
 parse_input_files
 sites
 download_rsids
@@ -21,7 +22,8 @@ matrix
 bgzip_phenos
 top_hits
 gather_pvalues_for_each_gene
-'''.split()
+'''.split('\n')
+scripts = [script for script in scripts if script]
 
 def run(argv):
     if argv and argv[0] == '-h':
@@ -33,9 +35,10 @@ def run(argv):
     for script in scripts:
         print('==> Starting `pheweb {}`'.format(script.replace('_', '-')))
         start_time = time.time()
-        module = importlib.import_module('.{}'.format(script), __package__)
+        script_parts = script.split()
+        module = importlib.import_module('.{}'.format(script_parts[0]), __package__)
         try:
-            module.run([])
+            module.run(script_parts[1:])
         except Exception:
             print('==> failed after {:.0f} seconds'.format(time.time() - start_time))
             raise
