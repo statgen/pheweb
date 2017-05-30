@@ -59,27 +59,30 @@ function deepcopy(obj) {
     };
     LocusZoom.TransformationFunctions.set("neglog10_handle0", neglog10_handle0);
 
+    LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
+        if (typeof input == "undefined"){
+            return null;
+        } else if (!isNaN(input.beta)) {
+            if (!isNaN(input.sebeta)) {
+                if      (input.beta - 2*input.sebeta > 0) { return parameters['+'] || null; }
+                else if (input.beta + 2*input.sebeta < 0) { return parameters['-'] || null; }
+            } else {
+                if      (input.beta > 0) { return parameters['+'] || null; }
+                else if (input.beta > 0) { return parameters['-'] || null; }
+            }
+        } else if (!isNaN(input.or)) {
+            if      (input.or > 0) { return parameters['+'] || null; }
+            else if (input.or < 0) { return parameters['-'] || null; }
+        }
+        return null;
+    });
+
     LocusZoom.Data.PheWASSource.prototype.getData = function(state, fields, outnames, trans) {
         window.debug.getData_args = [state, fields, outnames, trans];
         trans = trans || [];
 
         var data = deepcopy(window.variant.phenos); //otherwise LZ adds attributes I don't want to the original data.
         data.forEach(function(d, i) {
-
-            if (!isNaN(d.beta)) {
-                if (!isNaN(d.sebeta)) {
-                    if      (d.beta - 2*d.sebeta > 0) { d.effect_direction = 1; }
-                    else if (d.beta + 2*d.sebeta < 0) { d.effect_direction = -1; }
-                } else {
-                    if      (d.beta > 0) { d.effect_direction = 1; }
-                    else if (d.beta > 0) { d.effect_direction = 1; }
-                }
-            }
-            if (!isNaN(d.or)) {
-                if      (d.or > 0) { d.effect_direction = 1; }
-                else if (d.or < 0) { d.effect_direction = -1; }
-            }
-            if (isNaN(d.effect_direction)) { d.effect_direction = 0; }
 
             data[i].x = i;
             data[i].id = i.toString();
@@ -138,14 +141,16 @@ function deepcopy(obj) {
     phewas_panel.data_layers[1].color.parameters.values = window.unique_categories.map(function(cat) { return window.color_by_category(cat); });
 
     // Shape points by effect direction.
-    phewas_panel.data_layers[1].point_shape = {
-        scale_function: 'categorical_bin',
-        field: 'effect_direction',
-        parameters: {
-            categories: [-1, 0, 1],
-            values: ['triangle-down', 'circle', 'triangle-up'],
-        }
-    }
+    phewas_panel.data_layers[1].point_shape = [
+        {
+            scale_function: 'effect_direction',
+            parameters: {
+                '+': 'triangle-up',
+                '-': 'triangle-down',
+            }
+        },
+        'circle'
+    ];
 
     // Make points clickable
     phewas_panel.data_layers[1].behaviors.onclick = [{action:"link", href:"/pheno/{{phewas_code}}"}];
