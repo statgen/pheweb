@@ -123,7 +123,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .on('mouseout', significance_threshold_tooltip.hide);
 
         // Points & labels
-        var tooltip_template = _.template($('#tooltip-template').html());
+        var tooltip_template = _.template(window.model.tooltip_underscoretemplate);
         var point_tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .html(function(d) {
