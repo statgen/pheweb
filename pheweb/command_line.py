@@ -60,6 +60,7 @@ for submodule in '''
         module.run(argv)
     handlers[submodule.replace('_', '-')] = functools.partial(f, submodule)
 handlers['process'] = handlers['process-assoc-files']
+handlers['parse'] = handlers['parse-input-files']
 
 def serve(argv):
     from pheweb.serve.run import run
@@ -98,7 +99,7 @@ Subcommands:
     pheweb phenolist
         prepare a list of phenotypes
 
-    pheweb process-assoc-files
+    pheweb process
         once a phenolist has been prepared, load all data to be ready to run the server.
 
     pheweb serve
