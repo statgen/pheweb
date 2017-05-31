@@ -634,4 +634,5 @@ def run(argv):
     p.add_argument('file_with_more_info', help="a pheno-list file with more information to add to the main pheno-list file")
 
     args = parser.parse_args(argv)
+    if not args.subcommand: parser.parse_args(['-h'])
     subcommand_handlers[args.subcommand](args)
