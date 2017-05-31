@@ -51,6 +51,9 @@ if 'debug' not in conf: conf.debug = False
 if conf.get('login', {}).get('whitelist', None):
     conf.login['whitelist'] = [addr.lower() for addr in conf.login['whitelist']]
 
+if 'minimum_maf' in conf:
+    raise Exception("minimum_maf has been deprecated.  Please use assoc_min_maf and/or variant_inclusion_maf instead")
+
 
 ### Cache
 
