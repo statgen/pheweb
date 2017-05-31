@@ -541,7 +541,7 @@ def run(argv):
         check_that_columns_are_present(phenolist, ['phenocode', 'assoc_files'] + args.required_columns)
         check_that_phenocode_is_unique(phenolist)
         check_that_all_phenotypes_have_assoc_files(phenolist)
-        print("The phenotypes in {!r} look good.".format(filepath))
+        print("The {} phenotypes in {!r} look good.".format(len(phenolist), filepath))
     p = subparsers.add_parser('verify', help='check that pheno-list is well-formed and could plausibly be used to make a pheweb')
     p.add_argument('-f', dest="filepath", help="pheno-list filepath to check (default: {!r})".format(default_phenolist_filepath))
     p.add_argument('--required-columns', dest='required_columns', nargs='+', default=[], help="a list of column names that must be included in all phenotypes")
