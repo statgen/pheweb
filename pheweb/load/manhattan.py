@@ -80,6 +80,17 @@ def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_siz
     return binned_variants, unbinned_variants
 
 
+MASK_AROUND_PEAK = int(500e3)
+def label_peaks(variants):
+    chroms = {}
+    for v in variants:
+        chroms.setdefault(v['chrom'], []).append(v)
+    for vs in chroms.values():
+        while vs:
+            best_assoc = min(vs, key=lambda assoc: assoc['pval'])
+            best_assoc['peak'] = True
+            vs = [v for v in vs if abs(v['pos'] - best_assoc['pos']) > MASK_AROUND_PEAK]
+
 
 @exception_printer
 @star_kwargs
@@ -97,6 +108,7 @@ def make_json_file(src_filepath, dest_filepath):
             variants, BIN_LENGTH, N_UNBINNED, NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
         if conf.debug: print('{}\tBINNED VARIANTS'.format(datetime.datetime.now()))
     if conf.debug: print('{}\tCLOSED FILE'.format(datetime.datetime.now()))
+    label_peaks(unbinned_variants)
     rv = {
         'variant_bins': variant_bins,
         'unbinned_variants': unbinned_variants,

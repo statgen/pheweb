@@ -15,5 +15,4 @@ $p import-phenolist -f "pheno-list-categories.json" "../input_files/categories.c
 $p merge-in-info "pheno-list-categories.json"
 $p verify --required-columns category
 
-$p verify
 }

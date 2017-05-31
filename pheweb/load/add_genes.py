@@ -63,7 +63,7 @@ class GeneAnnotator(object):
             return ''
         overlapping_genes = self._its[chrom].search(pos)
         if overlapping_genes:
-            return ','.join(boltons.iterutils.unique_iter(og.data for og in overlapping_genes))
+            return ','.join(sorted(boltons.iterutils.unique_iter(og.data for og in overlapping_genes)))
         nearest_gene_end = self._gene_ends[chrom].get_item_before(pos)
         nearest_gene_start = self._gene_starts[chrom].get_item_after(pos)
         if nearest_gene_end is None or nearest_gene_start is None:

@@ -473,7 +473,7 @@ function create_qq_plot(maf_ranges) {
 function populate_streamtable(variants) {
     $(function() {
         // This is mostly copied from <https://michigangenomics.org/health_data.html>.
-        var data = _.sortBy(variants, _.property('pval'));
+        var data = _.sortBy(_.where(variants, {peak: true}), _.property('pval'));
         var template = _.template($('#streamtable-template').html());
         var view = function(variant) {
             return template({v: variant});

@@ -9,36 +9,18 @@ import json
 # - Somewhere have a user-extendable whitelist of info that should be copied about each pheno.  Copy all of that stuff.
 
 
-LOCI_SPREAD_FROM_BEST_HIT = int(500e3)
 PVAL_CUTOFF = 1e-6
 
 def get_hits(pheno):
-    filepath = common_filepaths['manhattan'](pheno['phenocode'])
-    with open(filepath) as f:
+    with open(common_filepaths['manhattan'](pheno['phenocode'])) as f:
         variants = json.load(f)['unbinned_variants']
 
-    hits_by_chrom = dict()
     for v in variants:
-        if v['pval'] <= PVAL_CUTOFF:
+        if v['pval'] <= PVAL_CUTOFF and 'peak' in v:
             v['phenocode'] = pheno['phenocode']
-            hits_by_chrom.setdefault(v['chrom'], []).append(v)
-
-    for hits in hits_by_chrom.values():
-        while hits:
-            best_hit = min(hits, key=lambda hit: hit['pval'])
-            best_hit['nearest_genes'] = sorted(best_hit['nearest_genes'].split(','))
-
-            remaining_hits = []
-            for hit in hits:
-                if hit is best_hit:
-                    pass
-                elif abs(hit['pos'] - best_hit['pos']) >= LOCI_SPREAD_FROM_BEST_HIT:
-                    remaining_hits.append(hit)
-            hits = remaining_hits
-
             try: best_hit['phenostring'] = pheno['phenostring']
             except KeyError: pass
-            yield best_hit
+            yield v
 
 
 def run(argv):
