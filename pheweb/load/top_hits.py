@@ -18,7 +18,7 @@ def get_hits(pheno):
     for v in variants:
         if v['pval'] <= PVAL_CUTOFF and 'peak' in v:
             v['phenocode'] = pheno['phenocode']
-            try: best_hit['phenostring'] = pheno['phenostring']
+            try: v['phenostring'] = pheno['phenostring']
             except KeyError: pass
             yield v
 
@@ -35,14 +35,13 @@ Make lists of top hits for this PheWeb in {} and {}.
 
 To count as a top hit, a variant must:
 - have a p-value < {}
-- have the smallest p-value within {:,} bases within its phenotype
+- have the smallest p-value within TODO bases within its phenotype
 
 Some loci may have hits for multiple phenotypes.  If you want a list of loci with
 just the top phenotype for each, use `pheweb top-loci`.
 '''.format(out_filepath_json,
            out_filepath_tsv,
            formatted_pval_cutoff,
-           LOCI_SPREAD_FROM_BEST_HIT,
 ))
         exit(0)
 
