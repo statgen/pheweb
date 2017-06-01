@@ -22,14 +22,15 @@ def get_maf(variant, pheno):
     if 'ac' in variant and 'num_samples' in pheno:
         x = variant['ac'] / 2 / pheno['num_samples']
         mafs.append(min(x, 1-x))
-    if not mafs: return None
-    if len(mafs) > 1:
+    if len(mafs) == 0: return None
+    elif len(mafs) == 1:
+        return mafs[0]
+    else:
         if max(mafs) - min(mafs) > 0.05:
             raise Exception(
                 "Error: the variant {} in pheno {} has two ways of computing maf, resulting in the mafs {}, which differ by more than 0.05.".format(
                     variant, pheno, mafs))
         return round_sig(sum(mafs)/len(mafs), conf.parse.fields['maf']['sigfigs'])
-    return mafs[0]
 
 
 

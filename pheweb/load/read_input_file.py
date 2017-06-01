@@ -14,21 +14,18 @@ class PhenoReader:
     '''
     Reads variants (in order) and other info for a phenotype.
     It only returns variants that have a pvalue.
-    If `only_cpra`, it only returns the fields [chrom pos ref alt].
     If `minimum_maf` is defined, variants that don't meet that threshold (via MAF, AF, or AC/NS) are dropped.
     '''
 
-    def __init__(self, pheno, minimum_maf=None, keep_chrom_idx=False, only_cpra=False):
+    def __init__(self, pheno, minimum_maf=0):
         self._pheno = pheno
-        self._only_cpra = only_cpra
         self._minimum_maf = minimum_maf
-        self._keep_chrom_idx = keep_chrom_idx
         self.fields, self.filepaths = self._get_fields_and_filepaths(pheno['assoc_files'])
 
     def get_variants(self):
         yield from self._order_refalt_lexicographically(
             itertools.chain.from_iterable(
-                AssocFileReader(filepath, self._pheno).get_variants(only_cpra=self._only_cpra) for filepath in self.filepaths))
+                AssocFileReader(filepath, self._pheno).get_variants(minimum_maf=self._minimum_maf) for filepath in self.filepaths))
 
     def get_info(self):
         infos = [AssocFileReader(filepath, self._pheno).get_info() for filepath in self.filepaths]
@@ -54,8 +51,6 @@ class PhenoReader:
                 raise Exception()
             prev_chrom_index, prev_pos = chrom_index, cp[1]
             for v in sorted(tied_variants, key=lambda v:(v['ref'], v['alt'])):
-                if self._keep_chrom_idx:
-                    v['chrom_idx'] = chrom_index
                 yield v
 
     def _get_fields_and_filepaths(self, filepaths):
@@ -63,7 +58,7 @@ class PhenoReader:
         assoc_files = [{'filepath': filepath} for filepath in filepaths]
         for assoc_file in assoc_files:
             ar = AssocFileReader(assoc_file['filepath'], self._pheno)
-            v = next(ar.get_variants(only_cpra=self._only_cpra))
+            v = next(ar.get_variants())
             assoc_file['chrom'], assoc_file['pos'] = v['chrom'], v['pos']
             assoc_file['fields'] = list(v)
         assert boltons.iterutils.same(af['fields'] for af in assoc_files)
@@ -96,12 +91,9 @@ class AssocFileReader:
         self.filepath = filepath
         self._pheno = pheno
 
-    _fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(conf.parse.per_variant_fields.items(), conf.parse.per_assoc_fields.items()) if fieldval['from_assoc_files']}
 
-    def get_variants(self, minimum_maf=None, only_cpra=False):
-        fields_to_check = self._fields_to_check
-        if only_cpra:
-            fields_to_check = {k:v for k,v in fields_to_check.items() if k in ['chrom', 'pos', 'ref', 'alt', 'pval']}
+    def get_variants(self, minimum_maf=0):
+        fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(conf.parse.per_variant_fields.items(), conf.parse.per_assoc_fields.items()) if fieldval['from_assoc_files']}
 
         with open_maybe_gzip(self.filepath, 'rt') as f:
 
@@ -123,13 +115,10 @@ class AssocFileReader:
                 variant = self._parse_variant(values, colnames, colidx_for_field)
 
                 if variant['pval'] == '': continue
-                if only_cpra:
-                    del variant['pval']
 
                 maf = get_maf(variant, self._pheno) # checks for agreement
-                if minimum_maf is not None:
-                    if maf < minimum_maf:
-                        continue
+                if maf < minimum_maf:
+                    continue
 
                 if marker_id_col is not None:
                     chrom2, pos2, variant['ref'], variant['alt'] = AssocFileReader.parse_marker_id(values[marker_id_col])
