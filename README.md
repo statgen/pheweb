@@ -31,9 +31,9 @@ If any of those commands don't work, use these long instructions instead:
        - Install PheWeb through [miniconda3](https://conda.io/miniconda.html) by running:
 
           ```bash
-        if uname -a | grep -q Darwin; then curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > install-miniconda.sh; fi
-        if uname -a | grep -q Linux; then curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > install-miniconda.sh; fi
-        bash install-miniconda.sh
+          if uname -a | grep -q Darwin; then curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > install-miniconda.sh; fi
+          if uname -a | grep -q Linux; then curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > install-miniconda.sh; fi
+          bash install-miniconda.sh
           ```
 
           Then hit "q" when you're done with reading the terms and hit enter at every `>>>` prompt. They'll create `~/miniconda3` and modify `$PATH` in your `~/.bash_profile`.
