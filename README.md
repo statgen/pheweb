@@ -17,6 +17,8 @@ pheweb process
 pheweb serve --open
 ```
 
+If any of those commands don't work, use these long instructions instead:
+
 ## Detailed Instructions
 
 ### 1. Install PheWeb
