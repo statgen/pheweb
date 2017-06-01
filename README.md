@@ -103,6 +103,7 @@ You may also have columns for:
   - named `OR`
   - must be a real number
 - r2
+  - named `R2`
   - must be a real number
 - `num_cases`
   - named `NS.CASE` or `N_CASES`
