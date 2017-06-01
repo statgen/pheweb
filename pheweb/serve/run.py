@@ -113,6 +113,9 @@ def run(argv):
         if not attempt_open('http://localhost:{}'.format(args.port)) and not args.guess_address:
             print_ip(args.port)
 
+    if args.host != '0.0.0.0':
+        print('http://{}:{}'.format(args.host, args.port))
+
     if args.guess_address:
         print_ip(args.port)
 
