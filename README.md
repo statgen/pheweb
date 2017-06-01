@@ -68,52 +68,36 @@ You should have one file for each phenotype. It can be gzipped if you want. It s
 
 The file must have columns for:
 
-- chromosome
-    - named `#CHROM` or `CHROM` (or `chrom` or `Chrom` because column names ignore capitalization)
-    - must be a number between 1 and 22 or `X` or `Y` or `M` or `MT`
-- position
-  - named `POS`, `BEG`, or `BEGIN`
-  - must be an integer
-- reference allele
-  - named `REF`
-- alternate allele
-  - named `ALT`
-- p-value
-  - named `PVAL` or `PVALUE`
-  - must be decimal number between 0 and 1 or `.` or `NA` (both representing unknown)
+| column description | name | other allowed column names | allowed values |
+| --- | --- | --- | --- |
+| chromosome | `chrom` | `#chrom` | integer 1-22, `X`, `Y`, `M`, `MT` |
+| position | `pos` | `beg`, `begin` | integer | a |
+| reference allele | `ref` | | anything |
+| alternate allele | `alt` | | anything |
+| p-value | `pval` | `pvalue` | number in [0,1] |
+
+_Note: column names are case-insensitive._
+
+_Note: any field may be `.` or `NA`.  For required fields, these values will cause the variant to be dropped._
+
+_Note: if your column name is not one of these, you may set `field_aliases = {"column_name": "field_name"}` in `config.py`.  For example, `field_aliases = {'P_BOLT_LMM_INF': 'pval'}`._
+
+_Note: scientific notation is okay._
 
 You may also have columns for:
 
-- minor allele frequency
-  - named `MAF`
-  - must be a real number between 0 and 0.5 (numbers may be in scientific notation, like `5.4e-12`)
-- allele frequency
-  - named `AF`
-  - will be used in MAF cutoffs
-- allele count
-  - named `AC`
-  - will be used in MAF cutoffs if you supply `num_samples`
-- effect size
-  - named `BETA`
-  - must be a real number
-- standard error of effect size
-  - named `SEBETA`
-  - must be a real number
-- odds ratio
-  - named `OR`
-  - must be a real number
-- r2
-  - named `R2`
-  - must be a real number
-- `num_cases`
-  - named `NS.CASE` or `N_CASES`
-  - must be the same for every variant (but can be null for some)
-- `num_controls`
-  - named `NS.CTRL` or `N_CONTROLS`
-  - must be the same for every variant (but can be null for some)
-- `num_samples`
-  - named `NS` or `N`
-  - must be the same for every variant (but can be null for some)
+| column description | name | allowed column names | allowed values |
+| --- | --- | --- | --- |
+| minor allele frequency | `maf` | | number in (0,0.5] |
+| allele frequency | `af` | | number in (0,1) |
+| allele count | `ac` | | integer |
+| effect size | `beta` | | number |
+| standard error of effect size | `sebeta` | | number |
+| odds ratio | `or` | | number |
+| R2 | `r2` | | number |
+| number of samples | `num_samples` | `ns`, `n` | integer, must be the same for every variant in its phenotype |
+| number of controls | `num_controls` | `ns.ctrl`, `n_controls` | integer, must be the same for every variant in its phenotype |
+| number of cases | `num_cases` | `ns.case`, `n_cases` | integer, must be the same for every variant in its phenotype |
 
 
 ### 3. Make a list of your phenotypes
@@ -226,8 +210,7 @@ At this point your PheWeb should be working how you want it to, except maybe the
 
 `pheweb serve` already uses gunicorn. For maximum speed and safety, you should run gunicorn routed through a program like Apache2 or Nginx. If you choose Apache2, I have some documentation [here](https://github.com/statgen/pheweb/tree/master/unnecessary_things/other_documentation/running_with_apache2).
 
-# Data flow
-
+# Internal Data-Handling
 ```
                  input-association-files (epacts, plink, snptest, &c)
                       |         |
