@@ -30,9 +30,16 @@ def run(argv):
         print('Run all the steps to go from a prepared phenolist to a ready-to-serve pheweb.')
         print('This is equivalent to running:\n')
         print(' &&\n'.join('    pheweb {}'.format(script.replace('_', '-')) for script in scripts))
+        print('')
+        print('Passing `--no-parse` will skip `pheweb parse-input-files`')
         exit(0)
 
-    for script in scripts:
+    if argv and argv == ['--no-parse']:
+        myscripts = [s for s in scripts if s != 'parse_input_files']
+    else:
+        myscripts = scripts
+
+    for script in myscripts:
         print('==> Starting `pheweb {}`'.format(script.replace('_', '-')))
         start_time = time.time()
         script_parts = script.split()
