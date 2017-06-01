@@ -14,11 +14,11 @@ import pysam
 def get_generated_path(*path_parts):
     return os.path.join(conf.data_dir, 'generated-by-pheweb', *path_parts)
 
-def get_cacheable_file_location(default_relative_dir, filepath):
-    if 'cache' in conf:
-        return os.path.join(conf.cache, filepath)
+def get_cacheable_file_location(default_relative_dir, basename):
+    if conf.cache:
+        return os.path.join(conf.cache, basename)
     mkdir_p(get_generated_path(default_relative_dir))
-    return get_generated_path(default_relative_dir, filepath)
+    return get_generated_path(default_relative_dir, basename)
 
 dbsnp_version = '150'
 genes_version = 'v25'

@@ -14,10 +14,9 @@ import os
 @star_kwargs
 def convert(pheno, dest_filepath):
     with VariantFileWriter(dest_filepath) as writer:
-        assoc_min_maf = conf.get('assoc_min_maf', None)
-        pheno_reader = PhenoReader(pheno, minimum_maf=assoc_min_maf)
+        pheno_reader = PhenoReader(pheno, minimum_maf=conf.assoc_min_maf)
         variants = pheno_reader.get_variants()
-        if conf.get('quick', False): variants = itertools.islice(variants, 0, 10000)
+        if conf.quick: variants = itertools.islice(variants, 0, 10000)
         writer.write_all(variants)
     print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filepath))
 

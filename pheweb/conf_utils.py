@@ -12,16 +12,49 @@ from copy import deepcopy
 from boltons.fileutils import mkdir_p
 
 
-class _Attrdict(dict):
-    '''a dictionary where dict.key is a proxy for dict[key]'''
-    def __getattr__(self, attr):
-        try: return self[attr]
-        except KeyError: raise AttributeError()
-    def __setattr__(self, attr, val):
-        self[attr] = val
-conf = _Attrdict()
-conf.parse = _Attrdict()
+def Attrdict():
+    # LATER: make this a real class  which defines the attributes it may have, and then move conf.parse to its own module.
+    default_funcs = {}
+    attrs = {}
+    class _Attrdict:
+        '''like dict but dict.key is a proxy for dict[key], and dict.set_default_func(key, lambda: value) sets a default.'''
+        def __getattr__(self, attr):
+            try:
+                return self[attr]
+            except KeyError:
+                raise AttributeError("Attrdict doesn't contain the attr {!r} and has no default".format(attr))
+        def __setattr__(self, attr, val):
+            self[attr] = val
+        def __delattr__(self, attr):
+            del self[attr]
 
+        def __getitem__(self, attr):
+            try:
+                return attrs[attr]
+            except KeyError:
+                if attr in default_funcs:
+                    return default_funcs[attr]()
+                raise KeyError("Attrdict doesn't contain the key {!r} and has no default".format(attr))
+        def __setitem__(self, attr, val):
+            attrs[attr] = val
+        def __delitem__(self, attr):
+            del attrs[attr]
+        def get(self, attr, default=None):
+            try:
+                return self[attr]
+            except KeyError:
+                return default
+        def __contains__(self, attr):
+            return attr in attrs or attr in default_funcs
+
+        def set_default_func(self, attr, func):
+            default_funcs[attr] = func
+            return None
+        def has_own_property(self, attr):
+            return attr in attrs
+    return _Attrdict()
+conf = Attrdict()
+conf.parse = Attrdict()
 
 
 ### Data_Dir, config.py, &c
@@ -43,42 +76,39 @@ if os.path.isfile(_config_filepath):
             if not key.startswith('_'):
                 conf[key] = getattr(_conf_module, key)
 
-if 'custom_templates' not in conf:
-    conf['custom_templates'] = os.path.join(conf.data_dir, 'custom_templates')
-
-if 'debug' not in conf: conf.debug = False
+conf.set_default_func('custom_templates', lambda: os.path.join(conf.data_dir, 'custom_templates'))
+conf.set_default_func('debug', lambda: False)
+conf.set_default_func('quick', lambda: False)
 
 if conf.get('login', {}).get('whitelist', None):
     conf.login['whitelist'] = [addr.lower() for addr in conf.login['whitelist']]
 
+conf.set_default_func('assoc_min_maf', lambda: 0)
+conf.set_default_func('variant_inclusion_maf', lambda: 0)
 if 'minimum_maf' in conf:
-    raise Exception("minimum_maf has been deprecated.  Please use assoc_min_maf and/or variant_inclusion_maf instead")
+    raise Exception("minimum_maf has been deprecated.  Please remove it and use assoc_min_maf and/or variant_inclusion_maf instead")
 
 
 ### Cache
-
 def _configure_cache():
-    # if conf['cache'] exists and is Falsey, don't cache.
-    if 'cache' in conf and not conf['cache']:
-        del conf['cache']
+    default_cache_location = os.path.abspath(os.path.expanduser('~/.pheweb/cache'))
+    conf.set_default_func('cache', lambda: default_cache_location)
+    if conf.cache is False:
         return
-    # if it doesn't exist, use the default.
-    if 'cache' not in conf:
-        conf.cache = '~/.pheweb/cache'
-    conf.cache = os.path.abspath(os.path.expanduser(conf['cache']))
-    # check whether dir exists
-    if not os.path.isdir(conf['cache']):
+    if conf.has_own_property('cache'):
+        conf.cache = os.path.abspath(os.path.expanduser(conf.cache))
+    if not os.path.isdir(conf.cache):
         try:
             mkdir_p(conf.cache)
         except:
             print("Warning: caching is disabled because the directory {!r} can't be created.\n".format(conf.cache) +
                   "If you don't want caching, set `cache = False` in your config.py.")
-            del conf['cache']
+            conf.cache = False
             return
-    if not os.access(conf['cache'], os.R_OK):
+    if not os.access(conf.cache, os.R_OK):
         print('Warning: the directory {!r} is configured to be your cache directory but it is not readable.\n'.format(conf.cache) +
               "If you don't want caching, set `cache = False` in your config.py.")
-        del conf['cache']
+        conf.cache = False
 _configure_cache()
 
 

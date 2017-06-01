@@ -73,7 +73,7 @@ def merge(files_to_merge, out_filepath):
         vlm = VariantListMerger()
         for file_to_merge in files_to_merge:
             reader = iter(exit_stack.enter_context(VariantFileReader(file_to_merge['filepath'], only_per_variant_fields=True)))
-            if file_to_merge['type'] == 'input' and conf.get('variant_inclusion_maf', False):
+            if file_to_merge['type'] == 'input' and conf.variant_inclusion_maf:
                 pheno = file_to_merge['pheno']
                 reader = apply_maf_cutoff(reader, pheno)
             reader_id = len(readers)

@@ -13,6 +13,7 @@ import functools
 import re
 import traceback
 import json
+import os.path
 
 
 app = Flask(__name__)
@@ -24,7 +25,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 9
 if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
     app.config['GOOGLE_ANALYTICS_TRACKING_ID'] = conf['GOOGLE_ANALYTICS_TRACKING_ID']
 
-if 'custom_templates' in conf:
+if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
