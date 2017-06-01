@@ -40,6 +40,10 @@ def get_conversions_to_do():
 
 def run(argv):
 
+    if argv:
+        print('`pheweb parse` imports input files')
+        exit(0)
+
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
 
