@@ -69,9 +69,8 @@ You should have one file for each phenotype. It can be gzipped if you want. It s
 The file must have columns for:
 
 - chromosome
-    - named `#CHROM` or `CHROM` (all column names are not case-sensitive)
+    - named `#CHROM` or `CHROM` (or `chrom` or `Chrom` because column names ignore capitalization)
     - must be a number between 1 and 22 or `X` or `Y` or `M` or `MT`
-
 - position
   - named `POS`, `BEG`, or `BEGIN`
   - must be an integer
@@ -79,23 +78,42 @@ The file must have columns for:
   - named `REF`
 - alternate allele
   - named `ALT`
-- minor allele frequency
-  - named `MAF`
-  - must be a real number between 0 and 1 (numbers may be in scientific notation, like `5.4e-12`)
 - p-value
   - named `PVAL` or `PVALUE`
   - must be decimal number between 0 and 1 or `.` or `NA` (both representing unknown)
 
 You may also have columns for:
 
+- minor allele frequency
+  - named `MAF`
+  - must be a real number between 0 and 0.5 (numbers may be in scientific notation, like `5.4e-12`)
+- allele frequency
+  - named `AF`
+  - will be used in MAF cutoffs
+- allele count
+  - named `AC`
+  - will be used in MAF cutoffs if you supply `num_samples`
 - effect size
   - named `BETA`
   - must be a real number
 - standard error of effect size
   - named `SEBETA`
   - must be a real number
+- odds ratio
+  - named `OR`
+  - must be a real number
+- r2
+  - must be a real number
+- `num_cases`
+  - named `NS.CASE` or `N_CASES`
+  - must be the same for every variant (but can be null for some)
+- `num_controls`
+  - named `NS.CTRL` or `N_CONTROLS`
+  - must be the same for every variant (but can be null for some)
+- `num_samples`
+  - named `NS` or `N`
+  - must be the same for every variant (but can be null for some)
 
-If you need Odds Ratio, I can add that.
 
 ### 3. Make a list of your phenotypes
 
