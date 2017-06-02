@@ -117,7 +117,7 @@ class AssocFileReader:
                 if variant['pval'] == '': continue
 
                 maf = get_maf(variant, self._pheno) # checks for agreement
-                if maf < minimum_maf:
+                if maf is not None and maf < minimum_maf:
                     continue
 
                 if marker_id_col is not None:
