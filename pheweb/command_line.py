@@ -55,6 +55,7 @@ for submodule in '''
  process_assoc_files
  wsgi
  top_loci
+ detect_ref
 '''.split():
     def f(submodule, argv):
         module = importlib.import_module('.load.{}'.format(submodule), __package__)

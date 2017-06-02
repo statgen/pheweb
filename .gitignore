@@ -1,5 +1,6 @@
 *.pyc
 test/data_dir/pheno-list-categories.json
+test/data_dir/pheno-list.json
 test/data_dir/generated-by-pheweb
 test/fake-cache/*
 !test/fake-cache/rsids-147.vcf.gz

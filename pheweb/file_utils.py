@@ -51,14 +51,16 @@ common_filepaths = {
 def make_basedir(path):
     mkdir_p(os.path.dirname(path))
 
-def get_tmp_path(filepath):
-    if filepath.startswith(get_generated_path()):
+def get_tmp_path(arg):
+    if arg.startswith(get_generated_path()):
         mkdir_p(get_generated_path('tmp'))
-        tmp_basename = filepath[len(get_generated_path()):].lstrip(os.path.sep).replace(os.path.sep, '-')
+        tmp_basename = arg[len(get_generated_path()):].lstrip(os.path.sep).replace(os.path.sep, '-')
         return get_generated_path('tmp', tmp_basename)
-    elif filepath.startswith(os.path.sep):
-        return filepath + '.tmp'
-    else: raise Exception(filepath)
+    elif arg.startswith(os.path.sep):
+        return arg + '.tmp'
+    else:
+        mkdir_p(get_generated_path('tmp'))
+        return get_generated_path('tmp', arg)
 
 
 csv.register_dialect(
