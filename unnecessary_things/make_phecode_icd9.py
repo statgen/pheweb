@@ -22,7 +22,10 @@ $ cat code_translation.txt | tr "\r" "\n" > icd9s.tsv
 # maybe I should have just downloaded the last 6 icd9 versions and unioned them?
 '''
 
-import csv, json, itertools, string
+import csv
+import json
+import itertools
+import string
 
 icd9s_1 = list(csv.DictReader(open('icd9s.tsv'), delimiter='\t'))
 string_for_icd9_1 = {}
