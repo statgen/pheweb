@@ -2,11 +2,9 @@
 from ..utils import conf, get_phenolist
 from ..file_utils import VariantFileWriter, write_json, get_generated_path, common_filepaths
 from .read_input_file import PhenoReader
-from .load_utils import exception_tester, star_kwargs, get_num_procs
+from .load_utils import exception_tester, star_kwargs, parallelize
 
 import itertools
-import datetime
-import multiprocessing
 import os
 
 
@@ -18,7 +16,6 @@ def convert(pheno, dest_filepath):
         variants = pheno_reader.get_variants()
         if conf.quick: variants = itertools.islice(variants, 0, 10000)
         writer.write_all(variants)
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), pheno['phenocode'], dest_filepath))
 
 
 def get_conversions_to_do():
@@ -46,9 +43,7 @@ def run(argv):
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
-
-    with multiprocessing.Pool(get_num_procs()) as p:
-        results = p.map(convert, conversions_to_do)
+    results = parallelize(conversions_to_do, do_task=convert, tqdm_desc='Parsing input files')
 
     bad_results = [r['args'][0]['pheno'] for r in results if not r['succeeded']]
     if bad_results:

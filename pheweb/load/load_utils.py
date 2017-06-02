@@ -9,6 +9,7 @@ import blist
 import bisect
 import random
 import itertools
+import tqdm
 
 from ..utils import conf, round_sig
 
@@ -138,3 +139,36 @@ class MaxPriorityQueue:
     def pop_all(self):
         while self._q:
             yield self.pop()
+
+
+def parallelize(tasks, do_task=None, do_tasks=None, tqdm_desc=None):
+    '''
+    tasks is [task, ...]
+    pass in either do_task or do_tasks:
+    - do_task is a function(task) that can return a result
+    - do_tasks is a function(taskq, doneq, stop_sentinel)
+    '''
+    assert do_task or do_tasks
+
+    n_procs = get_num_procs()
+    stop_sentinel = 9001 # TODO: this is not a good sentinel
+    taskq = multiprocessing.Queue()
+    doneq = multiprocessing.Queue()
+    for task in tasks: taskq.put(task)
+    for _ in range(n_procs): taskq.put(stop_sentinel)
+
+    if not do_tasks:
+        do_tasks = _make_task_doer(do_task)
+    for _ in range(n_procs):
+        multiprocessing.Process(target=do_tasks, args=(taskq, doneq, stop_sentinel)).start()
+
+    results = []
+    for _ in tqdm.tqdm(range(len(tasks)), desc=tqdm_desc):
+        results.append(doneq.get())
+    return results
+
+def _make_task_doer(do_task):
+    def f(taskq, doneq, stop_sentinel):
+        for task in iter(taskq.get, stop_sentinel):
+            doneq.put(do_task(task))
+    return f

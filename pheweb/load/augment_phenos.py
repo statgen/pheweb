@@ -1,11 +1,9 @@
 
 from ..utils import get_phenolist
 from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, with_chrom_idx
-from .load_utils import exception_printer, star_kwargs, get_num_procs
+from .load_utils import exception_printer, star_kwargs, parallelize
 
 import os
-import datetime
-import multiprocessing
 
 
 sites_filepath = common_filepaths['sites']
@@ -59,7 +57,6 @@ def convert(phenocode, src_filepath, dest_filepath):
                     pheno_variant = next(pheno_variants)
                 except StopIteration: break
 
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), phenocode, dest_filepath))
 
 def get_conversions_to_do():
     phenos = get_phenolist()
@@ -85,5 +82,5 @@ def run(argv):
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
-    with multiprocessing.Pool(get_num_procs()) as p:
-        p.map(convert, conversions_to_do)
+
+    parallelize(conversions_to_do, do_task=convert, tqdm_desc='Annotating phenos')

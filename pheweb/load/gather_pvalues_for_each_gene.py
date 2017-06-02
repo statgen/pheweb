@@ -1,11 +1,9 @@
 
 from ..utils import get_gene_tuples, pad_gene
 from ..file_utils import MatrixReader, write_json, common_filepaths
-from .load_utils import get_num_procs
+from .load_utils import parallelize
 
 import os
-import tqdm
-import multiprocessing as mp
 
 
 def run(argv):
@@ -19,30 +17,15 @@ def run(argv):
         print('{} is up-to-date!'.format(out_filepath))
         return
 
-    data = get_all_gene_info()
+    genes = list(get_gene_tuples())
+    gene_results = parallelize(genes, do_tasks=process_genes, tqdm_desc='Processing genes')
+    data = {k:v for result in gene_results for k,v in result.items()}
     write_json(filepath=out_filepath, data=data)
 
-def get_all_gene_info():
-    genes = list(get_gene_tuples())
-    n_procs = get_num_procs()
-
-    sentinel = 9001 # TODO: this is not a good sentinel
-    taskq = mp.Queue()
-    doneq = mp.Queue()
-    for gene in genes: taskq.put(gene)
-    for _ in range(n_procs): taskq.put(sentinel)
-
-    for _ in range(n_procs): mp.Process(target=work, args=(taskq, doneq, sentinel)).start()
-
-    ret = {}
-    for _ in tqdm.tqdm(range(len(genes)), desc='Genes processed:'):
-        ret.update(doneq.get())
-    return ret
-
-def work(inputq, outputq, sentinel):
+def process_genes(taskq, doneq, stop_sentinel):
     with MatrixReader().context() as matrix_reader:
-        for gene in iter(inputq.get, sentinel):
-            outputq.put(get_gene_info(gene, matrix_reader))
+        for gene in iter(taskq.get, stop_sentinel):
+            doneq.put(get_gene_info(gene, matrix_reader))
 
 def get_gene_info(gene, matrix_reader):
     chrom, start, end, gene_symbol = gene

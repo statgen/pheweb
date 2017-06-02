@@ -7,12 +7,10 @@ This script creates json files which can be used to render Manhattan plots.
 
 from ..utils import conf, chrom_order, get_phenolist
 from ..file_utils import VariantFileReader, write_json, common_filepaths
-from .load_utils import MaxPriorityQueue, star_kwargs, exception_printer, get_num_procs
+from .load_utils import MaxPriorityQueue, star_kwargs, exception_printer, parallelize
 
 import os
 import math
-import datetime
-import multiprocessing
 
 
 def rounded_neglog10(pval, neglog10_pval_bin_size, neglog10_pval_bin_digits):
@@ -99,17 +97,13 @@ def make_json_file(src_filepath, dest_filepath):
     NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
     NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 
-    if conf.debug: print('{}\t{} -> {} (START)'.format(datetime.datetime.now(), src_filepath, dest_filepath))
     with VariantFileReader(src_filepath) as variants:
-        if conf.debug: print('{}\tOPENED {}'.format(datetime.datetime.now(), src_filepath))
         variant_bins, unbinned_variants = bin_variants(
             variants,
             BIN_LENGTH,
             NEGLOG10_PVAL_BIN_SIZE,
             NEGLOG10_PVAL_BIN_DIGITS
         )
-        if conf.debug: print('{}\tBINNED VARIANTS'.format(datetime.datetime.now()))
-    if conf.debug: print('{}\tCLOSED FILE'.format(datetime.datetime.now()))
     label_peaks(unbinned_variants)
     rv = {
         'variant_bins': variant_bins,
@@ -117,7 +111,6 @@ def make_json_file(src_filepath, dest_filepath):
     }
 
     write_json(filepath=dest_filepath, data=rv)
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filepath, dest_filepath))
 
 
 def get_conversions_to_do():
@@ -136,9 +129,4 @@ def run(argv):
 
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
-    if conf.debug:
-        for c in conversions_to_do:
-            make_json_file(c)
-    else:
-        with multiprocessing.Pool(get_num_procs()) as p:
-            p.map(make_json_file, conversions_to_do)
+    parallelize(conversions_to_do, do_task=make_json_file, tqdm_desc='Precalculating Manhattan Plots')

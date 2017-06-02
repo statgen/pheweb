@@ -103,11 +103,11 @@ hg38 22:18,271,078 N
             else:
                 print('{} {}:{:,} not found'.format(build['hg'], chrom, pos))
 
-    elif len(argv) == 4 and argv[0] == 'build':
-        chrom = parse_chrom(argv[1])
-        pos = parse_pos(argv[2])
-        base = parse_base(argv[3])
-        print('{}:{:,} {}'.format(chrom, pos, base), 'matches builds', compatible_builds(chrom, pos, base))
+    # elif len(argv) == 4 and argv[0] == 'build':
+    #     chrom = parse_chrom(argv[1])
+    #     pos = parse_pos(argv[2])
+    #     base = parse_base(argv[3])
+    #     print('{}:{:,} {}'.format(chrom, pos, base), 'matches builds', compatible_builds(chrom, pos, base))
 
     else:
         usage()

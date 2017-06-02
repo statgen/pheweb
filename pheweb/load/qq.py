@@ -11,13 +11,11 @@ This script creates json files which can be used to render QQ plots.
 
 from ..utils import round_sig, approx_equal, get_phenolist
 from ..file_utils import VariantFileReader, write_json, common_filepaths
-from .load_utils import get_maf, exception_printer, star_kwargs, get_num_procs
+from .load_utils import get_maf, exception_printer, star_kwargs, parallelize
 
 import collections
 import os
 import math
-import datetime
-import multiprocessing
 import scipy.stats
 
 
@@ -133,7 +131,6 @@ def make_json_file(src_filepath, dest_filepath, pheno):
         else:
             rv['overall'] = make_qq_unstratified(variants, include_qq=True)
     write_json(filepath=dest_filepath, data=rv)
-    print('{}\t{} -> {}'.format(datetime.datetime.now(), src_filepath, dest_filepath))
 
 
 def get_conversions_to_do():
@@ -146,5 +143,4 @@ def get_conversions_to_do():
 def run(argv):
     conversions_to_do = list(get_conversions_to_do())
     print('number of phenos to process:', len(conversions_to_do))
-    with multiprocessing.Pool(get_num_procs()) as p:
-        p.map(make_json_file, conversions_to_do)
+    parallelize(conversions_to_do, do_task=make_json_file, tqdm_desc='Precalculating QQ plots')
