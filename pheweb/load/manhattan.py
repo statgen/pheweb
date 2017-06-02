@@ -38,7 +38,7 @@ def get_pvals_and_pval_extents(pvals, neglog10_pval_bin_size):
 
 
 # TODO: convert bins from {(chrom, pos): []} to {chrom:{pos:[]}}?
-def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_size, neglog10_pval_bin_digits):
+def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     bins = {}
     unbinned_variant_pq = MaxPriorityQueue()
     chrom_n_bins = {}
@@ -60,7 +60,7 @@ def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_siz
     # put most-significant variants into the priorityqueue and bin the rest
     for variant in variant_iterator:
         unbinned_variant_pq.add(variant, variant['pval'])
-        if len(unbinned_variant_pq) > n_unbinned:
+        if len(unbinned_variant_pq) > conf.manhattan_num_unbinned:
             old = unbinned_variant_pq.pop()
             bin_variant(old)
 
@@ -80,7 +80,6 @@ def bin_variants(variant_iterator, bin_length, n_unbinned, neglog10_pval_bin_siz
     return binned_variants, unbinned_variants
 
 
-MASK_AROUND_PEAK = int(500e3)
 def label_peaks(variants):
     chroms = {}
     for v in variants:
@@ -89,7 +88,7 @@ def label_peaks(variants):
         while vs:
             best_assoc = min(vs, key=lambda assoc: assoc['pval'])
             best_assoc['peak'] = True
-            vs = [v for v in vs if abs(v['pos'] - best_assoc['pos']) > MASK_AROUND_PEAK]
+            vs = [v for v in vs if abs(v['pos'] - best_assoc['pos']) > conf.within_pheno_mask_around_peak]
 
 
 @exception_printer
@@ -99,13 +98,16 @@ def make_json_file(src_filepath, dest_filepath):
     BIN_LENGTH = int(3e6)
     NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
     NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
-    N_UNBINNED = 2000
 
     if conf.debug: print('{}\t{} -> {} (START)'.format(datetime.datetime.now(), src_filepath, dest_filepath))
     with VariantFileReader(src_filepath) as variants:
         if conf.debug: print('{}\tOPENED {}'.format(datetime.datetime.now(), src_filepath))
         variant_bins, unbinned_variants = bin_variants(
-            variants, BIN_LENGTH, N_UNBINNED, NEGLOG10_PVAL_BIN_SIZE, NEGLOG10_PVAL_BIN_DIGITS)
+            variants,
+            BIN_LENGTH,
+            NEGLOG10_PVAL_BIN_SIZE,
+            NEGLOG10_PVAL_BIN_DIGITS
+        )
         if conf.debug: print('{}\tBINNED VARIANTS'.format(datetime.datetime.now()))
     if conf.debug: print('{}\tCLOSED FILE'.format(datetime.datetime.now()))
     label_peaks(unbinned_variants)

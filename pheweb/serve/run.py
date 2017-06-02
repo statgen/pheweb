@@ -41,10 +41,10 @@ def run_gunicorn(app, args):
 
 def gunicorn_is_broken():
     try:
-        import gunicorn.app.base
+        import gunicorn.app.base # noqa: F401
     except:
         try:
-            import inotify
+            import inotify # noqa: F401
         except ImportError:
             raise
         else:

@@ -14,10 +14,10 @@ from boltons.fileutils import mkdir_p
 
 def Attrdict():
     # LATER: make this a real class  which defines the attributes it may have, and then move conf.parse to its own module.
-    default_funcs = {}
+    defaults = {}
     attrs = {}
     class _Attrdict:
-        '''like dict but dict.key is a proxy for dict[key], and dict.set_default_func(key, lambda: value) sets a default.'''
+        '''like dict but dict.key is a proxy for dict[key], and dict.set_default_value(key, value) sets a default.'''
         def __getattr__(self, attr):
             try:
                 return self[attr]
@@ -32,8 +32,10 @@ def Attrdict():
             try:
                 return attrs[attr]
             except KeyError:
-                if attr in default_funcs:
-                    return default_funcs[attr]()
+                if attr in defaults:
+                    x = defaults[attr]
+                    if x[0]: return x[1]()
+                    else: return x[1]
                 raise KeyError("Attrdict doesn't contain the key {!r} and has no default".format(attr))
         def __setitem__(self, attr, val):
             attrs[attr] = val
@@ -45,10 +47,10 @@ def Attrdict():
             except KeyError:
                 return default
         def __contains__(self, attr):
-            return attr in attrs or attr in default_funcs
+            return attr in attrs or attr in defaults
 
-        def set_default_func(self, attr, func):
-            default_funcs[attr] = func
+        def set_default_value(self, attr, func, is_function=False):
+            defaults[attr] = (is_function, func)
             return None
         def has_own_property(self, attr):
             return attr in attrs
@@ -76,23 +78,26 @@ if os.path.isfile(_config_filepath):
             if not key.startswith('_'):
                 conf[key] = getattr(_conf_module, key)
 
-conf.set_default_func('custom_templates', lambda: os.path.join(conf.data_dir, 'custom_templates'))
-conf.set_default_func('debug', lambda: False)
-conf.set_default_func('quick', lambda: False)
+conf.set_default_value('custom_templates', lambda: os.path.join(conf.data_dir, 'custom_templates'), is_function=True)
+conf.set_default_value('debug', False)
+conf.set_default_value('quick', False)
 
 if conf.get('login', {}).get('whitelist', None):
     conf.login['whitelist'] = [addr.lower() for addr in conf.login['whitelist']]
 
-conf.set_default_func('assoc_min_maf', lambda: 0)
-conf.set_default_func('variant_inclusion_maf', lambda: 0)
+conf.set_default_value('assoc_min_maf', 0)
+conf.set_default_value('variant_inclusion_maf', 0)
 if 'minimum_maf' in conf:
     raise Exception("minimum_maf has been deprecated.  Please remove it and use assoc_min_maf and/or variant_inclusion_maf instead")
 
+conf.set_default_value('within_pheno_mask_around_peak', int(500e3))
+conf.set_default_value('between_pheno_mask_around_peak', int(1e6))
+conf.set_default_value('manhattan_num_unbinned', 2000)
+conf.set_default_value('peak_pval_cutoff', 1e-6)
 
 ### Cache
 def _configure_cache():
-    default_cache_location = os.path.abspath(os.path.expanduser('~/.pheweb/cache'))
-    conf.set_default_func('cache', lambda: default_cache_location)
+    conf.set_default_value('cache', os.path.abspath(os.path.expanduser('~/.pheweb/cache')))
     if conf.cache is False:
         return
     if conf.has_own_property('cache'):

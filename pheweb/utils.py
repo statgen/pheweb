@@ -7,7 +7,7 @@ import boltons.mathutils
 import urllib.parse
 import sys
 
-from .conf_utils import conf
+from .conf_utils import conf # noqa: F401
 from . import file_utils
 
 def round_sig(x, digits):
