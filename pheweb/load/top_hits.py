@@ -5,7 +5,7 @@ from ..file_utils import write_json, VariantFileWriter, common_filepaths
 import json
 
 # TODO:
-# - it'd be great if they also listed all the rsids and variants, so that on-click we could display a variants-in-this-loci table.
+# - it'd be great if each peak also included a list of all the associations that it is masking, so that on-click we could display a variants-under-this-peak table.
 # - Somewhere have a user-extendable whitelist of info that should be copied about each pheno.  Copy all of that stuff.
 
 
