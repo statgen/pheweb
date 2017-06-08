@@ -94,7 +94,7 @@
  {% if key in pheno %}
   {% if '<' in pheno[key]|string %}
     <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div>
-  {% elif pheno[key]|int < 200 %}
+  {% elif 0 < pheno[key]|int < 200 %}
     <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div>
   {% endif %}
  {% endif %}
