@@ -66,7 +66,7 @@ just the top phenotype for each, use `pheweb top-loci`.
     print("wrote {} hits to {}".format(len(hits), out_filepath_json))
 
     write_json(filepath=out_filepath_1k_json, data=hits[:1000], sort_keys=True)
-    print("wrote {} hits to {}".format(len(hits), out_filepath_1k_json))
+    print("wrote {} hits to {}".format(len(hits[:1000]), out_filepath_1k_json))
 
     stringify_assocs(hits)
     with VariantFileWriter(out_filepath_tsv, allow_extra_fields=True) as writer:
