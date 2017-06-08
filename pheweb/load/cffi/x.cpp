@@ -341,3 +341,15 @@ extern "C" {
     return bgzip_file(in_filepath, out_filepath, prepend_bytes);
   }
 }
+
+// compile with `g++ -lz -std=c++11 -o x x.cpp`
+int main(int argc, char **argv) {
+  if (argc == 5 && strcmp(argv[1], "matrix") == 0)
+    return make_matrix(argv[2], argv[3], argv[4]);
+  if (argc == 5 && strcmp(argv[1], "bgzip") == 0)
+    return bgzip_file(argv[2], argv[3], argv[4]);
+  std::cout << "Usage:\n"
+            << " ./x matrix /path/to/sites.tsv \"/path/to/pheno/*\" /path/to/matrix.tsv.gz\n"
+            << " ./x bgzip /path/to/files.tsv /path/to/files.tsv.gz \"#\"" << std::endl;
+  return 1;
+}
