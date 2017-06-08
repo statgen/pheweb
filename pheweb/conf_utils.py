@@ -236,7 +236,7 @@ default_per_assoc_fields = OrderedDict([
         'type': float,
         'range': [0, 0.5],
         'sigfigs': 2,
-        'tooltip_lztemplate': {'transform': '|scinotation'},
+        'tooltip_lztemplate': {'transform': '|percent'},
         'display': 'MAF',
     }),
     ('af', {
@@ -244,7 +244,7 @@ default_per_assoc_fields = OrderedDict([
         'type': float,
         'range': [0, 1],
         'sigfigs': 2, # TODO: never round 99.99% to 100%.  Make sure MAF would have the right sigfigs.
-        'tooltip_lztemplate': {'transform': '|scinotation'},
+        'tooltip_lztemplate': {'transform': '|percent'},
         'display': 'AF',
     }),
     ('ac', {

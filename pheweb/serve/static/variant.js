@@ -4,6 +4,14 @@ function deepcopy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
+LocusZoom.TransformationFunctions.set("percent", function(x) {
+    if (x === 1) { return "100%"; }
+    var x = (x*100).toPrecision(2);
+    if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }
+    if (x.endsWith('.')) { x = x.substr(0, x.length-1); }
+    return x + '%';
+});
+
 (function() {
     // sort phenotypes
     if (_.any(window.variant.phenos.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {

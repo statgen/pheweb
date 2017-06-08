@@ -38,6 +38,14 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
     return records;
 };
 
+LocusZoom.TransformationFunctions.set("percent", function(x) {
+    if (x === 1) { return "100%"; }
+    var x = (x*100).toPrecision(2);
+    if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }
+    if (x.endsWith('.')) { x = x.substr(0, x.length-1); }
+    return x + '%';
+});
+
 (function() {
     // Define LocusZoom Data Sources object
     var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";
