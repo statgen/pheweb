@@ -5,11 +5,10 @@ This script creates json files which can be used to render Manhattan plots.
 
 # TODO: combine with QQ.
 
-from ..utils import conf, chrom_order, get_phenolist
-from ..file_utils import VariantFileReader, write_json, common_filepaths
-from .load_utils import MaxPriorityQueue, star_kwargs, exception_printer, parallelize
+from ..utils import conf, chrom_order
+from ..file_utils import VariantFileReader, write_json
+from .load_utils import MaxPriorityQueue, parallelize_per_pheno
 
-import os
 import math
 
 
@@ -89,9 +88,7 @@ def label_peaks(variants):
             vs = [v for v in vs if abs(v['pos'] - best_assoc['pos']) > conf.within_pheno_mask_around_peak]
 
 
-@exception_printer
-@star_kwargs
-def make_json_file(src_filepath, dest_filepath):
+def make_json_file(pheno, src_filepath, dest_filepath):
 
     BIN_LENGTH = int(3e6)
     NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
@@ -113,20 +110,10 @@ def make_json_file(src_filepath, dest_filepath):
     write_json(filepath=dest_filepath, data=rv)
 
 
-def get_conversions_to_do():
-    phenocodes = [pheno['phenocode'] for pheno in get_phenolist()]
-    for phenocode in phenocodes:
-        src_filepath = common_filepaths['pheno'](phenocode)
-        dest_filepath = common_filepaths['manhattan'](phenocode)
-        if not os.path.exists(dest_filepath) or os.stat(dest_filepath).st_mtime < os.stat(src_filepath).st_mtime:
-            yield {
-                'src_filepath': src_filepath,
-                'dest_filepath': dest_filepath,
-            }
-
-
 def run(argv):
 
-    conversions_to_do = list(get_conversions_to_do())
-    print('number of phenos to process:', len(conversions_to_do))
-    parallelize(conversions_to_do, do_task=make_json_file, tqdm_desc='Precalculating Manhattan Plots')
+    parallelize_per_pheno(
+        src='pheno',
+        dest='manhattan',
+        convert=make_json_file,
+    )

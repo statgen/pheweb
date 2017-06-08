@@ -9,12 +9,11 @@ This script creates json files which can be used to render QQ plots.
 #    - unbinned_variants
 #    - get_conf_int()
 
-from ..utils import round_sig, approx_equal, get_phenolist
-from ..file_utils import VariantFileReader, write_json, common_filepaths
-from .load_utils import get_maf, exception_printer, star_kwargs, parallelize
+from ..utils import round_sig, approx_equal
+from ..file_utils import VariantFileReader, write_json
+from .load_utils import get_maf, parallelize_per_pheno
 
 import collections
-import os
 import math
 import scipy.stats
 
@@ -118,9 +117,7 @@ def augment_variants(variants, pheno):
         maf = get_maf(v, pheno)
         yield Variant(neglog10_pval=neglog10_pval, maf=maf, v=v)
 
-@exception_printer
-@star_kwargs
-def make_json_file(src_filepath, dest_filepath, pheno):
+def make_json_file(pheno, src_filepath, dest_filepath):
     with VariantFileReader(src_filepath) as variant_dicts:
         variants = list(augment_variants(variant_dicts, pheno))
     rv = {}
@@ -133,14 +130,9 @@ def make_json_file(src_filepath, dest_filepath, pheno):
     write_json(filepath=dest_filepath, data=rv)
 
 
-def get_conversions_to_do():
-    for pheno in get_phenolist():
-        src_filepath = common_filepaths['pheno'](pheno['phenocode'])
-        dest_filepath = common_filepaths['qq'](pheno['phenocode'])
-        if not os.path.exists(dest_filepath) or os.stat(dest_filepath).st_mtime < os.stat(src_filepath).st_mtime:
-            yield {'src_filepath':src_filepath, 'dest_filepath':dest_filepath, 'pheno':pheno}
-
 def run(argv):
-    conversions_to_do = list(get_conversions_to_do())
-    print('number of phenos to process:', len(conversions_to_do))
-    parallelize(conversions_to_do, do_task=make_json_file, tqdm_desc='Precalculating QQ plots')
+    parallelize_per_pheno(
+        src='pheno',
+        dest='qq',
+        convert=make_json_file,
+    )

@@ -1,9 +1,6 @@
 
-from ..utils import get_phenolist
 from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, with_chrom_idx
-from .load_utils import exception_printer, star_kwargs, parallelize
-
-import os
+from .load_utils import parallelize_per_pheno
 
 
 sites_filepath = common_filepaths['sites']
@@ -21,9 +18,7 @@ def _which_variant_is_bigger(v1, v2):
     return 1 if v1['chrom_idx'] > v2['chrom_idx'] else 2
 
 
-@exception_printer
-@star_kwargs
-def convert(phenocode, src_filepath, dest_filepath):
+def convert(pheno, src_filepath, dest_filepath):
 
     with VariantFileReader(sites_filepath) as sites_reader, \
          VariantFileReader(src_filepath) as pheno_reader, \
@@ -36,7 +31,7 @@ def convert(phenocode, src_filepath, dest_filepath):
             writer.write(sites_variant)
 
         try: pheno_variant = next(pheno_variants)
-        except: raise Exception("It appears that the phenotype {!r} has no variants.".format(phenocode))
+        except: raise Exception("It appears that the phenotype {!r} has no variants.".format(pheno['phenocode']))
         try: sites_variant = next(sites_variants)
         except: raise Exception("It appears that your sites file (at {!r}) has no variants.".format(sites_filepath))
         while True:
@@ -58,29 +53,10 @@ def convert(phenocode, src_filepath, dest_filepath):
                 except StopIteration: break
 
 
-def get_conversions_to_do():
-    phenos = get_phenolist()
-    print('number of phenos:', len(phenos))
-    for pheno in phenos:
-        src_filepath = common_filepaths['parsed'](pheno['phenocode'])
-        dest_filepath = common_filepaths['pheno'](pheno['phenocode'])
-        should_write_file = not os.path.exists(dest_filepath)
-        if not should_write_file:
-            dest_file_mtime = os.stat(dest_filepath).st_mtime
-            src_file_mtimes = [os.stat(src_filepath).st_mtime,
-                               os.stat(sites_filepath).st_mtime]
-            if dest_file_mtime < max(src_file_mtimes):
-                should_write_file = True
-        if should_write_file:
-            yield {
-                'phenocode': pheno['phenocode'],
-                'src_filepath': src_filepath,
-                'dest_filepath': dest_filepath,
-            }
-
 def run(argv):
 
-    conversions_to_do = list(get_conversions_to_do())
-    print('number of phenos to process:', len(conversions_to_do))
-
-    parallelize(conversions_to_do, do_task=convert, tqdm_desc='Annotating phenos')
+    parallelize_per_pheno(
+        src='parsed',
+        dest='pheno',
+        other_dependencies=[sites_filepath],
+        convert=convert)
