@@ -316,7 +316,7 @@ if 'login' in conf:
 
         if email.lower() not in conf.login['whitelist']:
             flash('Your email, {!r}, is not in the list of allowed emails.'.format(email))
-            redirect(url_for('homepage'))
+            return redirect(url_for('homepage'))
 
         # Log in the user, by default remembering them for their next visit.
         user = User(username, email)
