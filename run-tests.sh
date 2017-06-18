@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # use system python
-export PATH="$(echo $PATH | tr : "\n" | grep -v $HOME | tr "\n" : | perl -ple 's{^:|:$}{}g')"
+#export PATH="$(echo $PATH | tr : "\n" | grep -v $HOME | tr "\n" : | perl -ple 's{^:|:$}{}g')"
 
 rm -rf "/tmp/pheweb-test-${USER}-"* # pre-clean
 
@@ -34,6 +34,12 @@ else
     exit 1
 fi
 
+if ! type -t pheweb >/dev/null; then
+    echo "pheweb not installed"
+    exit 1
+fi
+
+
 if echo "${1:-}" | grep -q e; then
     export PHEWEB_IPDB=1
 fi
@@ -41,7 +47,7 @@ if echo "${1:-}" | grep -q e; then
     export PHEWEB_DEBUG=1
 fi
 
-echo -e "\n\n===> \`pheweb\` is $(which pheweb)"
+echo $'\n\n'"===> \`pheweb\` is $(which pheweb)"
 first_line="$(head -n1 $(which pheweb))"
 echo "pheweb will run with: '$first_line'"
 python_runner="$(echo "$first_line" | perl -nale 'print $1 if m{#!/usr/bin/env (.*)}')"
