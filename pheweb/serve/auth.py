@@ -1,5 +1,5 @@
 
-from ..utils import conf
+from ..conf_utils import conf
 
 from flask import url_for, redirect, request
 from rauth import OAuth2Service

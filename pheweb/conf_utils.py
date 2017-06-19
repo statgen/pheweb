@@ -65,14 +65,14 @@ conf.data_dir = os.path.abspath(os.environ.get('PHEWEB_DATADIR', False) or os.pa
 if not os.path.isdir(conf.data_dir):
     mkdir_p(conf.data_dir)
 if not os.access(conf.data_dir, os.R_OK):
-    raise Exception("Your data directory, {!r}, is not readable.".format(conf.data_dir))
+    raise utils.PheWebError("Your data directory, {!r}, is not readable.".format(conf.data_dir))
 
 _config_filepath = os.path.join(conf.data_dir, 'config.py')
 if os.path.isfile(_config_filepath):
     try:
         _conf_module = imp.load_source('config', _config_filepath)
     except:
-        raise Exception("PheWeb tried to load your config.py at {!r} but it failed.".format(_config_filepath))
+        raise utils.PheWebError("PheWeb tried to load your config.py at {!r} but it failed.".format(_config_filepath))
     else:
         for key in dir(_conf_module):
             if not key.startswith('_'):
@@ -88,7 +88,7 @@ if conf.get('login', {}).get('whitelist', None):
 conf.set_default_value('assoc_min_maf', 0)
 conf.set_default_value('variant_inclusion_maf', 0)
 if 'minimum_maf' in conf:
-    raise Exception("minimum_maf has been deprecated.  Please remove it and use assoc_min_maf and/or variant_inclusion_maf instead")
+    raise utils.PheWebError("minimum_maf has been deprecated.  Please remove it and use assoc_min_maf and/or variant_inclusion_maf instead")
 
 conf.set_default_value('within_pheno_mask_around_peak', int(500e3))
 conf.set_default_value('between_pheno_mask_around_peak', int(1e6))
@@ -311,7 +311,7 @@ for field_name, field_dict in conf.parse.fields.items():
 
 _repeated_aliases = [alias for alias,count in Counter(itertools.chain.from_iterable(f['aliases'] for f in conf.parse.fields.values())).most_common() if count > 1]
 if _repeated_aliases:
-    raise Exception('The following aliases appear for multiple fields: {}'.format(_repeated_aliases))
+    raise utils.PheWebError('The following aliases appear for multiple fields: {}'.format(_repeated_aliases))
 
 
 def get_tooltip_underscoretemplate():

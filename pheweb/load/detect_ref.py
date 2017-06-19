@@ -1,5 +1,5 @@
 
-from ..utils import chrom_order
+from ..utils import chrom_order, PheWebError
 from ..file_utils import get_cacheable_file_location, get_tmp_path
 from .load_utils import run_script
 
@@ -34,6 +34,7 @@ def download_ref(build, chrom):
         dl_tmp_filepath = get_tmp_path(dl_filepath)
         url = 'ftp://hgdownload.cse.ucsc.edu/goldenPath/{}/chromosomes/chr{}.fa.gz'.format(build['hg'], chrom)
         wget.download(url=url, out=dl_tmp_filepath)
+        print('')
         os.rename(dl_tmp_filepath, dl_filepath)
 
     tmp_filepath = get_tmp_path(dest_filepath)
@@ -54,15 +55,15 @@ def parse_build(build_string):
     for b in known_builds:
         if build_string in b.values():
             return b
-    raise Exception("unknown build {!r}, try one of {}".format(build_string, known_builds))
+    raise PheWebError("unknown build {!r}, try one of {}".format(build_string, known_builds))
 def parse_chrom(chrom):
     if chrom.startswith('chr'): chrom = chrom[3:]
-    if chrom not in chrom_order: raise Exception("unknown chromosome {}".format(chrom))
+    if chrom not in chrom_order: raise PheWebError("unknown chromosome {}".format(chrom))
     if chrom == 'MT': chrom = 'M' # UCSC says "chrM"
     return chrom
 def parse_pos(pos_string):
     try: pos = int(pos_string)
-    except: raise Exception("pos {} is not an integer".format(pos_string))
+    except: raise PheWebError("pos {} is not an integer".format(pos_string))
     return pos
 
 def run(argv):

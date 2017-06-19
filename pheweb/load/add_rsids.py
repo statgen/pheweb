@@ -20,8 +20,8 @@ We read one full position at a time.  When we have a position-match, we find all
 # - rename `cpra` to something else to reflect that it can also contain other per-variant fields
 
 
+from ..utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
 from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, open_maybe_gzip
-from ..utils import chrom_order, chrom_order_list, chrom_aliases
 
 import os
 import itertools
@@ -42,24 +42,26 @@ def get_rsid_reader(rsids_f):
             else:
                 fields = line.rstrip('\r\n').split('\t')
                 if len(fields) != 5:
-                    raise Exception('Line has wrong number of fields: {!r} - {!r}'.format(line, fields))
+                    raise PheWebError('Line has wrong number of fields: {!r} - {!r}'.format(line, fields))
                 chrom, pos, rsid, ref, alt_group = fields[0], int(fields[1]), fields[2], fields[3], fields[4]
                 if chrom not in chrom_order:
                     try:
                         chrom = chrom_aliases[chrom]
                     except KeyError:
-                        raise Exception(('The rsids file, {!r}, contains the unknown chromsome {!r}.' +
-                                         'The recognized chromosomes are: {!r}.' +
-                                         'Recognized aliases are: {!r}.').format(
-                                             rsids_filepath, chrom, list(chrom_order.keys()), list(chrom_aliases.keys())))
+                        raise PheWebError((
+                            'The rsids file, {!r}, contains the unknown chromsome {!r}.\n' +
+                            'The recognized chromosomes are: {!r}.\n' +
+                            'Recognized aliases are: {!r}.\n').format(
+                                rsids_filepath, chrom, list(chrom_order.keys()), list(chrom_aliases.keys())))
                 chrom_idx = chrom_order[chrom]
                 if prev_chrom_idx > chrom_idx:
-                    raise Exception(('The rsids file, {!r}, contains chromosomes in the wrong order.' +
-                                     'The order should be: {!r}' +
-                                     'but instead {} came before {}').format(
-                                         rsids_filepath, chrom_order_list, chrom_order_list[prev_chrom_idx], chrom_order_list[chrom_idx]))
+                    raise PheWebError((
+                        'The rsids file, {!r}, contains chromosomes in the wrong order.' +
+                        'The order should be: {!r}' +
+                        'but instead {} came before {}').format(
+                            rsids_filepath, chrom_order_list, chrom_order_list[prev_chrom_idx], chrom_order_list[chrom_idx]))
                 if prev_chrom_idx == chrom_idx and prev_pos > pos:
-                    raise Exception('The rsids file, {!r}, on chromosome {!r}, has position {} before {}.'.format(
+                    raise PheWebError('The rsids file, {!r}, on chromosome {!r}, has position {} before {}.'.format(
                         rsids_filepath, chrom_order_list[chrom_idx], prev_pos, pos))
                 assert rsid.startswith('rs')
                 # Sometimes the reference contains `N`, and that's okay.
@@ -90,6 +92,11 @@ def are_match(seq1, seq2):
 
 
 def run(argv):
+
+    if not os.path.exists(rsids_filepath):
+        print('Downloading rsids from dbSNP')
+        from . import download_rsids
+        download_rsids.run([])
 
     if os.path.exists(out_filepath) and max(mod_time(in_filepath), mod_time(rsids_filepath)) <= mod_time(out_filepath):
         print('rsid annotation is up-to-date!')

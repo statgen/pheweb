@@ -1,5 +1,5 @@
 
-from ...utils import die
+from ...utils import PheWebError
 from ...file_utils import get_generated_path, make_basedir, common_filepaths, open_maybe_gzip
 from ..read_input_file import PhenoReader
 
@@ -36,12 +36,12 @@ def get_phenolist_with_globs(globs, star_is_phenocode):
 
 def _extract_star(glob_pattern, filepath):
     if '*' not in glob_pattern:
-        raise Exception("You tried to use --star-is-phenocode, but your pattern {!r} doesn't contain any *s.  If you tried to use a *, maybe wrap your pattern in single-quotes (') to prevent your shell from expanding it.")
+        raise PheWebError("You tried to use --star-is-phenocode, but your pattern {!r} doesn't contain any *s.  If you tried to use a *, maybe wrap your pattern in single-quotes (') to prevent your shell from expanding it.")
     regex = '^{}$'.format(re.escape(glob_pattern).replace('\*', '([^/]*)'))
     matches = re.match(regex, filepath).groups()
     if boltons.iterutils.same(matches):
         return matches[0]
-    raise Exception("You used --star-is-phenocode with the pattern {!r} which found the file {!r}, but the *s appeared to match {!r}, which are different.".format(
+    raise PheWebError("You used --star-is-phenocode with the pattern {!r} which found the file {!r}, but the *s appeared to match {!r}, which are different.".format(
         glob, filepath, matches))
 assert _extract_star('/foo/pheno-*.epacts.gz', '/foo/pheno-bar.epacts.gz') == 'bar'
 assert _extract_star('/foo/*/pheno-*.epacts.gz', '/foo/bar/pheno-bar.epacts.gz') == 'bar'
@@ -52,62 +52,62 @@ def extract_phenocode_from_filepath(phenolist, regex):
         regex = re.compile(regex)
     for pheno in phenolist:
         if 'assoc_files' not in pheno:
-            die("ERROR: At least one phenotype doesn't have the key 'assoc_files'.")
+            raise PheWebError("ERROR: At least one phenotype doesn't have the key 'assoc_files'.")
         if not pheno['assoc_files']:
-            die("ERROR: At least one phenotype has an empty 'assoc_files' list.")
+            raise PheWebError("ERROR: At least one phenotype has an empty 'assoc_files' list.")
         phenocodes = []
         for assoc_filepath in pheno['assoc_files']:
             match = re.search(regex, assoc_filepath)
             if match is None:
-                die("ERROR: The regex {!r} doesn't match the filepath {!r}".format(regex.pattern, assoc_filepath))
+                raise PheWebError("ERROR: The regex {!r} doesn't match the filepath {!r}".format(regex.pattern, assoc_filepath))
             groups = match.groups()
             if len(groups) != 1:
-                die("ERROR: The regex {!r} doesn't capture any groups on the filepath {!r}!  You're using parentheses without backslashes, right?".format(regex.pattern, assoc_filepath))
+                raise PheWebError("ERROR: The regex {!r} doesn't capture any groups on the filepath {!r}!  You're using parentheses without backslashes, right?".format(regex.pattern, assoc_filepath))
             phenocodes.append(groups[0])
         if len(set(phenocodes)) != 1:
-            die("ERROR: At least one phenotype gets multiple different phenocodes from its several association filepaths.  Here they are: {!r}".format(list(set(phenocodes))))
+            raise PheWebError("ERROR: At least one phenotype gets multiple different phenocodes from its several association filepaths.  Here they are: {!r}".format(list(set(phenocodes))))
         if 'phenocode' in pheno:
             if pheno['phenocode'] != phenocodes[0]:
-                die("""\
+                raise PheWebError("""\
 ERROR: The regex {!r} matched the filepaths {!r} to produce the phenocode {!r}.  But that phenotype already had a phenocode, {!r}.
 """.format(regex.pattern, pheno['assoc_files'], phenocodes[0], pheno['phenocode']))
         pheno['phenocode'] = phenocodes[0]
     return phenolist
 
 def check_that_columns_are_present(phenolist, columns):
-    failed = False
+    error_message = ""
     for col in columns:
         phenos_without_col = [pheno for pheno in phenolist if col not in pheno]
         if phenos_without_col:
-            failed = True
-            print("ERROR: the column {!r} is required but {} phenotypes don't have it.".format(col, len(phenos_without_col)))
-            print("Here are a few phenotypes that are missing that column:")
+            error_message += (
+                "ERROR: the column {!r} is required but {} phenotypes don't have it.\n".format(col, len(phenos_without_col)) +
+                "Here are a few phenotypes that are missing that column:\n")
             for pheno in phenos_without_col[:3]:
-                print(pheno)
-            print('')
-    if failed: raise Exception()
+                error_message += "- {}\n".format(pheno)
+            error_message += "\n"
+    if error_message: raise PheWebError(error_message)
 
 def check_that_phenocode_is_unique(phenolist):
     phenocodes = [pheno['phenocode'] for pheno in phenolist]
     phenocode_groups = boltons.iterutils.bucketize(phenocodes, key=lambda p:p).values()
     repeated_phenocodes = [phenocode_group for phenocode_group in phenocode_groups if len(phenocode_group) > 1]
     if repeated_phenocodes:
-        print("ERROR: At least one phenocode is used by multiple phenotypes.")
-        print("Here are some repeated phenocodes: {!r}".format(repeated_phenocodes[:5]))
-        raise Exception()
+        raise PheWebError(
+            "ERROR: At least one phenocode is used by multiple phenotypes.\n" +
+            "Here are some repeated phenocodes: {!r}\n".format(repeated_phenocodes[:5]))
 
 def check_that_all_phenos_have_same_columns(phenolist):
     all_columns = list(boltons.iterutils.unique(col for pheno in phenolist for col in pheno))
     for pheno in phenolist:
         for col in all_columns:
             if col not in pheno:
-                die("ERROR: the column {!r} is in at least one phenotype but not in {!r}".format(col, pheno))
+                raise PheWebError("ERROR: the column {!r} is in at least one phenotype but not in {!r}".format(col, pheno))
 
 def check_that_all_phenotypes_have_assoc_files(phenolist):
     for pheno in phenolist:
-        if 'assoc_files' not in pheno: die("Some phenotypes don't have any association files")
-        if not isinstance(pheno['assoc_files'], list): die("Assoc_files is not a list for some phenotypes.  I don't know how that happened but it's bad.")
-        if any(not isinstance(s, str) for s in pheno['assoc_files']): die("assoc_files contains things other than strings for some phenotypes.")
+        if 'assoc_files' not in pheno: raise PheWebError("Some phenotypes don't have any association files")
+        if not isinstance(pheno['assoc_files'], list): raise PheWebError("Assoc_files is not a list for some phenotypes.  I don't know how that happened but it's bad.")
+        if any(not isinstance(s, str) for s in pheno['assoc_files']): raise PheWebError("assoc_files contains things other than strings for some phenotypes.")
 
 def extract_info_from_assoc_files(phenolist):
     for pheno in tqdm.tqdm(phenolist, bar_format='Read {n:7} files'):
@@ -139,7 +139,7 @@ def import_phenolist(filepath, has_header):
     # Return a list-of-dicts with the original column names, or integers if none.
     # It'd be great to use pandas for this.
     if not os.path.exists(filepath):
-        die("ERROR: unable to import {!r} because it doesn't exist".format(filepath))
+        raise PheWebError("ERROR: unable to import {!r} because it doesn't exist".format(filepath))
     # 1. try openpyxl.
     phenos = _import_phenolist_xlsx(filepath, has_header)
     if phenos is not None:
@@ -150,13 +150,13 @@ def import_phenolist(filepath, has_header):
             return json.load(f)
         except ValueError:
             if filepath.endswith('.json'):
-                raise Exception("The filepath {!r} ends with '.json' but reading it as json failed.".format(filepath))
+                raise PheWebError("The filepath {!r} ends with '.json' but reading it as json failed.".format(filepath))
         # 3. try csv.reader() with csv.Sniffer().sniff()
         f.seek(0)
         phenos = _import_phenolist_csv(f, has_header)
         if phenos is not None:
             return phenos
-        raise Exception("I couldn't figure out how to open the file {!r}, sorry.".format(filepath))
+        raise PheWebError("I couldn't figure out how to open the file {!r}, sorry.".format(filepath))
 
 def _import_phenolist_xlsx(filepath, has_header):
     import openpyxl
@@ -172,14 +172,14 @@ def _import_phenolist_xlsx(filepath, has_header):
                 if has_header == 'augment':
                     fieldnames = [i if fieldname is None else fieldname for i, fieldname in enumerate(fieldnames)]
                 else:
-                    raise Exception()
+                    raise PheWebError('bad xlsx header')
             assert len(set(fieldnames)) == len(fieldnames), fieldnames
         else:
             fieldnames = list(range(num_cols))
         return [{fieldnames[i]: row[i] for i in range(num_cols)} for row in rows]
     except openpyxl.utils.exceptions.InvalidFileException:
         if filepath.endswith('.xlsx'):
-            raise Exception("The filepath {!r} ends with '.xlsx' but reading it as an excel file failed.".format(filepath))
+            raise PheWebError("The filepath {!r} ends with '.xlsx' but reading it as an excel file failed.".format(filepath))
         return None
 
 def _import_phenolist_csv(f, has_header):
@@ -189,10 +189,9 @@ def _import_phenolist_csv(f, has_header):
     try:
         dialect = csv.Sniffer().sniff(f.read(4096))
     except Exception as exc:
-        print(exc)
-        die("Sniffing csv format failed.  Check that your csv file is well-formed.  If it is, try delimiting with tabs or semicolons.")
+        raise PheWebError("Sniffing csv format failed.  Check that your csv file is well-formed.  If it is, try delimiting with tabs or semicolons.") from exc
     if dialect.delimiter in string.ascii_letters or dialect.delimiter in string.digits:
-        die("Our csv sniffer decided that {!r} looks like the most likely delimiter in your csv file, but that's crazy.")
+        raise PheWebError("Our csv sniffer decided that {!r} looks like the most likely delimiter in your csv file, but that's crazy.")
     f.seek(0)
     try:
         rows = list(csv.reader(f, dialect))
@@ -205,7 +204,7 @@ def _import_phenolist_csv(f, has_header):
             if has_header == 'augment':
                 fieldnames = [i if fieldname is None else fieldname for i, fieldname in enumerate(fieldnames)]
             else:
-                raise Exception()
+                raise PheWebError('bad csv header')
         assert len(set(fieldnames)) == len(fieldnames)
     else:
         fieldnames = list(range(num_cols))
@@ -219,8 +218,7 @@ def interpret_json(phenolist):
                 try:
                     pheno[k] = json.loads(s)
                 except Exception as exc:
-                    print(exc)
-                    die("The input file contained an invalid field marked to be interpreted as json: {!r}".format(pheno[k]))
+                    raise PheWebError("The input file contained an invalid field marked to be interpreted as json: {!r}".format(pheno[k])) from exc
     return phenolist
 
 def split_values_on_pipes(phenolist):
@@ -241,7 +239,7 @@ def listify_assoc_files(phenolist):
     for pheno in phenolist:
         if 'assoc_files' in pheno and not isinstance(pheno['assoc_files'], list):
             if not isinstance(pheno['assoc_files'], str):
-                die("assoc_files is of unsupported type({!r}). value: {!r}".format(type(pheno['assoc_files']), pheno['assoc_files']))
+                raise PheWebError("assoc_files is of unsupported type({!r}). value: {!r}".format(type(pheno['assoc_files']), pheno['assoc_files']))
             pheno['assoc_files'] = [pheno['assoc_files']]
     return phenolist
 
@@ -283,9 +281,9 @@ def print_as_csv(phenolist):
 def rename_column(phenolist, old_name, new_name):
     for pheno in phenolist:
         if new_name in pheno:
-            die("ERROR: You're renaming the column {!r} to {!r}, but {!r} already exists in the phenotype {!r}.".format(old_name, new_name, new_name, pheno))
+            raise PheWebError("ERROR: You're renaming the column {!r} to {!r}, but {!r} already exists in the phenotype {!r}.".format(old_name, new_name, new_name, pheno))
         if old_name not in pheno:
-            die("ERROR: You're renaming the column {!r} to {!r}, but {!r} doesn't exist in the phenotype {!r}.".format(old_name, new_name, old_name, pheno))
+            raise PheWebError("ERROR: You're renaming the column {!r} to {!r}, but {!r} doesn't exist in the phenotype {!r}.".format(old_name, new_name, old_name, pheno))
         pheno[new_name] = pheno[old_name]
         del pheno[old_name]
     return phenolist
@@ -324,7 +322,7 @@ def merge_in_info(phenolist, more_info_rows):
     for pheno in phenolist:
         row = more_info_by_phenocode.get(pheno['phenocode'], None)
         if row is None:
-            die("ERROR: there's no row in your info-to-merge file with the phenocode {!r}".format(pheno['phenocode']))
+            raise PheWebError("ERROR: there's no row in your info-to-merge file with the phenocode {!r}".format(pheno['phenocode']))
         for key in keys_to_add:
             pheno[key] = row[key]
     return phenolist
@@ -376,9 +374,9 @@ def unique_phenocode(phenolist, new_column_name):
     # so, for example, [{LDL, a, 5}, {LDL, b, 2}] -> [{LDL, [{a,5},{b,2}]}].
     # notice how we can still see that `a` goes with `5` and `b` with `2`.
     if not all('phenocode' in pheno for pheno in phenolist):
-        die("At least one pheno doesn't have a 'phenocode', so you can't run unique-phenocode")
+        raise PheWebError("At least one pheno doesn't have a 'phenocode', so you can't run unique-phenocode")
     if not boltons.iterutils.same(pheno.keys() for pheno in phenolist):
-        die("Not all phenotypes have the same columns.  That probably not a problem, but I haven't thought through the implications yet.")
+        raise PheWebError("Not all phenotypes have the same columns.  That probably not a problem, but I haven't thought through the implications yet.")
     phenocode_groups = boltons.iterutils.bucketize(phenolist, lambda p: p['phenocode']).values()
     columns_to_listify = set()
     for phenocode_group in phenocode_groups:
@@ -403,13 +401,13 @@ def unique_phenocode(phenolist, new_column_name):
                     assert all(row[key] == phenocode_group[0][key] for row in phenocode_group)
                 else:
                     if not boltons.iterutils.same(type(row[key]) for row in phenocode_group):
-                        die("ERROR: there are multiple types in the column {!r}, so I don't want to make it a list".format(key))
+                        raise PheWebError("ERROR: there are multiple types in the column {!r}, so I don't want to make it a list".format(key))
                     if isinstance(phenocode_group[0][key], list):
                         # TODO: assert that the elements of the lists are all the same type
                         items_to_add = itertools.chain.from_iterable(row[key] for row in phenocode_group)
                     else:
                         if not isinstance(phenocode_group[0][key], (str, int, float, dict)):
-                            die("Where did you even get the type {!r}?".format(type(phenocode_group[0][key])))
+                            raise PheWebError("Where did you even get the type {!r}?".format(type(phenocode_group[0][key])))
                         items_to_add = (row[key] for row in phenocode_group)
                     new_pheno[key] = list(set(_get_hashable(item) for item in items_to_add))
             new_phenolist.append(new_pheno)
@@ -432,12 +430,12 @@ def unique_phenocode(phenolist, new_column_name):
 
 def load_phenolist(filepath):
     if not os.path.exists(filepath):
-        die("The filepath {!r} does not exist.".format(filepath))
+        raise PheWebError("The filepath {!r} does not exist.".format(filepath))
     with open(filepath) as f:
         try:
             phenolist = json.load(f)
         except:
-            die("Failed to load json from {!r}.".format(filepath))
+            raise PheWebError("Failed to load json from {!r}.".format(filepath))
         return phenolist
 
 def save_phenolist(phenolist, filepath=None):
@@ -497,7 +495,7 @@ def run(argv):
     @add_subcommand('glob')
     def f(args):
         if args.simple_phenocode and args.star_is_phenocode:
-            raise Exception('You cannot use --star-is-phenocode and --simple-phenocode at the same time.')
+            raise PheWebError('You cannot use --star-is-phenocode and --simple-phenocode at the same time.')
         filepath = args.filepath or default_phenolist_filepath
         phenolist = get_phenolist_with_globs(args.patterns, star_is_phenocode=args.star_is_phenocode)
         if args.simple_phenocode:
@@ -516,7 +514,7 @@ def run(argv):
     def f(args, phenolist):
         if args.simple:
             args.pattern = r'.*/(?:(?:epacts|pheno)[\.-]?)?' + r'([^/]+?)' + r'(?:\.epacts|\.gz|\.tsv)*$'
-        if not args.pattern: die("You must either supply a pattern or use --simple")
+        if not args.pattern: raise PheWebError("You must either supply a pattern or use --simple")
         extract_phenocode_from_filepath(phenolist, args.pattern)
     p = subparsers.add_parser('extract-phenocode-from-filepath', help='use a regex to extract phenocodes from association filepaths')
     p.add_argument('pattern', nargs='?', help="a perl-compatible regex pattern with one capture group")
@@ -612,7 +610,7 @@ def run(argv):
     @modifies_phenolist
     def f(args, phenolist):
         if len(args.renames) % 2 != 0:
-            die("You supplied {} arguments. That's not a multiple of two. How am I supposed to pair old names with new names if you don't give me the same number of each?".format(len(args.renames)))
+            raise PheWebError("You supplied {} arguments. That's not a multiple of two. How am I supposed to pair old names with new names if you don't give me the same number of each?".format(len(args.renames)))
         for oldname, newname in boltons.iterutils.chunked_iter(args.renames, 2):
             phenolist = rename_column(phenolist, oldname, newname)
         return phenolist

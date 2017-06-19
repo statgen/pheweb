@@ -7,8 +7,12 @@ import importlib
 import functools
 import math
 
-if sys.version_info.major < 3:
-    print("Sorry, PheWeb doesn't work on Python 2.  Please use Python 3 by installing it with `pip3 install pheweb`.")
+
+if sys.version_info.major <= 2:
+    print("Sorry, PheWeb requires Python 3.  Please use Python 3 by installing it with `pip3 install pheweb`.")
+    sys.exit(1)
+if sys.version_info < (3, 3):
+    print("Sorry, PheWeb requires Python 3.3 or newer.  Use Miniconda, Linuxbrew, Homebrew, or another solution to install a newer Python.")
     sys.exit(1)
 
 # math.inf was introduced in python3.5
@@ -21,11 +25,11 @@ def enable_ipdb():
     from IPython.core import ultratb
     sys.excepthook = ultratb.FormattedTB(mode='Verbose', color_scheme='Linux', call_pdb=1)
 def enable_debug():
-    from . import utils
-    utils.conf.debug = True
+    from .conf_utils import conf
+    conf.debug = True
 def enable_quick():
-    from . import utils
-    utils.conf.quick = True
+    from .conf_utils import conf
+    conf.quick = True
 
 # handle environ
 if 'PHEWEB_IPDB' in os.environ:
@@ -133,7 +137,23 @@ def run(argv):
     else:
         handlers[subcommand](argv[1:])
 
-
 # this is in `entry_points` in setup.py:
 def main():
-    run(sys.argv[1:])
+    from .utils import PheWebError
+    try:
+        run(sys.argv[1:])
+    except PheWebError as exc:
+        print(exc)
+        exit(1)
+    except (KeyboardInterrupt, Exception) as exc:
+        from .file_utils import get_dated_tmp_path
+        from .load.load_utils import indent
+        import traceback
+        exc_filepath = get_dated_tmp_path('exception')
+        with open(exc_filepath, 'w') as f:
+            f.write('Exception:\n' + indent(str(exc)) + '\n' +
+                    'Traceback:\n' + indent(traceback.format_exc()) + '\n')
+        if isinstance(exc, KeyboardInterrupt): print('\nInterrupted')
+        else: print('\nAn exception occurred')
+        print('Details in {}\n'.format(exc_filepath))
+        exit(1)

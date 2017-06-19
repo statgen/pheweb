@@ -1,5 +1,5 @@
 
-from ..utils import conf
+from ..conf_utils import conf
 from ..file_utils import write_json, VariantFileWriter, common_filepaths
 
 from .top_hits import get_all_hits, stringify_assocs

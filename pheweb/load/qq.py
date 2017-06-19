@@ -10,7 +10,7 @@ This script creates json files which can be used to render QQ plots.
 #    - get_conf_int()
 
 from ..utils import round_sig, approx_equal
-from ..file_utils import VariantFileReader, write_json
+from ..file_utils import VariantFileReader, write_json, common_filepaths
 from .load_utils import get_maf, parallelize_per_pheno
 
 import collections
@@ -23,6 +23,27 @@ NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 NUM_BINS = 1000
 
 NUM_MAF_RANGES = 4
+
+def run(argv):
+   parallelize_per_pheno(
+        get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
+        get_output_filepaths = lambda pheno: common_filepaths['qq'](pheno['phenocode']),
+        convert = make_json_file,
+        cmd = 'qq',
+    )
+
+
+def make_json_file(pheno):
+    with VariantFileReader(common_filepaths['pheno'](pheno['phenocode'])) as variant_dicts:
+        variants = list(augment_variants(variant_dicts, pheno))
+    rv = {}
+    if variants:
+        if variants[0].maf is not None:
+            rv['overall'] = make_qq_unstratified(variants, include_qq=False)
+            rv['by_maf'] = make_qq_stratified(variants)
+        else:
+            rv['overall'] = make_qq_unstratified(variants, include_qq=True)
+    write_json(filepath=common_filepaths['qq'](pheno['phenocode']), data=rv)
 
 
 def gc_value_from_list(neglog10_pvals, quantile=0.5):
@@ -116,23 +137,3 @@ def augment_variants(variants, pheno):
         neglog10_pval = -math.log10(v['pval'])
         maf = get_maf(v, pheno)
         yield Variant(neglog10_pval=neglog10_pval, maf=maf, v=v)
-
-def make_json_file(pheno, src_filepath, dest_filepath):
-    with VariantFileReader(src_filepath) as variant_dicts:
-        variants = list(augment_variants(variant_dicts, pheno))
-    rv = {}
-    if variants:
-        if variants[0].maf is not None:
-            rv['overall'] = make_qq_unstratified(variants, include_qq=False)
-            rv['by_maf'] = make_qq_stratified(variants)
-        else:
-            rv['overall'] = make_qq_unstratified(variants, include_qq=True)
-    write_json(filepath=dest_filepath, data=rv)
-
-
-def run(argv):
-    parallelize_per_pheno(
-        src='pheno',
-        dest='qq',
-        convert=make_json_file,
-    )

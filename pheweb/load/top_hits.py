@@ -1,5 +1,6 @@
 
-from ..utils import get_phenolist, conf
+from ..utils import get_phenolist
+from ..conf_utils import conf
 from ..file_utils import write_json, VariantFileWriter, common_filepaths
 
 import json

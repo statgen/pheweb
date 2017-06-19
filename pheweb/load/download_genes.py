@@ -125,6 +125,7 @@ def run(argv):
                 url="ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz",
                 out=gencode_filepath
             )
+            print('')
         genes = get_all_genes(gencode_filepath)
         genes = dedup_ensg(genes)
         genes = dedup_symbol(genes)

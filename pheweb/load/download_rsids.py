@@ -21,6 +21,7 @@ def run(argv):
             make_basedir(raw_filepath)
             raw_tmp_filepath = get_tmp_path(raw_filepath)
             wget.download(url=dbsnp_url, out=raw_tmp_filepath)
+            print('')
             os.rename(raw_tmp_filepath, raw_filepath)
             print('Done downloading.')
 

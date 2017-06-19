@@ -1,14 +1,18 @@
 
-from ..file_utils import convert_VariantFile_to_IndexedVariantFile
+from ..file_utils import convert_VariantFile_to_IndexedVariantFile, common_filepaths
 from .load_utils import parallelize_per_pheno
 
 
-def convert(pheno, src_filepath, dest_filepath):
-    convert_VariantFile_to_IndexedVariantFile(src_filepath, dest_filepath)
-
 def run(argv):
     parallelize_per_pheno(
-        src='pheno',
-        dest='pheno_gz',
-        convert=convert,
+        get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
+        get_output_filepaths = lambda pheno: common_filepaths['pheno_gz'](pheno['phenocode']),
+        convert = convert,
+        cmd = 'bgzip-phenos',
+    )
+
+def convert(pheno):
+    convert_VariantFile_to_IndexedVariantFile(
+        common_filepaths['pheno'](pheno['phenocode']),
+        common_filepaths['pheno_gz'](pheno['phenocode'])
     )

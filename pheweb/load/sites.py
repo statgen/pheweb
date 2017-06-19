@@ -1,70 +1,160 @@
 
-
-'''
-I'm reading in a full position at a time to avoid this issue that was happening before:
- ...
- 1       72897673        G       A
- 1       72897673        G       T
- 1       72897673        G       A
- ...
-'''
-
-from ..utils import chrom_order, get_phenolist, conf
-from ..file_utils import VariantFileReader, VariantFileWriter, get_generated_path, common_filepaths, make_basedir
-from .load_utils import get_num_procs, get_maf
+from ..utils import chrom_order, get_phenolist, PheWebError
+from ..conf_utils import conf
+from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, make_basedir, get_dated_tmp_path, get_tmp_path
+from .load_utils import get_num_procs, get_maf, mtime, indent, ProgressBar
 
 import contextlib
 import os
 import random
 import multiprocessing
-import time
-from boltons.fileutils import mkdir_p
-import blist
 import bisect
+import traceback
+import blist
 
 
 MAX_NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #files / #cpus?
 MIN_NUM_FILES_TO_MERGE_AT_ONCE = 4 # Try to avoid ever merging fewer than this many files at a time.
 
-def multiprocess_merge_files_in_queue(lock, manna_dict):
-    '''
-    Keep a work queue of all the files we're currently working with.
-    We need to merge files until (1) there's only one left, and (2) it's {type: 'merged'}.
-    Each process takes some files off the queue, merges them, and pushes the result back onto the queue.
-    As an optimization, if there are fewer than MIN_NUM_FILES_TO_MERGE_AT_ONCE on the work queue,
-       and there are other processes still alive,
-       then the process just exits rather than waste time merging a small number of files.
-    '''
-    while True:
+def run(argv):
+    out_filepath = common_filepaths['unanno']
 
-        # get work to do
-        with lock:
-            if manna_dict['num_procs_left'] == 1 and len(manna_dict['files']) == 1 and manna_dict['files'][0]['type'] == 'merged':
-                break # all done
-            if len(manna_dict['files']) == 0:
-                break # no work for this process
-            if manna_dict['num_procs_left'] > 1 and len(manna_dict['files']) < MIN_NUM_FILES_TO_MERGE_AT_ONCE:
-                break # not enough files to be worth merging, let another process do it
+    force = False
+    if argv == ['-f']:
+        force = True
+    elif argv:
+        print(
+            '1. Extract all variants that have MAF >= conf.variant_inclusion_maf from each phenotype\n' +
+            '2. Union them.\n' +
+            '3. Write to {}\n\n'.format(out_filepath) +
+            'Usage:\n'
+            '  -h   print this message\n' +
+            '  -f   run even if {} is up-to-date\n'.format(os.path.basename(out_filepath))
+        )
+        exit(0)
 
-            my_files_to_merge =   manna_dict['files'][:MAX_NUM_FILES_TO_MERGE_AT_ONCE]
-            manna_dict['files'] = manna_dict['files'][MAX_NUM_FILES_TO_MERGE_AT_ONCE:]
-            print('this process is now merging {:4} files, {:4} files remaining'.format(
-                len(my_files_to_merge), len(manna_dict['files'])))
+    manna = MergeManager()
 
-        out_filepath = get_generated_path('tmp', 'merging-{}'.format(random.randrange(1e10))) # I don't like tempfile
-        start_time = time.time()
-        merge(my_files_to_merge, out_filepath)
+    # TODO: If a phenotype is removed, this still reports that the list of sites is up-to-date.  How to check that?
+    if os.path.exists(out_filepath) and not force:
+        if mtime(out_filepath) >= max(mtime(f['filepath']) for f in manna.files):
+            print('The list of sites is up-to-date!')
+            return
 
-        with lock:
-            manna_dict['files'] = manna_dict['files'] + [{'filepath': out_filepath, 'type':'merged'}]
-            print('remaining files to merge : {:4} (just did {} files in {:.0f} seconds)'.format(
-                len(manna_dict['files']),
-                len(my_files_to_merge),
-                time.time() - start_time))
+    taskq = multiprocessing.Queue()
+    retq  = multiprocessing.Queue()
+    procs = [multiprocessing.Process(target=mp_target, args=(taskq, retq)) for _ in range(manna.n_procs)]
+    for p in procs: p.start()
+    for p in procs: manna.put_task(taskq)
 
-    manna_dict['num_procs_left'] -= 1
+    with ProgressBar() as progressbar:
+        def update_progressbar():
+            progressbar.set_message('Working set contains {} input files and {} merged files, with {:2} tasks in progress and {} elapsed'.format(
+                sum(f['type'] == 'input' for f in manna.files),
+                sum(f['type'] == 'merged' for f in manna.files),
+                manna.n_procs,
+                progressbar.fmt_elapsed()
+            ))
+        update_progressbar()
+        while True:
+            ret = retq.get()
+            if ret['type'] == 'warning':
+                progressbar.prepend_message(ret['warning_str'])
+            else:
+                manna.apply_ret(ret)
+                if manna.put_task(taskq) == 'ALLDONE': break
+                update_progressbar()
+        update_progressbar()
+
+    for p in procs:
+        p.join()
+        assert p.exitcode == 0
+    make_basedir(out_filepath)
+    os.rename(manna.files[0]['filepath'], out_filepath)
+
+
+class MergeManager:
+    '''Keeps track of what needs to get merged next.'''
+    def __init__(self):
+        self.n_procs = get_num_procs(cmd='sites')
+        self.files = []
+        for pheno in get_phenolist():
+            filepath = common_filepaths['parsed'](pheno['phenocode'])
+            assert os.path.exists(filepath)
+            self.files.append({
+                'type': 'input',
+                'filepath': filepath,
+                'pheno': pheno,
+            })
+    def apply_ret(self, ret):
+        if ret['type'] == 'task-completion':
+            self.files.append({
+                'type': 'merged',
+                'filepath': ret['task']['out_filepath'],
+            })
+        elif ret['type'] == 'exception':
+            exc_filepath = get_dated_tmp_path('exception')
+            with open(exc_filepath, 'wt') as f:
+                f.write(
+                    "Child process had exception:\n" + indent(ret['exception_str']) + '\n' +
+                    "Traceback:\n" + indent(ret['exception_tb']) + '\n'
+                )
+            raise PheWebError('Child process had exception, info dumped to {}'.format(exc_filepath))
+        else:
+            raise PheWebError('Unknown ret type: {}'.format(ret['type']))
+    def put_task(self, taskq):
+        if self.n_procs == 1 and len(self.files) == 1 and self.files[0]['type'] == 'merged':
+            # ALL DONE!
+            self.n_procs -= 1
+            taskq.put({'exit':True})
+            return 'ALLDONE'
+        elif len(self.files) == 0:
+            # NO WORK, TERMINATE WORKER
+            self.n_procs -= 1
+            taskq.put({'exit':True})
+        elif self.n_procs > 1 and len(self.files) < MIN_NUM_FILES_TO_MERGE_AT_ONCE:
+            # INSUFFICIENT WORK, TERMINATE WORKER
+            self.n_procs -= 1
+            taskq.put({'exit':True})
+        else:
+            # MAKE A TASK FOR THE WORKER
+            files_to_merge = self.files[:MAX_NUM_FILES_TO_MERGE_AT_ONCE]
+            self.files =     self.files[MAX_NUM_FILES_TO_MERGE_AT_ONCE:]
+            out_filepath = get_tmp_path('merging-{}'.format(random.randrange(1e10)))
+            taskq.put({
+                'files_to_merge': files_to_merge,
+                'out_filepath': out_filepath,
+            })
+
+
+def mp_target(taskq, retq):
+    for task in iter(taskq.get, {"exit":True}):
+        try:
+            for ret in merge(task['files_to_merge'], task['out_filepath']):
+                if isinstance(ret, dict) and ret['type'] == 'warning':
+                    retq.put(ret)
+                else:
+                    retq.put({
+                        'type': 'message',
+                        'message_str': 'unknown return type: {!r}'.format(ret),
+                    })
+            retq.put({
+                'type': 'task-completion',
+                'task': task,
+            })
+        except (Exception, KeyboardInterrupt) as exc:
+            retq.put({
+                'type': 'exception',
+                'task': task,
+                "exception_str": str(exc),
+                "exception_tb": traceback.format_exc(),
+            })
 
 def merge(files_to_merge, out_filepath):
+    # files_to_merge is like [
+    #   {filepath: "/foo/bar", type:"input", pheno:pheno},
+    #   {filepath: "/foo/bar", type:"merged"},
+    # ]
     with contextlib.ExitStack() as exit_stack, \
          VariantFileWriter(out_filepath) as writer:
 
@@ -84,7 +174,10 @@ def merge(files_to_merge, out_filepath):
             try:
                 v = next(reader)
             except StopIteration:
-                print('Warning: {!r} didnt even have ONE variant that passed the MAF thresholds.'.format(_reader_info[reader_id]['filepath']))
+                yield {
+                    'type': 'warning',
+                    'warning_str': 'Warning: {!r} didnt even have ONE variant that passed the MAF thresholds.'.format(_reader_info[reader_id]['filepath']),
+                }
             vlm.insert(v, reader_id)
 
         # each time we pop the leftmost variant from the VariantListMerger, fetch a new variant from each pheno that contained that variant
@@ -107,7 +200,7 @@ def merge(files_to_merge, out_filepath):
     for file_to_merge in files_to_merge:
         if file_to_merge['type'] == 'merged':
             os.remove(file_to_merge['filepath'])
-    print('{:8} variants in {} <- {}'.format(n_variants, os.path.basename(out_filepath), [os.path.basename(f['filepath']) for f in files_to_merge]))
+    #print('{:8} variants in {} <- {}'.format(n_variants, os.path.basename(out_filepath), [os.path.basename(f['filepath']) for f in files_to_merge]))
 
 def apply_maf_cutoff(variants, pheno):
     for v in variants:
@@ -135,7 +228,7 @@ class VariantListMerger:
         else:
             # key matches, so variant must too
             if variant != self._q[idx][1]:
-                raise Exception('trying to add {!r} to VariantMerger, but it already contains {!r} which has the same chrom-pos-ref-alt'.format(
+                raise PheWebError('trying to add {!r} to VariantMerger, but it already contains {!r} which has the same chrom-pos-ref-alt'.format(
                     variant, self._q[idx][1]))
             self._q[idx][2].append(reader_id)
 
@@ -151,67 +244,3 @@ class VariantListMerger:
     @staticmethod
     def _key_from_variant(v):
         return (chrom_order[v['chrom']], v['pos'], v['ref'], v['alt'])
-
-
-
-def get_files_to_merge():
-    for pheno in get_phenolist():
-        filepath = common_filepaths['parsed'](pheno['phenocode'])
-        assert os.path.exists(filepath)
-        yield {
-            'type': 'input',
-            'filepath': filepath,
-            'pheno': pheno,
-        }
-
-
-
-def run(argv):
-
-    if argv[:1] == ['-h']:
-        print('1. Extract all variants that have MAF >= conf.variant_inclusion_maf from each phenotype')
-        print('2. Union them.')
-        print('3. Write to sites/sites-unannotated.tsv')
-        exit(0)
-
-    out_filepath = common_filepaths['unanno']
-    files_to_merge = list(get_files_to_merge())
-
-    # TODO: If a phenotype is removed, this still reports that the list of sites is up-to-date.  How to check that?
-    if os.path.exists(out_filepath):
-        dest_file_modification_time = os.stat(out_filepath).st_mtime
-        src_file_modification_times = [os.stat(file_to_merge['filepath']).st_mtime for file_to_merge in files_to_merge]
-        if dest_file_modification_time >= max(src_file_modification_times):
-            print('The list of sites is up-to-date!')
-            return
-
-    print('number of files to merge: {:4}'.format(len(files_to_merge)))
-
-    num_procs = get_num_procs()
-    print('number of processes:', num_procs)
-
-    mkdir_p(get_generated_path('tmp'))
-
-    manna = multiprocessing.Manager()
-    manna_lock = manna.Lock()
-    manna_dict = manna.dict()
-    manna_dict['files'] = files_to_merge
-    manna_dict['num_procs_left'] = num_procs
-
-    # TODO: switch back to Pool(num_procs).map(merge_files_in_queue, [(manna_lock, manna_dict) for _ in range(num_procs)]) with try-except
-    processes = [multiprocessing.Process(target=multiprocess_merge_files_in_queue, args=(manna_lock, manna_dict)) for _ in range(num_procs)]
-    for p in processes:
-        p.start()
-    failed = False
-    for p in processes:
-        p.join()
-        if p.exitcode != 0:
-            print('process {} exited with exitcode {}'.format(p.name, p.exitcode))
-            failed = True
-    print('all workers returned')
-    if failed:
-        raise Exception("Failed to merge.")
-    else:
-        assert len(manna_dict['files']) == 1, manna_dict['files']
-        make_basedir(out_filepath)
-        os.rename(manna_dict['files'][0]['filepath'], out_filepath)

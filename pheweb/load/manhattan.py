@@ -5,11 +5,42 @@ This script creates json files which can be used to render Manhattan plots.
 
 # TODO: combine with QQ.
 
-from ..utils import conf, chrom_order
-from ..file_utils import VariantFileReader, write_json
+from ..utils import chrom_order
+from ..conf_utils import conf
+from ..file_utils import VariantFileReader, write_json, common_filepaths
 from .load_utils import MaxPriorityQueue, parallelize_per_pheno
 
 import math
+
+
+def run(argv):
+    parallelize_per_pheno(
+        get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
+        get_output_filepaths = lambda pheno: common_filepaths['manhattan'](pheno['phenocode']),
+        convert = make_json_file,
+        cmd = 'manhattan',
+    )
+
+
+def make_json_file(pheno):
+    BIN_LENGTH = int(3e6)
+    NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
+    NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
+
+    with VariantFileReader(common_filepaths['pheno'](pheno['phenocode'])) as variants:
+        variant_bins, unbinned_variants = bin_variants(
+            variants,
+            BIN_LENGTH,
+            NEGLOG10_PVAL_BIN_SIZE,
+            NEGLOG10_PVAL_BIN_DIGITS
+        )
+    label_peaks(unbinned_variants)
+    rv = {
+        'variant_bins': variant_bins,
+        'unbinned_variants': unbinned_variants,
+    }
+
+    write_json(filepath=common_filepaths['manhattan'](pheno['phenocode']), data=rv)
 
 
 def rounded_neglog10(pval, neglog10_pval_bin_size, neglog10_pval_bin_digits):
@@ -86,34 +117,3 @@ def label_peaks(variants):
             best_assoc = min(vs, key=lambda assoc: assoc['pval'])
             best_assoc['peak'] = True
             vs = [v for v in vs if abs(v['pos'] - best_assoc['pos']) > conf.within_pheno_mask_around_peak]
-
-
-def make_json_file(pheno, src_filepath, dest_filepath):
-
-    BIN_LENGTH = int(3e6)
-    NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
-    NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
-
-    with VariantFileReader(src_filepath) as variants:
-        variant_bins, unbinned_variants = bin_variants(
-            variants,
-            BIN_LENGTH,
-            NEGLOG10_PVAL_BIN_SIZE,
-            NEGLOG10_PVAL_BIN_DIGITS
-        )
-    label_peaks(unbinned_variants)
-    rv = {
-        'variant_bins': variant_bins,
-        'unbinned_variants': unbinned_variants,
-    }
-
-    write_json(filepath=dest_filepath, data=rv)
-
-
-def run(argv):
-
-    parallelize_per_pheno(
-        src='pheno',
-        dest='manhattan',
-        convert=make_json_file,
-    )

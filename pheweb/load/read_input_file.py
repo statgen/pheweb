@@ -1,5 +1,6 @@
 
-from ..utils import conf, chrom_order, chrom_order_list, chrom_aliases, die
+from ..utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
+from ..conf_utils import conf
 from ..file_utils import open_maybe_gzip
 from .load_utils import get_maf
 
@@ -39,16 +40,16 @@ class PhenoReader:
         for cp, tied_variants in cp_groups:
             chrom_index = self._get_chrom_index(cp[0])
             if chrom_index < prev_chrom_index:
-                print("The chromosomes in your file appear to be in the wrong order.")
-                print("The required order is: {!r}".format(chrom_order_list))
-                print("But in your file, the chromosome {!r} came after the chromosome {!r}".format(
-                    cp[0], chrom_order_list[prev_chrom_index]))
-                raise Exception()
+                raise PheWebError(
+                    "The chromosomes in your file appear to be in the wrong order.\n" +
+                    "The required order is: {!r}\n".format(chrom_order_list) +
+                    "But in your file, the chromosome {!r} came after the chromosome {!r}\n".format(
+                        cp[0], chrom_order_list[prev_chrom_index]))
             if chrom_index == prev_chrom_index and cp[1] < prev_pos:
-                print("The positions in your file appear to be in the wrong order.")
-                print("In your file, the position {!r} came after the position {!r} on chromsome {!r}".format(
-                    cp[1], prev_pos, cp[0]))
-                raise Exception()
+                raise PheWebError(
+                    "The positions in your file appear to be in the wrong order.\n" +
+                    "In your file, the position {!r} came after the position {!r} on chromsome {!r}\n".format(
+                        cp[1], prev_pos, cp[0]))
             prev_chrom_index, prev_pos = chrom_index, cp[1]
             for v in sorted(tied_variants, key=lambda v:(v['ref'], v['alt'])):
                 yield v
@@ -76,10 +77,10 @@ class PhenoReader:
         try:
             return chrom_order[chrom]
         except KeyError:
-            print("\nIt looks like one of your variants has the chromosome {!r}, but PheWeb doesn't handle that chromosome.".format(chrom))
-            print("I bet you could fix it by running code like this on each of your input files:")
-            print("zless my-input-file.tsv | perl -nale 'print if $. == 1 or m{^(1?[0-9]|2[0-2]|X|Y|MT?)\t}' | gzip > my-replacement-input-file.tsv.gz\n")
-            raise Exception()
+            raise PheWebError(
+                "It looks like one of your variants has the chromosome {!r}, but PheWeb doesn't handle that chromosome.\n".format(chrom) +
+                "I bet you could fix it by running code like this on each of your input files:\n" +
+                "zless my-input-file.tsv | perl -nale 'print if $. == 1 or m{^(1?[0-9]|2[0-2]|X|Y|MT?)\t}' | gzip > my-replacement-input-file.tsv.gz\n")
 
 
 class AssocFileReader:
@@ -135,10 +136,11 @@ class AssocFileReader:
         first_info = next(infos)
         for info in infos:
             if info != first_info:
-                die("The pheno info parsed from some lines disagrees.\n" +
-                          "- in the file {}".format(self.filepath) +
-                          "- parsed from first line:\n    {}".format(first_info) +
-                          "- parsed from a later line:\n    {}".format(info))
+                raise PheWebError(
+                "The pheno info parsed from some lines disagrees.\n" +
+                    "- in the file {}".format(self.filepath) +
+                    "- parsed from first line:\n    {}".format(first_info) +
+                    "- parsed from a later line:\n    {}".format(info))
         return first_info
 
     def _get_infos(self, limit=1000):
@@ -154,7 +156,8 @@ class AssocFileReader:
                 # Check that num_cases + num_controls == num_samples
                 if all(key in variant for key in ['num_cases', 'num_controls', 'num_samples']):
                     if variant['num_cases'] + variant['num_controls'] != variant['num_samples']:
-                        die("The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
+                        raise PheWebError(
+                            "The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
                             "- the filepath: {!r}\n".format(self.filepath) +
                             "- the line number: {}".format(linenum+1) +
                             "- parsed line: [{!r}]\n".format(line))
@@ -166,13 +169,13 @@ class AssocFileReader:
         # `values`: [str]
 
         if len(values) != len(colnames):
-            print("ERROR: A line has {!r} values, but we expected {!r}.".format(len(values), len(colnames)))
             repr_values = repr(values)
             if len(repr_values) > 5000: repr_values = repr_values[:200] + ' ... ' + repr_values[-200:] # sometimes we get VERY long strings of nulls.
-            print("- The line: {}".format(repr_values))
-            print("- The header: {!r}".format(colnames))
-            print("- In file: {!r}".format(self.filepath))
-            raise Exception()
+            raise PheWebError(
+                "ERROR: A line has {!r} values, but we expected {!r}.\n".format(len(values), len(colnames)) +
+                "- The line: {}\n".format(repr_values) +
+                "- The header: {!r}\n".format(colnames) +
+                "- In file: {!r}\n".format(self.filepath))
 
         variant = {}
         for field, colidx in colidx_for_field.items():
@@ -182,8 +185,9 @@ class AssocFileReader:
                 try:
                     variant[field] = parse(value)
                 except Exception as exc:
-                    raise Exception("failed on field {!r} attempting to convert value {!r} to type {!r} with constraints {!r} in {!r} on line with values {!r}".format(
-                        field, values[colidx], conf.parse.fields[field]['type'], conf.parse.fields[field], self.filepath, values)) from exc
+                    raise PheWebError(
+                        "failed on field {!r} attempting to convert value {!r} to type {!r} with constraints {!r} in {!r} on line with values {!r}".format(
+                            field, values[colidx], conf.parse.fields[field]['type'], conf.parse.fields[field], self.filepath, values)) from exc
 
         return variant
 
@@ -195,11 +199,11 @@ class AssocFileReader:
                 if field_alias in colnames:
                     # Check that we haven't already mapped this field to a header column.
                     if field in colidx_for_field:
-                        print("Wait, what?  We found two different ways of mapping the field {!r} to the columns {!r}.".format(field, colnames))
-                        print("For reference, the field {!r} can come from columns by any of these aliases: {!r}.".format(
-                            field, possible_fields[field]['aliases']))
-                        print("File:", self.filepath)
-                        raise Exception()
+                        raise PheWebError(
+                            "Wait, what?  We found two different ways of mapping the field {!r} to the columns {!r}.\n".format(field, colnames) +
+                            "For reference, the field {!r} can come from columns by any of these aliases: {!r}.\n".format(
+                                field, possible_fields[field]['aliases']) +
+                            "File: {}\n".format(self.filepath))
                     colidx_for_field[field] = colnames.index(field_alias)
         return colidx_for_field
 
@@ -207,20 +211,20 @@ class AssocFileReader:
         required_fields = [field for field in possible_fields if possible_fields[field].get('required', False)]
         missing_required_fields = [field for field in required_fields if field not in colidx_for_field]
         if missing_required_fields:
-            print("Some required fields weren't successfully mapped to the columns of an input file.")
-            print("The file is {!r}.".format(self.filepath))
-            print("The fields that were required but not present are: {!r}".format(missing_required_fields))
-            print("Their accepted aliases are:")
-            for field in missing_required_fields:
-                print("- {}: {!r}".format(field, possible_fields[field]['aliases']))
-            print("Here are all the columns that WERE present: {!r}".format(colnames))
-            raise Exception()
+            raise PheWebError(
+                "Some required fields weren't successfully mapped to the columns of an input file.\n" +
+                "The file is {!r}.\n".format(self.filepath) +
+                "The fields that were required but not present are: {!r}\n".format(missing_required_fields) +
+                "Their accepted aliases are:\n" +
+                ''.join("- {}: {!r}\n".format(field, possible_fields[field]['aliases'])
+                        for field in missing_required_fields) +
+                "Here are all the columns that WERE present: {!r}\n".format(colnames))
 
     @staticmethod
     def parse_marker_id(marker_id):
         match = AssocFileReader.parse_marker_id_regex.match(marker_id)
         if match is None:
-            raise Exception("ERROR: MARKER_ID didn't match our MARKER_ID pattern: {!r}".format(marker_id))
+            raise PheWebError("ERROR: MARKER_ID didn't match our MARKER_ID pattern: {!r}".format(marker_id))
         chrom, pos, ref, alt = match.groups()
         return chrom, int(pos), ref, alt
     parse_marker_id_regex = re.compile(r'([^:]+):([0-9]+)_([-ATCG\.]+)/([-ATCG\.]+)')

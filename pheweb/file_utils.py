@@ -1,12 +1,13 @@
 
-from . import utils
-conf = utils.conf
+from .utils import PheWebError, get_phenolist, chrom_order
+from .conf_utils import conf
 
 import os
 import csv
 from contextlib import contextmanager
 import json
 import gzip
+import datetime
 from boltons.fileutils import AtomicSaver, mkdir_p
 import pysam
 
@@ -61,6 +62,11 @@ def get_tmp_path(arg):
     else:
         mkdir_p(get_generated_path('tmp'))
         return get_generated_path('tmp', arg)
+
+def get_dated_tmp_path(prefix):
+    assert '/' not in prefix
+    time_str = datetime.datetime.isoformat(datetime.datetime.now()).replace(':', '-')
+    return get_tmp_path(prefix + '-' + time_str)
 
 
 csv.register_dialect(
@@ -148,9 +154,8 @@ class _ivfr:
             parser = conf.parse.fields[field]['_read']
             try:
                 variant[field] = parser(val)
-            except:
-                print('ERROR: Failed to parse the value {!r} for field {!r} in file {!r}'.format(val, field, self._tabix_file.filename))
-                raise
+            except Exception as exc:
+                raise PheWebError('ERROR: Failed to parse the value {!r} for field {!r} in file {!r}'.format(val, field, self._tabix_file.filename)) from exc
         return variant
 
     def get_region(self, chrom, start, end):
@@ -169,9 +174,8 @@ class _ivfr:
         # Doesn't make much sense to me.  There must be a reason that I don't understand.
         try:
             tabix_iter = self._tabix_file.fetch(chrom, start-1, end-1, parser=None)
-        except:
-            print('ERROR when fetching {}-{}-{} from {}'.format(chrom, start-1, end-1, self._tabix_file.filename))
-            raise
+        except Exception as exc:
+            raise PheWebError('ERROR when fetching {}-{}-{} from {}'.format(chrom, start-1, end-1, self._tabix_file.filename)) from exc
         reader = csv.reader(tabix_iter, dialect='pheweb-internal-dialect')
         for variant_row in reader:
             yield self._parse_variant_row(variant_row)
@@ -192,7 +196,7 @@ class MatrixReader:
     _filepath = get_generated_path('matrix.tsv.gz')
 
     def __init__(self):
-        phenos = utils.get_phenolist()
+        phenos = get_phenolist()
         phenocodes = [pheno['phenocode'] for pheno in phenos]
         self._info_for_pheno = {
             pheno['phenocode']: {k: v for k,v in pheno.items() if k != 'assoc_files'}
@@ -240,10 +244,10 @@ class _mr(_ivfr):
         parser = conf.parse.fields[field]['_read']
         try:
             return parser(val)
-        except:
-            print('ERROR: Failed to parse the value {!r} for field {!r}'.format(val, field) +
-                  ('' if phenocode is None else ' and phenocode {!r}'.format(phenocode)))
-            raise
+        except Exception as exc:
+            error_message = 'ERROR: Failed to parse the value {!r} for field {!r}'.format(val, field)
+            if phenocode is not None: error_message += ' and phenocode {!r}'.format(phenocode)
+            raise PheWebError(error_message) from exc
 
     def _parse_variant_row(self, variant_row):
         variant = {'phenos': {}}
@@ -261,7 +265,7 @@ class _mr(_ivfr):
 
 def with_chrom_idx(variants):
     for v in variants:
-        v['chrom_idx'] = utils.chrom_order[v['chrom']]
+        v['chrom_idx'] = chrom_order[v['chrom']]
         yield v
 
 
@@ -311,7 +315,7 @@ class _vfw:
             extra_fields = list(set(variant.keys()) - set(fields))
             if extra_fields:
                 if not self._allow_extra_fields:
-                    raise Exception("ERROR: found unexpected fields {!r} among the expected fields {!r} while writing {!r}.".format(
+                    raise PheWebError("ERROR: found unexpected fields {!r} among the expected fields {!r} while writing {!r}.".format(
                                     extra_fields, fields, self._filepath))
                 fields += extra_fields
             self._writer = csv.DictWriter(self._f, fieldnames=fields, dialect='pheweb-internal-dialect')

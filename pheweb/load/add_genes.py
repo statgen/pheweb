@@ -93,6 +93,11 @@ def run(argv):
     genes_filepath = common_filepaths['genes']
     out_filepath = common_filepaths['sites']
 
+    if not os.path.exists(genes_filepath):
+        print('Downloading genes from GENCODE')
+        from . import download_genes
+        download_genes.run([])
+
     def mod_time(filepath):
         return os.stat(filepath).st_mtime
     if os.path.exists(out_filepath) and max(mod_time(genes_filepath), mod_time(input_filepath)) <= mod_time(out_filepath):

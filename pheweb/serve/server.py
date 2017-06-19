@@ -1,5 +1,6 @@
 
-from ..utils import conf, get_phenolist, get_gene_tuples, pad_gene
+from ..utils import get_phenolist, get_gene_tuples, pad_gene
+from ..conf_utils import conf
 from ..file_utils import common_filepaths
 from .server_utils import get_variant, get_random_page, get_pheno_region
 from .autocomplete import Autocompleter

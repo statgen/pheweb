@@ -5,10 +5,10 @@ import os
 import csv
 import boltons.mathutils
 import urllib.parse
-import sys
 
-from .conf_utils import conf # noqa: F401
-from . import file_utils
+
+class PheWebError(Exception):
+    '''implies that an exception is being handled by PheWeb, so its message should just be printed.'''
 
 def round_sig(x, digits):
     if x == 0:
@@ -31,14 +31,15 @@ assert not approx_equal(42, 42.01)
 
 def get_phenolist():
     # TODO: should this be memoized?
-    filepath = file_utils.common_filepaths['phenolist']
+    from .file_utils import common_filepaths
+    filepath = common_filepaths['phenolist']
     try:
         with open(os.path.join(filepath)) as f:
             phenolist = json.load(f)
     except (FileNotFoundError, PermissionError):
-        print("You need a file to define your phenotypes at '{}'.\n".format(filepath) +
-              "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
-        raise Exception()
+        raise PheWebError(
+            "You need a file to define your phenotypes at '{}'.\n".format(filepath) +
+            "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
     except json.JSONDecodeError:
         print("Your file at '{}' contains invalid json.\n".format(filepath) +
               "The error it produced was:")
@@ -74,15 +75,11 @@ chrom_aliases = {'23': 'X', '24': 'Y', '25': 'MT', 'M': 'MT'}
 
 
 def get_gene_tuples(include_ensg=False):
-    with open(file_utils.common_filepaths['genes']) as f:
+    from .file_utils import common_filepaths
+    with open(common_filepaths['genes']) as f:
         for row in csv.reader(f, delimiter='\t'):
             assert row[0] in chrom_order, row[0]
             if include_ensg:
                 yield (row[0], int(row[1]), int(row[2]), row[3], row[4])
             else:
                 yield (row[0], int(row[1]), int(row[2]), row[3])
-
-
-def die(message):
-    print(message, file=sys.stdout)
-    raise Exception()

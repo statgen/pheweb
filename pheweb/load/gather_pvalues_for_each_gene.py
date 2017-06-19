@@ -1,7 +1,7 @@
 
 from ..utils import get_gene_tuples, pad_gene
 from ..file_utils import MatrixReader, write_json, common_filepaths
-from .load_utils import parallelize
+from .load_utils import Parallelizer, mtime
 
 import os
 
@@ -13,19 +13,23 @@ def run(argv):
 
     out_filepath = common_filepaths['best-phenos-by-gene']
     matrix_filepath = common_filepaths['matrix']
-    if os.path.exists(out_filepath) and os.stat(matrix_filepath).st_mtime < os.stat(out_filepath).st_mtime:
+    if os.path.exists(out_filepath) and mtime(matrix_filepath) < mtime(out_filepath):
         print('{} is up-to-date!'.format(out_filepath))
         return
 
     genes = list(get_gene_tuples())
-    gene_results = parallelize(genes, do_tasks=process_genes, tqdm_desc='Processing genes')
-    data = {k:v for result in gene_results for k,v in result.items()}
+    gene_results = Parallelizer().run_multiple_tasks(
+        tasks = genes,
+        do_multiple_tasks = process_genes,
+        cmd = 'gather-pvalues-for-each-gene'
+    )
+    data = {k:v for ret in gene_results for k,v in ret['value'].items()}
     write_json(filepath=out_filepath, data=data)
 
-def process_genes(taskq, doneq, stop_sentinel):
+def process_genes(taskq, retq):
     with MatrixReader().context() as matrix_reader:
-        for gene in iter(taskq.get, stop_sentinel):
-            doneq.put(get_gene_info(gene, matrix_reader))
+        f = lambda gene: get_gene_info(gene, matrix_reader)
+        Parallelizer._make_multiple_tasks_doer(f)(taskq, retq)
 
 def get_gene_info(gene, matrix_reader):
     chrom, start, end, gene_symbol = gene

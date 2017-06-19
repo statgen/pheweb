@@ -16,7 +16,7 @@ assoc_min_maf = 0.005
 variant_inclusion_maf = 0.01
 
 
-num_procs = 1 # for debugging convenience.
+# num_procs = 1 # for debugging convenience.
 
 
 # directory for caching large (~1GB) common files like dbsnp
