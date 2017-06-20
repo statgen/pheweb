@@ -162,12 +162,10 @@ def main():
         run(sys.argv[1:])
     except (KeyboardInterrupt, Exception) as exc:
         from .file_utils import get_dated_tmp_path
-        from .load.load_utils import indent
         import traceback
         exc_filepath = get_dated_tmp_path('exception')
         with open(exc_filepath, 'w') as f:
-            f.write('Exception:\n' + indent(str(exc)) + '\n\n' + # is this useful?
-                    'Traceback:\n' + indent(traceback.format_exc()) + '\n')
+            f.write(traceback.format_exc())
         if isinstance(exc, PheWebError): print(exc)
         elif isinstance(exc, KeyboardInterrupt): print('\nInterrupted')
         else: print('\nAn exception occurred')

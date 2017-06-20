@@ -79,43 +79,9 @@ def _run_only_once(f):
 @_run_only_once
 def _ensure_conf():
 
-    ### Data_Dir, config.py, &c
-
+    ## Get `conf.cache` working (because it's needed for reporting errors)
     conf.set_default_value('data_dir', os.path.abspath(os.environ.get('PHEWEB_DATADIR', False) or os.path.curdir))
-    if not os.path.isdir(conf.data_dir):
-        mkdir_p(conf.data_dir)
-    if not os.access(conf.data_dir, os.R_OK):
-        raise utils.PheWebError("Your data directory, {!r}, is not readable.".format(conf.data_dir))
 
-    _config_filepath = os.path.join(conf.data_dir, 'config.py')
-    if os.path.isfile(_config_filepath):
-        try:
-            _conf_module = imp.load_source('config', _config_filepath)
-        except:
-            raise utils.PheWebError("PheWeb tried to load your config.py at {!r} but it failed.".format(_config_filepath))
-        else:
-            for key in dir(_conf_module):
-                if not key.startswith('_'):
-                    conf[key] = getattr(_conf_module, key)
-
-    conf.set_default_value('custom_templates', lambda: os.path.join(conf.data_dir, 'custom_templates'), is_function=True)
-    conf.set_default_value('debug', False)
-    conf.set_default_value('quick', False)
-
-    if conf.get('login', {}).get('whitelist', None):
-        conf.login['whitelist'] = [addr.lower() for addr in conf.login['whitelist']]
-
-    conf.set_default_value('assoc_min_maf', 0)
-    conf.set_default_value('variant_inclusion_maf', 0)
-    if 'minimum_maf' in conf:
-        raise utils.PheWebError("minimum_maf has been deprecated.  Please remove it and use assoc_min_maf and/or variant_inclusion_maf instead")
-
-    conf.set_default_value('within_pheno_mask_around_peak', int(500e3))
-    conf.set_default_value('between_pheno_mask_around_peak', int(1e6))
-    conf.set_default_value('manhattan_num_unbinned', 2000)
-    conf.set_default_value('peak_pval_cutoff', 1e-6)
-
-    ### Cache
     def _configure_cache():
         conf.set_default_value('cache', os.path.abspath(os.path.expanduser('~/.pheweb/cache')))
         if conf.cache is False:
@@ -136,6 +102,38 @@ def _ensure_conf():
             conf.cache = False
     _configure_cache()
 
+    ## Load `config.py`
+    _config_filepath = os.path.join(conf.data_dir, 'config.py')
+    if os.path.isfile(_config_filepath):
+        try:
+            _conf_module = imp.load_source('config', _config_filepath)
+        except:
+            raise utils.PheWebError("PheWeb tried to load your config.py at {!r} but it failed.".format(_config_filepath))
+        else:
+            for key in dir(_conf_module):
+                if not key.startswith('_'):
+                    conf[key] = getattr(_conf_module, key)
+
+    conf.set_default_value('custom_templates', lambda: os.path.join(conf.data_dir, 'custom_templates'), is_function=True)
+    conf.set_default_value('debug', False)
+    conf.set_default_value('quick', False)
+    conf.set_default_value('assoc_min_maf', 0)
+    conf.set_default_value('variant_inclusion_maf', 0)
+    conf.set_default_value('within_pheno_mask_around_peak', int(500e3))
+    conf.set_default_value('between_pheno_mask_around_peak', int(1e6))
+    conf.set_default_value('manhattan_num_unbinned', 2000)
+    conf.set_default_value('peak_pval_cutoff', 1e-6)
+
+    if 'minimum_maf' in conf:
+        raise utils.PheWebError("minimum_maf has been deprecated.  Please remove it and use assoc_min_maf and/or variant_inclusion_maf instead")
+
+    if conf.get('login', {}).get('whitelist', None):
+        conf.login['whitelist'] = [addr.lower() for addr in conf.login['whitelist']]
+
+    if not os.path.isdir(conf.data_dir):
+        mkdir_p(conf.data_dir)
+    if not os.access(conf.data_dir, os.R_OK):
+        raise utils.PheWebError("Your data directory, {!r}, is not readable.".format(conf.data_dir))
 
     ### Parsing
 
