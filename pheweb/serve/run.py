@@ -24,8 +24,8 @@ def run_gunicorn(app, args):
         'bind': '{}:{}'.format(args.host, args.port),
         'reload': args.use_reloader,
         'workers': args.num_workers,
-        'accesslog': '-',
-        'access_log_format': '%(t)s | %(s)s | %(L)ss | %(m)s %(U)s | resp_len:%(B)s | referrer:"%(f)s" | from:%(h)s',
+        'accesslog': args.accesslog,
+        'access_log_format': '%(t)s | %(s)s | %(L)ss | %(m)s %(U)s | resp_len:%(B)s | referrer:"%(f)s" | ip:%(h)s | agent:%(a)s',
         # docs @ <http://docs.gunicorn.org/en/stable/settings.html#access-log-format>
     }
     sga = StandaloneGunicornApplication(app, options)
@@ -100,7 +100,8 @@ def run(argv):
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default='0.0.0.0', help='the hostname to use to access this server')
-    parser.add_argument('--port', type=int, default=5000, help='an integer for the accumulator')
+    parser.add_argument('--port', type=int, default=5000)
+    parser.add_argument('--accesslog', default='-', help='the file to write the access log')
     parser.add_argument('--no-reloader', action='store_false', dest='use_reloader')
     parser.add_argument('--num-workers', type=int, default=8, help='number of worker threads')
     parser.add_argument('--guess-address', action='store_true', help='guess the IP address')
