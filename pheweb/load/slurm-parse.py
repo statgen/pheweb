@@ -23,7 +23,6 @@ def run(argv):
 
     jobs = chunked(idxs, N_AT_A_TIME)
     sbatch_filepath = get_dated_tmp_path('slurm-parse') + '.sh'
-    print('Run:\nsbatch {}'.format(sbatch_filepath))
     with open(sbatch_filepath, 'w') as f:
         f.write('''\
 #!/bin/bash
@@ -40,3 +39,5 @@ jobs=(
         f.write(')\n\n')
         f.write('export PHEWEB_DATADIR={!r}\n'.format(conf.data_dir))
         f.write(sys.argv[0] + ' conf num_procs=4 parse --phenos=${jobs[$SLURM_ARRAY_TASK_ID]}\n')
+    print('Run:\nsbatch {}'.format(sbatch_filepath))
+    print('Monitor with `squeue --long --array --job <jobid>`')
