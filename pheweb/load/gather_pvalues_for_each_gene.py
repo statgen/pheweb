@@ -28,7 +28,7 @@ def run(argv):
 
 def process_genes(taskq, retq):
     with MatrixReader().context() as matrix_reader:
-        f = lambda gene: get_gene_info(gene, matrix_reader)
+        def f(gene): return get_gene_info(gene, matrix_reader)
         Parallelizer._make_multiple_tasks_doer(f)(taskq, retq)
 
 def get_gene_info(gene, matrix_reader):

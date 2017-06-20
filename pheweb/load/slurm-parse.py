@@ -10,9 +10,13 @@ from boltons.iterutils import chunked
 N_AT_A_TIME = 10
 
 def run(argv):
-    get_input_filepaths = lambda pheno: pheno['assoc_files']
-    get_output_filepaths = lambda pheno: common_filepaths['parsed'](pheno['phenocode'])
-    idxs = [i for i,pheno in enumerate(get_phenolist()) if PerPhenoParallelizer().should_process_pheno(pheno, get_input_filepaths, get_output_filepaths)]
+    def should_process(pheno):
+        return PerPhenoParallelizer().should_process_pheno(
+            pheno,
+            get_input_filepaths = lambda pheno: pheno['assoc_files'],
+            get_output_filepaths = lambda pheno: common_filepaths['parsed'](pheno['phenocode']),
+        )
+    idxs = [i for i,pheno in enumerate(get_phenolist()) if should_process(pheno)]
     if not idxs:
         print('All phenos are up-to-date!')
         exit(0)

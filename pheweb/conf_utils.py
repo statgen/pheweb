@@ -4,7 +4,6 @@
 
 from . import utils
 
-import functools
 import os
 import imp
 import itertools

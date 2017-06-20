@@ -137,7 +137,7 @@ class AssocFileReader:
         for info in infos:
             if info != first_info:
                 raise PheWebError(
-                "The pheno info parsed from some lines disagrees.\n" +
+                    "The pheno info parsed from some lines disagrees.\n" +
                     "- in the file {}".format(self.filepath) +
                     "- parsed from first line:\n    {}".format(first_info) +
                     "- parsed from a later line:\n    {}".format(info))

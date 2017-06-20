@@ -25,7 +25,7 @@ NUM_BINS = 1000
 NUM_MAF_RANGES = 4
 
 def run(argv):
-   parallelize_per_pheno(
+    parallelize_per_pheno(
         get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
         get_output_filepaths = lambda pheno: common_filepaths['qq'](pheno['phenocode']),
         convert = make_json_file,
