@@ -229,20 +229,10 @@ class Parallelizer:
             retq.put({"type":"exit"})
         return f
 
-class _PerPhenoParallelizer(Parallelizer):
-    def run_on_each_pheno(self, get_input_filepaths, get_output_filepaths, convert, cmd=None):
-        phenos = get_phenolist()
-        tasks = []
-        for pheno in phenos:
-            input_filepaths = get_input_filepaths(pheno)
-            output_filepaths = get_output_filepaths(pheno)
-            if isinstance(input_filepaths, str): input_filepaths = [input_filepaths]
-            if isinstance(output_filepaths, str): output_filepaths = [output_filepaths]
-            for fp in input_filepaths:
-                if not os.path.exists(fp):
-                    raise PheWebError("Cannot make {} because {} does not exist".format(' or '.join(output_filepaths), fp))
-            if any(not os.path.exists(fp) for fp in output_filepaths) or max(map(mtime, input_filepaths)) > min(map(mtime, output_filepaths)):
-                tasks.append(pheno)
+class PerPhenoParallelizer(Parallelizer):
+    def run_on_each_pheno(self, get_input_filepaths, get_output_filepaths, convert, *, cmd=None, phenos=None):
+        if phenos is None: phenos = get_phenolist()
+        tasks = [pheno for pheno in phenos if self.should_process_pheno(pheno, get_input_filepaths, get_output_filepaths)]
         if not tasks:
             print("Output files are all newer than input files, so there's nothing to do.")
             return {}
@@ -250,7 +240,6 @@ class _PerPhenoParallelizer(Parallelizer):
             print("Processing {} phenos".format(len(tasks)))
         else:
             print("Processing {} phenos ({} already done)".format(len(tasks), len(phenos)-len(tasks)))
-
         pheno_results = {}
         for ret in self.run_single_tasks(tasks, convert, cmd=cmd):
             pc = ret['task']['phenocode']
@@ -260,8 +249,17 @@ class _PerPhenoParallelizer(Parallelizer):
             assert pc not in pheno_results
             pheno_results[pc] = v
         return pheno_results
-def parallelize_per_pheno(get_input_filepaths, get_output_filepaths, convert, cmd=None):
-    return _PerPhenoParallelizer().run_on_each_pheno(get_input_filepaths, get_output_filepaths, convert, cmd=cmd)
+    def should_process_pheno(self, pheno, get_input_filepaths, get_output_filepaths):
+        input_filepaths = get_input_filepaths(pheno)
+        output_filepaths = get_output_filepaths(pheno)
+        if isinstance(input_filepaths, str): input_filepaths = [input_filepaths]
+        if isinstance(output_filepaths, str): output_filepaths = [output_filepaths]
+        for fp in input_filepaths:
+            if not os.path.exists(fp):
+                raise PheWebError("Cannot make {} because {} does not exist".format(' or '.join(output_filepaths), fp))
+        return any(not os.path.exists(fp) for fp in output_filepaths) or max(map(mtime, input_filepaths)) > min(map(mtime, output_filepaths))
+def parallelize_per_pheno(get_input_filepaths, get_output_filepaths, convert, *, cmd=None, phenos=None):
+    return PerPhenoParallelizer().run_on_each_pheno(get_input_filepaths, get_output_filepaths, convert, cmd=cmd, phenos=phenos)
 
 
 

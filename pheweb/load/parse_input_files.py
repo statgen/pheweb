@@ -6,18 +6,29 @@ from .read_input_file import PhenoReader
 from .load_utils import parallelize_per_pheno, indent
 
 import itertools
+import argparse
 
 
 def run(argv):
-    if argv:
-        print('`pheweb parse` imports input files')
-        exit(0)
+
+    parser = argparse.ArgumentParser(description="import input files into a nice format")
+    parser.add_argument('--phenos')
+    args = parser.parse_args(argv)
+
+    phenos = get_phenolist()
+    if args.phenos is not None:
+        try:
+            pheno_idxs_to_include = set(int(x) for x in args.phenos.split(','))
+        except Exception as exc:
+            raise PheWebError("Couldn't parse string {!r}".format(args.phenos)) from exc
+        phenos = [phenos[i] for i in pheno_idxs_to_include]
 
     results_by_phenocode = parallelize_per_pheno(
         get_input_filepaths = lambda pheno: pheno['assoc_files'],
         get_output_filepaths = lambda pheno: common_filepaths['parsed'](pheno['phenocode']),
         convert = convert,
         cmd = 'parse-input-files',
+        phenos = phenos,
     )
 
     failed_results = {phenocode:value for phenocode,value in results_by_phenocode.items() if not value['succeeded']}

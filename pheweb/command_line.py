@@ -41,6 +41,7 @@ if 'PHEWEB_DEBUG' in os.environ:
 handlers = {}
 for submodule in '''
  phenolist
+ slurm-parse
  parse_input_files
  sites
  download_rsids
@@ -72,6 +73,20 @@ def serve(argv):
     from pheweb.serve.run import run
     run(argv)
 handlers['serve'] = serve
+
+def configure(argv):
+    from .conf_utils import conf
+    import json
+    for i, arg in enumerate(argv):
+        if '=' not in arg: break
+        k,v = arg.split('=', 1)
+        try: conf[k] = json.loads(v)
+        except: conf[k] = v # TODO: warn
+    else:
+        print(conf)
+        exit(1)
+    run(argv[i:])
+handlers['conf'] = configure
 
 def debug(argv):
     enable_debug()
@@ -124,6 +139,9 @@ Subcommands:
             - have a p-value < 10^-6
             - have a better p-value than every variant within 500kb
             - have a better p-value than every variant within 1Mb in the same phenotype.
+
+    pheweb conf key=value ... <subcommand> <arg>...
+        run `pheweb <subcommand> <arg>...` with some configuration changed, overriding values in config.py
 '''.format(version.version))
 
 
@@ -142,18 +160,16 @@ def main():
     from .utils import PheWebError
     try:
         run(sys.argv[1:])
-    except PheWebError as exc:
-        print(exc)
-        exit(1)
     except (KeyboardInterrupt, Exception) as exc:
         from .file_utils import get_dated_tmp_path
         from .load.load_utils import indent
         import traceback
         exc_filepath = get_dated_tmp_path('exception')
         with open(exc_filepath, 'w') as f:
-            f.write('Exception:\n' + indent(str(exc)) + '\n' +
+            f.write('Exception:\n' + indent(str(exc)) + '\n\n' + # is this useful?
                     'Traceback:\n' + indent(traceback.format_exc()) + '\n')
-        if isinstance(exc, KeyboardInterrupt): print('\nInterrupted')
+        if isinstance(exc, PheWebError): print(exc)
+        elif isinstance(exc, KeyboardInterrupt): print('\nInterrupted')
         else: print('\nAn exception occurred')
-        print('Details in {}\n'.format(exc_filepath))
+        print('(Details in {})\n'.format(exc_filepath))
         exit(1)
