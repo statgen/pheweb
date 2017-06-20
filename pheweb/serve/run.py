@@ -97,14 +97,12 @@ def attempt_open(url):
 
 def run(argv):
 
-    from .server import app
-
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default='0.0.0.0', help='the hostname to use to access this server')
     parser.add_argument('--port', type=int, default=5000, help='an integer for the accumulator')
     parser.add_argument('--no-reloader', action='store_false', dest='use_reloader')
-    parser.add_argument('--num-workers', type=int, default=4, help='number of worker threads')
+    parser.add_argument('--num-workers', type=int, default=8, help='number of worker threads')
     parser.add_argument('--guess-address', action='store_true', help='guess the IP address')
     parser.add_argument('--open', action='store_true', help='try to open a web browser')
     args = parser.parse_args(argv)
@@ -119,6 +117,7 @@ def run(argv):
     if args.guess_address:
         print_ip(args.port)
 
+    from .server import app
     if gunicorn_is_broken():
         run_flask_dev_server(app, args)
     else:
