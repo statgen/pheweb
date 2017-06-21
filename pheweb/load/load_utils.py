@@ -276,6 +276,10 @@ class ProgressBar:
         self._last_time_written = 0
         self._last_message_written = ''
         self._last_message_set = ''
+        # if we're writing to a log file, just use newlines.
+        # unfortunately, that'll make really long output that can hide important warnings.
+        # TODO: decide what to do about that.
+        self._r = '\r' if sys.stderr.isatty() else '\n'
         return self
     def __exit__(self, *args):
         self._write_message(self._last_message_set)
@@ -283,7 +287,7 @@ class ProgressBar:
     def prepend_message(self, message):
         first_line, following_lines = message.split('\n', 1)
         sys.stderr.write(
-            '\r' + first_line +
+            self._r + first_line +
             ' '*max(0, len(self._last_message_written) - len(message)) + '\n' +
             following_lines + '\n' +
             self._last_message_set
@@ -298,7 +302,7 @@ class ProgressBar:
         # TODO: handle multiline messages
         if message != self._last_message_written:
             sys.stderr.write(
-                '\r' + message +
+                self._r + message +
                 ' '*max(0, len(self._last_message_written) - len(message))
             )
             self._last_message_written = message
