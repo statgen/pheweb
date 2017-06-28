@@ -2,6 +2,7 @@
 from .utils import PheWebError, get_phenolist, chrom_order
 from .conf_utils import conf
 
+import io
 import os
 import csv
 from contextlib import contextmanager
@@ -131,7 +132,7 @@ class _vfr_only_per_variant_fields:
 def IndexedVariantFileReader(phenocode):
     filepath = common_filepaths['pheno_gz'](phenocode)
 
-    with gzip.open(filepath, 'rt') as f:
+    with read_gzip(filepath) as f:
         reader = csv.reader(f, dialect='pheweb-internal-dialect')
         colnames = next(reader)
     assert colnames[0].startswith('#')
@@ -203,7 +204,7 @@ class MatrixReader:
             for pheno in phenos
         }
 
-        with gzip.open(self._filepath, 'rt') as f:
+        with read_gzip(self._filepath) as f:
             reader = csv.reader(f, dialect='pheweb-internal-dialect')
             colnames = next(reader)
         assert colnames[0].startswith('#')
@@ -269,22 +270,26 @@ def with_chrom_idx(variants):
         yield v
 
 
-class open_maybe_gzip(object):
-    def __init__(self, filepath, *args):
-        self.filepath = filepath
-        self.args = args
-    def __enter__(self):
-        is_gzip = False
-        with open(self.filepath, 'rb') as f:
-            if f.read(3) == b'\x1f\x8b\x08':
-                is_gzip = True
-        if is_gzip:
-            self.f = gzip.open(self.filepath, *self.args)
-        else:
-            self.f = open(self.filepath, *self.args)
-        return self.f
-    def __exit__(self, *exc):
-        self.f.close()
+@contextmanager
+def read_gzip(filepath):
+    # handles buffering # TODO: profile whether this is fast.
+    with gzip.open(filepath, 'rb') as f: # leave in binary mode (default), let TextIOWrapper decode
+        with io.BufferedReader(f, buffer_size=2**18) as g: # 256KB buffer
+            with io.TextIOWrapper(g) as h: # bytes -> unicode
+                yield h
+
+@contextmanager
+def read_maybe_gzip(filepath):
+    is_gzip = False
+    with open(filepath, 'rb', buffering=0) as f: # no need for buffers
+        if f.read(3) == b'\x1f\x8b\x08':
+            is_gzip = True
+    if is_gzip:
+        with read_gzip(filepath) as f:
+            yield f
+    else:
+        with open(filepath, 'rt', buffering=2**18) as f: # 256KB buffer
+            yield f
 
 
 

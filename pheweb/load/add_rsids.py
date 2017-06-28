@@ -21,7 +21,7 @@ We read one full position at a time.  When we have a position-match, we find all
 
 
 from ..utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
-from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, open_maybe_gzip
+from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, read_maybe_gzip
 
 import os
 import itertools
@@ -103,7 +103,7 @@ def run(argv):
         return
 
     with VariantFileReader(in_filepath) as in_reader, \
-         open_maybe_gzip(rsids_filepath, 'rt') as rsids_f, \
+         read_maybe_gzip(rsids_filepath) as rsids_f, \
          VariantFileWriter(out_filepath) as writer:
 
         rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))

@@ -1,6 +1,6 @@
 
 from ..utils import chrom_order, chrom_aliases
-from ..file_utils import get_generated_path, make_basedir, genes_version, common_filepaths
+from ..file_utils import get_generated_path, make_basedir, genes_version, common_filepaths, read_gzip
 
 import os
 import re
@@ -44,7 +44,7 @@ vaultRNA
 '''.split()).union(good_genetypes)
 
 def get_all_genes(gencode_filepath):
-    with gzip.open(gencode_filepath, 'rt') as f:
+    with read_gzip(gencode_filepath) as f:
         for l in f:
             if l.startswith('#'): continue
             r = l.split('\t')

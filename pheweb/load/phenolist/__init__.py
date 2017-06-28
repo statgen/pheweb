@@ -1,6 +1,6 @@
 
 from ...utils import PheWebError
-from ...file_utils import get_generated_path, make_basedir, common_filepaths, open_maybe_gzip
+from ...file_utils import get_generated_path, make_basedir, common_filepaths, read_maybe_gzip
 from ..read_input_file import PhenoReader
 
 import os
@@ -144,7 +144,7 @@ def import_phenolist(filepath, has_header):
     phenos = _import_phenolist_xlsx(filepath, has_header)
     if phenos is not None:
         return phenos
-    with open_maybe_gzip(filepath) as f:
+    with read_maybe_gzip(filepath) as f:
         # 2. try json.load(f)
         try:
             return json.load(f)

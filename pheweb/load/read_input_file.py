@@ -1,7 +1,7 @@
 
 from ..utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
 from ..conf_utils import conf
-from ..file_utils import open_maybe_gzip
+from ..file_utils import read_maybe_gzip
 from .load_utils import get_maf
 
 import itertools
@@ -96,7 +96,7 @@ class AssocFileReader:
     def get_variants(self, minimum_maf=0):
         fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(conf.parse.per_variant_fields.items(), conf.parse.per_assoc_fields.items()) if fieldval['from_assoc_files']}
 
-        with open_maybe_gzip(self.filepath, 'rt') as f:
+        with read_maybe_gzip(self.filepath) as f:
 
             colnames = [colname.strip('"\' ').lower() for colname in next(f).rstrip('\n\r').split('\t')]
             colidx_for_field = self._parse_header(colnames, fields_to_check)
@@ -146,7 +146,7 @@ class AssocFileReader:
     def _get_infos(self, limit=1000):
         # return the per-pheno info for each of the first `limit` variants
         fields_to_check = conf.parse.per_pheno_fields
-        with open_maybe_gzip(self.filepath, 'rt') as f:
+        with read_maybe_gzip(self.filepath) as f:
             colnames = [colname.strip('"\' ').lower() for colname in next(f).rstrip('\n\r').split('\t')]
             colidx_for_field = self._parse_header(colnames, fields_to_check)
             self._assert_all_fields_mapped(colnames, fields_to_check, colidx_for_field)
