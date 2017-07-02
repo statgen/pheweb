@@ -4,7 +4,6 @@ from ..file_utils import get_generated_path, make_basedir, genes_version, common
 
 import os
 import re
-import gzip
 import csv
 import wget
 import boltons.iterutils
