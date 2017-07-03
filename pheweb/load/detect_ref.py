@@ -1,27 +1,98 @@
 
 from ..utils import chrom_order, PheWebError
-from ..file_utils import get_cacheable_file_location, get_tmp_path
-from .load_utils import run_script
+from ..file_utils import get_cacheable_file_location, get_tmp_path, read_maybe_gzip
+from .load_utils import run_script, ProgressBar
 
+from collections import OrderedDict
+from contextlib import ExitStack
 import wget
 import os
+import sys
 
+# TODO:
+# class Build?
+#   .lookup_base(chrom, pos, length=1)
+#   ._ref_filepath(chrom)
+#   ._download_ref(chrom)
+#   .__str__()
+#   .__hash__()
+# class AllBuilds?
+#   .compatible_builds(chrom, pos, base)
+#   .lookup_base(chrom, pos
 
 known_builds = [{'hg':'hg'+a, 'GRCh':'GRCh'+b} for a,b in [('18','36'),('19','37'),('38','38')]]
 
-def get_base(build, chrom, pos):
+
+def handle_vcf(args):
+    # TODO: only check builds that are still compatible.
+    vcf_filepath = args[0]
+    if len(args) > 1: col_idx = dict(chrom=int(args[1]), pos=int(args[2]), a1=int(args[3]), a2=int(args[4]))
+    else: col_idx = dict(chrom=0, pos=1, a1=3, a2=4)
+    match_counts = OrderedDict((build['hg'],{'a1':0, 'a2':0, 'either':0}) for build in known_builds)
+    num_variants = 0
+    with ExitStack() as es, \
+         ProgressBar() as progressbar:
+        if vcf_filepath == '-': f = sys.stdin
+        else: f = es.enter_context(read_maybe_gzip(vcf_filepath))
+        for line in f:
+            try:
+                if line.startswith('#'): continue
+                parts = line.split('\t')
+                chrom = parse_chrom(parts[col_idx['chrom']])
+                pos = parse_pos(parts[col_idx['pos']])
+                a1 = parts[col_idx['a1']]
+                a2 = parts[col_idx['a2']]
+                matching_builds_a1 = {build['hg'] for build in get_matching_builds(chrom, pos, a1)}
+                matching_builds_a2 = {build['hg'] for build in get_matching_builds(chrom, pos, a2)}
+            except Exception as exc:
+                raise exc from Exception('Failed line: {!r}'.format(line))
+            for build in matching_builds_a1: match_counts[build]['a1'] += 1
+            for build in matching_builds_a2: match_counts[build]['a2'] += 1
+            for build in set.union(matching_builds_a1,matching_builds_a2): match_counts[build]['either'] += 1
+            num_variants += 1
+
+            if not any(d['either'] == num_variants for d in match_counts.values()):
+                print('No build matches perfectly, so quitting')
+                break
+
+            progressbar.set_message(
+                ' '.join(
+                    '{}[{}]'.format(
+                        build_hg,
+                        ' '.join(
+                            '{}:{}'.format(
+                                allele,
+                                'all' if num_match==num_variants else '{}%'.format(100*num_match//num_variants))
+                            for allele, num_match in d.items()
+                        )
+                    )
+                    for build_hg, d in match_counts.items()
+                ) +
+                ' for {:,} variants'.format(num_variants)
+            )
+
+
+def get_matching_builds(chrom, pos, ref):
+    matching_builds = []
+    for build, base in get_base_in_all_builds(chrom, pos, length=len(ref)):
+        if base is not None and base.upper() == ref:
+            matching_builds.append(build)
+    return matching_builds
+
+def get_base_in_all_builds(chrom, pos, length=1):
+    return [(build, get_base(build, chrom, pos, length=length)) for build in known_builds]
+
+def get_base(build, chrom, pos, length=1):
     '''returns A/T/C/G or None (if read failed)'''
     with open(ref_filepath(build, chrom), 'rb') as f:
         try:
             f.seek(pos - 1) # I don't understand why we need -1 but I'm not surprised.
         except OSError:
             return None
-        alt = f.read(1)
+        alt = f.read(length)
     if not alt: return None
     return alt.decode('ascii')
 
-def get_base_in_all_builds(chrom, pos):
-    return [(build, get_base(build, chrom, pos)) for build in known_builds]
 
 def download_ref(build, chrom):
     '''Download a chromosome reference file, and remove the header and newlines so we can seek to positions.'''
@@ -51,6 +122,7 @@ def ref_filepath(build, chrom, download=True):
     if download: download_ref(build, chrom)
     return filepath
 
+
 def parse_build(build_string):
     for b in known_builds:
         if build_string in b.values():
@@ -66,49 +138,41 @@ def parse_pos(pos_string):
     except: raise PheWebError("pos {} is not an integer".format(pos_string))
     return pos
 
-def run(argv):
 
+def run(argv):
     def usage():
         print('''
 $ detect-ref get-base 22 18271078
 hg18 22:18,271,078 C
 hg19 22:18,271,078 G
 hg38 22:18,271,078 N
+
+$ detect-ref get-base hg19 22 18271078
+hg19 22:18,271,078 G
+
+$ $ detect-ref vcf a.vcf.gz
+hg18(24%) hg19(all) hg38(24%) for 92,927 variants
 ''')
         exit(0)
 
-    if not argv or argv[0] in ['-h', '--help', 'help']:
+    if not argv or any(arg in {'-h', '--help', 'help'} for arg in argv):
         usage()
-
-    elif len(argv) == 3 and argv[0] in ['download', 'dl']:
-        build = parse_build(argv[1])
-        chrom = parse_chrom(argv[2])
-        download_ref(build, chrom)
 
     elif len(argv) == 4 and argv[0] == 'get-base':
         build = parse_build(argv[1])
         chrom = parse_chrom(argv[2])
         pos = parse_pos(argv[3])
         base = get_base(build, chrom, pos)
-        if base is None:
-            print('{} {}:{:,} {}'.format(build['hg'], chrom, pos, base))
-        else:
-            print('{} {}:{:,} not found'.format(build['hg'], chrom, pos))
+        print('{} {}:{:,} {}'.format(build['hg'], chrom, pos, 'not found' if base is None else base))
 
     elif len(argv) == 3 and argv[0] == 'get-base':
         chrom = parse_chrom(argv[1])
         pos = parse_pos(argv[2])
         for build, base in get_base_in_all_builds(chrom, pos):
-            if base is not None:
-                print('{} {}:{:,} {}'.format(build['hg'], chrom, pos, base))
-            else:
-                print('{} {}:{:,} not found'.format(build['hg'], chrom, pos))
+            print('{} {}:{:,} {}'.format(build['hg'], chrom, pos, 'not found' if base is None else base))
 
-    # elif len(argv) == 4 and argv[0] == 'build':
-    #     chrom = parse_chrom(argv[1])
-    #     pos = parse_pos(argv[2])
-    #     base = parse_base(argv[3])
-    #     print('{}:{:,} {}'.format(chrom, pos, base), 'matches builds', compatible_builds(chrom, pos, base))
+    elif len(argv) == 2 and argv[0] == 'vcf':
+        handle_vcf(argv[1:])
 
     else:
         usage()
