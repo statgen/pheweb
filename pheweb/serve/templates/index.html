@@ -11,7 +11,28 @@
 {% endblock %}
 
 {% block contained %}
-<div class="row" style="margin-top:7em">
+
+<br style="margin-top:2em">
+{% if current_user and not current_user.is_authenticated %}
+<div class="row">
+  <div class="col-xs-10 col-xs-offset-1">
+    <div class="jumbotron">
+      <p>Please log in to view this data.</p>
+      <br>
+      <p><a class="btn-lg btn-primary" role="button" href="{{ url_for('login_with_google') }}">Click here to login with Google</a></p>
+      <br>
+      <p style="margin-bottom:0">
+        If your email address is on the whitelist but is not connected to a Google account, please
+        <a href="https://accounts.google.com/SignUpWithoutGmail">create a Google account for it</a>.
+      </p>
+    </div>
+  </div>
+</div>
+{% else %}
+<br style="margin-top: 3em">
+{% endif %}
+
+<div class="row">
     <div class="col-xs-12 col-sm-offset-1 col-sm-10">
         <h1>{% include 'index/h1.html' %}</h1>
         {% include 'index/below-h1.html' %}
