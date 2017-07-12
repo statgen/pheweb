@@ -62,5 +62,4 @@ setup(
         'cffi~=1.9',
         'wget~=3.2',
     ]
-    # LATER: when py3 gunicorn becomes compatible with inotify, add it too.
 )
