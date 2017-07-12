@@ -1,5 +1,7 @@
 For a demo, see the [Michigan Genomics Initiative PheWeb](http://pheweb.sph.umich.edu).
 
+![screenshot of PheWAS plot](https://cloud.githubusercontent.com/assets/862089/25474725/3edbe256-2b02-11e7-8abb-0ca26d406b11.png)
+
 # How to Build a PheWeb for your Data
 
 If any of these steps is incorrect, please email me at <pjvh@umich.edu> and I'll see what I can do to improve things.
