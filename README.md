@@ -64,7 +64,7 @@ If any of those commands don't work, use these long instructions instead:
 
 ### 2. Prepare your association files
 
-You should have one file for each phenotype. It can be gzipped if you want. It should be tab-delimited and have a header row. Variants must be sorted by chromosome and position, with chromosomes in the order [1-22,X,Y,MT].
+You should have one file for each phenotype. It can be gzipped if you want. It should be **tab-delimited** and have a **header row**. Variants must be sorted by chromosome and position, with chromosomes in the order [1-22,X,Y,MT].
 
 - If you are using EPACTS, your files should work just fine. If they don't, email me. EPACTS files won't have `REF` or `ALT`, but PheWeb will parse their `MARKER_ID` column to get those.
 
