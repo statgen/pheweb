@@ -2,7 +2,7 @@
 # to upload to pypi:
 #     0. have a good `~/.pypirc`
 #     1. set a new version in `pheweb/version.py`
-#     2. `python3 setup.py sdist bdist_wheel && twine upload --skip-existing dist/PheWeb-0.9.<version>*`
+#     2. `rm -r dist && python3 setup.py sdist bdist_wheel && twine upload dist/*`
 # to upgrade: `pip3 install --upgrade --upgrade-strategy only-if-needed --no-cache-dir pheweb`
 
 
@@ -44,22 +44,22 @@ setup(
         'cffi~=1.9',
     ],
     install_requires=[
-        'flask>=0.12',
-        'flask-compress~=1.4',
-        'flask-Login>=0.3.2',
-        'rauth>=0.7.2',
-        'pysam~=0.9',
+        'Flask>=0.12',
+        'Flask-Compress~=1.4',
+        'Flask-Login~=0.4',
+        'rauth~=0.7',
+        'pysam~=0.11',
         'marisa-trie~=0.7',
         'intervaltree~=2.1',
-        'tqdm~=4.11',
-        'openpyxl~=2.4',
-        'scipy~=0.18',
-        'numpy>=1.11',
-        'requests[security]~=2.13',
-        'gunicorn~=19.6',
+        'tqdm~=4.14',
+        'openpyxl~=2.5',
+        'scipy~=0.19',
+        'numpy~=1.13',
+        'requests[security]~=2.18',
+        'gunicorn~=19.7',
         'boltons~=17.0',
         'blist~=1.3',
-        'cffi~=1.9',
+        'cffi~=1.10',
         'wget~=3.2',
     ]
 )
