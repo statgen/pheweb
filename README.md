@@ -6,63 +6,30 @@ For a demo, see the [Michigan Genomics Initiative PheWeb](http://pheweb.sph.umic
 
 If any of these steps is incorrect, please email me at <pjvh@umich.edu> and I'll see what I can do to improve things.
 
-## Quickstart
-
-If everything goes well, you should be able to build a PheWeb with the
-following commands:
+### 1. Install PheWeb
 
 ```bash
 pip3 install pheweb
-mkdir ~/my-new-pheweb && cd ~/my-new-pheweb
-pheweb phenolist glob --simple-phenocode /data/my-analysis/*/*.epacts.gz
-pheweb process
-pheweb serve --open
 ```
 
-If any of those commands don't work, use these long instructions instead:
+   - If that doesn't work, follow [the detailed install instructions](etc/detailed-install-instructions.md#detailed-install-instructions).
 
-## Detailed Instructions
+### 2. Create a directory for your new dataset
 
-### 1. Install PheWeb
+1. `mkdir ~/my-new-pheweb && cd ~/my-new-pheweb`
 
-1. Run `pip3 install pheweb`.
+   - This directory will store all data for the pheweb your are building. All `pheweb ...` commands should be run in this directory.
+   - You can put it wherever you want and name it whatever you want.
 
-   - If that doesn't work, either:
-
-       - Install as root with `sudo pip3 install pheweb`, or
-       - Install PheWeb through [miniconda3](https://conda.io/miniconda.html) by running:
-
-          ```bash
-          if uname -a | grep -q Darwin; then curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > install-miniconda.sh; fi
-          if uname -a | grep -q Linux; then curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > install-miniconda.sh; fi
-          bash install-miniconda.sh
-          ```
-
-          Then hit "q" when you're done with reading the terms and hit enter at every `>>>` prompt. They'll create `~/miniconda3` and modify `$PATH` in your `~/.bash_profile`.
-
-          Next, close and re-open your terminal and then run:
-
-          ```bash
-          python3 -m pip install pheweb
-          ```
-
-          Finally, because miniconda makes `python` refer to `python3`, (which most users don't want) you should probably run:
-          ```bash
-          rm ~/miniconda3/bin/python
-          ```
-
-2. Make a data directory. It should be in a location where you can afford to store twice as much data as the size of your input files. All `pheweb ...` commands should be run in this directory.
-
-3. If you want to configure any options, make a file `config.py` in your data directory. Some options you can set are:
-
+2. If you want to configure any options, make a file `config.py` in your data directory. Some options you can set are:
 
     - Minor Allele Frequency cutoffs:
         - `assoc_min_maf`: an association (between a phenotype and variant) will only be included if its MAF is greater than this value.  (default: `0`, but it saves disk space during loading, so I usually use at least `variant_inclusion_maf / 2`)
-        - `variant_inclusion_maf`: a variant will only be included if it has some associations with MAF greater than this value.  That is, if some or all associations for a variant are above `assoc_min_maf`, but none are above `variant_inclusion_maf`, all will be dropped.  If any is above `variant_inclusion_maf`, all that are above `assoc_min_maf` will be included. (default: `0`, but I recommend at least `0.005`)
+        - `variant_inclusion_maf`: a variant will only be included if it has some associations with MAF greater than this value.  That is, if some or all associations for a variant are above `assoc_min_maf`, but none are above `variant_inclusion_maf`, that entire variant (including all of its associations with phenotypes) will be dropped.  If any association's MAF is above `variant_inclusion_maf`, all associations for that variant that are above `assoc_min_maf` will be included. (default: `0`, but I recommend at least `0.005`)
 
     - `cache`: a directory where files common to all datasets can be stored. If you don't want one, set `cache = False`. (default: `cache = "~/.pheweb/cache/"`)
 
-### 2. Prepare your association files
+### 3. Prepare your association files
 
 You should have one file for each phenotype. It can be gzipped if you want. It should be **tab-delimited** and have a **header row**. Variants must be sorted by chromosome and position, with chromosomes in the order [1-22,X,Y,MT].
 
@@ -102,7 +69,7 @@ You may also have columns for:
 | number of cases | `num_cases` | `ns.case`, `n_cases` | integer, must be the same for every variant in its phenotype |
 
 
-### 3. Make a list of your phenotypes
+### 4. Make a list of your phenotypes
 
 Inside of your data directory, you need a file named `pheno-list.json` that looks like this:
 
@@ -173,88 +140,17 @@ There are four ways to make a `pheno-list.json`:
 
   No matter what you do, please run `pheweb phenolist verify` when you are done to check that it worked correctly. At any point, you may run `pheweb phenolist view` or `pheweb phenolist print-as-csv` to view the current file.
 
-### 4. Load your association files
+### 5. Load your association files
 
 1. Run `pheweb process`.
 2. If something breaks, read the error message.
 
-  - If you can understand the error message, modify your input files to avoid it.
+  - If you can understand the error message, modify your association or config files to avoid it, or drop the problematic phenotypes from `pheno-list.json`.  Then re-run `pheweb process`.
   - If the problem is something that PheWeb should support by default, feel free to email it to me at <pjvh@umich.edu>.
   - If you can't understand the error message, please email your error message to <pjvh@umich.edu> and hopefully I can get back to you quickly.
 
-  Then re-run `pheweb process`.
-
-### 5. Run a server to check that everything loaded correctly
+### 6. Serve the website
 
 Run `pheweb serve --open`.
 
-- If that succeeds and you are able to view the site in a web browser, you're done with this section.
-
-- If port 5000 is already taken, choose a different port (for example, 5432) and run `pheweb serve --port 5432` instead.
-
-- If the server works but you can't open it in a web browser, you have two options:
-
-  1. Run PheWeb on the open internet.
-
-     You need a port that can get through your firewall. 80 or 5000 probably work. 80 will require you to run something like `sudo $(which python3) $(which pheweb) serve --port 80`.
-
-     Then run `pheweb serve --guess-address` and open the two URLs it provides.
-
-  2. Run PheWeb with the default settings, then use an SSH tunnel to connect to it from your computer.
-
-     For example, if you normally ssh in with `ssh watman@x.example.com`, then the command you should run (on the computer you're sitting at) is `ssh -N -L localhost:5000:localhost:5000 watman@x.example.com`.
-
-     Then open <http://localhost:5000> in your web browser.
-
-### 6. Use Apache/Nginx (optional)
-
-At this point your PheWeb should be working how you want it to, except maybe the URL you're using.
-
-`pheweb serve` already uses gunicorn. For maximum speed and safety, you should run gunicorn routed through a program like Apache2 or Nginx. If you choose Apache2, I have some documentation [here](https://github.com/statgen/pheweb/tree/master/unnecessary_things/other_documentation/running_with_apache2).
-
-# Internal Data-Handling
-```
-                 input-association-files (epacts, plink, snptest, &c)
-                      |         |
-                      |         v
-                      |  pheno-list.json
-                      |   |           |
-                      v   v           |
-                     parsed/*----+    |
-                         |       |    |
-                         v       |    |
-                       unanno    |    |
-               genes.bed |       |    |
-             rsids.tsv | |       |    |
-                     | | |       |    |
-                     v v v       |    |
-                  sites.tsv      |    |
-                  |   |   |      v    v
-                  |   |   +----> pheno/*
-                  v   |          | | | |
-    cpra-rsids-tries  |          | | | v
-                      v          v | | augmented_pheno_gz/*
-                     matrix.tsv.gz | v
-                      |    |       | manhattan/*
-                      v    |       v         |
-       matrix.tsv.gz.tbi   |      qq/*       v
-                      |    |                top_{loci,hits{,_1k}}.{json,tsv}
-                      v    v
-         best-phenos-by-gene.json
-```
-
-- `parsed/*` have all per-variant and per-assoc fields from the input files
-- `unanno` (unannotated) has all per-variant fields from `parsed/*`
-- `sites.tsv` has `unanno`'s fields and also `rsids` and `nearest_genes`
-- `pheno/*` have `parsed/*`'s fields and also `rsids` and `nearest_genes`
-    - all must include the same optional per-variant fields, and all per-variant fields must be in the same order, due to the implemention of the `matrix.tsv.gz`-maker
-- cpra-rsid-tries are for autocomplete suggestions.
-- `matrix.tsv.gz` contains all per-variant fields at the beginning (confirmed to EXACTLY match any file among \[augmented\_pheno/\* , sites.tsv\] where they exist) and all per-assoc fields (with header format `<per-assoc-field>@<pheno-id>`).
-- `top_hits.json` contains variants (and their per-variant and per-assoc fields) that passed this algorithm:
-   - start with all variants with pval<1e-6
-   - iteratively take the association with the most-significant pval, and mask all variants within 500kb in its phenotype
-- `top_loci.json` contains variants (and their per-variant and per-assoc fields) that passed this algorithm:
-   - start with all variants with pval<1e-6
-   - iteratively take the association with the most-significant pval, and mask all variants within 1Mb in its phenotype or within 500kb in any phenotype
-   - this might not be a subset of top_hits.
-- `best-phenos-by-gene.json` includes the best phenos in/near a gene, and the best association for each.
+That command should either open a browser to your new PheWeb, or it should give you a URL that you can open in your browser to access your new PheWeb.  If it doesn't, follow the directions for [hosting a PheWeb and accessing it from your browser](etc/detailed-webserver-instructions.md#hosting-a-pheweb-and-accessing-it-from-your-browser).  If you'd like to use Apache2 or Nginx, see instructions [here](etc/detailed-webserver-instructions.md#using-apache2-or-nginx).
