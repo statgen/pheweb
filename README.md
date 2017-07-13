@@ -153,4 +153,9 @@ There are four ways to make a `pheno-list.json`:
 
 Run `pheweb serve --open`.
 
-That command should either open a browser to your new PheWeb, or it should give you a URL that you can open in your browser to access your new PheWeb.  If it doesn't, follow the directions for [hosting a PheWeb and accessing it from your browser](etc/detailed-webserver-instructions.md#hosting-a-pheweb-and-accessing-it-from-your-browser).  If you'd like to use Apache2 or Nginx, see instructions [here](etc/detailed-webserver-instructions.md#using-apache2-or-nginx).
+That command should either open a browser to your new PheWeb, or it should give you a URL that you can open in your browser to access your new PheWeb.
+If it doesn't, follow the directions for [hosting a PheWeb and accessing it from your browser](etc/detailed-webserver-instructions.md#hosting-a-pheweb-and-accessing-it-from-your-browser).
+
+To use Apache2 or Nginx (for performance), see instructions [here](etc/detailed-webserver-instructions.md#using-apache2-or-nginx).
+To require login via OAuth, see instructions [here](etc/detailed-webserver-instructions.md#using-oauth).
+To track page views with Google Analytics, see instructions [here](etc/detailed-webserver-instructions.md#using-google-analytics).
