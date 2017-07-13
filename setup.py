@@ -52,7 +52,7 @@ setup(
         'marisa-trie~=0.7',
         'intervaltree~=2.1',
         'tqdm~=4.14',
-        'openpyxl~=2.5',
+        'openpyxl~=2.4',
         'scipy~=0.19',
         'numpy~=1.13',
         'requests[security]~=2.18',
