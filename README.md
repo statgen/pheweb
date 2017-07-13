@@ -12,7 +12,7 @@ If any of these steps is incorrect, please email me at <pjvh@umich.edu> and I'll
 pip3 install pheweb
 ```
 
-   - If that doesn't work, follow [the detailed install instructions](etc/detailed-install-instructions.md#detailed-install-instructions).
+- If that doesn't work, follow [the detailed install instructions](etc/detailed-install-instructions.md#detailed-install-instructions).
 
 ### 2. Create a directory for your new dataset
 
@@ -23,11 +23,11 @@ pip3 install pheweb
 
 2. If you want to configure any options, make a file `config.py` in your data directory. Some options you can set are:
 
-    - Minor Allele Frequency cutoffs:
-        - `assoc_min_maf`: an association (between a phenotype and variant) will only be included if its MAF is greater than this value.  (default: `0`, but it saves disk space during loading, so I usually use at least `variant_inclusion_maf / 2`)
-        - `variant_inclusion_maf`: a variant will only be included if it has some associations with MAF greater than this value.  That is, if some or all associations for a variant are above `assoc_min_maf`, but none are above `variant_inclusion_maf`, that entire variant (including all of its associations with phenotypes) will be dropped.  If any association's MAF is above `variant_inclusion_maf`, all associations for that variant that are above `assoc_min_maf` will be included. (default: `0`, but I recommend at least `0.005`)
+   - Minor Allele Frequency cutoffs:
+     - `assoc_min_maf`: an association (between a phenotype and variant) will only be included if its MAF is greater than this value.  (default: `0`, but it saves disk space during loading, so I usually use at least `variant_inclusion_maf / 2`)
+     - `variant_inclusion_maf`: a variant will only be included if it has some associations with MAF greater than this value.  That is, if some or all associations for a variant are above `assoc_min_maf`, but none are above `variant_inclusion_maf`, that entire variant (including all of its associations with phenotypes) will be dropped.  If any association's MAF is above `variant_inclusion_maf`, all associations for that variant that are above `assoc_min_maf` will be included. (default: `0`, but I recommend at least `0.005`)
 
-    - `cache`: a directory where files common to all datasets can be stored. If you don't want one, set `cache = False`. (default: `cache = "~/.pheweb/cache/"`)
+   - `cache`: a directory where files common to all datasets can be stored. If you don't want one, set `cache = False`. (default: `cache = "~/.pheweb/cache/"`)
 
 ### 3. Prepare your association files
 
@@ -99,55 +99,55 @@ There are four ways to make a `pheno-list.json`:
 
 1. If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running `pheweb phenolist import-phenolist "/path/to/my/pheno-list.csv"`.
 
-    If you have multiple association files for each phenotype, you may put them all into a single column with `|` between them. For example, your file `pheno-list.csv` might look like this:
+   If you have multiple association files for each phenotype, you may put them all into a single column with `|` between them. For example, your file `pheno-list.csv` might look like this:
 
-    ```
-    phenocode,assoc_files
-    eats-kimchi,/home/watman/eats-kimchi.autosomal.epacts.gz|/home/watman/eats-kimchi.X.epacts.gz
-    ear-length,/home/watman/ear-length.all.epacts.gz
-    ```
+   ```
+   phenocode,assoc_files
+   eats-kimchi,/home/watman/eats-kimchi.autosomal.epacts.gz|/home/watman/eats-kimchi.X.epacts.gz
+   ear-length,/home/watman/ear-length.all.epacts.gz
+   ```
 
 2. If you have one association file per phenotype, you can use a shell-glob and a regex to get assoc-files and phenocodes for them. Suppose that your assocation files are at paths like:
 
-  - `/home/watman/eats-kimchi.epacts.gz`
-  - `/home/watman/ear-length.epacts.gz`
+   - `/home/watman/eats-kimchi.epacts.gz`
+   - `/home/watman/ear-length.epacts.gz`
 
-  Then you could run `pheweb phenolist glob-files "/home/watman/*.epacts.gz"` to get `assoc-files`.
+   Then you could run `pheweb phenolist glob-files "/home/watman/*.epacts.gz"` to get `assoc-files`.
 
-  To get `phenocodes`, you can use a regex that captures the phenocode from the file path. In most cases (including this one), just use:
+   To get `phenocodes`, you can use a regex that captures the phenocode from the file path. In most cases (including this one), just use:
 
-    ```
-    pheweb phenolist extract-phenocode-from-filepath --simple
-    ```
+   ```
+   pheweb phenolist extract-phenocode-from-filepath --simple
+   ```
 
 3. If you have multiple association files for some phenotypes, you can follow the directions in 2 and then run `pheweb phenolist unique-phenocode`.
 
-  For example, if your association files are at:
+   For example, if your association files are at:
 
-  - `/home/watman/autosomal/eats-kimchi.epacts.gz`
-  - `/home/watman/X/eats-kimchi.epacts.gz`
-  - `/home/watman/all/ear-length.epacts.gz`
+   - `/home/watman/autosomal/eats-kimchi.epacts.gz`
+   - `/home/watman/X/eats-kimchi.epacts.gz`
+   - `/home/watman/all/ear-length.epacts.gz`
 
-  then you can run:
+   then you can run:
 
-    ```
-    pheweb phenolist glob-files "/home/watman/*/*.epacts.gz"
-    pheweb phenolist extract-phenocode-from-filepath --simple
-    pheweb phenolist unique-phenocode
-    ```
+   ```
+   pheweb phenolist glob-files "/home/watman/*/*.epacts.gz"
+   pheweb phenolist extract-phenocode-from-filepath --simple
+   pheweb phenolist unique-phenocode
+   ```
 
 4. If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for `pheweb phenolist`.
 
-  No matter what you do, please run `pheweb phenolist verify` when you are done to check that it worked correctly. At any point, you may run `pheweb phenolist view` or `pheweb phenolist print-as-csv` to view the current file.
+   No matter what you do, please run `pheweb phenolist verify` when you are done to check that it worked correctly. At any point, you may run `pheweb phenolist view` or `pheweb phenolist print-as-csv` to view the current file.
 
 ### 5. Load your association files
 
 1. Run `pheweb process`.
 2. If something breaks, read the error message.
 
-  - If you can understand the error message, modify your association or config files to avoid it, or drop the problematic phenotypes from `pheno-list.json`.  Then re-run `pheweb process`.
-  - If the problem is something that PheWeb should support by default, feel free to email it to me at <pjvh@umich.edu>.
-  - If you can't understand the error message, please email your error message to <pjvh@umich.edu> and hopefully I can get back to you quickly.
+   - If you can understand the error message, modify your association or config files to avoid it, or drop the problematic phenotypes from `pheno-list.json`.  Then re-run `pheweb process`.
+   - If the problem is something that PheWeb should support by default, feel free to email it to me at <pjvh@umich.edu>.
+   - If you can't understand the error message, please email your error message to <pjvh@umich.edu> and hopefully I can get back to you quickly.
 
 ### 6. Serve the website
 
