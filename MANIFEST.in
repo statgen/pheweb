@@ -1,4 +1,4 @@
-include README.rst
 recursive-include pheweb/serve/static *
 recursive-include pheweb/serve/templates *
 recursive-include pheweb *.py
+include pheweb/load/cffi/*.cpp

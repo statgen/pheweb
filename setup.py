@@ -16,7 +16,7 @@ setup(
     name='PheWeb',
     version=version,
     description="A tool for building PheWAS websites from association files",
-    long_description='Please see the README `on github <https://github.com/statgen/pheweb>`__', # TODO: use `try: import pypandoc; return pypandoc.convert('README.md', 'rst') except: return ''`
+    long_description='Please see the README `on github <https://github.com/statgen/pheweb>`__',
     author="Peter VandeHaar",
     author_email="pjvh@umich.edu",
     url="https://github.com/statgen/pheweb",
