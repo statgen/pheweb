@@ -1,30 +1,30 @@
 # Internal Data-Handling
 ```
                  input-association-files (epacts, plink, snptest, &c)
-                      |         |
-                      |         v
-                      |  pheno-list.json
-                      |   |           |
-                      v   v           |
-                     parsed/*----+    |
-                         |       |    |
-                         v       |    |
-                       unanno    |    |
-               genes.bed |       |    |
-             rsids.tsv | |       |    |
-                     | | |       |    |
-                     v v v       |    |
-                  sites.tsv      |    |
-                  |   |   |      v    v
-                  |   |   +----> pheno/*
-                  v   |          | | | |
-    cpra-rsids-tries  |          | | | v
-                      v          v | | augmented_pheno_gz/*
-                     matrix.tsv.gz | v
-                      |    |       | manhattan/*
-                      v    |       v         |
-       matrix.tsv.gz.tbi   |      qq/*       v
-                      |    |                top_{loci,hits{,_1k}}.{json,tsv}
+                      │         │
+                      │         v
+                      │  pheno-list.json
+                      │   │           │
+                      v   v           │
+                     parsed/*         │
+                        │ └──────┐    │
+                        v        │    │
+                       unanno    │    │
+               genes.bed │       │    │
+             rsids.tsv │ │       │    │
+                     │ │ │       │    │
+                     v v v       │    │
+                  sites.tsv      │    │
+                  │   │   │      v    v
+                  │   │   └────> pheno/*
+                  v   │          │ │ │ │
+    cpra-rsids-tries  │          │ │ │ v
+                      v          v │ │ augmented_pheno_gz/*
+                     matrix.tsv.gz │ v
+                      │    │       │ manhattan/*
+                      v    │       v         │
+       matrix.tsv.gz.tbi   │      qq/*       v
+                      │    │                top_{loci,hits{,_1k}}.{json,tsv}
                       v    v
          best-phenos-by-gene.json
 ```
