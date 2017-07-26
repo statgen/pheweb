@@ -143,6 +143,9 @@ There are four ways to make a `pheno-list.json`:
 ### 5. Load your association files
 
 1. Run `pheweb process`.
+
+   - This step can take hours or days for large datasets.  If you want to use the SLURM cluster scheduler, run `pheweb slurm-parse` for parsing and then `pheweb process --no-parse` for everything else.
+
 2. If something breaks, read the error message.
 
    - If you can understand the error message, modify your association or config files to avoid it, or drop the problematic phenotypes from `pheno-list.json`.  Then re-run `pheweb process`.
