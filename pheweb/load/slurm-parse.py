@@ -35,7 +35,7 @@ def run(argv):
 #SBATCH --error={tmp_path}/slurm-%j.out
 
 jobs=(
-'''.format(n_jobs = len(jobs)-1), tmp_path=tmp_path)
+'''.format(n_jobs = len(jobs)-1, tmp_path=tmp_path))
 
         for job in jobs:
             f.write(','.join(map(str,job)) + '\n')
