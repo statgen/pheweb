@@ -38,3 +38,9 @@
     pointer-events: none;
 }
 
+.navbar-default { background-color: #02076e; }
+input.typeahead { background-color: #02076e; color: white; }
+.tt-menu { background-color: #02076e; color: white; border: 1px solid white; border-radius: 4px; }
+.pheweb-logo { max-width: 100%; max-height: 10em; }
+.navbar-brand { float: left; font-size: 15px; padding: 3px; }
+.pheweb-icon { max-height: 100%; }

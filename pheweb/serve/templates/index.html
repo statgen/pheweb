@@ -4,6 +4,7 @@
 
 {% block in_head %}
 <style type="text/css">
+  body { background-color: #02076e; }
   .navbar-default {
     border: none;
   }
@@ -34,7 +35,7 @@
 
 <div class="row">
     <div class="col-xs-12 col-sm-offset-1 col-sm-10">
-        <h1>{% include 'index/h1.html' %}</h1>
+        <div style="text-align:center">><img src="{{ url_for('static', filename='img/logo-index.jpg') }}" class="pheweb-logo"></div>
         {% include 'index/below-h1.html' %}
     </div>
 </div>
