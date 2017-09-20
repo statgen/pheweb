@@ -17,7 +17,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (_.any(window.variant.phenos.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
         window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return d.phenocode; });
     } else {
-        window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return Number.parseFloat(d.phenocode); });
+        window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return parseFloat(d.phenocode); });
     }
 
     window.first_of_each_category = (function() {
@@ -269,7 +269,7 @@ if (typeof window.variant.rsids !== "undefined") {
             }).done(function(result) {
                 // window.rv = result;
                 var count_elem = result.querySelector('eSearchResult Count');
-                var num_pubmed_results = (count_elem === null) ? 0 : Number.parseInt(count_elem.textContent);
+                var num_pubmed_results = (count_elem === null) ? 0 : parseInt(count_elem.textContent);
                 if (num_pubmed_results > 0) {
                     if (rsids.length == 1) {
                         $('#pubmed-link').html(', <a href="{URL}" target="_blank">PubMed ({NUM} results)</a>'

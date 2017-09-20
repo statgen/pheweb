@@ -18,7 +18,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         variant_bins.forEach(update_chrom_extents);
         unbinned_variants.forEach(update_chrom_extents);
 
-        var chroms = _.sortBy(Object.keys(chrom_extents), Number.parseInt);
+        var chroms = _.sortBy(Object.keys(chrom_extents), parseInt);
 
         var chrom_genomic_start_positions = {};
         chrom_genomic_start_positions[chroms[0]] = 0;
