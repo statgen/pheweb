@@ -6,6 +6,9 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
 
     //intended for an object of arrays
     //{"id":[1,2], "val":[5,10]}
+    if (Object.keys(x).length === 0) {
+        throw "The association source sent back no data for this region.";
+    }
     var records = [];
     fields.forEach(function(f, i) {
         if (!(f in x)) {throw "field " + f + " not found in response for " + outnames[i];}

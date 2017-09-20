@@ -49,6 +49,9 @@ common_filepaths = {
     'qq':        (lambda phenocode: get_generated_path('qq', '{}.json'.format(phenocode) if phenocode else '')),
 }
 
+# TODO: make a standard function for getting file names that checks that they exist.
+#       if the file doesn't exist, it prints an error message telling the user how to make that file.
+
 
 def make_basedir(path):
     mkdir_p(os.path.dirname(path))
