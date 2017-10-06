@@ -2,7 +2,7 @@
 from .. import utils
 conf = utils.conf
 
-from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory
+from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, url_for
 from flask_compress import Compress
 
 from .autocomplete import Autocompleter
@@ -171,6 +171,39 @@ def gene_page(genename):
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
+
+
+@app.route('/download/<phenocode>/<token>')
+def download_pheno(phenocode, token):
+    if phenocode not in phenos:
+        die("Sorry, that phenocode doesn't exist")
+    if not Hasher.check_hash(token, phenocode):
+        die("Sorry, that token is incorrect")
+    try:
+        return send_from_directory(conf.data_dir + '/download/', phenocode,
+                                   as_attachment=True, attachment_filename='phecode-{}.epacts.txt.gz'.format(phenocode))
+    except Exception as exc:
+        die("Sorry, that file doesn't exist.", exception=exc)
+@app.route('/download-list/<token>')
+def download_list(token):
+    if not Hasher.check_hash(token, 'download-list'):
+        print(url_for('download_list', token=Hasher.get_hash('download-list'), _external=True))
+        die('Wrong token.')
+    return '<br>\n'.join(
+        '{} {} <a href={url!r}>{url!r}</a>'.format(phenocode, pheno.get('phenostring',''), url=url_for('download_pheno', phenocode=phenocode, token=Hasher.get_hash(phenocode), _external=True))
+        for phenocode, pheno in phenos.items()
+    )
+class Hasher:
+    _size = 15
+    @classmethod
+    def get_hash(cls, plaintext):
+        import hashlib
+        return hashlib.blake2b(plaintext.encode('utf8'), digest_size=cls._size, key=app.config['SECRET_KEY'].encode('utf8')).hexdigest()
+    @classmethod
+    def check_hash(cls, hash_, plaintext):
+        if len(hash_) != cls._size * 2: return False
+        import hmac
+        return hmac.compare_digest(cls.get_hash(plaintext), hash_)
 
 
 @app.route('/')
