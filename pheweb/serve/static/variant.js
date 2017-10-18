@@ -76,7 +76,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 else if (input.beta + 2*input.sebeta < 0) { return parameters['-'] || null; }
             } else {
                 if      (input.beta > 0) { return parameters['+'] || null; }
-                else if (input.beta > 0) { return parameters['-'] || null; }
+                else if (input.beta < 0) { return parameters['-'] || null; }
             }
         } else if (!isNaN(input.or)) {
             if      (input.or > 0) { return parameters['+'] || null; }
