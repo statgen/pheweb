@@ -61,5 +61,6 @@ setup(
         'blist~=1.3',
         'cffi~=1.10',
         'wget~=3.2',
+        'gevent',
     ]
 )
