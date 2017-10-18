@@ -569,7 +569,7 @@ def run(argv):
     @modifies_phenolist
     def f(args, phenolist):
         return extract_info_from_assoc_files(phenolist)
-    p = subparsers.add_parser('read-info-from-association-files', help="if a phenotype has too few samples, cases, or controls, don't show the number")
+    p = subparsers.add_parser('read-info-from-association-files', help="read per-pheno fields from association files")
     p.add_argument('-f', dest="filepath", help="pheno-list filepath, used for both input and output (default: {!r})".format(default_phenolist_filepath))
 
     @add_subcommand('import-phenolist')

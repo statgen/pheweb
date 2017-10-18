@@ -26,7 +26,10 @@
       text = '<br>' + text;
       $('.gc-control').append(text);
     });
+  if (data.by_maf)
     create_qq_plot(data.by_maf);
+  else
+    create_qq_plot([{maf_range:[0,1],qq:data.overall.qq, count:data.overall.count}]);
   })
   .fail(function() {
     console.log("QQ XHR failed");

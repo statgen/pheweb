@@ -163,7 +163,7 @@ def _ensure_conf():
                 assert self._d['range'][1] is None or x <= self._d['range'][1]
             return x
 
-    default_null_values = ['.', 'NA', 'nan', 'NaN']
+    default_null_values = ['', '.', 'NA', 'nan', 'NaN']
 
     default_field = {
         'aliases': [],
