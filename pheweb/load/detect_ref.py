@@ -22,26 +22,30 @@ import sys
 
 known_builds = [{'hg':'hg'+a, 'GRCh':'GRCh'+b} for a,b in [('18','36'),('19','37'),('38','38')]]
 
+def handle_cpaa():
+    f = sys.stdin
+    col_idx = dict(chrom=0, pos=1, a1=2, a2=3)
+    handle_lines(f, col_idx)
 
 def handle_vcf(args):
     # TODO: only check builds that are still compatible.
     vcf_filepath = args[0]
-    if len(args) > 1: col_idx = dict(chrom=int(args[1]), pos=int(args[2]), a1=int(args[3]), a2=int(args[4]))
-    else: col_idx = dict(chrom=0, pos=1, a1=3, a2=4)
+    col_idx = dict(chrom=0, pos=1, a1=3, a2=4)
+    with read_maybe_gzip(vcf_filepath) as f:
+         handle_lines(f, col_idx)
+
+def handle_lines(lines, col_idx):
     match_counts = OrderedDict((build['hg'],{'a1':0, 'a2':0, 'either':0}) for build in known_builds)
     num_variants = 0
-    with ExitStack() as es, \
-         ProgressBar() as progressbar:
-        if vcf_filepath == '-': f = sys.stdin
-        else: f = es.enter_context(read_maybe_gzip(vcf_filepath))
-        for line in f:
+    with ProgressBar() as progressbar:
+        for line in lines:
             try:
                 if line.startswith('#'): continue
                 parts = line.split('\t')
                 chrom = parse_chrom(parts[col_idx['chrom']])
                 pos = parse_pos(parts[col_idx['pos']])
-                a1 = parts[col_idx['a1']]
-                a2 = parts[col_idx['a2']]
+                a1 = parts[col_idx['a1']].strip()
+                a2 = parts[col_idx['a2']].strip()
                 matching_builds_a1 = {build['hg'] for build in get_matching_builds(chrom, pos, a1)}
                 matching_builds_a2 = {build['hg'] for build in get_matching_builds(chrom, pos, a2)}
             except Exception as exc:
@@ -150,8 +154,8 @@ hg38 22:18,271,078 N
 $ detect-ref get-base hg19 22 18271078
 hg19 22:18,271,078 G
 
-$ $ detect-ref vcf a.vcf.gz
-hg18(24%) hg19(all) hg38(24%) for 92,927 variants
+$ zcat a.vcf.gz | grep -v '^#' | cut -f1-2,4-5 | detect-ref chr-pos-a1-a2
+hg18[a1:26% a2:24% either:50%] hg19[a1:all a2:0% either:all] hg38[a1:26% a2:23% either:49%] for 53,988 variants
 ''')
         exit(0)
 
@@ -172,7 +176,10 @@ hg18(24%) hg19(all) hg38(24%) for 92,927 variants
             print('{} {}:{:,} {}'.format(build['hg'], chrom, pos, 'not found' if base is None else base))
 
     elif len(argv) == 2 and argv[0] == 'vcf':
-        handle_vcf(argv[1:])
+        handle_vcf(argv[1])
+
+    elif len(argv) == 1 and argv[0] in ['chr-pos-a1-a2', 'cpaa']:
+        handle_cpaa()
 
     else:
         usage()
