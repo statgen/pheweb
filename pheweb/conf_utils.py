@@ -236,6 +236,7 @@ def _ensure_conf():
             'display': 'Beta',
         }),
         ('sebeta', {
+            'aliases': ['se'],
             'type': float,
             'nullable': True,
             'sigfigs': 2,
