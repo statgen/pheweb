@@ -136,6 +136,16 @@ def _ensure_conf():
 
     ### Parsing
 
+    def scientific_int(value):
+        '''like int(value) but accepts "1.3e-4"'''
+        try:
+            return int(value)
+        except ValueError:
+            x = float(value)
+            if x.is_integer():
+                return int(x)
+            raise
+
     class Field:
         def __init__(self, d):
             self._d = d
@@ -152,6 +162,8 @@ def _ensure_conf():
                 assert self._d['range'][1] is None or x <= self._d['range'][1]
             if 'sigfigs' in self._d:
                 x = utils.round_sig(x, self._d['sigfigs'])
+            if 'decimals' in self._d:
+                x = round(x, self._d['decimals'])
             return x
         def read(self, value):
             '''read from internal file'''
@@ -183,7 +195,7 @@ def _ensure_conf():
         ('pos', {
             'aliases': ['BEG', 'BEGIN', 'BP'],
             'required': True,
-            'type': int,
+            'type': scientific_int,
             'range': [0, None],
             'tooltip_underscoretemplate': False,
             'tooltip_lztemplate': False,
@@ -268,12 +280,20 @@ def _ensure_conf():
         ('ac', {
             'type': float,
             'range': [0, None],
+            'decimals': 1,
             'display': 'AC',
         }),
         ('r2', {
             'type': float,
+            'sigfigs': 2,
             'nullable': True,
             'display': 'R2',
+        }),
+        ('tstat', {
+            'type': float,
+            'sigfigs': 2,
+            'nullable': True,
+            'display': 'Tstat',
         }),
     ])
 
