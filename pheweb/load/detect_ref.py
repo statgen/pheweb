@@ -39,13 +39,13 @@ def handle_lines(lines, col_idx):
     num_variants = 0
     with ProgressBar() as progressbar:
         for line in lines:
+            if line.startswith('#'): continue
+            parts = line.rstrip('\n').split('\t')
             try:
-                if line.startswith('#'): continue
-                parts = line.split('\t')
                 chrom = parse_chrom(parts[col_idx['chrom']])
                 pos = parse_pos(parts[col_idx['pos']])
-                a1 = parts[col_idx['a1']].strip()
-                a2 = parts[col_idx['a2']].strip()
+                a1 = parts[col_idx['a1']]
+                a2 = parts[col_idx['a2']]
                 matching_builds_a1 = {build['hg'] for build in get_matching_builds(chrom, pos, a1)}
                 matching_builds_a2 = {build['hg'] for build in get_matching_builds(chrom, pos, a2)}
             except Exception as exc:
