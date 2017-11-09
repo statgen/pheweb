@@ -63,6 +63,7 @@ def print_ip(port):
     print("If that link doesn't work, it's either because:")
     print("  - the IP {} is failing to route to this computer (eg, this computer is inside a NAT), or".format(ip))
     print("  - a firewall is blocking port {}.".format(port))
+    print("In that case, try port-forwarding.")
     print('')
 
 def get_ip():
