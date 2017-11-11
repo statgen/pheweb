@@ -128,7 +128,7 @@ def make_qq_unstratified(variants, include_qq):
 
 
 
-Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf', 'v'])
+Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
 def augment_variants(variants, pheno):
     for v in variants:
         if v['pval'] == 0:
@@ -136,4 +136,4 @@ def augment_variants(variants, pheno):
             continue
         neglog10_pval = -math.log10(v['pval'])
         maf = get_maf(v, pheno)
-        yield Variant(neglog10_pval=neglog10_pval, maf=maf, v=v)
+        yield Variant(neglog10_pval=neglog10_pval, maf=maf)
