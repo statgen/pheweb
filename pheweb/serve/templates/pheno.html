@@ -8,6 +8,7 @@
   window.model = window.model || {};
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }};
   window.pheno = {{ phenocode|tojson|safe }};
+  window.model.pheno = {{ pheno|tojson|safe }};
   $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json")
   .done(function(data) {
       window.debug.manhattan = data;
@@ -179,7 +180,11 @@
     <% if (v.rsids) { %>(<%= v.rsids.replace(/,/g, ', ') %>)<% } %>
 </a></td>
 <td><i><%= v.nearest_genes.replace(/,/g, ', ') %></i></td>
-<td><%= (v.maf)? v.maf.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %></td>
+<td><%= (v.maf)? v.maf.toPrecision(2) :
+        (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) :
+        (v.ac && window.model.pheno.num_samples)? (v.ac/window.model.pheno.num_samples).toPrecision(2) :
+        (v.ac)? v.ac :
+        "" %></td>
 <td><%= v.pval.toExponential(1) %></td>
 </tr>
 </script>
