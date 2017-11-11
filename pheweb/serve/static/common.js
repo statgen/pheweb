@@ -14,7 +14,7 @@ if (!!window.MSInputMethodContext && !!document.documentMode) { /*ie11*/ $('<sty
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         identify: function(sugg) { return sugg.display; }, // maybe allows Bloodhound to `.get()`  objects
         remote: {
-            url: '/api/autocomplete?query=%QUERY',
+            url: window.model.urlprefix + '/api/autocomplete?query=%QUERY',
             wildcard: '%QUERY',
             rateLimitBy: 'throttle',
             rateLimitWait: 500,

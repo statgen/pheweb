@@ -130,6 +130,8 @@ def _ensure_conf():
     conf.set_default_value('manhattan_peak_sprawl_dist', int(200e3))
     conf.set_default_value('top_hits_pval_cutoff', 1e-6)
 
+    conf.set_default_value('urlprefix', '')
+
     if 'minimum_maf' in conf:
         raise utils.PheWebError("minimum_maf has been deprecated.  Please remove it and use assoc_min_maf and/or variant_inclusion_maf instead")
 

@@ -38,7 +38,7 @@ class GoogleSignIn(object):
         )
 
     def get_callback_url(self):
-        return url_for('oauth_callback_google',
+        return url_for('.oauth_callback_google',
                         _external=True)
 
     def callback(self):

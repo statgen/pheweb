@@ -2,6 +2,8 @@
 from ..file_utils import common_filepaths
 from .server_utils import parse_variant
 
+from flask import url_for
+
 import itertools
 import re
 import marisa_trie
@@ -82,7 +84,7 @@ class Autocompleter(object):
                 yield {
                     "value": cpra,
                     "display": '{} ({})'.format(cpra, rsids) if rsids else cpra,
-                    "url": "/variant/{}".format(cpra)
+                    "url": url_for('.variant_page', query=cpra),
                 }
 
             rsids = self._cpra_to_rsids_trie.get(key)
@@ -110,7 +112,7 @@ class Autocompleter(object):
                 yield {
                     "value": cpra,
                     "display": '{} ({})'.format(rsid, cpra),
-                    "url": "/variant/{}".format(cpra)
+                    'url': url_for('.variant_page', query=cpra),
                 }
 
             rsids_to_check = [key] + ["{}{}".format(key, i) for i in range(10)]
@@ -130,7 +132,7 @@ class Autocompleter(object):
                 yield {
                     "value": phenocode,
                     "display": "{} ({})".format(phenocode, pheno['phenostring']) if 'phenostring' in pheno else phenocode, # TODO: truncate phenostring intelligently
-                    "url": "/pheno/{}".format(phenocode),
+                    "url": url_for('.pheno_page', phenocode=phenocode),
                 }
 
     def _autocomplete_phenostring(self, query):
@@ -140,7 +142,7 @@ class Autocompleter(object):
                 yield {
                     "value": phenocode,
                     "display": "{} ({})".format(pheno['phenostring'], phenocode),
-                    "url": "/pheno/{}".format(phenocode),
+                    "url": url_for('.pheno_page', phenocode=phenocode),
                 }
 
     def _autocomplete_gene(self, query):
@@ -154,20 +156,19 @@ class Autocompleter(object):
                         'value': canonical_symbol.split(',')[0],
                         'display': '{} (alias for {})'.format(
                             alias, ' and '.join(canonical_symbol.split(','))),
-                        'url': '/error/the alias {} is connected to the genes {}'.format(
-                            alias, ' and '.join(canonical_symbol.split(','))),
+                        'url': url_for('.gene_page', genename=canonical_symbol.split('.')[0]),
                     }
                 elif canonical_symbol == alias:
                     yield {
                         "value": canonical_symbol,
                         "display": canonical_symbol,
-                        "url": "/gene/{}".format(canonical_symbol),
+                        "url": url_for('.gene_page', genename=canonical_symbol),
                     }
                 else:
                     yield {
                         "value": canonical_symbol,
                         "display": '{} (alias for {})'.format(alias, canonical_symbol),
-                        "url": "/gene/{}".format(canonical_symbol),
+                        "url": url_for('.gene_page', genename=canonical_symbol),
                     }
 
             canonical_symbol = self._gene_alias_trie.get(key)

@@ -115,7 +115,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
 
 (function() {
     // Define LocusZoom Data Sources object
-    var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";
+    var localBase = window.model.urlprefix + "/api/region/" + window.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
     data_sources.add("base", ["AssociationLZ", localBase]);
@@ -235,7 +235,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
                 type: 'link',
                 title: 'Go to Manhattan Plot',
                 text:' Manhattan Plot',
-                url: '/pheno/' + window.pheno.phenocode
+                url: window.model.urlprefix + '/pheno/' + window.pheno.phenocode
             },{
                 type: 'move',
                 text: '<<',
@@ -466,7 +466,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
                 behaviors: {
                     onmouseover: [{action: "set", status:"selected"}],
                     onmouseout: [{action: "unset", status:"selected"}],
-                    onclick: [{action: "link", href:"/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}"}],
+                    onclick: [{action: "link", href:window.model.urlprefix+"/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}"}],
                 },
                 tooltip: {
                     closable: false,

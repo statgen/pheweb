@@ -2,12 +2,12 @@
 
 
 {% block in_head %}
-<script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='pheno.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('.static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('.static', filename='pheno.js') }}" type="text/javascript"></script>
 <script type="text/javascript">
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }};
   window.pheno = {{ phenocode|tojson|safe }};
-  $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json")
+  $.getJSON(window.model.urlprefix + "/api/manhattan/pheno/" + window.pheno + ".json")
   .done(function(data) {
       window.debug.manhattan = data;
       create_gwas_plot(data.variant_bins, data.unbinned_variants);
@@ -16,7 +16,7 @@
   .fail(function() {
     console.log("QQ XHR failed");
   });
-  $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
+  $.getJSON(window.model.urlprefix + "/api/qq/pheno/" + window.pheno + ".json")
   .done(function(data) {
     window.debug.qq = data;
     _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
@@ -120,7 +120,7 @@
     <div class="pheno-info col-xs-12 col-sm-4">
       {% if config.DOWNLOAD_PHENO_SUMSTATS_BUTTON %}
       <span class="pull-right">
-        <a class="btn btn-default" href="{{ url_for('download_pheno', phenocode=phenocode) }}">Download summary statistics</a>
+        <a class="btn btn-default" href="{{ url_for('.download_pheno', phenocode=phenocode) }}">Download summary statistics</a>
       </span>
       {% endif %}
     </div>
@@ -174,7 +174,7 @@
 
 <script type="text/template" id="streamtable-template">
 <tr>
-<td><a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>">
+<td><a style="color:black" href="{{ url_for('.variant_page', query='').rstrip('/') }}/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>">
     <%= v.chrom %>:<%= v.pos.toLocaleString() %> <%= v.ref %> / <%= v.alt %>
     <% if (v.rsids) { %>(<%= v.rsids.replace(/,/g, ', ') %>)<% } %>
 </a></td>

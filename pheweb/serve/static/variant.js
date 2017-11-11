@@ -163,7 +163,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     ];
 
     // Make points clickable
-    pval_data_layer.behaviors.onclick = [{action:"link", href:"/pheno/{{phewas_code}}"}];
+    pval_data_layer.behaviors.onclick = [{action:"link", href:window.model.urlprefix+"/pheno/{{phewas_code}}"}];
 
     // Use categories as x ticks.
     phewas_panel.axes.x.ticks = window.first_of_each_category.map(function(pheno) {

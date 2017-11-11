@@ -1,4 +1,6 @@
 
+from flask import url_for
+
 from ..file_utils import MatrixReader, IndexedVariantFileReader, common_filepaths
 
 import random
@@ -89,10 +91,12 @@ def get_random_page():
     hit = random.choice(hits_to_choose_from)
     r = random.random()
     if r < 0.4:
-        return '/pheno/{}'.format(hit['phenocode'])
+        return url_for('.pheno_page', phenocode=hit['phenocode'])
     elif r < 0.8:
-        return '/variant/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
+        return url_for('.variant_page', query='{chrom}-{pos}-{ref}-{alt}'.format(**hit))
     else:
         offset = int(50e3)
-        return '/region/{phenocode}/{chrom}:{pos1}-{pos2}'.format(pos1=hit['pos']-offset, pos2=hit['pos']+offset, **hit)
+        return url_for('.region_page',
+                       phenocode=hit['phenocode'],
+                       region='{}:{}-{}'.format(hit['chrom'], hit['pos']-offset, hit['pos']+offset))
     # TODO: check if this hit is inside a gene. if so, include that page.

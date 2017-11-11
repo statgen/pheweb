@@ -8,6 +8,8 @@ ln -s -f "$script_dir/input_files/config.py"  "$data_dir/"
 ln -s -f "$script_dir/input_files/fake-cache" "$data_dir/"
 ln -s -f "$script_dir/input_files/custom_templates" "$data_dir/"
 
+echo "http://localhost:8000/test/"
+
 cd "$data_dir"
 python3 "$(which gunicorn)" --error-logfile=- --access-logfile=- --access-logformat="%(s)s | %(L)ss | %(f)s | %(m)s %(U)s %(q)s" -w4 --reload --pythonpath "$script_dir/.." pheweb.serve.server:app
 

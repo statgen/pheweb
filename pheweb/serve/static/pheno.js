@@ -243,7 +243,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         gwas_svg.call(point_tooltip);
 
         function get_link_to_LZ(variant) {
-            return fmt('/region/{0}/{1}:{2}-{3}',
+            return fmt(window.model.urlprefix + '/region/{0}/{1}:{2}-{3}',
                        window.pheno,
                        variant.chrom,
                        Math.max(0, variant.pos - 200*1000),

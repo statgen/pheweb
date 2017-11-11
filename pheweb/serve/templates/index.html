@@ -22,7 +22,7 @@ $(function() { $('.typeahead').focus(); }); // autofocus attribute doesn't work 
     <div class="jumbotron">
       <p>Please log in to view this data.</p>
       <br>
-      <p><a class="btn-lg btn-primary" role="button" href="{{ url_for('login_with_google') }}">Click here to login with Google</a></p>
+      <p><a class="btn-lg btn-primary" role="button" href="{{ url_for('.login_with_google') }}">Click here to login with Google</a></p>
       <br>
       <p style="margin-bottom:0">
         If your email address is on the whitelist but is not connected to a Google account, please
@@ -44,7 +44,7 @@ $(function() { $('.typeahead').focus(); }); // autofocus attribute doesn't work 
 <div class="row">
     <div class="col-xs-12 col-sm-offset-1 col-sm-10">
         <div id="home-searchbox">
-            <form action="/go">
+            <form action="{{ url_for('.go') }}">
                <fieldset>
                   <div class="form-group">
                     <input name="query" class="form-control typeahead" autocomplete="off" type="text" placeholder="Search for a variant, gene, or phenotype" autofocus>

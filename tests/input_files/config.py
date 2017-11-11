@@ -1,5 +1,7 @@
 # this file will be interpreted as python3
 
+urlprefix = '/test'
+
 
 # Minor allele frequency (MAF) filters:
 # Note:

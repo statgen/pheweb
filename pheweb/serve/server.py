@@ -7,7 +7,7 @@ from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
 
-from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for
+from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for, Blueprint
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 
@@ -19,6 +19,7 @@ import os
 import os.path
 
 
+bp = Blueprint('bp', __name__, template_folder='templates', static_folder='static')
 app = Flask(__name__)
 Compress(app)
 app.config['COMPRESS_LEVEL'] = 2 # Since we don't cache, faster=better
@@ -30,7 +31,7 @@ if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
 if 'SENTRY_DSN' in conf and not os.environ.get('PHEWEB_NO_SENTRY',''):
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
 app.config['PHEWEB_VERSION'] = pheweb_version
-
+app.config['URLPREFIX'] = conf.urlprefix.rstrip('/');
 if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
@@ -41,7 +42,7 @@ def check_auth(func):
     """
     This decorator for routes checks that the user is authorized (or that no login is required).
     If they haven't, their intended destination is stored and they're sent to get authorized.
-    It has to be placed AFTER @app.route() so that it can capture `request.path`.
+    It has to be placed AFTER @bp.route() so that it can capture `request.path`.
     """
     if 'login' not in conf:
         return func
@@ -51,7 +52,7 @@ def check_auth(func):
         if current_user.is_anonymous:
             print('unauthorized user visited {!r}'.format(request.path))
             session['original_destination'] = request.path
-            return redirect(url_for('get_authorized'))
+            return redirect(url_for('.get_authorized'))
         print('{} visited {!r}'.format(current_user.email, request.path))
         assert current_user.email.lower() in conf.login['whitelist'], current_user
         return func(*args, **kwargs)
@@ -59,7 +60,7 @@ def check_auth(func):
 
 
 autocompleter = Autocompleter(phenos)
-@app.route('/api/autocomplete')
+@bp.route('/api/autocomplete')
 @check_auth
 def autocomplete():
     query = request.args.get('query', '')
@@ -68,7 +69,7 @@ def autocomplete():
         return jsonify(sorted(suggestions, key=lambda sugg: sugg['display']))
     return jsonify([])
 
-@app.route('/go')
+@bp.route('/go')
 @check_auth
 def go():
     query = request.args.get('query', None)
@@ -79,13 +80,13 @@ def go():
         return redirect(best_suggestion['url'])
     die("Couldn't find page for {!r}".format(query))
 
-@app.route('/api/variant/<query>')
+@bp.route('/api/variant/<query>')
 @check_auth
 def api_variant(query):
     variant = get_variant(query)
     return jsonify(variant)
 
-@app.route('/variant/<query>')
+@bp.route('/variant/<query>')
 @check_auth
 def variant_page(query):
     try:
@@ -99,40 +100,40 @@ def variant_page(query):
     except Exception as exc:
         die('Oh no, something went wrong', exc)
 
-@app.route('/api/manhattan/pheno/<phenocode>')
+@bp.route('/api/manhattan/pheno/<phenocode>')
 @check_auth
 def api_pheno(phenocode):
     return send_from_directory(common_filepaths['manhattan'](''), phenocode)
 
-@app.route('/top_hits')
+@bp.route('/top_hits')
 @check_auth
 def top_hits_page():
     return render_template('top_hits.html')
-@app.route('/api/top_hits.json')
+@bp.route('/api/top_hits.json')
 @check_auth
 def api_top_hits():
     return send_file(common_filepaths['top-hits-1k'])
-@app.route('/download/top_hits.tsv')
+@bp.route('/download/top_hits.tsv')
 @check_auth
 def download_top_hits():
     return send_file(common_filepaths['top-hits-tsv'])
 
-@app.route('/phenotypes')
+@bp.route('/phenotypes')
 @check_auth
 def phenotypes_page():
     return render_template('phenotypes.html')
-@app.route('/api/phenotypes.json')
+@bp.route('/api/phenotypes.json')
 @check_auth
 def api_phenotypes():
     return send_file(common_filepaths['phenotypes_summary'])
 
-@app.route('/api/qq/pheno/<phenocode>')
+@bp.route('/api/qq/pheno/<phenocode>')
 @check_auth
 def api_pheno_qq(phenocode):
     return send_from_directory(common_filepaths['qq'](''), phenocode)
 
 
-@app.route('/random')
+@bp.route('/random')
 @check_auth
 def random_page():
     url = get_random_page()
@@ -140,7 +141,7 @@ def random_page():
         die("Sorry, it looks like no hits in this pheweb reached the significance threshold.")
     return redirect(url)
 
-@app.route('/pheno/<phenocode>')
+@bp.route('/pheno/<phenocode>')
 @check_auth
 def pheno_page(phenocode):
     try:
@@ -155,7 +156,7 @@ def pheno_page(phenocode):
 
 
 
-@app.route('/region/<phenocode>/<region>')
+@bp.route('/region/<phenocode>/<region>')
 @check_auth
 def region_page(phenocode, region):
     try:
@@ -169,7 +170,7 @@ def region_page(phenocode, region):
                            tooltip_lztemplate=conf.parse.tooltip_lztemplate,
     )
 
-@app.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
+@bp.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
 @check_auth
 def api_region(phenocode):
     filter_param = request.args.get('filter')
@@ -188,7 +189,7 @@ def get_best_phenos_by_gene():
     with open(common_filepaths['best-phenos-by-gene']) as f:
         return json.load(f)
 
-@app.route('/region/<phenocode>/gene/<genename>')
+@bp.route('/region/<phenocode>/gene/<genename>')
 @check_auth
 def gene_phenocode_page(phenocode, genename):
     try:
@@ -226,7 +227,7 @@ def gene_phenocode_page(phenocode, genename):
         die("Sorry, your region request for phenocode {!r} and gene {!r} didn't work".format(phenocode, genename), exception=exc)
 
 
-@app.route('/gene/<genename>')
+@bp.route('/gene/<genename>')
 @check_auth
 def gene_page(genename):
     phenos_in_gene = get_best_phenos_by_gene().get(genename, [])
@@ -251,7 +252,7 @@ if conf.get('download_pheno_sumstats', '') == 'secret':
             import hmac
             return hmac.compare_digest(cls.get_hash(plaintext), hash_)
 
-    @app.route('/download/<phenocode>/<token>')
+    @bp.route('/download/<phenocode>/<token>')
     def download_pheno(phenocode, token):
         if phenocode not in phenos:
             die("Sorry, that phenocode doesn't exist")
@@ -267,20 +268,20 @@ if conf.get('download_pheno_sumstats', '') == 'secret':
     download_list_secret_token = Hasher.get_hash('|'.join(sorted(phenos.keys()))) # Shouldn't change when we restart the server.
     print('download page:', '/download-list/{}'.format(download_list_secret_token))
 
-    @app.route('/download-list/<token>')
+    @bp.route('/download-list/<token>')
     def download_list(token):
         if token != download_list_secret_token:
-            print(url_for('download_list', token=Hasher.get_hash('download-list'), _external=True))
+            print(url_for('.download_list', token=Hasher.get_hash('download-list'), _external=True))
             die('Wrong token.')
         ret = ''
         for phenocode, pheno in phenos.items():
-            url = url_for('download_pheno', phenocode=phenocode, token=Hasher.get_hash(phenocode), _external=True)
+            url = url_for('.download_pheno', phenocode=phenocode, token=Hasher.get_hash(phenocode), _external=True)
             ret += '{} {} <a href={url!r}>{url!r}</a><br>\n'.format(phenocode, pheno.get('phenostring',''), url=url)
         return ret, 200
 
 else:
     app.config['DOWNLOAD_PHENO_SUMSTATS_BUTTON'] = True
-    @app.route('/download/<phenocode>')
+    @bp.route('/download/<phenocode>')
     def download_pheno(phenocode):
         if phenocode not in phenos:
             die("Sorry, that phenocode doesn't exist")
@@ -289,11 +290,11 @@ else:
                                    attachment_filename='phenocode-{}.tsv.gz'.format(phenocode))
 
 
-@app.route('/')
+@bp.route('/')
 def homepage():
     return render_template('index.html')
 
-@app.route('/about')
+@bp.route('/about')
 def about_page():
     return render_template('about.html')
 
@@ -305,7 +306,7 @@ def die(message='no message', exception=None):
     flash(message)
     abort(404)
 
-@app.errorhandler(404)
+@bp.errorhandler(404)
 def error_page(message):
     return render_template(
         'error.html',
@@ -313,7 +314,7 @@ def error_page(message):
     ), 404
 
 # Resist some CSRF attacks
-@app.after_request
+@bp.after_request
 def apply_caching(response):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     return response
@@ -344,19 +345,19 @@ if 'login' in conf:
         return None
 
 
-    @app.route('/logout')
+    @bp.route('/logout')
     def logout():
         print(current_user.email, 'logged out')
         logout_user()
-        return redirect(url_for('homepage'))
+        return redirect(url_for('.homepage'))
 
-    @app.route('/login_with_google')
+    @bp.route('/login_with_google')
     def login_with_google():
         "this route is for the login button"
-        session['original_destination'] = url_for('homepage')
-        return redirect(url_for('get_authorized'))
+        session['original_destination'] = url_for('.homepage')
+        return redirect(url_for('.get_authorized'))
 
-    @app.route('/get_authorized')
+    @bp.route('/get_authorized')
     def get_authorized():
         "This route tries to be clever and handle lots of situations."
         if current_user.is_anonymous:
@@ -366,13 +367,13 @@ if 'login' in conf:
                 orig_dest = session['original_destination']
                 del session['original_destination'] # We don't want old destinations hanging around.  If this leads to problems with re-opening windows, disable this line.
             else:
-                orig_dest = url_for('homepage')
+                orig_dest = url_for('.homepage')
             return redirect(orig_dest)
 
-    @app.route('/callback/google')
+    @bp.route('/callback/google')
     def oauth_callback_google():
         if not current_user.is_anonymous:
-            return redirect(url_for('homepage'))
+            return redirect(url_for('.homepage'))
         try:
             username, email = google_sign_in.callback() # oauth.callback reads request.args.
         except Exception as exc:
@@ -380,19 +381,21 @@ if 'login' in conf:
             print(exc)
             print(traceback.format_exc())
             flash('Something is wrong with authentication.  Please email pjvh@umich.edu')
-            return redirect(url_for('homepage'))
+            return redirect(url_for('.homepage'))
         if email is None:
             # I need a valid email address for my user identification
             flash('Authentication failed by failing to get an email address.  Please email pjvh@umich.edu')
-            return redirect(url_for('homepage'))
+            return redirect(url_for('.homepage'))
 
         if email.lower() not in conf.login['whitelist']:
             flash('Your email, {!r}, is not in the list of allowed emails.'.format(email))
-            return redirect(url_for('homepage'))
+            return redirect(url_for('.homepage'))
 
         # Log in the user, by default remembering them for their next visit.
         user = User(username, email)
         login_user(user, remember=True)
 
         print(user.email, 'logged in')
-        return redirect(url_for('get_authorized'))
+        return redirect(url_for('.get_authorized'))
+
+app.register_blueprint(bp, url_prefix = app.config['URLPREFIX'])

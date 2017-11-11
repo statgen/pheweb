@@ -8,13 +8,13 @@
   window.gene_symbol = {{ gene_symbol|tojson|safe }};
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
 </script>
-<script src="{{ url_for('static', filename='vendor/locuszoom-0.5.6.vendor.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='vendor/locuszoom-0.5.6.app.js') }}" type="text/javascript"></script>
-<link  href="{{ url_for('static', filename='vendor/locuszoom-0.5.6-locuszoom.css') }}" rel="stylesheet" type="text/css">
-<script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='region.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='gene.js') }}" type="text/javascript"></script>
-<link  href="{{ url_for('static', filename='region.css') }}" rel="stylesheet" type="text/css">
+<script src="{{ url_for('.static', filename='vendor/locuszoom-0.5.6.vendor.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('.static', filename='vendor/locuszoom-0.5.6.app.js') }}" type="text/javascript"></script>
+<link  href="{{ url_for('.static', filename='vendor/locuszoom-0.5.6-locuszoom.css') }}" rel="stylesheet" type="text/css">
+<script src="{{ url_for('.static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('.static', filename='region.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('.static', filename='gene.js') }}" type="text/javascript"></script>
+<link  href="{{ url_for('.static', filename='region.css') }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 
@@ -84,9 +84,9 @@
     <td><%= p.pheno.phenostring || p.pheno.phenocode %></td>
   </tr>
   <% } else { %>
-  <tr onclick="window.location='/region/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>'" style="cursor:pointer">
+  <tr onclick="window.location='{{ url_for('.region_page', phenocode='', region='').rstrip('/') }}/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>'" style="cursor:pointer">
     <td><%= p.assoc.pval.toExponential(1) %></td>
-    <td><a style="color:black" href="/region/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>">
+    <td><a style="color:black" href="{{ url_for('.region_page', phenocode='', region='').rstrip('/') }}/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>">
         <%= p.pheno.phenostring || p.pheno.phenocode %>
     </a></td>
   </tr>
