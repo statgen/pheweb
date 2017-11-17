@@ -199,12 +199,22 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         }
         pp2();
 
+        function get_link_to_LZ_bin(bin) {
+            return fmt('/region/{0}/{1}:{2}-{3}',
+                       window.pheno,
+                       bin.chrom,
+                       Math.max(0, bin.pos - 200*1000),
+                       bin.pos + 200*1000);
+        }
+
         function pp3() { // drawing the ~60k binned variant circles takes ~500ms.  The (far fewer) unbinned variants take much less time.
         var bins = gwas_plot.append('g')
             .attr('class', 'bins')
-            .selectAll('g.bin')
+            .selectAll('a.binned_variant_link')
             .data(variant_bins)
             .enter()
+            .append('a').attr('class', 'binned_variant_link')
+            .attr('xlink:href', get_link_to_LZ_bin)
             .append('g')
             .attr('class', 'bin')
             .each(function(d) { //todo: do this in a forEach
