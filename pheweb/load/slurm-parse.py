@@ -42,6 +42,6 @@ jobs=(
         f.write(')\n\n')
         f.write('export PHEWEB_DATADIR={!r}\n'.format(conf.data_dir))
         f.write(sys.argv[0] + ' conf num_procs=4 parse --phenos=${jobs[$SLURM_ARRAY_TASK_ID]}\n')
-    print('Run:\nsbatch {}'.format(sbatch_filepath))
-    print('Monitor with `squeue --long --array --job <jobid>`')
+    print('Run:\nsbatch {}\n'.format(sbatch_filepath))
+    print('Monitor with `squeue --long --array --job <jobid>`\n')
     print('output will be in {}/slurm-*.out'.format(tmp_path))
