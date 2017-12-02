@@ -174,7 +174,7 @@ If you are feeling adventurous, hit the **Random** icon in the top panel to view
 Selecting **Top Hits** in this panel will present a list of the most significant associations in this PheWeb in table format. 
 To learn more about the data behind the PheWeb select **About**.
 
-PheWeb shows 3 types of views: Manhattan + quantile-quantile (QQ) plots, LocusZoom plots, PheWAS plots.
+PheWeb shows 3 types of views: <span style="color:red">Manhattan</span> + quantile-quantile (QQ) plots, LocusZoom plots, PheWAS plots.
 
 Below I am looking up _TCF7L2_ in the search bar:
 
