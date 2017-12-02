@@ -164,6 +164,7 @@ To use Apache2 or Nginx (for performance), see instructions [here](etc/detailed-
 To require login via OAuth, see instructions [here](etc/detailed-webserver-instructions.md#using-oauth).
 To track page views with Google Analytics, see instructions [here](etc/detailed-webserver-instructions.md#using-google-analytics).
 
+
 ## Demo Navigating PheWeb
 
 On the homepage use the **search bar** to look up particular (1) genes (e.g. _APOB_, _FTO_, _TCF7L2_), (2) variants (by either rsID or chromosome:position on the appropriate genome build), or phenotypes/traits. 
@@ -174,39 +175,39 @@ If you are feeling adventurous, hit the **Random** icon in the top panel to view
 Selecting **Top Hits** in this panel will present a list of the most significant associations in this PheWeb in table format. 
 To learn more about the data behind the PheWeb select **About**.
 
-PheWeb shows 3 types of views: <span style="color:red">Manhattan</span> + quantile-quantile (QQ) plots, LocusZoom plots, PheWAS plots.
+PheWeb shows 3 types of views: `Manhattan` + `quantile-quantile (QQ)` plots, `LocusZoom` plots, and `PheWAS` plots.
 
 Below I am looking up _TCF7L2_ in the search bar:
 
 --INSERT SCREENSHOT--
 
-Searching by gene will show you the most significant associations in that gene (table format) and a LocusZoom regional view showing the linkage disequilibrium among the variants in the region around the gene (below). 
-Selecting a different row in the table will change the LocusZoom plot accordingly.
+Searching by gene will show you the most significant associations in that gene (table format) and a `LocusZoom` regional view showing the linkage disequilibrium among the variants in the region around the gene (below). 
+Selecting a different row in the table will change the `LocusZoom` plot accordingly.
 
-In my _TCF7L2_ search, this page appears, in which the LocusZoom plot below is displaying the row in the table that is selected (“Type 1 diabetes”):
-
---INSERT SCREENSHOT--
-
-All plots are interactive. You can hover your mouse above variants to learn more information about them, for example in the LocusZoom plot:
+In my _TCF7L2_ search, this page appears, in which the `LocusZoom` plot below is displaying the row in the table that is selected (“Type 1 diabetes”):
 
 --INSERT SCREENSHOT--
 
-Clicking on a variant in the LocusZoom plot will display a PheWAS view showing the association p-value for the variant across all the phenotypes in the PheWeb. 
-In the PheWAS view an upwards facing triangle implies a positive effect of that variant on the phenotype, whereas a downwards facing triangle implies a negative effect. 
+All plots are interactive. You can hover your mouse above variants to learn more information about them, for example in the `LocusZoom` plot:
+
+--INSERT SCREENSHOT--
+
+Clicking on a variant in the `LocusZoom plot` will display a `PheWAS` view showing the association p-value for the variant across all the phenotypes in the PheWeb. 
+In the `PheWAS` view an upwards facing triangle implies a positive effect of that variant on the phenotype, whereas a downwards facing triangle implies a negative effect. 
 Circles are used for variants in which the estimate of the beta is not precise (e.g. standard error encompassing zero). The variants are colored according to a user-specified biological grouping.
 
-I decided to select a _TCF7L2_ variant from the previous screenshot, and here is the PheWAS view followed by a table summary:
+I decided to select a _TCF7L2_ variant from the previous screenshot, and here is the `PheWAS` view followed by a table summary:
 
 --INSERT SCREENSHOT--
 
-Selecting a trait in the PheWAS plot will navigate you to the Manhattan plot view. Below the Manhattan is a table showing the most significant associations, and below that is the quantile-quantile (QQ) plot stratified by minor allele frequency bin and the genomic control lambda calculated from various percentiles of variants. 
+Selecting a trait in the `PheWAS` plot will navigate you to the Manhattan plot view. Below the `Manhattan` is a table showing the most significant associations, and below that is the `quantile-quantile (QQ)` plot stratified by minor allele frequency bin and the genomic control lambda calculated from various percentiles of variants. 
 
-Below I selected “Stricture of Artery” from the PheWAS view, and am hovering my mouse over a variant in the Manhattan plot. 
-If I select this variant I will be brought to its LocusZoom regional plot.
+Below I selected “Stricture of Artery” from the `PheWAS` view, and am hovering my mouse over a variant in the `Manhattan` plot. 
+If I select this variant I will be brought to its `LocusZoom` regional plot.
 
 --INSERT SCREENSHOT--
 
-Scrolling down on the same page I see the QQ plot below the table of top associations: 
+Scrolling down on the same page I see the `QQ` plot below the table of top associations: 
 
 --INSERT SCREENSHOT--
 
