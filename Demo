@@ -15,7 +15,7 @@ Below I am looking up _TCF7L2_ in the search bar:
 Searching by gene will show you the most significant associations in that gene (table format) and a LocusZoom regional view showing the linkage disequilibrium among the variants in the region around the gene (below). 
 Selecting a different row in the table will change the LocusZoom plot accordingly.
 
-In my TCF7L2 search, this page appears, in which the LocusZoom plot below is displaying the row in the table that is selected (“Type 1 diabetes”):
+In my _TCF7L2_ search, this page appears, in which the LocusZoom plot below is displaying the row in the table that is selected (“Type 1 diabetes”):
 
 <INSERT SCREENSHOT>
 
@@ -42,5 +42,5 @@ Scrolling down on the same page I see the QQ plot below the table of top associa
 
 <INSERT SCREENSHOT>
 
-Download results
+###Download results
 To download the summary statistics for trait(s) of interest ....
