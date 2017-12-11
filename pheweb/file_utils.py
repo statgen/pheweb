@@ -190,8 +190,7 @@ class _ivfr:
         x = self.get_region(chrom, pos, pos+1)
         for variant in x:
             if variant['pos'] != pos:
-                print('WARNING: while looking for variant {}-{}-{}-{}, saw {!r}'.format(
-                    chrom, pos, ref, alt, variant))
+                # print('WARNING: while looking for variant {}-{}-{}-{}, saw {!r}'.format(chrom, pos, ref, alt, variant))
                 continue
             if variant['ref'] == ref and variant['alt'] == alt and variant:
                 return variant

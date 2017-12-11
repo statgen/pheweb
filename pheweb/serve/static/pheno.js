@@ -1,5 +1,7 @@
 'use strict';
 
+// NOTE: `qval` means `-log10(pvalue)`.
+
 function create_gwas_plot(variant_bins, unbinned_variants) {
 
     var get_chrom_offsets = _.memoize(function() {
@@ -46,6 +48,52 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         return chrom_offsets[variant.chrom] + variant.pos;
     }
 
+    function get_y_axis_config(max_qval, plot_height) {
+
+        var scale = d3.scale.linear().clamp(true);
+        var draw_break_at_20;
+        var possible_ticks = [];
+
+        if (max_qval <= 40) {
+            scale = scale
+                .domain([max_qval, 0])
+                .range([0, plot_height*0.97]);
+            draw_break_at_20 = false;
+            if (max_qval < 10) { possible_ticks = _.range(0, 10.1, 2); }
+            else if (max_qval < 20) { possible_ticks = _.range(0, 20.1, 4); }
+            else { possible_ticks = _.range(0, 40.1, 8); }
+
+        } else {
+            scale = scale
+                .domain([max_qval, 20, 0])
+                .range([0, plot_height*0.97/2, plot_height*0.97]);
+            draw_break_at_20 = true;
+            possible_ticks = _.range(0, 20.1, 4);
+            if (max_qval <= 60) {
+                possible_ticks = possible_ticks.concat([30,40,50,60]);
+            } else if (max_qval <= 80) {
+                possible_ticks = possible_ticks.concat([40,60,80,100]);
+            } else if (max_qval <= 180) {
+                possible_ticks = possible_ticks.concat([60,100,140,180]);
+            } else {
+                var power_of_ten = Math.pow(10, Math.floor(Math.log10(max_qval)));
+                var first_digit = max_qval / power_of_ten;
+                var multipliers;
+                if (first_digit < 2) { multipliers = [0.5, 1, 1.5, 2]; }
+                else if (first_digit < 4) { multipliers = [1, 2, 3, 4]; }
+                else { multipliers = [2, 4, 6, 8, 10]; }
+                possible_ticks = possible_ticks.concat(multipiers.map(function(m) { return m * power_of_ten; }));
+            }
+        }
+        possible_ticks = possible_ticks.filter(function(qval) { return qval <= max_qval; });
+
+        return {
+            'scale': scale,
+            'draw_break_at_20': draw_break_at_20,
+            'ticks': possible_ticks,
+        };
+    }
+
     $(function() {
         var svg_width = $('#manhattan_plot_container').width();
         var svg_height = 550;
@@ -86,30 +134,76 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .domain(genomic_position_extent)
             .range([0, plot_width]);
 
-        // 1.03 puts points clamped to the top (pval=0) slightly above other points.
-        var highest_plot_neglog10_pval = 1.03 * -Math.log10(
-            Math.min(significance_threshold*0.8,
-                     (function() {
-                         var best_unbinned_pval = d3.min(unbinned_variants, function(d) {
-                             return (d.pval === 0) ? 1 : d.pval;
-                         });
-                         if (best_unbinned_pval !== undefined) return best_unbinned_pval;
-                         return d3.max(variant_bins, function(bin) {
-                             return d3.max(bin, _.property('neglog10_pval'));
-                         });
-                     })()));
+        // The top buffer `1.03` puts points clamped to the top (pval=0, qval=inf) slightly above other points.
+        var highest_plot_qval = 1.03 * Math.max(
+            -Math.log10(significance_threshold) + 1,
+            (function() {
+                var best_unbinned_qval = -Math.log10(d3.min(unbinned_variants, function(d) {
+                    return (d.pval === 0) ? 1 : d.pval;
+                }));
+                if (best_unbinned_qval !== undefined) return best_unbinned_qval;
+                return d3.max(variant_bins, function(bin) {
+                    return d3.max(bin, _.property('qval'));
+                });
+            })());
 
-        var y_scale = d3.scale.linear()
-            .domain([highest_plot_neglog10_pval, 0])
-            // 0.97 leaves a little space above points clamped to the top.
-            .range([0, plot_height*.97])
-            .clamp(true);
+        var y_axis_config = get_y_axis_config(highest_plot_qval, plot_height);
+        var y_scale = y_axis_config.scale;
+        if (unbinned_variants.filter(function(d) { return d.pval === 0; })) {
+            // TODO: draw a small y-axis-break underneath "Infinity"
+            y_axis_config.ticks.push(Infinity);
+        }
+
+        // TODO: draw a small y-axis-break at 20 if `y_axis_config.draw_break_at_20`
+        var yAxis = d3.svg.axis()
+            .scale(y_scale)
+            .orient("left")
+            .tickFormat(d3.format("d"))
+            .tickValues(y_axis_config.ticks)
+        gwas_plot.append("g")
+            .attr("class", "y axis")
+            .attr('transform', 'translate(-8,0)') // avoid letting points spill through the y axis.
+            .call(yAxis);
+
+        gwas_svg.append('text')
+            .style('text-anchor', 'middle')
+            .attr('transform', fmt('translate({0},{1})rotate(-90)',
+                                   plot_margin.left*.4,
+                                   plot_height/2 + plot_margin.top))
+            .text('-log\u2081\u2080(p-value)'); // Unicode subscript "10"
+
+        var chroms_and_midpoints = (function() {
+            var v = get_chrom_offsets();
+            return v.chroms.map(function(chrom) {
+                return {
+                    chrom: chrom,
+                    midpoint: v.chrom_genomic_start_positions[chrom] + (v.chrom_extents[chrom][1] - v.chrom_extents[chrom][0]) / 2,
+                };
+            });
+        })();
 
         var color_by_chrom = d3.scale.ordinal()
             .domain(get_chrom_offsets().chroms)
             .range(['rgb(120,120,186)', 'rgb(0,0,66)']);
         //colors to maybe sample from later:
         //.range(['rgb(120,120,186)', 'rgb(0,0,66)', 'rgb(44,150,220)', 'rgb(40,60,80)', 'rgb(33,127,188)', 'rgb(143,76,176)']);
+
+        gwas_svg.selectAll('text.chrom_label')
+            .data(chroms_and_midpoints)
+            .enter()
+            .append('text')
+            .style('text-anchor', 'middle')
+            .attr('transform', function(d) {
+                return fmt('translate({0},{1})',
+                           plot_margin.left + x_scale(d.midpoint),
+                           plot_height + plot_margin.top + 20);
+            })
+            .text(function(d) {
+                return d.chrom;
+            })
+            .style('fill', function(d) {
+                return color_by_chrom(d.chrom);
+            });
 
         gwas_plot.append('line')
             .attr('x1', 0)
@@ -212,15 +306,15 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
                 d.color = color_by_chrom(d.chrom);
             });
         bins.selectAll('circle.binned_variant_point')
-            .data(_.property('neglog10_pvals'))
+            .data(_.property('qvals'))
             .enter()
             .append('circle')
             .attr('class', 'binned_variant_point')
             .attr('cx', function(d, i, parent_i) {
                 return variant_bins[parent_i].x;
             })
-            .attr('cy', function(neglog10_pval) {
-                return y_scale(neglog10_pval);
+            .attr('cy', function(qval) {
+                return y_scale(qval);
             })
             .attr('r', 2.3)
             .style('fill', function(d, i, parent_i) {
@@ -230,7 +324,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
                 return variant_bins[parent_i].color;
             });
         bins.selectAll('circle.binned_variant_line')
-            .data(_.property('neglog10_pval_extents'))
+            .data(_.property('qval_extents'))
             .enter()
             .append('line')
             .attr('class', 'binned_variant_line')
@@ -244,49 +338,6 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         }
         pp3();
 
-        // Axes
-        var yAxis = d3.svg.axis()
-            .scale(y_scale)
-            .orient("left")
-            .tickFormat(d3.format("d"));
-        gwas_plot.append("g")
-            .attr("class", "y axis")
-            .attr('transform', 'translate(-8,0)') // avoid letting points spill through the y axis.
-            .call(yAxis);
-
-        gwas_svg.append('text')
-            .style('text-anchor', 'middle')
-            .attr('transform', fmt('translate({0},{1})rotate(-90)',
-                                   plot_margin.left*.4,
-                                   plot_height/2 + plot_margin.top))
-            .text('-log\u2081\u2080(p-value)'); // Unicode subscript "10"
-
-        var chroms_and_midpoints = (function() {
-            var v = get_chrom_offsets();
-            return v.chroms.map(function(chrom) {
-                return {
-                    chrom: chrom,
-                    midpoint: v.chrom_genomic_start_positions[chrom] + (v.chrom_extents[chrom][1] - v.chrom_extents[chrom][0]) / 2,
-                };
-            });
-        })();
-
-        gwas_svg.selectAll('text.chrom_label')
-            .data(chroms_and_midpoints)
-            .enter()
-            .append('text')
-            .style('text-anchor', 'middle')
-            .attr('transform', function(d) {
-                return fmt('translate({0},{1})',
-                           plot_margin.left + x_scale(d.midpoint),
-                           plot_height + plot_margin.top + 20);
-            })
-            .text(function(d) {
-                return d.chrom;
-            })
-            .style('fill', function(d) {
-                return color_by_chrom(d.chrom);
-            });
     });
 }
 
@@ -333,6 +384,7 @@ function create_qq_plot(maf_ranges, qq_ci) {
         var plot_height = plot_width / exp_max * obs_max;
         var svg_height = plot_height + plot_margin.top + plot_margin.bottom;
 
+        // TODO: use a clip path to keep qq_ci below the upper edge
         var qq_svg = d3.select('#qq_plot_container').append("svg")
             .attr('id', 'qq_svg')
             .attr("width", svg_width)
@@ -383,6 +435,7 @@ function create_qq_plot(maf_ranges, qq_ci) {
             });
 
         var attempt_two_decimals = function(x) {
+            if (x == 0) return '0';
             if (x >= 0.01) return x.toFixed(2);
             if (x >= 0.001) return x.toFixed(3);
             return x.toExponential(0);
