@@ -151,7 +151,7 @@ class Parallelizer:
     def run_multiple_tasks(self, tasks, do_multiple_tasks, cmd=None):
         # yields things like: {type:"result", ...}
         if not tasks: return
-        n_procs = get_num_procs(cmd)
+        n_procs = min(get_num_procs(cmd), len(tasks))
         taskq = multiprocessing.Queue()
         for task in tasks: taskq.put(task)
         for _ in range(n_procs): taskq.put({"exit":True})
