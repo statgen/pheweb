@@ -5,6 +5,7 @@ from ..file_utils import common_filepaths
 from .server_utils import get_variant, get_random_page, get_pheno_region
 from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
+from ..version import version as pheweb_version
 
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for
 from flask_compress import Compress
@@ -25,6 +26,9 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 9
 if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
     app.config['GOOGLE_ANALYTICS_TRACKING_ID'] = conf['GOOGLE_ANALYTICS_TRACKING_ID']
+if 'SENTRY_DSN' in conf:
+    app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
+app.config['PHEWEB_VERSION'] = pheweb_version
 
 if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
