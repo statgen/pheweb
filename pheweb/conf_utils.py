@@ -78,15 +78,18 @@ def _run_only_once(f):
 @_run_only_once
 def _ensure_conf():
 
-    ## Get `conf.cache` working (because it's needed for reporting errors)
-    conf.set_default_value('data_dir', os.path.abspath(os.environ.get('PHEWEB_DATADIR', False) or os.path.curdir))
+    if hasattr(conf, 'data_dir'):
+        conf.data_dir = os.path.abspath(conf.data_dir)
+    else:
+        conf.set_default_value('data_dir', os.path.abspath(os.environ.get('PHEWEB_DATADIR', False) or os.path.curdir))
 
+    ## Get `conf.cache` working because it's needed for reporting errors
     def _configure_cache():
         conf.set_default_value('cache', os.path.abspath(os.path.expanduser('~/.pheweb/cache')))
         if conf.cache is False:
             return
         if conf.has_own_property('cache'):
-            conf.cache = os.path.abspath(os.path.expanduser(conf.cache))
+            conf.cache = os.path.abspath(os.path.join(conf.data_dir, os.path.expanduser(conf.cache)))
         if not os.path.isdir(conf.cache):
             try:
                 mkdir_p(conf.cache)
@@ -101,17 +104,18 @@ def _ensure_conf():
             conf.cache = False
     _configure_cache()
 
-    ## Load `config.py`
-    _config_filepath = os.path.join(conf.data_dir, 'config.py')
-    if os.path.isfile(_config_filepath):
-        try:
-            _conf_module = imp.load_source('config', _config_filepath)
-        except:
-            raise utils.PheWebError("PheWeb tried to load your config.py at {!r} but it failed.".format(_config_filepath))
-        else:
-            for key in dir(_conf_module):
-                if not key.startswith('_'):
-                    conf[key] = getattr(_conf_module, key)
+    def _load_config_file():
+        _config_filepath = os.path.join(conf.data_dir, 'config.py')
+        if os.path.isfile(_config_filepath):
+            try:
+                _conf_module = imp.load_source('config', _config_filepath)
+            except:
+                raise utils.PheWebError("PheWeb tried to load your config.py at {!r} but it failed.".format(_config_filepath))
+            else:
+                for key in dir(_conf_module):
+                    if not key.startswith('_'):
+                        conf[key] = getattr(_conf_module, key)
+    _load_config_file()
 
     conf.set_default_value('custom_templates', lambda: os.path.join(conf.data_dir, 'custom_templates'), is_function=True)
     conf.set_default_value('debug', False)
