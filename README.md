@@ -1,3 +1,49 @@
+# A quick, dirty way to set up a PheWeb
+
+1. Fire up a Debian 9 Google VM with HTTP and HTTPS traffic enabled and with a disk that has 4 times the memory your unzipped association files need
+
+2. Install all things necessary:
+```
+sudo apt-get update && sudo apt-get install python3-pip libffi-dev libz-dev git --yes && \
+    git clone https://github.com/FINNGEN/pheweb.git && cd pheweb && pip3 install .
+```
+Now the PheWeb executable is at ~/.local/bin/pheweb !
+
+3. Create a directory for the PheWeb that is being created, e.g.
+```
+mkdir /mnt/data-disk/pheweb && cd /mnt/data-disk/pheweb
+```
+Stay in the same directory for the rest of the commands.
+
+4. Make sure you have your association result files unzipped and EXACTLY in the format described below in the actual PheWeb documentation: variants sorted by chromosome position, chromosome 1 is "1" and not "01", you don't have any extra fields in the files, you don't have NAs, you've been very meticulous with this because you know how these things go
+
+5. Create the directory for your original data (we trick PheWeb a bit here so that it doesn't make copies of the association files because it takes forever) and copy your unzipped association files there:
+```
+mkdir -p generated-by-pheweb/parsed && gsutil -m cp gs://..*.. generated-by-pheweb/parsed
+```
+
+6. Create a list of phenotypes (see the actual documentation below on how to add case/control counts for phenotypes etc.):
+```
+~/.local/bin/pheweb phenolist glob generated-by-pheweb/parsed/*
+~/.local/bin/pheweb phenolist extract-phenocode-from-filepath --simple
+```
+
+7. Make sure the created pheno-list.json is all right. Then run the PheWeb import which will download dbSNP/gene info and parse/augment/index the association files -- this will take hours or days!
+```
+~/.local/bin/pheweb process
+```
+
+8. All went well? Run it:
+
+```
+sudo -E ~/.local/bin/pheweb serve --port 80
+```
+Then check the IP address of your VM from the Google Cloud Console, point your web browser there (HTTP and not HTTPS), and marvel at your novel association findings!!!
+
+Note that this is not a way to really run PheWeb securely or reliably.. just for scientific purposes.
+
+# PheWeb instructions
+
 For an example, see the [Michigan Genomics Initiative PheWeb](http://pheweb.sph.umich.edu).
 For a walk-through demo see [below](#demo-navigating-pheweb)
 
