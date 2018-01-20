@@ -282,6 +282,7 @@ def _ensure_conf():
             'type': float,
             'range': [0, None],
             'decimals': 1,
+            'tooltip_underscoretemplate': 'AC: <%= d.ac.toFixed(1) %> <br>',
             'display': 'AC',
         }),
         ('r2', {
