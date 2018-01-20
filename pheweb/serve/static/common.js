@@ -61,3 +61,24 @@ function fmt(format) {
 // deal with IE11 problems
 if (!Math.log10) { Math.log10 = function(x) { return Math.log(x) / Math.LN10; }; }
 if (!!window.MSInputMethodContext && !!document.documentMode) { /*ie11*/ $('<style type=text/css>.lz-locuszoom {height: 400px;}</style>').appendTo($('head')); }
+
+// nice scientific notation
+function pValueToReadable(p) {
+    if (!_.isNumber(p)) {
+	return NaN
+    }
+    var pReadable = p
+    if (p === Number.MIN_VALUE) {
+	pReadable = '< ' + pReadable
+    } else if (p < 0.01) {
+    	pReadable = pReadable.toExponential(1)
+	var expIndex = pReadable.indexOf('e')
+	var base = pReadable.substring(0, expIndex)
+	var exponent = pReadable.substring(expIndex + 1)
+	// TODO vertically align 'x' to middle (vertical-align, line-height, padding don't seem to work)
+	pReadable = base + ' <span style="font-size: 0.675em">x</span> 10<sup>' + exponent + '</sup>'
+    } else {
+	pReadable = pReadable.toPrecision(1)
+    }
+    return pReadable
+}
