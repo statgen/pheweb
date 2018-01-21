@@ -39,7 +39,8 @@
                 <span class="icon-bar"></span>
             </button>
             {% block navbar_left %}
-            <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a>
+	    <a href="/"><img src="{{ url_for('static', filename='images/finngen-blue.svg') }}" style="float: left;" /></a>
+            <!-- <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a> -->
             <div class="navbar-left" id="navbar_form_container">
                 <form action="/go" class="navbar-form" role="search">
                     <div class="form-group" id="navbar-awesomebar">
