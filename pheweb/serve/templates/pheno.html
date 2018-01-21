@@ -110,12 +110,12 @@
 <div class="row">
     <div class="pheno-info col-xs-12">
         {% if 'num_cases' in pheno %}
-          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
+          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
         {% elif 'num_samples' in pheno %}
           <p><b>{{ pheno.num_samples }}</b> samples</p>
         {% endif %}
         {% if pheno.category %}
-          <p>Category: <b>{{ pheno.category}}</b></p>
+          <p><b>{{ pheno.category}}</b></p>
         {% endif %}
         <div id="manhattan_plot_container">
         </div>

@@ -1,3 +1,39 @@
+/* FINNGEN SPECIFIC */
+/* these rules mostly override bootstrap's ones */
+
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600,700");
+
+body {
+    font-family:'Open Sans',sans-serif;
+}
+
+a {
+    color: #4B1DD9;
+}
+
+.variant_point,.binned_variant_point {
+    fill-opacity: 0.5;
+}
+
+.navbar-header {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.navbar-right {
+    margin-top: 17px;
+}
+
+#navbar-searchbox-input {
+    margin-top: 7px;
+}
+
+.alert,.label,.form-control,.lz-dashboard-button,.pagination>li:first-child>a,.pagination>li:last-child>a {
+    border-radius: 0px;
+}
+
+/* ORIGINAL */
+
 /* Reconcile bootstrap3 to typeahead.js (the real Typeahead, not bootstrap-typeahead) */
 .twitter-typeahead {
   width: 100%;

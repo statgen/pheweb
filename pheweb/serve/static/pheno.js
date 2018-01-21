@@ -107,7 +107,11 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 
         var color_by_chrom = d3.scale.ordinal()
             .domain(get_chrom_offsets().chroms)
-            .range(['rgb(120,120,186)', 'rgb(0,0,66)']);
+	    .range(['rgb(53,0,212)', 'rgb(40, 40, 40)']);
+	//two blues
+	//.range(['rgb(163,211,255)', 'rgb(53,0,212)']);
+	//original
+        //.range(['rgb(120,120,186)', 'rgb(0,0,66)']);
         //colors to maybe sample from later:
         //.range(['rgb(120,120,186)', 'rgb(0,0,66)', 'rgb(44,150,220)', 'rgb(40,60,80)', 'rgb(33,127,188)', 'rgb(143,76,176)']);
 
@@ -116,7 +120,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .attr('x2', plot_width)
             .attr('y1', y_scale(-Math.log10(significance_threshold)))
             .attr('y2', y_scale(-Math.log10(significance_threshold)))
-            .attr('stroke-width', '5px')
+            .attr('stroke-width', '2px')
             .attr('stroke', 'lightgray')
             .attr('stroke-dasharray', '10,10')
             .on('mouseover', significance_threshold_tooltip.show)
