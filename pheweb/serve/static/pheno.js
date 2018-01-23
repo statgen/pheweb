@@ -298,7 +298,8 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 function create_qq_plot(maf_ranges) {
 
     maf_ranges.forEach(function(maf_range, i) {
-        maf_range.color = ['#e66101', '#fdb863', '#b2abd2', '#5e3c99'][i];
+        //maf_range.color = ['#e66101', '#fdb863', '#b2abd2', '#5e3c99'][i];
+	maf_range.color = ['#E8580C', '#D20CE8', '#FF0000', '#FFAC0D'][i];
     })
 
     // TODO: adjust this for fewer variants in each maf_range?  `nvar <- nvar / 4`?

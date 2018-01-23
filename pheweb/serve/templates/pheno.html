@@ -19,13 +19,12 @@
   });
   $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
   .done(function(data) {
-    window.debug.qq = data;
+  window.debug.qq = data;
+    var text = '';
     _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
-      var text = 'GC Lambda ' + d[0] + ': ' + d[1].toFixed(3);
-      if (i === 0) { text = '<b>' + text + '</b>'; }
-      text = '<br>' + text;
-      $('.gc-control').append(text);
+      text += '<tr><td>GC lambda ' + d[0] + '</td><td style="padding-left: 10px;">' + d[1].toFixed(3) + '</td></tr>';
     });
+    $('.gc-control').append('<table><tbody>' + text + '</tbody></table>');
   if (data.by_maf)
     create_qq_plot(data.by_maf);
   else
@@ -93,15 +92,15 @@
 
 
 {% block contained %}
-{% for key in ['num_cases', 'num_controls', 'num_samples'] %}
- {% if key in pheno %}
-  {% if '<' in pheno[key]|string %}
-    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div>
-  {% elif 0 < pheno[key]|int < 200 %}
-    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div>
-  {% endif %}
- {% endif %}
-{% endfor %}
+<!-- {% for key in ['num_cases', 'num_controls', 'num_samples'] %} -->
+<!--  {% if key in pheno %} -->
+<!--   {% if '<' in pheno[key]|string %} -->
+<!--     <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div> -->
+<!--   {% elif 0 < pheno[key]|int < 200 %} -->
+<!--     <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div> -->
+<!--   {% endif %} -->
+<!--  {% endif %} -->
+<!-- {% endfor %} -->
 <div class="row">
     <div class="col-xs-12">
         <h1 style="margin-top:0">{% include "pheno/h1.html" %}</h1>
@@ -124,7 +123,7 @@
 
 <div class="row">
   <div class="col-xs-12 col-md-8">
-    <h3>Top Hits:</h3>
+    <h3>Top Hits</h3>
   </div>
 </div>
 <div class="row">
@@ -164,10 +163,10 @@
     {% else %}
     <div class="icd9-info col-xs-12 col-sm-4 col-md-3 col-lg-3">
     {% endif %}
-      <h3>QQ plot:</h3>
+      <h3>QQ plot</h3>
       <div id="qq_plot_container"></div>
       <p class="gc-control"></p>
-      <i>(Genomic Control Lambda calculated based on the 50th percentile (median), 10th percentile, 1st percentile, and 1/10th of a percentile.)</i>
+      <i>(Genomic Control lambda calculated based on the 50th percentile (median), 10th percentile, 1st percentile, and 1/10th of a percentile)</i>
       <br><br><br>
     </div>
 </div>
