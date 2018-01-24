@@ -62,5 +62,6 @@ setup(
         'cffi~=1.10',
         'wget~=3.2',
         'gevent',
+        'Flask-BasicAuth'
     ]
 )
