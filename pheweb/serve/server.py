@@ -9,6 +9,7 @@ from .auth import GoogleSignIn
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
+from flask_basicauth import BasicAuth
 
 import functools
 import re
@@ -19,6 +20,12 @@ import os.path
 
 app = Flask(__name__)
 Compress(app)
+app.config['BASIC_AUTH_USERNAME'] = 'finngen'
+app.config['BASIC_AUTH_PASSWORD'] = 'finngenpheweb1'
+app.config['BASIC_AUTH_REALM'] = 'FinnGen'
+app.config['BASIC_AUTH_FORCE'] = True
+basic_auth = BasicAuth(app)
+
 app.config['COMPRESS_LEVEL'] = 2 # Since we don't cache, faster=better
 app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'
 app.config['TEMPLATES_AUTO_RELOAD'] = True
