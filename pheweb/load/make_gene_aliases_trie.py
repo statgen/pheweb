@@ -25,7 +25,7 @@ def run(argv):
         canonical_symbols = set(v[0].upper() for v in aliases_for_ensg.values())
         for cs in canonical_symbols: assert cs and all(l.isalnum() or l in '-._' for l in cs), cs
 
-        r = requests.get('http://www.genenames.org/cgi-bin/download?col=gd_app_sym&col=gd_prev_sym&col=gd_aliases&col=gd_pub_ensembl_id&status=Approved&status=Entry+Withdrawn&status_opt=2&where=&order_by=gd_app_sym_sort&format=text&limit=&hgnc_dbtag=on&submit=submit')
+        r = requests.get('http://www.genenames.org/cgi-bin/download?col=gd_app_sym&col=gd_prev_sym&col=gd_aliases&col=gd_pub_ensembl_id&status=Approved&status=Entry+Withdrawn&status_opt=2&where=&order_by=gd_app_sym_sort&format=text&limit=&hgnc_dbtag=on&submit=submit', verify=False)
         r.raise_for_status()
 
         for row in csv.DictReader(r.content.decode().split('\n'), delimiter='\t'):
