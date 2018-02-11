@@ -272,14 +272,14 @@ def _ensure_conf():
         }),
         ('maf_cases', {
             'type': float,
-            'range': [0, 0.5],
+            'range': [0, 1],
             'sigfigs': 2,
             'tooltip_lztemplate': {'transform': '|percent'},
             'display': 'MAF cases',
         }),
         ('maf_controls', {
             'type': float,
-            'range': [0, 0.5],
+            'range': [0, 1],
             'sigfigs': 2,
             'tooltip_lztemplate': {'transform': '|percent'},
             'display': 'MAF controls',
