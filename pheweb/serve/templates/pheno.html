@@ -114,7 +114,7 @@
           <p><b>{{ pheno.num_samples }}</b> samples</p>
         {% endif %}
         {% if pheno.category %}
-          <p><b>{{ pheno.category}}</b></p>
+          <p>{{ pheno.category}}</p>
         {% endif %}
         <div id="manhattan_plot_container">
         </div>
@@ -139,8 +139,12 @@
     <table id="stream_table" class="table table-striped table-bordered">
       <thead>
         <tr>
-          <th>Variant</th>
-          <th>Nearest Gene(s)</th>
+          <th>Chr</th>
+          <th>Pos</th>
+          <th>Ref</th>
+          <th>Alt</th>
+          <th>rsid</th>
+          <th>Nearest gene</th>
           <th>MAF</th>
           <th>Beta (SE)</th>
           <th>P-value</th>
@@ -174,14 +178,20 @@
 
 <script type="text/template" id="streamtable-template">
 <tr>
-<td><a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>">
-    <%= v.chrom %>:<%= v.pos.toLocaleString() %> <%= v.ref %> / <%= v.alt %>
-    <% if (v.rsids) { %>(<%= v.rsids.replace(/,/g, ', ') %>)<% } %>
-</a></td>
-<td><i><%= v.nearest_genes.replace(/,/g, ', ') %></i></td>
-<td><%= (v.maf)? v.maf.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %></td>
-<td><%= (v.beta)? (v.beta.toPrecision(2) + (v.sebeta ? " (" + v.sebeta.toPrecision(2) + ")" : "")) : "" %></td>
-<td><%= v.pval.toExponential(1) %></td>
+  <td style="width: 1%"><%= v.chrom %></td>
+  <td><a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>"><%= v.pos.toLocaleString() %></a></td>
+  <td style="width: 1%"><%= v.ref %></td>
+  <td style="width: 1%"><%= v.alt %></td>
+  <td><a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>"><% if (v.rsids) { %><%= v.rsids.replace(/,/g, ', ') %><% } %></a></td>
+  <td>
+    <% for (let i = 0, genes = v.nearest_genes.split(','); i < genes.length; i++) { %>
+    <% if (i > 0) { %>,<% } %>
+  <a style="color:black" href="/gene/<%= genes[i] %>"><%= genes[i] %></a>
+  <% } %>
+  </td>
+  <td><%= (v.maf)? v.maf.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %></td>
+  <td><%= (v.beta)? (v.beta.toPrecision(2) + (v.sebeta ? " (" + v.sebeta.toPrecision(2) + ")" : "")) : "" %></td>
+  <td><%= v.pval.toExponential(1) %></td>
 </tr>
 </script>
 

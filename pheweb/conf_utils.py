@@ -225,6 +225,9 @@ def _ensure_conf():
     ])
 
     default_per_assoc_fields = OrderedDict([
+        ('pheno', {
+            'tooltip_lztemplate': 'phenotype: <strong>{{pheno}}</strong><br>',
+        }),
         ('pval', {
             'aliases': ['PVALUE'],
             'required': True,

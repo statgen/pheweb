@@ -60,13 +60,14 @@
 {% endfor %}
 <div class="row">
     <div class="pheno-info col-xs-12">
+      <p style="margin-bottom: 0"><b>{{ pheno.phenostring }}</b></p>
         {% if 'num_cases' in pheno %}
-          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
+          <p style="margin-bottom: 0"><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
         {% elif 'num_samples' in pheno %}
-          <p><b>{{ pheno.num_samples }}</b> samples</p>
+          <p style="margin-bottom: 0"><b>{{ pheno.num_samples }}</b> samples</p>
         {% endif %}
         {% if pheno.category %}
-          <p>Category: <b>{{ pheno.category}}</b></p>
+          <p style="margin-bottom: 0">{{ pheno.category}}</p>
         {% endif %}
     </div>
 </div>
@@ -80,7 +81,7 @@
 
 <script type="text/template" id="streamtable-template">
   <% if (p.pheno.phenocode === pheno.phenocode) { %>
-  <tr style="background-color:lightblue">
+  <tr style="background-color:rgb(247,245,230)">
     <td><%= p.assoc.pval.toExponential(1) %></td>
     <td><%= p.pheno.phenostring || p.pheno.phenocode %></td>
   </tr>

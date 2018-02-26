@@ -30,7 +30,13 @@
           {{ variant.variant_name }}
           {% if variant.rsids %}({{ variant.rsids }}){% endif %}
         </h1>
-        <p>Nearest gene: <i>{{ variant.nearest_genes }}</i></p>
+        <p>Nearest gene:
+          {% with genes = variant.nearest_genes.split(",") %}
+          {% for gene in genes %}
+          <a style="color:black" href="/gene/{{ gene }}">{{ gene }}</a>{% if not loop.last %} , {% endif %}
+          {% endfor %}
+          {% endwith %}
+        </p>
         <span id="maf-range"></span>
 {#        {% if variant.ac %}<p>AC: {{ variant.ac }}</p>{% endif %} #}
         <p>View on
@@ -64,7 +70,7 @@
 
 <div class="row">
   <div class="col-xs-12 col-sm-8 col-md-6">
-    <input type="text" class="form-control" id="search" placeholder="Search... &quot;427.21&quot;, &quot;Diabetes&quot;, etc.">
+    <input type="text" class="form-control" id="search" placeholder="Search... &quot;Nervous system&quot;, &quot;Diabetes&quot;, etc.">
   </div>
   <div class="col-xs-12 col-sm-4 col-md-6">
     <h5 class="pull-right"><div id="streamtable-found" class="label label-primary"></div></h5>
