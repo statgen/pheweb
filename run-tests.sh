@@ -90,3 +90,5 @@ if [[ ${failed:-} = false ]]; then exit 1; fi
 echo -e "\n\n====> SUCCESS"
 
 rm -rf "/tmp/pheweb-test-venv-${USER}-"* # post-clean
+
+wait $pid
