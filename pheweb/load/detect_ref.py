@@ -4,7 +4,6 @@ from ..file_utils import get_cacheable_file_location, get_tmp_path, read_maybe_g
 from .load_utils import run_script, ProgressBar
 
 from collections import OrderedDict
-from contextlib import ExitStack
 import wget
 import os
 import sys
@@ -32,7 +31,7 @@ def handle_vcf(args):
     vcf_filepath = args[0]
     col_idx = dict(chrom=0, pos=1, a1=3, a2=4)
     with read_maybe_gzip(vcf_filepath) as f:
-         handle_lines(f, col_idx)
+        handle_lines(f, col_idx)
 
 def handle_lines(lines, col_idx):
     match_counts = OrderedDict((build['hg'],{'a1':0, 'a2':0, 'either':0}) for build in known_builds)
