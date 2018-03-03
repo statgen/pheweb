@@ -1,5 +1,5 @@
 from .. import utils
-from ..file_utils import get_generated_path
+from ..file_utils import get_generated_path, make_basedir
 
 import os
 
@@ -25,6 +25,7 @@ from pheweb.serve.server import app as application
 
 def run(argv):
     out_filepath = get_generated_path('wsgi.py')
+    make_basedir(out_filepath)
 
     if argv and argv[0] == '-h':
         print('Make {}, which can be used with gunicorn or other WSGI-compatible webservers.'.format(
