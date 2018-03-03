@@ -6,3 +6,4 @@ PheWeb.egg-info
 build
 dist
 pheweb/load/cffi/_x*
+.eggs
