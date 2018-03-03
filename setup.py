@@ -4,6 +4,7 @@
 #     1. set a new version in `pheweb/version.py`
 #     2. `rm -r dist && python3 setup.py sdist bdist_wheel && twine upload dist/*`
 # to upgrade: `pip3 install --upgrade --upgrade-strategy only-if-needed --no-cache-dir pheweb`
+# to test: `python3 setup.py test`
 
 
 from setuptools import setup
@@ -42,6 +43,7 @@ setup(
     cffi_modules=['pheweb/load/cffi/ffibuilder.py:ffibuilder'],
     setup_requires=[
         'cffi~=1.9',
+        'pytest-runner~=4.0',
     ],
     install_requires=[
         'Flask>=0.12',
@@ -62,5 +64,8 @@ setup(
         'cffi~=1.10',
         'wget~=3.2',
         'gevent',
-    ]
+    ],
+    tests_require=[
+        'pytest~=3.4',
+    ],
 )

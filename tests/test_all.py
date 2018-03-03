@@ -1,29 +1,17 @@
 
-'''
-TODO: run on travis-ci
+#TODO: use subprocess to eliminate conf_utils state?
+#TODO: split into multiple tests that share tmpdir and run in order
 
-TODO: integrate tests with `setup.py`.
-   <https://pytest.readthedocs.io/en/latest/goodpractices.html#integrating-with-setuptools-python-setup-py-test-pytest-runner>
-
-TODO: learn how to use `tox` to test different python versions in virtualenvs
-   <https://tox.readthedocs.io/en/latest/>
-   <https://tox.readthedocs.io/en/latest/example/pytest.html>
-
-TODO: use subprocess to eliminate conf_utils state?
-'''
-
-import pytest, os, random
-import pheweb.version
-from pheweb.command_line import run as cl_run
+import os
 
 def test_all(tmpdir, capsys):
     p = tmpdir.realpath()
     with capsys.disabled(): print('\n{}'.format(p))
     indir = os.path.join(os.path.dirname(__file__), 'input_files/')
 
-    conf = ['conf', 'data_dir="{}"'.format(p), 'cache="{}/fake-cache"'.format(p)]
+    conf = ['conf', 'data_dir="{}"'.format(p), 'cache="{}/fake-cache"'.format(indir)]
 
-    assert pheweb.version.version.count('.') == 2
+    from pheweb.command_line import run as cl_run
     cl_run(conf+['-h'])
     cl_run(conf+['phenolist', 'glob', '--simple-phenocode', '{}/assoc-files/*'.format(indir)])
     cl_run(conf+['phenolist', 'unique-phenocode'])
@@ -34,14 +22,12 @@ def test_all(tmpdir, capsys):
     cl_run(conf+['phenolist', 'import-phenolist', '-f', '{}/pheno-list-categories.json'.format(p), '{}/categories.csv'.format(indir)])
     cl_run(conf+['phenolist', 'merge-in-info', '{}/pheno-list-categories.json'.format(p)])
     cl_run(conf+['phenolist', 'verify', '--required-columns', 'category'])
+    with capsys.disabled(): print(1)
     cl_run(conf+['process'])
     cl_run(conf+['top-loci'])
     cl_run(conf+['wsgi'])
+    with capsys.disabled(): print(2)
 
-    ## TODO: check server
-    # port = random.randrange(5000,9000)
-    # with capsys.disabled(): print(f'\n{port}')
-    # cl_run(conf+['serve', '--port', f'{port}'])
     from pheweb.serve.server import app # TODO: this relies on data_dir being set earlier, but shouldn't.
     app.testing = True
     client = app.test_client()
@@ -56,5 +42,3 @@ def test_all(tmpdir, capsys):
     assert client.get('http://localhost:$port/region/snowstorm/gene/DNAH14?include=1-225494097').status_code == 200
     assert client.get('http://localhost:$port/api/autocomplete?query=%20DAP-2').status_code == 200
     assert b'EAR-LENGTH' in client.get('http://localhost:$port/region/1/gene/SAMD11').data
-
-    #assert 0 # shows stdout
