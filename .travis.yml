@@ -3,5 +3,7 @@ python:
   - "3.4"
 install:
   - pip3 install .
+  - pip3 install flake8
 script:
-  - pytest
+  - python3 setup.py test
+  - python3 -m flake8
