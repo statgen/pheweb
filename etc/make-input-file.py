@@ -12,7 +12,7 @@ import re
 import itertools
 
 def format_float(x):
-    if x >= 0.01: return f'{x:.3}'
+    if x >= 0.01: return '{:.3}'.format(x)
     rv = '{:.0e}'.format(x).replace('e-0', 'e-').replace('e+00', '')
     if re.match(r'^[0-9]e-1$', rv): return '.{}'.format(rv[0])
     if re.match(r'^[0-9]e-2$', rv): return '.0{}'.format(rv[0])
@@ -42,7 +42,7 @@ def make_pheno(pheno_name, use_maf, use_af, use_ac, use_ns):
     ns = random.randrange(100, 10_000)
     num_chromosomes = ns*2
 
-    with TSVWriter(f'input_files/assoc-files/{pheno_name}.txt') as writer:
+    with TSVWriter('input_files/assoc-files/{}.txt'.format(pheno_name)) as writer:
 
         for v in variants:
             if v['chrom'] == '1' and v['pos'] == 869334 or random.random() < 100 / len(variants):
