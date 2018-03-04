@@ -64,7 +64,7 @@ def get_all_genes(gencode_filepath):
                 symbol = re.search(r'gene_name "(.+?)"', r[8]).group(1)
                 full_ensg = re.search(r'gene_id "(ENSGR?[0-9\._A-Z]+?)"', r[8]).group(1)
                 ensg = full_ensg.split('.')[0]
-            except:
+            except Exception:
                 print('ERROR on line:', r)
                 raise
 

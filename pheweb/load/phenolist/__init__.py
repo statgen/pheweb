@@ -434,7 +434,7 @@ def load_phenolist(filepath):
     with open(filepath) as f:
         try:
             phenolist = json.load(f)
-        except:
+        except json.JSONDecodeError:
             raise PheWebError("Failed to load json from {!r}.".format(filepath))
         return phenolist
 

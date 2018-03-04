@@ -43,7 +43,7 @@ def run_gunicorn(app, args):
 def gunicorn_is_broken():
     try:
         import gunicorn.app.base # noqa: F401
-    except:
+    except Exception:
         try:
             import inotify # noqa: F401
         except ImportError:
@@ -89,7 +89,7 @@ def attempt_open(url):
         # LATER: prepend `macosx` to this list when <http://bugs.python.org/issue30392> is fixed.
         try:
             b = webbrowser.get(name)
-        except:
+        except Exception:
             pass
         else:
             if b.open(url):

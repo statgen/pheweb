@@ -24,7 +24,7 @@ def should_run():
     # check that the current matrix is composed of the correct columns/phenotypes.  If it's changed, rebuild the matrix.
     try:
         matrix_phenocodes = set(MatrixReader().get_phenocodes())
-    except:
+    except Exception:
         return True # if something broke, let's just rebuild the matrix.
     if matrix_phenocodes != cur_phenocodes:
         print('re-running because cur matrix has wrong phenos.')

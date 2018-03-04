@@ -103,11 +103,11 @@ def run_script(script):
 
 def get_num_procs(cmd=None):
     try: return int(conf.num_procs[cmd])
-    except: pass
+    except Exception: pass
     try: return int(conf.num_procs['*'])
-    except: pass
+    except Exception: pass
     try: return int(conf.num_procs)
-    except: pass
+    except Exception: pass
     n_cpus = multiprocessing.cpu_count()
     if n_cpus == 1: return 1
     if n_cpus < 4: return n_cpus - 1

@@ -138,7 +138,7 @@ def parse_chrom(chrom):
     return chrom
 def parse_pos(pos_string):
     try: pos = int(pos_string)
-    except: raise PheWebError("pos {} is not an integer".format(pos_string))
+    except ValueError: raise PheWebError("pos {} is not an integer".format(pos_string))
     return pos
 
 

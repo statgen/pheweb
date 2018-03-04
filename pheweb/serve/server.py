@@ -131,7 +131,7 @@ def random_page():
 def pheno_page(phenocode):
     try:
         pheno = phenos[phenocode]
-    except:
+    except KeyError:
         die("Sorry, I couldn't find the pheno code {!r}".format(phenocode))
     return render_template('pheno.html',
                            phenocode=phenocode,
@@ -146,7 +146,7 @@ def pheno_page(phenocode):
 def region_page(phenocode, region):
     try:
         pheno = phenos[phenocode]
-    except:
+    except KeyError:
         die("Sorry, I couldn't find the phewas code {!r}".format(phenocode))
     pheno['phenocode'] = phenocode
     return render_template('region.html',

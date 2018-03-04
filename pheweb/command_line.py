@@ -81,7 +81,7 @@ def configure(argv):
         if '=' not in arg: break
         k,v = arg.split('=', 1)
         try: conf[k] = json.loads(v)
-        except: conf[k] = v # TODO: warn
+        except json.JSONDecodeError: conf[k] = v
     else:
         print(conf)
         exit(1)

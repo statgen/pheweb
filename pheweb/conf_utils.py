@@ -93,7 +93,7 @@ def _ensure_conf():
         if not os.path.isdir(conf.cache):
             try:
                 mkdir_p(conf.cache)
-            except:
+            except PermissionError:
                 print("Warning: caching is disabled because the directory {!r} can't be created.\n".format(conf.cache) +
                       "If you don't want caching, set `cache = False` in your config.py.")
                 conf.cache = False
@@ -109,7 +109,7 @@ def _ensure_conf():
         if os.path.isfile(_config_filepath):
             try:
                 _conf_module = imp.load_source('config', _config_filepath)
-            except:
+            except Exception:
                 raise utils.PheWebError("PheWeb tried to load your config.py at {!r} but it failed.".format(_config_filepath))
             else:
                 for key in dir(_conf_module):

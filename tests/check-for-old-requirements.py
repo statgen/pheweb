@@ -16,6 +16,6 @@ with open(os.path.join(os.path.dirname(__file__),'../setup.py')) as f:
                 v = version.lstrip('~=>')
                 importance = '' if latest == v or latest==v+'.0' or latest.startswith(v) else '<<'
                 print('{:20}{:10}{:10}{}'.format(pkg+opt, version, latest, importance))
-            except:
+            except Exception:
                 print([pkg, opt, version])
                 print(traceback.format_exc())
