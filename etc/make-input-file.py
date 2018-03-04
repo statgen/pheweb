@@ -39,7 +39,7 @@ variants = sorted(variants, key=lambda v: (chroms.index(v['chrom']), v['pos']))
 
 def make_pheno(pheno_name, use_maf, use_af, use_ac, use_ns):
 
-    ns = random.randrange(100, 10_000)
+    ns = random.randrange(100, int(1e5))
     num_chromosomes = ns*2
 
     with TSVWriter('input_files/assoc-files/{}.txt'.format(pheno_name)) as writer:
