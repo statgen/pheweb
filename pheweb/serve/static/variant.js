@@ -252,6 +252,32 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     });
 })();
 
+(function() {
+    if (!window.variant.rsids) return
+    var rsid = window.variant.rsids.split(',')[0]
+    $.getJSON('http://grch37.rest.ensembl.org/variation/human/' + rsid + '?content-type=application/json')
+        .done(function(result) {
+            if (result.mappings && result.mappings[0]) {
+                var map = result.mappings[0];
+                var chr = map.seq_region_name;
+                var alleles = map.allele_string && map.allele_string.split('/')
+                if (alleles) {
+                    var ref, alt;
+                    if (alleles.length == 2) {
+                        ref = alleles[0];
+                        alt = alleles[1];
+                    }
+                    var pos = map.start
+                    if (chr && pos && ref && alt) {
+                        var url = "http://big.stats.ox.ac.uk/variant/" + chr + "-" + pos + "-" + ref + "-" + alt
+                        $('#ukbb-link').html(', <a href=' + url + ' target="_blank">BIG UKbiobank</a>')
+                    } else {
+                        //console.log(result.mappings[0])
+                    }
+                }
+            }
+        })
+})();
 
 // Check PubMed for each rsid and render link.
 if (typeof window.variant.rsids !== "undefined") {
