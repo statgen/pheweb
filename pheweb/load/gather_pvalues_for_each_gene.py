@@ -33,28 +33,24 @@ def ret_lines(dataPath,v2g = None):
     If no v2g mapping is provided, it is loaded using dataPath. If no mapping exists, the mapping is created and then loaded.
     '''
 
-    
-
-
     if v2g is None:
         v2g = map_variant_to_gene(dataPath)
 
-
-            
     start = time.time()
     
-    line_iter = line_map
-    reader = line_iter(dataPath)
+    reader = line_map(dataPath)
 
-    geneList = return_gene_list()
+    geneList = np.loadtxt(common_filepaths['genes'],dtype = str,usecols = (3,))
     g2i = {gene:i for i,gene in enumerate(geneList)}
 
+    # fetch info from first line of fie
+    lenMeta,phenoTypes,pValIndex,lenPheno,phenoMeta = pheno_tables(next(reader))
     #lenMeta is the length of the variant metadata
     # phenoTypes is the list with the name of the PhenoTypes
     # pVal index is the list of indexes where pvalues can be found
     #lenPheno is the size of the pheno type data chunk
     # phenoMeta is the ordered list of the info of the column (periodic by phenotype, length = lenPheno)
-    lenMeta,phenoTypes,pValIndex,lenPheno,phenoMeta = pheno_tables(next(reader))
+
     # these are needed in for loops that I call over and over agan
     phenoRange = np.arange(len(phenoTypes))
     phenoMetaRange = np.arange(lenPheno)
@@ -65,27 +61,23 @@ def ret_lines(dataPath,v2g = None):
     print('Reading lines...')
     for line in reader:
         #reads the data into the variantclass
-        # variant = Variant(keyInfo,line,treeDict)
         chrom,pos,ref,alt,rsids,nearest_genes = line[:lenMeta]
         # work with floats only after the variant metadata
         vData = np.array(line[lenMeta:],dtype = str)
-        vData[vData == ''] = '10'
-        vData = np.array(vData,dtype = np.float64)
+        vData[vData == ''] = '1' #needed to allow to convert all strings to float. I need an high value so that the pvals are always high
+        vData = vData.astype(float)
         
         pVals = vData[pValIndex] # get only pvals
-        #print pVals
 
         genes = v2g[chrom][pos] # get genes
-   
         for gene in genes:
             # get the index of the gene
             gIx = g2i[gene]
+
             #compare pvals
             pMask =  (pVals < pMatrix[gIx])
-            pMatrix[gIx][pMask] = pVals[pMask]
-            #pMask,pMatrix = return_pmask(pVals,pMatrix,gIx)
-   
             #update pvals
+            pMatrix[gIx][pMask] = pVals[pMask]
 
             # now i need to enter the info of the variant
             for phenoIx in phenoRange[pMask]:
@@ -118,12 +110,6 @@ def ret_lines(dataPath,v2g = None):
         json.dump(resDict,o)
     print('done.')
     return  time.time() - start
-
-def return_pmask(pVals,pMatrix,gIx):
-    pMask =  (pVals < pMatrix[gIx])
-    pMatrix[gIx][pMask] = pVals[pMask]
-    return pMask,pMatrix
-
 
 
 
@@ -179,8 +165,9 @@ def get_pheno_metadata(dataPath):
 
 def pheno_tables(header):
     '''
-    Processes the first line of the matrix file in order to store what the info is and where it's located. It works only
-with properly formatted pheno data, i.e. such that each phenotype has the same amount of data.
+    Processes the first line of the matrix file in order to store what the info is and where it's located.
+
+    *IMPORTANT*: It works only with properly formatted pheno data, i.e. such that each phenotype has the same amount of entries.
     '''
     #find length of metadata
     for i,elem in enumerate(header):
@@ -199,13 +186,15 @@ with properly formatted pheno data, i.e. such that each phenotype has the same a
         
     #return size of chunk of data for each pheno
     lenPheno = len(phenoData)/len(phenoTypes)
-    assert int(lenPheno) == lenPheno
+    assert int(lenPheno) == lenPheno #checks that each phenotype has equal length
     lenPheno = int(lenPheno)
     # find indexes of pvals
     pValIndex = []
     for i,elem in enumerate(phenoData):
         if 'pval' in elem:
             pValIndex.append(i)
+
+    # returns the names of the columns for each pheno (again, assuming regularity)
     phenoMeta = [elem.split('@')[0] for elem in  phenoData[:lenPheno]]
     return lenMeta,phenoTypes,pValIndex,lenPheno,phenoMeta
     
@@ -221,7 +210,8 @@ with properly formatted pheno data, i.e. such that each phenotype has the same a
 def map_variant_to_gene(dataPath):
 
     '''
-    Creates a look up table for variant to gene
+    Creates a look up table for variant to gene. 
+    It loops through the matrix file and maps each variant to a list of genes.
     '''
 
     filePath = dataPath + 'variant2geneDict.p'
@@ -231,29 +221,30 @@ def map_variant_to_gene(dataPath):
         print('VariantToGene file exists: loading...')
         variant2geneDict=  pickle.load(open(filePath,'rb'))
 
-    # OTHERWISE CREAT IT
+    # OTHERWISE CREATE IT
     else:
         print("VariantToGene file doesn't exist: generating file...")
         
         treeDict = create_gene_tree()
 
+        reader = line_map(dataPath)
+        #keyInfo,phenoList = return_ordered_phenos(next(reader))
+        lenMeta,phenoTypes,pValIndex,lenPheno,phenoMeta = pheno_tables(next(reader))
 
-        line_reader = line_map
-        reader = line_reader(dataPath)
-        keyInfo,phenoList = return_ordered_phenos(next(reader))
-    
-        # dictionary structured such as geneDict[gene][phenoType][key] = [value]
-    
         variant2geneDict = dd(dict)
         for line in reader:
             #reads the data into the variantclass
-            variant = Variant(keyInfo,line)
+           # variant = Variant(keyInfo,line)
+            chrom,pos,ref,alt,rsids,nearest_genes = line[:lenMeta]
 
+            # initializes empty list. It's important to assign even an empty list so that no error is raised if the variant belongs to no gene in the main function
             geneList = []
-            for gene in treeDict[variant.chrom][int(variant.pos)]:
+            for gene in treeDict[chrom][int(pos)]:
+            #for gene in treeDict[variant.chrom][int(variant.pos)]:
                 geneList.append(gene[-1])
-                variant2geneDict[variant.chrom][variant.pos] = geneList
-            
+            #variant2geneDict[variant.chrom][variant.pos] = geneList
+            variant2geneDict[chrom][pos] = geneList
+
         print('Mapping created: now saving..')
         pickle.dump(variant2geneDict,  open(filePath,'wb'))
         
@@ -261,104 +252,29 @@ def map_variant_to_gene(dataPath):
     return variant2geneDict
     
 def create_gene_tree():
-    gPath = common_filepaths['genes']
-    # dictionary that contains a tree for each chromosome
+    '''
+    This function goes through the genelist and creates a searchable tree for each chromosome and position.
+    '''
+
+    chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
+    chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
+    chrom_aliases = {'23': 'X', '24': 'Y', '25': 'MT', 'M': 'MT'}
+    
+    # dictionary that contains a tree for each chromosome key
     print('Initializing treeDict...')
     treeDict = dict()
     for chrom in chrom_order_list:
-        geneTree = intervaltree.IntervalTree()
-        treeDict[chrom] = geneTree
-    gg = gene_generator()
-    for gene in gg:
+        treeDict[chrom] =  intervaltree.IntervalTree()
+
+    for gene in get_gene_tuples():
         chrom, start, end, gene_symbol = gene
         start, end = pad_gene(start, end)
         treeDict[chrom][start:end] = gene_symbol
     print('TreeDict created.')
     return treeDict
 
-def pad_gene(start, end):
-    # We'd like to get 100kb on each side of the gene.
-    # But max-region-length is 500kb, so let's try not to exceed that.
-    # Maybe this should only go down to 1 instead of 0. That's confusing, let's just hope this works.
-    if start < 1e5:
-        if end > 5e5: return (0, end)
-        if end > 4e5: return (0, 5e5)
-        return (0, end + 1e5)
-    padding = clamp(5e5 - (end - start), 0, 2e5)
-    return (int(start - padding//2), int(end + padding//2))            
-
-chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
-chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
-chrom_aliases = {'23': 'X', '24': 'Y', '25': 'MT', 'M': 'MT'}
 
 
-def gene_generator(include_ensg=False):
-    gPath = common_filepaths['genes']
-    # i need to open not in binary because it needs to return a string
-    with open(gPath,'r') as i:
-        for row in csv.reader(i, delimiter='\t'):
-            assert row[0] in chrom_order, row[0]
-            if include_ensg:
-                yield (row[0], int(row[1]), int(row[2]), row[3], row[4])
-            else:
-                yield (row[0], int(row[1]), int(row[2]), row[3])
-    
-
-                
-
-
-def return_gene_list():
-    gPath = common_filepaths['genes']
-
-    genes = np.loadtxt(gPath,dtype = str,usecols = (3,))
-    return genes
-
-#####################
-#--VARIANT PARSING--#
-#####################
-def return_ordered_phenos(header) :
-    '''
-    Returns info from header of matrix file in order to parse the line in the class
-    '''
-    keyInfo = []
-    phenoList = []
-    for entry in header:
-        e = tuple(entry.split('#')[-1].split('@')[::-1])
-        keyInfo.append(e)
-        if len(e) ==2:
-            phenoList.append(e[0])
-    return keyInfo,phenoList
-
-class Variant(object):
-
-    '''
-    Parses line and sets info in the right place. If the column is related to a phenotype, then it adds the info in self.phenoDict[phenotype]. Else
-it adds it as a new attribute
-    '''
-    def __init__(self,keyInfo,line):
-        self.phenoDict = dd(dict)
-        for i,entry in enumerate(line):
-            tupleInfo = keyInfo[i]
-#            entry = line[i]
-            t0 = tupleInfo[0]
-            if len(tupleInfo) == 2:
-                try:
-                    setInDict(self.phenoDict,tupleInfo,float(entry))
-                    self.phenoDict[t0]['phenocode'] = t0
-                except:
-                    # this is needed in case the entry cannot be converted to float. It means it's an empty string and no phenotype data is added to the dict
-                    pass
-               
-            else:
-                setattr(self,t0,entry)
-
-                
-def setInDict(dataDict, mapList, value):
-    getFromDict(dataDict, mapList[:-1])[mapList[-1]] = value
-
-
-def getFromDict(dataDict, mapList):
-    return reduce(operator.getitem, mapList, dataDict)
 
 
 
