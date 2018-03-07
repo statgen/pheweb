@@ -12,7 +12,6 @@ import intervaltree
 from boltons.mathutils import clamp
 import os.path
 import gzip
-import csv
 import mmap
 from functools import reduce  # forward compatibility for Python 3
 import operator
@@ -37,36 +36,41 @@ def ret_lines(dataPath,v2g = None):
         v2g = map_variant_to_gene(dataPath)
 
     start = time.time()
-    
+
     reader = line_map(dataPath)
 
+    # gene/index mapping.
     geneList = np.loadtxt(common_filepaths['genes'],dtype = str,usecols = (3,))
     g2i = {gene:i for i,gene in enumerate(geneList)}
 
-    # fetch info from first line of fie
+    # fetch info from first line of file
     lenMeta,phenoTypes,pValIndex,lenPheno,phenoMeta = pheno_tables(next(reader))
-    #lenMeta is the length of the variant metadata
+    # lenMeta is the length of the variant metadata
     # phenoTypes is the list with the name of the PhenoTypes
     # pVal index is the list of indexes where pvalues can be found
-    #lenPheno is the size of the pheno type data chunk
+    # lenPheno is the size of the pheno type data chunk
     # phenoMeta is the ordered list of the info of the column (periodic by phenotype, length = lenPheno)
 
     # these are needed in for loops that I call over and over agan
     phenoRange = np.arange(len(phenoTypes))
     phenoMetaRange = np.arange(lenPheno)
+    
     # dictionary structured such as geneDict[gene][phenoType][key] = [value]
     geneDict = dd(lambda : dd(lambda : dd(lambda  : np.inf)))
+    
     # matrix array structured as genes for rows and phenotypes as columns. it stores the best current pval
     pMatrix = np.ones((len(geneList),len(phenoTypes)),dtype = float)
+    
     print('Reading lines...')
     for line in reader:
-        #reads the data into the variantclass
+        #reads the meta data of the variant
         chrom,pos,ref,alt,rsids,nearest_genes = line[:lenMeta]
+        
         # work with floats only after the variant metadata
         vData = np.array(line[lenMeta:],dtype = str)
         vData[vData == ''] = '1' #needed to allow to convert all strings to float. I need an high value so that the pvals are always high
         vData = vData.astype(float)
-        
+
         pVals = vData[pValIndex] # get only pvals
 
         genes = v2g[chrom][pos] # get genes
@@ -74,9 +78,8 @@ def ret_lines(dataPath,v2g = None):
             # get the index of the gene
             gIx = g2i[gene]
 
-            #compare pvals
+            #compare & update pvals
             pMask =  (pVals < pMatrix[gIx])
-            #update pvals
             pMatrix[gIx][pMask] = pVals[pMask]
 
             # now i need to enter the info of the variant
@@ -89,27 +92,33 @@ def ret_lines(dataPath,v2g = None):
                 geneDict[gene][pheno]['pos'] = pos
                 geneDict[gene][pheno]['rsids'] = rsids
                 geneDict[gene][pheno]['phenocode'] = pheno
-   
+
+    print('done.')
+    
     print('Importing pheno data...')
+    # information to add about each phenotype to be taken from the json file.
     phenoDict = get_pheno_metadata(dataPath = dataPath)
     print('done.')
-    resDict = dict()
+
     print('Filtering results...')
+    # filtering the dict to keep only relevant pvals.
+    resDict = dict()
     for gene in geneDict:
-        resList= filter_phenos_local(gene,geneDict[gene]) # filtered dict with only relevant phenotype data
-        
-        for pDict in resList: #add meta data from each pheno
+        resList= filter_phenos_local(gene,geneDict[gene]) 
+        #add meta data from each pheno
+        for pDict in resList:
             phenocode = pDict['phenocode']
             for key in phenoDict[phenocode]:
                 pDict[key] = phenoDict[phenocode][key]
         resDict[gene] = resList
-
     print('done.')
+    
     print('Saving results in .json format...')
     with open(dataPath + 'generated-by-pheweb/best-phenos-by-gene-new.json','w') as o:
         json.dump(resDict,o)
     print('done.')
-    return  time.time() - start
+    
+    return time.time() - start
 
 
 
@@ -119,7 +128,7 @@ def filter_phenos_local(gene,best_assoc_for_pheno):
     '''
     for phenocode,assoc in best_assoc_for_pheno.items():
         assoc['phenocode'] = phenocode
-    phenos_in_gene = sorted(best_assoc_for_pheno.values(), key=lambda a:a['pval']) 
+    phenos_in_gene = sorted(best_assoc_for_pheno.values(), key=lambda a:a['pval'])
 
     # decide how many phenotypes to include:
     #  - include all significant phenotypes.
@@ -134,8 +143,8 @@ def filter_phenos_local(gene,best_assoc_for_pheno):
         else:
             break
     return phenos_in_gene[:biggest_idx_to_include + 1]
-    
-  
+
+
 
 def get_pheno_metadata(dataPath):
 
@@ -169,36 +178,37 @@ def pheno_tables(header):
 
     *IMPORTANT*: It works only with properly formatted pheno data, i.e. such that each phenotype has the same amount of entries.
     '''
-    #find length of metadata
+    #lenMeta: find length of metadata
     for i,elem in enumerate(header):
         if '@' in elem:
             lenMeta = i
             break
 
-    # operate with phenoData
+    # phenoData: all data from phenotypes
     phenoData = header[lenMeta:]
-    # return name of phenotypes
 
+    # phenoTypes: list of names of phenotypes
     phenoTypes = []
     for elem in [elem.split('@')[1] for elem in phenoData]:
         if elem not in phenoTypes:
             phenoTypes.append(elem)
-        
-    #return size of chunk of data for each pheno
+
+    #lenPheno: size of chunk of data for each pheno
     lenPheno = len(phenoData)/len(phenoTypes)
     assert int(lenPheno) == lenPheno #checks that each phenotype has equal length
     lenPheno = int(lenPheno)
-    # find indexes of pvals
+
+    #pValIndex: location of indexes that contain pvalue data
     pValIndex = []
     for i,elem in enumerate(phenoData):
         if 'pval' in elem:
             pValIndex.append(i)
 
-    # returns the names of the columns for each pheno (again, assuming regularity)
+    #phenoMeta: the names of the columns for each pheno (again, assuming regularity)
     phenoMeta = [elem.split('@')[0] for elem in  phenoData[:lenPheno]]
     return lenMeta,phenoTypes,pValIndex,lenPheno,phenoMeta
-    
-   
+
+
 
 
 ###########################
@@ -210,7 +220,7 @@ def pheno_tables(header):
 def map_variant_to_gene(dataPath):
 
     '''
-    Creates a look up table for variant to gene. 
+    Creates a look up table for variant to gene.
     It loops through the matrix file and maps each variant to a list of genes.
     '''
 
@@ -224,7 +234,7 @@ def map_variant_to_gene(dataPath):
     # OTHERWISE CREATE IT
     else:
         print("VariantToGene file doesn't exist: generating file...")
-        
+
         treeDict = create_gene_tree()
 
         reader = line_map(dataPath)
@@ -233,36 +243,33 @@ def map_variant_to_gene(dataPath):
 
         variant2geneDict = dd(dict)
         for line in reader:
-            #reads the data into the variantclass
-           # variant = Variant(keyInfo,line)
+            #fecthes chrom and pos of the variant
             chrom,pos,ref,alt,rsids,nearest_genes = line[:lenMeta]
 
             # initializes empty list. It's important to assign even an empty list so that no error is raised if the variant belongs to no gene in the main function
             geneList = []
             for gene in treeDict[chrom][int(pos)]:
-            #for gene in treeDict[variant.chrom][int(variant.pos)]:
                 geneList.append(gene[-1])
-            #variant2geneDict[variant.chrom][variant.pos] = geneList
             variant2geneDict[chrom][pos] = geneList
 
         print('Mapping created: now saving..')
         pickle.dump(variant2geneDict,  open(filePath,'wb'))
-        
+
     print('done.')
     return variant2geneDict
-    
+
 def create_gene_tree():
     '''
     This function goes through the genelist and creates a searchable tree for each chromosome and position.
     '''
+    print('Initializing treeDict...')
+
+
+    # dictionary that contains a tree for each chromosome key
+    treeDict = dict()
 
     chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
-    chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
-    chrom_aliases = {'23': 'X', '24': 'Y', '25': 'MT', 'M': 'MT'}
-    
-    # dictionary that contains a tree for each chromosome key
-    print('Initializing treeDict...')
-    treeDict = dict()
+
     for chrom in chrom_order_list:
         treeDict[chrom] =  intervaltree.IntervalTree()
 
@@ -270,13 +277,9 @@ def create_gene_tree():
         chrom, start, end, gene_symbol = gene
         start, end = pad_gene(start, end)
         treeDict[chrom][start:end] = gene_symbol
+        
     print('TreeDict created.')
     return treeDict
-
-
-
-
-
 
 
 
@@ -294,4 +297,3 @@ def line_map(dataPath):
     for line in gzfile:
         line = line.decode()
         yield line[:-1].split('\t')
-  
