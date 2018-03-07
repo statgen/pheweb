@@ -27,9 +27,9 @@ genes_version = 'v25'
 
 common_filepaths = {
     'phenolist': os.path.join(conf.data_dir, 'pheno-list.json'),
-    'genes': get_cacheable_file_location('sites/genes', 'genes-{}.bed'.format(genes_version)),
-    'gene-aliases-trie': get_cacheable_file_location('sites/genes', 'gene_aliases.marisa_trie'),
-    'rsids': get_cacheable_file_location('sites/dbSNP', 'rsids-{}.vcf.gz'.format(dbsnp_version)),
+    'genes': get_cacheable_file_location('sites/genes', 'genes-b38-{}.bed'.format(genes_version)),
+    'gene-aliases-trie': get_cacheable_file_location('sites/genes', 'gene_aliases_b38.marisa_trie'),
+    'rsids': get_cacheable_file_location('sites/dbSNP', 'rsids-b38-{}.vcf.gz'.format(dbsnp_version)),
     'unanno': get_generated_path('sites/sites-unannotated.tsv'),
     'sites-rsids': get_generated_path('sites/sites-rsids.tsv'),
     'sites': get_generated_path('sites/sites.tsv'),
