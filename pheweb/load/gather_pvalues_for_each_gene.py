@@ -36,7 +36,6 @@ def ret_lines(dataPath,v2g = None):
         v2g = map_variant_to_gene(dataPath)
 
     start = time.time()
-
     reader = line_map(dataPath)
 
     # gene/index mapping.
@@ -114,11 +113,11 @@ def ret_lines(dataPath,v2g = None):
     print('done.')
     
     print('Saving results in .json format...')
-    with open(dataPath + 'generated-by-pheweb/best-phenos-by-gene-new.json','w') as o:
+    with open(dataPath + 'generated-by-pheweb/best-phenos-by-gene.json','w') as o:
         json.dump(resDict,o)
     print('done.')
-    
-    return time.time() - start
+    print(time.time() - start)
+    return
 
 
 
@@ -152,7 +151,6 @@ def get_pheno_metadata(dataPath):
     Imports from pheno-list.json file the metadata of each phenotype
     '''
     phenoPath = dataPath + 'pheno-list.json'
-
     with open(phenoPath,'rb') as json_data:
         d = json.load(json_data)
         phenoDict = dd(dict)
@@ -269,7 +267,6 @@ def create_gene_tree():
     treeDict = dict()
 
     chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
-
     for chrom in chrom_order_list:
         treeDict[chrom] =  intervaltree.IntervalTree()
 
