@@ -23,16 +23,17 @@ def run(argv):
 
 
 
-def ret_lines(dataPath,v2g = None):
+def ret_lines(dataPath):
     '''
-    Returns dictionary that should be the same as final json.
-    If no v2g mapping is provided, it is loaded using dataPath. If no mapping exists, the mapping is created and then loaded.
+    Produces the json file with the best pvals for each gene
     '''
 
-    if v2g is None:
-        v2g = map_variant_to_gene(dataPath)
-
+ 
     start = time.time()
+    #dictionary that contains for each chromosome a searchable tree so that each position returns the list of genes that the position belongs to
+    treeDict = create_gene_tree()
+
+    
     reader = line_iterator(dataPath)
 
     # gene/index mapping.
@@ -46,6 +47,7 @@ def ret_lines(dataPath,v2g = None):
     # pVal index is the list of indexes where pvalues can be found
     # lenPheno is the size of the pheno type data chunk
     # phenoMeta is the ordered list of the info of the column (periodic by phenotype, length = lenPheno)
+    listpValIndex = [lenMeta + elem for elem in pValIndex]
 
     # these are needed in for loops that I call over and over agan
     phenoRange = np.arange(len(phenoTypes))
@@ -56,7 +58,6 @@ def ret_lines(dataPath,v2g = None):
     
     # matrix array structured as genes for rows and phenotypes as columns. it stores the best current pval
     pMatrix = np.ones((len(geneList),len(phenoTypes)),dtype = float)
-    listpValIndex = [lenMeta + elem for elem in pValIndex]
 
     print('Reading lines...')
     for line in reader:
@@ -65,8 +66,8 @@ def ret_lines(dataPath,v2g = None):
         
         # work with floats only after the variant metadata
         pVals = np.array([convert_float(line[i]) for i in listpValIndex],dtype = float)
-        genes = v2g[chrom][pos] # get genes
-        for gene in genes:
+        for gene in treeDict[chrom][int(pos)]:
+            gene = gene[-1]
             # get the index of the gene
             gIx = g2i[gene]
 
@@ -210,48 +211,6 @@ def pheno_tables(header):
 ###########################
 
 
-
-def map_variant_to_gene(dataPath):
-
-    '''
-    Creates a look up table for variant to gene.
-    It loops through the matrix file and maps each variant to a list of genes.
-    '''
-
-    filePath = dataPath + 'variant2geneDict.p'
-
-    # CHECK IF FILE ALREADY EXISTS
-    if os.path.isfile(filePath):
-        print('VariantToGene file exists: loading...')
-        variant2geneDict=  pickle.load(open(filePath,'rb'))
-
-    # OTHERWISE CREATE IT
-    else:
-        print("VariantToGene file doesn't exist: generating file...")
-
-        treeDict = create_gene_tree()
-
-        reader = line_iterator(dataPath)
-        #keyInfo,phenoList = return_ordered_phenos(next(reader))
-        lenMeta,phenoTypes,pValIndex,lenPheno,phenoMeta = pheno_tables(next(reader))
-
-        variant2geneDict = dd(dict)
-        for line in reader:
-            #fecthes chrom and pos of the variant
-            chrom,pos,ref,alt,rsids,nearest_genes = line[:lenMeta]
-
-            # initializes empty list. It's important to assign even an empty list so that no error is raised if the variant belongs to no gene in the main function
-            geneList = []
-            for gene in treeDict[chrom][int(pos)]:
-                geneList.append(gene[-1])
-            variant2geneDict[chrom][pos] = geneList
-
-        print('Mapping created: now saving..')
-        pickle.dump(variant2geneDict,  open(filePath,'wb'))
-
-    print('done.')
-    return variant2geneDict
-
 def create_gene_tree():
     '''
     This function goes through the genelist and creates a searchable tree for each chromosome and position.
@@ -294,7 +253,7 @@ def line_map(dataPath):
 def line_iterator(dataPath):
 
 
-    with gzip.open(dataPath + 'generated-by-pheweb/matrix.tsv.gz' ) as f:
+    with gzip.open(dataPath + 'generated-by-pheweb/matrix.tsv.gz','rt' ) as f:
         for line in f:
             yield line[:-1].split('\t')
   
