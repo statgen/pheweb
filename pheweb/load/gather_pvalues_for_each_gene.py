@@ -231,7 +231,7 @@ def map_variant_to_gene(dataPath):
 
         treeDict = create_gene_tree()
 
-        reader = line_map(dataPath)
+        reader = line_iterator(dataPath)
         #keyInfo,phenoList = return_ordered_phenos(next(reader))
         lenMeta,phenoTypes,pValIndex,lenPheno,phenoMeta = pheno_tables(next(reader))
 
