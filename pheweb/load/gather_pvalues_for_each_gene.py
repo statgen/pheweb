@@ -33,7 +33,7 @@ def ret_lines(dataPath,v2g = None):
         v2g = map_variant_to_gene(dataPath)
 
     start = time.time()
-    reader = line_map(dataPath)
+    reader = line_iterator(dataPath)
 
     # gene/index mapping.
     geneList = np.loadtxt(common_filepaths['genes'],dtype = str,usecols = (3,))
@@ -290,3 +290,11 @@ def line_map(dataPath):
     for line in gzfile:
         line = line.decode()
         yield line[:-1].split('\t')
+
+def line_iterator(dataPath):
+
+
+    with gzip.open(dataPath + 'generated-by-pheweb/matrix.tsv.gz' ) as f:
+        for line in f:
+            yield line[:-1].split('\t')
+  
