@@ -9,12 +9,9 @@ import json
 import time
 import pickle
 import intervaltree
-from boltons.mathutils import clamp
 import os.path
 import gzip
 import mmap
-from functools import reduce  # forward compatibility for Python 3
-import operator
 
 def run(argv):
     if argv and '-h' in argv:
