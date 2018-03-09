@@ -59,19 +59,15 @@ def ret_lines(dataPath,v2g = None):
     
     # matrix array structured as genes for rows and phenotypes as columns. it stores the best current pval
     pMatrix = np.ones((len(geneList),len(phenoTypes)),dtype = float)
-    
+    listpValIndex = [lenMeta + elem for elem in pValIndex]
+
     print('Reading lines...')
     for line in reader:
         #reads the meta data of the variant
         chrom,pos,ref,alt,rsids,nearest_genes = line[:lenMeta]
         
         # work with floats only after the variant metadata
-        vData = np.array(line[lenMeta:],dtype = str)
-        vData[vData == ''] = '1' #needed to allow to convert all strings to float. I need an high value so that the pvals are always high
-        vData = vData.astype(float)
-
-        pVals = vData[pValIndex] # get only pvals
-
+        pVals = np.array([convert_float(line[i]) for i in listpValIndex],dtype = float)
         genes = v2g[chrom][pos] # get genes
         for gene in genes:
             # get the index of the gene
@@ -86,7 +82,8 @@ def ret_lines(dataPath,v2g = None):
                 pheno = phenoTypes[phenoIx]
                 #get the data of the phenotype
                 for i in phenoMetaRange:
-                    geneDict[gene][pheno][phenoMeta[i]] = vData[lenPheno*phenoIx + i]
+                    geneDict[gene][pheno][phenoMeta[i]] = float(line[lenMeta + lenPheno*phenoIx + i])
+             
                 geneDict[gene][pheno]['chrom'] = chrom
                 geneDict[gene][pheno]['pos'] = pos
                 geneDict[gene][pheno]['rsids'] = rsids
@@ -119,6 +116,8 @@ def ret_lines(dataPath,v2g = None):
     print(time.time() - start)
     return
 
+def convert_float(elem):
+    return float(elem or 1)
 
 
 def filter_phenos_local(gene,best_assoc_for_pheno):
