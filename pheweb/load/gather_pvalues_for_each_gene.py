@@ -148,7 +148,7 @@ def get_pheno_metadata(dataPath):
     Imports from pheno-list.json file the metadata of each phenotype
     '''
     phenoPath = dataPath + 'pheno-list.json'
-    with open(phenoPath,'rb') as json_data:
+    with open(phenoPath,'r') as json_data:
         d = json.load(json_data)
         phenoDict = dd(dict)
         for entry in d:
