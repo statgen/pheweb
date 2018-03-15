@@ -107,6 +107,10 @@ def api_pheno(phenocode):
 @check_auth
 def api_top_hits():
     return send_file(common_filepaths['top-hits-1k'])
+@app.route('/download/top_hits.tsv')
+@check_auth
+def download_top_hits():
+    return send_file(common_filepaths['top-hits-tsv'])
 
 @app.route('/api/qq/pheno/<phenocode>')
 @check_auth
