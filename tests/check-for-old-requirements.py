@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import re, json, urllib.request, traceback, os.path, sys
+import re, json, urllib.request, os.path, sys
 
 def check_pkg(pkg, opt, version, line=None):
     if opt is None: opt=''
