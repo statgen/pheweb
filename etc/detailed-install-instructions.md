@@ -8,11 +8,15 @@ pip3 install pheweb
 
 If that command fails, then:
 
-- If you have root, run:
+- If you have root access, run:
 
   ```bash
   sudo pip3 install pheweb
   ```
+
+  If you're not sure whether you have root access, just try it.
+  If you don't have root access it will say something like `you are not in the sudoers file.`
+
 
 - Otherwise, I recommend using miniconda3 to install pheweb.
 

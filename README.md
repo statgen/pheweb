@@ -1,7 +1,6 @@
 For an example, see the [Michigan Genomics Initiative PheWeb](http://pheweb.sph.umich.edu).
-For a walk-through demo see [below](#demo-navigating-pheweb)
-
-**Questions/Comments??** Check out our [Google Group](https://groups.google.com/forum/#!forum/pheweb).
+For a walk-through demo see [here](etc/demo.md#demo-navigating-pheweb).
+If you have questions or comments, check out our [Google Group](https://groups.google.com/forum/#!forum/pheweb).
 
 ![screenshot of PheWAS plot](https://cloud.githubusercontent.com/assets/862089/25474725/3edbe256-2b02-11e7-8abb-0ca26d406b11.png)
 
