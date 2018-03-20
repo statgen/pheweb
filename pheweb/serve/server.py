@@ -20,6 +20,7 @@ import os.path
 
 app = Flask(__name__)
 Compress(app)
+
 app.config['COMPRESS_LEVEL'] = 2 # Since we don't cache, faster=better
 app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'
 app.config['TEMPLATES_AUTO_RELOAD'] = True

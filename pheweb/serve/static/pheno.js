@@ -107,7 +107,11 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 
         var color_by_chrom = d3.scale.ordinal()
             .domain(get_chrom_offsets().chroms)
-            .range(['rgb(120,120,186)', 'rgb(0,0,66)']);
+	    .range(['rgb(53,0,212)', 'rgb(40, 40, 40)']);
+	//two blues
+	//.range(['rgb(163,211,255)', 'rgb(53,0,212)']);
+	//original
+        //.range(['rgb(120,120,186)', 'rgb(0,0,66)']);
         //colors to maybe sample from later:
         //.range(['rgb(120,120,186)', 'rgb(0,0,66)', 'rgb(44,150,220)', 'rgb(40,60,80)', 'rgb(33,127,188)', 'rgb(143,76,176)']);
 
@@ -116,7 +120,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .attr('x2', plot_width)
             .attr('y1', y_scale(-Math.log10(significance_threshold)))
             .attr('y2', y_scale(-Math.log10(significance_threshold)))
-            .attr('stroke-width', '5px')
+            .attr('stroke-width', '2px')
             .attr('stroke', 'lightgray')
             .attr('stroke-dasharray', '10,10')
             .on('mouseover', significance_threshold_tooltip.show)
@@ -161,8 +165,10 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .style('stroke-width', 1)
             .on('mouseover', function(d) {
                 //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
-                var target_node = document.getElementById(fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
-                point_tooltip.show(d, target_node);
+                if (d.isDisabled !== true) {
+                    var target_node = document.getElementById(fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
+                    point_tooltip.show(d, target_node);
+                }
             })
             .on('mouseout', point_tooltip.hide);
         }
@@ -191,10 +197,12 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .style('fill', function(d) {
                 return color_by_chrom(d.chrom);
             })
-            .on('mouseover', function(d) {
-                //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
-                point_tooltip.show(d, this);
-            })
+                .on('mouseover', function(d) {
+                    if (d.isDisabled !== true) {
+                        //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
+                        point_tooltip.show(d, this);
+                    }
+                })
             .on('mouseout', point_tooltip.hide);
         }
         pp2();
@@ -287,6 +295,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .style('fill', function(d) {
                 return color_by_chrom(d.chrom);
             });
+
     });
 }
 
@@ -294,7 +303,8 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 function create_qq_plot(maf_ranges) {
 
     maf_ranges.forEach(function(maf_range, i) {
-        maf_range.color = ['#e66101', '#fdb863', '#b2abd2', '#5e3c99'][i];
+        //maf_range.color = ['#e66101', '#fdb863', '#b2abd2', '#5e3c99'][i];
+	maf_range.color = ['#E8580C', '#D20CE8', '#FF0000', '#FFAC0D'][i];
     })
 
     // TODO: adjust this for fewer variants in each maf_range?  `nvar <- nvar / 4`?
@@ -505,7 +515,103 @@ function populate_streamtable(variants) {
             }
         }
 
-        $('#stream_table').stream_table(options, data);
+        $('#stream_table').stream_table(options, data);        
 
     });
+
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip({
+            html: true,
+            animation: false,
+            container: 'body',
+            placement: 'top'
+        })
+    });
 }
+
+var pointsToggled = {
+    direction: {
+        all: true,
+        up: false,
+        down: false
+    },
+    maf: {
+        all: true,
+        ultrarare: false,
+        veryrare: false,
+        rare: false,
+        lowfreq: false,
+        common: false
+    }
+};
+
+function showPoints(type1, type2) {
+
+    d3.select('#gwas_plot')
+        .selectAll('a.variant_point')
+	.selectAll('circle')
+        .style('visibility', function(d) {
+            d.isDisabled = false;
+            return 'visible';
+        })
+        .filter(function(d) {
+            if (type1 == 'direction') {
+                if (type2 == 'all') {
+                    return false;
+                } else {
+                    let dir = effectDirection(d);
+                    return !((dir > 0 && type2 == 'up') || (dir < 0 && type2 == 'down'));
+                }
+            } else if (type1 == 'maf') {
+                if (type2 == 'all') {
+                    return false;
+                } else {
+                    return !((d.maf > 0.05 && type2 == 'common') ||
+                             (d.maf < 0.05 && d.maf > 0.01 && type2 == 'lowfreq') ||
+                             (d.maf < 0.01 && d.maf > 0.005 && type2 == 'rare') ||
+                             (d.maf < 0.005 && d.maf > 0.001 && type2 == 'veryrare') ||
+                             (d.maf < 0.001 && type2 == 'ultrarare')
+                            );
+                }
+            }
+            return true;
+	})
+	.style('visibility', function(d) {
+            d.isDisabled = true;
+            return 'hidden';
+        });
+}
+
+function togglePoints(type1, type2) {
+
+    d3.select('#gwas_plot')
+        .selectAll('a.variant_point')
+	.selectAll('circle')
+        .filter(function (d) {
+            if (type1 == 'direction') {
+                let dir = effectDirection(d);
+                return (dir > 0 && type2 == 'up') || (dir < 0 && type2 == 'down');
+            } else if (type1 == 'maf') {
+                // if (type
+                // return (d.maf 
+            }
+        })
+	.style('opacity', function(d) {
+            d.isDisabled = pointsToggled[type1][type2]
+            return pointsToggled[type1][type2] ? 0 : 1;
+	});
+    
+    pointsToggled[type1][type2] = !pointsToggled[type1][type2];
+}
+
+function effectDirection(d) {
+    if (!isNaN(d.sebeta)) {
+        if      (d.beta - 2*d.sebeta > 0) { return 1;  }
+        else if (d.beta + 2*d.sebeta < 0) { return -1; }
+    } else {
+        if      (d.beta > 0) { return 1;  }
+        else if (d.beta < 0) { return -1; }
+    }
+    return 0;
+}
+

@@ -229,6 +229,9 @@ def _ensure_conf():
     ])
 
     default_per_assoc_fields = OrderedDict([
+        ('pheno', {
+            'tooltip_lztemplate': 'phenotype: <strong>{{pheno}}</strong><br>',
+        }),
         ('pval', {
             'aliases': ['PVALUE'],
             'required': True,
@@ -271,6 +274,7 @@ def _ensure_conf():
             'type': float,
             'range': [0, 0.5],
             'sigfigs': 2,
+            'tooltip_underscoretemplate': 'MAF: <%= d.maf.toFixed(4) %><br>',
             'tooltip_lztemplate': {'transform': '|percent'},
             'display': 'MAF',
         }),
@@ -278,6 +282,7 @@ def _ensure_conf():
             'type': float,
             'range': [0, 1],
             'sigfigs': 2,
+            'tooltip_underscoretemplate': 'MAF cases: <%= d.maf_cases.toFixed(4) %><br>',
             'tooltip_lztemplate': {'transform': '|percent'},
             'display': 'MAF cases',
         }),
@@ -285,6 +290,7 @@ def _ensure_conf():
             'type': float,
             'range': [0, 1],
             'sigfigs': 2,
+            'tooltip_underscoretemplate': 'MAF controls: <%= d.maf_controls.toFixed(4) %><br>',
             'tooltip_lztemplate': {'transform': '|percent'},
             'display': 'MAF controls',
         }),

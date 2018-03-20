@@ -1,3 +1,97 @@
+/***** FINNGEN SPECIFIC *****/
+
+/* these rules mostly override bootstrap's ones */
+
+/* color schemes */
+
+/* from finngen.fi */
+/* rgb(75, 30, 218) purple */
+
+/* https://color.adobe.com/create/color-wheel */
+/* #3500D4 blue */
+/* #D20CE8 purple */
+/* #FF0000 red */
+/* #E8580C orange */
+/* #FFAC0D sand? */
+
+/* http://colormind.io/ random soft based on 3500D4 */
+/* #3500D4 blue */
+/* #1F92AD navy blue */
+/* #C1AE69 kinda sand i don't know colors */
+/* #A57643 brown */
+/* #D0282F toned down red */
+
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600,700");
+
+body {
+    font-family:'Open Sans',sans-serif;
+}
+
+a {
+    color: #4B1DD9;
+}
+
+.logo-header {
+    float: left;
+    line-height: 69px;
+    font-size: 15px;
+    margin-left: 10px;
+    letter-spacing: 0.1em;
+    color: #282828;
+}
+
+.variant_point,.binned_variant_point {
+    fill-opacity: 0.5;
+}
+
+.navbar-header {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.navbar-right {
+    margin-top: 17px;
+}
+
+#navbar-searchbox-input {
+    margin-top: 7px;
+}
+
+.alert,.label,.form-control,.lz-dashboard-button,.pagination>li:first-child>a,.pagination>li:last-child>a {
+    border-radius: 0px;
+}
+
+.pagination.active {
+    border-color: #3500D4;
+}
+
+.pagination>li>a {
+    color: #282828;
+}
+
+.pagination>li>a:hover {
+    color: #3500D4;
+}
+
+.pagination>li.active>a {
+    background-color: #282828;
+}
+
+.pagination>li.active>a:hover {
+    background-color: #3500D4;
+}
+
+.label {
+    background-color: #282828;
+}
+
+.form-control:focus {
+    border-color: rgb(75, 30, 218);
+    box-shadow: inset 0 1px 1px rgba(75, 30, 218, 0.2);
+}
+
+/* ORIGINAL */
+
 /* Reconcile bootstrap3 to typeahead.js (the real Typeahead, not bootstrap-typeahead) */
 .twitter-typeahead {
   width: 100%;

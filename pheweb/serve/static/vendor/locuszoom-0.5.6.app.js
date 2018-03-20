@@ -2142,6 +2142,7 @@ LocusZoom.DataLayer.prototype.getAxisExtent = function(dimension){
 
 // Generate a tool tip for a given element
 LocusZoom.DataLayer.prototype.createTooltip = function(d, id){
+    d.pheno = window.pheno && window.pheno.phenostring || "";
     if (typeof this.layout.tooltip != "object"){
         throw ("DataLayer [" + this.id + "] layout does not define a tooltip");
     }

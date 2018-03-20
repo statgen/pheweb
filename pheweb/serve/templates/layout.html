@@ -2,11 +2,15 @@
 <head>
 <title>{% include 'title.html' %}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/vnd.microsoft.icon" />
+
 <script src="{{ url_for('static', filename='vendor/jquery-1.12.3.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/underscore-1.8.3.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/typeahead-0.11.1.bundle.min.js') }}" type="text/javascript"></script>
 
 <link  href="{{ url_for('static', filename='vendor/bootstrap-3.3.6.min.css') }}" rel="stylesheet" type="text/css" crossorigin="anonymous">
+<script src="{{ url_for('static', filename='vendor/popper.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/bootstrap-3.3.6.min.js') }}" type="text/javascript" crossorigin="anonymous"></script>
 
 <script src="{{ url_for('static', filename='vendor/d3-3.5.16.min.js') }}"> type="text/javascript"</script>
@@ -48,7 +52,11 @@
                 <span class="icon-bar"></span>
             </button>
             {% block navbar_left %}
-            <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a>
+	    <a href="/">
+	      <img src="{{ url_for('static', filename='images/finngen-blue.svg') }}" style="float: left;" />
+	      <span class="logo-header">PHEWEB</span>
+	    </a>
+            <!-- <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a> -->
             <div class="navbar-left" id="navbar_form_container">
                 <form action="/go" class="navbar-form" role="search">
                     <div class="form-group" id="navbar-awesomebar">

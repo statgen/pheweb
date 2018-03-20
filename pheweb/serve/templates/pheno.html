@@ -19,13 +19,12 @@
   });
   $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
   .done(function(data) {
-    window.debug.qq = data;
+  window.debug.qq = data;
+    var text = '';
     _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
-      var text = 'GC Lambda ' + d[0] + ': ' + d[1].toFixed(3);
-      if (i === 0) { text = '<b>' + text + '</b>'; }
-      text = '<br>' + text;
-      $('.gc-control').append(text);
+      text += '<tr><td>GC lambda ' + d[0] + '</td><td style="padding-left: 10px;">' + d[1].toFixed(3) + '</td></tr>';
     });
+    $('.gc-control').append('<table><tbody>' + text + '</tbody></table>');
   if (data.by_maf)
     create_qq_plot(data.by_maf);
   else
@@ -93,15 +92,15 @@
 
 
 {% block contained %}
-{% for key in ['num_cases', 'num_controls', 'num_samples'] %}
- {% if key in pheno %}
-  {% if '<' in pheno[key]|string %}
-    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div>
-  {% elif 0 < pheno[key]|int < 200 %}
-    <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div>
-  {% endif %}
- {% endif %}
-{% endfor %}
+<!-- {% for key in ['num_cases', 'num_controls', 'num_samples'] %} -->
+<!--  {% if key in pheno %} -->
+<!--   {% if '<' in pheno[key]|string %} -->
+<!--     <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div> -->
+<!--   {% elif 0 < pheno[key]|int < 200 %} -->
+<!--     <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div> -->
+<!--   {% endif %} -->
+<!--  {% endif %} -->
+<!-- {% endfor %} -->
 <div class="row">
     <div class="col-xs-12">
         <h1 style="margin-top:0">{% include "pheno/h1.html" %}</h1>
@@ -110,21 +109,34 @@
 <div class="row">
     <div class="pheno-info col-xs-12">
         {% if 'num_cases' in pheno %}
-          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
+          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
         {% elif 'num_samples' in pheno %}
           <p><b>{{ pheno.num_samples }}</b> samples</p>
         {% endif %}
         {% if pheno.category %}
-          <p>Category: <b>{{ pheno.category}}</b></p>
+          <p>{{ pheno.category}}</p>
         {% endif %}
         <div id="manhattan_plot_container">
         </div>
     </div>
 </div>
 
+<div style="display: none;">
+  <span>Show variants:</span>
+  <span class="direction all" onClick="showPoints('direction', 'all')">risk and protective</span>
+  <span onClick="showPoints('direction', 'up')">risk</span>
+  <span onClick="showPoints('direction', 'down')">protective</span>
+  <span onClick="showPoints('maf', 'all')">all frequencies</span>
+  <span onClick="showPoints('maf', 'ultrarare')">ultra rare</span>
+  <span onClick="showPoints('maf', 'veryrare')">very rare</span>
+  <span onClick="showPoints('maf', 'rare')">rare</span>
+  <span onClick="showPoints('maf', 'lowfreq')">low-frequency</span>
+  <span onClick="showPoints('maf', 'common')">common</span>
+</div>
+
 <div class="row">
   <div class="col-xs-12 col-md-8">
-    <h3>Top Hits:</h3>
+    <h3>Top Hits</h3>
   </div>
 </div>
 <div class="row">
@@ -140,11 +152,17 @@
     <table id="stream_table" class="table table-striped table-bordered">
       <thead>
         <tr>
-          <th>Variant</th>
-          <th>Nearest Gene(s)</th>
-          <th>MAF</th>
-          <th>Beta (SE)</th>
-          <th>P-value</th>
+          <th>chr</th>
+          <th>pos</th>
+          <th>ref</th>
+          <th>alt</th>
+          <th>rsid</th>
+          <th>nearest gene</th>
+          <th>maf</th>
+          <th>maf cases</th>
+          <th>maf controls</th>
+          <th>beta</th>
+          <th>p-value</th>
         </tr>
       </thead>
       <tbody>
@@ -165,24 +183,43 @@
     {% else %}
     <div class="icd9-info col-xs-12 col-sm-4 col-md-3 col-lg-3">
     {% endif %}
-      <h3>QQ plot:</h3>
+      <h3>QQ plot</h3>
       <div id="qq_plot_container"></div>
       <p class="gc-control"></p>
-      <i>(Genomic Control Lambda calculated based on the 50th percentile (median), 10th percentile, 1st percentile, and 1/10th of a percentile.)</i>
+      <i>(Genomic Control lambda calculated based on the 50th percentile (median), 10th percentile, 1st percentile, and 1/10th of a percentile)</i>
       <br><br><br>
     </div>
 </div>
 
 <script type="text/template" id="streamtable-template">
 <tr>
-<td><a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>">
-    <%= v.chrom %>:<%= v.pos.toLocaleString() %> <%= v.ref %> / <%= v.alt %>
-    <% if (v.rsids) { %>(<%= v.rsids.replace(/,/g, ', ') %>)<% } %>
-</a></td>
-<td><i><%= v.nearest_genes.replace(/,/g, ', ') %></i></td>
-<td><%= (v.maf)? v.maf.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %></td>
-<td><%= (v.beta)? (v.beta.toPrecision(2) + (v.sebeta ? " (" + v.sebeta.toPrecision(2) + ")" : "")) : "" %></td>
-<td><%= v.pval.toExponential(1) %></td>
+  <td style="width: 1%; text-align: right;"><%= v.chrom %></td>
+  <td><a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>"><%= v.pos.toLocaleString() %></a></td>
+  <td style="width: 1%; text-align: center;"><%= v.ref %></td>
+  <td style="width: 1%; text-align: center;"><%= v.alt %></td>
+  <td><a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>"><% if (v.rsids) { %><%= v.rsids.replace(/,/g, ', ') %><% } %></a></td>
+  <td>
+    <% for (let i = 0, genes = v.nearest_genes.split(','); i < genes.length; i++) { %>
+    <% if (i > 0) { %>,<% } %>
+  <a style="color:black" href="/gene/<%= genes[i] %>"><%= genes[i] %></a>
+  <% } %>
+  </td>
+  <!-- <td title="cases/controls<br/><%= v.maf_cases.toPrecision(2) %>/<%= v.maf_controls.toPrecision(2) %>" data-toggle="tooltip"> -->
+  <!--   <%= (v.maf)? v.maf.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %> -->
+  <!-- </td> -->
+  <td>
+    <%= (v.maf)? v.maf.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %>
+  </td>
+  <td>
+    <%= (v.maf_cases)? v.maf_cases.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %>
+  </td>
+  <td>
+    <%= (v.maf_controls)? v.maf_controls.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %>
+  </td>
+  <!-- <td><%= (v.beta)? (v.beta.toPrecision(2) + (v.sebeta ? " (" + v.sebeta.toPrecision(2) + ")" : "")) : "" %></td> -->
+  <td title="SE<br/><%= v.sebeta ? v.sebeta : 'unknown' %>" data-toggle="tooltip"><%= (v.beta)? v.beta.toPrecision(2) : "" %></td>
+  <td><%= v.pval.toExponential(1) %></td>
+  <!-- <td><%= pValueToReadable(v.pval) %></td> -->
 </tr>
 </script>
 
