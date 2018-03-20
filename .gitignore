@@ -7,3 +7,5 @@ build
 dist
 pheweb/load/cffi/_x*
 .eggs
+js/node_modules
+deploy
