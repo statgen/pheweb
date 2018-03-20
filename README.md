@@ -1,64 +1,3 @@
-# A quick, dirty way to set up a PheWeb
-
-0. Read through the actual PheWeb instructions below.
-
-1. Fire up a Debian 9 Google VM with HTTP and HTTPS traffic enabled and with a standard persistent disk that has 4 times the memory your unzipped association files need.
-
-2. Install all things necessary:
-```
-sudo apt-get update && sudo apt-get install python3-pip libffi-dev libz-dev git --yes && \
-    git clone https://github.com/FINNGEN/pheweb-finngen.git && cd pheweb-finngen && pip3 install .
-```
-Now the PheWeb executable is at ~/.local/bin/pheweb !
-
-3. Format and mount the extra disk if you created one in step 1:
-```
-sudo mkfs.ext4 -m 0 -F -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/sdb
-sudo mkdir -p /mnt/data-disk
-sudo mount -o discard,defaults /dev/sdb /mnt/data-disk/
-sudo chmod a+w /mnt/data-disk/
-```
-
-4. Create a directory for the PheWeb that is being created, e.g.
-```
-mkdir /mnt/data-disk/pheweb && cd /mnt/data-disk/pheweb
-```
-Stay in the same directory for the rest of the commands.
-
-5. Make sure you have your association result files unzipped and EXACTLY in the format described below in the actual PheWeb documentation: variants sorted by chromosome position, chromosome 1 is "1" and not "01", you don't have any extra fields in the files, you don't have NAs (even if the PheWeb documentation says they're ok) -- you've been very meticulous with this because you know how these things can go. Example association file:
-```
-chrom   pos     ref     alt     pval    beta    sebeta  ac
-1       662622  G       A       6.92003e-02     -3.21959e-03    1.77169e-03     5.30361e+03
-1       671924  TG      T       6.91418e-01     -2.11169e-02    5.31993e-02     7.28005e+01
-1       674969  CCTTA   C       5.79862e-01     -1.17826e-02    2.12836e-02     5.35016e+01
-...
-```
-
-6. Create the directory for your original data (we trick PheWeb a bit here so that it doesn't make copies of the association files because it takes forever) and copy your unzipped association files there:
-```
-mkdir -p generated-by-pheweb/parsed && gsutil -m cp gs://..*.. generated-by-pheweb/parsed
-```
-
-7. Create a list of phenotypes (see the actual documentation below on how to add case/control counts for phenotypes etc.):
-```
-~/.local/bin/pheweb phenolist glob generated-by-pheweb/parsed/*
-~/.local/bin/pheweb phenolist extract-phenocode-from-filepath --simple
-```
-
-8. Make sure the created pheno-list.json is all right (contains the phenotypes you want). Then run the PheWeb import which will download dbSNP/gene info and parse/augment/index the association files -- this will take hours or days!
-```
-~/.local/bin/pheweb process
-```
-
-9. All went well? Run it:
-
-```
-sudo -E ~/.local/bin/pheweb serve --port 80
-```
-Then check the IP address of your VM from the Google Cloud Console, point your web browser there (HTTP and not HTTPS), and marvel at your novel association findings!!!
-
-Note that this is not a way to really run PheWeb securely or reliably.. just for scientific purposes.
-
 # PheWeb instructions
 
 For an example, see the [Michigan Genomics Initiative PheWeb](http://pheweb.sph.umich.edu).
@@ -276,3 +215,65 @@ Scrolling down on the same page I see the `QQ` plot below the table of top assoc
 
 ### Download results
 To download the summary statistics for trait(s) of interest ....
+
+
+# A quick, dirty way to set up a PheWeb in Google Cloud
+
+0. Read through the actual PheWeb instructions above.
+
+1. Fire up a Debian 9 Google VM with HTTP and HTTPS traffic enabled and with a standard persistent disk that has 4 times the memory your unzipped association files need.
+
+2. Install all things necessary:
+```
+sudo apt-get update && sudo apt-get install python3-pip libffi-dev libz-dev git --yes && \
+    git clone https://github.com/FINNGEN/pheweb-finngen.git && cd pheweb-finngen && pip3 install .
+```
+Now the PheWeb executable is at ~/.local/bin/pheweb !
+
+3. Format and mount the extra disk if you created one in step 1:
+```
+sudo mkfs.ext4 -m 0 -F -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/sdb
+sudo mkdir -p /mnt/data-disk
+sudo mount -o discard,defaults /dev/sdb /mnt/data-disk/
+sudo chmod a+w /mnt/data-disk/
+```
+
+4. Create a directory for the PheWeb that is being created, e.g.
+```
+mkdir /mnt/data-disk/pheweb && cd /mnt/data-disk/pheweb
+```
+Stay in the same directory for the rest of the commands.
+
+5. Make sure you have your association result files unzipped and EXACTLY in the format described below in the actual PheWeb documentation: variants sorted by chromosome position, chromosome 1 is "1" and not "01", you don't have any extra fields in the files, you don't have NAs (even if the PheWeb documentation says they're ok) -- you've been very meticulous with this because you know how these things can go. Example association file:
+```
+chrom   pos     ref     alt     pval    beta    sebeta  ac
+1       662622  G       A       6.92003e-02     -3.21959e-03    1.77169e-03     5.30361e+03
+1       671924  TG      T       6.91418e-01     -2.11169e-02    5.31993e-02     7.28005e+01
+1       674969  CCTTA   C       5.79862e-01     -1.17826e-02    2.12836e-02     5.35016e+01
+...
+```
+
+6. Create the directory for your original data (we trick PheWeb a bit here so that it doesn't make copies of the association files because it takes forever) and copy your unzipped association files there:
+```
+mkdir -p generated-by-pheweb/parsed && gsutil -m cp gs://..*.. generated-by-pheweb/parsed
+```
+
+7. Create a list of phenotypes (see the actual documentation below on how to add case/control counts for phenotypes etc.):
+```
+~/.local/bin/pheweb phenolist glob generated-by-pheweb/parsed/*
+~/.local/bin/pheweb phenolist extract-phenocode-from-filepath --simple
+```
+
+8. Make sure the created pheno-list.json is all right (contains the phenotypes you want). Then run the PheWeb import which will download dbSNP/gene info and parse/augment/index the association files -- this will take hours or days!
+```
+~/.local/bin/pheweb process
+```
+
+9. All went well? Run it:
+
+```
+sudo -E ~/.local/bin/pheweb serve --port 80
+```
+Then check the IP address of your VM from the Google Cloud Console, point your web browser there (HTTP and not HTTPS), and marvel at your novel association findings!!!
+
+Note that this is not a way to really run PheWeb securely or reliably.. just for scientific purposes.
