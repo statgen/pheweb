@@ -32,8 +32,11 @@ Mt_rRNA
 Mt_tRNA
 non_coding
 processed_transcript
+ribozyme
 rRNA
+sRNA
 scRNA
+scaRNA
 sense_intronic
 sense_overlapping
 snRNA
@@ -121,7 +124,7 @@ def run(argv):
         if not os.path.exists(gencode_filepath):
             make_basedir(gencode_filepath)
             wget.download(
-                url="ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz",
+                url="ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz",
                 out=gencode_filepath
             )
             print('')

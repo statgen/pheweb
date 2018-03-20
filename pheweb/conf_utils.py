@@ -236,10 +236,11 @@ def _ensure_conf():
             'nullable': True,
             'range': [0, 1],
             'sigfigs': 2,
+            'tooltip_underscoretemplate': 'p-value: <%= pValueToReadable(d.pval) %><br>',
             'tooltip_lztemplate': {
                 'condition': False,
-                'template': ('{{#if pvalue}}P-value: <strong>{{pvalue|scinotation}}</strong><br>{{/if}}\n' +
-                             '{{#if pval}}P-value: <strong>{{pval|scinotation}}</strong><br>{{/if}}'),
+                'template': ('{{#if pvalue}}p-value: <strong>{{pvalue|scinotation}}</strong><br>{{/if}}\n' +
+                             '{{#if pval}}p-value: <strong>{{pval|scinotation}}</strong><br>{{/if}}'),
             },
             'display': 'P-value',
         }),
@@ -247,8 +248,8 @@ def _ensure_conf():
             'type': float,
             'nullable': True,
             'sigfigs': 2,
-            'tooltip_underscoretemplate': 'Beta: <%= d.beta %><% if(_.has(d, "sebeta")){ %> (<%= d.sebeta %>)<% } %><br>',
-            'tooltip_lztemplate': 'Beta: <strong>{{beta}}</strong>{{#if sebeta}} ({{sebeta}}){{/if}}<br>',
+            'tooltip_underscoretemplate': 'beta: <%= d.beta.toFixed(2) %><% if(_.has(d, "sebeta")){ %> (<%= d.sebeta.toFixed(2) %>)<% } %><br>',
+            'tooltip_lztemplate': 'beta: <strong>{{beta}}</strong>{{#if sebeta}} ({{sebeta}}){{/if}}<br>',
             'display': 'Beta',
         }),
         ('sebeta', {
@@ -273,6 +274,20 @@ def _ensure_conf():
             'tooltip_lztemplate': {'transform': '|percent'},
             'display': 'MAF',
         }),
+        ('maf_cases', {
+            'type': float,
+            'range': [0, 1],
+            'sigfigs': 2,
+            'tooltip_lztemplate': {'transform': '|percent'},
+            'display': 'MAF cases',
+        }),
+        ('maf_controls', {
+            'type': float,
+            'range': [0, 1],
+            'sigfigs': 2,
+            'tooltip_lztemplate': {'transform': '|percent'},
+            'display': 'MAF controls',
+        }),
         ('af', {
             'aliases': ['A1FREQ'],
             'type': float,
@@ -285,6 +300,7 @@ def _ensure_conf():
             'type': float,
             'range': [0, None],
             'decimals': 1,
+            'tooltip_underscoretemplate': 'AC: <%= d.ac.toFixed(1) %> <br>',
             'display': 'AC',
         }),
         ('r2', {

@@ -51,6 +51,7 @@
               {% endfor %}
             {% endif %}
           {% endwith %}
+          , <a href="http://big.stats.ox.ac.uk/variant/{{ variant.chrom }}-{{ variant.pos }}-{{ variant.ref }}-{{ variant.alt }}">BIG UKBiobank</a>
           <span style="font-weight:bold" id="pubmed-link"></span>
           <span style="font-weight:bold" id="clinvar-link"></span>
         </p>
@@ -76,6 +77,7 @@
         <tr>
           <th>Category</th>
           <th>Phenotype</th>
+          <th>Beta (SE)</th>
           <th>P-value</th>
           <th>Number of samples</th>
         </tr>
@@ -126,6 +128,7 @@ OR: <%= d.or.toExponential(1) %><br>
       <%= d.category %>
     </td>
     <td><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
+    <td><%= d.beta ? (d.beta.toPrecision(2) + (d.sebeta ? " (" + d.sebeta.toPrecision(2) + ")" : "")) : "" %></td>
     <td><%= d.pval.toExponential(1) %></td>
     <td><% if (d.num_cases) { %>
       <%= d.num_cases %> / <%= d.num_controls %>

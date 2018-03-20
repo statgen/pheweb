@@ -1,3 +1,5 @@
+# PheWeb instructions
+
 For an example, see the [Michigan Genomics Initiative PheWeb](http://pheweb.sph.umich.edu).
 For a walk-through demo see [here](etc/demo.md#demo-navigating-pheweb).
 If you have questions or comments, check out our [Google Group](https://groups.google.com/forum/#!forum/pheweb).
