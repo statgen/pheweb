@@ -21,7 +21,7 @@
   .done(function(data) {
     window.debug.qq = data;
     _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
-      var text = 'GC Lambda ' + d[0] + ': ' + d[1].toFixed(3);
+      var text = 'GC lambda ' + d[0] + ': ' + d[1].toFixed(3);
       if (i === 0) { text = '<b>' + text + '</b>'; }
       text = '<br>' + text;
       $('.gc-control').append(text);
@@ -110,7 +110,7 @@
 <div class="row">
     <div class="pheno-info col-xs-12">
         {% if 'num_cases' in pheno %}
-          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
+          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
         {% elif 'num_samples' in pheno %}
           <p><b>{{ pheno.num_samples }}</b> samples</p>
         {% endif %}
@@ -167,7 +167,7 @@
       <h3>QQ plot:</h3>
       <div id="qq_plot_container"></div>
       <p class="gc-control"></p>
-      <i>(Genomic Control Lambda calculated based on the 50th percentile (median), 10th percentile, 1st percentile, and 1/10th of a percentile.)</i>
+      <i>(Genomic Control lambda calculated based on the 50th percentile (median), 10th percentile, 1st percentile, and 1/10th of a percentile)</i>
       <br><br><br>
     </div>
 </div>
