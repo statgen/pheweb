@@ -52,5 +52,5 @@ If that command fails, then:
   Next, close and re-open your terminal (to make the new changes take effect) and then run:
 
   ```bash
-  pip3 install pheweb
+  python3 -m pip install pheweb
   ```
