@@ -27,13 +27,10 @@ def ret_lines(dataPath):
     '''
     Produces the json file with the best pvals for each gene
     '''
-
- 
-    start = time.time()
+   
     #dictionary that contains for each chromosome a searchable tree so that each position returns the list of genes that the position belongs to
-    treeDict = create_gene_tree()
+    treeDict = create_gene_tree()   
 
-    
     reader = line_iterator(dataPath)
 
     # gene/index mapping.
@@ -41,29 +38,63 @@ def ret_lines(dataPath):
     g2i = {gene:i for i,gene in enumerate(geneList)}
 
     # fetch info from first line of file
-    lenMeta,phenoTypes,pValIndex,lenPheno,phenoMeta = pheno_tables(next(reader))
     # lenMeta is the length of the variant metadata
     # phenoTypes is the list with the name of the PhenoTypes
     # pVal index is the list of indexes where pvalues can be found
     # lenPheno is the size of the pheno type data chunk
     # phenoMeta is the ordered list of the info of the column (periodic by phenotype, length = lenPheno)
+    lenMeta,phenoTypes,pValIndex,lenPheno,phenoMeta = pheno_tables(next(reader)) 
+    
+    #location of pvals in the line array
     listpValIndex = [lenMeta + elem for elem in pValIndex]
-
+    
     # these are needed in for loops that I call over and over agan
     phenoRange = np.arange(len(phenoTypes))
-    phenoMetaRange = np.arange(lenPheno)
-    
-    # dictionary structured such as geneDict[gene][phenoType][key] = [value]
-    geneDict = dd(lambda : dd(lambda : dd(lambda  : np.inf)))
-    
+    phenoMetaRange = np.arange(lenPheno)   
+   
     # matrix array structured as genes for rows and phenotypes as columns. it stores the best current pval
     pMatrix = np.ones((len(geneList),len(phenoTypes)),dtype = float)
 
+    #final result dictionary
+    resDict = dict()
+
+    print('Importing pheno data...')
+    # information to add about each phenotype to be taken from the json file.
+    phenoDict = get_pheno_metadata(dataPath = dataPath)
+    print('done.')
+
+    #ALL THE PRE-PROCESSING HAS BEEN DONE. NOW WE CAN LOOP THROUGH THE VARIANTS
+    
     print('Reading lines...')
+    currChrom = '1'
+    geneChromDict = dd(lambda : dd(lambda : dd(lambda  : np.inf)))
+
     for line in reader:
+        
         #reads the meta data of the variant
         chrom,pos,ref,alt,rsids,nearest_genes = line[:lenMeta]
-        
+
+        # in case of new chromosomes, update results and create new geneChromDict
+        if chrom != currChrom:
+            
+            # add results to resDict
+            for gene in geneChromDict:
+                # filtering the dict to keep only relevant pvals.
+                resList= filter_phenos_local(gene,geneChromDict[gene]) 
+                #add meta data from each pheno
+                for pDict in resList:
+                    phenocode = pDict['phenocode']
+                    for key in phenoDict[phenocode]:
+                        pDict[key] = phenoDict[phenocode][key]
+                resDict[gene] = resList
+            
+            currChrom = chrom        
+            # print change of chromosome
+            print('current chromosome: ' + str(currChrom))
+            #create new geneChromDict
+            geneChromDict = dd(lambda : dd(lambda : dd(lambda  : np.inf)))
+
+
         # work with floats only after the variant metadata
         pVals = np.array([convert_float(line[i]) for i in listpValIndex],dtype = float)
         for gene in treeDict[chrom][int(pos)]:
@@ -80,38 +111,23 @@ def ret_lines(dataPath):
                 pheno = phenoTypes[phenoIx]
                 #get the data of the phenotype
                 for i in phenoMetaRange:
-                    geneDict[gene][pheno][phenoMeta[i]] = float(line[lenMeta + lenPheno*phenoIx + i])
+                    geneChromDict[gene][pheno][phenoMeta[i]] = float(line[lenMeta + lenPheno*phenoIx + i])
              
-                geneDict[gene][pheno]['chrom'] = chrom
-                geneDict[gene][pheno]['pos'] = pos
-                geneDict[gene][pheno]['rsids'] = rsids
-                geneDict[gene][pheno]['phenocode'] = pheno
+                geneChromDict[gene][pheno]['chrom'] = chrom
+                geneChromDict[gene][pheno]['pos'] = pos
+                geneChromDict[gene][pheno]['rsids'] = rsids
+                geneChromDict[gene][pheno]['phenocode'] = pheno
+
 
     print('done.')
     
-    print('Importing pheno data...')
-    # information to add about each phenotype to be taken from the json file.
-    phenoDict = get_pheno_metadata(dataPath = dataPath)
-    print('done.')
+   
 
-    print('Filtering results...')
-    # filtering the dict to keep only relevant pvals.
-    resDict = dict()
-    for gene in geneDict:
-        resList= filter_phenos_local(gene,geneDict[gene]) 
-        #add meta data from each pheno
-        for pDict in resList:
-            phenocode = pDict['phenocode']
-            for key in phenoDict[phenocode]:
-                pDict[key] = phenoDict[phenocode][key]
-        resDict[gene] = resList
-    print('done.')
     
     print('Saving results in .json format...')
     with open(dataPath + 'generated-by-pheweb/best-phenos-by-gene.json','w') as o:
         json.dump(resDict,o)
     print('done.')
-    print(time.time() - start)
     return
 
 def convert_float(elem):
