@@ -58,6 +58,8 @@ setup(
         'scipy~=1.0',
         'numpy~=1.14',
         'requests[security]~=2.18',
+        'cryptography~=2.1.4',
+        'idna~=2.6',
         'gunicorn~=19.7',
         'boltons~=18.0',
         'blist~=1.3',

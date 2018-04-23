@@ -40,28 +40,38 @@ const fields = lines[0].split(/\t/)
 lines.slice(1).forEach(line => {
     const split = line.split(/\t/)
     split.forEach((value, i) => {
-	if (annotations[fields[i]]) {
-	    if (value == '0') annotations[fields[i]].nCtrls++
-	    if (value == '1') annotations[fields[i]].nCases++
-	}
+        if (!annotations[fields[i]]) {
+            annotations[fields[i]] = {
+                code: fields[i],
+                name: fields[i],
+                nCases: 0,
+                nCtrls: 0
+            }
+        }
+	if (value == '0') annotations[fields[i]].nCtrls++
+	if (value == '1') annotations[fields[i]].nCases++
     })
 })
 
 phenolist = phenolist.map(pheno => {
     const m = pheno.phenocode.match(/([A-Z0-9]+)_(.*)/)
+    var cat
     if (!m) {
-	console.error(`Unexpected phenocode in phenolist file: ${pheno.phenocode}`)
-	return null
-    }
-    const cat = categories[m[1]]
-    if (!cat) {
-	console.error(`Unexpected category: ${m[1]}, using 'Other'`)
+	console.error(`No-category phenocode in phenolist file: ${pheno.phenocode}, using 'Other' category`)
+	cat = 'Other'
 	pheno.category = 'Other'
-	// console.error(`Unexpected category: ${m[1]}, skipping phenocode ${pheno.phenocode}`)
-	// return null
     } else {
-	pheno.category = cat.name
+	cat = categories[m[1]]
+	if (!cat) {
+	    console.error(`Unexpected category: ${m[1]}, using 'Other'`)
+	    pheno.category = 'Other'
+	    // console.error(`Unexpected category: ${m[1]}, skipping phenocode ${pheno.phenocode}`)
+	    // return null
+	} else {
+	    pheno.category = cat.name
+	}
     }
+	
     const ann = annotations[pheno.phenocode]
     if (!ann) {
 	console.error(`No name for phenocode: ${pheno.phenocode}, skipping`)
