@@ -28,7 +28,7 @@ def run(argv):
         r = requests.get('http://www.genenames.org/cgi-bin/download?col=gd_app_sym&col=gd_prev_sym&col=gd_aliases&col=gd_pub_ensembl_id&status=Approved&status=Entry+Withdrawn&status_opt=2&where=&order_by=gd_app_sym_sort&format=text&limit=&hgnc_dbtag=on&submit=submit')
         r.raise_for_status()
 
-        for row in csv.DictReader(r.content.decode().split('\n'), delimiter='\t'):
+        for row in csv.DictReader(r.content.decode('utf-8').split('\n'), delimiter='\t'):
             ensg = row['Ensembl Gene ID']
             if not ensg: continue
             assert re.match(r'^ENSG[R0-9\.]+$', ensg)
