@@ -90,6 +90,27 @@ a {
     box-shadow: inset 0 1px 1px rgba(75, 30, 218, 0.2);
 }
 
+.jumbotron {
+    border-radius: 0px;
+}
+
+.btn-lg {
+    border-radius: 0px;
+    background-color: rgb(75, 30, 218);
+}
+
+.btn {
+    border-radius: 0px;
+}
+
+.btn-group>.btn {
+  background-color: #282828;
+}
+
+.btn-group>.active,.btn-group>.btn:hover {
+  background-color: rgb(75, 30, 218);
+}
+
 /* ORIGINAL */
 
 /* Reconcile bootstrap3 to typeahead.js (the real Typeahead, not bootstrap-typeahead) */

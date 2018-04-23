@@ -57,6 +57,10 @@ def check_auth(func):
         return func(*args, **kwargs)
     return decorated_view
 
+@app.route('/api/phenos')
+@check_auth
+def phenolist():
+    return send_file(common_filepaths['phenolist'])
 
 autocompleter = Autocompleter(phenos)
 @app.route('/api/autocomplete')
