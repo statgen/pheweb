@@ -27,8 +27,9 @@ function populate_streamtable (phenos) {
         span: 5,
         next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
         prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
-        per_page: 20,
-        per_page_select: false
+        per_page: 50,
+        per_page_opts: [50],
+        per_page_select: true
       },
       fields: ['phenostring']
     };
@@ -38,7 +39,6 @@ function populate_streamtable (phenos) {
 }
 
 $(function () {
-
   $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
       var target = $(e.target).attr("href"); // activated tab
       if (target === '#phenotypes') {

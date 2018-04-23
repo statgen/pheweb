@@ -153,3 +153,7 @@ a {
     pointer-events: none;
 }
 
+
+.st_per_page {
+  display: none;
+}
