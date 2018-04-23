@@ -55,6 +55,7 @@ for submodule in '''
  matrix
  bgzip_phenos
  top_hits
+ phenotypes
  gather_pvalues_for_each_gene
  process_assoc_files
  wsgi

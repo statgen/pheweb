@@ -62,8 +62,9 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="navbar-collapse">
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="/random" style="color: #333; font-weight: bold;">Random</a></li>
+                <li><a href="/phenotypes" style="color: #333; font-weight: bold;">Phenotypes</a></li>
                 <li><a href="/top_hits" style="color: #333; font-weight: bold;">Top Hits</a></li>
+                <li><a href="/random" style="color: #333; font-weight: bold;">Random</a></li>
                 <li><a href="/about" style="color: #333; font-weight: bold;">About</a></li>
                 {% if current_user and current_user.is_authenticated %}
                 <li><a href="{{ url_for('logout') }}" style="color: #333; font-weight: bold;">Logout ({{ current_user.email }})</a></li>

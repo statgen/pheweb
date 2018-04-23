@@ -19,6 +19,7 @@ qq
 matrix
 bgzip_phenos
 top_hits
+phenotypes
 gather_pvalues_for_each_gene
 '''.split('\n')
 scripts = [script for script in scripts if script]

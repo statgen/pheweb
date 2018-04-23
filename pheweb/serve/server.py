@@ -103,6 +103,10 @@ def variant_page(query):
 def api_pheno(phenocode):
     return send_from_directory(common_filepaths['manhattan'](''), phenocode)
 
+@app.route('/top_hits')
+@check_auth
+def top_hits_page():
+    return render_template('top_hits.html')
 @app.route('/api/top_hits.json')
 @check_auth
 def api_top_hits():
@@ -112,15 +116,20 @@ def api_top_hits():
 def download_top_hits():
     return send_file(common_filepaths['top-hits-tsv'])
 
+@app.route('/phenotypes')
+@check_auth
+def phenotypes_page():
+    return render_template('phenotypes.html')
+@app.route('/api/phenotypes.json')
+@check_auth
+def api_phenotypes():
+    return send_file(common_filepaths['phenotypes_summary'])
+
 @app.route('/api/qq/pheno/<phenocode>')
 @check_auth
 def api_pheno_qq(phenocode):
     return send_from_directory(common_filepaths['qq'](''), phenocode)
 
-@app.route('/top_hits')
-@check_auth
-def top_hits_page():
-    return render_template('top_hits.html')
 
 @app.route('/random')
 @check_auth
