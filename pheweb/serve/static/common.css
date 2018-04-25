@@ -103,6 +103,18 @@ a {
     border-radius: 0px;
 }
 
+.dl-link {
+    display: block;
+    width: auto;
+    border-radius: 0px;
+    background-color: #282828;
+    color:white;
+}
+.dl-link:visited {
+    color:white
+}
+
+
 .btn-group>.btn {
   background-color: #282828;
 }

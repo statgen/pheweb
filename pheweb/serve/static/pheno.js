@@ -515,7 +515,7 @@ function populate_streamtable(variants) {
             }
         }
 
-        $('#stream_table').stream_table(options, data);        
+        $('#stream_table').stream_table(options, data);
 
     });
 
@@ -593,14 +593,14 @@ function togglePoints(type1, type2) {
                 return (dir > 0 && type2 == 'up') || (dir < 0 && type2 == 'down');
             } else if (type1 == 'maf') {
                 // if (type
-                // return (d.maf 
+                // return (d.maf
             }
         })
 	.style('opacity', function(d) {
             d.isDisabled = pointsToggled[type1][type2]
             return pointsToggled[type1][type2] ? 0 : 1;
 	});
-    
+
     pointsToggled[type1][type2] = !pointsToggled[type1][type2];
 }
 
@@ -615,3 +615,8 @@ function effectDirection(d) {
     return 0;
 }
 
+$(function () {
+  $("#export").click( function (event) {
+    exportTableToCSV.apply(this, [$('#stream_table'), window.pheno + "_variant_assoc.csv"])
+  });
+})

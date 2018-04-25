@@ -343,3 +343,10 @@ $(function() {
     $('#stream_table').stream_table(options, data);
 
 });
+
+$(function () {
+  $("#export").click( function (event) {
+    console.log()
+    exportTableToCSV.apply(this, [$('#stream_table'),window.variant.variant_name.replace(/ |,|/g,"") + "_phenotype_associations.csv"])
+  });
+})

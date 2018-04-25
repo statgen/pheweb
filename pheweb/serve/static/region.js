@@ -55,8 +55,11 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
     data_sources.add("base", ["AssociationLZ", localBase]);
-    data_sources.add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10_or_100" }}]);
-    
+    data_sources.add("gene", ["GeneLZ", {url:remoteBase + "annotation/genes/", params:{source:1}}])
+    data_sources.add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { source:1 ,pvalue_field: "pvalue|neglog10_or_100" }}]);
+
+
+
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
         var log = -Math.log(x) / Math.LN10;
@@ -373,7 +376,105 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 "y": 0
             },
             "background_click": "clear_selections",
-        }]
+        },
+        {
+            "id": "genes",
+            "proportional_height": 0.5,
+            "min_width": 400,
+            "min_height": 100,
+            "margin": {
+                "top": 17,
+                "right": 50,
+                "bottom": 20,
+                "left": 50
+            },
+            "axes": {
+                "x": {"render": false},
+                "y1": {"render": false},
+                "y2": {"render": false}
+            },
+            "interaction": {
+                "drag_background_to_pan": true,
+                "scroll_to_zoom": true,
+                "x_linked": true,
+                "drag_x_ticks_to_scale": false,
+                "drag_y1_ticks_to_scale": false,
+                "drag_y2_ticks_to_scale": false,
+                "y1_linked": false,
+                "y2_linked": false
+            },
+            "dashboard": {
+                "components": [{
+                    "type": "resize_to_data",
+                    "position": "right",
+                    "color": "blue"
+                }]
+            },
+            "data_layers": [{
+                "namespace": {
+                    "gene": "gene",
+                    // "constraint": "constraint"
+                },
+                "id": "genes",
+                "type": "genes",
+                "fields": ["gene:gene"],
+                "id_field": "gene_id",
+                "highlighted": {
+                    "onmouseover": "on",
+                    "onmouseout": "off"
+                },
+                "selected": {
+                    "onclick": "toggle_exclusive",
+                    "onshiftclick": "toggle"
+                },
+                "transition": false,
+                behaviors: {
+                    onclick: [{action: "toggle", status: "selected", exclusive: true}],
+                    onmouseover: [{action: "set", status: "highlighted"}],
+                    onmouseout: [{action: "unset", status: "highlighted"}],
+                },
+                "tooltip": {
+                    "closable": true,
+                    "show": {
+                        "or": ["highlighted", "selected"]
+                    },
+                    "hide": {
+                        "and": ["unhighlighted", "unselected"]
+                    },
+                    "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div>Gene ID: <strong>{{gene_id}}</strong></div><div>Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
+                    // "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div style=\"float: left;\">Gene ID: <strong>{{gene_id}}</strong></div><div style=\"float: right;\">Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table><tr><th>Constraint</th><th>Expected variants</th><th>Observed variants</th><th>Const. Metric</th></tr><tr><td>Synonymous</td><td>{{exp_syn}}</td><td>{{n_syn}}</td><td>z = {{syn_z}}</td></tr><tr><td>Missense</td><td>{{exp_mis}}</td><td>{{n_mis}}</td><td>z = {{mis_z}}</td></tr><tr><td>LoF</td><td>{{exp_lof}}</td><td>{{n_lof}}</td><td>pLI = {{pLI}}</td></tr></table><table width=\"100%\"><tr><td><button onclick=\"LocusZoom.getToolTipPlot(this).panel_ids_by_y_index.forEach(function(panel){ if(panel == 'genes'){ return; } var filters = (panel.indexOf('intervals') != -1 ? [['intervals:start','>=','{{start}}'],['intervals:end','<=','{{end}}']] : [['position','>','{{start}}'],['position','<','{{end}}']]); LocusZoom.getToolTipPlot(this).panels[panel].undimElementsByFilters(filters, true); }.bind(this)); LocusZoom.getToolTipPanel(this).data_layers.genes.unselectAllElements();\">Identify data in region</button></td><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
+                },
+                "label_font_size": 12,
+                "label_exon_spacing": 3,
+                "exon_height": 8,
+                "bounding_box_padding": 5,
+                "track_vertical_spacing": 5,
+                "hover_element": "bounding_box",
+                "x_axis": {
+                    "axis": 1
+                },
+                "y_axis": {
+                    "axis": 1
+                },
+                "z_index": 0
+            }],
+            "title": null,
+            "description": null,
+            "y_index": 1,
+            "origin": {
+                "x": 0,
+                "y": 225
+            },
+            "proportional_origin": {
+                "x": 0,
+                "y": 0.5
+            },
+            "background_click": "clear_selections",
+            "legend": null
+        }
+
+
+      ]
     }
 
     window.debug.data_sources = data_sources;
