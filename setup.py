@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # to install: `pip install -e .` or `pip install .`
 # to upload to pypi:
 #     0. have a good `~/.pypirc`
@@ -21,11 +22,10 @@ setup(
     author="Peter VandeHaar",
     author_email="pjvh@umich.edu",
     url="https://github.com/statgen/pheweb",
-    license="MIT",
     classifiers=[
         'Programming Language :: Python :: 3 :: Only',
         'Operating System :: Unix',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Visualization',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
