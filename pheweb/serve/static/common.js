@@ -136,6 +136,6 @@ function exportTableToCSV($table, filename) {
     function grabCol(j,col){
         var $col = $(col),
             $text = $col.text();
-        return $text.replace('"', '""'); // escape double quotes
+        return $text.replace('"', '""').replace(/\s+/g," "); // escape double quotes
     }
 }
