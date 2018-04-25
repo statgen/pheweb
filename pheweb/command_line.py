@@ -168,6 +168,7 @@ def main():
             f.write(traceback.format_exc())
         if isinstance(exc, PheWebError): print(exc)
         elif isinstance(exc, KeyboardInterrupt): print('\nInterrupted')
+        elif isinstance(exc, SyntaxError): print(repr(exc))
         else: print('\nAn exception occurred')
         print('(Details in {})\n'.format(exc_filepath))
         exit(1)
