@@ -8,9 +8,13 @@
   window.model = window.model || {};
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }};
   window.pheno = {{ phenocode|tojson|safe }};
-  $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json")
+  $.getJSON("/api/manhattan/pheno/" + window.pheno)
   .done(function(data) {
       window.debug.manhattan = data;
+      // add consequence so that stream table can be filtered on it
+      data.unbinned_variants.filter(function(variant) { return !!variant.annotation } ).forEach(function(variant) {
+        variant.most_severe = variant.annotation.most_severe.replace(/_/g, ' ')
+      })
       create_gwas_plot(data.variant_bins, data.unbinned_variants);
       populate_streamtable(data.unbinned_variants);
   })
@@ -92,15 +96,6 @@
 
 
 {% block contained %}
-<!-- {% for key in ['num_cases', 'num_controls', 'num_samples'] %} -->
-<!--  {% if key in pheno %} -->
-<!--   {% if '<' in pheno[key]|string %} -->
-<!--     <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype has {{ pheno[key] }} {{ key.replace('num_','') }}.</div> -->
-<!--   {% elif 0 < pheno[key]|int < 200 %} -->
-<!--     <div class="alert alert-danger" role="alert"><b>Warning:</b> This phenotype only has {{ pheno[key] }} {{ key.replace('num_', '') }}.</div> -->
-<!--   {% endif %} -->
-<!--  {% endif %} -->
-<!-- {% endfor %} -->
 <div class="row">
     <div class="col-xs-12">
         <h1 style="margin-top:0">{% include "pheno/h1.html" %}</h1>
@@ -158,6 +153,8 @@
           <th>alt</th>
           <th>rsid</th>
           <th>nearest gene</th>
+          <th>consequence</th>
+          <th>info score</th>
           <th>maf</th>
           <th>maf cases</th>
           <th>maf controls</th>
@@ -171,7 +168,7 @@
   </div>
 </div>
 
-<div class='btn'>
+<div class='btn' style="padding-left: 0px;">
     <a class='dl-link btn-primary btn' href="#" id ="export" role='button'> Download table data as CSV
     </a>
 </div>
@@ -197,6 +194,19 @@
     </div>
 </div>
 
+<script type="text/template" id="info-tooltip-template">
+  <table>
+    <%= Object.keys(v.annotation)
+    .filter(function(key) {
+      return key.indexOf('info_') === 0
+    }).map(function(key) {
+      return '<tr><td style=\'text-align: right; padding-right: 10px;\'>' + v.annotation[key].toPrecision(3) + '</td>' +
+        '<td nowrap style=\'text-align: left;\'>' + key.replace(/info_|_r1/g, '') + '</td></tr>'
+    }).join('')
+    %>
+  </table>
+</script>
+
 <script type="text/template" id="streamtable-template">
 <tr>
   <td style="width: 1%; text-align: right;"><%= v.chrom %></td>
@@ -210,9 +220,12 @@
   <a style="color:black" href="/gene/<%= genes[i] %>"><%= genes[i] %></a>
   <% } %>
   </td>
-  <!-- <td title="cases/controls<br/><%= v.maf_cases.toPrecision(2) %>/<%= v.maf_controls.toPrecision(2) %>" data-toggle="tooltip"> -->
-  <!--   <%= (v.maf)? v.maf.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %> -->
-  <!-- </td> -->
+  <td>
+    <%= (v.most_severe)? v.most_severe.replace(' variant', '') : "" %>
+  </td>
+  <td data-toggle="tooltip" title="<%= _.template($('#info-tooltip-template').html())({v: v}) %>">
+    <%= (v.annotation)? v.annotation.info.toPrecision(3) : "" %>
+  </td>
   <td>
     <%= (v.maf)? v.maf.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %>
   </td>
@@ -222,10 +235,8 @@
   <td>
     <%= (v.maf_controls)? v.maf_controls.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %>
   </td>
-  <!-- <td><%= (v.beta)? (v.beta.toPrecision(2) + (v.sebeta ? " (" + v.sebeta.toPrecision(2) + ")" : "")) : "" %></td> -->
   <td title="SE<br/><%= v.sebeta ? v.sebeta : 'unknown' %>" data-toggle="tooltip"><%= (v.beta)? v.beta.toPrecision(2) : "" %></td>
   <td><%= v.pval.toExponential(1) %></td>
-  <!-- <td><%= pValueToReadable(v.pval) %></td> -->
 </tr>
 </script>
 

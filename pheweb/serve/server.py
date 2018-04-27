@@ -11,6 +11,8 @@ from flask import Flask, jsonify, render_template, request, redirect, abort, fla
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 
+from elasticsearch import Elasticsearch
+
 import functools
 import re
 import traceback
@@ -36,6 +38,10 @@ if os.path.isdir(conf.custom_templates):
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
+elastic = Elasticsearch(conf.elastic_host + ':' + str(conf.elastic_port))
+
+def variant_to_id(variant):
+    return "chr" + variant["chrom"] + ":" + str(variant["pos"]) + ":" + variant["ref"] + ":" + variant["alt"]
 
 def check_auth(func):
     """
@@ -106,7 +112,33 @@ def variant_page(query):
 @app.route('/api/manhattan/pheno/<phenocode>')
 @check_auth
 def api_pheno(phenocode):
-    return send_from_directory(common_filepaths['manhattan'](''), phenocode)
+    try:
+        with open(common_filepaths['manhattan'](phenocode)) as f:
+            variants = json.load(f)
+        ids = [variant_to_id(x) for x in variants['unbinned_variants'] if 'peak' in x]
+        annotations = elastic.search(
+            index="r1_variant_annotation",
+            body={
+                "size": 10000,
+                "query" : {
+                    "constant_score" : {
+                        "filter" : {
+                            "terms" : {
+                                "_id" : ids
+                            }
+                        }
+                    }
+                }
+            }
+        )
+        d = {i['_id']: i['_source'] for i in annotations['hits']['hits']}
+        for variant in variants['unbinned_variants']:
+            id = variant_to_id(variant)
+            if id in d:
+                variant['annotation'] = d[id]
+        return jsonify(variants)
+    except Exception as exc:
+        die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
 
 @app.route('/api/top_hits.json')
 @check_auth
@@ -147,8 +179,6 @@ def pheno_page(phenocode):
                            pheno=pheno,
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
     )
-
-
 
 @app.route('/region/<phenocode>/<region>')
 @check_auth
