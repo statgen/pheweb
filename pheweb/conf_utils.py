@@ -126,6 +126,8 @@ def _ensure_conf():
     conf.set_default_value('between_pheno_mask_around_peak', int(1e6))
     conf.set_default_value('manhattan_num_unbinned', 2000)
     conf.set_default_value('peak_pval_cutoff', 1e-6)
+    conf.set_default_value('elastic_host', 'localhost')
+    conf.set_default_value('elastic_port', 9200)
 
     if 'minimum_maf' in conf:
         raise utils.PheWebError("minimum_maf has been deprecated.  Please remove it and use assoc_min_maf and/or variant_inclusion_maf instead")

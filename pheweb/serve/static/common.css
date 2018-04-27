@@ -113,6 +113,9 @@ a {
 .dl-link:visited {
     color:white
 }
+.dl-link:hover {
+  background-color: rgb(75, 30, 218);
+}
 
 
 .btn-group>.btn {
