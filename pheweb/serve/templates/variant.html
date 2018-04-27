@@ -6,6 +6,15 @@
   window.model = window.model || {};
   window.variant = {{ variant|tojson(separators=(',',':'))|safe }};
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
+  $.getJSON("/api/variant_annotation/" + window.variant.chrom + "-" + window.variant.pos + "-" + window.variant.ref + "-" + window.variant.alt)
+  .done(function(data) {
+    $('#annotation').html('<span><strong>{MS}</strong>, info: {INFO}</span>'
+                           .replace('{MS}', data.most_severe.replace(/_/g, ' '))
+                           .replace('{INFO}', data.info.toPrecision(3)))
+  })
+  .fail(function() {
+    console.log("Manhattan XHR failed");
+  });
 </script>
 <script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/locuszoom-0.5.6.vendor.min.js') }}" type="text/javascript"></script>
@@ -37,6 +46,7 @@
           {% endfor %}
           {% endwith %}
         </p>
+        <p id="annotation"></p>
         <span id="maf-range"></span>
 {#        {% if variant.ac %}<p>AC: {{ variant.ac }}</p>{% endif %} #}
         <p>View on

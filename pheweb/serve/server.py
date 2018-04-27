@@ -95,6 +95,29 @@ def api_variant(query):
     variant = get_variant(query)
     return jsonify(variant)
 
+@app.route('/api/variant_annotation/<query>')
+def api_variant_annotation(query):
+    try:
+        variant = get_variant(query)
+        id = variant_to_id(variant)
+        annotation = elastic.search(
+            index="r1_variant_annotation",
+            body={
+                "query" : {
+                    "constant_score" : {
+                        "filter" : {
+                            "term" : {
+                                "_id" : id
+                            }
+                        }
+                    }
+                }
+            }
+        )
+        return jsonify(annotation['hits']['hits'][0]['_source'])
+    except Exception as exc:
+        die('Oh no, something went wrong', exc)
+
 @app.route('/variant/<query>')
 @check_auth
 def variant_page(query):
