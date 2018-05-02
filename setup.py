@@ -41,6 +41,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     cffi_modules=['pheweb/load/cffi/ffibuilder.py:ffibuilder'],
+    python_requires=">=3.4",
     setup_requires=[
         'cffi~=1.11',
         'pytest-runner~=4.0',
