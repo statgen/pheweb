@@ -12,7 +12,6 @@ def get_phenotypes_including_top_variants():
         print(pheno)
         print(top_variant)
         ret = {
-            'category': pheno['category'],
             'phenocode': pheno['phenocode'],
             'pval': top_variant['pval'],
             'nearest_genes': top_variant['nearest_genes'],
@@ -22,10 +21,9 @@ def get_phenotypes_including_top_variants():
             'alt': top_variant['alt'],
             'rsids': top_variant['rsids'],
         }
-        if 'phenostring' in pheno:
-            ret['phenostring'] = pheno['phenostring']
-        if isinstance(ret['nearest_genes'], list):
-            ret['nearest_genes'] = ','.join(ret['nearest_genes'])
+        if 'category' in pheno: ret['category'] = pheno['category']
+        if 'phenostring' in pheno: ret['phenostring'] = pheno['phenostring']
+        if isinstance(ret['nearest_genes'], list): ret['nearest_genes'] = ','.join(ret['nearest_genes'])
         yield ret
 
 def run(argv):
