@@ -117,6 +117,9 @@ a {
   background-color: rgb(75, 30, 218);
 }
 
+.dropdown-toggle {
+  background-color: #ffffff !important;
+}
 
 .btn-group>.btn {
   background-color: #282828;
@@ -124,6 +127,30 @@ a {
 
 .btn-group>.active,.btn-group>.btn:hover {
   background-color: rgb(75, 30, 218);
+}
+
+.dropdown-menu {
+  border-radius: 0px;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+}
+
+.bootstrap-select>.dropdown-toggle.bs-placeholder {
+  color: #000000 !important;
+  font-weight: bold;
+}
+
+.bootstrap-select>.dropdown-toggle:focus {
+  outline: none !important;
+}
+
+.btn-group.open .dropdown-toggle {
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+}
+
+.table>thead>tr>th {
+  vertical-align: middle;
 }
 
 /* ORIGINAL */

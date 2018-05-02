@@ -39,7 +39,12 @@ if os.path.isdir(conf.custom_templates):
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
 elastic = Elasticsearch(conf.elastic_host + ':' + str(conf.elastic_port))
+if not elastic.ping():
+    raise ValueError("Could not connect to elasticsearch at " + conf.elastic_host + ":" + str(conf.elastic_port))
 
+if not elastic.indices.exists(index=conf.elastic_index):
+    raise ValueError("Elasticsearch index does not exist:" + conf.elastic_index)
+    
 def variant_to_id(variant):
     return "chr" + variant["chrom"] + ":" + str(variant["pos"]) + ":" + variant["ref"] + ":" + variant["alt"]
 
@@ -101,7 +106,7 @@ def api_variant_annotation(query):
         variant = get_variant(query)
         id = variant_to_id(variant)
         annotation = elastic.search(
-            index="r1_variant_annotation",
+            index=conf.elastic_index,
             body={
                 "query" : {
                     "constant_score" : {
@@ -140,9 +145,12 @@ def api_pheno(phenocode):
             variants = json.load(f)
         ids = [variant_to_id(x) for x in variants['unbinned_variants'] if 'peak' in x]
         annotations = elastic.search(
-            index="r1_variant_annotation",
+            index=conf.elastic_index,
             body={
+                "timeout": "5s",
                 "size": 10000,
+                "_source": "false",
+                "stored_fields" : "*",
                 "query" : {
                     "constant_score" : {
                         "filter" : {
@@ -154,11 +162,15 @@ def api_pheno(phenocode):
                 }
             }
         )
-        d = {i['_id']: i['_source'] for i in annotations['hits']['hits']}
+        for i in annotations['hits']['hits']:
+            for key in i['fields']:
+                i['fields'][key] = i['fields'][key][0]
+        d = {i['_id']: i['fields'] for i in annotations['hits']['hits']}
         for variant in variants['unbinned_variants']:
-            id = variant_to_id(variant)
-            if id in d:
-                variant['annotation'] = d[id]
+            if 'peak' in variant:
+                id = variant_to_id(variant)
+                if id in d:
+                    variant['annotation'] = d[id]
         return jsonify(variants)
     except Exception as exc:
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)

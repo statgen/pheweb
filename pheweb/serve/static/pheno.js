@@ -486,7 +486,16 @@ function populate_streamtable(variants) {
         var data = _.sortBy(_.where(variants, {peak: true}), _.property('pval'));
         var template = _.template($('#streamtable-template').html());
         var view = function(variant) {
-            return template({v: variant});
+            var selected = $('.selectpicker').val() ?
+            $('.selectpicker').val().map(function(val) {
+                return val.replace(/\([0-9]+\) /,'')
+            }) : [];
+            //console.log(selected);
+            if (selected.length > 0 && selected.indexOf(variant.most_severe) === -1) {
+                return null;
+            } else {
+                return template({v: variant});
+            }
         };
         var $found = $('#streamtable-found');
         $found.text(data.length + " total variants");
@@ -498,19 +507,28 @@ function populate_streamtable(variants) {
                 } else {
                     $found.text(data.length + " total variants");
                 }
+            },
+            after_sort: function() {
+              // bootstrap tooltips need to be recreated
+              $('[data-toggle="tooltip"]').tooltip({
+                  html: true,
+                  animation: false,
+                  container: 'body',
+                  placement: 'top'
+              })
             }
         }
 
         var options = {
             view: view,
             search_box: '#search',
-            per_page: 20,
             callbacks: callbacks,
             pagination: {
                 span: 5,
                 next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
                 prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
-                per_page_select: false,
+                per_page_select: true,
+                per_page_opts: [10],
                 per_page: 10
             }
         }
@@ -527,6 +545,58 @@ function populate_streamtable(variants) {
             placement: 'top'
         })
     });
+}
+
+function create_consequence_dropdown(variants) {
+    var consequences = variants.filter(function(variant) { return !!variant.peak })
+    .reduce(function(obj, item) {
+      obj[item['most_severe']] = obj[item['most_severe']] || 0
+      obj[item['most_severe']]++
+      return obj
+    }, {})
+
+    var template = _.template($('#consequence-dropdown-template').html())
+    Object.keys(consequences).sort().forEach(function(c) {
+      $(".selectpicker").append(template({consequence: c, number: consequences[c]}));
+    })
+    $('.selectpicker').selectpicker('refresh')
+}
+
+function mod_streamtable() {
+    var st = $('#stream_table').data('st');
+    st.searchInData = function(text){
+        var result = [],
+            i = 0,
+            l = this.text_index.length,
+            t = text.toUpperCase(),
+            d = this.has_sorting ? this.records_index : this.data;
+
+        if(this.has_sorting){
+            for (i; i < l; i++){
+                if (this.text_index[i].indexOf(t) != -1) result.push(i);
+            }
+            this.last_search_record_index = result
+        }else{
+            for (i; i < l; i++){
+                if (this.text_index[i].indexOf(t) != -1) result.push(this.data[i]);
+            }
+            this.last_search_result = result
+        }
+
+    };
+
+    st.search = function(text){
+        var q = $.trim(text), count = 0;
+
+        this.last_search_text = q;
+
+        this.searchInData(q);
+        this.render(0);
+
+        this.current_page = 0;
+        this.renderPagination(this.pageCount(), this.current_page);
+        this.execCallbacks('pagination');
+    };
 }
 
 var pointsToggled = {
