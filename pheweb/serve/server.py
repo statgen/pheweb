@@ -44,7 +44,7 @@ if not elastic.ping():
 
 if not elastic.indices.exists(index=conf.elastic_index):
     raise ValueError("Elasticsearch index does not exist:" + conf.elastic_index)
-    
+
 def variant_to_id(variant):
     return "chr" + variant["chrom"] + ":" + str(variant["pos"]) + ":" + variant["ref"] + ":" + variant["alt"]
 
@@ -385,11 +385,11 @@ if 'login' in conf:
             print('Error in google_sign_in.callback():')
             print(exc)
             print(traceback.format_exc())
-            flash('Something is wrong with authentication.  Please email pjvh@umich.edu')
+            flash('Something is wrong with authentication.  Please email pheweb@finngen.fi')
             return redirect(url_for('homepage'))
         if email is None:
             # I need a valid email address for my user identification
-            flash('Authentication failed by failing to get an email address.  Please email pjvh@umich.edu')
+            flash('Authentication failed by failing to get an email address.  Please email pheweb@finngen.fi')
             return redirect(url_for('homepage'))
 
         if email.lower() not in conf.login['whitelist']:
