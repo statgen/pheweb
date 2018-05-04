@@ -84,17 +84,45 @@ function pValueToReadable(p) {
 }
 
 
-function exportTableToCSV($table, filename) {
+function exportTableToCSV($table, filename, export_cols=null) {
     var sTableData = $table.data('st').getData()
-    var colDelim = ','
+    var colDelim = '\t'
     var rowDelim = '\r\n'
-    var vals = sTableData[1]
-    var csv = Object.keys(sTableData[0]).join(colDelim)
+
+    function get_fields(object, values=true, gather_name=[]) {
+      var result=[]
+      for( var prop in object) {
+        var element = object[prop]
+        if( element !== Object(element)) {
+            var fqName = gather_name.length>0 ? gather_name.join(".") + "." + prop: prop
+            prop = values? prop: fqName
+            if( values) { result.push( element) } else { result.push( prop) }
+        }
+        else {
+            gather_name.push(prop)
+            result = result.concat(get_fields( element, values, gather_name))
+            gather_name.pop()
+        }
+      }
+      return result
+    }
+
+    var header = get_fields( sTableData[0], false)
+    var acceptInd =  export_cols!=null ? export_cols.map( function(elem) { return header.indexOf(elem) } ).filter( function(ind) { return ind>=0} ): null
+
+    function filter_cols(row) {
+      if (acceptInd!=null) {
+        return acceptInd.map( function(ind) { return row[ind] } )
+      } else {
+        return row
+      }
+    }
+
+    var csv = filter_cols(header).join(colDelim)
     csv+=rowDelim
-    csv+=sTableData.map( function( row ) { return Object.values(row).join(colDelim) }).join(rowDelim)
+    csv+=sTableData.map( function( row ) { return filter_cols(get_fields(row)).join(colDelim) }).join(rowDelim)
     var createObjectURL = (window.URL || window.webkitURL || {}).createObjectURL || function(){}
     var csvFile = new Blob([csv], {type: "text/csv"});
-    console.log(this)
     var csvData = createObjectURL(csvFile)
     $(this)
         .attr({

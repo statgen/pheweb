@@ -617,6 +617,6 @@ function effectDirection(d) {
 
 $(function () {
   $("#export").click( function (event) {
-    exportTableToCSV.apply(this, [$('#stream_table'), window.pheno + "_variant_assoc.csv"])
+    exportTableToCSV.apply(this, [$('#stream_table'), window.pheno + "_variant_assoc.tsv", window.var_export_fields])
   });
 })

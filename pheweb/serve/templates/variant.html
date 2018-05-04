@@ -6,6 +6,9 @@
   window.model = window.model || {};
   window.variant = {{ variant|tojson(separators=(',',':'))|safe }};
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
+  window.var_top_pheno_export_fields = {{ var_top_pheno_export_fields|tojson }};
+
+
   $.getJSON("/api/variant_annotation/" + window.variant.chrom + "-" + window.variant.pos + "-" + window.variant.ref + "-" + window.variant.alt)
   .done(function(data) {
     $('#annotation').html('<span><strong>{MS}</strong>, info: {INFO}</span>'
@@ -105,7 +108,7 @@
 </div>
 
 <div class='btn'>
-    <a class='dl-link btn-primary btn' href="#" id ="export" role='button'> Download table data as CSV
+    <a class='dl-link btn-primary btn' href="#" id ="export" role='button'> Download table data as TSV
     </a>
 </div>
 

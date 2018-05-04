@@ -32,3 +32,10 @@ function populate_streamtable(data) {
     });
 }
 populate_streamtable(window.significant_phenos);
+
+$(function () {
+  $("#export").click( function (event) {
+    console.log()
+    exportTableToCSV.apply(this, [$('#stream_table'),window.gene_symbol + "_top_associations.tsv"])
+  });
+})

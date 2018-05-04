@@ -1,5 +1,6 @@
 
 def run_flask_dev_server(app, args):
+    print("Running dev: " + args.use_reloader)
     app.run(
         host=args.host, port=args.port,
         debug=True, use_evalex=False,
@@ -8,6 +9,7 @@ def run_flask_dev_server(app, args):
 
 def run_gunicorn(app, args):
     import gunicorn.app.base
+    print("Running gunicorn")
     class StandaloneGunicornApplication(gunicorn.app.base.BaseApplication):
         # from <http://docs.gunicorn.org/en/stable/custom.html>
         def __init__(self, app, opts=None):
@@ -41,6 +43,7 @@ def run_gunicorn(app, args):
     sga.run()
 
 def gunicorn_is_broken():
+    #return True
     try:
         import gunicorn.app.base # noqa: F401
     except Exception:

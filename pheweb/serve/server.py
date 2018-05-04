@@ -128,6 +128,7 @@ def variant_page(query):
         return render_template('variant.html',
                                variant=variant,
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
+                               var_top_pheno_export_fields=conf.var_top_pheno_export_fields
         )
     except Exception as exc:
         die('Oh no, something went wrong', exc)
@@ -201,6 +202,8 @@ def pheno_page(phenocode):
                            phenocode=phenocode,
                            pheno=pheno,
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
+                           var_export_fields=conf.var_export_fields
+
     )
 
 @app.route('/region/<phenocode>/<region>')
