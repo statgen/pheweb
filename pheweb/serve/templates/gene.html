@@ -25,6 +25,17 @@
     <h1 style="margin-top:0">{{ gene_symbol }}</h1>
   </div>
 </div>
+
+<div class="row">
+  <div class="col-xs-12">
+    <p>
+    <span>See gene in</span>
+    <span id="omim-link"><a target="_blank" href="https://www.omim.org/search/?index=entry&sort=score+desc%2C+prefix_sort+desc&start=1&limit=10&search={{ gene_symbol }}">OMIM</a>, </span>
+    <span id="gtex-link"><a target="_blank" href="https://www.gtexportal.org/home/eqtls/byGene?tissueName=All&geneId={{ gene_symbol }}">GTEx</a></span><span id="gnomad-link"></span>
+    </p>
+  </div>
+</div>
+
 {% if significant_phenos %}
 <div class="row">
   <div class="col-md-10 col-lg-10 col-sm-10 col-xs-10">
