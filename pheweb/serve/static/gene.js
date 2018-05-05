@@ -33,7 +33,15 @@ function populate_streamtable(data) {
 }
 populate_streamtable(window.significant_phenos);
 
-(function() {
+
+$(function () {
+  $("#export").click( function (event) {
+    console.log()
+    exportTableToCSV.apply(this, [$('#stream_table'),window.gene_symbol + "_top_associations.tsv"])
+  });
+})
+
+$(function() {
     if (!window.gene_symbol) return
     $.getJSON('http://rest.ensembl.org/xrefs/symbol/human/' + window.gene_symbol + '?content-type=application/json')
         .done(function(result) {

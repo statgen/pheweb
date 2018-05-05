@@ -347,6 +347,6 @@ $(function() {
 $(function () {
   $("#export").click( function (event) {
     console.log()
-    exportTableToCSV.apply(this, [$('#stream_table'),window.variant.variant_name.replace(/ |,|/g,"") + "_phenotype_associations.csv"])
+    exportTableToCSV.apply(this, [$('#stream_table'),window.variant.variant_name.replace(/ |,|/g,"") + "_phenotype_associations.tsv",window.var_top_pheno_export_fields])
   });
 })

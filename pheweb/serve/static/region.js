@@ -1,5 +1,23 @@
 'use strict';
 
+
+
+
+LocusZoom.Data.GWASCatSource = LocusZoom.Data.Source.extend(function(init) {
+    this.parseInit(init);
+}, "GWASCatSourceLZ");
+
+
+LocusZoom.Data.GWASCatSource.prototype.getURL = function(state, chain, fields) {
+    var analysis = this.params.id
+    return this.url + "results/?format=objects&filter=id in " + this.params.id   +
+        " and chrom eq  '" + state.chr + "'" +
+        " and pos ge " + state.start +
+        " and pos le " + state.end;
+};
+
+
+
 LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fields, outnames, trans) {
     // This overrides the default to keep all fields in `x` (the response)
     // If <https://github.com/statgen/locuszoom/pull/102> gets accepted, it won't be necessary.
@@ -11,7 +29,7 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
     }
     var records = [];
     fields.forEach(function(f, i) {
-        if (!(f in x)) {throw "field " + f + " not found in response for " + outnames[i];}
+          if (!(f in x)) {throw "field " + f + " not found in response for " + outnames[i];}
     });
     var x_keys = Object.keys(x);
     var N = x[x_keys[0]].length; // NOTE: this was [1] before, why?
@@ -54,10 +72,10 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
+    data_sources.add("gwas_cat", new LocusZoom.Data.GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
     data_sources.add("base", ["AssociationLZ", localBase]);
     data_sources.add("gene", ["GeneLZ", {url:remoteBase + "annotation/genes/", params:{source:1}}])
     data_sources.add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { source:1 ,pvalue_field: "pvalue|neglog10_or_100" }}]);
-
 
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
@@ -65,6 +83,12 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         var log = -Math.log(x) / Math.LN10;
         return log;
     });
+
+    LocusZoom.TransformationFunctions.set("log_pvalue", function(x) {
+        return x
+    });
+
+
 
     // dashboard components
     LocusZoom.Dashboard.Components.add("region", function(layout){
@@ -125,6 +149,9 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     //       That makes it more clear when I've changed things from the default.
     //       It means that I often have to change my code when the default changes,
     //       But I already usually have to make changes when the default changes, and they'd be easier.
+
+    console.log(window.model.tooltip_lztemplate)
+
     var layout = {
         width: 800,
         height: 400,
@@ -187,10 +214,11 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         },
         "panels": [{
             "id": "association",
-            "title": "",
+            "title": { "text":"FINNGEN", "x":55, "y":30 } ,
             "proportional_height": 0.5,
             "min_width": 400,
             "min_height": 100,
+            "y_index": 0,
             "margin": {
                 "top": 10,
                 "right": 50,
@@ -351,7 +379,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                     },
                     html: '<strong>{{id}}</strong><br>\n\n' + window.model.tooltip_lztemplate
                 },
-                "z_index": 2,
+
                 "x_axis": {
                     "field": "position",
                     "axis": 1
@@ -366,7 +394,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 "transition": false,
             }],
             "description": null,
-            "y_index": 0,
             "origin": {
                 "x": 0,
                 "y": 0
@@ -378,9 +405,199 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             "background_click": "clear_selections",
         },
         {
+            "id": "gwas_catalog",
+            "title": { "text":"GWAS catalog + UKBB", "x":55, "y":30 },
+            "y_index": 1,
+            "proportional_height": 0.5,
+            "min_width": 400,
+            "min_height": 100,
+            "margin": {
+                "top": 10,
+                "right": 50,
+                "bottom": 40,
+                "left": 50
+            },
+            "inner_border": "rgb(210, 210, 210)",
+            "dashboard": {
+                "components": [{
+                    "type": "toggle_legend",
+                    "position": "right",
+                    "color": "green"
+                }]
+            },
+            "axes": {
+                "x": {
+                    "label_function": "chromosome",
+                    "label_offset": 32,
+                    "tick_format": "region",
+                    "extent": "state",
+                    "render": true,
+                    "label": "Chromosome {{chr}} (Mb)"
+                },
+                "y1": {
+                    "label": "-log10 p-value",
+                    "label_offset": 28,
+                    "render": true,
+                    "label_function": null
+                }
+            },
+            "legend": {
+                "orientation": "vertical",
+                "origin": {
+                    "x": 55,
+                    "y": 40
+                },
+                "hidden": true,
+                "width": 91.66200256347656,
+                "height": 138,
+                "padding": 5,
+                "label_size": 12
+            },
+            "interaction": {
+                "drag_background_to_pan": true,
+                "drag_x_ticks_to_scale": true,
+                "drag_y1_ticks_to_scale": true,
+                "drag_y2_ticks_to_scale": true,
+                "scroll_to_zoom": true,
+                "x_linked": true,
+                "y1_linked": false,
+                "y2_linked": false
+            },
+            "data_layers": [ {
+                "namespace": {
+                    "gwas_cat":"gwas_cat",
+                    "ld": "ld"
+                },
+                "id": "gwas_cat:id",
+                "type": "scatter",
+                "point_shape": {
+                    "scale_function": "if",
+                    "field": "ld:isrefvar",
+                    "parameters": {
+                        "field_value": 1,
+                        "then": "diamond",
+                        "else": "circle"
+                    }
+                },
+                "point_size": {
+                    "scale_function": "if",
+                    "field": "ld:isrefvar",
+                    "parameters": {
+                        "field_value": 1,
+                        "then": 80,
+                        "else": 40
+                    }
+                },
+                "color": [{
+                    "scale_function": "if",
+                    "field": "ld:isrefvar",
+                    "parameters": {
+                        "field_value": 1,
+                        "then": "#9632b8"
+                    }
+                }, {
+                    "scale_function": "numerical_bin",
+                    "field": "ld:state",
+                    "parameters": {
+                        "breaks": [0, 0.2, 0.4, 0.6, 0.8],
+                        "values": ["#357ebd", "#46b8da", "#5cb85c", "#eea236", "#d43f3a"]
+                    }
+                }, "#B8B8B8"],
+                fill_opacity: 0.7,
+                "legend": [{
+                    "shape": "diamond",
+                    "color": "#9632b8",
+                    "size": 40,
+                    "label": "LD Ref Var",
+                    "class": "lz-data_layer-scatter"
+                }, {
+                    "shape": "circle",
+                    "color": "#d43f3a",
+                    "size": 40,
+                    "label": "1.0 > r² ≥ 0.8",
+                    "class": "lz-data_layer-scatter"
+                }, {
+                    "shape": "circle",
+                    "color": "#eea236",
+                    "size": 40,
+                    "label": "0.8 > r² ≥ 0.6",
+                    "class": "lz-data_layer-scatter"
+                }, {
+                    "shape": "circle",
+                    "color": "#5cb85c",
+                    "size": 40,
+                    "label": "0.6 > r² ≥ 0.4",
+                    "class": "lz-data_layer-scatter"
+                }, {
+                    "shape": "circle",
+                    "color": "#46b8da",
+                    "size": 40,
+                    "label": "0.4 > r² ≥ 0.2",
+                    "class": "lz-data_layer-scatter"
+                }, {
+                    "shape": "circle",
+                    "color": "#357ebd",
+                    "size": 40,
+                    "label": "0.2 > r² ≥ 0.0",
+                    "class": "lz-data_layer-scatter"
+                }, {
+                    "shape": "circle",
+                    "color": "#B8B8B8",
+                    "size": 40,
+                    "label": "no r² data",
+                    "class": "lz-data_layer-scatter"
+                }],
+
+                fields: ["gwas_cat:id", "gwas_cat:or_beta","gwas_cat:pmid","gwas_cat:variant","gwas_cat:chrom", "gwas_cat:risk_allele", "gwas_cat:risk_frq","gwas_cat:pos", "gwas_cat:ref", "gwas_cat:alt","gwas_cat:trait","gwas_cat:study", "gwas_cat:log_pvalue", "ld:state", "ld:isrefvar"],
+
+                id_field: "gwas_cat:variant",
+                behaviors: {
+                    onmouseover: [{action: "set", status:"selected"}],
+                    onmouseout: [{action: "unset", status:"selected"}],
+                    onclick: [{action: "link", href:"https://www.ncbi.nlm.nih.gov/pubmed/{{gwas_cat:pmid}}",target: "_blank"}],
+
+                },
+                tooltip: {
+                    closable: false,
+                    "show": {
+                        "or": ["highlighted", "selected"]
+                    },
+                    "hide": {
+                        "and": ["unhighlighted", "unselected"]
+                    },
+                    html: 'Variant:<strong>{{gwas_cat:variant}}</strong><br>\n\nTrait:<strong>{{gwas_cat:trait}}</strong><br>\n\nLog-pval:<strong>{{gwas_cat:or_beta}}</strong><br>\n\nLog-pval:<strong>{{gwas_cat:log_pvalue}}</strong><br>\n\nRisk allele:<strong>{{gwas_cat:risk_allele}}</strong><br>\n\nRisk allele frq:<strong>{{gwas_cat:risk_frq}}</strong><br>\n\nStudy:<strong>{{gwas_cat:study}}</strong><br>'
+                },
+
+                "x_axis": {
+                    "field": "gwas_cat:pos",
+                    "axis": 1
+                },
+                "y_axis": {
+                    "axis": 1,
+                    "field": "gwas_cat:log_pvalue",
+                    "floor": 0,
+                    "upper_buffer": 0.1,
+                    "min_extent": [0, 10]
+                },
+                "transition": false,
+            }],
+            "description": null,
+            "origin": {
+                "x": 0,
+                "y": 0
+            },
+            "proportional_origin": {
+                "x": 0,
+                "y": 0
+            },
+            "background_click": "clear_selections",
+        }
+        ,
+        {
             "id": "genes",
             "proportional_height": 0.5,
             "min_width": 400,
+            "y_index": 2,
             "min_height": 100,
             "margin": {
                 "top": 17,
@@ -456,11 +673,11 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 "y_axis": {
                     "axis": 1
                 },
-                "z_index": 0
-            }],
+
+            }
+          ],
             "title": null,
             "description": null,
-            "y_index": 1,
             "origin": {
                 "x": 0,
                 "y": 225

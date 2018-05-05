@@ -25,7 +25,7 @@ def enable_ipdb():
     from IPython.core import ultratb
     sys.excepthook = ultratb.FormattedTB(mode='Verbose', color_scheme='Linux', call_pdb=1)
 def enable_debug():
-    from .conf_utils import conf
+    from conf_utils import conf
     conf.debug = True
 def enable_quick():
     from .conf_utils import conf
@@ -171,3 +171,7 @@ def main():
         else: print('\nAn exception occurred')
         print('(Details in {})\n'.format(exc_filepath))
         exit(1)
+
+
+
+main()

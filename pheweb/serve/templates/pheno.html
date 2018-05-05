@@ -10,6 +10,8 @@
   window.model = window.model || {};
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }};
   window.pheno = {{ phenocode|tojson|safe }};
+  window.var_export_fields = {{ var_export_fields|tojson|safe }};
+
   $.getJSON("/api/manhattan/pheno/" + window.pheno)
   .done(function(data) {
     window.debug.manhattan = data;
@@ -186,7 +188,7 @@
 </div>
 
 <div class='btn' style="padding-left: 0px;">
-    <a class='dl-link btn-primary btn' href="#" id ="export" role='button'> Download table data as CSV
+    <a class='dl-link btn-primary btn' href="#" id ="export" role='button'> Download table data as TSV
     </a>
 </div>
 

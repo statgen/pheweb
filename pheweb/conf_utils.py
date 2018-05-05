@@ -352,6 +352,67 @@ def _ensure_conf():
         # TODO: include `assoc_files` with {never_send: True}?
     ])
 
+    default_GWAS_catalog_fields = OrderedDict([
+        ('pheno', {
+            'tooltip_lztemplate': 'phenotype: <strong>{{pheno}}</strong><br>',
+        }),
+        ('pval', {
+            'aliases': ['PVALUE'],
+            'required': True,
+            'type': float,
+            'nullable': True,
+            'range': [0, 1],
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': 'p-value: <%= pValueToReadable(d.pval) %><br>',
+            'tooltip_lztemplate': {
+                'condition': False,
+                'template': ('{{#if pvalue}}p-value: <strong>{{pvalue|scinotation}}</strong><br>{{/if}}\n' +
+                             '{{#if pval}}p-value: <strong>{{pval|scinotation}}</strong><br>{{/if}}'),
+            },
+            'display': 'P-value',
+        }),
+        ('beta', {
+            'type': float,
+            'nullable': True,
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': 'beta: <%= d.beta.toFixed(2) %><% if(_.has(d, "sebeta")){ %> (<%= d.sebeta.toFixed(2) %>)<% } %><br>',
+            'tooltip_lztemplate': 'beta: <strong>{{beta}}</strong>{{#if sebeta}} ({{sebeta}}){{/if}}<br>',
+            'display': 'Beta',
+        }),
+        ('sebeta', {
+            'aliases': ['se'],
+            'type': float,
+            'nullable': True,
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': False,
+            'tooltip_lztemplate': False,
+        }),
+        ('or', {
+            'type': float,
+            'nullable': True,
+            'range': [0, None],
+            'sigfigs': 2,
+            'display': 'Odds Ratio',
+        }),
+        ('maf', {
+            'type': float,
+            'range': [0, 0.5],
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': 'MAF: <%= d.maf.toFixed(4) %><br>',
+            'tooltip_lztemplate': {'transform': '|percent'},
+            'display': 'MAF',
+        }),
+        ('maf_cases', {
+            'type': float,
+            'range': [0, 1],
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': 'MAF cases: <%= d.maf_cases.toFixed(4) %><br>',
+            'tooltip_lztemplate': {'transform': '|percent'},
+            'display': 'MAF cases',
+        })
+    ])
+
+
     conf.parse.null_values = deepcopy(default_null_values)
     conf.parse.per_variant_fields = deepcopy(default_per_variant_fields)
     conf.parse.per_assoc_fields = deepcopy(default_per_assoc_fields)
@@ -413,3 +474,14 @@ def _ensure_conf():
                 template += '{{#if ' + lzt['condition'] + '}}' + lzt['template'] + '{{/if}}\n'
         return template
     conf.parse.tooltip_lztemplate = get_tooltip_lztemplate()
+
+    ## these fields will be exported in this order when exporting variants to TSV.
+    conf.set_default_value("var_export_fields", [ 'chrom', 'pos', 'ref', 'alt','maf','maf_cases','maf_controls',
+                                        'most_severe', 'nearest_genes','rsids',
+                                        "annotation.ac","annotation.ac_hemi","annotation.ac_het","annotation.ac_hom",
+                                        'annotation.an',"annotation.info","annotation.hc_lof"]  )
+
+    ## these fields will be exported in this order when exporting variants to TSV.
+    conf.set_default_value("var_top_pheno_export_fields", ["beta","category",
+    "maf","maf_cases","maf_controls","num_cases","num_controls","phenocode","phenostring","pval","sebeta","phewas_code",
+    "phewas_string","category_name"]  )
