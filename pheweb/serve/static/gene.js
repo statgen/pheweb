@@ -48,4 +48,4 @@ $(function() {
 	    var url = 'http://gnomad.broadinstitute.org/gene/' + result[0].id
 	    $('#gnomad-link').html(', <a href=' + url + ' target="_blank">gnomAD</a>')
         })
-})();
+});
