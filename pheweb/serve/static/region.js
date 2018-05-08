@@ -2,19 +2,136 @@
 
 
 
-
 LocusZoom.Data.GWASCatSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "GWASCatSourceLZ");
 
 
 LocusZoom.Data.GWASCatSource.prototype.getURL = function(state, chain, fields) {
-    var analysis = this.params.id
     return this.url + "results/?format=objects&filter=id in " + this.params.id   +
         " and chrom eq  '" + state.chr + "'" +
         " and pos ge " + state.start +
         " and pos le " + state.end;
 };
+
+
+LocusZoom.Data.GWASCatSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+    var res = JSON.parse(resp)
+
+    console.log(fields)
+    console.log(outnames)
+
+    console.log(LocusZoom.Data.GWASCatSource.prototype)
+    if( res.data.length==0) {
+                // gotta have mock variant in correct format so LD search does not internal server arror
+        var dat = outnames.reduce(  function(acc, curr, i) { acc[curr]="0:0_a/t"; return acc }, {} )
+
+        return {header: chain.header, body:[dat] };
+    } else {
+        return LocusZoom.Data.Source.prototype.parseResponse.call(this,resp, chain, fields, outnames, trans);
+    }
+
+}
+
+
+LocusZoom.Data.ClinvarDataSource = LocusZoom.Data.Source.extend(function(init) {
+    this.parseInit(init);
+}, "ClinvarDataSourceLZ");
+
+
+LocusZoom.Data.ClinvarDataSource.prototype.getURL = function(state, chain, fields) {
+    return this.url
+};
+
+
+LocusZoom.Data.ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
+
+    var url = this.getURL(state, chain, fields);
+
+    var headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    };
+    var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[chrpos]%22clinsig%20pathogenic%22[Properties]&retmax=500'
+    return LocusZoom.createCORSPromise("GET", requrl).then(function( resp) {
+
+        var data = JSON.parse(resp);
+
+        if(data.esearchresult.count==0) {
+            var res = Q.defer()
+            console.log(state)
+            res.resolve( '{ "noresults":"","pos":' + state.start + ' }'  )
+            return res.promise
+        }
+
+        if (data.esearchresult.idlist != null) {
+            var requrl = url + "esummary.fcgi?db=clinvar&retmode=json&id=" + data.esearchresult.idlist.join(",")
+            return LocusZoom.createCORSPromise("GET", requrl)
+        } else {
+            var res = Q.defer()
+            console.log( "Failed to query clinvar" + JSON.stringify(data, null, 4 ) )
+            res.reject("Failed to query clinvar" + JSON.stringify(data, null, 4 ))
+            return res
+        }
+    }
+    );
+};
+
+LocusZoom.Data.ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+
+    var data = JSON.parse(resp)
+
+    if( data.noresults != null) {
+        // locuszoom does not show even axis titles if there are no data visible.
+        // make a mock element with id-1 which is set to invisible in the layout
+        var dat = fields.reduce(  function(acc, curr, i) { acc[curr]=-1; return acc }, {} )
+        return {header: chain.header, body:[dat] };
+    }
+
+    if (data.result==null) {
+            throw "error while processing clinvar:" +  data.esummaryresult
+    }
+    var respData = []
+    Object.entries(data.result).filter(function(x) {return x[0]!="uids"} ).forEach(function(val){
+
+        val = val[1]
+        var loc = val.variation_set[0].variation_loc.filter(function(x)  {return x.assembly_name=="GRCh38"} )[0]
+
+        var object= {}
+        object.start = loc.start;
+        object.stop = loc.stop;
+        object.ref = loc.ref;
+        object.alt = loc.alt;
+        object.chr = loc.chr
+        object.varName = val.variation_set[0].variation_name;
+        object.clinical_sig = val.clinical_significance.description;
+        object.trait = val.trait_set.map( function(x) { return x.trait_name } ).join(":")
+        object.y= 5
+        object.id = val.uid;
+
+        respData.push( object )
+    });
+    return {header: chain.header, body: respData};
+};
+
+
+LocusZoom.Data.GeneConstraintSource.prototype.fetchRequest = function(state, chain, fields) {
+    var geneids = [];
+    chain.body.forEach(function(gene){
+        var gene_id = gene.gene_id;
+        if (gene_id.indexOf(".")){
+            gene_id = gene_id.substr(0, gene_id.indexOf("."));
+        }
+        geneids.push(gene_id);
+    });
+    var url = this.getURL(state, chain, fields);
+    var body = "geneids=" + encodeURIComponent(JSON.stringify(geneids));
+    var headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    };
+    return LocusZoom.createCORSPromise("POST", this.url, body, headers);
+
+};
+
 
 
 
@@ -59,6 +176,7 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
     return records;
 };
 
+
 LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (x === 1) { return "100%"; }
     var x = (x*100).toPrecision(2);
@@ -76,6 +194,11 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     data_sources.add("base", ["AssociationLZ", localBase]);
     data_sources.add("gene", ["GeneLZ", {url:remoteBase + "annotation/genes/", params:{source:1}}])
     data_sources.add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { source:1 ,pvalue_field: "pvalue|neglog10_or_100" }}]);
+    data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
+    // clinvar needs to be added after gene because genes within locuszoom data chain are used for fetching
+    data_sources.add("clinvar", new LocusZoom.Data.ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
+
+    // https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=clinvarid=65533retmode=json
 
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
@@ -149,9 +272,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     //       That makes it more clear when I've changed things from the default.
     //       It means that I often have to change my code when the default changes,
     //       But I already usually have to make changes when the default changes, and they'd be easier.
-
-    console.log(window.model.tooltip_lztemplate)
-
     var layout = {
         width: 800,
         height: 400,
@@ -215,7 +335,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         "panels": [{
             "id": "association",
             "title": { "text":"FINNGEN", "x":55, "y":30 } ,
-            "proportional_height": 0.5,
+            "proportional_height": 0.3,
             "min_width": 400,
             "min_height": 100,
             "y_index": 0,
@@ -408,13 +528,13 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             "id": "gwas_catalog",
             "title": { "text":"GWAS catalog + UKBB", "x":55, "y":30 },
             "y_index": 1,
-            "proportional_height": 0.5,
+            "proportional_height": 0.2,
             "min_width": 400,
             "min_height": 100,
             "margin": {
                 "top": 10,
                 "right": 50,
-                "bottom": 40,
+                "bottom": 20,
                 "left": 50
             },
             "inner_border": "rgb(210, 210, 210)",
@@ -472,81 +592,36 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 "type": "scatter",
                 "point_shape": {
                     "scale_function": "if",
-                    "field": "ld:isrefvar",
+                    "field": "gwas_cat:study",
                     "parameters": {
-                        "field_value": 1,
+                        "field_value": "UKBB",
                         "then": "diamond",
-                        "else": "circle"
+                        "else":"circle"
                     }
                 },
-                "point_size": {
+                "color": {
                     "scale_function": "if",
-                    "field": "ld:isrefvar",
+                    "field": "gwas_cat:study",
                     "parameters": {
-                        "field_value": 1,
-                        "then": 80,
-                        "else": 40
+                        "field_value": "UKBB",
+                        "then": "#9632b8",
+                        "else":"#d43f3a"
                     }
                 },
-                "color": [{
-                    "scale_function": "if",
-                    "field": "ld:isrefvar",
-                    "parameters": {
-                        "field_value": 1,
-                        "then": "#9632b8"
-                    }
-                }, {
-                    "scale_function": "numerical_bin",
-                    "field": "ld:state",
-                    "parameters": {
-                        "breaks": [0, 0.2, 0.4, 0.6, 0.8],
-                        "values": ["#357ebd", "#46b8da", "#5cb85c", "#eea236", "#d43f3a"]
-                    }
-                }, "#B8B8B8"],
                 fill_opacity: 0.7,
                 "legend": [{
                     "shape": "diamond",
                     "color": "#9632b8",
                     "size": 40,
-                    "label": "LD Ref Var",
+                    "label": "UKBB",
                     "class": "lz-data_layer-scatter"
                 }, {
                     "shape": "circle",
                     "color": "#d43f3a",
                     "size": 40,
-                    "label": "1.0 > r² ≥ 0.8",
+                    "label": "GWAS catalog",
                     "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#eea236",
-                    "size": 40,
-                    "label": "0.8 > r² ≥ 0.6",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#5cb85c",
-                    "size": 40,
-                    "label": "0.6 > r² ≥ 0.4",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#46b8da",
-                    "size": 40,
-                    "label": "0.4 > r² ≥ 0.2",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#357ebd",
-                    "size": 40,
-                    "label": "0.2 > r² ≥ 0.0",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#B8B8B8",
-                    "size": 40,
-                    "label": "no r² data",
-                    "class": "lz-data_layer-scatter"
-                }],
+                },],
 
                 fields: ["gwas_cat:id", "gwas_cat:or_beta","gwas_cat:pmid","gwas_cat:variant","gwas_cat:chrom", "gwas_cat:risk_allele", "gwas_cat:risk_frq","gwas_cat:pos", "gwas_cat:ref", "gwas_cat:alt","gwas_cat:trait","gwas_cat:study", "gwas_cat:log_pvalue", "ld:state", "ld:isrefvar"],
 
@@ -565,7 +640,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                     "hide": {
                         "and": ["unhighlighted", "unselected"]
                     },
-                    html: 'Variant:<strong>{{gwas_cat:variant}}</strong><br>\n\nTrait:<strong>{{gwas_cat:trait}}</strong><br>\n\nLog-pval:<strong>{{gwas_cat:or_beta}}</strong><br>\n\nLog-pval:<strong>{{gwas_cat:log_pvalue}}</strong><br>\n\nRisk allele:<strong>{{gwas_cat:risk_allele}}</strong><br>\n\nRisk allele frq:<strong>{{gwas_cat:risk_frq}}</strong><br>\n\nStudy:<strong>{{gwas_cat:study}}</strong><br>'
+                    html: 'Variant:<strong>{{gwas_cat:variant}}</strong><br>\n\nTrait:<strong>{{gwas_cat:trait}}</strong><br>\n\neffect size:<strong>{{gwas_cat:or_beta}}</strong><br>\n\nLog-pval:<strong>{{gwas_cat:log_pvalue}}</strong><br>\n\nRisk allele:<strong>{{gwas_cat:risk_allele}}</strong><br>\n\nRisk allele frq:<strong>{{gwas_cat:risk_frq}}</strong><br>\n\nStudy:<strong>{{gwas_cat:study}}</strong><br>'
                 },
 
                 "x_axis": {
@@ -597,12 +672,12 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             "id": "genes",
             "proportional_height": 0.5,
             "min_width": 400,
-            "y_index": 2,
+            "y_index": 3,
             "min_height": 100,
             "margin": {
-                "top": 17,
+                "top": 0,
                 "right": 50,
-                "bottom": 20,
+                "bottom": 0,
                 "left": 50
             },
             "axes": {
@@ -694,9 +769,230 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
       ]
     }
 
+    var clinvar_panel = {
+        "id": "clinvar",
+        "title": { "text":"", "x":55, "y":35, "style":{ "font-size":6} },
+        "y_index": 2,
+        "min_width": 400,
+        "min_height": 45,
+        "proportional_height": 0.05,
+        "margin": {
+            "top": 0,
+            "right": 50,
+            "bottom": 0,
+            "left": 50
+        },
+        "axes": {
+            "x": {
+                "label_function": "chromosome",
+                "label_offset": 32,
+                "tick_format": "region",
+                "extent": "state",
+                "render": false,
+                "label": "Chromosome {{chr}} (Mb)"
+            },
+            "y1": {
+                "label": "Clinvar",
+                "label_offset": 28,
+                "render": true,
+                "ticks": [],
+                "label_function": null
+            }
+        },
+        "legend": {
+            "orientation": "vertical",
+            "origin": {
+                "x": 55,
+                "y": 40
+            },
+            "hidden": true,
+            "width": 91.66200256347656,
+            "height": 138,
+            "padding": 5,
+            "label_size": 12
+        },
+        "interaction": {
+            "drag_background_to_pan": true,
+            "drag_x_ticks_to_scale": true,
+            "drag_y1_ticks_to_scale": true,
+            "drag_y2_ticks_to_scale": true,
+            "scroll_to_zoom": true,
+            "x_linked": true,
+            "y1_linked": false,
+            "y2_linked": false
+        },
+        "data_layers": [ {
+            "namespace": {
+                "clinvar":"clinvar"
+            },
+            "id": "clinvar:var",
+            "type": "scatter",
+            "point_shape": "diamond",
+            "point_size": {
+                "scale_function": "if",
+                "field": "ld:isrefvar",
+                "parameters": {
+                    "field_value": 1,
+                    "then": 80,
+                    "else": 40
+                }
+            },
+
+            "color": "#FF0000" ,
+            fill_opacity: 0.7,
+
+            fields: ["clinvar:id","clinvar:trait","clinvar:clinical_sig","clinvar:varName","clinvar:chr",
+                    "clinvar:ref","clinvar:alt","clinvar:start","clinvar:stop","clinvar:y"],
+            id_field: "id",
+            behaviors: {
+                onmouseover: [{action: "set", status:"selected"}],
+                onmouseout: [{action: "unset", status:"selected"}],
+                onclick: [{action: "link", href:"https://www.ncbi.nlm.nih.gov/clinvar/variation/{{id}}",target: "_blank"}],
+
+            },
+            tooltip: {
+                closable: false,
+                "show": {
+                    "or": ["highlighted", "selected"]
+                },
+                "hide": {
+                    "and": ["unhighlighted", "unselected"]
+                },
+                html: "<h4><strong><i>{{clinvar:trait}}</i></strong></h4><div>variant: <strong>{{varName}}</strong></div><div>Significance: <strong>{{clinical_sig}}</strong></div>"
+            },
+
+            "x_axis": {
+                "field": "clinvar:start",
+                "axis": 1
+            },
+            "y_axis": {
+                "axis": 1,
+                "field": "clinvar:y",
+                "floor": 0,
+                "upper_buffer": 0.1,
+                "min_extent": [0, 10]
+            },
+            "transition": false,
+        }],
+        "description": null,
+        "origin": {
+            "x": 0,
+            "y": 0
+        },
+        "proportional_origin": {
+            "x": 0,
+            "y": 0
+        },
+        "background_click": "clear_selections",
+    }
+
+/*
+        var clinvar_panel = {
+            "id": "clinvar",
+            "proportional_height": 0.5,
+            "min_width": 400,
+            "y_index": 2,
+            "min_height": 100,
+            "margin": {
+                "top": 17,
+                "right": 50,
+                "bottom": 20,
+                "left": 50
+            },
+            "axes": {
+                "x": {"render": false},
+                "y1": {"render": false},
+                "y2": {"render": false}
+            },
+            "interaction": {
+                "drag_background_to_pan": true,
+                "scroll_to_zoom": true,
+                "x_linked": true,
+                "drag_x_ticks_to_scale": false,
+                "drag_y1_ticks_to_scale": false,
+                "drag_y2_ticks_to_scale": false,
+                "y1_linked": false,
+                "y2_linked": false
+            },
+            "dashboard": {
+                "components": [{
+                    "type": "resize_to_data",
+                    "position": "right",
+                    "color": "blue"
+                }]
+            },
+            "data_layers": [{
+                "namespace": {
+                    "clinvar": "clinvar",
+                    // "constraint": "constraint"
+                },
+                "id": "clinvar",
+                "type": "scatter",
+                "fields": ["clinvar:var","clinvar:trait","clinvar:sig","clinvar:var","clinvar:position","clinvar:y"],
+                "id_field": "clinvar:var",
+        //    "start_field":"clinvar:position",
+        //        "end_field":"clinvar:position",
+                "highlighted": {
+                    "onmouseover": "on",
+                    "onmouseout": "off"
+                },
+                "selected": {
+                    "onclick": "toggle_exclusive",
+                    "onshiftclick": "toggle"
+                },
+                "transition": false,
+                behaviors: {
+                    onclick: [{action: "toggle", status: "selected", exclusive: true}],
+                    onmouseover: [{action: "set", status: "highlighted"}],
+                    onmouseout: [{action: "unset", status: "highlighted"}],
+                },
+                "tooltip": {
+                    "closable": true,
+                    "show": {
+                        "or": ["highlighted", "selected"]
+                    },
+                    "hide": {
+                        "and": ["unhighlighted", "unselected"]
+                    },
+                    "html": "<h4><strong><i>{{clinvar:trait}}</i></strong></h4><div>variant: <strong>{{clinvar:var}}</strong></div><div>Significance: <strong>{{clinvar:sig}}</strong></div><div style=\"clear: both;\"></div><table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
+
+                },
+                "label_font_size": 12,
+                "label_exon_spacing": 3,
+                "exon_height": 8,
+                "bounding_box_padding": 5,
+                "track_vertical_spacing": 5,
+                "hover_element": "bounding_box",
+                "x_axis": {
+                    "axis": 1,
+                    "field": "clinvar:position",
+                },
+                "y_axis": {
+                    "axis": 1,
+                    "field": "clinvar:y",
+                },
+
+            }
+          ],
+            "title": null,
+            "description": null,
+            "origin": {
+                "x": 0,
+                "y": 225
+            },
+            "proportional_origin": {
+                "x": 0,
+                "y": 0.5
+            },
+            "background_click": "clear_selections",
+            "legend": null
+        }
+*/
     window.debug.data_sources = data_sources;
     window.debug.layout = layout;
     window.debug.assoc_data_layer = layout.panels[0].data_layers[2];
+
+    layout.panels.push(clinvar_panel)
 
     $(function() {
         // Populate the div with a LocusZoom plot using the default layout
