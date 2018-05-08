@@ -592,81 +592,36 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 "type": "scatter",
                 "point_shape": {
                     "scale_function": "if",
-                    "field": "ld:isrefvar",
+                    "field": "gwas_cat:study",
                     "parameters": {
-                        "field_value": 1,
+                        "field_value": "UKBB",
                         "then": "diamond",
-                        "else": "circle"
+                        "else":"circle"
                     }
                 },
-                "point_size": {
+                "color": {
                     "scale_function": "if",
-                    "field": "ld:isrefvar",
+                    "field": "gwas_cat:study",
                     "parameters": {
-                        "field_value": 1,
-                        "then": 80,
-                        "else": 40
+                        "field_value": "UKBB",
+                        "then": "#9632b8",
+                        "else":"#d43f3a"
                     }
                 },
-                "color": [{
-                    "scale_function": "if",
-                    "field": "ld:isrefvar",
-                    "parameters": {
-                        "field_value": 1,
-                        "then": "#9632b8"
-                    }
-                }, {
-                    "scale_function": "numerical_bin",
-                    "field": "ld:state",
-                    "parameters": {
-                        "breaks": [0, 0.2, 0.4, 0.6, 0.8],
-                        "values": ["#357ebd", "#46b8da", "#5cb85c", "#eea236", "#d43f3a"]
-                    }
-                }, "#B8B8B8"],
                 fill_opacity: 0.7,
                 "legend": [{
                     "shape": "diamond",
                     "color": "#9632b8",
                     "size": 40,
-                    "label": "LD Ref Var",
+                    "label": "UKBB",
                     "class": "lz-data_layer-scatter"
                 }, {
                     "shape": "circle",
                     "color": "#d43f3a",
                     "size": 40,
-                    "label": "1.0 > r² ≥ 0.8",
+                    "label": "GWAS catalog",
                     "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#eea236",
-                    "size": 40,
-                    "label": "0.8 > r² ≥ 0.6",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#5cb85c",
-                    "size": 40,
-                    "label": "0.6 > r² ≥ 0.4",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#46b8da",
-                    "size": 40,
-                    "label": "0.4 > r² ≥ 0.2",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#357ebd",
-                    "size": 40,
-                    "label": "0.2 > r² ≥ 0.0",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#B8B8B8",
-                    "size": 40,
-                    "label": "no r² data",
-                    "class": "lz-data_layer-scatter"
-                }],
+                },],
 
                 fields: ["gwas_cat:id", "gwas_cat:or_beta","gwas_cat:pmid","gwas_cat:variant","gwas_cat:chrom", "gwas_cat:risk_allele", "gwas_cat:risk_frq","gwas_cat:pos", "gwas_cat:ref", "gwas_cat:alt","gwas_cat:trait","gwas_cat:study", "gwas_cat:log_pvalue", "ld:state", "ld:isrefvar"],
 
