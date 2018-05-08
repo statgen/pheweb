@@ -15,6 +15,25 @@ LocusZoom.Data.GWASCatSource.prototype.getURL = function(state, chain, fields) {
 };
 
 
+LocusZoom.Data.GWASCatSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+    var res = JSON.parse(resp)
+
+    console.log(fields)
+    console.log(outnames)
+
+    console.log(LocusZoom.Data.GWASCatSource.prototype)
+    if( res.data.length==0) {
+                // gotta have mock variant in correct format so LD search does not internal server arror
+        var dat = outnames.reduce(  function(acc, curr, i) { acc[curr]="0:0_a/t"; return acc }, {} )
+
+        return {header: chain.header, body:[dat] };
+    } else {
+        return LocusZoom.Data.Source.prototype.parseResponse.call(this,resp, chain, fields, outnames, trans);
+    }
+
+}
+
+
 LocusZoom.Data.ClinvarDataSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "ClinvarDataSourceLZ");
@@ -36,11 +55,19 @@ LocusZoom.Data.ClinvarDataSource.prototype.fetchRequest = function(state, chain,
     return LocusZoom.createCORSPromise("GET", requrl).then(function( resp) {
 
         var data = JSON.parse(resp);
+
+        if(data.esearchresult.count==0) {
+            var res = Q.defer()
+            console.log(state)
+            res.resolve( '{ "noresults":"","pos":' + state.start + ' }'  )
+            return res.promise
+        }
+
         if (data.esearchresult.idlist != null) {
             var requrl = url + "esummary.fcgi?db=clinvar&retmode=json&id=" + data.esearchresult.idlist.join(",")
             return LocusZoom.createCORSPromise("GET", requrl)
         } else {
-            var res = Q.refer()
+            var res = Q.defer()
             console.log( "Failed to query clinvar" + JSON.stringify(data, null, 4 ) )
             res.reject("Failed to query clinvar" + JSON.stringify(data, null, 4 ))
             return res
@@ -50,7 +77,15 @@ LocusZoom.Data.ClinvarDataSource.prototype.fetchRequest = function(state, chain,
 };
 
 LocusZoom.Data.ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+
     var data = JSON.parse(resp)
+
+    if( data.noresults != null) {
+        // locuszoom does not show even axis titles if there are no data visible.
+        // make a mock element with id-1 which is set to invisible in the layout
+        var dat = fields.reduce(  function(acc, curr, i) { acc[curr]=-1; return acc }, {} )
+        return {header: chain.header, body:[dat] };
+    }
 
     if (data.result==null) {
             throw "error while processing clinvar:" +  data.esummaryresult
@@ -72,6 +107,7 @@ LocusZoom.Data.ClinvarDataSource.prototype.parseResponse = function(resp, chain,
         object.trait = val.trait_set.map( function(x) { return x.trait_name } ).join(":")
         object.y= 5
         object.id = val.uid;
+
         respData.push( object )
     });
     return {header: chain.header, body: respData};
@@ -783,7 +819,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         "title": { "text":"", "x":55, "y":35, "style":{ "font-size":6} },
         "y_index": 2,
         "min_width": 400,
-        "min_height": 30,
+        "min_height": 45,
         "proportional_height": 0.05,
         "margin": {
             "top": 0,
@@ -846,6 +882,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                     "else": 40
                 }
             },
+
             "color": "#FF0000" ,
             fill_opacity: 0.7,
 
