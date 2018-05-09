@@ -6,7 +6,7 @@ First, try:
 python3 -m pip install pheweb
 ```
 
-(Note: In most cases, `pip3 install pheweb` will do the same, but if you have a bad version of `pip3` on your `$PATH`, using `python3 -m pip` will avoid it.)
+(Note: In most cases, `pip3 install pheweb` is equivalent. However, if you have a broken version of `pip3` on your `$PATH`, using `python3 -m pip` will avoid it.)
 
 If that command fails, then:
 
