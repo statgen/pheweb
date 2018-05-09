@@ -3,19 +3,25 @@
 First, try:
 
 ```bash
-pip3 install pheweb
+python3 -m pip install pheweb
 ```
+
+(Note: In most cases, `pip3 install pheweb` will do the same, but if you have a bad version of `pip3` on your `$PATH`, using `python3 -m pip` will avoid it.)
 
 If that command fails, then:
 
 - If you have root access, run:
 
   ```bash
-  sudo pip3 install pheweb
+  sudo python3 -m pip install pheweb
   ```
 
   If you're not sure whether you have root access, just try it.
-  If you don't have root access it will say something like `you are not in the sudoers file.`
+  If you don't have root access, it will say something like `you are not in the sudoers file.`
+
+  If you get errors about `zlib.h` or `ffi.h`, you probably need to install their development libraries.
+  On Ubuntu/Debian, `sudo apt-get install libz-dev libffi-dev` should solve this problem.
+  If problems persist, try the miniconda3 approach instead.
 
 
 - Otherwise, I recommend using miniconda3 to install pheweb.
@@ -36,20 +42,23 @@ If that command fails, then:
     bash install-miniconda3.sh
     ```
 
-  Type &lt;enter&gt; to view the terms & conditions.  When you're done with them, type "q" to close them, and then "yes" &lt;enter&gt; to accept them.
+  Type &lt;enter&gt; to view the terms & conditions.
+  When you're done with them, type "q" to close them, and then "yes" &lt;enter&gt; to accept them.
 
-  Type &lt;enter&gt; to agree to the path `~/miniconda3`.
+  Type &lt;enter&gt; to agree to use the directory `~/miniconda3`.
 
-  Type "yes" and &lt;enter&gt; to let have miniconda modify `$PATH` in your `~/.bash_profile` or `~/.bashrc`.
+  Type "yes" and &lt;enter&gt; to let miniconda modify `$PATH` in your `~/.bash_profile` or `~/.bashrc`.
+  (This allows you to type just `pheweb` instead of `~/miniconda/bin/pheweb` on the command line.)
 
-  Miniconda3 makes `python` an alias for `python3` and `pip` an alias for `pip3`.  That's likely to cause problems, so I recommend running:
+  Miniconda3 makes `python` an alias for `python3` and `pip` an alias for `pip3`.
+  That's likely to cause problems, so I recommend running:
 
   ```bash
   rm ~/miniconda3/bin/python
   rm ~/miniconda3/bin/pip
   ```
 
-  Next, close and re-open your terminal (to make the new changes take effect) and then run:
+  Next, close and re-open your terminal (to make the new `$PATH` take effect) and then run:
 
   ```bash
   python3 -m pip install pheweb
