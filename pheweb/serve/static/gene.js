@@ -1,5 +1,36 @@
 'use strict';
 
+function populate_variant_streamtable(data) {
+
+    // data = _.sortBy(data, _.property('pval'));
+    var template = _.template($('#streamtable-variants-template').html());
+    var view = function(v) {
+        return template({v: v});
+    };
+    
+    var options = {
+        view: view,
+        search_box: false,
+        pagination: {
+            span: 5,
+            next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
+            prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
+            per_page_select: false,
+            per_page: 10
+        }
+    }
+    
+    $("<style type='text/css'> .st_search { display: None }</style>").appendTo("head");
+    
+    if (data.length <= 10) {
+        $("<style type='text/css'> .st_pagination { display: None }</style>").appendTo("head");
+        options.pagination.next_text = "";
+        options.pagination.prev_text = "";
+    }
+    
+    $('#stream_table_variants').stream_table(options, data);
+}
+
 function populate_streamtable(data) {
     $(function() {
         // data = _.sortBy(data, _.property('pval'));
@@ -48,4 +79,4 @@ $(function() {
 	    var url = 'http://gnomad.broadinstitute.org/gene/' + result[0].id
 	    $('#gnomad-link').html(', <a href=' + url + ' target="_blank">gnomAD</a>')
         })
-});
+})
