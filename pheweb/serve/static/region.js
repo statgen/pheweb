@@ -14,16 +14,12 @@ LocusZoom.Data.GWASCatSource.prototype.getURL = function(state, chain, fields) {
         " and pos le " + state.end;
 };
 
-
 LocusZoom.Data.GWASCatSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+    console.log(resp)
     var res = JSON.parse(resp)
 
-    console.log(fields)
-    console.log(outnames)
-
-    console.log(LocusZoom.Data.GWASCatSource.prototype)
     if( res.data.length==0) {
-                // gotta have mock variant in correct format so LD search does not internal server arror
+        // gotta have mock variant in correct format so LD search does not internal server arror
         var dat = outnames.reduce(  function(acc, curr, i) { acc[curr]="0:0_a/t"; return acc }, {} )
 
         return {header: chain.header, body:[dat] };
@@ -131,9 +127,6 @@ LocusZoom.Data.GeneConstraintSource.prototype.fetchRequest = function(state, cha
     return LocusZoom.createCORSPromise("POST", this.url, body, headers);
 
 };
-
-
-
 
 LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fields, outnames, trans) {
     // This overrides the default to keep all fields in `x` (the response)
