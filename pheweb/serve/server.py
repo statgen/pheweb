@@ -11,17 +11,16 @@ from flask import Flask, jsonify, render_template, request, redirect, abort, fla
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 
-from elasticsearch import Elasticsearch
-
 import functools
 import re
 import traceback
 import json
 import os.path
-
+from .data_access import DataFactory
 
 app = Flask(__name__)
 Compress(app)
+
 
 app.config['COMPRESS_LEVEL'] = 2 # Since we don't cache, faster=better
 app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'
@@ -38,12 +37,9 @@ if os.path.isdir(conf.custom_templates):
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
-elastic = Elasticsearch(conf.elastic_host + ':' + str(conf.elastic_port))
-if not elastic.ping():
-    raise ValueError("Could not connect to elasticsearch at " + conf.elastic_host + ":" + str(conf.elastic_port))
 
-if not elastic.indices.exists(index=conf.elastic_index):
-    raise ValueError("Elasticsearch index does not exist:" + conf.elastic_index)
+dbs_fact = DataFactory( conf.database_conf  )
+variant_dao = dbs_fact.get_variant_dao()
 
 def variant_to_id(variant):
     return "chr" + variant["chrom"] + ":" + str(variant["pos"]) + ":" + variant["ref"] + ":" + variant["alt"]
@@ -100,29 +96,6 @@ def api_variant(query):
     variant = get_variant(query)
     return jsonify(variant)
 
-@app.route('/api/variant_annotation/<query>')
-def api_variant_annotation(query):
-    try:
-        variant = get_variant(query)
-        id = variant_to_id(variant)
-        annotation = elastic.search(
-            index=conf.elastic_index,
-            body={
-                "query" : {
-                    "constant_score" : {
-                        "filter" : {
-                            "term" : {
-                                "_id" : id
-                            }
-                        }
-                    }
-                }
-            }
-        )
-        return jsonify(annotation['hits']['hits'][0]['_source'])
-    except Exception as exc:
-        die('Oh no, something went wrong', exc)
-
 @app.route('/variant/<query>')
 @check_auth
 def variant_page(query):
@@ -145,28 +118,10 @@ def api_pheno(phenocode):
         with open(common_filepaths['manhattan'](phenocode)) as f:
             variants = json.load(f)
         ids = [variant_to_id(x) for x in variants['unbinned_variants'] if 'peak' in x]
-        annotations = elastic.search(
-            index=conf.elastic_index,
-            body={
-                "timeout": "5s",
-                "size": 10000,
-                "_source": "false",
-                "stored_fields" : "*",
-                "query" : {
-                    "constant_score" : {
-                        "filter" : {
-                            "terms" : {
-                                "_id" : ids
-                            }
-                        }
-                    }
-                }
-            }
-        )
-        for i in annotations['hits']['hits']:
-            for key in i['fields']:
-                i['fields'][key] = i['fields'][key][0]
-        d = {i['_id']: i['fields'] for i in annotations['hits']['hits']}
+        annotations = variant_dao.get_variant_annotations(ids)
+
+        d = {i['id']: i['var_data'] for i in annotations}
+
         for variant in variants['unbinned_variants']:
             if 'peak' in variant:
                 id = variant_to_id(variant)
@@ -277,6 +232,8 @@ def gene_phenocode_page(phenocode, genename):
                 'pheno': {k:v for k,v in phenos[pheno_in_gene['phenocode']].items() if k not in ['assoc_files', 'colnum']},
                 'assoc': {k:v for k,v in pheno_in_gene.items() if k != 'phenocode'},
             })
+        ## return functional variants for genes
+
 
         return render_template('gene.html',
                                pheno=pheno,
