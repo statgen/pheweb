@@ -14,12 +14,16 @@ LocusZoom.Data.GWASCatSource.prototype.getURL = function(state, chain, fields) {
         " and pos le " + state.end;
 };
 
+
 LocusZoom.Data.GWASCatSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
-    console.log(resp)
     var res = JSON.parse(resp)
 
+    console.log(fields)
+    console.log(outnames)
+
+    console.log(LocusZoom.Data.GWASCatSource.prototype)
     if( res.data.length==0) {
-        // gotta have mock variant in correct format so LD search does not internal server arror
+                // gotta have mock variant in correct format so LD search does not internal server arror
         var dat = outnames.reduce(  function(acc, curr, i) { acc[curr]="0:0_a/t"; return acc }, {} )
 
         return {header: chain.header, body:[dat] };
@@ -169,7 +173,6 @@ LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fi
     return records;
 };
 
-
 LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (x === 1) { return "100%"; }
     var x = (x*100).toPrecision(2);
@@ -193,7 +196,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 
     // https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=clinvarid=65533retmode=json
 
-
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
         var log = -Math.log(x) / Math.LN10;
@@ -203,8 +205,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     LocusZoom.TransformationFunctions.set("log_pvalue", function(x) {
         return x
     });
-
-
 
     // dashboard components
     LocusZoom.Dashboard.Components.add("region", function(layout){
@@ -325,7 +325,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 "position": "right",
             }]
         },
-        "panels": [{
+        "panels": [ {
             "id": "association",
             "title": { "text":"FINNGEN", "x":55, "y":30 } ,
             "proportional_height": 0.3,
@@ -516,7 +516,8 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 "y": 0
             },
             "background_click": "clear_selections",
-        },
+        }
+        ,
         {
             "id": "gwas_catalog",
             "title": { "text":"GWAS catalog + UKBB", "x":55, "y":30 },
@@ -879,108 +880,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         "background_click": "clear_selections",
     }
 
-/*
-        var clinvar_panel = {
-            "id": "clinvar",
-            "proportional_height": 0.5,
-            "min_width": 400,
-            "y_index": 2,
-            "min_height": 100,
-            "margin": {
-                "top": 17,
-                "right": 50,
-                "bottom": 20,
-                "left": 50
-            },
-            "axes": {
-                "x": {"render": false},
-                "y1": {"render": false},
-                "y2": {"render": false}
-            },
-            "interaction": {
-                "drag_background_to_pan": true,
-                "scroll_to_zoom": true,
-                "x_linked": true,
-                "drag_x_ticks_to_scale": false,
-                "drag_y1_ticks_to_scale": false,
-                "drag_y2_ticks_to_scale": false,
-                "y1_linked": false,
-                "y2_linked": false
-            },
-            "dashboard": {
-                "components": [{
-                    "type": "resize_to_data",
-                    "position": "right",
-                    "color": "blue"
-                }]
-            },
-            "data_layers": [{
-                "namespace": {
-                    "clinvar": "clinvar",
-                    // "constraint": "constraint"
-                },
-                "id": "clinvar",
-                "type": "scatter",
-                "fields": ["clinvar:var","clinvar:trait","clinvar:sig","clinvar:var","clinvar:position","clinvar:y"],
-                "id_field": "clinvar:var",
-        //    "start_field":"clinvar:position",
-        //        "end_field":"clinvar:position",
-                "highlighted": {
-                    "onmouseover": "on",
-                    "onmouseout": "off"
-                },
-                "selected": {
-                    "onclick": "toggle_exclusive",
-                    "onshiftclick": "toggle"
-                },
-                "transition": false,
-                behaviors: {
-                    onclick: [{action: "toggle", status: "selected", exclusive: true}],
-                    onmouseover: [{action: "set", status: "highlighted"}],
-                    onmouseout: [{action: "unset", status: "highlighted"}],
-                },
-                "tooltip": {
-                    "closable": true,
-                    "show": {
-                        "or": ["highlighted", "selected"]
-                    },
-                    "hide": {
-                        "and": ["unhighlighted", "unselected"]
-                    },
-                    "html": "<h4><strong><i>{{clinvar:trait}}</i></strong></h4><div>variant: <strong>{{clinvar:var}}</strong></div><div>Significance: <strong>{{clinvar:sig}}</strong></div><div style=\"clear: both;\"></div><table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
-
-                },
-                "label_font_size": 12,
-                "label_exon_spacing": 3,
-                "exon_height": 8,
-                "bounding_box_padding": 5,
-                "track_vertical_spacing": 5,
-                "hover_element": "bounding_box",
-                "x_axis": {
-                    "axis": 1,
-                    "field": "clinvar:position",
-                },
-                "y_axis": {
-                    "axis": 1,
-                    "field": "clinvar:y",
-                },
-
-            }
-          ],
-            "title": null,
-            "description": null,
-            "origin": {
-                "x": 0,
-                "y": 225
-            },
-            "proportional_origin": {
-                "x": 0,
-                "y": 0.5
-            },
-            "background_click": "clear_selections",
-            "legend": null
-        }
-*/
     window.debug.data_sources = data_sources;
     window.debug.layout = layout;
     window.debug.assoc_data_layer = layout.panels[0].data_layers[2];
