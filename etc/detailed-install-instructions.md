@@ -12,7 +12,7 @@ If that command fails, then:
 
 - If you are using Linux and have root access:
 
- Install prerequisites:
+  Install prerequisites:
 
   - If you are running Ubuntu (or another `apt-get`-based distribution), run:
 
