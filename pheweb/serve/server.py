@@ -39,7 +39,8 @@ phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
 
 dbs_fact = DataFactory( conf.database_conf  )
-variant_dao = dbs_fact.get_variant_dao()
+annotation_dao = dbs_fact.get_annotation_dao()
+result_dao = dbs_fact.get_result_dao()
 
 def variant_to_id(variant):
     return "chr" + variant["chrom"] + ":" + str(variant["pos"]) + ":" + variant["ref"] + ":" + variant["alt"]
@@ -118,7 +119,7 @@ def api_pheno(phenocode):
         with open(common_filepaths['manhattan'](phenocode)) as f:
             variants = json.load(f)
         ids = [variant_to_id(x) for x in variants['unbinned_variants'] if 'peak' in x]
-        annotations = variant_dao.get_variant_annotations(ids)
+        annotations = annotation_dao.get_variant_annotations(ids)
 
         d = {i['id']: i['var_data'] for i in annotations}
 
@@ -131,6 +132,32 @@ def api_pheno(phenocode):
     except Exception as exc:
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
 
+@app.route('/api/gene_phenos/<query>')
+@check_auth
+def api_gene_phenos(query):
+    try:
+        query = query.upper()
+        gene_region_mapping = get_gene_region_mapping()
+        chrom, start, end = gene_region_mapping[query]
+        start, end = pad_gene(start, end)
+        results = result_dao.get_variant_results_range(chrom, start, end)
+        return jsonify(results)
+    except Exception as exc:
+        die('Oh no, something went wrong', exc)
+        
+@app.route('/api/gene_functional_variants/<query>')
+@check_auth
+def api_gene_functional_variants(query):
+    try:
+        query = query.upper()
+        annotations = annotation_dao.get_gene_functional_variant_annotations(query)
+        for i in range(len(annotations)):
+            results = result_dao.get_variant_results(annotations[i]["id"], 0.0001)
+            annotations[i] = {**annotations[i], **results}
+        return jsonify(annotations)
+    except Exception as exc:
+        die('Oh no, something went wrong', exc)
+        
 @app.route('/api/top_hits.json')
 @check_auth
 def api_top_hits():
