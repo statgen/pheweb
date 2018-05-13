@@ -13,8 +13,7 @@ If that command fails, then use one of the approaches below.
 
 ### Installing on Linux with `sudo`:
 
-*(Note: If you're not sure whether you have root access, just try it.  If you don't have root access, it will say something like `you are not in the sudoers file.`*)
-
+*(Note: If you're not sure whether you have permissions for `sudo`, just try it.  If you don't have root access, it will say something like `you are not in the sudoers file.`*)
 
 Install prerequisites:
 
@@ -64,7 +63,7 @@ When you're done with them, type "q" to close them, and then "yes" &lt;enter&gt;
 Type &lt;enter&gt; to agree to use the directory `~/miniconda3`.
 
 Type "yes" and &lt;enter&gt; to let miniconda modify `$PATH` in your `~/.bash_profile` or `~/.bashrc`.
-(This allows you to type just `pheweb` instead of `~/miniconda/bin/pheweb` on the command line.)
+*(This allows you to type just `pheweb` instead of `~/miniconda/bin/pheweb` on the command line.)*
 
 Miniconda3 makes `python` an alias for `python3` and `pip` an alias for `pip3`.
 That's likely to cause problems, so I recommend running:
