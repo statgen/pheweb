@@ -6,22 +6,37 @@ First, try:
 python3 -m pip install pheweb
 ```
 
-(Note: In most cases, `pip3 install pheweb` is equivalent. However, if you have a broken version of `pip3` on your `$PATH`, using `python3 -m pip` will avoid it.)
+(Note: In most cases this is equivalent to `pip3 install pheweb`, but if you have a bad version of `pip3` on your `$PATH`, using `python3 -m pip` will avoid it.)
 
 If that command fails, then:
 
-- If you have root access, run:
+- If you are using Linux and have root access:
 
-  ```bash
-  sudo python3 -m pip install pheweb
-  ```
+ Install prerequisites:
 
-  If you're not sure whether you have root access, just try it.
-  If you don't have root access, it will say something like `you are not in the sudoers file.`
+  - If you are running Ubuntu (or another `apt-get`-based distribution), run:
 
-  If you get errors about `zlib.h` or `ffi.h`, you probably need to install their development libraries.
-  On Ubuntu/Debian, `sudo apt-get install libz-dev libffi-dev` should solve this problem.
-  If problems persist, try the miniconda3 approach instead.
+     ```bash
+     sudo apt-get update
+     sudo apt-get install python3-pip python3-dev libz-dev libffi-dev
+     ```
+
+  - If you are running Fedora, RedHat, or CentOS (or another `yum`-based distribution), run:
+
+     ```bash
+     sudo yum install python3-devel gcc-c++ zlib-devel
+     ```
+
+  Then run:
+
+     ```bash
+     sudo python3 -m pip install pheweb
+     ```
+
+   If you're not sure whether you have root access, just try it.
+   If you don't have root access, it will say something like `you are not in the sudoers file.`
+
+      If this doesn't work, email me or try the miniconda3 approach instead.
 
 
 - Otherwise, I recommend using miniconda3 to install pheweb.
@@ -30,17 +45,17 @@ If that command fails, then:
 
   - if you're on macOS, run:
 
-    ```bash
-    curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > install-miniconda3.sh
-    bash install-miniconda3.sh
-    ```
+     ```bash
+     curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > install-miniconda3.sh
+     bash install-miniconda3.sh
+     ```
 
   - if you're on Linux, run:
 
-    ```bash
-    curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > install-miniconda3.sh
-    bash install-miniconda3.sh
-    ```
+     ```bash
+     curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > install-miniconda3.sh
+     bash install-miniconda3.sh
+     ```
 
   Type &lt;enter&gt; to view the terms & conditions.
   When you're done with them, type "q" to close them, and then "yes" &lt;enter&gt; to accept them.
