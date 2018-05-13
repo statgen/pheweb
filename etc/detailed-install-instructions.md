@@ -13,6 +13,9 @@ If that command fails, then use one of the approaches below.
 
 ### Installing on Linux with `sudo`:
 
+*(Note: If you're not sure whether you have root access, just try it.  If you don't have root access, it will say something like `you are not in the sudoers file.`*)
+
+
 Install prerequisites:
 
 - If you are running Ubuntu (or another `apt-get`-based distribution), run:
@@ -34,13 +37,8 @@ Then run:
 sudo python3 -m pip install pheweb
 ```
 
-If you're not sure whether you have root access, just try it.
-If you don't have root access, it will say something like `you are not in the sudoers file.`
-
 If this doesn't work, email me or try the miniconda3 approach instead.
 
-
-- Otherwise, I recommend using miniconda3 to install pheweb.
 
 ### Installing on Linux or Mac with Miniconda3:
 
