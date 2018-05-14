@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="{{ url_for('static', filename='vendor/jquery-1.12.3.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/underscore-1.8.3.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='vendor/typeahead-0.11.1.bundle.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='vendor/typeahead-corejs-1.2.1.bundle.min.js') }}" type="text/javascript"></script>
 
 <link  href="{{ url_for('static', filename='vendor/bootstrap-3.3.6.min.css') }}" rel="stylesheet" type="text/css" crossorigin="anonymous">
 <script src="{{ url_for('static', filename='vendor/bootstrap-3.3.6.min.js') }}" type="text/javascript" crossorigin="anonymous"></script>
@@ -53,7 +53,7 @@
             <div class="navbar-left" id="navbar_form_container">
                 <form action="/go" class="navbar-form" role="search">
                     <div class="form-group" id="navbar-awesomebar">
-                        <input id="navbar-searchbox-input" name="query" class="form-control typeahead" type="text" size="40" placeholder="Search for a variant, gene, or phenotype">
+                        <input id="navbar-searchbox-input" name="query" class="form-control typeahead" autocomplete="off" type="text" size="40" placeholder="Search for a variant, gene, or phenotype">
                     </div>
                 </form>
             </div>
