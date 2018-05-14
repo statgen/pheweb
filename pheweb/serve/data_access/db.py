@@ -138,7 +138,7 @@ class TabixResultDao(ResultDB):
     def get_variant_results_range(self, chrom, start, end):
         with pysam.TabixFile(common_filepaths['matrix'], parser=None) as tabix_file:
             headers = tabix_file.header[0].split('\t')
-            tabix_iter = tabix_file.fetch(chrom, start, end+1, parser=None)
+            tabix_iter = tabix_file.fetch(chrom, start-1, end, parser=None)
             top = [ { 'pheno': self.phenos[header.split('@')[1]],
                       'p_col_idx': i,
                       'assoc': { 'pval': 1, 'id': None, 'rsids': None }
