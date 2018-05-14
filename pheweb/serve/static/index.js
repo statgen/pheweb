@@ -27,8 +27,8 @@ function populate_streamtable (phenos) {
         span: 5,
         next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
         prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
-        per_page: 50,
-        per_page_opts: [50],
+        per_page: 10,
+        per_page_opts: [10],
         per_page_select: true
       },
       fields: ['phenostring']

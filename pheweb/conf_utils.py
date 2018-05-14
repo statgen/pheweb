@@ -485,3 +485,5 @@ def _ensure_conf():
     conf.set_default_value("var_top_pheno_export_fields", ["beta","category",
     "maf","maf_cases","maf_controls","num_cases","num_controls","phenocode","phenostring","pval","sebeta","phewas_code",
     "phewas_string","category_name"]  )
+    conf.set_default_value("gene_pheno_export_fields", ["assoc.id", "assoc.pval", "assoc.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring"])
+    
