@@ -73,7 +73,7 @@ function variant_id_to_pheweb_format(variant) {
 
 $(function () {
   $("#export").click( function (event) {
-    exportTableToCSV.apply(this, [$('#stream_table'),window.gene_symbol + "_top_associations.tsv"])
+    exportTableToCSV.apply(this, [$('#stream_table'),window.gene_symbol + "_top_associations.tsv",window.gene_pheno_export_fields])
   });
 })
 

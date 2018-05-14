@@ -152,8 +152,11 @@ def api_gene_functional_variants(query):
         query = query.upper()
         annotations = annotation_dao.get_gene_functional_variant_annotations(query)
         for i in range(len(annotations)):
-            results = result_dao.get_variant_results(annotations[i]["id"], 0.0001)
-            annotations[i] = {**annotations[i], **results}
+            chrom, pos, ref, alt = annotations[i]["id"].split(":")
+            chrom = chrom.replace("chr", "")
+            result = result_dao.get_variant_results_range(chrom, int(pos), int(pos))
+            filtered = { "rsids": result[0]["assoc"]["rsids"], "significant_phenos": [res for res in result if res["assoc"]["pval"] < 0.0001] }
+            annotations[i] = {**annotations[i], **filtered}
         return jsonify(annotations)
     except Exception as exc:
         die('Oh no, something went wrong', exc)
@@ -268,6 +271,7 @@ def gene_phenocode_page(phenocode, genename):
                                gene_symbol=genename,
                                region='{}:{}-{}'.format(chrom, start, end),
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
+                               gene_pheno_export_fields=conf.gene_pheno_export_fields
         )
     except Exception as exc:
         die("Sorry, your region request for phenocode {!r} and gene {!r} didn't work".format(phenocode, genename), exception=exc)
