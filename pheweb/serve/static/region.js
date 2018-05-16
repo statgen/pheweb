@@ -711,5 +711,12 @@
     $(function() {
         // Populate the div with a LocusZoom plot using the default layout
         window.plot = LocusZoom.populate("#lz-1", data_sources, layout);
+        var gene_panel = window.plot.panels.genes
+
+        window.plot.panels.genes.on("data_rendered", function(){
+            // gene panel takes extra space. After data is rendered scale the height to data
+            this.scaleHeightToData()
+            gene_panel.scaleHeightToData()
+        });
     });
 })();
