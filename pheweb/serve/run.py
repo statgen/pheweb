@@ -1,6 +1,6 @@
 
 def run_flask_dev_server(app, args):
-    print("Running dev: " + args.use_reloader)
+    print("Running dev: " + str(args.use_reloader))
     app.run(
         host=args.host, port=args.port,
         debug=True, use_evalex=False,
@@ -111,8 +111,9 @@ def run(argv):
     parser.add_argument('--num-workers', type=int, default=8, help='number of worker threads')
     parser.add_argument('--guess-address', action='store_true', help='guess the IP address')
     parser.add_argument('--open', action='store_true', help='try to open a web browser')
-    args = parser.parse_args(argv)
+    parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 
+    args = parser.parse_args(argv)
     if args.open:
         if not attempt_open('http://localhost:{}'.format(args.port)) and not args.guess_address:
             print_ip(args.port)
@@ -122,9 +123,9 @@ def run(argv):
 
     if args.guess_address:
         print_ip(args.port)
-
     from .server import app
-    if gunicorn_is_broken():
+
+    if gunicorn_is_broken() or args.debug :
         run_flask_dev_server(app, args)
     else:
         run_gunicorn(app, args)

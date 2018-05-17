@@ -17,9 +17,6 @@
 
     data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/", params: { id:[1,4] ,pvalue_field: "pvalue", "var_id_field":"rsid" }}));
 
-
-    // https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=clinvarid=65533retmode=json
-
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
         var log = -Math.log(x) / Math.LN10;
