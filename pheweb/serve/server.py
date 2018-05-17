@@ -7,7 +7,7 @@ from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
 
-from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for
+from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 
@@ -18,9 +18,12 @@ import json
 import os.path
 from .data_access import DataFactory
 
+from xhtml2pdf import pisa
+from io import BytesIO
+import io
+
 app = Flask(__name__)
 Compress(app)
-
 
 app.config['COMPRESS_LEVEL'] = 2 # Since we don't cache, faster=better
 app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'
@@ -144,7 +147,7 @@ def api_gene_phenos(query):
         return jsonify(results)
     except Exception as exc:
         die('Oh no, something went wrong', exc)
-        
+
 @app.route('/api/gene_functional_variants/<query>')
 @check_auth
 def api_gene_functional_variants(query):
@@ -160,7 +163,7 @@ def api_gene_functional_variants(query):
         return jsonify(annotations)
     except Exception as exc:
         die('Oh no, something went wrong', exc)
-        
+
 @app.route('/api/top_hits.json')
 @check_auth
 def api_top_hits():
@@ -285,6 +288,25 @@ def gene_page(genename):
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
 
+
+@app.route('/genereport/<genename>')
+@check_auth
+def gene_report(genename):
+    phenos_in_gene = get_best_phenos_by_gene().get(genename, [])
+    if not phenos_in_gene:
+        die("Sorry, that gene doesn't appear to have any associations in any phenotype")
+
+    pdf = create_pdf(gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename))
+    response = make_response(pdf.getvalue().decode('latin-1'))
+    response.headers.set('Content-Disposition', 'attachment', filename=genename + '_report.pdf')
+    response.headers.set('Content-Type', 'application/pdf')
+    return response
+
+def create_pdf(pdf_data):
+    pdf = io.BytesIO()
+    print(pdf_data)
+    pisa.CreatePDF(pdf_data, pdf)
+    return pdf
 
 @app.route('/')
 def homepage():
