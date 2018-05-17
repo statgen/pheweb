@@ -1,3 +1,66 @@
+# Deploying PheWeb in Google Cloud using Kubernetes
+
+### 1. Install Docker, Google Cloud SDK, and kubectl
+
+[Docker](https://docs.docker.com/install/)  
+[Google Cloud SDK](https://cloud.google.com/sdk/downloads)  
+[kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+
+### 2. Build a Docker image and push to Google Container Registry
+
+Copy the .pheweb directory from a running PheWeb instance ($HOME/.pheweb) as dot_pheweb in the repository root.
+
+In repository root:
+
+`docker build -t gcr.io/phewas-development/pheweb:[TAG] -f deploy/Dockerfile`  
+`gcloud docker -- push gcr.io/phewas-development/pheweb:[TAG]`
+
+### 3. Setup the kubernetes cluster
+
+Get credentials for a running cluster:  
+`gcloud container clusters get-credentials [CLUSTER-NAME] --zone=europe-west1-b`
+
+PheWeb of R1 results is running in the cluster `pheweb-r1`
+
+Or create a new cluster:  
+`gcloud container clusters create [CLUSTER-NAME] --num-nodes=1 --machine-type=n1-standard-1 --zone=europe-west1-b`
+
+Make sure you're in the right kubernetes context:
+
+`kubectl config get-contexts`
+
+If necessary:
+
+`kubectl config use-context [CONTEXT-NAME]`
+
+### 4. Apply kubernetes settings
+
+If using a running cluster:
+
+In `deploy/pheweb-deployment.yaml`, change the Docker image to the one you just created (or make other desired changes). Make sure the GCE disk is the one you want with the wanted data - and that there is a correct config.py in the /pheweb directory of the disk. Then
+
+`kubectl apply -f deploy/pheweb-deployment.yaml`
+
+Or if using a new cluster:
+
+Modify `deploy/pheweb-ingress.yaml` (production) or `deploy/pheweb-ingress-dev.yaml` (preproduction) and `deploy/pheweb-deployment.yaml` as needed. Then
+
+`kubectl create -f deploy/pheweb-ingress.yaml` or  
+`kubectl create -f deploy/pheweb-ingress-dev.yaml` and  
+`kubectl create -f deploy/pheweb-deployment.yaml`
+
+### 5. Useful commands
+
+`kubectl get ingress`  
+`kubectl describe ingress`  
+`kubectl get svc`  
+`kubectl describe svc`  
+`kubectl get pods`  
+`kubectl logs [POD-NAME]`  
+`kubectl get events --sort-by=.metadata.creationTimestamp`
+
+More [here](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
+
 # PheWeb instructions
 
 For an example, see the [Michigan Genomics Initiative PheWeb](http://pheweb.sph.umich.edu).

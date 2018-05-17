@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pheweb-front
+  labels:
+    app: pheweb
+    tier: frontend
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pheweb
+        tier: frontend
+    spec:
+      containers:
+      - name: pheweb-container
+        image: gcr.io/phewas-development/pheweb:genepage04
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /pheweb-data
+          name: pheweb-disk
+      volumes:
+      - name: pheweb-disk
+        gcePersistentDisk:
+          pdName: pheweb-fg-r1-2
+          fsType: ext4
