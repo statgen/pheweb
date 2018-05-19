@@ -11,6 +11,9 @@ from flask import Flask, jsonify, render_template, request, redirect, abort, fla
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 
+
+from .reporting import Report
+
 import functools
 import re
 import traceback
@@ -22,8 +25,11 @@ from xhtml2pdf import pisa
 from io import BytesIO
 import io
 
+
 app = Flask(__name__)
 Compress(app)
+
+report = Report(app)
 
 app.config['COMPRESS_LEVEL'] = 2 # Since we don't cache, faster=better
 app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'
@@ -146,6 +152,7 @@ def api_gene_phenos(query):
         results = result_dao.get_variant_results_range(chrom, start, end)
         return jsonify(results)
     except Exception as exc:
+        print(exc)
         die('Oh no, something went wrong', exc)
 
 @app.route('/api/gene_functional_variants/<query>')
@@ -296,11 +303,20 @@ def gene_report(genename):
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
 
-    pdf = create_pdf(gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename))
-    response = make_response(pdf.getvalue().decode('latin-1'))
+    pdf =  report.render_template('gene_report.tex',  gene=genename )
+
+
+    ## gene descriptions, constraintsself.
+    ## functional variants ... n phenotypes with p< 1-4... list phenos
+    ## top variants in a region otherwise.... ^ as above
+
+    ## UKBB + GWAS catalog GW sig variants
+
+    response = make_response( pdf.readb())
     response.headers.set('Content-Disposition', 'attachment', filename=genename + '_report.pdf')
     response.headers.set('Content-Type', 'application/pdf')
     return response
+
 
 def create_pdf(pdf_data):
     pdf = io.BytesIO()
