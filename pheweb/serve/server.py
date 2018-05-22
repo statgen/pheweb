@@ -347,7 +347,6 @@ def gene_report(genename):
     response.headers.set('Content-Type', 'application/pdf')
     return response
 
-
 def create_pdf(pdf_data):
     pdf = io.BytesIO()
     print(pdf_data)

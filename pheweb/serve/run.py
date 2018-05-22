@@ -114,7 +114,6 @@ def run(argv):
     parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 
     args = parser.parse_args(argv)
-    print("upping")
     if args.open:
         if not attempt_open('http://localhost:{}'.format(args.port)) and not args.guess_address:
             print_ip(args.port)
@@ -124,7 +123,6 @@ def run(argv):
 
     if args.guess_address:
         print_ip(args.port)
-        
     from .server import app
 
     if gunicorn_is_broken() or args.debug :
