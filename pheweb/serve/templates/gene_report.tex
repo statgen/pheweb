@@ -1,11 +1,61 @@
 \documentclass{article}
+\usepackage{geometry}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{ragged2e}
+\geometry{left=1in}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
 \begin{document}
-
 \title {FINNGEN gene report for ((( gene ))) }
 \author{FINNGEN}
 \maketitle
 \newpage
 \newpage
+((* set math = imp0rt('math') *))
 \section{ Basic gene info }
-Hello ((( gene )))
+\textbf{GENE}: ((( gene ))) \\
+\medskip
+\textbf{Location}: ((( geneinfo["maploc"] ))) BP: ((( geneinfo["start"] )))-((( geneinfo["stop"] ))) \\
+\medskip
+\textbf{Description:}: ((( geneinfo["description"] ))) \\
+\medskip
+\textbf{SUMMARY:} \\
+((( geneinfo["summary"] )))
+\newpage
+
+\begingroup
+\renewcommand{\arraystretch}{1.5}
+\section{ Functional variants }
+\begin{longtable}{c|c|c|c|c|L{5cm} }
+Variant & rsid & Consequence & MAF & N phenos p\textless10e-4 & top phenos \\
+\hline
+
+((* for var in functionalVars *))
+    ((( var.variant | escape_tex))) & ((( var.rsid ))) & (((  var.consequence | escape_tex))) & ((( "{:.2e}".format(var.maf) ))) & ((( var.nSigPhenos ))) & (((var.sigPhenos| escape_tex)))  \\
+((* endfor *))
+
+\end{longtable}
+\newpage
+
+\section{ Top associations in the gene region }
+\begin{longtable}{ >{\RaggedRight}p{3cm}|>{\RaggedRight}p{3cm}|c|c|c|c|c|c }
+Variant & pheno & cases & controls & MAF case & MAF control & OR & p-value  \\
+\hline
+((* for var in topAssoc *))
+((( var.id.replace(":"," ") | escape_tex))) \newline ((( var.rsids ))) & ((( var.phenostring | escape_tex))) & (((var.num_cases ))) & (((var.num_controls))) & ((( "{:.2e}".format(var.maf_case) ))) & ((( "{:.2e}".format(var.maf_control) ))) & ((( "{:.2f}".format(math.exp(var.beta)) ))) & ((( "{:.2e}".format(var.pval) ))) \\
+((* endfor *))
+\end{longtable}
+
+\newpage
+
+\section{ Known GWAS hits in the region}
+\begin{longtable}{ >{\RaggedRight}p{3cm}|L{3cm}|c|c|c|c|>{\RaggedRight}p{3cm} }
+Variant & pheno & effective allele & EAF & beta/or & -10 log p-value & reference \\
+\hline
+((* for var in knownhits *))
+((( var.variant.replace(":"," ") | escape_tex))) \newline ((( var.rsid ))) & ((( var.trait | escape_tex))) & ((( var.risk_allele ))) & ((( var.risk_frq ))) & ((( var.or_beta ))) & ((( var.log_pvalue ))) & (((var.study))) \\
+((* endfor *))
+\end{longtable}
+\endgroup
+
 \end{document}

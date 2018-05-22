@@ -5,19 +5,20 @@ from latex import build_pdf
 
 class Report(object) :
 
-
     LATEX_SUBS = (
-        (re.compile(r'\\'), r'\\textbackslash'),
+        ##(re.compile(r'\\'), r'\\textbackslash'),
         (re.compile(r'([{}_#%&$])'), r'\\\1'),
         (re.compile(r'~'), r'\~{}'),
         (re.compile(r'\^'), r'\^{}'),
         (re.compile(r'"'), r"''"),
         (re.compile(r'\.\.\.+'), r'\\ldots'),
+        (re.compile(r'<'), r'\\textless'),
+        (re.compile(r'>'), r'\\textgreater')
     )
 
-    def escape_tex(value):
+    def escape_tex(self, value):
         newval = value
-        for pattern, replacement in LATEX_SUBS:
+        for pattern, replacement in self.LATEX_SUBS:
             newval = pattern.sub(replacement, newval)
         return newval
 
@@ -38,4 +39,5 @@ class Report(object) :
 
         '''
         tmpl = self.texenv.get_template(template)
+        ##print(tmpl.render(**params))
         return build_pdf(tmpl.render(**params))

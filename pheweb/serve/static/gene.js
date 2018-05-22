@@ -7,7 +7,7 @@ function populate_variant_streamtable(data) {
     var view = function(v) {
         return template({v: v});
     };
-    
+
     var options = {
         view: view,
         search_box: false,
@@ -22,13 +22,13 @@ function populate_variant_streamtable(data) {
             per_page: 10000
         }
     }
-    
+
     $("<style type='text/css'> .functional_variants>.st_search { display: None }</style>").appendTo("head");
-    
+
     $("<style type='text/css'> .functional-pagination { display: None }</style>").appendTo("head");
     options.pagination.next_text = "";
     options.pagination.prev_text = "";
-    
+
     $('#stream_table_functional_variants').stream_table(options, data);
 }
 
@@ -47,7 +47,7 @@ function populate_streamtable(data) {
 		item.assoc.rsid
 	    ].join(' ')
 	}
-	
+
         var options = {
             view: view,
             search_box: '#search',
@@ -79,6 +79,18 @@ $(function () {
     exportTableToCSV.apply(this, [$('#stream_table'),window.gene_symbol + "_top_associations.tsv",window.gene_pheno_export_fields])
   });
 })
+
+$(function () {
+  $("#genereport").click( function (event) {
+      
+      //console.log(event)
+      //CreateReqPromise("/genereport/" +window.gene_symbol).then( function(resp) {
+    //        console.log(resp)
+     // } )
+
+  });
+})
+
 
 $(function() {
     if (!window.gene_symbol) return

@@ -15,7 +15,9 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from .reporting import Report
 
 import functools
+import importlib
 import re
+import math
 import traceback
 import json
 import os.path
@@ -141,35 +143,43 @@ def api_pheno(phenocode):
     except Exception as exc:
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
 
-@app.route('/api/gene_phenos/<query>')
+@app.route('/api/gene_phenos/<gene>')
 @check_auth
-def api_gene_phenos(query):
-    try:
-        query = query.upper()
-        gene_region_mapping = get_gene_region_mapping()
-        chrom, start, end = gene_region_mapping[query]
-        start, end = pad_gene(start, end)
-        results = result_dao.get_variant_results_range(chrom, start, end)
-        return jsonify(results)
-    except Exception as exc:
-        print(exc)
-        die('Oh no, something went wrong', exc)
+def api_gene_phenos(gene):
+        return jsonify(gene_phenos(gene))
 
-@app.route('/api/gene_functional_variants/<query>')
-@check_auth
-def api_gene_functional_variants(query):
+def gene_functional_variants(gene):
     try:
-        query = query.upper()
-        annotations = annotation_dao.get_gene_functional_variant_annotations(query)
+        gene = gene.upper()
+        annotations = annotation_dao.get_gene_functional_variant_annotations(gene)
         for i in range(len(annotations)):
             chrom, pos, ref, alt = annotations[i]["id"].split(":")
             chrom = chrom.replace("chr", "")
             result = result_dao.get_variant_results_range(chrom, int(pos), int(pos))
             filtered = { "rsids": result[0]["assoc"]["rsids"], "significant_phenos": [res for res in result if res["assoc"]["pval"] < 0.0001] }
             annotations[i] = {**annotations[i], **filtered}
-        return jsonify(annotations)
+        return annotations
     except Exception as exc:
+        print(exc)
         die('Oh no, something went wrong', exc)
+
+def gene_phenos(gene):
+    try:
+        gene = gene.upper()
+        gene_region_mapping = get_gene_region_mapping()
+        chrom, start, end = gene_region_mapping[gene]
+        start, end = pad_gene(start, end)
+        results = result_dao.get_variant_results_range(chrom, start, end)
+        return results
+    except Exception as exc:
+        print(exc)
+        die('Oh no, something went wrong', exc)
+
+@app.route('/api/gene_functional_variants/<gene>')
+@check_auth
+def api_gene_functional_variants(gene):
+    annotations = gene_functional_variants(gene)
+    return jsonify(annotations)
 
 @app.route('/api/top_hits.json')
 @check_auth
@@ -303,13 +313,33 @@ def gene_report(genename):
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
 
-    pdf =  report.render_template('gene_report.tex',  gene=genename )
+    func_vars = gene_functional_variants( genename)
 
+    funcvar = []
+    for var in func_vars:
+        funcvar.append( { 'rsid': var["rsids"], 'variant':var['id'],
+        "consequence": var["var_data"]["most_severe"], 'nSigPhenos':len(var["significant_phenos"]), "maf": var["var_data"]["maf"], "info": var["var_data"]["info"] ,
+        "sigPhenos": "\\newline \\medskip ".join( list(map(lambda x: x['pheno']['phenostring'] + " (OR:" + "{:.2f}".format( math.exp(x['assoc']['beta'])) + ",p:"  + "{:.2e}".format(x['assoc']['pval']) + ")"  , var["significant_phenos"]))) } )
 
+    top_phenos = gene_phenos(genename)
+    top_assoc = [ {**assoc["assoc"], **assoc["pheno"] } for assoc in top_phenos if assoc["assoc"]["pval"]< 0.0001 ]
+    gi_dao = dbs_fact.get_geneinfo_dao()
+    genedata = gi_dao.get_gene_info(genename)
+
+    gene_region_mapping = get_gene_region_mapping()
+    chrom, start, end = gene_region_mapping[genename]
+
+    knownhits = dbs_fact.get_knownhits_dao().get_hits_by_loc(chrom,start,end)
+
+    pdf =  report.render_template('gene_report.tex',imp0rt = importlib.import_module,
+        gene=genename, functionalVars=funcvar, topAssoc=top_assoc, geneinfo=genedata, knownhits=knownhits )
+
+    ##variant.most_severe = variant.var_data.most_severe.replace(/_/g, ' ').replace(' variant', '')
+    ##variant.info = variant.var_data.info
+    ##variant.maf = variant.var_data.af < 0.5 ? variant.var_data.af : 1 - variant.var_data.af
     ## gene descriptions, constraintsself.
     ## functional variants ... n phenotypes with p< 1-4... list phenos
     ## top variants in a region otherwise.... ^ as above
-
     ## UKBB + GWAS catalog GW sig variants
 
     response = make_response( pdf.readb())

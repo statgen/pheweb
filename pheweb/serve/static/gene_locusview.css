@@ -1,6 +1,18 @@
 .lz-dashboard.lz-plot-dashboard { text-align: center; padding-bottom: 0; }
 .lz-dashboard-left, .lz-dashboard-right { display: inline-block; }
 .lz-dashboard-group-start, .lz-dashboard-group-middle, .lz-dashboard-group-end { float: none !important; }
+
+/*
+.loader {
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+    style.display = "none";
+}
+/*
 /* TODO:
    1. merge dashboard-component-centering into LZ. (should it be the default?)
       - if not, make it explicit.  it's bad that I'm just centering anything with `.lz-dashboard-group-*`.

@@ -8,6 +8,19 @@ import pysam
 from ...file_utils import MatrixReader, common_filepaths
 from ...utils import get_phenolist
 
+import requests
+
+
+class GeneInfoDB(object):
+
+    @abc.abstractmethod
+    def get_gene_info(self, symbol):
+        """ Retrieve variant annotations given variant id list.
+            Args: symbol gene symbol
+            Returns: dictionary with elements 'description': short desc, 'summary':extended summary, 'maploc':chrmaplos   'start': startpb 'stop': stopbp
+        """
+        return
+
 
 class AnnotationDB(object):
 
@@ -29,8 +42,18 @@ class AnnotationDB(object):
         """
         return
 
-class ResultDB(object):
 
+class KnownHitsDB(object):
+    @abc.abstractmethod
+    def get_hits_by_loc(self, chr, start, stop):
+        """ Retrieve known hits in GWAS catalog and UKBB for a region
+            Args: chr
+                  start
+                  stop
+            Returns: A list of dictionaries. Dictionary has x elements: "pheno" which contains a phenotype dict, and "assoc" containing a variant dict ("pval", "id", "rsids"). The list is sorted by p-value.
+        """
+
+class ResultDB(object):
     @abc.abstractmethod
     def get_variant_results_range(self, chrom, start, end):
         """ Retrieve variant association results given a variant id and p-value threshold.
@@ -39,6 +62,48 @@ class ResultDB(object):
             Returns: A list of dictionaries. Dictionary has 2 elements: "pheno" which contains a phenotype dict, and "assoc" containing a variant dict ("pval", "id", "rsids"). The list is sorted by p-value.
         """
         return
+
+class MichinganGWASUKBBCatalogDao(KnownHitsDB):
+
+    build38ids="1,4"
+
+
+
+    def get_hits_by_loc(self, chr, start, stop):
+
+        r = requests.get("https://portaldev.sph.umich.edu/api/v1/annotation/gwascatalog/results/?format=objects&filter=id in " + MichinganGWASUKBBCatalogDao.build38ids   +
+                " and chrom eq  '" + str(chr) + "'" +
+                " and pos ge " + str(start) +
+                " and pos le " + str(stop))
+
+        rep = r.json()
+
+        return rep["data"]
+
+
+class NCBIGeneInfoDao(GeneInfoDB):
+
+    def __init__(self):
+        pass
+
+    def get_gene_info(self, symbol):
+        r = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=gene&term=" + symbol + "[gene])%20AND%20(Homo%20sapiens[orgn])%20AND%20alive[prop]%20NOT%20newentry[gene]&sort=weight&retmode=json")
+
+        ret = r.json()["esearchresult"]
+        if("ERROR" in ret):
+            raise Exception("Error querying NCBI. Error:" + ret["esearchresult"]["ERROR"])
+        if( ret["count"] ==0):
+            raise Exception("Gene: "+ symbol +" not found in NCBI db")
+        id =ret["idlist"][0]
+        r = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id="+ id + "&retmode=json")
+        rep = r.json()
+        print(rep)
+        if( "result" not in rep):
+            raise Exception("Could not access NCBI gene summary. Response:" + str(rep))
+        data = rep["result"][id]
+        ## chr stop seems to be missing from top level annotation
+        loc = list(filter( lambda x: x["annotationrelease"]=="109", data["locationhist"]))[0]
+        return { "description":data["description"], "summary":data["summary"], "start":data["chrstart"], "stop":loc["chrstop"], "maploc":data["maplocation"]   }
 
 class ElasticAnnotationDao(AnnotationDB):
 
@@ -138,24 +203,31 @@ class TabixResultDao(ResultDB):
                 split = variant_row.split('\t')
                 for pheno in top:
                     pval = split[pheno['p_col_idx']]
+                    beta = split[pheno['p_col_idx']+1]
+                    maf_case = split[pheno['p_col_idx']+4]
+                    maf_control = split[pheno['p_col_idx']+5]
                     if pval is not '' and (float(pval) < pheno['assoc']['pval']):
                         pheno['assoc']['pval'] = float(pval)
-                        pheno['assoc']['id'] = 'chr' + ':'.join(split[0:3])
+                        pheno['assoc']['beta'] = float(beta)
+                        pheno['assoc']['maf_case'] = float(maf_case)
+                        pheno['assoc']['maf_control'] = float(maf_control)
+                        pheno['assoc']['id'] = 'chr' + ':'.join(split[0:4])
                         pheno['assoc']['rsids'] = split[4] if split[4] is not '' else None
+
 
         for item in top:
             item.pop('p_col_idx', None)
-            
+
         top.sort(key=lambda pheno: pheno['assoc']['pval'])
         return top
-         
-   
+
+
 class DataFactory(object):
     daos = {"annotation.elastic":ElasticAnnotationDao,
             "result.tabix":TabixResultDao}
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
                        "MATRIX_PATH": common_filepaths['matrix']}
-    
+
     def __init__(self, config):
         self.dao_impl = {}
         for db in config:
@@ -173,9 +245,17 @@ class DataFactory(object):
                         db[db_type][db_source].pop('const_arguments', None)
                     self.dao_impl[db_type] = self.daos[db_id]( ** db[db_type][db_source] )
 
+        self.dao_impl["geneinfo"] = NCBIGeneInfoDao()
+        self.dao_impl["catalog"] = MichinganGWASUKBBCatalogDao()
+
     def get_annotation_dao(self):
         return self.dao_impl["annotation"]
 
     def get_result_dao(self):
         return self.dao_impl["result"]
-    
+
+    def get_geneinfo_dao(self):
+        return self.dao_impl["geneinfo"]
+
+    def get_knownhits_dao(self):
+        return self.dao_impl["catalog"]

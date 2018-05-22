@@ -39,7 +39,13 @@
     <span id="gtex-link"><a target="_blank" href="https://www.gtexportal.org/home/eqtls/byGene?tissueName=All&geneId={{ gene_symbol }}">GTEx</a></span>
     <span id="gnomad-link"></span>
     </p>
+    <div class='btn' style='padding-left: 0px'>
+        <a class='dl-link btn-primary btn' href="/genereport/{{gene_symbol}}" id ="genereport" role='button'> Generate gene report
+        </a>
+    </div>
+    <div class="loader"></div>
   </div>
+
 </div>
 
 {% if significant_phenos %}
@@ -135,7 +141,7 @@
     <!-- </div> -->
   </div>
 </div>
-   
+
 <script type="text/template" id="streamtable-template">
   <% if (p.pheno.phenocode === pheno.phenocode) { %>
   <tr style="background-color:rgb(247,245,230)">
@@ -175,7 +181,7 @@
 	    .map(function(pheno) {
 	        return '<a style="color:black" href="/pheno/' + pheno.pheno.phenocode + '">' +
                     '<span style="display: inline-block; width: 70px">' +
-	            pheno.assoc.pval.toExponential(1) + 
+	            pheno.assoc.pval.toExponential(1) +
 	            '</span><span>' +
 	            pheno.pheno.phenostring +
 	            '</span></a>';

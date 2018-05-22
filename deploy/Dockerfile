@@ -4,7 +4,7 @@ ADD . /pheweb
 ADD dot_pheweb /root/.pheweb
 
 RUN apt-get update && \
-    apt-get install python3-pip libffi-dev libz-dev libssl-dev --yes && \
+    apt-get install python3-pip libffi-dev libz-dev libssl-dev latexmk --yes && \
     pip3 install /pheweb
     
 EXPOSE 8080

@@ -16,17 +16,14 @@ LocusZoom.Data.GWASCatSource.prototype.parseResponse = function(resp, chain, fie
 
     var res =""
     try {
-            res = JSON.parse(resp)
-    } catch (e) {
-
-        resp = resp.replace(/Infinity/g,'"Inf"');
-
         res = JSON.parse(resp)
-
+    } catch (e) {
+        resp = resp.replace(/Infinity/g,'"Inf"');
+        res = JSON.parse(resp)
     }
 
     if( res.data.length==0) {
-                // gotta have mock variant in correct format so LD search does not internal server arror
+        // gotta have mock variant in correct format so LD search does not internal server error
         var dat = outnames.reduce(  function(acc, curr, i) { acc[curr]="0:0_a/t"; return acc }, {} )
 
         return {header: chain.header, body:[dat] };
