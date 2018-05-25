@@ -23,11 +23,6 @@ import json
 import os.path
 from .data_access import DataFactory
 
-from xhtml2pdf import pisa
-from io import BytesIO
-import io
-
-
 app = Flask(__name__)
 Compress(app)
 
@@ -340,12 +335,6 @@ def gene_report(genename):
     response.headers.set('Content-Disposition', 'attachment', filename=genename + '_report.pdf')
     response.headers.set('Content-Type', 'application/pdf')
     return response
-
-def create_pdf(pdf_data):
-    pdf = io.BytesIO()
-    print(pdf_data)
-    pisa.CreatePDF(pdf_data, pdf)
-    return pdf
 
 @app.route('/')
 def homepage():
