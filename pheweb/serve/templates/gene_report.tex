@@ -23,11 +23,13 @@
 ((( geneinfo["summary"] )))
 \newpage
 
+
+
 \begingroup
 \renewcommand{\arraystretch}{1.5}
 \section{ Functional variants }
 \begin{longtable}{c|c|c|c|c|L{5cm} }
-Variant & rsid & Consequence & MAF & N phenos p\textless10e-4 & top phenos \\
+Variant & rsid & Consequence & MAF & N phenos p\textless((( "{:.0e}".format(func_var_assoc_threshold) ))) & top phenos \\
 \hline
 
 ((* for var in functionalVars *))
@@ -39,12 +41,15 @@ Variant & rsid & Consequence & MAF & N phenos p\textless10e-4 & top phenos \\
 
 \section{ Top associations in the gene region }
 \begin{longtable}{ >{\RaggedRight}p{3cm}|>{\RaggedRight}p{3cm}|c|c|c|c|c|c }
+\caption{ ((( ":.0e".format( gene_top_assoc_threshold) )))}\\
 Variant & pheno & cases & controls & MAF case & MAF control & OR & p-value  \\
 \hline
 ((* for var in topAssoc *))
 ((( var.id.replace(":"," ") | escape_tex))) \newline ((( var.rsids ))) & ((( var.phenostring | escape_tex))) & (((var.num_cases ))) & (((var.num_controls))) & ((( "{:.2e}".format(var.maf_case) ))) & ((( "{:.2e}".format(var.maf_control) ))) & ((( "{:.2f}".format(math.exp(var.beta)) ))) & ((( "{:.2e}".format(var.pval) ))) \\
 ((* endfor *))
 \end{longtable}
+
+
 
 \newpage
 

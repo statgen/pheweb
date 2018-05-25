@@ -1,3 +1,7 @@
+## this is needed before importing request or other network modulse for http communication or else things can spectacularly fail
+## dependent on the running environment. https://github.com/gevent/gevent/issues/1009
+from gevent import monkey
+monkey.patch_all()
 
 def run_flask_dev_server(app, args):
     print("Running dev: " + str(args.use_reloader))

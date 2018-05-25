@@ -21,7 +21,7 @@ class Autocompleter(object):
     def __init__(self, phenos):
         self._phenos = copy.deepcopy(phenos)
         self._preprocess_phenos()
-
+        print(common_filepaths['cpra-to-rsids-trie'])
         self._cpra_to_rsids_trie = marisa_trie.BytesTrie().load(common_filepaths['cpra-to-rsids-trie'])
         self._rsid_to_cpra_trie = marisa_trie.BytesTrie().load(common_filepaths['rsid-to-cpra-trie'])
         self._gene_alias_trie = marisa_trie.BytesTrie().load(common_filepaths['gene-aliases-trie'])

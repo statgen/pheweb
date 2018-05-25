@@ -115,6 +115,7 @@ def _ensure_conf():
                 for key in dir(_conf_module):
                     if not key.startswith('_'):
                         conf[key] = getattr(_conf_module, key)
+
     _load_config_file()
 
     conf.set_default_value('custom_templates', lambda: os.path.join(conf.data_dir, 'custom_templates'), is_function=True)
@@ -486,4 +487,5 @@ def _ensure_conf():
     "maf","maf_cases","maf_controls","num_cases","num_controls","phenocode","phenostring","pval","sebeta","phewas_code",
     "phewas_string","category_name"]  )
     conf.set_default_value("gene_pheno_export_fields", ["assoc.id", "assoc.pval", "assoc.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring"])
-    
+
+    conf.set_default_value("report_conf", {"func_var_assoc_threshold":0.0001}  )

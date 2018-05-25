@@ -148,7 +148,7 @@ def api_pheno(phenocode):
 def api_gene_phenos(gene):
         return jsonify(gene_phenos(gene))
 
-def gene_functional_variants(gene):
+def gene_functional_variants(gene, pThreshold):
     try:
         gene = gene.upper()
         annotations = annotation_dao.get_gene_functional_variant_annotations(gene)
@@ -156,7 +156,7 @@ def gene_functional_variants(gene):
             chrom, pos, ref, alt = annotations[i]["id"].split(":")
             chrom = chrom.replace("chr", "")
             result = result_dao.get_variant_results_range(chrom, int(pos), int(pos))
-            filtered = { "rsids": result[0]["assoc"]["rsids"], "significant_phenos": [res for res in result if res["assoc"]["pval"] < 0.0001] }
+            filtered = { "rsids": result[0]["assoc"]["rsids"], "significant_phenos": [res for res in result if res["assoc"]["pval"] < pThreshold ] }
             annotations[i] = {**annotations[i], **filtered}
         return annotations
     except Exception as exc:
@@ -178,7 +178,10 @@ def gene_phenos(gene):
 @app.route('/api/gene_functional_variants/<gene>')
 @check_auth
 def api_gene_functional_variants(gene):
-    annotations = gene_functional_variants(gene)
+    pThreshold=1.1
+    if ('p' in request.args):
+        pThreshold= float(request.args.get('p'))
+    annotations = gene_functional_variants(gene, pThreshold)
     return jsonify(annotations)
 
 @app.route('/api/top_hits.json')
@@ -284,14 +287,14 @@ def gene_phenocode_page(phenocode, genename):
             })
         ## return functional variants for genes
 
-
         return render_template('gene.html',
                                pheno=pheno,
                                significant_phenos=phenos_in_gene,
                                gene_symbol=genename,
                                region='{}:{}-{}'.format(chrom, start, end),
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
-                               gene_pheno_export_fields=conf.gene_pheno_export_fields
+                               gene_pheno_export_fields=conf.gene_pheno_export_fields,
+                               func_var_report_p_threshold = conf.report_conf["func_var_assoc_threshold"]
         )
     except Exception as exc:
         die("Sorry, your region request for phenocode {!r} and gene {!r} didn't work".format(phenocode, genename), exception=exc)
@@ -312,9 +315,7 @@ def gene_report(genename):
     phenos_in_gene = get_best_phenos_by_gene().get(genename, [])
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
-
-    func_vars = gene_functional_variants( genename)
-
+    func_vars = gene_functional_variants( genename,  conf.report_conf["func_var_assoc_threshold"])
     funcvar = []
     for var in func_vars:
         funcvar.append( { 'rsid': var["rsids"], 'variant':var['id'],
@@ -322,7 +323,7 @@ def gene_report(genename):
         "sigPhenos": "\\newline \\medskip ".join( list(map(lambda x: x['pheno']['phenostring'] + " (OR:" + "{:.2f}".format( math.exp(x['assoc']['beta'])) + ",p:"  + "{:.2e}".format(x['assoc']['pval']) + ")"  , var["significant_phenos"]))) } )
 
     top_phenos = gene_phenos(genename)
-    top_assoc = [ {**assoc["assoc"], **assoc["pheno"] } for assoc in top_phenos if assoc["assoc"]["pval"]< 0.0001 ]
+    top_assoc = [ {**assoc["assoc"], **assoc["pheno"] } for assoc in top_phenos if assoc["assoc"]["pval"]<  conf.report_conf["gene_top_assoc_threshold"]  ]
     gi_dao = dbs_fact.get_geneinfo_dao()
     genedata = gi_dao.get_gene_info(genename)
 
@@ -332,15 +333,8 @@ def gene_report(genename):
     knownhits = dbs_fact.get_knownhits_dao().get_hits_by_loc(chrom,start,end)
 
     pdf =  report.render_template('gene_report.tex',imp0rt = importlib.import_module,
-        gene=genename, functionalVars=funcvar, topAssoc=top_assoc, geneinfo=genedata, knownhits=knownhits )
-
-    ##variant.most_severe = variant.var_data.most_severe.replace(/_/g, ' ').replace(' variant', '')
-    ##variant.info = variant.var_data.info
-    ##variant.maf = variant.var_data.af < 0.5 ? variant.var_data.af : 1 - variant.var_data.af
-    ## gene descriptions, constraintsself.
-    ## functional variants ... n phenotypes with p< 1-4... list phenos
-    ## top variants in a region otherwise.... ^ as above
-    ## UKBB + GWAS catalog GW sig variants
+        gene=genename, functionalVars=funcvar, topAssoc=top_assoc, geneinfo=genedata, knownhits=knownhits,
+        gene_top_assoc_threshold=conf.report_conf["gene_top_assoc_threshold"], func_var_assoc_threshold=conf.report_conf["func_var_assoc_threshold"] )
 
     response = make_response( pdf.readb())
     response.headers.set('Content-Disposition', 'attachment', filename=genename + '_report.pdf')

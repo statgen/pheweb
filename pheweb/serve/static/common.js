@@ -86,6 +86,7 @@ function pValueToReadable(p) {
 
 function exportTableToCSV($table, filename, export_cols=null) {
     var sTableData = $table.data('st').getData()
+
     var colDelim = '\t'
     var rowDelim = '\r\n'
 
@@ -110,7 +111,7 @@ function exportTableToCSV($table, filename, export_cols=null) {
     var header = get_fields( sTableData[0], false)
     var acceptInd =  export_cols!=null ? export_cols.map( function(elem) { return header.indexOf(elem) } ).filter( function(ind) { return ind>=0} ): null
 
-    function filter_cols(row) {
+    function filter_cols(row, acceptInd) {
       if (acceptInd!=null) {
         return acceptInd.map( function(ind) { return row[ind] } )
       } else {
@@ -118,9 +119,10 @@ function exportTableToCSV($table, filename, export_cols=null) {
       }
     }
 
-    var csv = filter_cols(header).join(colDelim)
+    var csv = filter_cols(header, acceptInd).join(colDelim)
     csv+=rowDelim
-    csv+=sTableData.map( function( row ) { return filter_cols(get_fields(row)).join(colDelim) }).join(rowDelim)
+    csv+=sTableData.map( function( row ) { return filter_cols(get_fields(row), acceptInd).join(colDelim) }).join(rowDelim)
+
     var createObjectURL = (window.URL || window.webkitURL || {}).createObjectURL || function(){}
     var csvFile = new Blob([csv], {type: "text/csv"});
     var csvData = createObjectURL(csvFile)
