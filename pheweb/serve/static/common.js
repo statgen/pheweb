@@ -86,6 +86,7 @@ function pValueToReadable(p) {
 
 function exportTableToCSV($table, filename, export_cols=null) {
     var sTableData = $table.data('st').getData()
+
     var colDelim = '\t'
     var rowDelim = '\r\n'
 
@@ -110,7 +111,7 @@ function exportTableToCSV($table, filename, export_cols=null) {
     var header = get_fields( sTableData[0], false)
     var acceptInd =  export_cols!=null ? export_cols.map( function(elem) { return header.indexOf(elem) } ).filter( function(ind) { return ind>=0} ): null
 
-    function filter_cols(row) {
+    function filter_cols(row, acceptInd) {
       if (acceptInd!=null) {
         return acceptInd.map( function(ind) { return row[ind] } )
       } else {
@@ -118,9 +119,10 @@ function exportTableToCSV($table, filename, export_cols=null) {
       }
     }
 
-    var csv = filter_cols(header).join(colDelim)
+    var csv = filter_cols(header, acceptInd).join(colDelim)
     csv+=rowDelim
-    csv+=sTableData.map( function( row ) { return filter_cols(get_fields(row)).join(colDelim) }).join(rowDelim)
+    csv+=sTableData.map( function( row ) { return filter_cols(get_fields(row), acceptInd).join(colDelim) }).join(rowDelim)
+
     var createObjectURL = (window.URL || window.webkitURL || {}).createObjectURL || function(){}
     var csvFile = new Blob([csv], {type: "text/csv"});
     var csvData = createObjectURL(csvFile)
@@ -131,3 +133,42 @@ function exportTableToCSV($table, filename, export_cols=null) {
             //,'target' : '_blank' //if you want it to open in a new window
     });
 }
+
+function CreateReqPromise(method, url, body, headers, timeout) {
+    var response = Q.defer();
+    var xhr = new XMLHttpRequest();
+    if ("withCredentials" in xhr) {
+        // Check if the XMLHttpRequest object has a "withCredentials" property.
+        // "withCredentials" only exists on XMLHTTPRequest2 objects.
+        xhr.open(method, url, true);
+    } else if (typeof XDomainRequest != "undefined") {
+        // Otherwise, check if XDomainRequest.
+        // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+        xhr = new XDomainRequest();
+        xhr.open(method, url);
+    } else {
+        // Otherwise, CORS is not supported by the browser.
+        xhr = null;
+    }
+    if (xhr) {
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200 || xhr.status === 0 ) {
+                    response.resolve(xhr.response);
+                } else {
+                    response.reject("HTTP " + xhr.status + " for " + url);
+                }
+            }
+        };
+        timeout && setTimeout(response.reject, timeout);
+        body = typeof body !== "undefined" ? body : "";
+        if (typeof headers !== "undefined"){
+            for (var header in headers){
+                xhr.setRequestHeader(header, headers[header]);
+            }
+        }
+        // Send the request
+        xhr.send(body);
+    }
+    return response.promise;
+};

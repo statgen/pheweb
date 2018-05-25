@@ -31,6 +31,22 @@ a {
     color: #4B1DD9;
 }
 
+.errorbox {
+    background-color: rgba(208, 40, 47,0.1);
+    padding: 10px;
+}
+
+border {}
+
+.snugtable {
+    padding-bottom: 0px;
+}
+
+
+.aligned {
+    vertical-align: middle;
+}
+
 .logo-header {
     float: left;
     line-height: 69px;
@@ -104,7 +120,7 @@ a {
 }
 
 .dl-link {
-    display: block;
+    display: inline-block;
     width: auto;
     border-radius: 0px;
     background-color: #282828;

@@ -17,9 +17,6 @@
 
     data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/", params: { id:[1,4] ,pvalue_field: "pvalue", "var_id_field":"rsid" }}));
 
-
-    // https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=clinvarid=65533retmode=json
-
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
         var log = -Math.log(x) / Math.LN10;
@@ -345,7 +342,7 @@
         {
             "id": "gwas_catalog",
             "title": { "text":"GWAS catalog + UKBB", "x":55, "y":30 },
-            "y_index": 1,
+            "y_index": 2,
             "proportional_height": 0.2,
             "min_width": 400,
             "min_height": 100,
@@ -489,7 +486,7 @@
             "id": "genes",
             "proportional_height": 0.5,
             "min_width": 400,
-            "y_index": 3,
+            "y_index": 1,
             "min_height": 100,
             "margin": {
                 "top": 0,
@@ -712,13 +709,28 @@
     $(function() {
         // Populate the div with a LocusZoom plot using the default layout
         window.plot = LocusZoom.populate("#lz-1", data_sources, layout);
-        var gene_panel = window.plot.panels.genes
 
-        window.plot.panels.genes.on("data_rendered", function(){
+
+        Object.values(window.plot.panels).forEach( function(panel, index) {
+            panel.on("data_rendered", function(){
+
+                panel.scaleHeightToData()
+                if (typeof(panel.parent_plot.scaleHeightToData) == "function") {
+                        panel.parent_plot.scaleHeightToData()
+                }
+
+                if( index == Object.values(window.plot.panels).length-1) {
+                    //window.plot.panels.genes.scaleHeightToData()
+                }
+            })
+        })
+
+
+        //window.plot.panels.genes.on("data_rendered", function(){
             // gene panel takes extra space. After data is rendered scale the height to data
-            this.scaleHeightToData()
-            gene_panel.scaleHeightToData()
-        });
+        //    this.scaleHeightToData()
+    //        gene_panel.scaleHeightToData()
+    //    });
 
 
     });

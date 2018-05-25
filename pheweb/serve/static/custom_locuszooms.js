@@ -16,19 +16,15 @@ LocusZoom.Data.GWASCatSource.prototype.parseResponse = function(resp, chain, fie
 
     var res =""
     try {
-            res = JSON.parse(resp)
-    } catch (e) {
-
-        resp = resp.replace(/Infinity/g,'"Inf"');
-
         res = JSON.parse(resp)
-
+    } catch (e) {
+        resp = resp.replace(/Infinity/g,'"Inf"');
+        res = JSON.parse(resp)
     }
 
     if( res.data.length==0) {
-                // gotta have mock variant in correct format so LD search does not internal server arror
+        // gotta have mock variant in correct format so LD search does not internal server error
         var dat = outnames.reduce(  function(acc, curr, i) { acc[curr]="0:0_a/t"; return acc }, {} )
-
         return {header: chain.header, body:[dat] };
     } else {
         return LocusZoom.Data.Source.prototype.parseResponse.call(this,resp, chain, fields, outnames, trans);
@@ -96,20 +92,22 @@ LocusZoom.Data.ClinvarDataSource.prototype.parseResponse = function(resp, chain,
 
         val = val[1]
         var loc = val.variation_set[0].variation_loc.filter(function(x)  {return x.assembly_name=="GRCh38"} )[0]
+        if( loc != null) {
+            var object= {}
+            object.start = loc.start;
+            object.stop = loc.stop;
+            object.ref = loc.ref;
+            object.alt = loc.alt;
+            object.chr = loc.chr
+            object.varName = val.variation_set[0].variation_name;
+            object.clinical_sig = val.clinical_significance.description;
+            object.trait = val.trait_set.map( function(x) { return x.trait_name } ).join(":")
+            object.y= 5
+            object.id = val.uid;
 
-        var object= {}
-        object.start = loc.start;
-        object.stop = loc.stop;
-        object.ref = loc.ref;
-        object.alt = loc.alt;
-        object.chr = loc.chr
-        object.varName = val.variation_set[0].variation_name;
-        object.clinical_sig = val.clinical_significance.description;
-        object.trait = val.trait_set.map( function(x) { return x.trait_name } ).join(":")
-        object.y= 5
-        object.id = val.uid;
+            respData.push( object )
+        }
 
-        respData.push( object )
     });
     return {header: chain.header, body: respData};
 };
