@@ -15,7 +15,7 @@ class GeneInfoDB(object):
 
     @abc.abstractmethod
     def get_gene_info(self, symbol):
-        """ Retrieve gene basic  info given gene symbol list.
+        """ Retrieve gene basic info given gene symbol.
             Args: symbol gene symbol
             Returns: dictionary with elements 'description': short desc, 'summary':extended summary, 'maploc':chrmaplos   'start': startpb 'stop': stopbp
         """
