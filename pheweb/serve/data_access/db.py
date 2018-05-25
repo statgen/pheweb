@@ -15,7 +15,7 @@ class GeneInfoDB(object):
 
     @abc.abstractmethod
     def get_gene_info(self, symbol):
-        """ Retrieve variant annotations given variant id list.
+        """ Retrieve gene basic  info given gene symbol list.
             Args: symbol gene symbol
             Returns: dictionary with elements 'description': short desc, 'summary':extended summary, 'maploc':chrmaplos   'start': startpb 'stop': stopbp
         """
