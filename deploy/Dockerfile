@@ -7,7 +7,7 @@ RUN apt-get update && \
     apt-get install python3-pip libffi-dev libz-dev libssl-dev  --yes && \
     pip3 install /pheweb
    
-RUN apt-get install --no-install-recommends texlive
+RUN apt-get install --no-install-recommends texlive --yes
 
 EXPOSE 8080
 CMD cd /pheweb-data/pheweb && pheweb serve --port 8080

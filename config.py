@@ -6,4 +6,4 @@ database_conf = ({ "annotation":
                  { "result": { "tabix": { 'const_arguments': [("phenos","PHEWEB_PHENOS"), ("matrix_path","MATRIX_PATH")] } } }
                 )
 
-report_conf = {"func_var_assoc_threshold":0.001, "gene_top_assoc_threshold":0.001}
+report_conf = {"func_var_assoc_threshold":0.0001, "gene_top_assoc_threshold":0.0001}
