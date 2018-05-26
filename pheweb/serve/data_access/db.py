@@ -118,13 +118,11 @@ class NCBIGeneInfoDao(GeneInfoDB):
 class DrugDao(DrugDB):
 
     def __init__(self):
-        self.mg = mygene.MyGeneInfo()
+        pass
 
     def get_drugs(self, gene):
-        mgres = self.mg.query(gene,scopes='symbol,alias',fields='ensembl.gene', species='human')
-        if len(mgres['hits']) == 0:
-            raise Exception('Gene ' + gene + ' not found in mygene')
-        ensg = mgres['hits'][0]['ensembl']['gene']
+        r = requests.get("http://rest.ensembl.org/xrefs/symbol/human/" + gene + "?content-type=application/json")
+        ensg = r.json()[0]['id']
         drugfields = ['target.gene_info.symbol',
                       'target.target_class',
                       'evidence.target2drug.action_type',
