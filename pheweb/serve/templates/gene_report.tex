@@ -61,6 +61,19 @@ Variant & pheno & effective allele & EAF & beta/or & -10 log p-value & reference
 ((( var.variant.replace(":"," ") | escape_tex))) \newline ((( var.rsid ))) & ((( var.trait | escape_tex))) & ((( var.risk_allele ))) & ((( var.risk_frq ))) & ((( var.or_beta ))) & ((( var.log_pvalue ))) & (((var.study))) \\
 ((* endfor *))
 \end{longtable}
+
+
+
+\newpage
+
+\section{ Known drugs }
+\begin{longtable}{ >{\RaggedRight}p{3cm}|L{3cm}|c|c|c|c|>{\RaggedRight}p{3cm} }
+Molecule & type & action & disease & phase \\
+\hline
+((* for d in drugs *))
+((( d.drug.molecule_name | escape_tex))) & ((( d.drug.molecule_type | escape_tex))) & ((( d.evidence.target2drug.action_type |escape_tex ))) & ((( d.disease.efo_info.label | escape_tex ))) & ((( d.evidence.drug2clinic.max_phase_for_disease.label | escape_tex ))) \\
+((* endfor *))
+\end{longtable}
 \endgroup
 
 \end{document}

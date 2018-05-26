@@ -327,10 +327,11 @@ def gene_report(genename):
     chrom, start, end = gene_region_mapping[genename]
 
     knownhits = dbs_fact.get_knownhits_dao().get_hits_by_loc(chrom,start,end)
+    drugs = dbs_fact.get_drug_dao().get_drugs(genename)
 
     pdf =  report.render_template('gene_report.tex',imp0rt = importlib.import_module,
-        gene=genename, functionalVars=funcvar, topAssoc=top_assoc, geneinfo=genedata, knownhits=knownhits,
-        gene_top_assoc_threshold=conf.report_conf["gene_top_assoc_threshold"], func_var_assoc_threshold=conf.report_conf["func_var_assoc_threshold"] )
+                                  gene=genename, functionalVars=funcvar, topAssoc=top_assoc, geneinfo=genedata, knownhits=knownhits, drugs=drugs,
+                                  gene_top_assoc_threshold=conf.report_conf["gene_top_assoc_threshold"], func_var_assoc_threshold=conf.report_conf["func_var_assoc_threshold"] )
 
     response = make_response( pdf.readb())
     response.headers.set('Content-Disposition', 'attachment', filename=genename + '_report.pdf')
