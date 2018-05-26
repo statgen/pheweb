@@ -9,6 +9,7 @@
   window.gene_symbol = {{ gene_symbol|tojson|safe }};
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
   window.gene_pheno_export_fields = {{ gene_pheno_export_fields|tojson }};
+  window.drug_export_fields = {{ drug_export_fields|tojson }};
   window.func_var_report_p_threshold = {{ func_var_report_p_threshold|tojson }};
 </script>
 <script src="{{ url_for('static', filename='vendor/locuszoom-0.5.6.vendor.min.js') }}" type="text/javascript"></script>

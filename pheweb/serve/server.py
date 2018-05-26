@@ -289,6 +289,7 @@ def gene_phenocode_page(phenocode, genename):
                                region='{}:{}-{}'.format(chrom, start, end),
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
                                gene_pheno_export_fields=conf.gene_pheno_export_fields,
+                               drug_export_fields=conf.drug_export_fields,
                                func_var_report_p_threshold = conf.report_conf["func_var_assoc_threshold"]
         )
     except Exception as exc:

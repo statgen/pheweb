@@ -111,6 +111,11 @@ $(function () {
   });
 })
 
+$(function () {
+  $("#export_drugs").click( function (event) {
+      exportTableToCSV.apply(this, [$('#stream_table_drugs'),window.gene_symbol + "_drugs.tsv",window.drug_export_fields])
+  });
+})
 
 $(function () {
   $("#export_func_vars").click( function (event) {
@@ -144,8 +149,6 @@ $(function () {
 
   });
 })
-
-
 
 $(function () {
     $("#genereport").click( function (event) {
