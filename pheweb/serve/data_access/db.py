@@ -9,7 +9,6 @@ from ...file_utils import MatrixReader, common_filepaths
 from ...utils import get_phenolist
 
 import requests
-import mygene
 
 
 class GeneInfoDB(object):
