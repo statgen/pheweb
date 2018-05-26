@@ -66,8 +66,9 @@ setup(
         'cffi~=1.11',
         'wget~=3.2',
         'gevent~=1.2',
-        'elasticsearch~=6.2.0'
-        'latex~=0.7.0'
+        'elasticsearch~=6.2.0',
+        'latex~=0.7.0',
+        'mygene~=3.0'
     ],
     tests_require=[
         'pytest~=3.4',

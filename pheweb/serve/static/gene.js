@@ -31,6 +31,38 @@ function populate_variant_streamtable(data) {
     $('#stream_table_functional_variants').stream_table(options, data);
 }
 
+function populate_drugs_streamtable(data) {
+
+    // data = _.sortBy(data, _.property('pval'));
+    var template = _.template($('#streamtable-drugs-template').html());
+    var view = function(d) {
+        return template({d: d});
+    };
+
+    var options = {
+        view: view,
+        search_box: false,
+        pagination: {
+            span: 5,
+            next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
+            prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
+    	    container_class: 'drugs-pagination',
+    	    ul_class: 'drugs-pagination',
+            per_page_select: true,
+            per_page_opts: [10000],
+            per_page: 10000
+        }
+    }
+
+    $("<style type='text/css'> .drugs>.st_search { display: None }</style>").appendTo("head");
+    $("<style type='text/css'> .drugs-pagination { display: None }</style>").appendTo("head");
+    options.pagination.next_text = "";
+    options.pagination.prev_text = "";
+
+    $('#stream_table_drugs').stream_table(options, data);
+    $('#drugs-container').css('display', 'block')
+}
+
 function populate_streamtable(data) {
     $(function() {
         var template = _.template($('#streamtable-template').html());
@@ -187,14 +219,17 @@ $(function() {
     	    } else {
                 console.log(window.gene_symbol + ' not found in ensembl')
     	    }
-        });
+        })
     $.getJSON("/api/gene_phenos/" + window.gene_symbol)
 	.done(function(data) {
 	    populate_streamtable(data);
 	})
-	.fail(function() {
-	    console.log('/api/gene_phenos failed')
-	});
+    $.getJSON("/api/drugs/" + window.gene_symbol)
+	.done(function(data) {
+	    if (data.length > 0) {
+		populate_drugs_streamtable(data)
+	    }
+	})
     $.getJSON("/api/gene_functional_variants/" + window.gene_symbol + "?p=" + window.func_var_report_p_threshold )
 	.done(function(data) {
 	    data.forEach(function(variant) {
@@ -204,9 +239,6 @@ $(function() {
 	    })
 	    populate_variant_streamtable(data);
 	})
-	.fail(function() {
-	    console.log('/api/gene_functional_variants failed');
-	});
     $.getJSON("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=gene&term=("
 	      + window.gene_symbol
 	      + "[gene])%20AND%20(Homo%20sapiens[orgn])%20AND%20alive[prop]%20NOT%20newentry[gene]&sort=weight&retmode=json")
@@ -226,7 +258,4 @@ $(function() {
 		console.log(window.gene_symbol + ' not found in ncbi')
 	    }
 	})
-	.fail(function() {
-	    console.log('NCBI gene lookup failed')
-	});
 })

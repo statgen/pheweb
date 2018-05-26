@@ -135,18 +135,37 @@
           <th style="width: 5%; cursor: pointer; user-select: none;" data-sort="info:desc">info</th>
           <th style="width: 7%; cursor: pointer; user-select: none;" data-sort="maf:desc">maf</th>
           <th style="user-select: none;">FinnGen phenotypes p < {{ "{:.0E}".format(func_var_report_p_threshold) }}</th>
-        </tr>
+	</tr>
       </thead>
       <tbody>
       </tbody>
     </table>
-    <!-- <div class='btn'> -->
-    <!--     <a class='dl-link btn-primary btn' href="#" id ="export" role='button'> Download table data as TSV -->
-    <!--     </a> -->
-    <!-- </div> -->
     <div class='btn' style='padding-left: 0px'>
-        <a class='dl-link btn-primary btn' id ="export_func_vars" role='button'> Download table data as TSV
-        </a>
+      <a class='dl-link btn-primary btn' id ="export_func_vars" role='button'> Download table data as TSV
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="row stream_table_row" id="drugs-container" style="display:none;">
+  <div class="col-xs-12 drugs">
+    <table id="stream_table_drugs" class="snugtable table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th style="width: 10%; user-select: none;">molecule</th>
+          <th style="width: 10%; user-select: none;">type</th>
+          <th style="width: 10%; user-select: none;">action</th>
+          <th style="width: 10%; user-select: none;">disease</th>
+          <th style="width: 10%; user-select: none;">phase</th>
+          <th style="width: 10%; user-select: none;">link</th>
+	</tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <div class='btn' style='padding-left: 0px'>
+      <a class='dl-link btn-primary btn' id ="export_drugs" role='button'> Download table data as TSV
+      </a>
     </div>
   </div>
 </div>
@@ -198,11 +217,15 @@
   </tr>
 </script>
 
-{% endblock %}
+<script type="text/template" id="streamtable-drugs-template">
+  <tr>
+    <td><%= d.drug.molecule_name %></td>
+    <td><%= d.drug.molecule_type %></td>
+    <td><%= d.evidence.target2drug.action_type %></td>
+    <td><%= d.disease.efo_info.label %></td>
+    <td><%= d.evidence.drug2clinic.max_phase_for_disease.label %></td>
+    <td><a href=<%= d.drug.id %>>ChEMBL</a></td>
+  </tr>
+</script>
 
-<!--
-'<span style="display: inline-block; width: 120px">OR:' + Math.exp(pheno.assoc.beta).toPrecision(2) + ' p:' + pheno.assoc.pval.toExponential(1) +
-'</span><span>' +
-pheno.pheno.phenostring +
-'</span></a>';
--->
+{% endblock %}

@@ -336,6 +336,15 @@ def gene_report(genename):
     response.headers.set('Content-Type', 'application/pdf')
     return response
 
+@app.route('/api/drugs/<genename>')
+@check_auth
+def drugs(genename):
+    try:
+        drugs = dbs_fact.get_drug_dao().get_drugs(genename)
+        return jsonify(drugs)
+    except Exception as exc:
+        die("Could not fetch drugs for gene {!r}".format(genename), exception=exc)    
+
 @app.route('/')
 def homepage():
     return render_template('index.html')
