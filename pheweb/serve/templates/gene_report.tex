@@ -17,7 +17,7 @@
 \medskip
 \textbf{Location}: ((( geneinfo["maploc"] ))) BP: ((( geneinfo["start"] )))-((( geneinfo["stop"] ))) \\
 \medskip
-\textbf{Description:}: ((( geneinfo["description"] ))) \\
+\textbf{Description:} ((( geneinfo["description"] ))) \\
 \medskip
 \textbf{SUMMARY:} \\
 ((( geneinfo["summary"] )))
@@ -29,9 +29,9 @@
 \renewcommand{\arraystretch}{1.5}
 \section{ Functional variants }
 \begin{longtable}{c|c|c|c|c|L{5cm} }
+\caption{ Functional variant associations }\\
 Variant & rsid & Consequence & MAF & N phenos p\textless((( "{:.0e}".format(func_var_assoc_threshold) ))) & top phenos \\
 \hline
-
 ((* for var in functionalVars *))
     ((( var.variant | escape_tex))) & ((( var.rsid ))) & (((  var.consequence | escape_tex))) & ((( "{:.2e}".format(var.maf) ))) & ((( var.nSigPhenos ))) & (((var.sigPhenos| escape_tex)))  \\
 ((* endfor *))
@@ -41,7 +41,7 @@ Variant & rsid & Consequence & MAF & N phenos p\textless((( "{:.0e}".format(func
 
 \section{ Top associations in the gene region }
 \begin{longtable}{ >{\RaggedRight}p{3cm}|>{\RaggedRight}p{3cm}|c|c|c|c|c|c }
-\caption{ ((( ":.0e".format( gene_top_assoc_threshold) )))}\\
+\caption{ Phenotype associations p\textless (((gene_top_assoc_threshold))) }\\
 Variant & pheno & cases & controls & MAF case & MAF control & OR & p-value  \\
 \hline
 ((* for var in topAssoc *))
@@ -55,6 +55,7 @@ Variant & pheno & cases & controls & MAF case & MAF control & OR & p-value  \\
 
 \section{ Known GWAS hits in the region}
 \begin{longtable}{ >{\RaggedRight}p{3cm}|L{3cm}|c|c|c|c|>{\RaggedRight}p{3cm} }
+\caption{ Known GWAS hits in the region }\\
 Variant & pheno & effective allele & EAF & beta/or & -10 log p-value & reference \\
 \hline
 ((* for var in knownhits *))
