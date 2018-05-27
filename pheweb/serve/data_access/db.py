@@ -63,6 +63,15 @@ class ResultDB(object):
         """
         return
 
+class DrugDB(object):
+    @abc.abstractmethod
+    def get_drugs(self, gene):
+        """ Retrieve drugs
+            Args: gene name
+            Returns: drugs targeting the gene
+        """
+        return
+    
 class MichinganGWASUKBBCatalogDao(KnownHitsDB):
 
     build38ids="1,4"
@@ -105,6 +114,32 @@ class NCBIGeneInfoDao(GeneInfoDB):
         loc = list(filter( lambda x: x["annotationrelease"]=="109", data["locationhist"]))[0]
         return { "description":data["description"], "summary":data["summary"], "start":data["chrstart"], "stop":loc["chrstop"], "maploc":data["maplocation"]   }
 
+class DrugDao(DrugDB):
+
+    def __init__(self):
+        pass
+
+    def get_drugs(self, gene):
+        r = requests.get("http://rest.ensembl.org/xrefs/symbol/human/" + gene + "?content-type=application/json")
+        ensg = r.json()[0]['id']
+        drugfields = ['target.gene_info.symbol',
+                      'target.target_class',
+                      'evidence.target2drug.action_type',
+                      'evidence.drug2clinic.max_phase_for_disease.label',
+                      'disease.efo_info.label',
+                      'drug']
+        payload = {'target':[ensg], 'datatype':['known_drug'], 'fields':drugfields}
+
+        r = requests.post('https://api.opentargets.io/v3/platform/public/evidence/filter',
+                          json=payload)
+        data = r.json()['data']
+        for d in data:
+            d['disease']['efo_info']['label'] = d['disease']['efo_info']['label'].capitalize()
+            d['drug']['molecule_type'] = d['drug']['molecule_type'].capitalize()
+            d['evidence']['target2drug']['action_type'] = d['evidence']['target2drug']['action_type'].capitalize()
+            
+        return data
+    
 class ElasticAnnotationDao(AnnotationDB):
 
     def __init__(self, host, port, variant_index):
@@ -233,7 +268,6 @@ class DataFactory(object):
         for db in config:
             for db_type in db.keys():
                 for db_source in db[db_type]:
-                    print(db_type, db_source)
                     db_id = db_type + "." + db_source
                     if( db_id not in self.daos):
                         raise Exception( "Database '" + db_id + "' does not exist" )
@@ -247,6 +281,7 @@ class DataFactory(object):
 
         self.dao_impl["geneinfo"] = NCBIGeneInfoDao()
         self.dao_impl["catalog"] = MichinganGWASUKBBCatalogDao()
+        self.dao_impl["drug"] = DrugDao()
 
     def get_annotation_dao(self):
         return self.dao_impl["annotation"]
@@ -259,3 +294,6 @@ class DataFactory(object):
 
     def get_knownhits_dao(self):
         return self.dao_impl["catalog"]
+
+    def get_drug_dao(self):
+        return self.dao_impl["drug"]

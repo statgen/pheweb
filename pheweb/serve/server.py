@@ -289,6 +289,7 @@ def gene_phenocode_page(phenocode, genename):
                                region='{}:{}-{}'.format(chrom, start, end),
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
                                gene_pheno_export_fields=conf.gene_pheno_export_fields,
+                               drug_export_fields=conf.drug_export_fields,
                                func_var_report_p_threshold = conf.report_conf["func_var_assoc_threshold"]
         )
     except Exception as exc:
@@ -326,15 +327,25 @@ def gene_report(genename):
     chrom, start, end = gene_region_mapping[genename]
 
     knownhits = dbs_fact.get_knownhits_dao().get_hits_by_loc(chrom,start,end)
+    drugs = dbs_fact.get_drug_dao().get_drugs(genename)
 
     pdf =  report.render_template('gene_report.tex',imp0rt = importlib.import_module,
-        gene=genename, functionalVars=funcvar, topAssoc=top_assoc, geneinfo=genedata, knownhits=knownhits,
-        gene_top_assoc_threshold=conf.report_conf["gene_top_assoc_threshold"], func_var_assoc_threshold=conf.report_conf["func_var_assoc_threshold"] )
+                                  gene=genename, functionalVars=funcvar, topAssoc=top_assoc, geneinfo=genedata, knownhits=knownhits, drugs=drugs,
+                                  gene_top_assoc_threshold=conf.report_conf["gene_top_assoc_threshold"], func_var_assoc_threshold=conf.report_conf["func_var_assoc_threshold"] )
 
     response = make_response( pdf.readb())
     response.headers.set('Content-Disposition', 'attachment', filename=genename + '_report.pdf')
     response.headers.set('Content-Type', 'application/pdf')
     return response
+
+@app.route('/api/drugs/<genename>')
+@check_auth
+def drugs(genename):
+    try:
+        drugs = dbs_fact.get_drug_dao().get_drugs(genename)
+        return jsonify(drugs)
+    except Exception as exc:
+        die("Could not fetch drugs for gene {!r}".format(genename), exception=exc)    
 
 @app.route('/')
 def homepage():

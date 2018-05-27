@@ -487,5 +487,6 @@ def _ensure_conf():
     "maf","maf_cases","maf_controls","num_cases","num_controls","phenocode","phenostring","pval","sebeta","phewas_code",
     "phewas_string","category_name"]  )
     conf.set_default_value("gene_pheno_export_fields", ["assoc.id", "assoc.pval", "assoc.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring"])
+    conf.set_default_value("drug_export_fields", ["drug.molecule_name", "drug.molecule_type", "evidence.target2drug.action_type", "disease.efo_info.label", "evidence.drug2clinic.max_phase_for_disease.label", "drug.id"])
 
     conf.set_default_value("report_conf", {"func_var_assoc_threshold":0.0001}  )
