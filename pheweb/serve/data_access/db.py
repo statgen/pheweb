@@ -115,7 +115,6 @@ class NCBIGeneInfoDao(GeneInfoDB):
         id =ret["idlist"][0]
         r = requests.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id="+ id + "&retmode=json")
         rep = r.json()
-        print(rep)
         if( "result" not in rep):
             raise Exception("Could not access NCBI gene summary. Response:" + str(rep))
         data = rep["result"][id]

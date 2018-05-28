@@ -21,6 +21,7 @@ import traceback
 import json
 import os.path
 from .data_access import DataFactory
+from collections import defaultdict
 
 app = Flask(__name__)
 Compress(app)
@@ -163,6 +164,8 @@ def gene_functional_variants(gene, pThreshold):
             gnomad_id = v["id"].replace('chr', '').replace(':', '-')
             if gnomad_id in gd:
                 v['gnomad'] = gd[gnomad_id]
+            else:
+                v['gnomad'] = {'genomes_AF_FIN': 'N/A', 'genomes_AF_NFE': 'N/A'}
         return annotations
     except Exception as exc:
         print(exc)
@@ -323,10 +326,18 @@ def gene_report(genename):
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     func_vars = gene_functional_variants( genename,  conf.report_conf["func_var_assoc_threshold"])
     funcvar = []
+    chunk_size = 10
     for var in func_vars:
-        funcvar.append( { 'rsid': var["rsids"], 'variant':var['id'],
-        "consequence": var["var_data"]["most_severe"], 'nSigPhenos':len(var["significant_phenos"]), "maf": var["var_data"]["maf"], "info": var["var_data"]["info"] ,
-        "sigPhenos": "\\newline \\medskip ".join( list(map(lambda x: x['pheno']['phenostring'] + " (OR:" + "{:.2f}".format( math.exp(x['assoc']['beta'])) + ",p:"  + "{:.2e}".format(x['assoc']['pval']) + ")"  , var["significant_phenos"]))) } )
+        i = 0
+        while i < len(var["significant_phenos"]):
+            phenos = var["significant_phenos"][i:min(i+chunk_size,len(var["significant_phenos"]))]
+            sigphenos = "\\newline \\medskip ".join( list(map(lambda x: x['pheno']['phenostring'] + " \\newline (OR:" + "{:.2f}".format( math.exp(x['assoc']['beta'])) + ",p:"  + "{:.2e}".format(x['assoc']['pval']) + ")"  , phenos)))
+            if i+chunk_size < len(var["significant_phenos"]):
+                sigphenos = sigphenos + "\\newline ..."
+            funcvar.append( { 'rsid': var["rsids"], 'variant':var['id'].replace(':', ' '), 'gnomad':var['gnomad'],
+                              "consequence": var["var_data"]["most_severe"].replace('_', ' ').replace(' variant', ''), 'nSigPhenos':len(var["significant_phenos"]), "maf": var["var_data"]["maf"], "info": var["var_data"]["info"] ,
+                              "sigPhenos": sigphenos })
+            i = i + chunk_size
 
     top_phenos = gene_phenos(genename)
     top_assoc = [ {**assoc["assoc"], **assoc["pheno"] } for assoc in top_phenos if assoc["assoc"]["pval"]<  conf.report_conf["gene_top_assoc_threshold"]  ]
