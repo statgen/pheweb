@@ -21,7 +21,6 @@ import traceback
 import json
 import os.path
 from .data_access import DataFactory
-from collections import defaultdict
 
 app = Flask(__name__)
 Compress(app)
