@@ -4,12 +4,12 @@ from importlib import import_module
 
 from elasticsearch import Elasticsearch
 import pysam
+import re
 
 from ...file_utils import MatrixReader, common_filepaths
 from ...utils import get_phenolist
 
 import requests
-
 
 class GeneInfoDB(object):
 
@@ -42,6 +42,15 @@ class AnnotationDB(object):
         """
         return
 
+class GnomadDB(object):
+
+    @abc.abstractmethod
+    def get_variant_annotations(self, id_list):
+        """ Retrieve variant annotations given variant id list.
+            Args: id_list list of string in format chr:pos:ref:alt
+            Returns: A list of dictionaries. Dictionary has 2 elements "id" which contains the query id and "var_data" containing dictionary with all variant data.
+        """
+        return
 
 class KnownHitsDB(object):
     @abc.abstractmethod
@@ -217,6 +226,48 @@ class ElasticAnnotationDao(AnnotationDB):
                  } for anno in annotation['hits']['hits']
                ]
 
+class ElasticGnomadDao(AnnotationDB):
+
+    def __init__(self, host, port, variant_index):
+
+        self.index = variant_index
+        self.host = host
+        self.port = port
+
+        self.elastic = Elasticsearch(host + ':' + str(port))
+        if not self.elastic.ping():
+            raise ValueError("Could not connect to elasticsearch at " + host + ":" + str(port))
+
+        if not self.elastic.indices.exists(index=variant_index):
+            raise ValueError("Elasticsearch index does not exist:" + variant_index)
+
+    def _variant_id_to_gnomad_id(self, id):
+        return id.replace('chr', '').replace(':', '-')
+        
+    def get_variant_annotations(self, id_list):
+        gnomad_ids = [self._variant_id_to_gnomad_id(id) for id in id_list]
+        annotation = self.elastic.search(
+            index=self.index,
+            body={
+                "timeout": "5s",
+                "size": 10000,
+                "_source": True,
+                "stored_fields" : "*",
+                "query" : {
+                    "constant_score" : {
+                        "filter" : {
+                            "terms" : {
+                                "genomes_variantId" : gnomad_ids
+                            }
+                        }
+                    }
+                }
+            }
+        )
+        return [ {"id": anno["_source"]["genomes_variantId"],
+                  "var_data": { k:v for (k,v) in anno["_source"].items() if re.match("genomes_AF_[A-Z]{3}", k) or k == 'genomes_POPMAX' } }
+                 for anno in annotation['hits']['hits'] ]
+
 class TabixResultDao(ResultDB):
 
     def __init__(self, phenos, matrix_path):
@@ -259,7 +310,8 @@ class TabixResultDao(ResultDB):
 
 class DataFactory(object):
     daos = {"annotation.elastic":ElasticAnnotationDao,
-            "result.tabix":TabixResultDao}
+            "result.tabix":TabixResultDao,
+            "gnomad.elastic":ElasticGnomadDao}
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
                        "MATRIX_PATH": common_filepaths['matrix']}
 
@@ -285,6 +337,9 @@ class DataFactory(object):
 
     def get_annotation_dao(self):
         return self.dao_impl["annotation"]
+
+    def get_gnomad_dao(self):
+        return self.dao_impl["gnomad"]
 
     def get_result_dao(self):
         return self.dao_impl["result"]

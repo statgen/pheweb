@@ -29,6 +29,10 @@ function populate_variant_streamtable(data) {
     options.pagination.prev_text = "";
 
     $('#stream_table_functional_variants').stream_table(options, data);
+
+    if (window.stream_table_sortingFunc) {
+	$('#stream_table_functional_variants').data('st')._sortingFunc = window.stream_table_sortingFunc
+    }
 }
 
 function populate_drugs_streamtable(data) {

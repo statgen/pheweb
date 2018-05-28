@@ -1,4 +1,3 @@
-
 from ..utils import get_phenolist, get_gene_tuples, pad_gene
 from ..conf_utils import conf
 from ..file_utils import common_filepaths
@@ -46,6 +45,7 @@ phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
 dbs_fact = DataFactory( conf.database_conf  )
 annotation_dao = dbs_fact.get_annotation_dao()
+gnomad_dao = dbs_fact.get_gnomad_dao()
 result_dao = dbs_fact.get_result_dao()
 
 def variant_to_id(variant):
@@ -126,14 +126,17 @@ def api_pheno(phenocode):
             variants = json.load(f)
         ids = [variant_to_id(x) for x in variants['unbinned_variants'] if 'peak' in x]
         annotations = annotation_dao.get_variant_annotations(ids)
-
+        gnomad = gnomad_dao.get_variant_annotations(ids)
         d = {i['id']: i['var_data'] for i in annotations}
-
+        gd = {i['id']: i['var_data'] for i in gnomad}
         for variant in variants['unbinned_variants']:
             if 'peak' in variant:
                 id = variant_to_id(variant)
+                gnomad_id = id.replace('chr', '').replace(':', '-')
                 if id in d:
                     variant['annotation'] = d[id]
+                if gnomad_id in gd:
+                    variant['gnomad'] = gd[gnomad_id]
         return jsonify(variants)
     except Exception as exc:
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)

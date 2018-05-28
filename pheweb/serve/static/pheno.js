@@ -101,16 +101,16 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 
         var y_scale = d3.scale.linear()
             .domain([highest_plot_neglog10_pval, 0])
-            // 0.97 leaves a little space above points clamped to the top.
+        // 0.97 leaves a little space above points clamped to the top.
             .range([0, plot_height*.97])
             .clamp(true);
 
         var color_by_chrom = d3.scale.ordinal()
             .domain(get_chrom_offsets().chroms)
-	    .range(['rgb(53,0,212)', 'rgb(40, 40, 40)']);
-	//two blues
-	//.range(['rgb(163,211,255)', 'rgb(53,0,212)']);
-	//original
+            .range(['rgb(53,0,212)', 'rgb(40, 40, 40)']);
+        //two blues
+        //.range(['rgb(163,211,255)', 'rgb(53,0,212)']);
+        //original
         //.range(['rgb(120,120,186)', 'rgb(0,0,66)']);
         //colors to maybe sample from later:
         //.range(['rgb(120,120,186)', 'rgb(0,0,66)', 'rgb(44,150,220)', 'rgb(40,60,80)', 'rgb(33,127,188)', 'rgb(143,76,176)']);
@@ -145,110 +145,110 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         }
 
         function pp1() {
-        gwas_plot.append('g')
-            .attr('class', 'variant_hover_rings')
-            .selectAll('a.variant_hover_ring')
-            .data(unbinned_variants)
-            .enter()
-            .append('a')
-            .attr('class', 'variant_hover_ring')
-            .attr('xlink:href', get_link_to_LZ)
-            .append('circle')
-            .attr('cx', function(d) {
-                return x_scale(get_genomic_position(d));
-            })
-            .attr('cy', function(d) {
-                return y_scale(-Math.log10(d.pval));
-            })
-            .attr('r', 7)
-            .style('opacity', 0)
-            .style('stroke-width', 1)
-            .on('mouseover', function(d) {
-                //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
-                if (d.isDisabled !== true) {
-                    var target_node = document.getElementById(fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
-                    point_tooltip.show(d, target_node);
-                }
-            })
-            .on('mouseout', point_tooltip.hide);
+            gwas_plot.append('g')
+                .attr('class', 'variant_hover_rings')
+                .selectAll('a.variant_hover_ring')
+                .data(unbinned_variants)
+                .enter()
+                .append('a')
+                .attr('class', 'variant_hover_ring')
+                .attr('xlink:href', get_link_to_LZ)
+                .append('circle')
+                .attr('cx', function(d) {
+                    return x_scale(get_genomic_position(d));
+                })
+                .attr('cy', function(d) {
+                    return y_scale(-Math.log10(d.pval));
+                })
+                .attr('r', 7)
+                .style('opacity', 0)
+                .style('stroke-width', 1)
+                .on('mouseover', function(d) {
+                    //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
+                    if (d.isDisabled !== true) {
+                        var target_node = document.getElementById(fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
+                        point_tooltip.show(d, target_node);
+                    }
+                })
+                .on('mouseout', point_tooltip.hide);
         }
         pp1();
 
         function pp2() {
-        gwas_plot.append('g')
-            .attr('class', 'variant_points')
-            .selectAll('a.variant_point')
-            .data(unbinned_variants)
-            .enter()
-            .append('a')
-            .attr('class', 'variant_point')
-            .attr('xlink:href', get_link_to_LZ)
-            .append('circle')
-            .attr('id', function(d) {
-                return fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
-            })
-            .attr('cx', function(d) {
-                return x_scale(get_genomic_position(d));
-            })
-            .attr('cy', function(d) {
-                return y_scale(-Math.log10(d.pval));
-            })
-            .attr('r', 2.3)
-            .style('fill', function(d) {
-                return color_by_chrom(d.chrom);
-            })
+            gwas_plot.append('g')
+                .attr('class', 'variant_points')
+                .selectAll('a.variant_point')
+                .data(unbinned_variants)
+                .enter()
+                .append('a')
+                .attr('class', 'variant_point')
+                .attr('xlink:href', get_link_to_LZ)
+                .append('circle')
+                .attr('id', function(d) {
+                    return fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt);
+                })
+                .attr('cx', function(d) {
+                    return x_scale(get_genomic_position(d));
+                })
+                .attr('cy', function(d) {
+                    return y_scale(-Math.log10(d.pval));
+                })
+                .attr('r', 2.3)
+                .style('fill', function(d) {
+                    return color_by_chrom(d.chrom);
+                })
                 .on('mouseover', function(d) {
                     if (d.isDisabled !== true) {
                         //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
                         point_tooltip.show(d, this);
                     }
                 })
-            .on('mouseout', point_tooltip.hide);
+                .on('mouseout', point_tooltip.hide);
         }
         pp2();
 
         function pp3() { // drawing the ~60k binned variant circles takes ~500ms.  The (far fewer) unbinned variants take much less time.
-        var bins = gwas_plot.append('g')
-            .attr('class', 'bins')
-            .selectAll('g.bin')
-            .data(variant_bins)
-            .enter()
-            .append('g')
-            .attr('class', 'bin')
-            .each(function(d) { //todo: do this in a forEach
-                d.x = x_scale(get_genomic_position(d));
-                d.color = color_by_chrom(d.chrom);
-            });
-        bins.selectAll('circle.binned_variant_point')
-            .data(_.property('neglog10_pvals'))
-            .enter()
-            .append('circle')
-            .attr('class', 'binned_variant_point')
-            .attr('cx', function(d, i, parent_i) {
-                return variant_bins[parent_i].x;
-            })
-            .attr('cy', function(neglog10_pval) {
-                return y_scale(neglog10_pval);
-            })
-            .attr('r', 2.3)
-            .style('fill', function(d, i, parent_i) {
-                // return color_by_chrom(d3.select(this.parentNode).datum().chrom); //slow
-                // return color_by_chrom(this.parentNode.__data__.chrom); //slow?
-                // return this.parentNode.__data__.color;
-                return variant_bins[parent_i].color;
-            });
-        bins.selectAll('circle.binned_variant_line')
-            .data(_.property('neglog10_pval_extents'))
-            .enter()
-            .append('line')
-            .attr('class', 'binned_variant_line')
-            .attr('x1', function(d, i, parent_i) { return variant_bins[parent_i].x; })
-            .attr('x2', function(d, i, parent_i) { return variant_bins[parent_i].x; })
-            .attr('y1', function(d) { return y_scale(d[0]); })
-            .attr('y2', function(d) { return y_scale(d[1]); })
-            .style('stroke', function(d, i, parent_i) { return variant_bins[parent_i].color; })
-            .style('stroke-width', 4.6)
-            .style('stroke-linecap', 'round');
+            var bins = gwas_plot.append('g')
+                .attr('class', 'bins')
+                .selectAll('g.bin')
+                .data(variant_bins)
+                .enter()
+                .append('g')
+                .attr('class', 'bin')
+                .each(function(d) { //todo: do this in a forEach
+                    d.x = x_scale(get_genomic_position(d));
+                    d.color = color_by_chrom(d.chrom);
+                });
+            bins.selectAll('circle.binned_variant_point')
+                .data(_.property('neglog10_pvals'))
+                .enter()
+                .append('circle')
+                .attr('class', 'binned_variant_point')
+                .attr('cx', function(d, i, parent_i) {
+                    return variant_bins[parent_i].x;
+                })
+                .attr('cy', function(neglog10_pval) {
+                    return y_scale(neglog10_pval);
+                })
+                .attr('r', 2.3)
+                .style('fill', function(d, i, parent_i) {
+                    // return color_by_chrom(d3.select(this.parentNode).datum().chrom); //slow
+                    // return color_by_chrom(this.parentNode.__data__.chrom); //slow?
+                    // return this.parentNode.__data__.color;
+                    return variant_bins[parent_i].color;
+                });
+            bins.selectAll('circle.binned_variant_line')
+                .data(_.property('neglog10_pval_extents'))
+                .enter()
+                .append('line')
+                .attr('class', 'binned_variant_line')
+                .attr('x1', function(d, i, parent_i) { return variant_bins[parent_i].x; })
+                .attr('x2', function(d, i, parent_i) { return variant_bins[parent_i].x; })
+                .attr('y1', function(d) { return y_scale(d[0]); })
+                .attr('y2', function(d) { return y_scale(d[1]); })
+                .style('stroke', function(d, i, parent_i) { return variant_bins[parent_i].color; })
+                .style('stroke-width', 4.6)
+                .style('stroke-linecap', 'round');
         }
         pp3();
 
@@ -304,7 +304,7 @@ function create_qq_plot(maf_ranges) {
 
     maf_ranges.forEach(function(maf_range, i) {
         //maf_range.color = ['#e66101', '#fdb863', '#b2abd2', '#5e3c99'][i];
-	maf_range.color = ['#E8580C', '#D20CE8', '#FF0000', '#FFAC0D'][i];
+        maf_range.color = ['#E8580C', '#D20CE8', '#FF0000', '#FFAC0D'][i];
     })
 
     // TODO: adjust this for fewer variants in each maf_range?  `nvar <- nvar / 4`?
@@ -377,13 +377,13 @@ function create_qq_plot(maf_ranges) {
 
         // "trumpet" CI path
         var area = d3.svg.area()
-        .x( function(d) {
-            return x_scale(d[0]);
-        }).y0( function(d) {
-            return y_scale(d[1] + .05);
-        }).y1( function(d) {
-            return y_scale(d[2] - .05);
-        });
+            .x( function(d) {
+                return x_scale(d[0]);
+            }).y0( function(d) {
+                return y_scale(d[1] + .05);
+            }).y1( function(d) {
+                return y_scale(d[2] - .05);
+            });
         qq_plot.append('path')
             .attr('class', 'trumpet_ci')
             .datum(qq_ci_trumpet_points)
@@ -417,8 +417,8 @@ function create_qq_plot(maf_ranges) {
         // Legend
         qq_svg.append('g')
             .attr('transform', fmt('translate({0},{1})',
-                                  plot_margin.left + plot_width,
-                                  plot_margin.top + plot_height + 70))
+                                   plot_margin.left + plot_width,
+                                   plot_margin.top + plot_height + 70))
             .selectAll('text.legend-items')
             .data(maf_ranges)
             .enter()
@@ -476,7 +476,7 @@ function create_qq_plot(maf_ranges) {
                                    plot_margin.left + plot_width/2,
                                    plot_margin.top + plot_height + 40))
             .text('expected -log\u2081\u2080(p)');
-  });
+    });
 }
 
 
@@ -487,9 +487,9 @@ function populate_streamtable(variants) {
         var template = _.template($('#streamtable-template').html());
         var view = function(variant) {
             var selected = $('.selectpicker').val() ?
-            $('.selectpicker').val().map(function(val) {
-                return val.replace(/\([0-9]+\) /,'')
-            }) : [];
+                $('.selectpicker').val().map(function(val) {
+                    return val.replace(/\([0-9]+\) /,'')
+                }) : [];
             //console.log(selected);
             if (selected.length > 0 && selected.indexOf(variant.most_severe) === -1) {
                 return null;
@@ -509,13 +509,13 @@ function populate_streamtable(variants) {
                 }
             },
             after_sort: function() {
-              // bootstrap tooltips need to be recreated
-              $('[data-toggle="tooltip"]').tooltip({
-                  html: true,
-                  animation: false,
-                  container: 'body',
-                  placement: 'top'
-              })
+                // bootstrap tooltips need to be recreated
+                $('[data-toggle="tooltip"]').tooltip({
+                    html: true,
+                    animation: false,
+                    container: 'body',
+                    placement: 'top'
+                })
             }
         }
 
@@ -534,7 +534,9 @@ function populate_streamtable(variants) {
         }
 
         $('#stream_table').stream_table(options, data);
-
+	if (window.stream_table_sortingFunc) {
+	    $('#stream_table').data('st')._sortingFunc = window.stream_table_sortingFunc
+	}
     });
 
     $(function () {
@@ -549,15 +551,15 @@ function populate_streamtable(variants) {
 
 function create_consequence_dropdown(variants) {
     var consequences = variants.filter(function(variant) { return !!variant.peak })
-    .reduce(function(obj, item) {
-      obj[item['most_severe']] = obj[item['most_severe']] || 0
-      obj[item['most_severe']]++
-      return obj
-    }, {})
+        .reduce(function(obj, item) {
+            obj[item['most_severe']] = obj[item['most_severe']] || 0
+            obj[item['most_severe']]++
+            return obj
+        }, {})
 
     var template = _.template($('#consequence-dropdown-template').html())
     Object.keys(consequences).sort().forEach(function(c) {
-      $(".selectpicker").append(template({consequence: c, number: consequences[c]}));
+        $(".selectpicker").append(template({consequence: c, number: consequences[c]}));
     })
     $('.selectpicker').selectpicker('refresh')
 }
@@ -619,7 +621,7 @@ function showPoints(type1, type2) {
 
     d3.select('#gwas_plot')
         .selectAll('a.variant_point')
-	.selectAll('circle')
+        .selectAll('circle')
         .style('visibility', function(d) {
             d.isDisabled = false;
             return 'visible';
@@ -645,8 +647,8 @@ function showPoints(type1, type2) {
                 }
             }
             return true;
-	})
-	.style('visibility', function(d) {
+        })
+        .style('visibility', function(d) {
             d.isDisabled = true;
             return 'hidden';
         });
@@ -656,7 +658,7 @@ function togglePoints(type1, type2) {
 
     d3.select('#gwas_plot')
         .selectAll('a.variant_point')
-	.selectAll('circle')
+        .selectAll('circle')
         .filter(function (d) {
             if (type1 == 'direction') {
                 let dir = effectDirection(d);
@@ -666,10 +668,10 @@ function togglePoints(type1, type2) {
                 // return (d.maf
             }
         })
-	.style('opacity', function(d) {
+        .style('opacity', function(d) {
             d.isDisabled = pointsToggled[type1][type2]
             return pointsToggled[type1][type2] ? 0 : 1;
-	});
+        });
 
     pointsToggled[type1][type2] = !pointsToggled[type1][type2];
 }
@@ -686,7 +688,70 @@ function effectDirection(d) {
 }
 
 $(function () {
-  $("#export").click( function (event) {
-    exportTableToCSV.apply(this, [$('#stream_table'), window.pheno + "_variant_assoc.tsv", window.var_export_fields])
-  });
+    $.getJSON("/api/manhattan/pheno/" + window.pheno)
+        .done(function(data) {
+            window.debug.manhattan = data;
+            window.data = data;
+            // add consequence so that stream table can be filtered on it
+            data.unbinned_variants.filter(function(variant) { return !!variant.annotation } ).forEach(function(variant) {
+                variant.most_severe = variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '')
+                variant.info = variant.annotation.info
+            })
+            data.unbinned_variants.forEach(function(variant) {
+		if (!variant.gnomad) {
+                    variant.fin_enrichment = 'No data in Gnomad'
+		} else {
+                    if (variant.gnomad.genomes_AF_POPMAX === variant.gnomad.genomes_AF_FIN) {
+			var afs = Object.keys(variant.gnomad)
+			    .filter(function(key) {
+				return key.startsWith('genomes_AF_')
+			    })
+			    .map(function(key) {
+				return {key: key, value: variant.gnomad[key]}
+			    })
+			    .sort(function(a, b) {
+				return a.value - b.value
+			    })
+			if (+afs[afs.length - 3].value === 0) {
+			    variant.fin_enrichment = 'Only FIN in Gnomad'
+			} else {
+			    variant.fin_enrichment = +variant.gnomad.genomes_AF_FIN / +afs[afs.length - 3].value
+			    variant.fin_enrichment_versus = afs[afs.length - 3].key.replace('genomes_AF_', '')
+			}
+                    } else if (variant.gnomad.genomes_AF_FIN === 0) {
+			variant.fin_enrichment = 'No FIN in Gnomad'
+		    } else {
+			variant.fin_enrichment = +variant.gnomad.genomes_AF_FIN / +variant.gnomad.genomes_AF_POPMAX
+			variant.fin_enrichment_versus = variant.gnomad.genomes_POPMAX
+                    }
+		}
+	    })
+            create_gwas_plot(data.variant_bins, data.unbinned_variants);
+            populate_streamtable(data.unbinned_variants);
+            //TODO filtering with streamtable
+            //create_consequence_dropdown(data.unbinned_variants);
+            mod_streamtable();
+            $(".selectpicker").on("changed.bs.select",
+                                  function(e, clickedIndex, newValue, oldValue) {
+                                      var st = $('#stream_table').data('st');
+                                      st.search($('#search')[0].value);
+                                  }
+                                 );
+        })
+    $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
+        .done(function(data) {
+            window.debug.qq = data;
+            var text = '';
+            _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
+                text += '<tr><td>GC lambda ' + d[0] + '</td><td style="padding-left: 10px;">' + d[1].toFixed(3) + '</td></tr>';
+            });
+            $('.gc-control').append('<table><tbody>' + text + '</tbody></table>');
+            if (data.by_maf)
+                create_qq_plot(data.by_maf);
+            else
+                create_qq_plot([{maf_range:[0,1],qq:data.overall.qq, count:data.overall.count}]);
+        })
+    $("#export").click( function (event) {
+        exportTableToCSV.apply(this, [$('#stream_table'), window.pheno + "_variant_assoc.tsv", window.var_export_fields])
+    });
 })

@@ -15,7 +15,8 @@
 <script src="{{ url_for('static', filename='vendor/locuszoom-0.5.6.vendor.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/locuszoom-0.5.6.app.js') }}" type="text/javascript"></script>
 <link  href="{{ url_for('static', filename='vendor/locuszoom-0.5.6-locuszoom.css') }}" rel="stylesheet" type="text/css">
-<script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.mod.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='stream_table_mod.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='custom_locuszooms.js') }}"></script>
 <!-- Custom locuszoom must be included before geneview  because of dependency. We are gonna start using webpack to handle dependencies but this is an interim solution -->
 <script src="{{ url_for('static', filename='gene_locusview.js') }}" type="text/javascript"></script>
@@ -133,8 +134,8 @@
         <tr>
           <th style="width: 10%; user-select: none;">variant</th>
           <th style="width: 15%; cursor: pointer; user-select: none;" data-sort="most_severe:asc">consequence</th>
-          <th style="width: 5%; cursor: pointer; user-select: none;" data-sort="info:desc">info</th>
-          <th style="width: 7%; cursor: pointer; user-select: none;" data-sort="maf:desc">maf</th>
+          <th style="width: 5%; cursor: pointer; user-select: none;" data-sort="info:desc:number">info</th>
+          <th style="width: 7%; cursor: pointer; user-select: none;" data-sort="maf:desc:number">maf</th>
           <th style="user-select: none;">FinnGen phenotypes p < {{ "{:.0E}".format(func_var_report_p_threshold) }}</th>
 	</tr>
       </thead>
