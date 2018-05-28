@@ -2,57 +2,17 @@
 
 
 {% block in_head %}
-<script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.mod.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='stream_table_mod.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/bootstrap-select.min.js') }}" type="text/javascript"></script>
 <link  href="{{ url_for('static', filename='vendor/bootstrap-select.min.css') }}" rel="stylesheet" type="text/css" crossorigin="anonymous">
-<script src="{{ url_for('static', filename='pheno.js') }}" type="text/javascript"></script>
 <script type="text/javascript">
   window.model = window.model || {};
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }};
   window.pheno = {{ phenocode|tojson|safe }};
   window.var_export_fields = {{ var_export_fields|tojson|safe }};
-
-  $.getJSON("/api/manhattan/pheno/" + window.pheno)
-  .done(function(data) {
-    window.debug.manhattan = data;
-    window.data = data;
-    // add consequence so that stream table can be filtered on it
-    data.unbinned_variants.filter(function(variant) { return !!variant.annotation } ).forEach(function(variant) {
-      variant.most_severe = variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '')
-      variant.info = variant.annotation.info
-    })
-    create_gwas_plot(data.variant_bins, data.unbinned_variants);
-    populate_streamtable(data.unbinned_variants);
-    //TODO filtering with streamtable
-    //create_consequence_dropdown(data.unbinned_variants);
-    mod_streamtable();
-    $(".selectpicker").on("changed.bs.select",
-      function(e, clickedIndex, newValue, oldValue) {
-        var st = $('#stream_table').data('st');
-        st.search($('#search')[0].value);
-      }
-    );
-  })
-  .fail(function() {
-    console.log("Manhattan XHR failed");
-  });
-  $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
-  .done(function(data) {
-  window.debug.qq = data;
-    var text = '';
-    _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
-      text += '<tr><td>GC lambda ' + d[0] + '</td><td style="padding-left: 10px;">' + d[1].toFixed(3) + '</td></tr>';
-    });
-    $('.gc-control').append('<table><tbody>' + text + '</tbody></table>');
-  if (data.by_maf)
-    create_qq_plot(data.by_maf);
-  else
-    create_qq_plot([{maf_range:[0,1],qq:data.overall.qq, count:data.overall.count}]);
-  })
-  .fail(function() {
-    console.log("QQ XHR failed");
-  });
 </script>
+<script src="{{ url_for('static', filename='pheno.js') }}" type="text/javascript"></script>
 <style type="text/css">
 .d3-tip {
   line-height: 1.4;
@@ -173,12 +133,13 @@
             <!-- <select class="selectpicker" multiple title="consequence"> -->
             <!-- </select> -->
           </th>
-          <th style="cursor: pointer; user-select: none;" data-sort="info:desc">info score</th>
-          <th style="cursor: pointer; user-select: none;" data-sort="maf:desc">maf</th>
-          <th style="cursor: pointer; user-select: none;" data-sort="maf_cases:desc">maf cases</th>
-          <th style="cursor: pointer; user-select: none;" data-sort="maf_controls:desc">maf controls</th>
-          <th style="cursor: pointer; user-select: none;" data-sort="beta:desc">beta</th>
-          <th style="cursor: pointer; user-select: none;" data-sort="pval:asc">p-value</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="info:desc:number">info score</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="fin_enrichment:desc:mixed">FIN enrichment</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="maf:desc:number">maf</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="maf_cases:desc:number">maf cases</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="maf_controls:desc:number">maf controls</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="beta:desc:number">beta</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="pval:asc:number">p-value</th>
         </tr>
       </thead>
       <tbody>
@@ -230,6 +191,18 @@
   </table>
 </script>
 
+<script type="text/template" id="enrichment-tooltip-template">
+  <span><strong>AF</strong></span>
+  <table>
+    <tr><th style='text-align: right; padding-right: 5px;'>FIN</th><th style='text-align: right; padding-right: 5px;'>NFE</th><th style='text-align: right; padding-right: 5px;'>POPMAX</th></tr>
+    <tr>
+      <td style='text-align: right; padding-right: 5px;'><%= v.gnomad ? v.gnomad.genomes_AF_FIN < 0.01 ? v.gnomad.genomes_AF_FIN.toExponential(1) : v.gnomad.genomes_AF_FIN.toPrecision(2) : "N/A" %></td>
+      <td style='text-align: right; padding-right: 5px;'><%= v.gnomad ? v.gnomad.genomes_AF_NFE < 0.01 ? v.gnomad.genomes_AF_NFE.toExponential(1) : v.gnomad.genomes_AF_NFE.toPrecision(2) : "N/A" %></td>
+      <td style='text-align: right;  padding-right: 5px;'><%= v.gnomad ? v.gnomad.genomes_AF_POPMAX < 0.01 ? v.gnomad.genomes_AF_POPMAX.toExponential(1) : v.gnomad.genomes_AF_POPMAX.toPrecision(2) : "N/A" %></td>
+    </tr>
+  </table>
+</script>
+
 <script type="text/template" id="beta-template">
     <%=
     '<span>' + v.beta.toPrecision(3) + '</span>' +
@@ -267,9 +240,11 @@
   <td>
     <%= (v.most_severe)? v.most_severe : "" %>
   </td>
-  <!-- <td class="info-score" style="width: 6%;" data-toggle="tooltip" title="<%= _.template($('#info-tooltip-template').html())({v: v}) %>"> -->
   <td class="info-score" style="width: 6%;">
     <%= (v.annotation)? v.annotation.info.toPrecision(3) : "" %>
+  </td>
+  <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: v}) %>" data-toggle="tooltip">
+    <%= (v.fin_enrichment)? $.isNumeric(v.fin_enrichment) ? v.fin_enrichment.toPrecision(3) : v.fin_enrichment : "" %>
   </td>
   <td style="width: 6%;">
     <%= (v.maf)? ((v.maf < 0.01) ? v.maf.toExponential(1) : v.maf.toPrecision(2)) : "" %>

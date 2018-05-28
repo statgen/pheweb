@@ -1,4 +1,3 @@
-
 from ..utils import get_phenolist, get_gene_tuples, pad_gene
 from ..conf_utils import conf
 from ..file_utils import common_filepaths
@@ -46,6 +45,7 @@ phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
 dbs_fact = DataFactory( conf.database_conf  )
 annotation_dao = dbs_fact.get_annotation_dao()
+gnomad_dao = dbs_fact.get_gnomad_dao()
 result_dao = dbs_fact.get_result_dao()
 
 def variant_to_id(variant):
@@ -126,14 +126,17 @@ def api_pheno(phenocode):
             variants = json.load(f)
         ids = [variant_to_id(x) for x in variants['unbinned_variants'] if 'peak' in x]
         annotations = annotation_dao.get_variant_annotations(ids)
-
+        gnomad = gnomad_dao.get_variant_annotations(ids)
         d = {i['id']: i['var_data'] for i in annotations}
-
+        gd = {i['id']: i['var_data'] for i in gnomad}
         for variant in variants['unbinned_variants']:
             if 'peak' in variant:
                 id = variant_to_id(variant)
+                gnomad_id = id.replace('chr', '').replace(':', '-')
                 if id in d:
                     variant['annotation'] = d[id]
+                if gnomad_id in gd:
+                    variant['gnomad'] = gd[gnomad_id]
         return jsonify(variants)
     except Exception as exc:
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
@@ -153,6 +156,15 @@ def gene_functional_variants(gene, pThreshold):
             result = result_dao.get_variant_results_range(chrom, int(pos), int(pos))
             filtered = { "rsids": result[0]["assoc"]["rsids"], "significant_phenos": [res for res in result if res["assoc"]["pval"] < pThreshold ] }
             annotations[i] = {**annotations[i], **filtered}
+        ids = [v["id"] for v in annotations]
+        gnomad = gnomad_dao.get_variant_annotations(ids)
+        gd = {i['id']: i['var_data'] for i in gnomad}
+        for v in annotations:
+            gnomad_id = v["id"].replace('chr', '').replace(':', '-')
+            if gnomad_id in gd:
+                v['gnomad'] = gd[gnomad_id]
+            else:
+                v['gnomad'] = {'genomes_AF_FIN': 'N/A', 'genomes_AF_NFE': 'N/A'}
         return annotations
     except Exception as exc:
         print(exc)
@@ -313,10 +325,18 @@ def gene_report(genename):
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     func_vars = gene_functional_variants( genename,  conf.report_conf["func_var_assoc_threshold"])
     funcvar = []
+    chunk_size = 10
     for var in func_vars:
-        funcvar.append( { 'rsid': var["rsids"], 'variant':var['id'],
-        "consequence": var["var_data"]["most_severe"], 'nSigPhenos':len(var["significant_phenos"]), "maf": var["var_data"]["maf"], "info": var["var_data"]["info"] ,
-        "sigPhenos": "\\newline \\medskip ".join( list(map(lambda x: x['pheno']['phenostring'] + " (OR:" + "{:.2f}".format( math.exp(x['assoc']['beta'])) + ",p:"  + "{:.2e}".format(x['assoc']['pval']) + ")"  , var["significant_phenos"]))) } )
+        i = 0
+        while i < len(var["significant_phenos"]):
+            phenos = var["significant_phenos"][i:min(i+chunk_size,len(var["significant_phenos"]))]
+            sigphenos = "\\newline \\medskip ".join( list(map(lambda x: x['pheno']['phenostring'] + " \\newline (OR:" + "{:.2f}".format( math.exp(x['assoc']['beta'])) + ",p:"  + "{:.2e}".format(x['assoc']['pval']) + ")"  , phenos)))
+            if i+chunk_size < len(var["significant_phenos"]):
+                sigphenos = sigphenos + "\\newline ..."
+            funcvar.append( { 'rsid': var["rsids"], 'variant':var['id'].replace(':', ' '), 'gnomad':var['gnomad'],
+                              "consequence": var["var_data"]["most_severe"].replace('_', ' ').replace(' variant', ''), 'nSigPhenos':len(var["significant_phenos"]), "maf": var["var_data"]["maf"], "info": var["var_data"]["info"] ,
+                              "sigPhenos": sigphenos })
+            i = i + chunk_size
 
     top_phenos = gene_phenos(genename)
     top_assoc = [ {**assoc["assoc"], **assoc["pheno"] } for assoc in top_phenos if assoc["assoc"]["pval"]<  conf.report_conf["gene_top_assoc_threshold"]  ]
