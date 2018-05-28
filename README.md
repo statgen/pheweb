@@ -12,7 +12,7 @@ Copy the .pheweb directory from a running PheWeb instance ($HOME/.pheweb) as dot
 
 In repository root:
 
-`docker build -t gcr.io/phewas-development/pheweb:[TAG] -f deploy/Dockerfile`  
+`docker build -t gcr.io/phewas-development/pheweb:[TAG] -f deploy/Dockerfile .`  
 `gcloud docker -- push gcr.io/phewas-development/pheweb:[TAG]`
 
 ### 3. Setup the kubernetes cluster
