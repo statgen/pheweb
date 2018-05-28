@@ -243,7 +243,6 @@
   <td class="info-score" style="width: 6%;">
     <%= (v.annotation)? v.annotation.info.toPrecision(3) : "" %>
   </td>
-  <!-- <td style="width: 6%;" title="<table><tr><td><%= v.fin_enrichment_versus %></td></tr></table>" data-toggle="tooltip"> -->
   <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: v}) %>" data-toggle="tooltip">
     <%= (v.fin_enrichment)? $.isNumeric(v.fin_enrichment) ? v.fin_enrichment.toPrecision(3) : v.fin_enrichment : "" %>
   </td>

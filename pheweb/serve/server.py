@@ -156,6 +156,13 @@ def gene_functional_variants(gene, pThreshold):
             result = result_dao.get_variant_results_range(chrom, int(pos), int(pos))
             filtered = { "rsids": result[0]["assoc"]["rsids"], "significant_phenos": [res for res in result if res["assoc"]["pval"] < pThreshold ] }
             annotations[i] = {**annotations[i], **filtered}
+        ids = [v["id"] for v in annotations]
+        gnomad = gnomad_dao.get_variant_annotations(ids)
+        gd = {i['id']: i['var_data'] for i in gnomad}
+        for v in annotations:
+            gnomad_id = v["id"].replace('chr', '').replace(':', '-')
+            if gnomad_id in gd:
+                v['gnomad'] = gd[gnomad_id]
         return annotations
     except Exception as exc:
         print(exc)

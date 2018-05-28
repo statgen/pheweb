@@ -33,6 +33,15 @@ function populate_variant_streamtable(data) {
     if (window.stream_table_sortingFunc) {
 	$('#stream_table_functional_variants').data('st')._sortingFunc = window.stream_table_sortingFunc
     }
+
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip({
+            html: true,
+            animation: false,
+            container: 'body',
+            placement: 'top'
+        })
+    });
 }
 
 function populate_drugs_streamtable(data) {
@@ -129,16 +138,22 @@ $(function () {
       var colDelim = '\t'
       var rowDelim = '\r\n'
 
-      var csv = ["var","rsid","info","consequence",
-                    "pheno","num_cases","num_controls",
+      var csv = ["var","rsid","info","consequence","gnomad.genomes_AF_FIN","gnomad.genomes_AF_NFE",
+                 "pheno","num_cases","num_controls",
                     "maf_case","maf_control","OR","pval"].join(colDelim) + rowDelim
 
       sTableData.forEach( function(variant) {
-          variant.significant_phenos.forEach( function(assoc, idx) {
-              csv += [variant.id, variant.rsids, variant.info, variant.most_severe, assoc.pheno.phenostring,
-                  assoc.pheno.num_cases, assoc.pheno.num_controls, assoc.assoc.maf_case,
-                  assoc.assoc.maf_control,  Math.exp( assoc.assoc.beta ), assoc.assoc.pval.toExponential()].join( colDelim ) + rowDelim
-          } )
+	  if (variant.significant_phenos.length === 0) {
+	      csv += [variant.id, variant.rsids, variant.info, variant.most_severe,
+		      variant.gnomad.genomes_AF_FIN, variant.gnomad.genomes_AF_NFE,
+		      '', '', '', '', '', '', '', ''].join( colDelim ) + rowDelim
+	  } else {
+              variant.significant_phenos.forEach( function(assoc, idx) {
+		  csv += [variant.id, variant.rsids, variant.info, variant.most_severe, variant.gnomad.genomes_AF_FIN, variant.gnomad.genomes_AF_NFE,
+			  assoc.pheno.phenostring, assoc.pheno.num_cases, assoc.pheno.num_controls, assoc.assoc.maf, assoc.assoc.maf_case,
+			  assoc.assoc.maf_control,  Math.exp( assoc.assoc.beta ), assoc.assoc.pval.toExponential()].join( colDelim ) + rowDelim
+              } )
+	  }
       } )
 
       var createObjectURL = (window.URL || window.webkitURL || {}).createObjectURL || function(){}
@@ -243,6 +258,33 @@ $(function() {
 		variant.most_severe = variant.var_data.most_severe.replace(/_/g, ' ').replace(' variant', '')
 		variant.info = variant.var_data.info
 		variant.maf = variant.var_data.af < 0.5 ? variant.var_data.af : 1 - variant.var_data.af
+		if (!variant.gnomad) {
+                    variant.fin_enrichment = 'No data in Gnomad'
+		} else {
+                    if (variant.gnomad.genomes_AF_POPMAX === variant.gnomad.genomes_AF_FIN) {
+			var afs = Object.keys(variant.gnomad)
+			    .filter(function(key) {
+				return key.startsWith('genomes_AF_')
+			    })
+			    .map(function(key) {
+				return {key: key, value: variant.gnomad[key]}
+			    })
+			    .sort(function(a, b) {
+				return a.value - b.value
+			    })
+			if (+afs[afs.length - 3].value === 0) {
+			    variant.fin_enrichment = 'Only FIN in Gnomad'
+			} else {
+			    variant.fin_enrichment = +variant.gnomad.genomes_AF_FIN / +afs[afs.length - 3].value
+			    variant.fin_enrichment_versus = afs[afs.length - 3].key.replace('genomes_AF_', '')
+			}
+                    } else if (variant.gnomad.genomes_AF_FIN === 0) {
+			variant.fin_enrichment = 'No FIN in Gnomad'
+		    } else {
+			variant.fin_enrichment = +variant.gnomad.genomes_AF_FIN / +variant.gnomad.genomes_AF_POPMAX
+			variant.fin_enrichment_versus = variant.gnomad.genomes_POPMAX
+                    }
+		}
 	    })
 	    populate_variant_streamtable(data);
 	})
