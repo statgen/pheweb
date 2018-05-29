@@ -507,6 +507,13 @@ function populate_streamtable(variants) {
                 } else {
                     $found.text(data.length + " total variants");
                 }
+                // bootstrap tooltips need to be recreated
+                $('[data-toggle="tooltip"]').tooltip({
+                    html: true,
+                    animation: false,
+                    container: 'body',
+                    placement: 'top'
+                })
             },
             after_sort: function() {
                 // bootstrap tooltips need to be recreated
@@ -701,10 +708,10 @@ $(function () {
 		if (!variant.gnomad) {
                     variant.fin_enrichment = 'No data in Gnomad'
 		} else {
-                    if (variant.gnomad.genomes_AF_POPMAX === variant.gnomad.genomes_AF_FIN) {
+                    if (variant.gnomad.genomes_POPMAX === 'FIN') {
 			var afs = Object.keys(variant.gnomad)
 			    .filter(function(key) {
-				return key.startsWith('genomes_AF_')
+				return key.startsWith('genomes_AF_') && key !== 'genomes_AF_OTH'
 			    })
 			    .map(function(key) {
 				return {key: key, value: variant.gnomad[key]}

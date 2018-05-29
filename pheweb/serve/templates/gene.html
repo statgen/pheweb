@@ -75,6 +75,7 @@
               <tr>
                 <th style="width: 4%;">OR</th>
                 <th style="width: 7%;">p-value</th>
+                <th style="width: 7%;">FIN enrichment</th>
                 <th style="width: 15%;">variant</th>
                 <th>phenotype</th>
                 <th>category</th>
@@ -178,6 +179,9 @@
   <tr style="background-color:rgb(247,245,230)">
     <td><%= Math.exp(p.assoc.beta).toFixed(2) %></td>
     <td><%= p.assoc.pval.toExponential(1) %></td>
+    <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: p.assoc}) %>" data-toggle="tooltip">
+      <%= (p.fin_enrichment)? $.isNumeric(p.fin_enrichment) ? p.fin_enrichment.toPrecision(3) : p.fin_enrichment : "" %>
+    </td>
     <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(p.assoc.id) %>">
 	<%= p.assoc.rsids ? p.assoc.rsids : (p.assoc.id.length > 20) ? p.assoc.id.substring(0, 17) + '...' : p.assoc.id %>
     </a></td>
@@ -189,6 +193,9 @@
   <tr>
     <td><%= Math.exp(p.assoc.beta).toPrecision(2) %></td>
     <td><%= p.assoc.pval.toExponential(1) %></td>
+    <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: p.assoc}) %>" data-toggle="tooltip">
+      <%= (p.fin_enrichment)? $.isNumeric(p.fin_enrichment) ? p.fin_enrichment.toPrecision(3) : p.fin_enrichment : "" %>
+    </td>
     <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(p.assoc.id) %>">
 	<%= p.assoc.rsids ? p.assoc.rsids : (p.assoc.id.length > 20) ? p.assoc.id.substring(0, 17) + '...' : p.assoc.id %>
     </a></td>

@@ -8,9 +8,31 @@ function populate_variant_streamtable(data) {
         return template({v: v});
     };
 
+    var callbacks = {
+        pagination: function(summary){
+            // bootstrap tooltips need to be recreated
+            $('[data-toggle="tooltip"]').tooltip({
+                html: true,
+                animation: false,
+                container: 'body',
+                placement: 'top'
+            })
+        },
+        after_sort: function() {
+            // bootstrap tooltips need to be recreated
+            $('[data-toggle="tooltip"]').tooltip({
+                html: true,
+                animation: false,
+                container: 'body',
+                placement: 'top'
+            })
+        }
+    }
+
     var options = {
         view: view,
         search_box: false,
+	callbacks: callbacks,
         pagination: {
             span: 5,
             next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
@@ -77,39 +99,70 @@ function populate_drugs_streamtable(data) {
 }
 
 function populate_streamtable(data) {
-    $(function() {
-        var template = _.template($('#streamtable-template').html());
-        var view = function(p) {
-            return template({p: p});
-        };
 
-	var fields = function(item) {
-	    return [
-		item.pheno.phenocode,
-		item.pheno.phenostring,
-		item.pheno.category,
-		item.assoc.rsid
-	    ].join(' ')
-	}
+    var template = _.template($('#streamtable-template').html());
+    var view = function(p) {
+        return template({p: p});
+    };
 
-        var options = {
-            view: view,
-            search_box: '#search',
-            pagination: {
-                span: 5,
-                next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
-                prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
-		container_class: 'pheno-pagination',
-		ul_class: 'pheno-pagination',
-                per_page_select: true,
-		per_page_opts: [10],
-                per_page: 10
-            },
-	        fields: fields
+    var fields = function(item) {
+	return [
+	    item.pheno.phenocode,
+	    item.pheno.phenostring,
+	    item.pheno.category,
+	    item.assoc.rsid
+	].join(' ')
+    }
+
+    var callbacks = {
+        pagination: function(summary){
+            // bootstrap tooltips need to be recreated
+            $('[data-toggle="tooltip"]').tooltip({
+                html: true,
+                animation: false,
+                container: 'body',
+                placement: 'top'
+            })
+        },
+        after_sort: function() {
+            // bootstrap tooltips need to be recreated
+            $('[data-toggle="tooltip"]').tooltip({
+                html: true,
+                animation: false,
+                container: 'body',
+                placement: 'top'
+            })
         }
+    }
 
-        $('#stream_table').stream_table(options, data);
-    });
+    var options = {
+        view: view,
+        search_box: '#search',
+	callbacks: callbacks,
+        pagination: {
+            span: 5,
+            next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
+            prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
+	    container_class: 'pheno-pagination',
+	    ul_class: 'pheno-pagination',
+            per_page_select: true,
+	    per_page_opts: [10],
+            per_page: 10
+        },
+	fields: fields
+    }
+
+    $('#stream_table').stream_table(options, data);
+    if (window.stream_table_sortingFunc) {
+	$('#stream_table').data('st')._sortingFunc = window.stream_table_sortingFunc
+    }
+
+    $('[data-toggle="tooltip"]').tooltip({
+        html: true,
+        animation: false,
+        container: 'body',
+        placement: 'top'
+    })
 }
 
 function variant_id_to_pheweb_format(variant) {
@@ -230,6 +283,38 @@ $(function () {
 
 
 $(function() {
+
+    function gnomadize(variant) {
+	var obj = variant.gnomad ? variant : variant.assoc ? variant.assoc : {}
+	if (!obj.gnomad) {
+            variant.fin_enrichment = 'No data in Gnomad'
+	} else {
+            if (obj.gnomad.genomes_POPMAX === 'FIN') {
+		var afs = Object.keys(obj.gnomad)
+		    .filter(function(key) {
+			return key.startsWith('genomes_AF_') && key !== 'genomes_AF_OTH'
+		    })
+		    .map(function(key) {
+			return {key: key, value: obj.gnomad[key]}
+		    })
+		    .sort(function(a, b) {
+			return a.value - b.value
+		    })
+		if (+afs[afs.length - 3].value === 0) {
+		    variant.fin_enrichment = 'Only FIN in Gnomad'
+		} else {
+		    variant.fin_enrichment = +obj.gnomad.genomes_AF_FIN / +afs[afs.length - 3].value
+		    variant.fin_enrichment_versus = afs[afs.length - 3].key.replace('genomes_AF_', '')
+		}
+            } else if (obj.gnomad.genomes_AF_FIN === 0) {
+		variant.fin_enrichment = 'No FIN in Gnomad'
+	    } else {
+		variant.fin_enrichment = +obj.gnomad.genomes_AF_FIN / +obj.gnomad.genomes_AF_POPMAX
+		variant.fin_enrichment_versus = obj.gnomad.genomes_POPMAX
+            }
+	}
+    }
+    
     if (!window.gene_symbol) return
     $.getJSON('http://rest.ensembl.org/xrefs/symbol/human/' + window.gene_symbol + '?content-type=application/json')
         .done(function(result) {
@@ -244,6 +329,9 @@ $(function() {
         })
     $.getJSON("/api/gene_phenos/" + window.gene_symbol)
 	.done(function(data) {
+	    data.forEach(function(variant) {
+		gnomadize(variant)
+	    })
 	    populate_streamtable(data);
 	})
     $.getJSON("/api/drugs/" + window.gene_symbol)
@@ -258,33 +346,7 @@ $(function() {
 		variant.most_severe = variant.var_data.most_severe.replace(/_/g, ' ').replace(' variant', '')
 		variant.info = variant.var_data.info
 		variant.maf = variant.var_data.af < 0.5 ? variant.var_data.af : 1 - variant.var_data.af
-		if (!variant.gnomad) {
-                    variant.fin_enrichment = 'No data in Gnomad'
-		} else {
-                    if (variant.gnomad.genomes_AF_POPMAX === variant.gnomad.genomes_AF_FIN) {
-			var afs = Object.keys(variant.gnomad)
-			    .filter(function(key) {
-				return key.startsWith('genomes_AF_')
-			    })
-			    .map(function(key) {
-				return {key: key, value: variant.gnomad[key]}
-			    })
-			    .sort(function(a, b) {
-				return a.value - b.value
-			    })
-			if (+afs[afs.length - 3].value === 0) {
-			    variant.fin_enrichment = 'Only FIN in Gnomad'
-			} else {
-			    variant.fin_enrichment = +variant.gnomad.genomes_AF_FIN / +afs[afs.length - 3].value
-			    variant.fin_enrichment_versus = afs[afs.length - 3].key.replace('genomes_AF_', '')
-			}
-                    } else if (variant.gnomad.genomes_AF_FIN === 0) {
-			variant.fin_enrichment = 'No FIN in Gnomad'
-		    } else {
-			variant.fin_enrichment = +variant.gnomad.genomes_AF_FIN / +variant.gnomad.genomes_AF_POPMAX
-			variant.fin_enrichment_versus = variant.gnomad.genomes_POPMAX
-                    }
-		}
+		gnomadize(variant)
 	    })
 	    populate_variant_streamtable(data);
 	})

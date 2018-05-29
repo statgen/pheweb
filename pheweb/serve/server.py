@@ -177,6 +177,13 @@ def gene_phenos(gene):
         chrom, start, end = gene_region_mapping[gene]
         start, end = pad_gene(start, end)
         results = result_dao.get_variant_results_range(chrom, start, end)
+        ids = list(set([pheno['assoc']['id'] for pheno in results]))
+        gnomad = gnomad_dao.get_variant_annotations(ids)
+        gd = {i['id']: i['var_data'] for i in gnomad}
+        for pheno in results:
+            gnomad_id = pheno['assoc']['id'].replace('chr', '').replace(':', '-')
+            if gnomad_id in gd:
+                pheno['assoc']['gnomad'] = gd[gnomad_id]
         return results
     except Exception as exc:
         print(exc)
