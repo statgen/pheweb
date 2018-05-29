@@ -37,7 +37,10 @@ If necessary:
 
 If using a running cluster:
 
-In `deploy/pheweb-deployment.yaml`, change the Docker image to the one you just created (or make other desired changes). Make sure the GCE disk is the one you want with the wanted data - and that there is a correct config.py in the /pheweb directory of the disk. Then
+In `deploy/pheweb-deployment.yaml`, change the Docker image to the one you just created (or make other desired changes). Make sure the GCE disk is the one you want with the wanted data - and that there is a correct config.py in the /pheweb directory of the disk. In a running kubernetes node, mounted disks are at
+`/home/kubernetes/containerized_mounter/rootfs/var/lib/kubelet/plugins/kubernetes.io/gce-pd/mounts/`
+
+Then
 
 `kubectl apply -f deploy/pheweb-deployment.yaml`
 
