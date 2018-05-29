@@ -33,6 +33,7 @@ class BgzipWriter {
 // referencing <http://github.com/samtools/htslib/blob/master/bgzip.c>
 public:
     BgzipWriter(std::string filepath) {
+        // TODO: replace all `assert` with `if (!...) { fprintf(stderr, ...); throw runtime_error(...); }`
         assert(compressBound(BGZF_BLOCK_SIZE) < BGZF_MAX_BLOCK_SIZE); // sanity-check
         _filepath = filepath;
         _file.open(filepath.c_str(), std::ios::out | std::ios::binary);
@@ -50,7 +51,9 @@ public:
             src_buffer += copy_length;
             src_len -= copy_length;
             if (_uncompressed_block_size >= BGZF_BLOCK_SIZE) {
-                assert (_uncompressed_block_size == BGZF_BLOCK_SIZE);
+                if (_uncompressed_block_size > BGZF_BLOCK_SIZE) {
+                    throw std::runtime_error("[uncompressed block too long]");
+                }
                 flush_uncompressed();
             }
         }
@@ -105,23 +108,30 @@ private:
         zs.avail_in = slen;
         zs.next_out = dst + BLOCK_HEADER_LENGTH;
         zs.avail_out = dlen - BLOCK_HEADER_LENGTH - BLOCK_FOOTER_LENGTH;
-        int ret = deflateInit2(&zs, COMPRESSION_LEVEL, Z_DEFLATED, -15, 8, Z_DEFAULT_STRATEGY); // -15 to disable zlib header/footer
+        int ret = deflateInit2(&zs,
+                               Z_DEFAULT_COMPRESSION, // compression level. default is 6
+                               Z_DEFLATED,
+                               -15, // use 2^15=32kB window and output raw (no zlib header/footer)
+                               8,
+                               Z_DEFAULT_STRATEGY);
         if (ret != Z_OK) {
             fprintf(stderr, "[E::%s] deflateInit2 failed: %s\n", __func__, zerr(ret, &zs));
-            throw std::runtime_error("?");
+            throw std::runtime_error("[deflateInit2]");
         }
-        if ((ret = deflate(&zs, Z_FINISH)) != Z_STREAM_END) {
+        ret = deflate(&zs, Z_FINISH);
+        if (ret != Z_STREAM_END) {
             fprintf(stderr, "[E::%s] deflate failed: %s\n", __func__, zerr(ret, ret == Z_DATA_ERROR ? &zs : NULL));
-            throw std::runtime_error("??");
+            throw std::runtime_error("[deflate]");
         }
-        if ((ret = deflateEnd(&zs)) != Z_OK) {
+        ret = deflateEnd(&zs);
+        if (ret != Z_OK) {
             fprintf(stderr, "[E::%s] deflateEnd failed: %s\n", __func__, zerr(ret, NULL));
-            throw std::runtime_error("???");
+            throw std::runtime_error("[deflateEnd]");
         }
         dlen = zs.total_out + BLOCK_HEADER_LENGTH + BLOCK_FOOTER_LENGTH;
         // write the header
         memcpy(dst, BLOCK_HEADER, BLOCK_HEADER_LENGTH); // the last two bytes are a place holder for the length of the block
-        packInt16(&dst[16], dlen - 1); // write the compressed length; -1 to fit 2 bytes
+        packInt16(&dst[16], dlen - 1); // write the compressed length; -1 to fit into 2 bytes
         // write the footer
         crc = crc32(crc32(0L, NULL, 0L), (Bytef*)src, slen);
         packInt32((uint8_t*)&dst[dlen - 8], crc);
@@ -129,6 +139,9 @@ private:
     }
     // flush_uncompressed compresses _uncompressed_block into _file
     inline void flush_uncompressed() {
+        // TODO: for random data, the compressed data is often longer than the uncompressed.
+        //       but compressed blocks cannot be more than 64KiB, because their size is two bytes.
+        //       so, if `bgzf_compress` throws `insufficient_space_exception`, rerun with each half of data.
         size_t compressed_block_size = BGZF_MAX_BLOCK_SIZE;
         bgzf_compress(_compressed_block, compressed_block_size, _uncompressed_block, _uncompressed_block_size);
         _file.write( (const char*)_compressed_block, compressed_block_size);
@@ -245,7 +258,7 @@ int make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_f
     }
 
     // Headers:
-    // Every file's header must begin with "chrom pos ref alt ".
+    // sites.tsv's header must begin with "chrom pos ref alt ".
     // Every file's header must begin with the header of sites.tsv
     // All fields after the ones in sites.tsv will be written as "<field>@<pheno>"
     static const std::string cpra_header = "chrom\tpos\tref\talt\t";
