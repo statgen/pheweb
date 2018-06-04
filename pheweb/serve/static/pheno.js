@@ -86,19 +86,26 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .domain(genomic_position_extent)
             .range([0, plot_width]);
 
+	unbinned_variants.forEach(function(variant) {
+	    variant.pScaled = -Math.log10(variant.pval)
+	    if (variant.pScaled > window.vis_conf.loglog_threshold) {
+		variant.pScaled = window.vis_conf.loglog_threshold * Math.log10(variant.pScaled) / Math.log10(window.vis_conf.loglog_threshold)
+	    }
+	})
+
         // 1.03 puts points clamped to the top (pval=0) slightly above other points.
-        var highest_plot_neglog10_pval = 1.03 * -Math.log10(
-            Math.min(significance_threshold*0.8,
+	var highest_plot_neglog10_pval = -1.03 *
+            Math.min(Math.log10(significance_threshold*0.8),
                      (function() {
                          var best_unbinned_pval = d3.min(unbinned_variants, function(d) {
-                             return (d.pval === 0) ? 1 : d.pval;
+			     return (d.pScaled === 0) ? 1 : -d.pScaled;
                          });
                          if (best_unbinned_pval !== undefined) return best_unbinned_pval;
                          return d3.max(variant_bins, function(bin) {
                              return d3.max(bin, _.property('neglog10_pval'));
                          });
-                     })()));
-
+                     })());
+	
         var y_scale = d3.scale.linear()
             .domain([highest_plot_neglog10_pval, 0])
         // 0.97 leaves a little space above points clamped to the top.
@@ -158,7 +165,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
                     return x_scale(get_genomic_position(d));
                 })
                 .attr('cy', function(d) {
-                    return y_scale(-Math.log10(d.pval));
+		    return y_scale(d.pScaled);
                 })
                 .attr('r', 7)
                 .style('opacity', 0)
@@ -191,7 +198,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
                     return x_scale(get_genomic_position(d));
                 })
                 .attr('cy', function(d) {
-                    return y_scale(-Math.log10(d.pval));
+                    return y_scale(d.pScaled);
                 })
                 .attr('r', 2.3)
                 .style('fill', function(d) {
@@ -256,7 +263,9 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         var yAxis = d3.svg.axis()
             .scale(y_scale)
             .orient("left")
-            .tickFormat(d3.format("d"));
+	    .tickFormat(function(d) {
+		return d <= window.vis_conf.loglog_threshold ? d : Math.round(Math.pow(window.vis_conf.loglog_threshold, d/window.vis_conf.loglog_threshold))
+	    })
         gwas_plot.append("g")
             .attr("class", "y axis")
             .attr('transform', 'translate(-8,0)') // avoid letting points spill through the y axis.
@@ -267,7 +276,14 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .attr('transform', fmt('translate({0},{1})rotate(-90)',
                                    plot_margin.left*.4,
                                    plot_height/2 + plot_margin.top))
-            .text('-log\u2081\u2080(p-value)'); // Unicode subscript "10"
+	    .text(function() {
+		var maxLogLogP = d3.max(unbinned_variants, function(d) { return d.pScaled });
+		return maxLogLogP <= window.vis_conf.loglog_threshold ?
+		    '-log\u2081\u2080(p-value)' :
+		    window.vis_conf.loglog_threshold == 10 ?
+		    '-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value))':
+		    '-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value)) / log\u2081\u2080(' + window.vis_conf.loglog_threshold + ')'
+	    });
 
         var chroms_and_midpoints = (function() {
             var v = get_chrom_offsets();
@@ -744,6 +760,10 @@ $(function () {
                                       st.search($('#search')[0].value);
                                   }
                                  );
+	    if (data.unbinned_variants[data.unbinned_variants.length - 1].pScaled >= window.vis_conf.loglog_threshold) {
+		$("#loglog-note").append("<span>p-values smaller than 1e-" + window.vis_conf.loglog_threshold + " are shown on a log-log scale</span>");
+		$("#loglog-note").css("display", "inline-block");
+	    }
         })
     $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
         .done(function(data) {

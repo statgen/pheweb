@@ -236,8 +236,8 @@ def pheno_page(phenocode):
                            phenocode=phenocode,
                            pheno=pheno,
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
-                           var_export_fields=conf.var_export_fields
-
+                           var_export_fields=conf.var_export_fields,
+                           vis_conf=conf.vis_conf
     )
 
 @app.route('/region/<phenocode>/<region>')
