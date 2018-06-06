@@ -11,6 +11,7 @@
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }};
   window.pheno = {{ phenocode|tojson|safe }};
   window.var_export_fields = {{ var_export_fields|tojson|safe }};
+  window.vis_conf = {{ vis_conf|tojson|safe }};
 </script>
 <script src="{{ url_for('static', filename='pheno.js') }}" type="text/javascript"></script>
 <style type="text/css">
@@ -86,6 +87,8 @@
         {% if pheno.category %}
           <p>{{ pheno.category}}</p>
         {% endif %}
+	<div id="loglog-note" class="alert alert-danger" role="alert" style="display: none;">
+	</div>
         <div id="manhattan_plot_container">
         </div>
     </div>

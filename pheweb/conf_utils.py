@@ -490,3 +490,4 @@ def _ensure_conf():
     conf.set_default_value("drug_export_fields", ["drug.molecule_name", "drug.molecule_type", "evidence.target2drug.action_type", "disease.efo_info.label", "evidence.drug2clinic.max_phase_for_disease.label", "drug.id"])
 
     conf.set_default_value("report_conf", {"func_var_assoc_threshold":0.0001}  )
+    conf.set_default_value("vis_conf", {"loglog_threshold": 10})

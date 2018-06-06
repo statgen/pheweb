@@ -58,12 +58,19 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 
 (function() { // Create PheWAS plot.
 
+    window.variant.phenos.forEach(function(pheno) {
+	pheno.pScaled = -Math.log10(pheno.pval)
+	if (pheno.pScaled > window.vis_conf.loglog_threshold) {
+	    pheno.pScaled = window.vis_conf.loglog_threshold * Math.log10(pheno.pScaled) / Math.log10(window.vis_conf.loglog_threshold)
+	}
+    })
+    
     var best_neglog10_pval = d3.max(window.variant.phenos.map(function(x) { return LocusZoom.TransformationFunctions.get('neglog10')(x.pval); }));
 
     var neglog10_handle0 = function(x) {
-        if (x === 0) return best_neglog10_pval * 1.1;
-        var log = -Math.log(x) / Math.LN10;
-        return log;
+	if (x === 0) return best_neglog10_pval * 1.1;
+	var log = -Math.log(x) / Math.LN10;
+	return log;
     };
     LocusZoom.TransformationFunctions.set("neglog10_handle0", neglog10_handle0);
 
@@ -133,8 +140,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         window.model.tooltip_lztemplate;
     pval_data_layer.tooltip.closable = false;
 
-    // Use `neglog10_handle0` to handle pval=0 variants a little better.
-    pval_data_layer.y_axis.field = 'pval|neglog10_handle0';
+    pval_data_layer.y_axis.field = 'pScaled';
 
     // Show labels that are: in the top 10, and (by neglog10) >=75% of sig threshold, and >=25% of best.
     pval_data_layer.label.filters = [
@@ -175,7 +181,23 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         };
     });
 
-    phewas_panel.axes.y1.label = "-log\u2081\u2080(p-value)";
+    // Show (log-)log scale on the y axis
+    var maxLogPScaled = window.variant.phenos.reduce((acc, cur) => {
+	return Math.max(acc, cur.pScaled)
+    }, 0)
+    var ticks = []
+    var unscaled = 0
+    var scaled = 0
+    while (scaled < best_neglog10_pval) {
+	scaled = unscaled <= window.vis_conf.loglog_threshold ? unscaled : Math.round(Math.pow(window.vis_conf.loglog_threshold, unscaled/window.vis_conf.loglog_threshold))
+	ticks.push({y: unscaled, text: scaled})
+	unscaled += maxLogPScaled < 10 ? 1 : maxLogPScaled < 25 ? 2 : 5
+    }
+    phewas_panel.axes.y1.ticks = ticks
+
+    phewas_panel.axes.y1.label = window.vis_conf.loglog_threshold == 10 ?
+	'-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value))':
+	'-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value)) / log\u2081\u2080(' + window.vis_conf.loglog_threshold + ')'
 
     // add a little x-padding so that no points intersect the edge
     pval_data_layer.x_axis.min_extent = [-1, window.variant.phenos.length];
@@ -349,4 +371,12 @@ $(function () {
     console.log()
     exportTableToCSV.apply(this, [$('#stream_table'),window.variant.variant_name.replace(/ |,|/g,"") + "_phenotype_associations.tsv",window.var_top_pheno_export_fields])
   });
+})
+
+$(function () {
+    var maxLogLogP = d3.max(window.variant.phenos, function(d) { return d.pScaled });
+    if (maxLogLogP >= window.vis_conf.loglog_threshold) {
+	$("#loglog-note").append("<span>p-values smaller than 1e-" + window.vis_conf.loglog_threshold + " are shown on a log-log scale</span>");
+	$("#loglog-note").css("display", "inline-block");
+    }
 })
