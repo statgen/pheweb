@@ -113,7 +113,8 @@ def variant_page(query):
         return render_template('variant.html',
                                variant=variant,
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
-                               var_top_pheno_export_fields=conf.var_top_pheno_export_fields
+                               var_top_pheno_export_fields=conf.var_top_pheno_export_fields,
+                               vis_conf=conf.vis_conf
         )
     except Exception as exc:
         die('Oh no, something went wrong', exc)

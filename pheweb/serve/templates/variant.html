@@ -7,7 +7,7 @@
   window.variant = {{ variant|tojson(separators=(',',':'))|safe }};
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
   window.var_top_pheno_export_fields = {{ var_top_pheno_export_fields|tojson }};
-
+  window.vis_conf = {{ vis_conf|tojson|safe }};
 
   $.getJSON("/api/variant_annotation/" + window.variant.chrom + "-" + window.variant.pos + "-" + window.variant.ref + "-" + window.variant.alt)
   .done(function(data) {
@@ -74,6 +74,8 @@
           <span style="font-weight:bold" id="pubmed-link"></span>
           <span style="font-weight:bold" id="clinvar-link"></span>
         </p>
+	<div id="loglog-note" class="alert alert-danger" role="alert" style="display: none;">
+	</div>
         <div id="phewas_plot_container">
         </div>
     </div>
