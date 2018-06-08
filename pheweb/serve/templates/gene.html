@@ -54,7 +54,10 @@
 
 </div>
 
+<span id="assocloader" class="loader aligned"></span>
+
 {% if significant_phenos %}
+<div id="phenos_container" style="display: none;">
 <div class="row">
   <div class="col-md-10 col-lg-10 col-sm-10 col-xs-10">
     <h3>FinnGen association results</h3>
@@ -91,6 +94,7 @@
           </div>
         </div>
       </div>
+</div>
 <br>
 {% endif %}
 {% for key in ['num_cases', 'num_controls', 'num_samples'] %}
@@ -151,7 +155,8 @@
   </div>
 </div>
 
-<div class="row stream_table_row" id="drugs-container" style="display:none;">
+<div id="drugs-container" style="padding-bottom: 10px; display:none;">
+<div class="row stream_table_row">
   <div class="col-xs-12 drugs">
     <table id="stream_table_drugs" class="snugtable table table-striped table-bordered">
       <thead>
@@ -172,6 +177,7 @@
       </a>
     </div>
   </div>
+</div>
 </div>
 
 <script type="text/template" id="streamtable-template">

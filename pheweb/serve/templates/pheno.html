@@ -87,12 +87,14 @@
         {% if pheno.category %}
           <p>{{ pheno.category}}</p>
         {% endif %}
-	<div id="loglog-note" class="alert alert-danger" role="alert" style="display: none;">
+	<div id="manhattan-note" class="alert alert-danger" role="alert" style="display: none;">
 	</div>
         <div id="manhattan_plot_container">
         </div>
     </div>
 </div>
+
+<div id="manhattanloader" class="loader aligned"></div>
 
 <div style="display: none;">
   <span>Show variants:</span>

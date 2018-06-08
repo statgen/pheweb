@@ -21,6 +21,7 @@ import traceback
 import json
 import os.path
 from .data_access import DataFactory
+from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
 Compress(app)
@@ -47,6 +48,8 @@ dbs_fact = DataFactory( conf.database_conf  )
 annotation_dao = dbs_fact.get_annotation_dao()
 gnomad_dao = dbs_fact.get_gnomad_dao()
 result_dao = dbs_fact.get_result_dao()
+
+threadpool = ThreadPoolExecutor(max_workers=4)
 
 def variant_to_id(variant):
     return "chr" + variant["chrom"] + ":" + str(variant["pos"]) + ":" + variant["ref"] + ":" + variant["alt"]
@@ -126,8 +129,10 @@ def api_pheno(phenocode):
         with open(common_filepaths['manhattan'](phenocode)) as f:
             variants = json.load(f)
         ids = [variant_to_id(x) for x in variants['unbinned_variants'] if 'peak' in x]
-        annotations = annotation_dao.get_variant_annotations(ids)
-        gnomad = gnomad_dao.get_variant_annotations(ids)
+        f_annotations = threadpool.submit(annotation_dao.get_variant_annotations, ids)
+        f_gnomad = threadpool.submit(gnomad_dao.get_variant_annotations, ids)
+        annotations = f_annotations.result()
+        gnomad = f_gnomad.result()
         d = {i['id']: i['var_data'] for i in annotations}
         gd = {i['id']: i['var_data'] for i in gnomad}
         for variant in variants['unbinned_variants']:
