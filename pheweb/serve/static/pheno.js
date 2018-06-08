@@ -711,8 +711,10 @@ function effectDirection(d) {
 }
 
 $(function () {
+    $('#manhattanloader').css('display', 'block')
     $.getJSON("/api/manhattan/pheno/" + window.pheno)
         .done(function(data) {
+            //$('#manhattanloader').css('display', 'none')
             window.debug.manhattan = data;
             window.data = data;
             // add consequence so that stream table can be filtered on it
@@ -761,10 +763,15 @@ $(function () {
                                   }
                                  );
 	    if (data.unbinned_variants[data.unbinned_variants.length - 1].pScaled >= window.vis_conf.loglog_threshold) {
-		$("#loglog-note").append("<span>p-values smaller than 1e-" + window.vis_conf.loglog_threshold + " are shown on a log-log scale</span>");
-		$("#loglog-note").css("display", "inline-block");
+		$("#manhattan-note").append("<span>p-values smaller than 1e-" + window.vis_conf.loglog_threshold + " are shown on a log-log scale</span>");
+		$("#manhattan-note").css("display", "inline-block");
 	    }
         })
+        .fail(function(error) {
+            $('#manhattanloader').css("display", "none")
+	    $("#manhattan-note").append("<span>Could not fetch results. Please try again!</span>");
+	    $("#manhattan-note").css("display", "inline-block");
+	})
     $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
         .done(function(data) {
             window.debug.qq = data;

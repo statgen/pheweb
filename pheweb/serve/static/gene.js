@@ -327,17 +327,23 @@ $(function() {
                 console.log(window.gene_symbol + ' not found in ensembl')
     	    }
         })
+    $('#assocloader').css('display', 'block')
     $.getJSON("/api/gene_phenos/" + window.gene_symbol)
 	.done(function(data) {
 	    data.forEach(function(variant) {
 		gnomadize(variant)
 	    })
 	    populate_streamtable(data);
+	    $('#phenos_container').css('display', 'block')
+	    $('#assocloader').css('display', 'none')
 	})
     $.getJSON("/api/drugs/" + window.gene_symbol)
 	.done(function(data) {
 	    if (data.length > 0) {
 		populate_drugs_streamtable(data)
+	    } else {
+		$('#drugs-container').html('<span>No known drugs for ' + window.gene_symbol + '</span>')
+		$('#drugs-container').css('display', 'block')
 	    }
 	})
     $.getJSON("/api/gene_functional_variants/" + window.gene_symbol + "?p=" + window.func_var_report_p_threshold )
