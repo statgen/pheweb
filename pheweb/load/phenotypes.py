@@ -9,8 +9,6 @@ def get_phenotypes_including_top_variants():
         with open(common_filepaths['manhattan'](pheno['phenocode'])) as f:
             variants = json.load(f)['unbinned_variants']
         top_variant = min(variants, key=lambda v: v['pval'])
-        print(pheno)
-        print(top_variant)
         ret = {
             'phenocode': pheno['phenocode'],
             'pval': top_variant['pval'],

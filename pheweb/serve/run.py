@@ -1,4 +1,3 @@
-
 def run_flask_dev_server(app, args):
     app.run(
         host=args.host, port=args.port,
@@ -119,6 +118,8 @@ def run(argv):
     if args.guess_address:
         print_ip(args.port)
 
+    import gevent.monkey
+    gevent.monkey.patch_all() # this must happen before `import requests`.
     from .server import app
     if gunicorn_is_broken():
         run_flask_dev_server(app, args)
