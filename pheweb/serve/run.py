@@ -85,15 +85,14 @@ def attempt_open(url):
     if 'DISPLAY' not in os.environ:
         print('The DISPLAY variable is not set, so not attempting to open a web browser\n')
         return False
-    for name in 'windows-default chrome chromium mozilla firefox opera safari'.split():
-        # LATER: prepend `macosx` to this list when <http://bugs.python.org/issue30392> is fixed.
+    for name in 'windows-default macosx chrome chromium mozilla firefox opera safari'.split():
+        # Note: `macosx` fails on macOS 10.12.5 due to <http://bugs.python.org/issue30392>.
         try:
             b = webbrowser.get(name)
-        except Exception:
-            pass
-        else:
             if b.open(url):
                 return True
+        except Exception:
+            pass
     return False
 
 

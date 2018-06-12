@@ -25,6 +25,8 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 3 :: Only',
         'Operating System :: Unix',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS :: MacOS X',
         'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Visualization',
