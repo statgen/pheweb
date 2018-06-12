@@ -234,37 +234,56 @@ def gene_page(genename):
     return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
 
 
-@app.route('/download/<phenocode>/<token>')
-def download_pheno(phenocode, token):
-    if phenocode not in phenos:
-        die("Sorry, that phenocode doesn't exist")
-    if not Hasher.check_hash(token, phenocode):
-        die("Sorry, that token is incorrect")
-    try:
-        return send_from_directory(conf.data_dir + '/download/', phenocode,
-                                   as_attachment=True, attachment_filename='phecode-{}.epacts.txt.gz'.format(phenocode))
-    except Exception as exc:
-        die("Sorry, that file doesn't exist.", exception=exc)
-@app.route('/download-list/<token>')
-def download_list(token):
-    if not Hasher.check_hash(token, 'download-list'):
-        print(url_for('download_list', token=Hasher.get_hash('download-list'), _external=True))
-        die('Wrong token.')
-    return '<br>\n'.join(
-        '{} {} <a href={url!r}>{url!r}</a>'.format(phenocode, pheno.get('phenostring',''), url=url_for('download_pheno', phenocode=phenocode, token=Hasher.get_hash(phenocode), _external=True))
-        for phenocode, pheno in phenos.items()
-    )
-class Hasher:
-    _size = 15
-    @classmethod
-    def get_hash(cls, plaintext):
-        import hashlib
-        return hashlib.blake2b(plaintext.encode('utf8'), digest_size=cls._size, key=app.config['SECRET_KEY'].encode('utf8')).hexdigest()
-    @classmethod
-    def check_hash(cls, hash_, plaintext):
-        if len(hash_) != cls._size * 2: return False
-        import hmac
-        return hmac.compare_digest(cls.get_hash(plaintext), hash_)
+
+if conf.get('download_pheno_sumstats', '') == 'secret':
+    class Hasher:
+        _hash_length = 15
+        @classmethod
+        def get_hash(cls, plaintext):
+            import hashlib
+            return hashlib.blake2b(plaintext.encode('utf8'), digest_size=cls._hash_length, key=app.config['SECRET_KEY'].encode('utf8')).hexdigest()
+        @classmethod
+        def check_hash(cls, hash_, plaintext):
+            if len(hash_) != cls._hash_length * 2: return False
+            import hmac
+            return hmac.compare_digest(cls.get_hash(plaintext), hash_)
+
+    @app.route('/download/<phenocode>/<token>')
+    def download_pheno(phenocode, token):
+        if phenocode not in phenos:
+            die("Sorry, that phenocode doesn't exist")
+        if not Hasher.check_hash(token, phenocode):
+            die("Sorry, that token is incorrect")
+        try:
+            return send_from_directory(common_filepaths['pheno_gz'](''), '{}.gz'.format(phenocode),
+                                       as_attachment=True,
+                                       attachment_filename='phenocode-{}.tsv.gz'.format(phenocode))
+        except Exception as exc:
+            die("Sorry, that file doesn't exist.", exception=exc)
+
+    download_list_secret_token = Hasher.get_hash('|'.join(sorted(phenos.keys()))) # Shouldn't change when we restart the server.
+    print('download page:', '/download-list/{}'.format(download_list_secret_token))
+
+    @app.route('/download-list/<token>')
+    def download_list(token):
+        if token != download_list_secret_token:
+            print(url_for('download_list', token=Hasher.get_hash('download-list'), _external=True))
+            die('Wrong token.')
+        ret = ''
+        for phenocode, pheno in phenos.items():
+            url = url_for('download_pheno', phenocode=phenocode, token=Hasher.get_hash(phenocode), _external=True)
+            ret += '{} {} <a href={url!r}>{url!r}</a><br>\n'.format(phenocode, pheno.get('phenostring',''), url=url)
+        return ret, 200
+
+else:
+    app.config['DOWNLOAD_PHENO_SUMSTATS_BUTTON'] = True
+    @app.route('/download/<phenocode>')
+    def download_pheno(phenocode):
+        if phenocode not in phenos:
+            die("Sorry, that phenocode doesn't exist")
+        return send_from_directory(common_filepaths['pheno_gz'](''), '{}.gz'.format(phenocode),
+                                   as_attachment=True,
+                                   attachment_filename='phenocode-{}.tsv.gz'.format(phenocode))
 
 
 @app.route('/')

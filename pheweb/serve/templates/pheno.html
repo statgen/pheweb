@@ -172,6 +172,15 @@
     </div>
 </div>
 
+{% if config.DOWNLOAD_PHENO_SUMSTATS_BUTTON %}
+<div class="row">
+  <div class="col-xs-12">
+    <a class="btn btn-default" href="{{ url_for('download_pheno', phenocode=phenocode) }}">Download summary statistics</a>
+    <br><br><br>
+  </div>
+</div>
+{% endif %}
+
 <script type="text/template" id="streamtable-template">
 <tr>
 <td><a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>">
