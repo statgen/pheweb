@@ -214,22 +214,27 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var isnum = function(d) { return typeof d == "number"; };
     var mafs = window.variant.phenos.map(function(v) {
         if (isnum(v.maf))  { return v.maf; }
-        else if (isnum(v.af)) { return v.af; }
-        else if (isnum(v.ac) && isnum(v.num_samples)) { return v.ac / v.num_samples; }
+        else if (isnum(v.af)) { return Math.min(v.af, 1-v.af); }
+        else if (isnum(v.ac) && isnum(v.num_samples)) { return v.ac / (2*v.num_samples); }
         else { return undefined; }
     });
     window.debug.mafs = mafs;
+    var fmt_maf = function(maf) {
+        if (maf >= 0.001) {
+            return maf.toPrecision(2);
+        } else {
+            return maf.toExponential(1);
+        }
+    };
     var num_phenos_with_maf = _.filter(mafs, function(d) { return isnum(d) }).length;
-    if (num_phenos_with_maf === mafs.length) {
+    if (num_phenos_with_maf > 0) {
         var range = d3.extent(mafs);
         $(function() {
-            $('#maf-range').html('<p>MAF ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + '</p>');
-            $('#maf-range p').css('margin-bottom', '0');
-        });
-    } else if (num_phenos_with_maf > 0) {
-        var range = d3.extent(mafs);
-        $(function() {
-            $('#maf-range').html('<p>MAF ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ' for phenotypes where it is defined</p>');
+            var text = 'MAF ranges from ' + fmt_maf(range[0]) + ' to ' + fmt_maf(range[1]);
+            if (num_phenos_with_maf < mafs.length) {
+                text += ' in phenotypes where it is defined'
+            }
+            $('#maf-range').html('<p>' + text + '</p>');
             $('#maf-range p').css('margin-bottom', '0');
         });
     }
