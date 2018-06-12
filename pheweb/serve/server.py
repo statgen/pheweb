@@ -48,6 +48,7 @@ dbs_fact = DataFactory( conf.database_conf  )
 annotation_dao = dbs_fact.get_annotation_dao()
 gnomad_dao = dbs_fact.get_gnomad_dao()
 result_dao = dbs_fact.get_result_dao()
+ukbb_dao = dbs_fact.get_UKBB_dao()
 
 threadpool = ThreadPoolExecutor(max_workers=4)
 
@@ -135,6 +136,11 @@ def api_pheno(phenocode):
         gnomad = f_gnomad.result()
         d = {i['id']: i['var_data'] for i in annotations}
         gd = {i['id']: i['var_data'] for i in gnomad}
+
+
+        ukbbvars = ukbb_dao.get_matching_results(phenocode ,
+            list(map( lambda variant: ( "chr" + variant["chrom"], variant["pos"], variant["ref"], variant["alt"]), variants['unbinned_variants'])))
+
         for variant in variants['unbinned_variants']:
             if 'peak' in variant:
                 id = variant_to_id(variant)
@@ -143,6 +149,12 @@ def api_pheno(phenocode):
                     variant['annotation'] = d[id]
                 if gnomad_id in gd:
                     variant['gnomad'] = gd[gnomad_id]
+
+                if id in ukbbvars:
+                    ## convert tuple to dict for jsonify to keep field dames
+                    variant['ukbb'] = ukbbvars[id]._asdict()
+
+
         return jsonify(variants)
     except Exception as exc:
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
@@ -161,6 +173,12 @@ def gene_functional_variants(gene, pThreshold):
             chrom = chrom.replace("chr", "")
             result = result_dao.get_variant_results_range(chrom, int(pos), int(pos))
             filtered = { "rsids": result[0]["assoc"]["rsids"], "significant_phenos": [res for res in result if res["assoc"]["pval"] < pThreshold ] }
+            for ph in filtered["significant_phenos"]:
+                uk_var = ukbb_dao.get_matching_results(ph["pheno"]["phenocode"], ph["id"])
+                if(len(uk_var)>0):
+                    ph["ukbb"] =uk_var[ph["id"]]._asdict()
+
+
             annotations[i] = {**annotations[i], **filtered}
         ids = [v["id"] for v in annotations]
         gnomad = gnomad_dao.get_variant_annotations(ids)
@@ -188,8 +206,18 @@ def gene_phenos(gene):
         gd = {i['id']: i['var_data'] for i in gnomad}
         for pheno in results:
             gnomad_id = pheno['assoc']['id'].replace('chr', '').replace(':', '-')
+
+            var = pheno['assoc']['id'].split(":")
+            var[1] = int(var[1])
+
+            uk_var = ukbb_dao.get_matching_results( pheno['pheno']['phenocode'], tuple(var) )
             if gnomad_id in gd:
                 pheno['assoc']['gnomad'] = gd[gnomad_id]
+
+            if( len(uk_var)>0):
+                ## convert to dictionary for jsonify to keep names.
+                pheno['assoc']['ukbb'] = uk_var[pheno['assoc']['id']]._asdict()
+
         return results
     except Exception as exc:
         print(exc)
@@ -202,6 +230,7 @@ def api_gene_functional_variants(gene):
     if ('p' in request.args):
         pThreshold= float(request.args.get('p'))
     annotations = gene_functional_variants(gene, pThreshold)
+
     return jsonify(annotations)
 
 @app.route('/api/top_hits.json')
@@ -241,9 +270,11 @@ def pheno_page(phenocode):
     return render_template('pheno.html',
                            phenocode=phenocode,
                            pheno=pheno,
+                           ukbb_ns= ukbb_dao.getNs(phenocode),
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
                            var_export_fields=conf.var_export_fields,
-                           vis_conf=conf.vis_conf
+                           vis_conf=conf.vis_conf,
+
     )
 
 @app.route('/region/<phenocode>/<region>')
@@ -378,7 +409,7 @@ def drugs(genename):
         drugs = dbs_fact.get_drug_dao().get_drugs(genename)
         return jsonify(drugs)
     except Exception as exc:
-        die("Could not fetch drugs for gene {!r}".format(genename), exception=exc)    
+        die("Could not fetch drugs for gene {!r}".format(genename), exception=exc)
 
 @app.route('/')
 def homepage():

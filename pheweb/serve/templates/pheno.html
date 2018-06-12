@@ -79,14 +79,23 @@
 </div>
 <div class="row">
     <div class="pheno-info col-xs-12">
-        {% if 'num_cases' in pheno %}
-          <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
-        {% elif 'num_samples' in pheno %}
-          <p><b>{{ pheno.num_samples }}</b> samples</p>
-        {% endif %}
         {% if pheno.category %}
           <p>{{ pheno.category}}</p>
         {% endif %}
+    </br>
+        {% if 'num_cases' in pheno %}
+          <p>FINNGEN:<b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
+        {% elif 'num_samples' in pheno %}
+          <p><b>{{ pheno.num_samples }}</b> samples</p>
+        {% endif %}
+        {% if ukbb_ns is not none %}
+            <p>UKBB: <b>{{ ukbb_ns[0] }}</b> cases, <b>{{ ukbb_ns[1] }}</b> controls</p>
+        {% else %}
+            <p> Phenotype not found in UKBB results </p>
+        {% endif %}
+
+
+
 	<div id="manhattan-note" class="alert alert-danger" role="alert" style="display: none;">
 	</div>
         <div id="manhattan_plot_container">
@@ -145,6 +154,8 @@
           <th style="cursor: pointer; user-select: none;" data-sort="maf_controls:desc:number">maf controls</th>
           <th style="cursor: pointer; user-select: none;" data-sort="beta:desc:number">beta</th>
           <th style="cursor: pointer; user-select: none;" data-sort="pval:asc:number">p-value</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="ukbb.effect_size:desc:number">UKBB beta</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="ukbb.pvalue:asc:number">UKBB p-value</th>
         </tr>
       </thead>
       <tbody>
@@ -264,6 +275,12 @@
   <%= (v.beta && v.sebeta)? _.template($('#beta-template').html())({v: v}) : '' %>
   </td>
   <td style="width: 6%;"><%= v.pval.toExponential(1) %></td>
+ <!-- <td style="width: 6%;"><%= (v.ukbb)? Object.keys(v.ukbb):"NA" %></td> -->
+  <td style="width: 6%;"><%= (v.ukbb)? Number(v.ukbb.effect_size).toExponential(1):"NA" %></td>
+  <td style="width: 6%;"><%= (v.ukbb)? Number(v.ukbb.pvalue).toExponential(1):"NA" %></td>
+
+
+
 </tr>
 </script>
 

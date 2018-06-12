@@ -314,7 +314,7 @@ $(function() {
             }
 	}
     }
-    
+
     if (!window.gene_symbol) return
     $.getJSON('http://rest.ensembl.org/xrefs/symbol/human/' + window.gene_symbol + '?content-type=application/json')
         .done(function(result) {
@@ -354,8 +354,11 @@ $(function() {
 		variant.maf = variant.var_data.af < 0.5 ? variant.var_data.af : 1 - variant.var_data.af
 		gnomadize(variant)
 	    })
-	    populate_variant_streamtable(data);
+        console.log("varianttii")
+        console.log(data)
+	    populate_variant_streamtable(data)
 	})
+
     $.getJSON("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=gene&term=("
 	      + window.gene_symbol
 	      + "[gene])%20AND%20(Homo%20sapiens[orgn])%20AND%20alive[prop]%20NOT%20newentry[gene]&sort=weight&retmode=json")

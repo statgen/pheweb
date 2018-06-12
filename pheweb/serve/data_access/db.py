@@ -9,7 +9,10 @@ import re
 from ...file_utils import MatrixReader, common_filepaths
 from ...utils import get_phenolist
 
+from collections import namedtuple
 import requests
+import importlib
+import gzip
 
 class GeneInfoDB(object):
 
@@ -21,6 +24,33 @@ class GeneInfoDB(object):
         """
         return
 
+class ExternalResultDB(object):
+
+    @abc.abstractmethod
+    def get_matching_results(self, phenotype, var_list):
+        """ Given a phenotype name and variant list returns a list of matching results.
+        Args: phenotype phenotype names
+              var_list list of tuples with CHR POS:int REF ALT
+            returns list of namedtuples with elements effect_size, pvalue, study_name, n_cases, n_controls
+        """
+        return
+
+    @abc.abstractmethod
+    def get_results_region(self, phenotype, chr, start, stop):
+        """ Given a phenotype name and coordinates returns all results .
+        Args: phenotype phenotype names
+              var_list var_list list of tuples with CHR POS:int REF ALT
+            returns list of namedtuples with elements effect_size, pvalue, study_name, n_cases, n_controls
+        """
+        return
+
+    @abc.abstractmethod
+    def getNs(self, phenotype):
+        """ Given a phenotype name returns tuple with ncases,nconrols. .
+            Args: phenotype phenotype names
+            returns tuple with ncase and ncontrols
+        """
+        return
 
 class AnnotationDB(object):
 
@@ -80,7 +110,7 @@ class DrugDB(object):
             Returns: drugs targeting the gene
         """
         return
-    
+
 class MichinganGWASUKBBCatalogDao(KnownHitsDB):
 
     build38ids="1,4"
@@ -145,9 +175,9 @@ class DrugDao(DrugDB):
             d['disease']['efo_info']['label'] = d['disease']['efo_info']['label'].capitalize()
             d['drug']['molecule_type'] = d['drug']['molecule_type'].capitalize()
             d['evidence']['target2drug']['action_type'] = d['evidence']['target2drug']['action_type'].capitalize()
-            
+
         return data
-    
+
 class ElasticAnnotationDao(AnnotationDB):
 
     def __init__(self, host, port, variant_index):
@@ -242,7 +272,7 @@ class ElasticGnomadDao(AnnotationDB):
 
     def _variant_id_to_gnomad_id(self, id):
         return id.replace('chr', '').replace(':', '-')
-        
+
     def get_variant_annotations(self, id_list):
         gnomad_ids = [self._variant_id_to_gnomad_id(id) for id in id_list]
         annotation = self.elastic.search(
@@ -307,10 +337,104 @@ class TabixResultDao(ResultDB):
         return top
 
 
+class ExternalFileResultDao(object):
+
+    FILE_REQ_HEADERS = ["achr38","apos38","REF","ALT","beta","pval"]
+    ResRecord = namedtuple('ResRecord', 'name, ncase, ncontrol, file, achr38_idx, apos38_idx, REF_idx, ALT_idx, beta_idx, pval_idx')
+    VarRecord = namedtuple('VarRecord','origvariant,variant,chr,pos,ref,alt,effect_size, pvalue, study_name, n_cases, n_controls')
+
+    def __init__(self, manifest):
+
+        self.manifest = manifest
+
+        self.results = {}
+
+        if manifest is None:
+            ## initialize with none and never returns any results
+            return
+
+
+        with open( self.manifest, 'r') as mani:
+            header = mani.readline().rstrip("\n").split("\t")
+
+            req_headers = ["NAME","ncases","ncontrols","file"]
+            if not all( [ h in header for h in req_headers]):
+                raise Exception("External result file must be tab separated and must have columns: " + ",".join(req_headers) )
+
+            name_idx = header.index("NAME")
+            ncase_idx = header.index("ncases")
+            ncontrol_idx = header.index("ncontrols")
+            file_idx = header.index("file")
+
+            for line in mani:
+                line = line.rstrip("\n").split("\t")
+                filename = line[file_idx]
+
+                fopen = open
+                if filename.endswith(".gz"):
+                    fopen = gzip.open
+
+                with fopen(line[file_idx],'rt') as f:
+                    header = f.readline().rstrip("\n").split("\t")
+
+                    if not all( [ h in header for h in self.FILE_REQ_HEADERS ]):
+                        raise Exception("All required headers not found in external result file:" + line[file_idx] + ". Required fields: " +
+                         ",".join(self.FILE_REQ_HEADERS))
+
+                    self.results[ line[name_idx] ] = ExternalFileResultDao.ResRecord( line[name_idx], line[ncase_idx], line[ncontrol_idx],
+                        line[file_idx], header.index("achr38"), header.index("apos38"), header.index("REF") ,header.index("ALT") ,
+                        header.index("beta"), header.index("pval") )
+
+
+    def get_results_region(self, phenotype, chr, start, stop):
+
+        res = []
+        if( phenotype in self.results ):
+            manifestdata = self.results[phenotype]
+            with pysam.TabixFile( manifestdata.file, parser=None) as tabix_file:
+                headers = tabix_file.header[0].split('\t')
+                tabix_iter = tabix_file.fetch("chr" + chrom, start-1, stop, parser=None)
+                varid = [ var[manifestdata.achr38_idx],  var[manifestdata.apos38_idx], var[manifestdata.REF_idx], var[manifestdata.ALT_idx]].join(":")
+                for var in tabix_iter:
+                    var = var.split("\t")
+                    res.append(  ExternalFileResultDao.VarRecord( var[0], varid, var[manifestdata.achr38_idx], var[manifestdata.apos38_idx],
+                    var[manifestdata.REF_idx],var[manifestdata.ALT_idx] ,var[manifestdata.beta_idx], var[manifestdata.pval_idx], "UKBB",  manifestdata.ncase, manifestdata.ncontrol) )
+
+        return res
+
+    def get_matching_results(self, phenotype, var_list):
+        res = {}
+        if( type(var_list) is not list ):
+            var_list = [var_list]
+
+        if( phenotype in self.results ):
+            manifestdata = self.results[phenotype]
+            with pysam.TabixFile( manifestdata.file, parser=None) as tabix_file:
+                headers = tabix_file.header[0].split('\t')
+
+                for var in var_list:
+                    tabix_iter = tabix_file.fetch(var[0], var[1]-1, var[1], parser=None)
+
+                    for ext_var in tabix_iter:
+                        varid = "{}:{}:{}:{}".format(var[0],var[1],var[2],var[3])
+                        ext_var = ext_var.split("\t")
+
+                        if var[2] == ext_var[manifestdata.REF_idx] and var[3]==ext_var[manifestdata.ALT_idx]:
+                            res[varid]=ExternalFileResultDao.VarRecord( var[0], varid, ext_var[manifestdata.achr38_idx], ext_var[manifestdata.apos38_idx],
+                            ext_var[manifestdata.REF_idx],ext_var[manifestdata.ALT_idx] ,ext_var[manifestdata.beta_idx], ext_var[manifestdata.pval_idx], "UKBB",  manifestdata.ncase, manifestdata.ncontrol)
+
+        return res
+
+    def getNs(self, phenotype):
+        if(phenotype in self.results ):
+            manifest = self.results[phenotype]
+            return (manifest.ncase, manifest.ncontrol)
+        else:
+            return None
+
+
 class DataFactory(object):
-    daos = {"annotation.elastic":ElasticAnnotationDao,
-            "result.tabix":TabixResultDao,
-            "gnomad.elastic":ElasticGnomadDao}
+
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
                        "MATRIX_PATH": common_filepaths['matrix']}
 
@@ -320,19 +444,24 @@ class DataFactory(object):
             for db_type in db.keys():
                 for db_source in db[db_type]:
                     db_id = db_type + "." + db_source
-                    if( db_id not in self.daos):
-                        raise Exception( "Database '" + db_id + "' does not exist" )
+                    daomodule = importlib.import_module(".db", __package__)
+                    daoclass = getattr(daomodule, db_source)
                     if 'const_arguments' in db[db_type][db_source]:
                         for a, b in db[db_type][db_source]['const_arguments']:
                             if b not in self.arg_definitions:
                                 raise Exception(b + " is an unknown argument")
                             db[db_type][db_source][a] = self.arg_definitions[b]
                         db[db_type][db_source].pop('const_arguments', None)
-                    self.dao_impl[db_type] = self.daos[db_id]( ** db[db_type][db_source] )
+                    self.dao_impl[db_type] = daoclass( ** db[db_type][db_source] )
 
         self.dao_impl["geneinfo"] = NCBIGeneInfoDao()
         self.dao_impl["catalog"] = MichinganGWASUKBBCatalogDao()
         self.dao_impl["drug"] = DrugDao()
+
+        if "externalresult" not in self.dao_impl:
+            ## if external results not configured initialize dao always returning empty results
+            self.dao_impl["externalresult"] = ExternalFileResultDao(None)
+
 
     def get_annotation_dao(self):
         return self.dao_impl["annotation"]
@@ -351,3 +480,6 @@ class DataFactory(object):
 
     def get_drug_dao(self):
         return self.dao_impl["drug"]
+
+    def get_UKBB_dao(self):
+        return self.dao_impl["externalresult"]
