@@ -711,10 +711,10 @@ function effectDirection(d) {
 }
 
 $(function () {
-    $('#manhattanloader').css('display', 'block')
     $.getJSON("/api/manhattan/pheno/" + window.pheno)
         .done(function(data) {
             $('#manhattanloader').css('display', 'none')
+            $('#variant_table').css('display', 'block')
             window.debug.manhattan = data;
             window.data = data;
             // add consequence so that stream table can be filtered on it
