@@ -49,6 +49,70 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     return x + '%';
 });
 
+
+// monkeypatch to handle `NaN` in response.
+LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, outnames) {
+    try {
+        var json = JSON.parse(resp);
+    } catch (exc) {
+        if (exc instanceof SyntaxError) {
+            resp = resp.replace(/\bNaN\b/g, 'null');
+            var junk = JSON.parse(resp);
+            var json = { data:{} };
+            Object.keys(junk).forEach(function(key) {
+                if (key != 'data') { json[key] = junk[key]; }
+            });
+            var json_data_keys = Object.keys(junk.data);
+            json_data_keys.forEach(function(key) {
+                json.data[key] = [];
+            });
+            for (var i=0; i<junk.data.rsquare.length; i++) {
+                if (junk.data.rsquare[i] !== null) {
+                    json_data_keys.forEach(function(key) {
+                        json.data[key].push(junk.data[key][i]);
+                    });
+                }
+            }
+        } else {
+            console.log('caught and rethrowing', exc);
+            throw exc;
+        }
+    }
+    var keys = this.findMergeFields(chain);
+    var reqFields = this.findRequestedFields(fields, outnames);
+    if (!keys.position) {
+        throw("Unable to find position field for merge: " + keys._names_);
+    }
+    var leftJoin = function(left, right, lfield, rfield) {
+        var i=0, j=0;
+        while (i < left.length && j < right.position2.length) {
+            if (left[i][keys.position] == right.position2[j]) {
+                left[i][lfield] = right[rfield][j];
+                i++;
+                j++;
+            } else if (left[i][keys.position] < right.position2[j]) {
+                i++;
+            } else {
+                j++;
+            }
+        }
+    };
+    var tagRefVariant = function(data, refvar, idfield, outname) {
+        for(var i=0; i<data.length; i++) {
+            if (data[i][idfield] && data[i][idfield]===refvar) {
+                data[i][outname] = 1;
+            } else {
+                data[i][outname] = 0;
+            }
+        }
+    };
+    leftJoin(chain.body, json.data, reqFields.ldout, "rsquare");
+    if(reqFields.isrefvarin && chain.header.ldrefvar) {
+        tagRefVariant(chain.body, chain.header.ldrefvar, keys.id, reqFields.isrefvarout);
+    }
+    return chain;   
+};
+
 (function() {
     // Define LocusZoom Data Sources object
     var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";
@@ -81,6 +145,35 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             }
             if (layout.class){ this.selector.attr("class", layout.class); }
             if (layout.style){ this.selector.style(layout.style); }
+            return this;
+        };
+    });
+
+    LocusZoom.Dashboard.Components.add("ldrefsource_selector", function(layout){
+        LocusZoom.Dashboard.Component.apply(this, arguments);
+        this.initialize = function(){
+            this.parent_plot.state.ldrefsource = 1;
+        }
+
+        this.update = function() {
+            if (this.button){ return this; }
+
+            this.button = new LocusZoom.Dashboard.Component.Button(this);
+            this.button
+                .setText("LD source: 1000G ALL")
+                .setTitle("click to switch to next LD source")
+                .setOnclick(function(){
+                    if (this.parent_plot.state.ldrefsource == 1) {
+                        this.parent_plot.state.ldrefsource = 2;
+                        this.button.setText('LD source: 1000G EUR');
+                    } else {
+                        this.parent_plot.state.ldrefsource = 1;
+                        this.button.setText('LD source: 1000G ALL');
+                    }
+                    this.button.show();
+                    this.parent_plot.applyState({});
+                }.bind(this));
+            this.button.show();
             return this;
         };
     });
@@ -181,6 +274,9 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 group_position: "end",
             },{
                 "type": "download",
+                "position": "right",
+            },{
+                "type": "ldrefsource_selector",
                 "position": "right",
             }]
         },
