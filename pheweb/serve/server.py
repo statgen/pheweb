@@ -237,6 +237,8 @@ def gene_page(genename):
 
 
 if conf.get('download_pheno_sumstats', '') == 'secret':
+    if app.config['SECRET_KEY'] == 'nonsecret key':
+        raise PheWebError('you must set a SECRET_KEY in config.py to use download_pheno_sumstats = "secret"')
     class Hasher:
         _hash_length = 15
         @classmethod

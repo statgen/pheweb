@@ -108,7 +108,7 @@
     </div>
 </div>
 <div class="row">
-    <div class="pheno-info col-xs-12">
+    <div class="pheno-info col-xs-12 col-sm-8">
         {% if 'num_cases' in pheno %}
           <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
         {% elif 'num_samples' in pheno %}
@@ -117,6 +117,17 @@
         {% if pheno.category %}
           <p>Category: <b>{{ pheno.category}}</b></p>
         {% endif %}
+    </div>
+    <div class="pheno-info col-xs-12 col-sm-4">
+      {% if config.DOWNLOAD_PHENO_SUMSTATS_BUTTON %}
+      <span class="pull-right">
+        <a class="btn btn-default" href="{{ url_for('download_pheno', phenocode=phenocode) }}">Download summary statistics</a>
+      </span>
+      {% endif %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
         <div id="manhattan_plot_container">
         </div>
     </div>
@@ -171,15 +182,6 @@
       <br><br><br>
     </div>
 </div>
-
-{% if config.DOWNLOAD_PHENO_SUMSTATS_BUTTON %}
-<div class="row">
-  <div class="col-xs-12">
-    <a class="btn btn-default" href="{{ url_for('download_pheno', phenocode=phenocode) }}">Download summary statistics</a>
-    <br><br><br>
-  </div>
-</div>
-{% endif %}
 
 <script type="text/template" id="streamtable-template">
 <tr>
