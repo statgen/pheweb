@@ -332,7 +332,6 @@ def gene_report(genename):
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     func_vars = gene_functional_variants( genename,  conf.report_conf["func_var_assoc_threshold"])
-    #print(func_vars)
     funcvar = []
     chunk_size = 10
     for var in func_vars:

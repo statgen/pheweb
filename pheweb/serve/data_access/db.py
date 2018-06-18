@@ -231,7 +231,7 @@ class ElasticAnnotationDao(AnnotationDB):
                  } for anno in annotation['hits']['hits']
                ]
 
-class ElasticGnomadDao(AnnotationDB):
+class ElasticGnomadDao(GnomadDB):
 
     def __init__(self, host, port, variant_index):
 
@@ -275,7 +275,7 @@ class ElasticGnomadDao(AnnotationDB):
                   "var_data": { k:v for (k,v) in anno["_source"].items() if re.match("genomes_AF_[A-Z]{3}", k) or k == 'genomes_POPMAX' } }
                  for anno in annotation['hits']['hits'] ]
 
-class TabixGnomadDao(AnnotationDB):
+class TabixGnomadDao(GnomadDB):
 
     def __init__(self, matrix_path):
         self.matrix_path = matrix_path
