@@ -7,9 +7,10 @@ import pysam
 import re
 
 from ...file_utils import MatrixReader, common_filepaths
-from ...utils import get_phenolist
+from ...utils import get_phenolist, get_gene_tuples
 
 import requests
+import time
 
 class GeneInfoDB(object):
 
@@ -183,6 +184,8 @@ class ElasticAnnotationDao(AnnotationDB):
             }
         )
 
+        print('ELASTIC FINNGEN get_variant_annotations hits ' + str(annotation['hits']['total']))
+        print('ELASTIC FINNGEN get_variant_annotations took ' + str(annotation['took']))
         return [ {"id": anno["_id"], "var_data": { k:v[0] for (k,v) in anno["fields"].items() }  } for anno in annotation['hits']['hits'] ]
 
     def get_gene_functional_variant_annotations(self, gene):
@@ -219,6 +222,9 @@ class ElasticAnnotationDao(AnnotationDB):
         # maf annotation is not correct - get af from _source
         for anno in annotation['hits']['hits']:
             anno["fields"]["af"] = [anno["_source"]["af"]]
+
+        print('ELASTIC FINNGEN get_gene_functional_variant_annotations hits ' + str(annotation['hits']['total']))
+        print('ELASTIC FINNGEN get_gene_functional_variant_annotations took ' + str(annotation['took']))
 
         return [ {"id": anno["_id"],
                   "var_data": { k:v[0] for (k,v) in anno["fields"].items() }
@@ -263,9 +269,40 @@ class ElasticGnomadDao(AnnotationDB):
                 }
             }
         )
+        print('ELASTIC GNOMAD get_variant_annotations hits ' + str(annotation['hits']['total']))
+        print('ELASTIC GNOMAD get_variant_annotations took ' + str(annotation['took']))
         return [ {"id": anno["_source"]["genomes_variantId"],
                   "var_data": { k:v for (k,v) in anno["_source"].items() if re.match("genomes_AF_[A-Z]{3}", k) or k == 'genomes_POPMAX' } }
                  for anno in annotation['hits']['hits'] ]
+
+class TabixGnomadDao(AnnotationDB):
+
+    def __init__(self, matrix_path):
+        self.matrix_path = matrix_path
+
+    def get_variant_annotations(self, id_list):
+        split = [id.split(':') for id in id_list]
+        variants = [{'chrom': s[0].replace('chr', ''), 'pos': int(s[1]), 'ref': s[2], 'alt': s[3]} for s in split]
+        annotations = []
+        t = time.time()
+        with pysam.TabixFile(self.matrix_path, parser=None) as tabix_file:
+            #headers = [s.lower() for s in tabix_file.header[0].split('\t')]
+            headers = tabix_file.header[0].split('\t')
+            for var_i, variant in enumerate(variants):
+                tabix_iter = tabix_file.fetch(variant['chrom'], variant['pos']-1, variant['pos'], parser=None)
+                for row in tabix_iter:
+                    split = row.split('\t')
+                    if split[3] == variant['ref'] and split[4] == variant['alt']:
+                        for i, s in enumerate(split):
+                            if (headers[i].startswith('AF') and split[i] != 'NaN'):
+                                split[i] = float(s)
+                        annotations.append({'id': id_list[var_i], 'var_data': {headers[i]: split[i] for i in range(0,len(split))}})
+                    else:
+                        #print(split[3] + ' - ' + variant['ref'] + ' / ' + split[4] + ' - ' + variant['alt'])
+                        pass
+                                
+        print('TABIX GNOMAD get_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
+        return annotations
 
 class TabixResultDao(ResultDB):
 
@@ -306,13 +343,68 @@ class TabixResultDao(ResultDB):
         top.sort(key=lambda pheno: pheno['assoc']['pval'])
         return top
 
+class TabixAnnotationDao(AnnotationDB):
+    
+    def __init__(self, matrix_path):
+        self.matrix_path = matrix_path
+        self.gene_region_mapping = {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
+        self.functional_variants = set(["missense_variant",
+                                    "frameshift_variant", 
+                                    "splice_donor_variant",
+                                    "stop_gained",
+                                    "splice_acceptor_variant",
+                                    "start_lost",
+                                    "stop_lost",
+                                    "TFBS_ablation",
+                                    "protein_altering_variant"])
+
+    def get_variant_annotations(self, id_list):
+        split = [id.split(':') for id in id_list]
+        variants = [{'chrom': s[0], 'pos': int(s[1])} for s in split]
+        annotations = []
+        t = time.time()
+        with pysam.TabixFile(self.matrix_path, parser=None) as tabix_file:
+            headers = [s.lower() for s in tabix_file.header[0].split('\t')]
+            for variant in variants:
+                tabix_iter = tabix_file.fetch(variant['chrom'], variant['pos']-1, variant['pos'], parser=None)
+                row = next(tabix_iter)
+                if row is not None:
+                    split = row.split('\t')
+                    for i, s in enumerate(split):
+                        if (headers[i].startswith('af') or headers[1].startswith('maf') or headers[i].startswith('ac') or headers[i].startswith('info')):
+                            split[i] = float(s)
+                    annotations.append({'id': split[0], 'var_data': {headers[i]: split[i] for i in range(0,len(split))}})
+        print('TABIX get_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
+        return annotations
+
+    def get_gene_functional_variant_annotations(self, gene):
+        chrom, start, end = self.gene_region_mapping[gene]
+        annotations = []
+        t = time.time()
+        with pysam.TabixFile(self.matrix_path, parser=None) as tabix_file:
+            headers = [s.lower() for s in tabix_file.header[0].split('\t')]
+            header_i = {header: i for i, header in enumerate(headers)}
+            tabix_iter = tabix_file.fetch('chr' + chrom, start-1, end, parser=None)
+            for row in tabix_iter:
+                split = row.split('\t')
+                if split[header_i['most_severe']] in self.functional_variants:
+                    for i, s in enumerate(split):
+                        if (headers[i].startswith('af') or headers[i].startswith('maf') or headers[i].startswith('ac') or headers[i].startswith('info')):
+                            split[i] = float(s)
+                    annotations.append({'id': split[0], 'var_data': {header: split[i] for i, header in enumerate(headers)}})
+        print('TABIX get_gene_functional_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
+        return annotations
 
 class DataFactory(object):
     daos = {"annotation.elastic":ElasticAnnotationDao,
+            "annotation.tabix":TabixAnnotationDao,
             "result.tabix":TabixResultDao,
-            "gnomad.elastic":ElasticGnomadDao}
+            "gnomad.elastic":ElasticGnomadDao,
+            "gnomad.tabix":TabixGnomadDao}
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
-                       "MATRIX_PATH": common_filepaths['matrix']}
+                       "MATRIX_PATH": common_filepaths['matrix'],
+                       "ANNOTATION_MATRIX_PATH": common_filepaths['annotation-matrix'],
+                       "GNOMAD_MATRIX_PATH": common_filepaths['gnomad-matrix']}
 
     def __init__(self, config):
         self.dao_impl = {}
