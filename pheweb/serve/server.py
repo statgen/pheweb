@@ -138,11 +138,10 @@ def api_pheno(phenocode):
         for variant in variants['unbinned_variants']:
             if 'peak' in variant:
                 id = variant_to_id(variant)
-                gnomad_id = id.replace('chr', '').replace(':', '-')
                 if id in d:
                     variant['annotation'] = d[id]
-                if gnomad_id in gd:
-                    variant['gnomad'] = gd[gnomad_id]
+                if id in gd:
+                    variant['gnomad'] = gd[id]
         return jsonify(variants)
     except Exception as exc:
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
@@ -166,11 +165,8 @@ def gene_functional_variants(gene, pThreshold):
         gnomad = gnomad_dao.get_variant_annotations(ids)
         gd = {i['id']: i['var_data'] for i in gnomad}
         for v in annotations:
-            gnomad_id = v["id"].replace('chr', '').replace(':', '-')
-            if gnomad_id in gd:
-                v['gnomad'] = gd[gnomad_id]
-            else:
-                v['gnomad'] = {'genomes_AF_FIN': 'N/A', 'genomes_AF_NFE': 'N/A'}
+            if v['id'] in gd:
+                v['gnomad'] = gd[v['id']]
         return annotations
     except Exception as exc:
         print(exc)
@@ -187,9 +183,8 @@ def gene_phenos(gene):
         gnomad = gnomad_dao.get_variant_annotations(ids)
         gd = {i['id']: i['var_data'] for i in gnomad}
         for pheno in results:
-            gnomad_id = pheno['assoc']['id'].replace('chr', '').replace(':', '-')
-            if gnomad_id in gd:
-                pheno['assoc']['gnomad'] = gd[gnomad_id]
+            if pheno['assoc']['id'] in gd:
+                pheno['assoc']['gnomad'] = gd[pheno['assoc']['id']]
         return results
     except Exception as exc:
         print(exc)

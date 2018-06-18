@@ -1,12 +1,12 @@
-data_dir="/mnt/data-disk/pheweb"
+data_dir="/mnt/data-disk-ssd/pheweb"
 
 database_conf = ({ "annotation":
-                    {"elastic": { "host":"35.187.119.225","port":9200, "variant_index":"finngen_r1_variant_annotation"}  }
-                 },
+                    {"tabix": { "const_arguments": [("matrix_path","ANNOTATION_MATRIX_PATH")] } }},
                  { "result": { "tabix": { 'const_arguments': [("phenos","PHEWEB_PHENOS"), ("matrix_path","MATRIX_PATH")] } } },
                  { "gnomad":
-                    { "elastic": { "host":"35.189.223.57","port":9200, "variant_index":"gnomad_combined"} }
+                    {"tabix": { "const_arguments": [("matrix_path","GNOMAD_MATRIX_PATH")] } }
                  }
                 )
 
 report_conf = {"func_var_assoc_threshold":0.0001, "gene_top_assoc_threshold":0.0001}
+
