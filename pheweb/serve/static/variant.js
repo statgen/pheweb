@@ -214,8 +214,8 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var isnum = function(d) { return typeof d == "number"; };
     var mafs = window.variant.phenos.map(function(v) {
         if (isnum(v.maf))  { return v.maf; }
-        else if (isnum(v.af)) { return v.af; }
-        else if (isnum(v.ac) && isnum(v.num_samples)) { return v.ac / v.num_samples; }
+        else if (isnum(v.af)) { return Math.min(v.af, 1-v.af); }
+        else if (isnum(v.ac) && isnum(v.num_samples)) { return v.ac / (2*v.num_samples); }
         else { return undefined; }
     });
     window.debug.mafs = mafs;
