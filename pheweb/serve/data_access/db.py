@@ -13,6 +13,9 @@ from collections import namedtuple
 import requests
 import importlib
 import gzip
+import subprocess
+import time
+import io
 
 class GeneInfoDB(object):
 
@@ -353,7 +356,6 @@ class ExternalFileResultDao(object):
             ## initialize with none and never returns any results
             return
 
-
         with open( self.manifest, 'r') as mani:
             header = mani.readline().rstrip("\n").split("\t")
 
@@ -402,26 +404,48 @@ class ExternalFileResultDao(object):
 
         return res
 
+    def _get_rows(self, file, chrom, start, end ):
+
+        cmd = "tabix {} {}:{}-{}".format(file, chrom, start, end)
+        try:
+            res = subprocess.run("tabix {} {}:{}-{}".format(file, chrom, start, end),shell=True, stdout=subprocess.PIPE, universal_newlines = True )
+        except Exception as e:
+            ## tabix throws filenotfoundexception when no variants are found even though the file exist.
+            print("exc thrown" + str(e))
+            return None
+
+        if(len(res.stdout)==0):
+            return None
+
+        res = io.StringIO(res.stdout)
+        for var in res:
+            ext_var = var.rstrip("\n").split("\t")
+            yield ext_var
+
+
     def get_matching_results(self, phenotype, var_list):
         res = {}
+
+        allt = time.time()
+
         if( type(var_list) is not list ):
             var_list = [var_list]
 
         if( phenotype in self.results ):
             manifestdata = self.results[phenotype]
+            per_variant = []
             with pysam.TabixFile( manifestdata.file, parser=None) as tabix_file:
-                headers = tabix_file.header[0].split('\t')
-
                 for var in var_list:
-                    tabix_iter = tabix_file.fetch(var[0], var[1]-1, var[1], parser=None)
-
-                    for ext_var in tabix_iter:
-                        varid = "{}:{}:{}:{}".format(var[0],var[1],var[2],var[3])
+                    t = time.time()
+                    iter = tabix_file.fetch(var[0], var[1]-1, var[1], parser=None)
+                    for ext_var in iter:
                         ext_var = ext_var.split("\t")
+                        varid = "{}:{}:{}:{}".format(var[0],var[1],var[2],var[3])
 
                         if var[2] == ext_var[manifestdata.REF_idx] and var[3]==ext_var[manifestdata.ALT_idx]:
                             res[varid]=ExternalFileResultDao.VarRecord( var[0], varid, ext_var[manifestdata.achr38_idx], ext_var[manifestdata.apos38_idx],
                             ext_var[manifestdata.REF_idx],ext_var[manifestdata.ALT_idx] ,ext_var[manifestdata.beta_idx], ext_var[manifestdata.pval_idx], "UKBB",  manifestdata.ncase, manifestdata.ncontrol)
+                    per_variant.append( time.time() - t)
 
         return res
 
