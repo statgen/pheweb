@@ -88,8 +88,6 @@ def run(argv):
                             l= l.rstrip("\n").split("\t")
                             dat = [  l[i] for i in p["cpra_ind"] + p["other_i"] ]
 
-                            print(dat)
-
                             same_pos = all( [ prev[0]==dat[0] and prev[1]==dat[1] for prev in p["cur_line"]] )
                             if( same_pos  ):
                                 p["cur_line"].append( dat )
