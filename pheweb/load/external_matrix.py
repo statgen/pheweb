@@ -8,6 +8,14 @@ import subprocess
 
 
 
+chrord = { "chr"+str(chr):int(chr) for chr in list(range(1,23))}
+chrord["chrX"] = 23
+chrord["chrT"] = 24
+chrord["chrMT"] = 25
+
+chrord.update({str(chr):int(chr) for chr in list(range(1,23)) } )
+
+
 def run(argv):
     '''
         This module generates matrix from external single association results for fast access to browsingself.
@@ -67,13 +75,21 @@ def run(argv):
 
         with open(args.common_sites) as common:
 
+            smallestpos = (0,0)
             for v in common:
+                linedat = []
+                anymatch =False
                 varid = v.rstrip("\n").split("\t")
                 if(len(varid)<4):
                     raise Exception("Less than 4 columns in common sites row " + v )
-                print(varid)
-                out.write("\t".join(varid) )
+                linedat.extend(varid )
+                if(  smallestpos[0]>int(varid[0]) or int(varid[1])<smallestpos[1] ):
+                    # have not reached the smallest result so keep on scrolling variants
+                    print("skipping " + str(varid) + " smalles" + str(smallestpos) )
+                    continue
+
                 for p in phenos:
+
                     resf = p["fpoint"]
                     if( len(p["cur_line"])==0 or (p["cur_line"][0][0]!=varid[0] or  p["cur_line"][0][1]!=varid[1] )  ):
                         # read all next positions in to memory as there can be multiallelic in same positions and they might
@@ -84,7 +100,8 @@ def run(argv):
                         if ( l!=""):
                             l= l.rstrip("\n").split("\t")
                             dat = [  l[i] for i in p["cpra_ind"] + p["other_i"] ]
-                            while(varid[0]==dat[0]  and  varid[1]>=dat[1]):
+
+                            while( varid[0]==dat[0] and int(varid[1])>=int(dat[1]) ):
                                 if(varid[1]==dat[1]):
                                     p["cur_line"].append( dat )
                                 pos = resf.tell()
@@ -93,7 +110,9 @@ def run(argv):
                                     break
                                 l= l.rstrip("\n").split("\t")
                                 dat = [  l[i] for i in p["cpra_ind"] + p["other_i"] ]
-
+                                
+                            if( chrord[varid[0]]<chrord[dat[0]] or smallestpos[1]> int(dat[1]) ):
+                                smallestpos = ( dat[0], int(dat[1]) )
                             # jump the cursor back to
                             resf.seek(pos)
 
@@ -101,12 +120,17 @@ def run(argv):
 
                     if len(match_idx)==0:
                         ## not matching.... write blanks,
-                        out.write("\t" + "\t".join( ["NA"] * len(supp_fields)))
+                        linedat.extend(["NA"] * len(supp_fields))
+                        #out.write("\t" + "\t".join( ["NA"] * len(supp_fields)))
                     else:
-                        out.write( "\t" + "\t".join( p["cur_line"][match_idx[0]][4:] ) )
+                        anymatch=True
+                        linedat.extend(p["cur_line"][match_idx[0]][4:])
+                        #out.write( "\t" + "\t".join( p["cur_line"][match_idx[0]][4:] ) )
                         del p["cur_line"][match_idx[0]]
+                if(anymatch):
+                    out.write("\t".join(linedat) + "\n")
+                linedat.clear()
 
-                out.write("\n")
 
 
     subprocess.check_call(["bgzip", args.path_to_res + "matrix.tsv" ])
