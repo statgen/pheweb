@@ -110,9 +110,9 @@ def run(argv):
                                     break
                                 l= l.rstrip("\n").split("\t")
                                 dat = [  l[i] for i in p["cpra_ind"] + p["other_i"] ]
-                                
-                            if( chrord[varid[0]]<chrord[dat[0]] or smallestpos[1]> int(dat[1]) ):
-                                smallestpos = ( dat[0], int(dat[1]) )
+
+                            if( chrord[dat[0]] <smallestpos[0] or int(dat[1]) < smallestpos[1]  ):
+                                smallestpos = ( chrord[dat[0]], int(dat[1]) )
                             # jump the cursor back to
                             resf.seek(pos)
 
