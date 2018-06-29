@@ -71,30 +71,31 @@ def run(argv):
                 varid = v.rstrip("\n").split("\t")
                 if(len(varid)<4):
                     raise Exception("Less than 4 columns in common sites row " + v )
-
+                print(varid)
                 out.write("\t".join(varid) )
                 for p in phenos:
                     resf = p["fpoint"]
-
-                    if( len(p["cur_line"])==0):
+                    if( len(p["cur_line"])==0 or (p["cur_line"][0][0]!=varid[0] or  p["cur_line"][0][1]!=varid[1] )  ):
                         # read all next positions in to memory as there can be multiallelic in same positions and they might
                         # not be in consistent order.
-                        while(True):
-                            pos = resf.tell()
-                            l = resf.readline()
-                            if ( l==""):
-                                break
-
+                        p["cur_line"].clear()
+                        pos = resf.tell()
+                        l = resf.readline()
+                        if ( l!=""):
                             l= l.rstrip("\n").split("\t")
                             dat = [  l[i] for i in p["cpra_ind"] + p["other_i"] ]
+                            while(varid[0]==dat[0]  and  varid[1]>=dat[1]):
+                                if(varid[1]==dat[1]):
+                                    p["cur_line"].append( dat )
+                                pos = resf.tell()
+                                l = resf.readline()
+                                if ( l==""):
+                                    break
+                                l= l.rstrip("\n").split("\t")
+                                dat = [  l[i] for i in p["cpra_ind"] + p["other_i"] ]
 
-                            same_pos = all( [ prev[0]==dat[0] and prev[1]==dat[1] for prev in p["cur_line"]] )
-                            if( same_pos  ):
-                                p["cur_line"].append( dat )
-                            else:
-                                # backtrack as there are variants in current pos to process
-                                resf.seek(pos)
-                                break
+                            # jump the cursor back to
+                            resf.seek(pos)
 
                     match_idx = [ i for i,v in  enumerate(p["cur_line"]) if all([ varid[j]==v[j] for j in [0,1,2,3 ] ]) ]
 
