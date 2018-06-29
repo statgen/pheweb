@@ -86,9 +86,13 @@ def run(argv):
                                 break
 
                             l= l.rstrip("\n").split("\t")
-                            same_pos = all( [ prev[0]==l[0] and prev[1]==l[1] for prev in p["cur_line"]] )
+                            dat = [  l[i] for i in p["cpra_ind"] + p["other_i"] ]
+
+                            print(dat)
+
+                            same_pos = all( [ prev[0]==dat[0] and prev[1]==dat[1] for prev in p["cur_line"]] )
                             if( same_pos  ):
-                                p["cur_line"].append(l)
+                                p["cur_line"].append( dat )
                             else:
                                 # backtrack as there are variants in current pos to process
                                 resf.seek(pos)
@@ -100,7 +104,7 @@ def run(argv):
                         ## not matching.... write blanks,
                         out.write("\t" + "\t".join( ["NA"] * len(supp_fields)))
                     else:
-                        out.write( "\t" + "\t".join([ p["cur_line"][match_idx[0]][i] for i in p["other_i"] ]) )
+                        out.write( "\t" + "\t".join( p["cur_line"][match_idx[0]][4:] ) )
                         del p["cur_line"][match_idx[0]]
 
                 out.write("\n")
