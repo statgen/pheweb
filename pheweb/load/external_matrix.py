@@ -83,7 +83,7 @@ def run(argv):
                 if(len(varid)<4):
                     raise Exception("Less than 4 columns in common sites row " + v )
                 linedat.extend(varid )
-                if(  smallestpos[0]>int(varid[0]) or int(varid[1])<smallestpos[1] ):
+                if(  smallestpos[0]> chrord[varid[0]] or int(varid[1])<smallestpos[1] ):
                     # have not reached the smallest result so keep on scrolling variants
                     print("skipping " + str(varid) + " smalles" + str(smallestpos) )
                     continue
