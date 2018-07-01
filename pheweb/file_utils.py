@@ -139,8 +139,8 @@ def IndexedVariantFileReader(phenocode):
     with read_gzip(filepath) as f:
         reader = csv.reader(f, dialect='pheweb-internal-dialect')
         colnames = next(reader)
-    assert colnames[0].startswith('#')
-    colnames[0] = colnames[0][1:]
+    if colnames[0].startswith('#'): # previous version of PheWeb commented the header line
+        colnames[0] = colnames[0][1:]
     for field in colnames:
         assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields, (field)
     colidxs = {field: colnum for colnum, field in enumerate(colnames)}
@@ -335,22 +335,16 @@ class _vfw:
             self.write(v)
 
 def convert_VariantFile_to_IndexedVariantFile(vf_path, ivf_path):
-    from .load.cffi._x import ffi, lib
     make_basedir(ivf_path)
     tmp_path = get_tmp_path(ivf_path)
-    args = [
-        ffi.new('char[]', vf_path.encode('utf8')),
-        ffi.new('char[]', tmp_path.encode('utf8')),
-        ffi.new('char[]', b'#'),
-    ]
-    lib.cffi_bgzip_file(*args)
+    pysam.tabix_compress(vf_path, tmp_path, force=True)
     os.rename(tmp_path, ivf_path)
 
     pysam.tabix_index(
         filename=ivf_path, force=True,
-        seq_col=0, start_col=1, end_col=1 # note: these are 0-based, but `/usr/bin/tabix` is 1-based
+        seq_col=0, start_col=1, end_col=1, # note: `pysam.tabix_index` calls the first column `0`, but cmdline `tabix` calls it `1`.
+        line_skip=1, # skip header
     )
-
 
 
 def write_json(*, filepath=None, data=None, indent=None, sort_keys=False):

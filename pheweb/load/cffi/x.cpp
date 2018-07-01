@@ -319,28 +319,6 @@ int make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_f
 }
 
 
-int bgzip_file(char *in_filepath, char *out_filepath, char *prepend_bytes) {
-
-  BgzipWriter writer(out_filepath);
-  std::string prepend_bytes_string(prepend_bytes);
-  writer.write(prepend_bytes_string);
-
-  std::ifstream reader(in_filepath, std::ios::in | std::ios::binary);
-
-  static const size_t BLOCK_SIZE = 256 * 1024; // number is arbitrary
-  char *buffer = new char[BLOCK_SIZE];
-
-  while (!reader.eof()) {
-    reader.read(buffer, BLOCK_SIZE);
-    size_t num_bytes_read = reader.gcount();
-    assert(reader.eof() || num_bytes_read == BLOCK_SIZE);
-    writer.write(buffer, num_bytes_read);
-  }
-
-  return 0;
-}
-
-
 
 // ------
 // entry points
@@ -349,20 +327,14 @@ extern "C" {
   extern int cffi_make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_filepath) {
     return make_matrix(sites_filepath, augmented_pheno_glob, matrix_filepath);
   }
-
-  extern int cffi_bgzip_file(char *in_filepath, char *out_filepath, char *prepend_bytes) {
-    return bgzip_file(in_filepath, out_filepath, prepend_bytes);
-  }
 }
 
 // compile with `g++ -lz -std=c++11 -o x x.cpp`
 int main(int argc, char **argv) {
-  if (argc == 5 && strcmp(argv[1], "matrix") == 0)
-    return make_matrix(argv[2], argv[3], argv[4]);
-  if (argc == 5 && strcmp(argv[1], "bgzip") == 0)
-    return bgzip_file(argv[2], argv[3], argv[4]);
+  if (argc == 4)
+    return make_matrix(argv[1], argv[2], argv[3]);
   std::cout << "Usage:\n"
-            << " ./x matrix /path/to/sites.tsv \"/path/to/pheno/*\" /path/to/matrix.tsv.gz\n"
-            << " ./x bgzip /path/to/files.tsv /path/to/files.tsv.gz \"#\"" << std::endl;
+            << " ./x /path/to/sites.tsv \"/path/to/pheno/*\" /path/to/matrix.tsv.gz\n"
+            << std::endl;
   return 1;
 }

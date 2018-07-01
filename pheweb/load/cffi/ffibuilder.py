@@ -17,5 +17,4 @@ ffibuilder.set_source('pheweb.load.cffi._x',
 )
 ffibuilder.cdef('''
 int cffi_make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_filepath);
-int cffi_bgzip_file(char *in_filepath, char *out_filepath, char *prepend_bytes);
 ''')
