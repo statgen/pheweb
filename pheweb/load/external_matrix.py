@@ -15,6 +15,32 @@ chrord["chrMT"] = 25
 
 chrord.update({str(chr):int(chr) for chr in list(range(1,23)) } )
 
+def scroll_to_current(variant, phenodat):
+
+    file = phenodat["fpoint"]
+
+    if( len(phenodat["cur_lines"])>0 and (chrord[phenodat["cur_lines"][0][0]]< chrord[variant[0]] or phenodat["cur_lines"][0][1]<variant[1]) ) :
+        phenodat["cur_lines"].clear()
+
+    while( True ):
+        dat = None
+        if(phenodat["future"] is None):
+            l = file.readline()
+            if(l!=""):
+                l = l.rstrip("\n").split("\t")
+                dat = [  l[i] for i in phenodat["cpra_ind"] + phenodat["other_i"]]
+        else:
+            dat = phenodat["future"]
+            phenodat["future"]=None
+
+        if( dat is not None):
+            if (dat[0]==variant[0] and dat[1]==variant[1]):
+                phenodat["cur_lines"].append(dat)
+            elif chrord[dat[0]]>chrord[variant[0]] or (chrord[dat[0]]>chrord[variant[0]] or dat[1]>variant[1]):
+                phenodat["future"] = dat
+                break
+        else:
+            break
 
 def run(argv):
     '''
@@ -67,7 +93,7 @@ def run(argv):
                 phenos.append( { "phenoid":line[0], "phenotext":line[1],
                                 "ncases":line[2], "ncontrol":line[3],"filename":line[4], "fpoint":resf,
                                 "cpra_ind":[ header.index(f) for f in CPRA_fields  ], "other_i":[ header.index(f) for f in supp_fields ],
-                                "cur_line":[]  }  )
+                                "cur_lines":[] ,"future":None }  )
 
                 out.write( "\t" +  "\t".join( [ s + "@" + line[0] for s in supp_fields] )  )
 
@@ -85,38 +111,21 @@ def run(argv):
                 linedat.extend(varid )
                 if(  smallestpos[0]> chrord[varid[0]] or int(varid[1])<smallestpos[1] ):
                     # have not reached the smallest result so keep on scrolling variants
-                    print("skipping " + str(varid) + " smalles" + str(smallestpos) )
+                    print("skipping " + str(varid) + " smallest " + str(smallestpos) )
                     continue
 
                 for p in phenos:
 
                     resf = p["fpoint"]
-                    if( len(p["cur_line"])==0 or (p["cur_line"][0][0]!=varid[0] or  p["cur_line"][0][1]!=varid[1] )  ):
-                        # read all next positions in to memory as there can be multiallelic in same positions and they might
-                        # not be in consistent order.
-                        p["cur_line"].clear()
-                        pos = resf.tell()
-                        l = resf.readline()
-                        if ( l!=""):
-                            l= l.rstrip("\n").split("\t")
-                            dat = [  l[i] for i in p["cpra_ind"] + p["other_i"] ]
 
-                            while( varid[0]==dat[0] and int(varid[1])>=int(dat[1]) ):
-                                if(varid[1]==dat[1]):
-                                    p["cur_line"].append( dat )
-                                pos = resf.tell()
-                                l = resf.readline()
-                                if ( l==""):
-                                    break
-                                l= l.rstrip("\n").split("\t")
-                                dat = [  l[i] for i in p["cpra_ind"] + p["other_i"] ]
+                    scroll_to_current( varid, p )
 
-                            if( chrord[dat[0]] <smallestpos[0] or int(dat[1]) < smallestpos[1]  ):
-                                smallestpos = ( chrord[dat[0]], int(dat[1]) )
-                            # jump the cursor back to
-                            resf.seek(pos)
+                    sm_pos = p["cur_lines"][0] if len(p["cur_lines"])>0 else p["future"]
 
-                    match_idx = [ i for i,v in  enumerate(p["cur_line"]) if all([ varid[j]==v[j] for j in [0,1,2,3 ] ]) ]
+                    if( sm_pos is not None and ( chrord[sm_pos[0]] <smallestpos[0] or int(sm_pos[1]) < smallestpos[1] )  ):
+                        smallestpos = ( chrord[sm_pos[0]], int(sm_pos[1]) )
+
+                    match_idx = [ i for i,v in  enumerate(p["cur_lines"]) if all([ varid[j]==v[j] for j in [0,1,2,3 ] ]) ]
 
                     if len(match_idx)==0:
                         ## not matching.... write blanks,
@@ -124,14 +133,12 @@ def run(argv):
                         #out.write("\t" + "\t".join( ["NA"] * len(supp_fields)))
                     else:
                         anymatch=True
-                        linedat.extend(p["cur_line"][match_idx[0]][4:])
+                        linedat.extend(p["cur_lines"][match_idx[0]][4:])
                         #out.write( "\t" + "\t".join( p["cur_line"][match_idx[0]][4:] ) )
-                        del p["cur_line"][match_idx[0]]
+                        del p["cur_lines"][match_idx[0]]
                 if(anymatch):
                     out.write("\t".join(linedat) + "\n")
                 linedat.clear()
-
-
 
     subprocess.check_call(["bgzip", args.path_to_res + "matrix.tsv" ])
     subprocess.check_call(["tabix","-s 1","-e 2","-b 2", args.path_to_res + "matrix.tsv.gz" ])
