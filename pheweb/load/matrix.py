@@ -1,5 +1,5 @@
 
-from ..utils import get_phenolist
+from ..utils import get_phenolist, PheWebError
 from ..file_utils import MatrixReader, get_tmp_path, common_filepaths
 from .cffi._x import ffi, lib
 
@@ -41,12 +41,13 @@ def should_run():
 def run(argv):
 
     if should_run():
-        args = [
-            ffi.new('char[]', sites_filepath.encode('utf8')),
-            ffi.new('char[]', common_filepaths['pheno']('*').encode('utf8')),
-            ffi.new('char[]', matrix_gz_tmp_filepath.encode('utf8'))
-        ]
-        lib.cffi_make_matrix(*args)
+        # we don't need `ffi.new('char[]', ...)` because args are `const`
+        ret = lib.cffi_make_matrix(sites_filepath.encode('utf8'),
+                                   common_filepaths['pheno']('*').encode('utf8'),
+                                   matrix_gz_tmp_filepath.encode('utf8'))
+        ret_bytes = ffi.string(ret, maxlen=1000)
+        if ret_bytes != b'ok':
+            raise PheWebError('The portion of `pheweb matrix` written in c++/cffi failed with the message ' + repr(ret_bytes))
         os.rename(matrix_gz_tmp_filepath, matrix_gz_filepath)
         pysam.tabix_index(
             filename=matrix_gz_filepath, force=True,

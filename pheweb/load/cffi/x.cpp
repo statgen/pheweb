@@ -1,5 +1,8 @@
 
-// Compile with -std=c++11 -lz -Wall -Wextra matrixify.cpp
+/*
+compile with:
+  g++ -std=c++11 -lz -o x x.cpp
+*/
 
 #include <cstring> // memcpy on Linux
 #include <algorithm> // count on Linux
@@ -10,7 +13,6 @@
 #include <vector>
 #include <string>
 #include <glob.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <sys/resource.h> // setrlimit
 #include <stdio.h>
@@ -18,30 +20,28 @@
 #include <iomanip> // setprecision
 #include <zlib.h>
 #include <fcntl.h> // O_WRONLY &c
-//#include <sys/stat.h> // struct stat // TODO: should we be using stat to get the system's preferred blocksize?
+#include <exception> // do I need this?
 
 
 // ------
 // BGZIP-writer
 
-// todo: understand tabix and build .tbi on-the-fly.
-//       - see <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3042176/>
-//       - see <https://samtools.github.io/hts-specs/tabix.pdf>
-
 class BgzipWriter {
 // This is adapted from <https://github.com/samtools/htslib/blob/master/bgzf.c>,
-// referencing <http://github.com/samtools/htslib/blob/master/bgzip.c>
+// also referencing <http://github.com/samtools/htslib/blob/master/bgzip.c>
 public:
     BgzipWriter(std::string filepath) {
-        // TODO: replace all `assert` with `if (!...) { fprintf(stderr, ...); throw runtime_error(...); }`
-        assert(compressBound(BGZF_BLOCK_SIZE) < BGZF_MAX_BLOCK_SIZE); // sanity-check
+        if (compressBound(BGZF_BLOCK_SIZE) > BGZF_MAX_BLOCK_SIZE) { throw std::runtime_error("[BGZF_MAX_BLOCK_SIZE is too small to hold compressed random data]"); }
         _filepath = filepath;
         _file.open(filepath.c_str(), std::ios::out | std::ios::binary);
         _uncompressed_block = new uint8_t[2*BGZF_MAX_BLOCK_SIZE];
         _compressed_block = _uncompressed_block + BGZF_MAX_BLOCK_SIZE;
         _uncompressed_block_size = 0;
     }
-    ~BgzipWriter() { close(); }
+    ~BgzipWriter() {
+        _file.close();
+        delete _uncompressed_block;
+    }
     void write(const char* src_buffer, size_t src_len) {
         while (src_len > 0) {
             size_t copy_length = BGZF_BLOCK_SIZE - _uncompressed_block_size;
@@ -61,12 +61,12 @@ public:
     void write(const std::string src_string) {
         write(src_string.c_str(), src_string.length());
     }
-private:
     void close() {
         // Make one empty block at the end to indicate EOF (as per samtools unofficial spec)
         if (_uncompressed_block_size) flush_uncompressed();
         flush_uncompressed();
     }
+private:
      static inline void packInt16(uint8_t *buffer, uint16_t value) {
         buffer[0] = value;
         buffer[1] = value >> 8;
@@ -101,6 +101,7 @@ private:
     static inline void bgzf_compress(uint8_t *dst, size_t &dlen, const uint8_t *src, size_t slen) {
         uint32_t crc;
         z_stream zs;
+        std::ostringstream errstream;
         // compress the body
         zs.zalloc = NULL; zs.zfree = NULL;
         zs.msg = NULL;
@@ -115,18 +116,18 @@ private:
                                8,
                                Z_DEFAULT_STRATEGY);
         if (ret != Z_OK) {
-            fprintf(stderr, "[E::%s] deflateInit2 failed: %s\n", __func__, zerr(ret, &zs));
-            throw std::runtime_error("[deflateInit2]");
+            errstream << "[E::" << __func__ << "] deflateInit2 failed: " << zerr(ret, &zs) << "\n";
+            throw std::runtime_error(errstream.str().c_str());
         }
         ret = deflate(&zs, Z_FINISH);
         if (ret != Z_STREAM_END) {
-            fprintf(stderr, "[E::%s] deflate failed: %s\n", __func__, zerr(ret, ret == Z_DATA_ERROR ? &zs : NULL));
-            throw std::runtime_error("[deflate]");
+            errstream << "[E::" << __func__ << "] deflate failed: " << zerr(ret, ret == Z_DATA_ERROR ? &zs: NULL) << "\n";
+            throw std::runtime_error(errstream.str().c_str());
         }
         ret = deflateEnd(&zs);
         if (ret != Z_OK) {
-            fprintf(stderr, "[E::%s] deflateEnd failed: %s\n", __func__, zerr(ret, NULL));
-            throw std::runtime_error("[deflateEnd]");
+            errstream << "[E::" << __func__ << "] deflateEnd failed: " << zerr(ret, NULL) << "\n";
+            throw std::runtime_error(errstream.str().c_str());
         }
         dlen = zs.total_out + BLOCK_HEADER_LENGTH + BLOCK_FOOTER_LENGTH;
         // write the header
@@ -139,9 +140,10 @@ private:
     }
     // flush_uncompressed compresses _uncompressed_block into _file
     inline void flush_uncompressed() {
-        // TODO: for random data, the compressed data is often longer than the uncompressed.
+        // NOTE: for random data, the compressed data is often longer than the uncompressed.
         //       but compressed blocks cannot be more than 64KiB, because their size is two bytes.
         //       so, if `bgzf_compress` throws `insufficient_space_exception`, rerun with each half of data.
+        //       this should never happen, because our header+footer is 26 bytes, so we only need marginally compressible data.
         size_t compressed_block_size = BGZF_MAX_BLOCK_SIZE;
         bgzf_compress(_compressed_block, compressed_block_size, _uncompressed_block, _uncompressed_block_size);
         _file.write( (const char*)_compressed_block, compressed_block_size);
@@ -149,12 +151,11 @@ private:
     }
     std::string _filepath;
     std::ofstream _file;
-    uint8_t *_uncompressed_block; //  64KiB
+    uint8_t *_uncompressed_block; // 64KiB
     uint8_t *_compressed_block; // 64KiB
     size_t _uncompressed_block_size; // num bytes occupied
     static const size_t BGZF_BLOCK_SIZE = 0xff00; // 255*256
     static const size_t BGZF_MAX_BLOCK_SIZE = 0x10000; //64K
-    static const size_t WINDOW_SIZE = 0x10000; //64K
     static const int COMPRESSION_LEVEL = Z_DEFAULT_COMPRESSION; // currently 6
     static const int BLOCK_HEADER_LENGTH = 18;
     static const int BLOCK_FOOTER_LENGTH = 8;
@@ -171,7 +172,7 @@ private:
 
 class LineReader {
 public:
-    inline void attach(std::string filepath) {
+    inline void attach(const std::string& filepath) {
         stream.open(filepath);
         next();
     }
@@ -236,7 +237,7 @@ static inline size_t n_fields(std::string str) {
 // ------
 // main
 
-int make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_filepath) {
+int make_matrix(const char *sites_filepath, const char *augmented_pheno_glob, const char *matrix_filepath) {
     BgzipWriter writer(matrix_filepath);
 
     LineReader sites_reader;
@@ -262,9 +263,11 @@ int make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_f
     // Every file's header must begin with the header of sites.tsv
     // All fields after the ones in sites.tsv will be written as "<field>@<pheno>"
     static const std::string cpra_header = "chrom\tpos\tref\talt\t";
-    assert(0 == sites_reader.line.compare(0, cpra_header.size(), cpra_header));
+    if(0 != sites_reader.line.compare(0, cpra_header.size(), cpra_header)) { throw std::runtime_error("[sites.tsv header doesn't begin with \"chrom\tpos\tref\talt\t\"]"); }
     for (size_t i=0; i < N_phenos; i++) {
-        assert(0 == aug_readers[i].line.compare(0, sites_reader.line.size(), sites_reader.line));
+        if(0 != aug_readers[i].line.compare(0, sites_reader.line.size(), sites_reader.line)) {
+          throw std::runtime_error("[one of the pheno input files' header doesn't begin with the header of sites.tsv]");
+        }
     }
     writer.write("#"); // tabix needs the header commented.
     writer.write(sites_reader.line); // no trailing \t or \n
@@ -299,8 +302,12 @@ int make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_f
 
         for (size_t i=0; i<N_phenos; i++) {
             if (!aug_readers[i].eof() && 0 == sites_reader.line.compare(0, pos_after_cpra, aug_readers[i].line, 0, pos_after_cpra)) { // CPRAs match.
-                assert(0 == aug_readers[i].line.compare(0, sites_reader.line.size(), sites_reader.line)); // per-variant fields match.
-                assert(n_fields(aug_readers[i].line) == n_per_variant_fields + aug_n_per_assoc_fields[i]); // correct number of fields on line.
+                if (0 != aug_readers[i].line.compare(0, sites_reader.line.size(), sites_reader.line)) {
+                    throw std::runtime_error("[for some pheno, on some variant line, chrom-pos-ref-alt matches sites.tsv but the rest of the sites.tsv line doesn't match.]");
+                }
+                if (n_fields(aug_readers[i].line) != n_per_variant_fields + aug_n_per_assoc_fields[i]) { // correct number of fields on line.
+                  throw std::runtime_error("[for some pheno, on some variant line, the number of tab-delimited fields doesn't match the header]");
+                }
                 writer.write(aug_readers[i].line.c_str() + sites_reader.line.size(), aug_readers[i].line.size() - sites_reader.line.size()); //write per-assoc fields
                 aug_readers[i].next();
 
@@ -315,6 +322,8 @@ int make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_f
         sites_reader.next();
     }
 
+    writer.close();
+
     return 0;
 }
 
@@ -323,18 +332,33 @@ int make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_f
 // ------
 // entry points
 
-extern "C" {
-  extern int cffi_make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_filepath) {
-    return make_matrix(sites_filepath, augmented_pheno_glob, matrix_filepath);
+const char* make_matrix_and_return_string(const char *sites_filepath, const char *augmented_pheno_glob, const char *matrix_filepath) {
+  try {
+    make_matrix(sites_filepath, augmented_pheno_glob, matrix_filepath);
+    return "ok";
+  } catch (const std::exception &exc) {
+    return exc.what();
+  } catch (...) {
+    return "[something broke]";
   }
 }
 
-// compile with `g++ -lz -std=c++11 -o x x.cpp`
+extern "C" { // we need C because C++ mangles names supposedly
+  extern const char* cffi_make_matrix(const char *sites_filepath, const char *augmented_pheno_glob, const char *matrix_filepath) {
+    return make_matrix_and_return_string(sites_filepath, augmented_pheno_glob, matrix_filepath);
+  }
+}
+
+// for use when compiling directly (for debugging)
 int main(int argc, char **argv) {
-  if (argc == 4)
-    return make_matrix(argv[1], argv[2], argv[3]);
+  if (argc == 4) {
+    const char* ret = make_matrix_and_return_string(argv[1], argv[2], argv[3]);
+    std::cerr << ret << std::endl;
+    std::string good_output = "ok";
+    return (0 == good_output.compare(ret)) ? 0 : 1;
+  }
   std::cout << "Usage:\n"
-            << " ./x /path/to/sites.tsv \"/path/to/pheno/*\" /path/to/matrix.tsv.gz\n"
+            << " ./x /path/to/sites.tsv \"/path/to/pheno/*\" /path/to/matrix.tsv.gz"
             << std::endl;
   return 1;
 }

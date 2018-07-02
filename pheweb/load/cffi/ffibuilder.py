@@ -16,5 +16,5 @@ ffibuilder.set_source('pheweb.load.cffi._x',
                       libraries=['z'], # needed on Linux but not macOS
 )
 ffibuilder.cdef('''
-int cffi_make_matrix(char *sites_filepath, char *augmented_pheno_glob, char *matrix_filepath);
+const char* cffi_make_matrix(const char *sites_filepath, const char *augmented_pheno_glob, const char *matrix_filepath);
 ''')
