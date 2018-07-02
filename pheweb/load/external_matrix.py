@@ -17,7 +17,7 @@ chrord.update({str(chr):int(chr) for chr in list(range(1,23)) } )
 
 def scroll_to_current(variant, phenodat):
 
-    file = phenodat["fpoint"]
+    f = phenodat["fpoint"]
 
     if( len(phenodat["cur_lines"])>0 and (chrord[phenodat["cur_lines"][0][0]]< chrord[variant[0]] or phenodat["cur_lines"][0][1]<variant[1]) ) :
         phenodat["cur_lines"].clear()
@@ -25,7 +25,7 @@ def scroll_to_current(variant, phenodat):
     while( True ):
         dat = None
         if(phenodat["future"] is None):
-            l = file.readline()
+            l = f.readline()
             if(l!=""):
                 l = l.rstrip("\n").split("\t")
                 dat = [  l[i] for i in phenodat["cpra_ind"] + phenodat["other_i"]]
@@ -101,7 +101,7 @@ def run(argv):
 
         with open(args.common_sites) as common:
 
-            smallestpos = (0,0)
+            smallestpos = (30,0)
             for v in common:
                 linedat = []
                 anymatch =False
@@ -122,7 +122,8 @@ def run(argv):
 
                     sm_pos = p["cur_lines"][0] if len(p["cur_lines"])>0 else p["future"]
 
-                    if( sm_pos is not None and ( chrord[sm_pos[0]] <smallestpos[0] or int(sm_pos[1]) < smallestpos[1] )  ):
+                    if( sm_pos is not None and ( chrord[sm_pos[0]] <smallestpos[0] or
+                        ( chrord[sm_pos[0]]==smallestpos[0] and int(sm_pos[1]) < smallestpos[1] ))  ):
                         smallestpos = ( chrord[sm_pos[0]], int(sm_pos[1]) )
 
                     match_idx = [ i for i,v in  enumerate(p["cur_lines"]) if all([ varid[j]==v[j] for j in [0,1,2,3 ] ]) ]
