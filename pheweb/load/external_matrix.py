@@ -1,12 +1,11 @@
-
+import sys
 import os
 import glob
 import pysam
 import argparse
 import gzip
 import subprocess
-
-
+import time
 
 chrord = { "chr"+str(chr):int(chr) for chr in list(range(1,23))}
 chrord["chrX"] = 23
@@ -29,14 +28,18 @@ def scroll_to_current(variant, phenodat):
             if(l!=""):
                 l = l.rstrip("\n").split("\t")
                 dat = [  l[i] for i in phenodat["cpra_ind"] + phenodat["other_i"]]
+                dat[1]=int(dat[1])
         else:
             dat = phenodat["future"]
             phenodat["future"]=None
 
         if( dat is not None):
+            if(len(dat[0].split("_"))>1 ):
+                ## skip alternate contigs from results for now as they don't exist in in FG and are not in predictable order in UKBB liftov er results
+                continue
             if (dat[0]==variant[0] and dat[1]==variant[1]):
                 phenodat["cur_lines"].append(dat)
-            elif chrord[dat[0]]>chrord[variant[0]] or (chrord[dat[0]]>chrord[variant[0]] or dat[1]>variant[1]):
+            elif chrord[dat[0]]>chrord[variant[0]] or (chrord[dat[0]]==chrord[variant[0]] and dat[1]>variant[1]):
                 phenodat["future"] = dat
                 break
         else:
@@ -77,7 +80,6 @@ def run(argv):
     req_fields = list(CPRA_fields)
     req_fields.extend(supp_fields)
 
-
     with open( args.path_to_res + "matrix.tsv","w") as out:
         with open(args.config_file,'r') as conf:
             out.write("\t".join(["#chr","pos","ref","alt"]) )
@@ -98,44 +100,54 @@ def run(argv):
                 out.write( "\t" +  "\t".join( [ s + "@" + line[0] for s in supp_fields] )  )
 
         out.write("\n")
-
+        
+        vars_processed=0
+        start = time.time()
+        last = time.time()
         with open(args.common_sites) as common:
-
-            smallestpos = (30,0)
+            smallestpos = None
             for v in common:
+
+                vars_processed +=1
+
+                if(vars_processed %1000 ==0):
+                    elapsed = time.time()-start
+                    
+                    sincelast = time.time()-last
+                    last = time.time()
+                    print("{} processed {} variants per second. Average speed {} / second".format(vars_processed, 1000/sincelast,vars_processed/ elapsed))
                 linedat = []
                 anymatch =False
                 varid = v.rstrip("\n").split("\t")
                 if(len(varid)<4):
                     raise Exception("Less than 4 columns in common sites row " + v )
                 linedat.extend(varid )
-                if(  smallestpos[0]> chrord[varid[0]] or int(varid[1])<smallestpos[1] ):
+                varid[1]=int(varid[1])
+                
+                if( smallestpos is not None and ( smallestpos[0]> chrord[varid[0]] or varid[1]<smallestpos[1] )):
                     # have not reached the smallest result so keep on scrolling variants
-                    print("skipping " + str(varid) + " smallest " + str(smallestpos) )
                     continue
 
                 for p in phenos:
-
+                    smallestpos=None
                     resf = p["fpoint"]
 
                     scroll_to_current( varid, p )
 
                     sm_pos = p["cur_lines"][0] if len(p["cur_lines"])>0 else p["future"]
 
-                    if( sm_pos is not None and ( chrord[sm_pos[0]] <smallestpos[0] or
-                        ( chrord[sm_pos[0]]==smallestpos[0] and int(sm_pos[1]) < smallestpos[1] ))  ):
-                        smallestpos = ( chrord[sm_pos[0]], int(sm_pos[1]) )
+                    if( sm_pos is not None and ( smallestpos is None or chrord[sm_pos[0]] <smallestpos[0] or
+                        ( chrord[sm_pos[0]]==smallestpos[0] and sm_pos[1] < smallestpos[1] ))  ):
+                        smallestpos = ( chrord[sm_pos[0]], sm_pos[1] )
 
                     match_idx = [ i for i,v in  enumerate(p["cur_lines"]) if all([ varid[j]==v[j] for j in [0,1,2,3 ] ]) ]
 
                     if len(match_idx)==0:
                         ## not matching.... write blanks,
                         linedat.extend(["NA"] * len(supp_fields))
-                        #out.write("\t" + "\t".join( ["NA"] * len(supp_fields)))
                     else:
                         anymatch=True
                         linedat.extend(p["cur_lines"][match_idx[0]][4:])
-                        #out.write( "\t" + "\t".join( p["cur_line"][match_idx[0]][4:] ) )
                         del p["cur_lines"][match_idx[0]]
                 if(anymatch):
                     out.write("\t".join(linedat) + "\n")
