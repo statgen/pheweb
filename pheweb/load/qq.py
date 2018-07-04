@@ -15,12 +15,9 @@ import collections
 import math
 import scipy.stats
 
-
-NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
-NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
 NUM_BINS = 1000
-
 NUM_MAF_RANGES = 4
+
 
 def run(argv):
     parallelize_per_pheno(
@@ -39,7 +36,7 @@ def make_json_file(pheno):
         if variants[0].maf is not None:
             rv['overall'] = make_qq_unstratified(variants, include_qq=False)
             rv['by_maf'] = make_qq_stratified(variants)
-            rv['ci'] = get_confidence_intervals(len(variants)/4)
+            rv['ci'] = get_confidence_intervals(len(variants) / len(rv['by_maf']))
         else:
             rv['overall'] = make_qq_unstratified(variants, include_qq=True)
             rv['ci'] = get_confidence_intervals(len(variants))
@@ -139,23 +136,23 @@ def augment_variants(variants, pheno):
         yield Variant(neglog10_pval=neglog10_pval, maf=maf)
 
 
-def get_confidence_intervals(nvar):
-    # 95% CI
-    # TODO: always have ten slices (and overshoot a little)
-    #       but I don't understand how these are used, so I'm not sure what gets replaced.
+def get_confidence_intervals(num_variants, confidence=0.95):
+    # TODO: always use ten slices?
     # TODO: rename `slices` to `variant_count_x_ticks` or `variant_counts` or something else
+    one_sided_doubt = (1-confidence) / 2
+
     slices = []
-    for x in range(0, int(math.ceil(math.log2(nvar)))):
+    for x in range(0, int(math.ceil(math.log2(num_variants)))):
         slices.append(2**x)
-    slices.append(nvar-1)
+    slices.append(num_variants-1)
     slices.reverse()
 
     points = []
     for slice in slices:
-        rv = scipy.stats.beta(slice, nvar-slice)
+        rv = scipy.stats.beta(slice, num_variants-slice)
         points.append({
-            'x': round(-math.log10((slice-0.5)/nvar),2),
-            'y_min': round(-math.log10(rv.ppf(1-(0.05/2))),2),
-            'y_max': round(-math.log10(rv.ppf(0.05/2)),2),
+            'x': round(-math.log10(slice/num_variants),2),
+            'y_min': round(-math.log10(rv.ppf(1-one_sided_doubt)),2),
+            'y_max': round(-math.log10(rv.ppf(one_sided_doubt)),2),
         })
     return points
