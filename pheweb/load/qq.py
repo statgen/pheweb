@@ -43,51 +43,15 @@ def make_json_file(pheno):
     write_json(filepath=common_filepaths['qq'](pheno['phenocode']), data=rv)
 
 
-def gc_value_from_list(neglog10_pvals, quantile=0.5):
-    # neglog10_pvals must be in decreasing order.
-    assert all(neglog10_pvals[i] >= neglog10_pvals[i+1] for i in range(len(neglog10_pvals)-1))
-    neglog10_pval = neglog10_pvals[int(len(neglog10_pvals) * quantile)]
-    pval = 10 ** -neglog10_pval
-    return gc_value(pval, quantile)
-def gc_value(pval, quantile=0.5):
-    # This should be equivalent to this R: `qchisq(median_pval, df=1, lower.tail=F) / qchisq(quantile, df=1, lower.tail=F)`
-    return scipy.stats.chi2.ppf(1 - pval, 1) / scipy.stats.chi2.ppf(1 - quantile, 1)
-assert approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
-assert approx_equal(gc_value(0.5), 1)
-assert approx_equal(gc_value(0.50001), 0.9999533)
-assert approx_equal(gc_value(0.6123), 0.5645607)
-
-
-def compute_qq(neglog10_pvals):
-    # neglog10_pvals must be in decreasing order.
-    assert all(neglog10_pvals[i] >= neglog10_pvals[i+1] for i in range(len(neglog10_pvals)-1))
-
-    if len(neglog10_pvals) == 0:
-        return []
-
-    max_exp_neglog10_pval = -math.log10(0.5 / len(neglog10_pvals))
-    max_obs_neglog10_pval = neglog10_pvals[0]
-
-    if max_obs_neglog10_pval == 0:
-        print('WARNING: All pvalues are 1! How is that supposed to make a QQ plot?')
-        return []
-
-    occupied_bins = set()
-    for i, obs_neglog10_pval in enumerate(neglog10_pvals):
-        exp_neglog10_pval = -math.log10( (i+0.5) / len(neglog10_pvals))
-        exp_bin = int(exp_neglog10_pval / max_exp_neglog10_pval * NUM_BINS)
-        obs_bin = int(obs_neglog10_pval / max_obs_neglog10_pval * NUM_BINS)
-        occupied_bins.add( (exp_bin,obs_bin) )
-
-    qq = []
-    for exp_bin, obs_bin in occupied_bins:
-        assert 0 <= exp_bin <= NUM_BINS, exp_bin
-        assert 0 <= obs_bin <= NUM_BINS, obs_bin
-        qq.append((
-            exp_bin / NUM_BINS * max_exp_neglog10_pval,
-            obs_bin / NUM_BINS * max_obs_neglog10_pval
-        ))
-    return sorted(qq)
+Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
+def augment_variants(variants, pheno):
+    for v in variants:
+        if v['pval'] == 0:
+            print("Warning: There's a variant with pval 0 in {!r}.  (Variant: {!r})".format(pheno['phenocode'], v))
+            continue
+        neglog10_pval = -math.log10(v['pval'])
+        maf = get_maf(v, pheno)
+        yield Variant(neglog10_pval=neglog10_pval, maf=maf)
 
 
 def make_qq_stratified(variants):
@@ -125,15 +89,53 @@ def make_qq_unstratified(variants, include_qq):
 
 
 
-Variant = collections.namedtuple('Variant', ['neglog10_pval', 'maf'])
-def augment_variants(variants, pheno):
-    for v in variants:
-        if v['pval'] == 0:
-            print("Warning: There's a variant with pval 0 in {!r}.  (Variant: {!r})".format(pheno['phenocode'], v))
-            continue
-        neglog10_pval = -math.log10(v['pval'])
-        maf = get_maf(v, pheno)
-        yield Variant(neglog10_pval=neglog10_pval, maf=maf)
+
+def compute_qq(neglog10_pvals):
+    # neglog10_pvals must be in decreasing order.
+    assert all(neglog10_pvals[i] >= neglog10_pvals[i+1] for i in range(len(neglog10_pvals)-1))
+
+    if len(neglog10_pvals) == 0:
+        return []
+
+    max_exp_neglog10_pval = -math.log10(0.5 / len(neglog10_pvals))
+    max_obs_neglog10_pval = neglog10_pvals[0]
+
+    if max_obs_neglog10_pval == 0:
+        print('WARNING: All pvalues are 1! How is that supposed to make a QQ plot?')
+        return []
+
+    occupied_bins = set()
+    for i, obs_neglog10_pval in enumerate(neglog10_pvals):
+        exp_neglog10_pval = -math.log10( (i+0.5) / len(neglog10_pvals))
+        exp_bin = int(exp_neglog10_pval / max_exp_neglog10_pval * NUM_BINS)
+        obs_bin = int(obs_neglog10_pval / max_obs_neglog10_pval * NUM_BINS)
+        occupied_bins.add( (exp_bin,obs_bin) )
+
+    qq = []
+    for exp_bin, obs_bin in occupied_bins:
+        assert 0 <= exp_bin <= NUM_BINS, exp_bin
+        assert 0 <= obs_bin <= NUM_BINS, obs_bin
+        qq.append((
+            exp_bin / NUM_BINS * max_exp_neglog10_pval,
+            obs_bin / NUM_BINS * max_obs_neglog10_pval
+        ))
+    return sorted(qq)
+
+
+def gc_value_from_list(neglog10_pvals, quantile=0.5):
+    # neglog10_pvals must be in decreasing order.
+    assert all(neglog10_pvals[i] >= neglog10_pvals[i+1] for i in range(len(neglog10_pvals)-1))
+    neglog10_pval = neglog10_pvals[int(len(neglog10_pvals) * quantile)]
+    pval = 10 ** -neglog10_pval
+    return gc_value(pval, quantile)
+def gc_value(pval, quantile=0.5):
+    # This should be equivalent to this R: `qchisq(median_pval, df=1, lower.tail=F) / qchisq(quantile, df=1, lower.tail=F)`
+    return scipy.stats.chi2.ppf(1 - pval, 1) / scipy.stats.chi2.ppf(1 - quantile, 1)
+assert approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
+assert approx_equal(gc_value(0.5), 1)
+assert approx_equal(gc_value(0.50001), 0.9999533)
+assert approx_equal(gc_value(0.6123), 0.5645607)
+
 
 
 def get_confidence_intervals(num_variants, confidence=0.95):
