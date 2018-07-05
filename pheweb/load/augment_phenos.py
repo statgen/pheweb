@@ -24,6 +24,7 @@ def convert(pheno):
 
         def write_variant(sites_variant, pheno_variant):
             sites_variant.update(pheno_variant)
+            del sites_variant['chrom_idx']
             writer.write(sites_variant)
 
         try: pheno_variant = next(pheno_variants)
@@ -36,12 +37,11 @@ def convert(pheno):
                 try: sites_variant = next(sites_variants)
                 except StopIteration: break
             elif cmp == 2:
-                try: pheno_variant = next(pheno_variants)
-                except StopIteration: break
+                raise PheWebError('The file {} contained variant {} which was missing from {}'.format(
+                    common_filepaths['parsed'](pheno['phenocode']),
+                    pheno_variant,
+                    sites_filepath))
             else: # equal
-                # TODO: do I need this?
-                del sites_variant['chrom_idx']
-                del pheno_variant['chrom_idx']
                 write_variant(sites_variant, pheno_variant)
                 try:
                     sites_variant = next(sites_variants)
