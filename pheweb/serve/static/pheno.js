@@ -48,49 +48,53 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         return chrom_offsets[variant.chrom] + variant.pos;
     }
 
-    function get_y_axis_config(max_qval, plot_height) {
+    function get_y_axis_config(max_data_qval, plot_height, includes_pval0) {
 
-        var scale = d3.scale.linear().clamp(true);
-        var draw_break_at_20;
         var possible_ticks = [];
-
-        if (max_qval <= 40) {
-            scale = scale
-                .domain([max_qval, 0])
-                .range([0, plot_height*0.97]);
-            draw_break_at_20 = false;
-            if (max_qval < 10) { possible_ticks = _.range(0, 10.1, 2); }
-            else if (max_qval < 20) { possible_ticks = _.range(0, 20.1, 4); }
-            else { possible_ticks = _.range(0, 40.1, 8); }
-
-        } else {
-            scale = scale
-                .domain([max_qval, 20, 0])
-                .range([0, plot_height*0.97/2, plot_height*0.97]);
-            draw_break_at_20 = true;
+        if (max_data_qval <= 14) { possible_ticks = _.range(0, 14.1, 2); }
+        else if (max_data_qval <= 28) { possible_ticks = _.range(0, 28.1, 4); }
+        else if (max_data_qval <= 40) { possible_ticks = _.range(0, 40.1, 8); }
+        else {
             possible_ticks = _.range(0, 20.1, 4);
-            if (max_qval <= 60) {
-                possible_ticks = possible_ticks.concat([30,40,50,60]);
-            } else if (max_qval <= 80) {
-                possible_ticks = possible_ticks.concat([40,60,80,100]);
-            } else if (max_qval <= 180) {
-                possible_ticks = possible_ticks.concat([60,100,140,180]);
-            } else {
-                var power_of_ten = Math.pow(10, Math.floor(Math.log10(max_qval)));
-                var first_digit = max_qval / power_of_ten;
+            if (max_data_qval <= 70) { possible_ticks = possible_ticks.concat([30,40,50,60,70]); }
+            else if (max_data_qval <= 120) { possible_ticks = possible_ticks.concat([40,60,80,100,120]); }
+            else if (max_data_qval <= 220) { possible_ticks = possible_ticks.concat([60,100,140,180,220]); }
+            else {
+                var power_of_ten = Math.pow(10, Math.floor(Math.log10(max_data_qval)));
+                var first_digit = max_data_qval / power_of_ten;
                 var multipliers;
-                if (first_digit < 2) { multipliers = [0.5, 1, 1.5, 2]; }
-                else if (first_digit < 4) { multipliers = [1, 2, 3, 4]; }
+                if (first_digit <= 2) { multipliers = [0.5, 1, 1.5, 2]; }
+                else if (first_digit <= 4) { multipliers = [1, 2, 3, 4]; }
                 else { multipliers = [2, 4, 6, 8, 10]; }
-                possible_ticks = possible_ticks.concat(multipiers.map(function(m) { return m * power_of_ten; }));
+                possible_ticks = possible_ticks.concat(multipliers.map(function(m) { return m * power_of_ten; }));
             }
         }
-        possible_ticks = possible_ticks.filter(function(qval) { return qval <= max_qval; });
+        // Include all ticks < qval.  Then also include the next tick.
+        // That should mean we'll always have the largest tick >= the largest variant.
+        var ticks = possible_ticks.filter(function(qval) { return qval < max_data_qval; });
+        if (ticks.length < possible_ticks.length) { ticks.push(possible_ticks[ticks.length]); }
+
+        // Use the largest tick for the top of our y-axis so that we'll have a tick nicely rendered right at the top.
+        var max_plot_qval = ticks[ticks.length-1];
+        // If we have any qval=inf (pval=0) variants, leave space for them.
+        if (includes_pval0) { max_plot_qval *= 1.1 }
+        var scale = d3.scale.linear().clamp(true);
+        if (max_plot_qval <= 40) {
+            scale = scale
+                .domain([max_plot_qval, 0])
+                .range([0, plot_height]);
+        } else {
+            scale = scale
+                .domain([max_plot_qval, 20, 0])
+                .range([0, plot_height/2, plot_height]);
+        }
+
+        if (includes_pval0) { ticks.push(Infinity); }
 
         return {
             'scale': scale,
-            'draw_break_at_20': draw_break_at_20,
-            'ticks': possible_ticks,
+            'draw_break_at_20': !(max_plot_qval <= 40),
+            'ticks': ticks,
         };
     }
 
@@ -134,9 +138,10 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .domain(genomic_position_extent)
             .range([0, plot_width]);
 
-        // The top buffer `1.03` puts points clamped to the top (pval=0, qval=inf) slightly above other points.
-        var highest_plot_qval = 1.03 * Math.max(
-            -Math.log10(significance_threshold) + 1,
+        var includes_pval0 = _.any(unbinned_variants, function(variant) { return variant.pval === 0; });
+
+        var highest_plot_qval = Math.max(
+            -Math.log10(significance_threshold) + 0.5,
             (function() {
                 var best_unbinned_qval = -Math.log10(d3.min(unbinned_variants, function(d) {
                     return (d.pval === 0) ? 1 : d.pval;
@@ -147,12 +152,8 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
                 });
             })());
 
-        var y_axis_config = get_y_axis_config(highest_plot_qval, plot_height);
+        var y_axis_config = get_y_axis_config(highest_plot_qval, plot_height, includes_pval0);
         var y_scale = y_axis_config.scale;
-        if (unbinned_variants.filter(function(d) { return d.pval === 0; })) {
-            // TODO: draw a small y-axis-break underneath "Infinity"
-            y_axis_config.ticks.push(Infinity);
-        }
 
         // TODO: draw a small y-axis-break at 20 if `y_axis_config.draw_break_at_20`
         var y_axis = d3.svg.axis()
@@ -164,6 +165,21 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .attr("class", "y axis")
             .attr('transform', 'translate(-8,0)') // avoid letting points spill through the y axis.
             .call(y_axis);
+
+        if (includes_pval0) {
+            var y_axis_break_inf_offset = y_scale(Infinity) + (y_scale(0)-y_scale(Infinity)) * 0.03
+            gwas_plot.append('line')
+                .attr('x1', -8-7).attr('x2', -8+7)
+                .attr('y1', y_axis_break_inf_offset+6).attr('y2', y_axis_break_inf_offset-6)
+                .attr('stroke', '#666').attr('stroke-width', '3px');
+        }
+        if (y_axis_config.draw_break_at_20) {
+            var y_axis_break_20_offset = y_scale(20);
+            gwas_plot.append('line')
+                .attr('x1', -8-7).attr('x2', -8+7)
+                .attr('y1', y_axis_break_20_offset+6).attr('y2', y_axis_break_20_offset-6)
+                .attr('stroke', '#666').attr('stroke-width', '3px');
+        }
 
         gwas_svg.append('text')
             .style('text-anchor', 'middle')
