@@ -155,7 +155,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         }
 
         // TODO: draw a small y-axis-break at 20 if `y_axis_config.draw_break_at_20`
-        var yAxis = d3.svg.axis()
+        var y_axis = d3.svg.axis()
             .scale(y_scale)
             .orient("left")
             .tickFormat(d3.format("d"))
@@ -163,7 +163,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         gwas_plot.append("g")
             .attr("class", "y axis")
             .attr('transform', 'translate(-8,0)') // avoid letting points spill through the y axis.
-            .call(yAxis);
+            .call(y_axis);
 
         gwas_svg.append('text')
             .style('text-anchor', 'middle')
@@ -478,7 +478,7 @@ function create_qq_plot(maf_ranges, qq_ci) {
             .attr("transform", fmt("translate(0,{0})", plot_height))
             .call(xAxis);
 
-        var yAxis = d3.svg.axis()
+        var y_axis = d3.svg.axis()
             .scale(y_scale)
             .orient("left")
             .innerTickSize(-plot_width)
@@ -488,7 +488,7 @@ function create_qq_plot(maf_ranges, qq_ci) {
             .tickValues(_.range(obs_max)); //prevent unlabeled, non-integer ticks.
         qq_plot.append("g")
             .attr("class", "y axis")
-            .call(yAxis);
+            .call(y_axis);
 
         qq_svg.append('text')
             .style('text-anchor', 'middle')
