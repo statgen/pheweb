@@ -1,7 +1,7 @@
 
 from ..utils import get_phenolist
 from ..conf_utils import conf
-from ..file_utils import write_json, VariantFileWriter, common_filepaths
+from ..file_utils import write_json, write_heterogenous_variantfile, common_filepaths
 
 import json
 
@@ -68,6 +68,6 @@ just the top phenotype for each, use `pheweb top-loci`.
     print("wrote {} hits to {}".format(len(hits[:1000]), out_filepath_1k_json))
 
     stringify_assocs(hits)
-    with VariantFileWriter(out_filepath_tsv, allow_extra_fields=True) as writer:
-        writer.write_all(hits)
+
+    write_heterogenous_variantfile(out_filepath_tsv, hits)
     print("wrote {} hits to {}".format(len(hits), out_filepath_tsv))

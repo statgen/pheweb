@@ -11,6 +11,7 @@ import gzip
 import datetime
 from boltons.fileutils import AtomicSaver, mkdir_p
 import pysam
+import itertools
 
 
 def get_generated_path(*path_parts):
@@ -306,6 +307,8 @@ def VariantFileWriter(filepath, allow_extra_fields=False):
 
         with VariantFileWriter('a.tsv') as writer:
             writer.write({'chrom': '2', 'pos': 47, ...})
+
+    Each variant/association/hit/loci written must have a subset of the keys of the first one.
     '''
     part_file = get_tmp_path(filepath)
     make_basedir(filepath)
@@ -333,6 +336,12 @@ class _vfw:
     def write_all(self, variants):
         for v in variants:
             self.write(v)
+
+def write_heterogenous_variantfile(filepath, assocs):
+    '''inject all necessary keys into the first association so that the writer will be made correctly'''
+    assocs[0] = {field:assocs[0].get(field,'') for field in set(itertools.chain.from_iterable(assocs))}
+    with VariantFileWriter(filepath, allow_extra_fields=True) as vfw:
+        vfw.write_all(assocs)
 
 def convert_VariantFile_to_IndexedVariantFile(vf_path, ivf_path):
     make_basedir(ivf_path)

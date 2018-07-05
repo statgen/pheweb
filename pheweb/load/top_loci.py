@@ -1,6 +1,6 @@
 
 from ..conf_utils import conf
-from ..file_utils import write_json, VariantFileWriter, common_filepaths
+from ..file_utils import write_json, write_heterogenous_variantfile, common_filepaths
 
 from .top_hits import get_all_hits, stringify_assocs
 
@@ -50,6 +50,5 @@ shown.  If you want all hits, use `pheweb top-hits`.
     print("wrote {} loci to {}".format(len(loci), out_filepath_json))
 
     stringify_assocs(loci)
-    with VariantFileWriter(out_filepath_tsv, allow_extra_fields=True) as writer:
-        writer.write_all(loci)
+    write_heterogenous_variantfile(out_filepath_tsv, loci)
     print("wrote {} loci to {}".format(len(loci), out_filepath_tsv))
