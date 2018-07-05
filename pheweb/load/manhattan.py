@@ -8,6 +8,7 @@ This script creates json files which can be used to render Manhattan plots.
 # TODO: optimize binning for fold@20 view.
 #       - if we knew the max_qval before we started (eg, by running qq first), it would be very easy.
 #       - at present, we set qval bin size well for the [0-40] range but not for variants above that.
+# TODO: combine with QQ?
 
 from ..utils import chrom_order
 from ..conf_utils import conf
@@ -18,9 +19,9 @@ import math
 
 BIN_LENGTH = int(3e6)
 
-QVAL_BIN_BASE_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
-QVAL_BIN_DIGITS = 2 # Then round to this many digits
-QVAL_MIN_NUM_BINS = 200 # Try to keep at least this many bins for [0 - min(40,max_qval)]
+QVAL_STARTING_BIN_SIZE = 0.05
+QVAL_BIN_ROUND_DIGITS = 2
+QVAL_NUM_BINS = 200 # Number of bins for [0 - min(40,max_qval)]
 
 
 def run(argv):
@@ -36,17 +37,17 @@ def make_json_file(pheno):
 
     with VariantFileReader(common_filepaths['pheno'](pheno['phenocode'])) as variants:
         variant_bins, unbinned_variants = bin_variants(variants)
-    label_peaks(unbinned_variants)
-    rv = {
+    data = {
         'variant_bins': variant_bins,
         'unbinned_variants': unbinned_variants,
     }
 
-    write_json(filepath=common_filepaths['manhattan'](pheno['phenocode']), data=rv)
+    write_json(filepath=common_filepaths['manhattan'](pheno['phenocode']), data=data)
 
 
-def rounded_neglog10(pval, qval_bin_size):
-    return round(-math.log10(pval) // qval_bin_size * qval_bin_size, QVAL_BIN_DIGITS)
+def rounded_neglog10(pval):
+    return round(-math.log10(pval) // QVAL_STARTING_BIN_SIZE * QVAL_STARTING_BIN_SIZE,
+                 QVAL_BIN_ROUND_DIGITS)
 
 
 def get_pvals_and_pval_extents(pvals, qval_bin_size):
@@ -67,65 +68,85 @@ def get_pvals_and_pval_extents(pvals, qval_bin_size):
     return (rv_pvals, rv_pval_extents)
 
 
-# TODO: convert bins from {(chrom, pos): []} to {chrom:{pos:[]}} to eliminate `chrom_n_bins` ?
+# TODO: unbin several variants in each peak?  or unbin the top 20 peaks and top 20 variants in each chrom?
 def bin_variants(variant_iterator):
-    bins = {}
+    '''
+    Iterate through variant_iterator.
+    There are 3 types of variants:
+      a) If the variant starts or extends a peak and has a stronger pval than the current `peak_best_variant`:
+         1) push the old `peak_best_variant` into `unbinned_variant_pq`.
+         2) make the current variant the new `peak_best_variant`.
+      b) If the variant ends a peak, push `peak_best_variant` into `peak_pq` and push the current variant into `unbinned_variant_pq`.
+      c) Otherwise, just push the variant into `unbinned_variant_pq`.
+    Whenever `peak_pq` exceeds the size `conf.manhattan_peak_max_count`, push its member with the weakest pval into `unbinned_variant_pq`.
+    Whenever `unbinned_variant_pq` exceeds the size `conf.manhattan_num_unbinned`, bin its member with the weakest pval.
+    So, at the end, we'll have `peak_pq`, `unbinned_variant_pq`, and `bins`.
+    '''
+    peak_best_variant = None
+    peak_last_chrpos = None
+    peak_pq = MaxPriorityQueue()
     unbinned_variant_pq = MaxPriorityQueue()
-    chrom_n_bins = {}
-    qval_bin_size = QVAL_BIN_BASE_SIZE
-    min_pval = 0.999 # almost 1, but avoids divide-by-zero errors
+    bins = {} # like {<chrom>: {<pos // bin_length>: [{chrom, startpos, qvals}]}}
 
+    def maybe_peak_variant(variant):
+        peak_pq.add_and_keep_size(variant, variant['pval'],
+                                  size=conf.manhattan_peak_max_count,
+                                  popped_callback=maybe_bin_variant)
+    def maybe_bin_variant(variant):
+        unbinned_variant_pq.add_and_keep_size(variant, variant['pval'],
+                                              size=conf.manhattan_num_unbinned,
+                                              popped_callback=bin_variant)
     def bin_variant(variant):
-        chrom_key = chrom_order[variant['chrom']]
-        pos_bin = variant['pos'] // BIN_LENGTH
-        chrom_n_bins[chrom_key] = max(chrom_n_bins.get(chrom_key,0), pos_bin)
-        if (chrom_key, pos_bin) in bins:
-            bin = bins[(chrom_key, pos_bin)]
+        chrom_idx = chrom_order[variant['chrom']]
+        if chrom_idx not in bins: bins[chrom_idx] = {}
+        pos_bin_id = variant['pos'] // BIN_LENGTH
+        if pos_bin_id not in bins[chrom_idx]:
+            bins[chrom_idx][pos_bin_id] = {'chrom': variant['chrom'], 'startpos': pos_bin_id * BIN_LENGTH, 'qvals': set()}
+        qval = rounded_neglog10(variant['pval'])
+        bins[chrom_idx][pos_bin_id]["qvals"].add(qval)
 
-        else:
-            bin = bins[(chrom_key, pos_bin)] = {"chrom": variant['chrom'],
-                                                "startpos": pos_bin * BIN_LENGTH,
-                                                "qvals": set()}
-        bin["qvals"].add(rounded_neglog10(variant['pval'], qval_bin_size))
-
-    # put most-significant variants into the priorityqueue and bin the rest
     for variant in variant_iterator:
-        if variant['pval'] < min_pval and variant['pval'] != 0:
-            min_pval = variant['pval']
-            # if this new min_pval gives us 2x+ as many qval_bins as we need,
-            # then double the qval_bin_size and re-bin all qvals we currently have
-            if min(40, -math.log10(min_pval)) / qval_bin_size >= QVAL_MIN_NUM_BINS * 2:
-                qval_bin_size *= 2
-                for bin in bins:
-                    bin['qvals'] = {rounded_neglog10(qval, qval_bin_size) for qval in bin['qvals']}
-        unbinned_variant_pq.add(variant, variant['pval'])
-        if len(unbinned_variant_pq) > conf.manhattan_num_unbinned:
-            old = unbinned_variant_pq.pop()
-            bin_variant(old)
+        if variant['pval'] < conf.manhattan_peak_pval_threshold: # part of a peak
+            if peak_best_variant is None: # open a new peak
+                peak_best_variant = variant
+                peak_last_chrpos = (variant['chrom'], variant['pos'])
+            elif peak_last_chrpos[0] == variant['chrom'] and peak_last_chrpos[1] + conf.manhattan_peak_sprawl_dist > variant['pos']: # extend current peak
+                peak_last_chrpos = (variant['chrom'], variant['pos'])
+                if variant['pval'] >= peak_best_variant['pval']:
+                    maybe_bin_variant(variant)
+                else:
+                    maybe_bin_variant(peak_best_variant)
+                    peak_best_variant = variant
+            else: # close old peak and open new peak
+                maybe_peak_variant(peak_best_variant)
+                peak_best_variant = variant
+                peak_last_chrpos = (variant['chrom'], variant['pos'])
+        else:
+            maybe_bin_variant(variant)
+    if peak_best_variant: maybe_peak_variant(peak_best_variant)
 
+    peaks = list(peak_pq.pop_all())
+    for peak in peaks: peak['peak'] = True
     unbinned_variants = list(unbinned_variant_pq.pop_all())
+    unbinned_variants = sorted(unbinned_variants + peaks, key=(lambda variant: variant['pval']))
 
-    # unroll bins into simple array (preserving chromosomal order)
-    binned_variants = []
-    for chrom_key in sorted(chrom_n_bins.keys()):
-        for pos_key in range(int(1+chrom_n_bins[chrom_key])):
-            b = bins.get((chrom_key, pos_key), None)
-            if b and len(b['qvals']) != 0:
-                b['qvals'], b['qval_extents'] = get_pvals_and_pval_extents(b['qvals'], qval_bin_size)
-                b['pos'] = int(b['startpos'] + BIN_LENGTH/2)
-                del b['startpos']
-                binned_variants.append(b)
+    # Compute a new qval_bin_size.
+    min_nonzero_pval = next(v['pval'] for v in unbinned_variants if v['pval'] != 0)
+    max_qval_or_40 = 40 if min_nonzero_pval <= 10**-40 else -math.log10(min_nonzero_pval)
+    qval_bin_size = max_qval_or_40 / QVAL_NUM_BINS # keep at least QVAL_NUM_BINS in default scaled range [0-min(40,max_qval)]
+    qval_bin_size = round(qval_bin_size // QVAL_STARTING_BIN_SIZE * QVAL_STARTING_BIN_SIZE, 2) # use a multiple of QVAL_STARTING_BIN_SIZE to avoid stripes
+    qval_bin_size = max(qval_bin_size, QVAL_STARTING_BIN_SIZE) # never go below QVAL_STARTING_BIN_SIZE
 
-    return binned_variants, unbinned_variants
+    # unroll dict-of-dict-of-array `bins` into array `variant_bins`
+    variant_bins = []
+    for chrom_idx in sorted(bins.keys()):
+        for pos_bin_id in sorted(bins[chrom_idx].keys()):
+            b = bins[chrom_idx][pos_bin_id]
+            assert len(b['qvals']) > 0
+            b['qvals'] = [round(qval // qval_bin_size * qval_bin_size, QVAL_BIN_ROUND_DIGITS) for qval in b['qvals']]
+            b['qvals'], b['qval_extents'] = get_pvals_and_pval_extents(b['qvals'], qval_bin_size)
+            b['pos'] = int(b['startpos'] + BIN_LENGTH/2)
+            del b['startpos']
+            variant_bins.append(b)
 
-
-# TODO: rename `peak` to `loci`?
-def label_peaks(variants):
-    chroms = {}
-    for v in variants:
-        chroms.setdefault(v['chrom'], []).append(v)
-    for vs in chroms.values():
-        while vs:
-            best_assoc = min(vs, key=lambda assoc: assoc['pval'])
-            best_assoc['peak'] = True
-            vs = [v for v in vs if abs(v['pos'] - best_assoc['pos']) > conf.within_pheno_mask_around_peak]
+    return variant_bins, unbinned_variants

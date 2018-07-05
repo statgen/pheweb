@@ -38,7 +38,7 @@ Even if this loci also contains significant hits for other phenotypes, they won'
 shown.  If you want all hits, use `pheweb top-hits`.
 '''.format(out_filepath_json,
            out_filepath_tsv,
-           '{:0.0e}'.format(conf.peak_pval_cutoff).replace('e-0', 'e-'),
+           '{:0.0e}'.format(conf.top_hits_pval_cutoff).replace('e-0', 'e-'),
            conf.manhattan_num_unbinned,
            conf.within_pheno_mask_around_peak,
            conf.between_pheno_mask_around_peak,

@@ -135,6 +135,16 @@ class MaxPriorityQueue:
             bisect.insort(self._q, (priority, idx))
         self._items[idx] = item
 
+    def add_and_keep_size(self, item, priority, size, popped_callback):
+        if len(self._q) < size:
+            self.add(item, priority)
+        else:
+            if priority > self._q[-1][0]:
+                popped_callback(item)
+            else:
+                popped_callback(self.pop())
+                self.add(item, priority)
+
     def pop(self):
         priority, idx = self._q.pop()
         return self._items.pop(idx)

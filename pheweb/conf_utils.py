@@ -124,8 +124,11 @@ def _ensure_conf():
     conf.set_default_value('variant_inclusion_maf', 0)
     conf.set_default_value('within_pheno_mask_around_peak', int(500e3))
     conf.set_default_value('between_pheno_mask_around_peak', int(1e6))
-    conf.set_default_value('manhattan_num_unbinned', 2000)
-    conf.set_default_value('peak_pval_cutoff', 1e-6)
+    conf.set_default_value('manhattan_num_unbinned', 500)
+    conf.set_default_value('manhattan_peak_max_count', 500)
+    conf.set_default_value('manhattan_peak_pval_threshold', 1e-6)
+    conf.set_default_value('manhattan_peak_sprawl_dist', int(200e3))
+    conf.set_default_value('top_hits_pval_cutoff', 1e-6)
 
     if 'minimum_maf' in conf:
         raise utils.PheWebError("minimum_maf has been deprecated.  Please remove it and use assoc_min_maf and/or variant_inclusion_maf instead")

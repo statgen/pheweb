@@ -14,7 +14,7 @@ def get_hits(pheno):
         variants = json.load(f)['unbinned_variants']
 
     for v in variants:
-        if v['pval'] <= conf.peak_pval_cutoff and 'peak' in v:
+        if v['pval'] <= conf.top_hits_pval_cutoff and 'peak' in v:
             v['phenocode'] = pheno['phenocode']
             try: v['phenostring'] = pheno['phenostring']
             except KeyError: pass
