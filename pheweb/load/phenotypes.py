@@ -27,5 +27,6 @@ def get_phenotypes_including_top_variants():
 def run(argv):
     out_filepath = common_filepaths['phenotypes_summary']
     data = list(get_phenotypes_including_top_variants())
+    data.sort(key=lambda p: p['pval'])
     write_json(filepath=out_filepath, data=data)
     print("wrote {} phenotypes to {}".format(len(data), out_filepath))
