@@ -112,6 +112,13 @@ def api_variant(query):
 def variant_page(query):
     try:
         variant = get_variant(query)
+        
+        for p in variant["phenos"]:
+            phenocode = p["phenocode"]
+            ukbb =ukbb_dao.get_matching_results(phenocode , ("chr" + variant["chrom"],variant["pos"],variant["ref"],variant["alt"]))
+            if(len(ukbb)>0):
+                p["ukbb"] = list(ukbb.values())[0]
+            
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
@@ -140,7 +147,6 @@ def api_pheno(phenocode):
 
         ukbbvars = ukbb_dao.get_matching_results(phenocode ,
             list(map( lambda variant: ( "chr" + variant["chrom"], variant["pos"], variant["ref"], variant["alt"]), variants['unbinned_variants'])))
-
         for variant in variants['unbinned_variants']:
             if 'peak' in variant:
                 id = variant_to_id(variant)
@@ -152,7 +158,7 @@ def api_pheno(phenocode):
 
                 if id in ukbbvars:
                     ## convert tuple to dict for jsonify to keep field dames
-                    variant['ukbb'] = ukbbvars[id]._asdict()
+                    variant['ukbb'] = ukbbvars[id]
 
 
         return jsonify(variants)
@@ -174,9 +180,11 @@ def gene_functional_variants(gene, pThreshold):
             result = result_dao.get_variant_results_range(chrom, int(pos), int(pos))
             filtered = { "rsids": result[0]["assoc"]["rsids"], "significant_phenos": [res for res in result if res["assoc"]["pval"] < pThreshold ] }
             for ph in filtered["significant_phenos"]:
-                uk_var = ukbb_dao.get_matching_results(ph["pheno"]["phenocode"], ph["id"])
+                var = ph["assoc"]["id"].split(":")
+                var[1] = int(var[1])
+                uk_var = ukbb_dao.get_matching_results(ph["pheno"]["phenocode"], [var])
                 if(len(uk_var)>0):
-                    ph["ukbb"] =uk_var[ph["id"]]._asdict()
+                    ph["ukbb"] =uk_var[ph["assoc"]["id"]]._asdict()
 
 
             annotations[i] = {**annotations[i], **filtered}
@@ -230,7 +238,6 @@ def api_gene_functional_variants(gene):
     if ('p' in request.args):
         pThreshold= float(request.args.get('p'))
     annotations = gene_functional_variants(gene, pThreshold)
-
     return jsonify(annotations)
 
 @app.route('/api/top_hits.json')

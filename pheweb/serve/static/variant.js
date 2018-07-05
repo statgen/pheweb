@@ -19,7 +19,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     } else {
         window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return parseFloat(d.phenocode); });
     }
-
+    
     window.first_of_each_category = (function() {
         var categories_seen = {};
         return window.variant.phenos.filter(function(pheno) {
@@ -332,6 +332,7 @@ $(function() {
     // This is mostly copied from <https://michigangenomics.org/health_data.html>.
     var data = _.sortBy(window.variant.phenos, function(pheno) { return pheno.pval; });
     var template = _.template($('#streamtable-template').html());
+
     var view = function(phenotype) {
         return template({d: phenotype});
     };

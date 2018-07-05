@@ -28,7 +28,6 @@ function populate_variant_streamtable(data) {
             })
         }
     }
-
     var options = {
         view: view,
         search_box: false,
@@ -104,7 +103,6 @@ function populate_streamtable(data) {
     var view = function(p) {
         return template({p: p});
     };
-
     var fields = function(item) {
 	return [
 	    item.pheno.phenocode,
@@ -113,7 +111,6 @@ function populate_streamtable(data) {
 	    item.assoc.rsid
 	].join(' ')
     }
-
     var callbacks = {
         pagination: function(summary){
             // bootstrap tooltips need to be recreated
@@ -262,7 +259,6 @@ $(function () {
 
             request.onreadystatechange = function() {//Call a function when the state changes.
                 if(request.readyState == XMLHttpRequest.DONE && request.status != 200) {
-                    console.log(request)
                     $('#genereport-errorbox').css("display","inline-block")
                     $('#genereport-errorbox').text("Error while requesting gene report. " +request.status + " " + request.statusText )
                     $('#genereport').removeClass("disabled")
@@ -354,8 +350,6 @@ $(function() {
 		variant.maf = variant.var_data.af < 0.5 ? variant.var_data.af : 1 - variant.var_data.af
 		gnomadize(variant)
 	    })
-        console.log("varianttii")
-        console.log(data)
 	    populate_variant_streamtable(data)
 	})
 

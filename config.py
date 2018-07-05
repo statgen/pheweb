@@ -1,4 +1,4 @@
-data_dir="/Users/mitja/projects/finngen/pheweb/remotedata/pheweb/pheweb/"
+data_dir="/mnt/data-disk/pheweb/"
 
 database_conf = ({ "annotation":
                     {"ElasticAnnotationDao": { "host":"35.187.119.225","port":9200, "variant_index":"finngen_r1_variant_annotation"}  }
@@ -7,7 +7,8 @@ database_conf = ({ "annotation":
                  { "gnomad":
                      { "ElasticGnomadDao": { "host":"35.189.223.57","port":9200, "variant_index":"gnomad_combined"} }
                  },
-                 {"externalresult": { "ExternalFileResultDao": {"manifest":"/Users/mitja/projects/finngen/ukbb_matching/data/ukkb_data.tsv"}}}
+                 {"externalresult": { "ExternalMatrixResultDao": {"matrix":"/mnt/data-disk-ssd/ukbb/pheno/smalltestmatrix.tsv.gz", "metadatafile":"/home/mitja/ukbb_r1_match_pheno_dup_correct_simple_meta.tsv"}}}
                 )
 
+#{"externalresult": { "ExternalFileResultDao": {"manifest":"/home/mitja/ukbb_r1_match_pheno_dup_correct_ssd.tsv"}}}
 report_conf = {"func_var_assoc_threshold":0.0001, "gene_top_assoc_threshold":0.0001}

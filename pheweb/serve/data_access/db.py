@@ -1,7 +1,7 @@
 
 import abc
 from importlib import import_module
-
+from collections import defaultdict
 from elasticsearch import Elasticsearch
 import pysam
 import re
@@ -61,7 +61,7 @@ class AnnotationDB(object):
     def get_variant_annotations(self, id_list):
         """ Retrieve variant annotations given variant id list.
             Args: id_list list of string in format chr:pos:ref:alt
-            Returns: A list of dictionaries. Dictionary has 2 elements "id" which contains the query id and "var_data" containing dictionary with all variant data.
+            Returns: A list of . Dictionary has 2 elements "id" which contains the query id and "var_data" containing dictionary with all variant data.
         """
         return
 
@@ -340,11 +340,91 @@ class TabixResultDao(ResultDB):
         return top
 
 
-class ExternalFileResultDao(object):
 
+class ExternalMatrixResultDao(object):
+
+
+    def __init__(self, matrix, metadatafile):
+        self.matrix = matrix
+        self.metadatafile = metadatafile
+        self.meta = {}
+
+        self.res_indices = defaultdict(lambda: {})
+
+        with open( self.metadatafile, 'r') as meta:
+            header = meta.readline().rstrip("\n").split("\t")
+            req_headers = ["NAME","ncases","ncontrols"]
+            if not all( [ h in header for h in req_headers]):
+                raise Exception("External result meta-data must be tab separated and must have columns: " + ",".join(req_headers) )
+
+            name_idx = header.index("NAME")
+            ncase_idx = header.index("ncases")
+            ncontrol_idx = header.index("ncontrols")
+            
+            for p in meta:
+                p = p.rstrip("\n").split("\t")
+                self.meta[p[name_idx]] = { "ncases":p[ncase_idx], "ncontrol":p[ncontrol_idx] }
+        
+        self.tabixfile = pysam.TabixFile( self.matrix, parser=None)
+        
+        with gzip.open( self.matrix,"rt") as res:
+            header = res.readline().rstrip("\n").split("\t")
+            comp_header = ["#chr","pos","ref","alt"]
+            if not all( [comp_header[i]==header[i] for i in [0,1,2,3]]):
+                raise Exception("External result data must be tab separated and must begin with columns: " + ",".join(req_headers) + 
+                    " followed by individual result fields" )
+
+            for i,field in enumerate(header[4:]):
+                elem,pheno = field.split("@")
+                self.res_indices[pheno][elem] = i+4
+            
+            print("PHNOINDEX" + str(self.res_indices["G6_NEURODEG"]))
+    def __get_restab(self):
+        if self.tabixfile is None:
+            self.tabixfile = pysam.TabixFile( self.matrix, parser=None)
+
+        return self.tabixfile
+
+    def getNs(self, phenotype):
+
+        res = None
+        if( phenotype in self.meta ):
+            m = self.meta[phenotype]
+            res = (m["ncases"],m["ncontrol"])
+
+        return res
+
+    def get_matching_results(self, phenotype, var_list):
+        res = {}
+        if( type(var_list) is not list ):
+            var_list = [var_list]
+
+        if( phenotype in self.res_indices ):
+            manifestdata = self.res_indices[phenotype]
+            per_variant = []
+            for var in var_list:
+                t = time.time()
+                
+                try:
+                    iter = self.__get_restab().fetch(var[0], var[1]-1, var[1], parser=None)
+                    for ext_var in iter:
+                        ext_var = ext_var.split("\t")
+                        varid = "{}:{}:{}:{}".format(var[0],var[1],var[2],var[3])
+                        if var[2] == ext_var[2] and var[3]==ext_var[3]:
+
+                            datapoints = { elem:ext_var[i] for elem,i in manifestdata.items() }
+                            datapoints.update({ "chr":var[0], "varid":varid, "pos":var[1],"ref":var[2],"alt":var[3], 
+                                "n_cases": self.meta[phenotype]["ncases"], "n_controls": self.meta[phenotype]["ncontrol"] })
+                            res[varid]=datapoints
+
+                except ValueError as e:
+                    print("Could not tabix variant. " + str(e) )
+        return res
+
+class ExternalFileResultDao(object):
     FILE_REQ_HEADERS = ["achr38","apos38","REF","ALT","beta","pval"]
     ResRecord = namedtuple('ResRecord', 'name, ncase, ncontrol, file, achr38_idx, apos38_idx, REF_idx, ALT_idx, beta_idx, pval_idx')
-    VarRecord = namedtuple('VarRecord','origvariant,variant,chr,pos,ref,alt,effect_size, pvalue, study_name, n_cases, n_controls')
+    VarRecord = namedtuple('VarRecord','origvariant,variant,chr,pos,ref,alt,beta, pval, study_name, n_cases, n_controls')
 
     def __init__(self, manifest):
 
@@ -399,8 +479,9 @@ class ExternalFileResultDao(object):
                 varid = [ var[manifestdata.achr38_idx],  var[manifestdata.apos38_idx], var[manifestdata.REF_idx], var[manifestdata.ALT_idx]].join(":")
                 for var in tabix_iter:
                     var = var.split("\t")
-                    res.append(  ExternalFileResultDao.VarRecord( var[0], varid, var[manifestdata.achr38_idx], var[manifestdata.apos38_idx],
-                    var[manifestdata.REF_idx],var[manifestdata.ALT_idx] ,var[manifestdata.beta_idx], var[manifestdata.pval_idx], "UKBB",  manifestdata.ncase, manifestdata.ncontrol) )
+                    res.append(  {"varid":varid, "chr":var[manifestdata.achr38_idx], "pos":var[manifestdata.apos38_idx],
+                            "ref":var[manifestdata.REF_idx],"alt":var[manifestdata.ALT_idx] ,"beta":var[manifestdata.beta_idx], 
+                            "pval":var[manifestdata.pval_idx],  "n_cases":manifestdata.ncase, "n_controls":manifestdata.ncontrol } )
 
         return res
 

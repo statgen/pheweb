@@ -500,7 +500,7 @@ function populate_streamtable(variants) {
     $(function() {
         // This is mostly copied from <https://michigangenomics.org/health_data.html>.
         var data = _.sortBy(_.where(variants, {peak: true}), _.property('pval'));
-        
+        console.log(data) 
         var template = _.template($('#streamtable-template').html());
         var view = function(variant) {
             var selected = $('.selectpicker').val() ?

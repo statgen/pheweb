@@ -101,6 +101,8 @@
           <th>beta (se)</th>
           <th>p-value</th>
           <th>number of samples</th>
+          <th>UKBB</th>
+          <th>UKBB N samples</th>
         </tr>
       </thead>
       <tbody>
@@ -147,21 +149,33 @@ OR: <%= d.or.toExponential(1) %><br>
 <% } %>
 
 </script> -->
+<script type="text/template" id="beta-template-dir">
+    <%=
+    ((Number(assoc.beta) >= 0) ?
+    '<span style="color: green; float: left;" class="glyphicon glyphicon-triangle-top" aria-hidden="true"></span>' :
+    ( Number(assoc.beta) < 0) ?
+    '<span style="color: red; float: left;" class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>' :
+    '') + '<span>p:' + Number(assoc.pval).toExponential(1) + '</span>'
+    %>
+</script>
 
 <script type="text/template" id="streamtable-template">
   <tr>
-    <td style="color:<%= d.color %>">
+    <td style="color:<%= d.color %>; width:6%">
       <%= d.category %>
     </td>
-    <td><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
-    <td><%= d.beta ? (d.beta.toPrecision(2) + (d.sebeta ? " (" + d.sebeta.toPrecision(2) + ")" : "")) : "" %></td>
-    <td><%= d.pval.toExponential(1) %></td>
-    <td><% if (d.num_cases) { %>
+    <td style="width:15%"><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
+    <td style="width: 6%"><%= d.beta ? (d.beta.toPrecision(2) + (d.sebeta ? " (" + d.sebeta.toPrecision(2) + ")" : "")) : "" %></td>
+    <td style="width: 6%"><%= d.pval.toExponential(1) %></td>
+    <td style="width: 6%"><% if (d.num_cases) { %>
       <%= d.num_cases %> / <%= d.num_controls %>
       <% } else if (d.num_samples) { %>
       <%= d.num_samples %>
       <% } %>
     </td>
+
+    <td style="width: 6%"> <%= (d.ukbb?_.template($('#beta-template-dir').html())({assoc: d.ukbb}):"NA") %> </td>
+    <td style="width: 6%"> <%= (d.ukbb? d.ukbb.n_cases + " / " + d.ukbb.n_controls :"NA") %> </td>
 
   </tr>
 </script>

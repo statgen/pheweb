@@ -152,10 +152,9 @@
           <th style="cursor: pointer; user-select: none;" data-sort="maf:desc:number">maf</th>
           <th style="cursor: pointer; user-select: none;" data-sort="maf_cases:desc:number">maf cases</th>
           <th style="cursor: pointer; user-select: none;" data-sort="maf_controls:desc:number">maf controls</th>
-          <th style="cursor: pointer; user-select: none;" data-sort="beta:desc:number">beta</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="beta:desc:number">OR</th>
           <th style="cursor: pointer; user-select: none;" data-sort="pval:asc:number">p-value</th>
-          <th style="cursor: pointer; user-select: none;" data-sort="ukbb.effect_size:desc:number">UKBB beta</th>
-          <th style="cursor: pointer; user-select: none;" data-sort="ukbb.pvalue:asc:number">UKBB p-value</th>
+          <th style="cursor: pointer; user-select: none;" data-sort="ukbb.pvalue:asc:number">UKBB</th>
         </tr>
       </thead>
       <tbody>
@@ -221,12 +220,22 @@
 
 <script type="text/template" id="beta-template">
     <%=
-    '<span>' + v.beta.toPrecision(3) + '</span>' +
+    '<span>' + Math.exp(v.beta).toPrecision(2) + '</span>' +
     ((v.beta - 2 * v.sebeta > 0) ?
-    '<span style="color: green; float: right;" class="glyphicon glyphicon-triangle-top" aria-hidden="true"></span>' :
+    '<span style="color: green; float: left;" class="glyphicon glyphicon-triangle-top" aria-hidden="true"></span>' :
     (v.beta + 2 * v.sebeta < 0) ?
-    '<span style="color: red; float: right;" class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>' :
+    '<span style="color: red; float: left;" class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>' :
     '')
+    %>
+</script>
+
+<script type="text/template" id="beta-template-dir">
+    <%=
+    ((Number(assoc.beta) >= 0) ?
+    '<span style="color: green; float: left;" class="glyphicon glyphicon-triangle-top" aria-hidden="true"></span>' :
+    ( Number(assoc.beta) < 0) ?
+    '<span style="color: red; float: left;" class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>' :
+    '') + '<span>p:' + Number(assoc.pval).toExponential(1) + '</span>'
     %>
 </script>
 
@@ -253,7 +262,7 @@
   <a style="color:black" href="/gene/<%= genes[i] %>"><%= genes[i] %></a>
   <% } %>
   </td>
-  <td>
+  <td style="width: 6%;">
     <%= (v.most_severe)? v.most_severe : "" %>
   </td>
   <td class="info-score" style="width: 6%;">
@@ -262,22 +271,21 @@
   <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: v}) %>" data-toggle="tooltip">
     <%= (v.fin_enrichment)? $.isNumeric(v.fin_enrichment) ? v.fin_enrichment.toPrecision(3) : v.fin_enrichment : "" %>
   </td>
-  <td style="width: 6%;">
+  <td style="width: 5%;">
     <%= (v.maf)? ((v.maf < 0.01) ? v.maf.toExponential(1) : v.maf.toPrecision(2)) : "" %>
   </td>
-  <td style="width: 6%;">
+  <td style="width: 5%;">
     <%= (v.maf_cases)? ((v.maf_cases < 0.01) ? v.maf_cases.toExponential(1) : v.maf_cases.toPrecision(2)) : "" %>
   </td>
-  <td style="width: 6%;">
+  <td style="width: 5%;">
     <%= (v.maf_controls)? ((v.maf_controls < 0.01) ? v.maf_controls.toExponential(1) : v.maf_controls.toPrecision(2)) : "" %>
   </td>
-  <td style="width: 6%;" title="SE<br/><%= v.sebeta ? v.sebeta : 'unknown' %>" data-toggle="tooltip">
+  <td style="width: 5%;" title="SE<br/><%= v.sebeta ? v.sebeta : 'unknown' %>" data-toggle="tooltip">
   <%= (v.beta && v.sebeta)? _.template($('#beta-template').html())({v: v}) : '' %>
   </td>
-  <td style="width: 6%;"><%= v.pval.toExponential(1) %></td>
+  <td style="width: 5%;"><%= v.pval.toExponential(1) %></td>
  <!-- <td style="width: 6%;"><%= (v.ukbb)? Object.keys(v.ukbb):"NA" %></td> -->
-  <td style="width: 6%;"><%= (v.ukbb)? Number(v.ukbb.effect_size).toExponential(1):"NA" %></td>
-  <td style="width: 6%;"><%= (v.ukbb)? Number(v.ukbb.pvalue).toExponential(1):"NA" %></td>
+  <td style="width: 7%;"><%= (v.ukbb?_.template($('#beta-template-dir').html())({assoc: v.ukbb}):"NA") %></td>
 
 
 
