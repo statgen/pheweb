@@ -95,4 +95,4 @@ def get_random_page():
     else:
         offset = int(50e3)
         return '/region/{phenocode}/{chrom}:{pos1}-{pos2}'.format(pos1=hit['pos']-offset, pos2=hit['pos']+offset, **hit)
-    # TODO: also include gene pages
+    # TODO: check if this hit is inside a gene. if so, include that page.

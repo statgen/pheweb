@@ -34,11 +34,6 @@ class Autocompleter(object):
         ]
         if any('phenostring' in pheno for pheno in self._phenos.values()):
             self._autocompleters.append(self._autocomplete_phenostring)
-        if any('icd9_info' in pheno for pheno in self._phenos.values()):
-            self._autocompleters.extend([
-                self._autocomplete_icd9_code,
-                self._autocomplete_icd9_string,
-            ])
 
     def autocomplete(self, query):
         query = query.strip()
@@ -49,7 +44,7 @@ class Autocompleter(object):
         return result
 
     def get_best_completion(self, query):
-        # TODO: get_autocompletion only returns the first 10, so this will be a little broken.  Look at more.
+        # TODO: self.autocomplete() only returns the first 10 for each autocompleter.  Look at more?
         suggestions = self.autocomplete(query)
         if not suggestions:
             return None
@@ -72,9 +67,6 @@ class Autocompleter(object):
             pheno['--spaced--phenocode'] = self._process_string(phenocode)
             if 'phenostring' in pheno:
                 pheno['--spaced--phenostring'] = self._process_string(pheno['phenostring'])
-            if 'icd9_info' in pheno:
-                for icd9 in pheno['icd9_info']:
-                    icd9['--spaced--icd9_string'] = self._process_string(icd9['icd9_string'])
 
 
     def _autocomplete_variant(self, query):
@@ -185,28 +177,3 @@ class Autocompleter(object):
             for alias, canonical_symbol in self._gene_alias_trie.iteritems(key):
                 if alias != key:
                     yield from f(alias, canonical_symbol)
-
-    _regex_get_icd9_code_autocompletion = re.compile('^\s*V?[0-9]')
-    def _autocomplete_icd9_code(self, query):
-        if self._regex_get_icd9_code_autocompletion.match(query):
-            for phenocode, pheno in self._phenos.items():
-                for icd9 in pheno['icd9_info']:
-                    if icd9['icd9_code'].startswith(query):
-                        yield {
-                            "value": phenocode,
-                            "display": "{} (icd9 code; phewas code: {}; icd9_string: {})".format(icd9['icd9_code'], phenocode, icd9['icd9_string']),
-                            "url": "/pheno/{}".format(phenocode),
-                        }
-
-    _regex_get_icd9_string_autocompletion = re.compile('^\s*[a-zA-Z]')
-    def _autocomplete_icd9_string(self, query):
-        query = self._process_string(query)
-        if self._regex_get_icd9_string_autocompletion.match(query):
-            for phenocode, pheno in self._phenos.items():
-                for icd9 in pheno.get('icd9_info', []):
-                    if query in icd9['--spaced--icd9_string']:
-                        yield {
-                            "value": phenocode,
-                            "display": "{} (icd9 string; icd9 code: {}; phewas code: {})".format(icd9['icd9_string'], icd9['icd9_code'], phenocode),
-                            "url": "/pheno/{}".format(phenocode),
-                        }

@@ -65,7 +65,7 @@ def get_pvals_and_pval_extents(pvals, neglog10_pval_bin_size):
     return (rv_pvals, rv_pval_extents)
 
 
-# TODO: convert bins from {(chrom, pos): []} to {chrom:{pos:[]}}?
+# TODO: convert bins from {(chrom, pos): []} to {chrom:{pos:[]}} to make label_peaks easier?
 def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     bins = {}
     unbinned_variant_pq = MaxPriorityQueue()
@@ -108,6 +108,7 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
     return binned_variants, unbinned_variants
 
 
+# TODO: rename `peak` to `loci`?
 def label_peaks(variants):
     chroms = {}
     for v in variants:

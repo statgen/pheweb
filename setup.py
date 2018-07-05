@@ -39,7 +39,6 @@ setup(
         'pheweb=pheweb.command_line:main',
         'detect-ref=pheweb.load.detect_ref:main',
     ]},
-    # TODO: add test_suite (ie, make a single file that runs tests, figure out how to access input_data, make a data_dir in /tmp)
     include_package_data=True,
     zip_safe=False,
     cffi_modules=['pheweb/load/cffi/ffibuilder.py:ffibuilder'],

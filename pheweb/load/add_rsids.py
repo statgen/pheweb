@@ -15,9 +15,8 @@ In `sites/dbSNP/rsids.vcf.gz`, sometimes `alt` contains `N`, which matches any n
 We read one full position at a time.  When we have a position-match, we find all rsids that match a variant.
 '''
 
-# TODO:
-# - do we need to left-normalize all indels?
-# - rename `cpra` to something else to reflect that it can also contain other per-variant fields
+# TODO: do we need to left-normalize all indels?
+# TODO: rename `cpra` to something else to reflect that it can also contain other per-variant fields
 
 
 from ..utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
