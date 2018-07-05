@@ -299,16 +299,27 @@ function create_qq_plot(maf_ranges, qq_ci) {
 
     $(function() {
 
-        var exp_max = d3.max(maf_ranges, function(maf_range) { return d3.max(maf_range.qq, _.property(0)); });
-        var obs_max = d3.max(maf_ranges, function(maf_range) { return d3.max(maf_range.qq, _.property(1))});
-        // Constrain obs_max in [exp_max, Math.ceil(exp_max*2)+.01]. The `.01` preserves the highest integer tick.
-        obs_max = Math.max(exp_max, Math.min(Math.ceil(exp_max*2)+.01, obs_max));
-        var visible_obs_max = d3.max(maf_ranges, function(maf_range) {
-            return d3.max(maf_range.qq, function(bin) {
-                return (bin[1] <= obs_max) ? bin[1] : 0;
-            })
+        if (typeof maf_ranges[0].qq.max_exp_qval === 'undefined') { // convert older datasets to work with this newer plotting code
+            maf_ranges.forEach(function(maf_range) {
+                maf_range.qq = {
+                    bins: maf_range.qq,
+                    max_exp_qval: -Math.log10(0.5/maf_range.count),
+                };
+            });
+        }
+
+        var exp_max = d3.max(maf_ranges, function(maf_range) {
+            return maf_range.qq.max_exp_qval;
         });
-        obs_max = Math.min(obs_max, Math.ceil(visible_obs_max*1.05)+.01);
+        // Note: we already removed all observed -log10(pval)s > ceil(exp_max*2) in python, so we can just use the max observed here.
+        var obs_max = d3.max(maf_ranges, function(maf_range) {
+            return d3.max(maf_range.qq.bins, function(bin) {
+                return bin[1];
+            });
+        });
+        obs_max = Math.max(obs_max, exp_max);
+        obs_max = Math.ceil(obs_max) + 0.01; // The 0.01 makes sure the integer tick will be shown.
+
 
         var svg_width = $('#qq_plot_container').width();
         var plot_margin = {
@@ -361,7 +372,7 @@ function create_qq_plot(maf_ranges, qq_ci) {
             .append('g')
             .attr('class', 'qq_points')
             .selectAll('circle.qq_point')
-            .data(_.property('qq'))
+            .data(function(maf_range) { return maf_range.qq.bins })
             .enter()
             .append('circle')
             .attr('cx', function(d) { return x_scale(d[0]); })

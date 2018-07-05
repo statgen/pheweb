@@ -29,7 +29,7 @@
   if (data.by_maf)
     create_qq_plot(data.by_maf, data.ci);
   else
-    create_qq_plot([{maf_range:[0,1],qq:data.overall.qq, count:data.overall.count}], data.ci);
+    create_qq_plot([{maf_range:[0,1], qq:data.overall.qq, count:data.overall.count}], data.ci);
   })
   .fail(function() {
     console.log("QQ XHR failed");
