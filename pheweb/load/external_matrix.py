@@ -100,7 +100,7 @@ def run(argv):
                 out.write( "\t" +  "\t".join( [ s + "@" + line[0] for s in supp_fields] )  )
 
         out.write("\n")
-        
+
         vars_processed=0
         start = time.time()
         last = time.time()
@@ -112,7 +112,7 @@ def run(argv):
 
                 if(vars_processed %1000 ==0):
                     elapsed = time.time()-start
-                    
+
                     sincelast = time.time()-last
                     last = time.time()
                     print("{} processed {} variants per second. Average speed {} / second".format(vars_processed, 1000/sincelast,vars_processed/ elapsed))
@@ -123,8 +123,8 @@ def run(argv):
                     raise Exception("Less than 4 columns in common sites row " + v )
                 linedat.extend(varid[0:4] )
                 varid[1]=int(varid[1])
-                
-                if( smallestpos is not None and ( smallestpos[0]> chrord[varid[0]] or varid[1]<smallestpos[1] )):
+
+                if( smallestpos is not None and ( smallestpos[0]> chrord[varid[0]] or (varid[1]==smallestpos[1] and varid[1]<smallestpos[1]) )):
                     # have not reached the smallest result so keep on scrolling variants
                     continue
 
