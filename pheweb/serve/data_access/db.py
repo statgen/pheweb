@@ -378,7 +378,6 @@ class ExternalMatrixResultDao(object):
                 elem,pheno = field.split("@")
                 self.res_indices[pheno][elem] = i+4
             
-            print("PHNOINDEX" + str(self.res_indices["G6_NEURODEG"]))
     def __get_restab(self):
         if self.tabixfile is None:
             self.tabixfile = pysam.TabixFile( self.matrix, parser=None)

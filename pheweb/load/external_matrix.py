@@ -121,7 +121,7 @@ def run(argv):
                 varid = v.rstrip("\n").split("\t")
                 if(len(varid)<4):
                     raise Exception("Less than 4 columns in common sites row " + v )
-                linedat.extend(varid )
+                linedat.extend(varid[0:4] )
                 varid[1]=int(varid[1])
                 
                 if( smallestpos is not None and ( smallestpos[0]> chrord[varid[0]] or varid[1]<smallestpos[1] )):
