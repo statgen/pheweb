@@ -29,17 +29,17 @@ def test_all(tmpdir, capsys):
     with capsys.disabled(): print(2)
 
     from pheweb.serve.server import app # TODO: this relies on data_dir being set earlier, but shouldn't.
-    app.testing = True
-    client = app.test_client()
-    assert client.get('/').status_code == 200
-    assert client.get('/variant/15-55447871-C-T').status_code == 200
-    assert client.get('/static/variant.js').status_code == 200
-    assert client.get('/pheno/snowstorm').status_code == 200
-    assert client.get('/api/manhattan/pheno/snowstorm.json').status_code == 200
-    assert client.get('/api/qq/pheno/snowstorm.json').status_code == 200
-    assert client.get('/region/snowstorm/8-926279-1326279').status_code == 200
-    assert client.get('/api/region/snowstorm/lz-results/?filter=analysis%20in%203%20and%20chromosome%20in%20%20%278%27%20and%20position%20ge%20976279%20and%20position%20le%201276279').status_code == 200
-    assert client.get('/region/snowstorm/gene/DNAH14?include=1-225494097').status_code == 200
-    assert client.get('/api/autocomplete?query=%20DAP-2').status_code == 200
-    assert b'EAR-LENGTH' in client.get('/region/1/gene/SAMD11').data
-    assert b'\t' in client.get('/download/top_hits.tsv').data
+    app.testing = True # makes application exception propogate up to `client`
+    with app.test_client() as client:
+        assert client.get('/').status_code == 200
+        assert client.get('/variant/15-55447871-C-T').status_code == 200
+        assert client.get('/static/variant.js').status_code == 200
+        assert client.get('/pheno/snowstorm').status_code == 200
+        assert client.get('/api/manhattan/pheno/snowstorm.json').status_code == 200
+        assert client.get('/api/qq/pheno/snowstorm.json').status_code == 200
+        assert client.get('/region/snowstorm/8-926279-1326279').status_code == 200
+        assert client.get('/api/region/snowstorm/lz-results/?filter=analysis%20in%203%20and%20chromosome%20in%20%20%278%27%20and%20position%20ge%20976279%20and%20position%20le%201276279').status_code == 200
+        assert client.get('/region/snowstorm/gene/DNAH14?include=1-225494097').status_code == 200
+        assert client.get('/api/autocomplete?query=%20DAP-2').status_code == 200
+        assert b'EAR-LENGTH' in client.get('/region/1/gene/SAMD11').data
+        assert b'\t' in client.get('/download/top_hits.tsv').data
