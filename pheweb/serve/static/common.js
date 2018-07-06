@@ -2,6 +2,11 @@
 
 window.debug = window.debug || {};
 
+// deal with IE11 problems
+if (!Math.log10) { Math.log10 = function(x) { return Math.log(x) / Math.LN10; }; }
+if (!!window.MSInputMethodContext && !!document.documentMode) { /*ie11*/ $('<style type=text/css>.lz-locuszoom {height: 400px;}</style>').appendTo($('head')); }
+
+
 (function() {
     // It's unfortunate that these are hard-coded, but it works pretty great, so I won't change it now.
     var autocomplete_bloodhound = new Bloodhound({
@@ -57,7 +62,3 @@ function fmt(format) {
         return (typeof args[number] != 'undefined') ? args[number] : match;
     });
 }
-
-// deal with IE11 problems
-if (!Math.log10) { Math.log10 = function(x) { return Math.log(x) / Math.LN10; }; }
-if (!!window.MSInputMethodContext && !!document.documentMode) { /*ie11*/ $('<style type=text/css>.lz-locuszoom {height: 400px;}</style>').appendTo($('head')); }
