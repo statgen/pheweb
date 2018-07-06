@@ -74,7 +74,7 @@
       <% }) %>
     </td>
     <td><%= (h.maf)? h.maf.toPrecision(2) : (h.af)? Math.min(h.af, 1-h.af).toPrecision(2) : (h.ac)? h.ac : "" %></td>
-    <td><%= h.pval.toExponential(1) %></td>
+    <td><%= (h.pval == 0) ? '~0' : h.pval.toExponential(1) %></td>
   </tr>
 </script>
 
