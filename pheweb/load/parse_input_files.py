@@ -41,12 +41,14 @@ def run(argv):
         succeeded_phenos = [p for p in phenos if p['phenocode'] not in failed_results]
         succeeded_filepath = get_generated_path('tmp', 'pheno-list-successful-only.json')
         write_json(filepath=succeeded_filepath, data=succeeded_phenos, indent=1, sort_keys=True)
-        print('A new pheno-list.json with only the {} phenotypes that succeeded (out of {} total) has been written to {!r}.'.format(
-            len(succeeded_phenos), len(phenos), succeeded_filepath))
-        print('To continue with only these phenotypes, run:')
-        print('cp {!r} {!r}\n'.format(succeeded_filepath, common_filepaths['phenolist']))
-
-        raise PheWebError('Cannot continue when some files failed')
+        raise PheWebError(
+            'Some files failed to parse.\n\n' +
+            'A new pheno-list.json with only the {} phenotypes that succeeded (out of {} total) has been written to {!r}.\n'.format(
+                len(succeeded_phenos), len(phenos), succeeded_filepath) +
+            'To continue with only these phenotypes, run:\n'
+            'cp {!r} {!r}\n'.format(succeeded_filepath, common_filepaths['phenolist']) +
+            'Details on failed phenotypes are in {!r}\n'.format(failed_filepath)
+        )
 
 def convert(pheno):
     # suppress Exceptions so that we can report back on which phenotypes succeeded and which didn't.

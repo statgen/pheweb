@@ -169,6 +169,13 @@ def _ensure_conf():
                 assert self._d['range'][1] is None or x <= self._d['range'][1]
             if 'sigfigs' in self._d:
                 x = utils.round_sig(x, self._d['sigfigs'])
+            if 'proportion_sigfigs' in self._d:
+                if 0 <= x < 0.5:
+                    x = utils.round_sig(x, self._d['proportion_sigfigs'])
+                elif 0.5 <= x <= 1:
+                    x = 1 - utils.round_sig(1-x, self._d['proportion_sigfigs'])
+                else:
+                    raise utils.PheWebError('cannot use proportion_sigfigs on a number outside [0-1]')
             if 'decimals' in self._d:
                 x = round(x, self._d['decimals'])
             return x
@@ -177,12 +184,9 @@ def _ensure_conf():
             if self._d['nullable'] and value == '':
                 return ''
             x = self._d['type'](value)
-            if 'range' in self._d:
-                assert self._d['range'][0] is None or x >= self._d['range'][0]
-                assert self._d['range'][1] is None or x <= self._d['range'][1]
             return x
 
-    default_null_values = ['', '.', 'NA', 'nan', 'NaN']
+    default_null_values = ['', '.', 'NA', 'N/A', 'n/a', 'nan', '-nan', 'NaN', '-NaN', 'null', 'NULL']
 
     default_field = {
         'aliases': [],
@@ -280,7 +284,7 @@ def _ensure_conf():
             'aliases': ['A1FREQ'],
             'type': float,
             'range': [0, 1],
-            'sigfigs': 2, # TODO: never round 99.99% to 100%.  Make sure MAF would have the right sigfigs.
+            'proportion_sigfigs': 2,
             'tooltip_lztemplate': {'transform': '|percent'},
             'display': 'AF',
         }),
@@ -292,7 +296,7 @@ def _ensure_conf():
         }),
         ('r2', {
             'type': float,
-            'sigfigs': 2,
+            'proportion_sigfigs': 2,
             'nullable': True,
             'display': 'R2',
         }),

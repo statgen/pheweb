@@ -40,10 +40,8 @@ def get_phenolist():
         raise PheWebError(
             "You need a file to define your phenotypes at '{}'.\n".format(filepath) +
             "For more information on how to make one, see <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>")
-    except json.JSONDecodeError:
-        print("Your file at '{}' contains invalid json.\n".format(filepath) +
-              "The error it produced was:")
-        raise
+    except json.JSONDecodeError as exc:
+        raise PheWebError("Your file at '{}' contains invalid json.\n".format(filepath)) from exc
     for pheno in phenolist:
         pheno['phenocode'] = urllib.parse.quote_plus(pheno['phenocode'])
     return phenolist
