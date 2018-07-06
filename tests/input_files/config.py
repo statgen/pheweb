@@ -20,4 +20,4 @@ variant_inclusion_maf = 0.01
 
 
 # directory for caching large (~1GB) common files like dbsnp
-cache = '../fake-cache'
+cache = './fake-cache'

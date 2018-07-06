@@ -3,7 +3,6 @@
 
 {% block in_head %}
 <script type="text/javascript">
-  window.model = window.model || {};
   window.variant = {{ variant|tojson(separators=(',',':'))|safe }};
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
 </script>

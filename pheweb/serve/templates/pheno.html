@@ -5,7 +5,6 @@
 <script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='pheno.js') }}" type="text/javascript"></script>
 <script type="text/javascript">
-  window.model = window.model || {};
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }};
   window.pheno = {{ phenocode|tojson|safe }};
   $.getJSON("/api/manhattan/pheno/" + window.pheno + ".json")

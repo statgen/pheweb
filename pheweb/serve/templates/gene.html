@@ -3,7 +3,6 @@
 
 {% block in_head %}
 <script type="text/javascript">
-  window.model = window.model || {}; //TODO: move all properties into window.model
   window.pheno = {{ pheno|tojson|safe }};
   window.significant_phenos = {{ significant_phenos|tojson|safe }};
   window.gene_symbol = {{ gene_symbol|tojson|safe }};

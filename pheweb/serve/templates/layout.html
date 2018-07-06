@@ -15,6 +15,9 @@
 
 <link href="{{ url_for('static', filename='common.css') }}" rel="stylesheet" type="text/css">
 <script src="{{ url_for('static', filename='common.js') }}" type="text/javascript"></script>
+<script type="text/javascript">
+  window.model = window.model || {};
+</script>
 
 {% if config.SENTRY_DSN %}
   <script src="https://cdn.ravenjs.com/3.21.0/raven.min.js" crossorigin="anonymous"></script>

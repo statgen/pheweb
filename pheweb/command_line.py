@@ -165,6 +165,9 @@ def main():
         import traceback
         exc_filepath = get_dated_tmp_path('exception')
         with open(exc_filepath, 'w') as f:
+            f.write('======= Exception ====\n')
+            f.write(str(exc) + '\n\n')
+            f.write('======= Traceback ====\n')
             f.write(traceback.format_exc())
         if isinstance(exc, PheWebError): print(exc)
         elif isinstance(exc, KeyboardInterrupt): print('\nInterrupted')
