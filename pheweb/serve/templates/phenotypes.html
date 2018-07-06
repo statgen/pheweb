@@ -37,6 +37,7 @@
         <tr>
           <th>Category</th>
           <th>Phenotype</th>
+          <th>Loci &lt; 10<sup>-6</sup></th>
           <th>Top variant</th>
           <th>Top p-value</th>
           <th>Nearest Gene(s)</th>
@@ -54,11 +55,12 @@
     <td><a style="color:black" href="/pheno/<%= h.phenocode %>">
         <%= h.phenostring || h.phenocode %>
     </a></td>
+    <td><%= h.num_peaks %></td>
     <td><a style="color:black" href="/variant/<%= h.chrom %>-<%= h.pos %>-<%= h.ref %>-<%= h.alt %>">
         <%= h.chrom %>:<%= h.pos.toLocaleString() %> <%= h.ref %> / <%= h.alt %>
         <% if (h.rsids) { %>(<%= h.rsids.replace(/,/g, ', ') %>)<% } %>
     </a></td>
-    <td><%= h.pval.toExponential(1) %></td>
+    <td><%= (h.pval == 0) ? '~0' : h.pval.toExponential(1) %></td>
     <td>
       <% var ngs = h.nearest_genes.split(","); ngs.forEach(function(g, i) { %>
       <a style="color:black" href="/region/<%= h.phenocode %>/gene/<%= g %>?include=<%= h.chrom %>-<%= h.pos %>">
