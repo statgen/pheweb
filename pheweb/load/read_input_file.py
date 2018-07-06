@@ -227,4 +227,4 @@ class AssocFileReader:
             raise PheWebError("ERROR: MARKER_ID didn't match our MARKER_ID pattern: {!r}".format(marker_id))
         chrom, pos, ref, alt = match.groups()
         return chrom, int(pos), ref, alt
-    parse_marker_id_regex = re.compile(r'([^:]+):([0-9]+)_([-ATCG\.]+)/([-ATCG\.]+)')
+    parse_marker_id_regex = re.compile(r'([^:]+):([0-9]+)_([-ATCG\.]+)/([-ATCG\.\*]+)')
