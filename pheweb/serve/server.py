@@ -232,7 +232,7 @@ def gene_phenocode_page(phenocode, genename):
 def gene_page(genename):
     phenos_in_gene = get_best_phenos_by_gene().get(genename, [])
     if not phenos_in_gene:
-        die("Sorry, that gene doesn't appear to have any associations in any phenotype")
+        die("Sorry, that gene doesn't appear to have any associations in any phenotype.")
     return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
 
 
