@@ -1,6 +1,4 @@
 
-from ..utils import PheWebError
-
 
 def run_flask_dev_server(app, args):
     app.run(

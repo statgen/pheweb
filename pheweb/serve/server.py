@@ -31,7 +31,7 @@ if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
 if 'SENTRY_DSN' in conf and not os.environ.get('PHEWEB_NO_SENTRY',''):
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
 app.config['PHEWEB_VERSION'] = pheweb_version
-app.config['URLPREFIX'] = conf.urlprefix.rstrip('/');
+app.config['URLPREFIX'] = conf.urlprefix.rstrip('/')
 if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
