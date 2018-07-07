@@ -59,9 +59,9 @@ Variant = collections.namedtuple('Variant', ['qval', 'maf'])
 def augment_variants(variants, pheno):
     for v in variants:
         if v['pval'] == 0:
-            print("Warning: There's a variant with pval 0 in {!r}.  (Variant: {!r})".format(pheno['phenocode'], v))
-            continue
-        qval = -math.log10(v['pval'])
+            qval = 1000 # TODO: make an option "convert_pval0_to = [num|None]"
+        else:
+            qval = -math.log10(v['pval'])
         maf = get_maf(v, pheno)
         yield Variant(qval=qval, maf=maf)
 
