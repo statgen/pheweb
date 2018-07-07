@@ -37,7 +37,7 @@ def get_phenolist_with_globs(globs, star_is_phenocode):
 def _extract_star(glob_pattern, filepath):
     if '*' not in glob_pattern:
         raise PheWebError("You tried to use --star-is-phenocode, but your pattern {!r} doesn't contain any *s.  If you tried to use a *, maybe wrap your pattern in single-quotes (') to prevent your shell from expanding it.")
-    regex = '^{}$'.format(re.escape(glob_pattern).replace('\*', '([^/]*)'))
+    regex = '^{}$'.format(re.escape(glob_pattern).replace(r'\*', '([^/]*)'))
     matches = re.match(regex, filepath).groups()
     if boltons.iterutils.same(matches):
         return matches[0]

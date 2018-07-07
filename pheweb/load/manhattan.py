@@ -34,14 +34,11 @@ def run(argv):
 
 
 def make_json_file(pheno):
-
     binner = Binner()
     with VariantFileReader(common_filepaths['pheno'](pheno['phenocode'])) as variants:
         for variant in variants:
             binner.process_variant(variant)
-
     data = binner.get_result()
-
     write_json(filepath=common_filepaths['manhattan'](pheno['phenocode']), data=data)
 
 
