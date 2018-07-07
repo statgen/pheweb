@@ -23,6 +23,8 @@ def get_maf(variant, pheno):
         mafs.append(variant['maf'])
     if 'af' in variant:
         mafs.append(min(variant['af'], 1-variant['af']))
+    if 'mac' in variant and 'num_samples' in pheno:
+        mafs.append(variant['ac'] / 2 / pheno['num_samples'])
     if 'ac' in variant and 'num_samples' in pheno:
         x = variant['ac'] / 2 / pheno['num_samples']
         mafs.append(min(x, 1-x))
@@ -30,6 +32,9 @@ def get_maf(variant, pheno):
     elif len(mafs) == 1:
         return mafs[0]
     else:
+        if any(maf > 0.5 for maf in mafs):
+            raise PheWebError("Error: the variant {} in pheno {} has at least one way of computing maf that is > 0.5 ({})".format(
+                variant, pheno, mafs))
         if max(mafs) - min(mafs) > 0.05:
             raise PheWebError(
                 "Error: the variant {} in pheno {} has two ways of computing maf, resulting in the mafs {}, which differ by more than 0.05.".format(
