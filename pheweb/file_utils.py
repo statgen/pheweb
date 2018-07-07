@@ -70,7 +70,7 @@ def get_tmp_path(arg):
         return get_generated_path('tmp', arg)
 
 def get_dated_tmp_path(prefix):
-    assert '/' not in prefix
+    assert '/' not in prefix, prefix
     time_str = datetime.datetime.isoformat(datetime.datetime.now()).replace(':', '-')
     return get_tmp_path(prefix + '-' + time_str)
 
@@ -101,7 +101,7 @@ def VariantFileReader(filepath, only_per_variant_fields=False):
         reader = csv.reader(f, dialect='pheweb-internal-dialect')
         fields = next(reader)
         for field in fields:
-            assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields
+            assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields, field
         if only_per_variant_fields:
             yield _vfr_only_per_variant_fields(fields, reader)
         else:
@@ -115,7 +115,7 @@ class _vfr:
     def _get_variants(self):
         parsers = [conf.parse.fields[field]['_read'] for field in self.fields]
         for unparsed_variant in self._reader:
-            assert len(unparsed_variant) == len(self.fields)
+            assert len(unparsed_variant) == len(self.fields), (unparsed_variant, self.fields)
             variant = {field: parser(value) for parser,field,value in zip(parsers, self.fields, unparsed_variant)}
             yield variant
 class _vfr_only_per_variant_fields:
@@ -128,7 +128,7 @@ class _vfr_only_per_variant_fields:
         return self._get_variants()
     def _get_variants(self):
         for unparsed_variant in self._reader:
-            assert len(unparsed_variant) == len(self._all_fields)
+            assert len(unparsed_variant) == len(self._all_fields), (unparsed_variant, self._all_fields)
             variant = {field: parser(unparsed_variant[colidx]) for parser,field,colidx in self._extractors}
             yield variant
 
@@ -211,7 +211,7 @@ class MatrixReader:
         with read_gzip(self._filepath) as f:
             reader = csv.reader(f, dialect='pheweb-internal-dialect')
             colnames = next(reader)
-        assert colnames[0].startswith('#')
+        assert colnames[0].startswith('#'), colnames
         colnames[0] = colnames[0][1:]
 
         self._colidxs = {} # maps field -> column_index
@@ -356,7 +356,7 @@ def convert_VariantFile_to_IndexedVariantFile(vf_path, ivf_path):
 
 
 def write_json(*, filepath=None, data=None, indent=None, sort_keys=False):
-    assert filepath is not None and data is not None
+    assert filepath is not None and data is not None, filepath
     part_file = get_tmp_path(filepath)
     make_basedir(filepath)
     with AtomicSaver(filepath, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
