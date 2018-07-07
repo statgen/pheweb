@@ -142,7 +142,7 @@ class Binner:
                      QVAL_BIN_ROUND_DIGITS)
 
     @staticmethod
-    def get_pvals_and_pval_extents(pvals, qval_bin_size):
+    def _get_pvals_and_pval_extents(pvals, qval_bin_size):
         # expects that QVAL_BIN_SIZE is the distance between adjacent bins.
         pvals = sorted(pvals)
         extents = [[pvals[0], pvals[0]]]
