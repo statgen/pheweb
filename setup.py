@@ -20,7 +20,7 @@ if sys.version_info[:2] == (3,7):
         raise Exception('\n\n'
             'PheWeb depends on pysam, which currently cannot be installed from the python package index for python 3.7.\n'
             'Please run these two commands to install pysam:\n'
-            '  pip3 install cython\n'
+            '  pip3 install -U cython\n'
             '  pip3 install -e git+https://github.com/pysam-developers/pysam.git#egg=pysam\n'
             'Then try to install pheweb again.')
 
