@@ -8,6 +8,11 @@
 <script type="text/javascript">
   $.getJSON("/api/phenos")
   .done(function(data) {
+  data.forEach(function(datum) {
+  if (datum.gc_lambda) {
+    datum.lambda = datum.gc_lambda['0.5']
+  }
+  })
     window.phenolist = data;
       populate_streamtable(data);
   })
@@ -92,6 +97,8 @@
             <th style="cursor: pointer;" data-sort="category:asc">category</th>
             <th style="cursor: pointer;" data-sort="num_cases:desc:number">number of cases</th>
             <th style="cursor: pointer;" data-sort="num_controls:desc:number">number of controls</th>
+            <th style="cursor: pointer;" data-sort="num_gw_significant:desc:number">genome-wide significant loci</th>
+            <th style="cursor: pointer;" data-sort="lambda:desc:number">genomic control lambda</th>
           </tr>
     </thead>
     <tbody>
@@ -104,10 +111,12 @@
 
 <script type="text/template" id="phenolist-streamtable-template">
     <tr>
-        <td style="width:50%;"><a style="color:black" href="/pheno/<%= p.phenocode %>"><%= p.phenostring %></a></td>
-        <td style="width:30%;"><%= p.category %></td>
-        <td style="width:10%; text-align: right;"><%= p.num_cases %></td>
-        <td style="width:10%; text-align: right;"><%= p.num_controls %></td>
+        <td style="width:45%;"><a style="color:black" href="/pheno/<%= p.phenocode %>"><%= p.phenostring %></a></td>
+        <td style="width:25%;"><%= p.category %></td>
+        <td style="width:6%; text-align: right;"><%= p.num_cases %></td>
+        <td style="width:6%; text-align: right;"><%= p.num_controls %></td>
+        <td style="width:6%; text-align: right;"><%= p.num_gw_significant %></td>
+        <td style="width:6%; text-align: right;"><%= p.lambda %></td>
     </tr>
 </script>
 
