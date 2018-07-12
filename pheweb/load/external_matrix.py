@@ -18,7 +18,7 @@ def scroll_to_current(variant, phenodat):
 
     f = phenodat["fpoint"]
 
-    if( len(phenodat["cur_lines"])>0 and (chrord[phenodat["cur_lines"][0][0]]< chrord[variant[0]] or phenodat["cur_lines"][0][1]<variant[1]) ) :
+    if( len(phenodat["cur_lines"])>0 and (chrord[phenodat["cur_lines"][0][0]]!=chrord[variant[0]] or phenodat["cur_lines"][0][1]!=variant[1]) ) :
         phenodat["cur_lines"].clear()
 
     while( True ):

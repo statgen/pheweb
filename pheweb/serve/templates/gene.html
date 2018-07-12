@@ -80,7 +80,7 @@
                 <th style="width: 7%;">FIN enrichment</th>
                 <th>phenotype</th>
                 <th>category</th>
-                <th style="width: 4%;">OR</th>
+                <th style="width: 6%;">OR</th>
                 <th style="width: 7%;">p-value</th>
                 <th style="width: 7%;">number of cases</th>
                 <th style="width: 9%;">UKBB</th>
@@ -185,13 +185,17 @@
 
 <script type="text/template" id="beta-template-dir">
     <%=
-    ((Number(assoc.effect_size) >= 0) ?
+    ((Number(assoc.beta) >= 0) ?
     '<span style="color: green; float: left;" class="glyphicon glyphicon-triangle-top" aria-hidden="true"></span>' :
-    ( Number(assoc.effect_size) < 0) ?
+    ( Number(assoc.beta) < 0) ?
     '<span style="color: red; float: left;" class="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span>' :
-    '') + '<span>p:' + Number(assoc.pvalue).toExponential(1) + '</span>'
+    '')
     %>
 </script>
+
+
+
+
 
 <script type="text/template" id="streamtable-template">
   <% if (p.pheno.phenocode === pheno.phenocode) { %>
@@ -204,10 +208,10 @@
     </td>
     <td><%= p.pheno.phenostring || p.pheno.phenocode %></td>
     <td><%= p.pheno.category || 'Unknown' %></td>
-    <td><%= Math.exp(p.assoc.beta).toFixed(2) %></td>
+    <td><%= _.template($('#beta-template-dir').html())({assoc: p.assoc}) + Math.exp(p.assoc.beta).toFixed(2) %></td>
     <td><%= p.assoc.pval.toExponential(1) %></td>
     <td style="text-align: right;"><%= p.pheno.num_cases %></td>
-    <td><%= p.assoc.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.ukbb}) : 'NA' %></td>
+    <td><%= p.assoc.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.ukbb}) + '<span>' + Number(p.assoc.ukbb.pval).toExponential(1) + '</span>'  : 'NA' %></td>
     <td><%= p.assoc.ukbb ? p.assoc.ukbb.n_cases:"NA"  %></td>
 
   </tr>
@@ -223,10 +227,10 @@
           <%= p.pheno.phenostring || p.pheno.phenocode %>
     </a></td>
     <td><%= p.pheno.category || 'Unknown' %></td>
-    <td><%= Math.exp(p.assoc.beta).toPrecision(2) %></td>
+    <td><%= _.template($('#beta-template-dir').html())({assoc: p.assoc}) +  Math.exp(p.assoc.beta).toPrecision(2) %></td>
     <td><%= p.assoc.pval.toExponential(1) %></td>
     <td style="text-align: right;"><%= p.pheno.num_cases %></td>
-    <td><%= p.assoc.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.ukbb}) : 'NA' %></td>
+    <td><%= p.assoc.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.ukbb}) + '<span>p:' + Number(p.assoc.ukbb.pval).toExponential(1) +'</span>' : 'NA' %></td>
     <td><%= p.assoc.ukbb ? p.assoc.ukbb.n_cases:"NA"  %></td>
 
   </tr>
@@ -259,7 +263,7 @@
     <td><table> <%= v.significant_phenos
 	    .sort(function(pheno1, pheno2) { return pheno1.assoc.pval - pheno2.assoc.pval })
 	    .map(function(pheno) {
-	        return '<tr class="gene_func_var_tab"> <tr> <td class="gene_func_var_row" width="100px"> OR ' + Math.exp(pheno.assoc.beta).toPrecision(2) + '<br> p-val ' + pheno.assoc.pval.toExponential(1) +
+            return '<tr class="gene_func_var_tab"> <tr> <td class="gene_func_var_row" width="100px"> OR ' + _.template($('#beta-template-dir').html())({assoc:pheno.assoc}) + Math.exp(pheno.assoc.beta).toPrecision(2) + '<br> p-val ' + pheno.assoc.pval.toExponential(1) +
                 ' </td> <td> <a style="color:black" href="/pheno/' + pheno.pheno.phenocode + '">' + pheno.pheno.phenostring + ' </td> </tr>'
 	    }).join(" ") %>
         </table>
@@ -267,7 +271,7 @@
     <td><table> <%= v.significant_phenos
 	    .sort(function(pheno1, pheno2) { return pheno1.assoc.pval - pheno2.assoc.pval })
 	    .map(function(pheno) {
-            return '<tr class="gene_func_var_tab"> <tr> <td class="gene_func_var_row" width="100px">' + (pheno.ukbb ? _.template($('#beta-template-dir').html())({assoc:pheno.ukbb}):"NA" ) +
+            return '<tr class="gene_func_var_tab"> <tr> <td class="gene_func_var_row" width="100px">' + (pheno.ukbb ? _.template($('#beta-template-dir').html())({assoc:pheno.ukbb}) + '<span>p:' + Number(pheno.ukbb.pval).toExponential(1) + '</span>':"NA" ) +
                 ' </td> </tr>'
 	    }).join(" ") %>
         </table>

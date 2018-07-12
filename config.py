@@ -7,7 +7,8 @@ database_conf = ({ "annotation":
                  { "gnomad":
                      { "ElasticGnomadDao": { "host":"35.189.223.57","port":9200, "variant_index":"gnomad_combined"} }
                  },
-                 {"externalresult": { "ExternalMatrixResultDao": {"matrix":"/mnt/data-disk-ssd/ukbb/pheno/smalltestmatrix.tsv.gz", "metadatafile":"/home/mitja/ukbb_r1_match_pheno_dup_correct_simple_meta.tsv"}}}
+                {"externalresult": { "ExternalMatrixResultDao": {"matrix":"/mnt/ukbb/pheno/matrix.tsv.gz", "metadatafile":"/home/mitja/ukbb_r1_match_pheno_dup_correct_simple_meta.tsv"}}}
+                #{"externalresult": { "ExternalFileResultDao": {"manifest":"/home/mitja/ukbb_r1_match_pheno_dup_correct_ssd.tsv"}}}
                 )
 
 #{"externalresult": { "ExternalFileResultDao": {"manifest":"/home/mitja/ukbb_r1_match_pheno_dup_correct_ssd.tsv"}}}

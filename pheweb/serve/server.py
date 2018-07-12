@@ -184,7 +184,7 @@ def gene_functional_variants(gene, pThreshold):
                 var[1] = int(var[1])
                 uk_var = ukbb_dao.get_matching_results(ph["pheno"]["phenocode"], [var])
                 if(len(uk_var)>0):
-                    ph["ukbb"] =uk_var[ph["assoc"]["id"]]._asdict()
+                    ph["ukbb"] =uk_var[ph["assoc"]["id"]]
 
 
             annotations[i] = {**annotations[i], **filtered}
@@ -224,7 +224,7 @@ def gene_phenos(gene):
 
             if( len(uk_var)>0):
                 ## convert to dictionary for jsonify to keep names.
-                pheno['assoc']['ukbb'] = uk_var[pheno['assoc']['id']]._asdict()
+                pheno['assoc']['ukbb'] = uk_var[pheno['assoc']['id']]
 
         return results
     except Exception as exc:

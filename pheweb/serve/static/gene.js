@@ -7,7 +7,6 @@ function populate_variant_streamtable(data) {
     var view = function(v) {
         return template({v: v});
     };
-
     var callbacks = {
         pagination: function(summary){
             // bootstrap tooltips need to be recreated
@@ -100,6 +99,7 @@ function populate_drugs_streamtable(data) {
 function populate_streamtable(data) {
 
     var template = _.template($('#streamtable-template').html());
+    console.log(data)
     var view = function(p) {
         return template({p: p});
     };

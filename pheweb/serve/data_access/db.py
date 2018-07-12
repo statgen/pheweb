@@ -513,19 +513,17 @@ class ExternalFileResultDao(object):
 
         if( phenotype in self.results ):
             manifestdata = self.results[phenotype]
-            per_variant = []
             with pysam.TabixFile( manifestdata.file, parser=None) as tabix_file:
                 for var in var_list:
-                    t = time.time()
                     iter = tabix_file.fetch(var[0], var[1]-1, var[1], parser=None)
                     for ext_var in iter:
                         ext_var = ext_var.split("\t")
                         varid = "{}:{}:{}:{}".format(var[0],var[1],var[2],var[3])
 
                         if var[2] == ext_var[manifestdata.REF_idx] and var[3]==ext_var[manifestdata.ALT_idx]:
-                            res[varid]=ExternalFileResultDao.VarRecord( var[0], varid, ext_var[manifestdata.achr38_idx], ext_var[manifestdata.apos38_idx],
-                            ext_var[manifestdata.REF_idx],ext_var[manifestdata.ALT_idx] ,ext_var[manifestdata.beta_idx], ext_var[manifestdata.pval_idx], "UKBB",  manifestdata.ncase, manifestdata.ncontrol)
-                    per_variant.append( time.time() - t)
+                        	res[varid] = {"varid":varid, "chr":ext_var[manifestdata.achr38_idx], "pos":ext_var[manifestdata.apos38_idx],"ref":ext_var[manifestdata.REF_idx],
+				"alt":ext_var[manifestdata.ALT_idx],"beta":ext_var[manifestdata.beta_idx],"pval":ext_var[manifestdata.pval_idx], 
+				"n_cases":manifestdata.ncase, "n_controls":manifestdata.ncontrol }
 
         return res
 
