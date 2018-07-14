@@ -711,10 +711,10 @@ function effectDirection(d) {
 }
 
 $(function () {
-    $('#manhattanloader').css('display', 'block')
     $.getJSON("/api/manhattan/pheno/" + window.pheno)
         .done(function(data) {
             $('#manhattanloader').css('display', 'none')
+            $('#variant_table').css('display', 'block')
             window.debug.manhattan = data;
             window.data = data;
             // add consequence so that stream table can be filtered on it
@@ -726,10 +726,10 @@ $(function () {
 		if (!variant.gnomad) {
                     variant.fin_enrichment = 'No data in Gnomad'
 		} else {
-                    if (variant.gnomad.genomes_POPMAX === 'FIN') {
+                    if (variant.gnomad.POPMAX === 'FIN') {
 			var afs = Object.keys(variant.gnomad)
 			    .filter(function(key) {
-				return key.startsWith('genomes_AF_') && key !== 'genomes_AF_OTH'
+				return key.startsWith('AF_') && key !== 'AF_OTH'
 			    })
 			    .map(function(key) {
 				return {key: key, value: variant.gnomad[key]}
@@ -740,14 +740,14 @@ $(function () {
 			if (+afs[afs.length - 3].value === 0) {
 			    variant.fin_enrichment = 'Only FIN in Gnomad'
 			} else {
-			    variant.fin_enrichment = +variant.gnomad.genomes_AF_FIN / +afs[afs.length - 3].value
-			    variant.fin_enrichment_versus = afs[afs.length - 3].key.replace('genomes_AF_', '')
+			    variant.fin_enrichment = +variant.gnomad.AF_FIN / +afs[afs.length - 3].value
+			    variant.fin_enrichment_versus = afs[afs.length - 3].key.replace('AF_', '')
 			}
-                    } else if (variant.gnomad.genomes_AF_FIN === 0) {
+                    } else if (variant.gnomad.AF_FIN === 0) {
 			variant.fin_enrichment = 'No FIN in Gnomad'
 		    } else {
-			variant.fin_enrichment = +variant.gnomad.genomes_AF_FIN / +variant.gnomad.genomes_AF_POPMAX
-			variant.fin_enrichment_versus = variant.gnomad.genomes_POPMAX
+			variant.fin_enrichment = +variant.gnomad.AF_FIN / +variant.gnomad.AF_POPMAX
+			variant.fin_enrichment_versus = variant.gnomad.POPMAX
                     }
 		}
 	    })

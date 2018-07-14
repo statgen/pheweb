@@ -117,13 +117,13 @@ def variant_page(query):
         varpheno = {}
         var =":".join(["chr" + variant["chrom"],str(variant["pos"]),variant["ref"],variant["alt"]])
         varpheno[var]=[]
-        phenos = [ p['phenocode'] for p in variant["phenos"]] 
+        phenos = [ p['phenocode'] for p in variant["phenos"]]
         ukbb =ukbb_matrixdao.get_multiphenoresults({ var:phenos} )
         if(len(ukbb[var])>0):
             for p in variant["phenos"]:
                 if p['phenocode'] in ukbb[var]:
                     p["ukbb"] = ukbb[var][p['phenocode']]
-        
+
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
@@ -155,7 +155,6 @@ def api_pheno(phenocode):
         for variant in variants['unbinned_variants']:
             if 'peak' in variant:
                 id = variant_to_id(variant)
-                gnomad_id = id.replace('chr', '').replace(':', '-')
                 if id in d:
                     variant['annotation'] = d[id]
                 if gnomad_id in gd:
@@ -197,11 +196,8 @@ def gene_functional_variants(gene, pThreshold):
         gnomad = gnomad_dao.get_variant_annotations(ids)
         gd = {i['id']: i['var_data'] for i in gnomad}
         for v in annotations:
-            gnomad_id = v["id"].replace('chr', '').replace(':', '-')
-            if gnomad_id in gd:
-                v['gnomad'] = gd[gnomad_id]
-            else:
-                v['gnomad'] = {'genomes_AF_FIN': 'N/A', 'genomes_AF_NFE': 'N/A'}
+            if v['id'] in gd:
+                v['gnomad'] = gd[v['id']]
         return annotations
     except Exception as exc:
         print(exc)
@@ -215,7 +211,7 @@ def gene_phenos(gene):
         start, end = pad_gene(start, end)
         results = result_dao.get_variant_results_range(chrom, start, end)
         ids = list(set([pheno['assoc']['id'] for pheno in results]))
-    
+
         varpheno = defaultdict(lambda: [])
         for p in results:
             var =p['assoc']['id']
@@ -412,7 +408,7 @@ def gene_report(genename):
 
     top_phenos = gene_phenos(genename)
     top_assoc = [ {**assoc["assoc"], **assoc["pheno"] } for assoc in top_phenos if assoc["assoc"]["pval"]<  conf.report_conf["gene_top_assoc_threshold"]  ]
-    
+
     for assoc in top_assoc:
         assoc['ukbbdisplay'] = formatukbb(assoc)
 
