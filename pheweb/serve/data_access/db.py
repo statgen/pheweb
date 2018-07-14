@@ -55,6 +55,13 @@ class ExternalResultDB(object):
         """
         return
 
+    @abc.abstractmethod
+    def get_multiphenoresults(self, varphenodict):
+        """ Given a dictionary with variant ids as keys (chr:pos:reg:alt) and list of phenocodes as values returns corresponding geno pheno results.
+            This interface allows implementations to optimize queries if multiple phenotype results for same variant are co-located
+            Args: dicitionary with varian ids as keys and list of pheno codes as values
+            returns dictionary with variant ids as keys and result dictionary as values
+        """
 class AnnotationDB(object):
 
     @abc.abstractmethod
@@ -339,10 +346,7 @@ class TabixResultDao(ResultDB):
         top.sort(key=lambda pheno: pheno['assoc']['pval'])
         return top
 
-
-
-class ExternalMatrixResultDao(object):
-
+class ExternalMatrixResultDao(ExternalResultDB):
 
     def __init__(self, matrix, metadatafile):
         self.matrix = matrix
@@ -420,7 +424,33 @@ class ExternalMatrixResultDao(object):
                     print("Could not tabix variant. " + str(e) )
         return res
 
-class ExternalFileResultDao(object):
+    def get_multiphenoresults(self, varphenodict):
+        res = defaultdict(lambda: defaultdict( lambda: dict()))
+        for var, phenos in varphenodict.items():
+            var = var.split(":")
+            var[1]=int(var[1])
+            try:
+                iter = self.__get_restab().fetch(var[0], var[1]-1, var[1], parser=None)
+                for ext_var in iter:
+                    ext_var = ext_var.split("\t")
+                    varid = "{}:{}:{}:{}".format(var[0],var[1],var[2],var[3])
+                    if var[2] == ext_var[2] and var[3]==ext_var[3]:
+                        
+                        for p in phenos:
+                            if p not in self.res_indices:
+                                continue
+                            manifestdata = self.res_indices[p]
+                            datapoints = { elem:ext_var[i] for elem,i in manifestdata.items() }
+                            datapoints.update({ "chr":var[0], "varid":varid, "pos":var[1],"ref":var[2],"alt":var[3],
+                                "n_cases": self.meta[p]["ncases"], "n_controls": self.meta[p]["ncontrol"] })
+                            res[varid][p]=datapoints
+
+            except ValueError as e:
+                print("Could not tabix variant. " + str(e) )
+        return res
+        
+
+class ExternalFileResultDao(ExternalResultDB):
     FILE_REQ_HEADERS = ["achr38","apos38","REF","ALT","beta","pval"]
     ResRecord = namedtuple('ResRecord', 'name, ncase, ncontrol, file, achr38_idx, apos38_idx, REF_idx, ALT_idx, beta_idx, pval_idx')
     VarRecord = namedtuple('VarRecord','origvariant,variant,chr,pos,ref,alt,beta, pval, study_name, n_cases, n_controls')
@@ -521,10 +551,19 @@ class ExternalFileResultDao(object):
                         varid = "{}:{}:{}:{}".format(var[0],var[1],var[2],var[3])
 
                         if var[2] == ext_var[manifestdata.REF_idx] and var[3]==ext_var[manifestdata.ALT_idx]:
-                        	res[varid] = {"varid":varid, "chr":ext_var[manifestdata.achr38_idx], "pos":ext_var[manifestdata.apos38_idx],"ref":ext_var[manifestdata.REF_idx],
-				"alt":ext_var[manifestdata.ALT_idx],"beta":ext_var[manifestdata.beta_idx],"pval":ext_var[manifestdata.pval_idx], 
-				"n_cases":manifestdata.ncase, "n_controls":manifestdata.ncontrol }
+                                res[varid] = {"varid":varid, "chr":ext_var[manifestdata.achr38_idx], "pos":ext_var[manifestdata.apos38_idx],"ref":ext_var[manifestdata.REF_idx],
+                                "alt":ext_var[manifestdata.ALT_idx],"beta":ext_var[manifestdata.beta_idx],"pval":ext_var[manifestdata.pval_idx], 
+                                "n_cases":manifestdata.ncase, "n_controls":manifestdata.ncontrol }
 
+        return res
+
+    def get_multiphenoresults(self, varphenodict):
+        res = defaultdict( lambda: [] )
+        for var, phenolist in varphenodict.items():
+            for p in phenolist:
+                r = self.get_matching_results(p, [var.split(":")])
+                if len(r)>0:
+                    res[var].append(r)
         return res
 
     def getNs(self, phenotype):
@@ -583,5 +622,11 @@ class DataFactory(object):
     def get_drug_dao(self):
         return self.dao_impl["drug"]
 
-    def get_UKBB_dao(self):
-        return self.dao_impl["externalresult"]
+    def get_UKBB_dao(self, singlematrix=False):
+        if singlematrix and "externalresultmatrix" in self.dao_impl:
+            return self.dao_impl["externalresultmatrix"]
+        else:
+            return self.dao_impl["externalresult"]
+
+
+

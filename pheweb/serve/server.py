@@ -23,6 +23,8 @@ import os.path
 from .data_access import DataFactory
 from concurrent.futures import ThreadPoolExecutor
 
+from collections import defaultdict
+
 app = Flask(__name__)
 Compress(app)
 
@@ -49,7 +51,7 @@ annotation_dao = dbs_fact.get_annotation_dao()
 gnomad_dao = dbs_fact.get_gnomad_dao()
 result_dao = dbs_fact.get_result_dao()
 ukbb_dao = dbs_fact.get_UKBB_dao()
-
+ukbb_matrixdao =dbs_fact.get_UKBB_dao(True)
 threadpool = ThreadPoolExecutor(max_workers=4)
 
 def variant_to_id(variant):
@@ -112,13 +114,16 @@ def api_variant(query):
 def variant_page(query):
     try:
         variant = get_variant(query)
+        varpheno = {}
+        var =":".join(["chr" + variant["chrom"],str(variant["pos"]),variant["ref"],variant["alt"]])
+        varpheno[var]=[]
+        phenos = [ p['phenocode'] for p in variant["phenos"]] 
+        ukbb =ukbb_matrixdao.get_multiphenoresults({ var:phenos} )
+        if(len(ukbb[var])>0):
+            for p in variant["phenos"]:
+                if p['phenocode'] in ukbb[var]:
+                    p["ukbb"] = ukbb[var][p['phenocode']]
         
-        for p in variant["phenos"]:
-            phenocode = p["phenocode"]
-            ukbb =ukbb_dao.get_matching_results(phenocode , ("chr" + variant["chrom"],variant["pos"],variant["ref"],variant["alt"]))
-            if(len(ukbb)>0):
-                p["ukbb"] = list(ukbb.values())[0]
-            
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
@@ -210,21 +215,28 @@ def gene_phenos(gene):
         start, end = pad_gene(start, end)
         results = result_dao.get_variant_results_range(chrom, start, end)
         ids = list(set([pheno['assoc']['id'] for pheno in results]))
+    
+        varpheno = defaultdict(lambda: [])
+        for p in results:
+            var =p['assoc']['id']
+            varpheno[var].append( p['pheno']['phenocode'])
+
         gnomad = gnomad_dao.get_variant_annotations(ids)
         gd = {i['id']: i['var_data'] for i in gnomad}
+
+        ukbbs = ukbb_matrixdao.get_multiphenoresults(varpheno)
         for pheno in results:
             gnomad_id = pheno['assoc']['id'].replace('chr', '').replace(':', '-')
 
             var = pheno['assoc']['id'].split(":")
             var[1] = int(var[1])
+            #uk_var = ukbb_matrixdao.get_matching_results( pheno['pheno']['phenocode'], tuple(var) )
+            if pheno['assoc']['id'] in ukbbs and pheno['pheno']['phenocode'] in ukbbs[pheno['assoc']['id']]:
+                pheno['assoc']['ukbb'] = ukbbs[pheno['assoc']['id']][pheno['pheno']['phenocode']]
 
-            uk_var = ukbb_dao.get_matching_results( pheno['pheno']['phenocode'], tuple(var) )
             if gnomad_id in gd:
                 pheno['assoc']['gnomad'] = gd[gnomad_id]
 
-            if( len(uk_var)>0):
-                ## convert to dictionary for jsonify to keep names.
-                pheno['assoc']['ukbb'] = uk_var[pheno['assoc']['id']]
 
         return results
     except Exception as exc:
@@ -377,11 +389,20 @@ def gene_report(genename):
     func_vars = gene_functional_variants( genename,  conf.report_conf["func_var_assoc_threshold"])
     funcvar = []
     chunk_size = 10
+
+    def formatukbb(resline):
+        ukbline = ""
+        if('ukbb' in resline):
+            pval = float(resline['ukbb']['pval'])
+            beta = float(resline['ukbb']['beta'])
+            ukbline = " \\newline UKBB: " + (" $\\Uparrow$ " if beta>=0 else " $\Downarrow$ ") + ", p:" + "{:.2e}".format(pval)
+        return ukbline
+
     for var in func_vars:
         i = 0
         while i < len(var["significant_phenos"]):
             phenos = var["significant_phenos"][i:min(i+chunk_size,len(var["significant_phenos"]))]
-            sigphenos = "\\newline \\medskip ".join( list(map(lambda x: x['pheno']['phenostring'] + " \\newline (OR:" + "{:.2f}".format( math.exp(x['assoc']['beta'])) + ",p:"  + "{:.2e}".format(x['assoc']['pval']) + ")"  , phenos)))
+            sigphenos = "\\newline \\medskip ".join( list(map(lambda x: x['pheno']['phenostring'] + " \\newline (OR:" + "{:.2f}".format( math.exp(x['assoc']['beta'])) + ",p:"  + "{:.2e}".format(x['assoc']['pval']) + ")" +  formatukbb(x) + " " , phenos)))
             if i+chunk_size < len(var["significant_phenos"]):
                 sigphenos = sigphenos + "\\newline ..."
             funcvar.append( { 'rsid': var["rsids"], 'variant':var['id'].replace(':', ' '), 'gnomad':var['gnomad'],
@@ -391,6 +412,10 @@ def gene_report(genename):
 
     top_phenos = gene_phenos(genename)
     top_assoc = [ {**assoc["assoc"], **assoc["pheno"] } for assoc in top_phenos if assoc["assoc"]["pval"]<  conf.report_conf["gene_top_assoc_threshold"]  ]
+    
+    for assoc in top_assoc:
+        assoc['ukbbdisplay'] = formatukbb(assoc)
+
     gi_dao = dbs_fact.get_geneinfo_dao()
     genedata = gi_dao.get_gene_info(genename)
 
@@ -399,7 +424,6 @@ def gene_report(genename):
 
     knownhits = dbs_fact.get_knownhits_dao().get_hits_by_loc(chrom,start,end)
     drugs = dbs_fact.get_drug_dao().get_drugs(genename)
-
     pdf =  report.render_template('gene_report.tex',imp0rt = importlib.import_module,
                                   gene=genename, functionalVars=funcvar, topAssoc=top_assoc, geneinfo=genedata, knownhits=knownhits, drugs=drugs,
                                   gene_top_assoc_threshold=conf.report_conf["gene_top_assoc_threshold"], func_var_assoc_threshold=conf.report_conf["func_var_assoc_threshold"] )

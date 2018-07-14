@@ -99,7 +99,6 @@ function populate_drugs_streamtable(data) {
 function populate_streamtable(data) {
 
     var template = _.template($('#streamtable-template').html());
-    console.log(data)
     var view = function(p) {
         return template({p: p});
     };

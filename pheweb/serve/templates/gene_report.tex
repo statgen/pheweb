@@ -4,6 +4,7 @@
 \usepackage{array}
 \usepackage{ragged2e}
 \geometry{left=1in}
+\usepackage{pdflscape}
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \begin{document}
@@ -25,7 +26,7 @@
 \newpage
 
 
-
+\begin{landscape}
 \begingroup
 \renewcommand{\arraystretch}{1.5}
 \section{ Functional variants }
@@ -38,18 +39,19 @@ Variant & rsid & Consequence & MAF & MAF FIN & MAF NFE & N phenos p\textless((( 
 ((* endfor *))
 
 \end{longtable}
+ \end{landscape}
 \newpage
-
+\begin{landscape}
 \section{ Top associations in the gene region }
-\begin{longtable}{ >{\RaggedRight}p{3cm}|>{\RaggedRight}p{3cm}|c|c|c|c|c|c }
+\begin{longtable}{ >{\RaggedRight}p{3cm}|>{\RaggedRight}p{3cm}|c|c|c|c|c|c|c }
 \caption{ Phenotype associations p\textless (((gene_top_assoc_threshold))) }\\
-Variant & pheno & cases & controls & MAF case & MAF control & OR & p-value  \\
+    Variant & pheno & cases & controls & MAF case & MAF control & OR & p-value & UKBB \\
 \hline
 ((* for var in topAssoc *))
-((( var.id.replace(":"," ") | escape_tex))) \newline ((( var.rsids ))) & ((( var.phenostring | escape_tex))) & (((var.num_cases ))) & (((var.num_controls))) & ((( "{:.2e}".format(var.maf_case) ))) & ((( "{:.2e}".format(var.maf_control) ))) & ((( "{:.2f}".format(math.exp(var.beta)) ))) & ((( "{:.2e}".format(var.pval) ))) \\
+    ((( var.id.replace(":"," ") | escape_tex))) \newline ((( var.rsids ))) & ((( var.phenostring | escape_tex))) & (((var.num_cases ))) & (((var.num_controls))) & ((( "{:.2e}".format(var.maf_case) ))) & ((( "{:.2e}".format(var.maf_control) ))) & ((( "{:.2f}".format(math.exp(var.beta)) ))) & ((( "{:.2e}".format(var.pval) ))) & (((var.ukbbdisplay)))\\
 ((* endfor *))
 \end{longtable}
-
+\end{landscape}
 
 
 \newpage
