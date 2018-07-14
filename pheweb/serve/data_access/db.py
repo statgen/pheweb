@@ -661,6 +661,7 @@ class TabixAnnotationDao(AnnotationDB):
         print('TABIX get_gene_functional_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
         return annotations
 
+class DataFactory(object):
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
                        "MATRIX_PATH": common_filepaths['matrix'],
                        "ANNOTATION_MATRIX_PATH": common_filepaths['annotation-matrix'],

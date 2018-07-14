@@ -149,7 +149,7 @@ def api_pheno(phenocode):
         d = {i['id']: i['var_data'] for i in annotations}
         gd = {i['id']: i['var_data'] for i in gnomad}
 
-
+        
         ukbbvars = ukbb_dao.get_matching_results(phenocode ,
             list(map( lambda variant: ( "chr" + variant["chrom"], variant["pos"], variant["ref"], variant["alt"]), variants['unbinned_variants'])))
         for variant in variants['unbinned_variants']:
@@ -157,8 +157,8 @@ def api_pheno(phenocode):
                 id = variant_to_id(variant)
                 if id in d:
                     variant['annotation'] = d[id]
-                if gnomad_id in gd:
-                    variant['gnomad'] = gd[gnomad_id]
+                if id in gd:
+                    variant['gnomad'] = gd[id]
 
                 if id in ukbbvars:
                     ## convert tuple to dict for jsonify to keep field dames
