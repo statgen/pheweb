@@ -230,8 +230,8 @@ def gene_phenos(gene):
             if pheno['assoc']['id'] in ukbbs and pheno['pheno']['phenocode'] in ukbbs[pheno['assoc']['id']]:
                 pheno['assoc']['ukbb'] = ukbbs[pheno['assoc']['id']][pheno['pheno']['phenocode']]
 
-            if gnomad_id in gd:
-                pheno['assoc']['gnomad'] = gd[gnomad_id]
+            if pheno['assoc']['id'] in gd:
+                pheno['assoc']['gnomad'] = gd[pheno['assoc']['id']]
 
 
         return results
