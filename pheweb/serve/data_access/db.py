@@ -1,7 +1,7 @@
 
 import abc
 from importlib import import_module
-
+from collections import defaultdict
 from elasticsearch import Elasticsearch
 import pysam
 import re
@@ -9,8 +9,13 @@ import re
 from ...file_utils import MatrixReader, common_filepaths
 from ...utils import get_phenolist, get_gene_tuples
 
+from collections import namedtuple
 import requests
+import importlib
+import gzip
+import subprocess
 import time
+import io
 
 class GeneInfoDB(object):
 
@@ -22,14 +27,48 @@ class GeneInfoDB(object):
         """
         return
 
+class ExternalResultDB(object):
 
+    @abc.abstractmethod
+    def get_matching_results(self, phenotype, var_list):
+        """ Given a phenotype name and variant list returns a list of matching results.
+        Args: phenotype phenotype names
+              var_list list of tuples with CHR POS:int REF ALT
+            returns list of namedtuples with elements effect_size, pvalue, study_name, n_cases, n_controls
+        """
+        return
+
+    @abc.abstractmethod
+    def get_results_region(self, phenotype, chr, start, stop):
+        """ Given a phenotype name and coordinates returns all results .
+        Args: phenotype phenotype names
+              var_list var_list list of tuples with CHR POS:int REF ALT
+            returns list of namedtuples with elements effect_size, pvalue, study_name, n_cases, n_controls
+        """
+        return
+
+    @abc.abstractmethod
+    def getNs(self, phenotype):
+        """ Given a phenotype name returns tuple with ncases,nconrols. .
+            Args: phenotype phenotype names
+            returns tuple with ncase and ncontrols
+        """
+        return
+
+    @abc.abstractmethod
+    def get_multiphenoresults(self, varphenodict):
+        """ Given a dictionary with variant ids as keys (chr:pos:reg:alt) and list of phenocodes as values returns corresponding geno pheno results.
+            This interface allows implementations to optimize queries if multiple phenotype results for same variant are co-located
+            Args: dicitionary with varian ids as keys and list of pheno codes as values
+            returns dictionary with variant ids as keys and result dictionary as values
+        """
 class AnnotationDB(object):
 
     @abc.abstractmethod
     def get_variant_annotations(self, id_list):
         """ Retrieve variant annotations given variant id list.
             Args: id_list list of string in format chr:pos:ref:alt
-            Returns: A list of dictionaries. Dictionary has 2 elements "id" which contains the query id and "var_data" containing dictionary with all variant data.
+            Returns: A list of . Dictionary has 2 elements "id" which contains the query id and "var_data" containing dictionary with all variant data.
         """
         return
 
@@ -81,7 +120,7 @@ class DrugDB(object):
             Returns: drugs targeting the gene
         """
         return
-    
+
 class MichinganGWASUKBBCatalogDao(KnownHitsDB):
 
     build38ids="1,4"
@@ -146,9 +185,9 @@ class DrugDao(DrugDB):
             d['disease']['efo_info']['label'] = d['disease']['efo_info']['label'].capitalize()
             d['drug']['molecule_type'] = d['drug']['molecule_type'].capitalize()
             d['evidence']['target2drug']['action_type'] = d['evidence']['target2drug']['action_type'].capitalize()
-            
+
         return data
-    
+
 class ElasticAnnotationDao(AnnotationDB):
 
     def __init__(self, host, port, variant_index):
@@ -248,7 +287,7 @@ class ElasticGnomadDao(GnomadDB):
 
     def _variant_id_to_gnomad_id(self, id):
         return id.replace('chr', '').replace(':', '-')
-        
+
     def get_variant_annotations(self, id_list):
         gnomad_ids = [self._variant_id_to_gnomad_id(id) for id in id_list]
         annotation = self.elastic.search(
@@ -300,7 +339,7 @@ class TabixGnomadDao(GnomadDB):
                     else:
                         #print(split[3] + ' - ' + variant['ref'] + ' / ' + split[4] + ' - ' + variant['alt'])
                         pass
-                                
+
         print('TABIX GNOMAD get_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
         return annotations
 
@@ -343,13 +382,240 @@ class TabixResultDao(ResultDB):
         top.sort(key=lambda pheno: pheno['assoc']['pval'])
         return top
 
+class ExternalMatrixResultDao(ExternalResultDB):
+
+    def __init__(self, matrix, metadatafile):
+        self.matrix = matrix
+        self.metadatafile = metadatafile
+        self.meta = {}
+
+        self.res_indices = defaultdict(lambda: {})
+
+        with open( self.metadatafile, 'r') as meta:
+            header = meta.readline().rstrip("\n").split("\t")
+            req_headers = ["NAME","ncases","ncontrols"]
+            if not all( [ h in header for h in req_headers]):
+                raise Exception("External result meta-data must be tab separated and must have columns: " + ",".join(req_headers) )
+
+            name_idx = header.index("NAME")
+            ncase_idx = header.index("ncases")
+            ncontrol_idx = header.index("ncontrols")
+
+            for p in meta:
+                p = p.rstrip("\n").split("\t")
+                self.meta[p[name_idx]] = { "ncases":p[ncase_idx], "ncontrol":p[ncontrol_idx] }
+
+        self.tabixfile = pysam.TabixFile( self.matrix, parser=None)
+
+        with gzip.open( self.matrix,"rt") as res:
+            header = res.readline().rstrip("\n").split("\t")
+            comp_header = ["#chr","pos","ref","alt"]
+            if not all( [comp_header[i]==header[i] for i in [0,1,2,3]]):
+                raise Exception("External result data must be tab separated and must begin with columns: " + ",".join(req_headers) +
+                    " followed by individual result fields" )
+
+            for i,field in enumerate(header[4:]):
+                elem,pheno = field.split("@")
+                self.res_indices[pheno][elem] = i+4
+
+    def __get_restab(self):
+        if self.tabixfile is None:
+            self.tabixfile = pysam.TabixFile( self.matrix, parser=None)
+
+        return self.tabixfile
+
+    def getNs(self, phenotype):
+
+        res = None
+        if( phenotype in self.meta ):
+            m = self.meta[phenotype]
+            res = (m["ncases"],m["ncontrol"])
+
+        return res
+
+    def get_matching_results(self, phenotype, var_list):
+        res = {}
+        if( type(var_list) is not list ):
+            var_list = [var_list]
+
+        if( phenotype in self.res_indices ):
+            manifestdata = self.res_indices[phenotype]
+            per_variant = []
+            for var in var_list:
+                t = time.time()
+
+                try:
+                    iter = self.__get_restab().fetch(var[0], var[1]-1, var[1], parser=None)
+                    for ext_var in iter:
+                        ext_var = ext_var.split("\t")
+                        varid = "{}:{}:{}:{}".format(var[0],var[1],var[2],var[3])
+                        if var[2] == ext_var[2] and var[3]==ext_var[3]:
+
+                            datapoints = { elem:ext_var[i] for elem,i in manifestdata.items() }
+                            datapoints.update({ "chr":var[0], "varid":varid, "pos":var[1],"ref":var[2],"alt":var[3],
+                                "n_cases": self.meta[phenotype]["ncases"], "n_controls": self.meta[phenotype]["ncontrol"] })
+                            res[varid]=datapoints
+
+                except ValueError as e:
+                    print("Could not tabix variant. " + str(e) )
+        return res
+
+    def get_multiphenoresults(self, varphenodict):
+        res = defaultdict(lambda: defaultdict( lambda: dict()))
+        for var, phenos in varphenodict.items():
+            var = var.split(":")
+            var[1]=int(var[1])
+            try:
+                iter = self.__get_restab().fetch(var[0], var[1]-1, var[1], parser=None)
+                for ext_var in iter:
+                    ext_var = ext_var.split("\t")
+                    varid = "{}:{}:{}:{}".format(var[0],var[1],var[2],var[3])
+                    if var[2] == ext_var[2] and var[3]==ext_var[3]:
+
+                        for p in phenos:
+                            if p not in self.res_indices:
+                                continue
+                            manifestdata = self.res_indices[p]
+                            datapoints = { elem:ext_var[i] for elem,i in manifestdata.items() }
+                            datapoints.update({ "chr":var[0], "varid":varid, "pos":var[1],"ref":var[2],"alt":var[3],
+                                "n_cases": self.meta[p]["ncases"], "n_controls": self.meta[p]["ncontrol"] })
+                            res[varid][p]=datapoints
+
+            except ValueError as e:
+                print("Could not tabix variant. " + str(e) )
+        return res
+
+
+class ExternalFileResultDao(ExternalResultDB):
+    FILE_REQ_HEADERS = ["achr38","apos38","REF","ALT","beta","pval"]
+    ResRecord = namedtuple('ResRecord', 'name, ncase, ncontrol, file, achr38_idx, apos38_idx, REF_idx, ALT_idx, beta_idx, pval_idx')
+    VarRecord = namedtuple('VarRecord','origvariant,variant,chr,pos,ref,alt,beta, pval, study_name, n_cases, n_controls')
+
+    def __init__(self, manifest):
+
+        self.manifest = manifest
+
+        self.results = {}
+
+        if manifest is None:
+            ## initialize with none and never returns any results
+            return
+
+        with open( self.manifest, 'r') as mani:
+            header = mani.readline().rstrip("\n").split("\t")
+
+            req_headers = ["NAME","ncases","ncontrols","file"]
+            if not all( [ h in header for h in req_headers]):
+                raise Exception("External result file must be tab separated and must have columns: " + ",".join(req_headers) )
+
+            name_idx = header.index("NAME")
+            ncase_idx = header.index("ncases")
+            ncontrol_idx = header.index("ncontrols")
+            file_idx = header.index("file")
+
+            for line in mani:
+                line = line.rstrip("\n").split("\t")
+                filename = line[file_idx]
+
+                fopen = open
+                if filename.endswith(".gz"):
+                    fopen = gzip.open
+
+                with fopen(line[file_idx],'rt') as f:
+                    header = f.readline().rstrip("\n").split("\t")
+
+                    if not all( [ h in header for h in self.FILE_REQ_HEADERS ]):
+                        raise Exception("All required headers not found in external result file:" + line[file_idx] + ". Required fields: " +
+                         ",".join(self.FILE_REQ_HEADERS))
+
+                    self.results[ line[name_idx] ] = ExternalFileResultDao.ResRecord( line[name_idx], line[ncase_idx], line[ncontrol_idx],
+                        line[file_idx], header.index("achr38"), header.index("apos38"), header.index("REF") ,header.index("ALT") ,
+                        header.index("beta"), header.index("pval") )
+
+
+    def get_results_region(self, phenotype, chr, start, stop):
+
+        res = []
+        if( phenotype in self.results ):
+            manifestdata = self.results[phenotype]
+            with pysam.TabixFile( manifestdata.file, parser=None) as tabix_file:
+                headers = tabix_file.header[0].split('\t')
+                tabix_iter = tabix_file.fetch("chr" + chrom, start-1, stop, parser=None)
+                varid = [ var[manifestdata.achr38_idx],  var[manifestdata.apos38_idx], var[manifestdata.REF_idx], var[manifestdata.ALT_idx]].join(":")
+                for var in tabix_iter:
+                    var = var.split("\t")
+                    res.append(  {"varid":varid, "chr":var[manifestdata.achr38_idx], "pos":var[manifestdata.apos38_idx],
+                            "ref":var[manifestdata.REF_idx],"alt":var[manifestdata.ALT_idx] ,"beta":var[manifestdata.beta_idx],
+                            "pval":var[manifestdata.pval_idx],  "n_cases":manifestdata.ncase, "n_controls":manifestdata.ncontrol } )
+
+        return res
+
+    def _get_rows(self, file, chrom, start, end ):
+
+        cmd = "tabix {} {}:{}-{}".format(file, chrom, start, end)
+        try:
+            res = subprocess.run("tabix {} {}:{}-{}".format(file, chrom, start, end),shell=True, stdout=subprocess.PIPE, universal_newlines = True )
+        except Exception as e:
+            ## tabix throws filenotfoundexception when no variants are found even though the file exist.
+            print("exc thrown" + str(e))
+            return None
+
+        if(len(res.stdout)==0):
+            return None
+
+        res = io.StringIO(res.stdout)
+        for var in res:
+            ext_var = var.rstrip("\n").split("\t")
+            yield ext_var
+
+
+    def get_matching_results(self, phenotype, var_list):
+        res = {}
+
+        allt = time.time()
+
+        if( type(var_list) is not list ):
+            var_list = [var_list]
+
+        if( phenotype in self.results ):
+            manifestdata = self.results[phenotype]
+            with pysam.TabixFile( manifestdata.file, parser=None) as tabix_file:
+                for var in var_list:
+                    iter = tabix_file.fetch(var[0], var[1]-1, var[1], parser=None)
+                    for ext_var in iter:
+                        ext_var = ext_var.split("\t")
+                        varid = "{}:{}:{}:{}".format(var[0],var[1],var[2],var[3])
+
+                        if var[2] == ext_var[manifestdata.REF_idx] and var[3]==ext_var[manifestdata.ALT_idx]:
+                                res[varid] = {"varid":varid, "chr":ext_var[manifestdata.achr38_idx], "pos":ext_var[manifestdata.apos38_idx],"ref":ext_var[manifestdata.REF_idx],
+                                "alt":ext_var[manifestdata.ALT_idx],"beta":ext_var[manifestdata.beta_idx],"pval":ext_var[manifestdata.pval_idx],
+                                "n_cases":manifestdata.ncase, "n_controls":manifestdata.ncontrol }
+
+        return res
+
+    def get_multiphenoresults(self, varphenodict):
+        res = defaultdict( lambda: [] )
+        for var, phenolist in varphenodict.items():
+            for p in phenolist:
+                r = self.get_matching_results(p, [var.split(":")])
+                if len(r)>0:
+                    res[var].append(r)
+        return res
+
+    def getNs(self, phenotype):
+        if(phenotype in self.results ):
+            manifest = self.results[phenotype]
+            return (manifest.ncase, manifest.ncontrol)
+        else:
+            return None
+
 class TabixAnnotationDao(AnnotationDB):
-    
+
     def __init__(self, matrix_path):
         self.matrix_path = matrix_path
         self.gene_region_mapping = {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
         self.functional_variants = set(["missense_variant",
-                                    "frameshift_variant", 
+                                    "frameshift_variant",
                                     "splice_donor_variant",
                                     "stop_gained",
                                     "splice_acceptor_variant",
@@ -396,11 +662,6 @@ class TabixAnnotationDao(AnnotationDB):
         return annotations
 
 class DataFactory(object):
-    daos = {"annotation.elastic":ElasticAnnotationDao,
-            "annotation.tabix":TabixAnnotationDao,
-            "result.tabix":TabixResultDao,
-            "gnomad.elastic":ElasticGnomadDao,
-            "gnomad.tabix":TabixGnomadDao}
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
                        "MATRIX_PATH": common_filepaths['matrix'],
                        "ANNOTATION_MATRIX_PATH": common_filepaths['annotation-matrix'],
@@ -412,19 +673,24 @@ class DataFactory(object):
             for db_type in db.keys():
                 for db_source in db[db_type]:
                     db_id = db_type + "." + db_source
-                    if( db_id not in self.daos):
-                        raise Exception( "Database '" + db_id + "' does not exist" )
+                    daomodule = importlib.import_module(".db", __package__)
+                    daoclass = getattr(daomodule, db_source)
                     if 'const_arguments' in db[db_type][db_source]:
                         for a, b in db[db_type][db_source]['const_arguments']:
                             if b not in self.arg_definitions:
                                 raise Exception(b + " is an unknown argument")
                             db[db_type][db_source][a] = self.arg_definitions[b]
                         db[db_type][db_source].pop('const_arguments', None)
-                    self.dao_impl[db_type] = self.daos[db_id]( ** db[db_type][db_source] )
+                    self.dao_impl[db_type] = daoclass( ** db[db_type][db_source] )
 
         self.dao_impl["geneinfo"] = NCBIGeneInfoDao()
         self.dao_impl["catalog"] = MichinganGWASUKBBCatalogDao()
         self.dao_impl["drug"] = DrugDao()
+
+        if "externalresult" not in self.dao_impl:
+            ## if external results not configured initialize dao always returning empty results
+            self.dao_impl["externalresult"] = ExternalFileResultDao(None)
+
 
     def get_annotation_dao(self):
         return self.dao_impl["annotation"]
@@ -443,3 +709,9 @@ class DataFactory(object):
 
     def get_drug_dao(self):
         return self.dao_impl["drug"]
+
+    def get_UKBB_dao(self, singlematrix=False):
+        if singlematrix and "externalresultmatrix" in self.dao_impl:
+            return self.dao_impl["externalresultmatrix"]
+        else:
+            return self.dao_impl["externalresult"]

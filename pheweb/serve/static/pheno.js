@@ -105,7 +105,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
                              return d3.max(bin, _.property('neglog10_pval'));
                          });
                      })());
-	
+
         var y_scale = d3.scale.linear()
             .domain([highest_plot_neglog10_pval, 0])
         // 0.97 leaves a little space above points clamped to the top.
@@ -752,6 +752,7 @@ $(function () {
 		}
 	    })
             create_gwas_plot(data.variant_bins, data.unbinned_variants);
+
             populate_streamtable(data.unbinned_variants);
             //TODO filtering with streamtable
             //create_consequence_dropdown(data.unbinned_variants);

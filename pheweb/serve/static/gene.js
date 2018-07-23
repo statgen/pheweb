@@ -7,7 +7,6 @@ function populate_variant_streamtable(data) {
     var view = function(v) {
         return template({v: v});
     };
-
     var callbacks = {
         pagination: function(summary){
             // bootstrap tooltips need to be recreated
@@ -28,7 +27,6 @@ function populate_variant_streamtable(data) {
             })
         }
     }
-
     var options = {
         view: view,
         search_box: false,
@@ -104,7 +102,6 @@ function populate_streamtable(data) {
     var view = function(p) {
         return template({p: p});
     };
-
     var fields = function(item) {
 	return [
 	    item.pheno.phenocode,
@@ -113,7 +110,6 @@ function populate_streamtable(data) {
 	    item.assoc.rsid
 	].join(' ')
     }
-
     var callbacks = {
         pagination: function(summary){
             // bootstrap tooltips need to be recreated
@@ -262,7 +258,6 @@ $(function () {
 
             request.onreadystatechange = function() {//Call a function when the state changes.
                 if(request.readyState == XMLHttpRequest.DONE && request.status != 200) {
-                    console.log(request)
                     $('#genereport-errorbox').css("display","inline-block")
                     $('#genereport-errorbox').text("Error while requesting gene report. " +request.status + " " + request.statusText )
                     $('#genereport').removeClass("disabled")
@@ -314,7 +309,7 @@ $(function() {
             }
 	}
     }
-    
+
     if (!window.gene_symbol) return
     $.getJSON('http://rest.ensembl.org/xrefs/symbol/human/' + window.gene_symbol + '?content-type=application/json')
         .done(function(result) {
@@ -359,9 +354,10 @@ $(function() {
 		variant.maf = variant.var_data.af < 0.5 ? variant.var_data.af : 1 - variant.var_data.af
 		gnomadize(variant)
 	    })
-	    populate_variant_streamtable(data);
+	    populate_variant_streamtable(data)
 	    $('#functional-variants-container').css('display', 'block')
 	})
+
     $.getJSON("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=gene&term=("
 	      + window.gene_symbol
 	      + "[gene])%20AND%20(Homo%20sapiens[orgn])%20AND%20alive[prop]%20NOT%20newentry[gene]&sort=weight&retmode=json")
