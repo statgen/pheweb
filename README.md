@@ -6,6 +6,8 @@
 [Google Cloud SDK](https://cloud.google.com/sdk/downloads)  
 [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
+Note that there can be at most one minor version difference between kubectl client and server versions: If the server is running v1.8, the client cannot be v1.10. Versions can be checked with `kubectl version`. If they differ too much, download a different version of the client or update the server.
+
 ### 2. Build a Docker image and push to Google Container Registry
 
 Copy the .pheweb directory from a running PheWeb instance ($HOME/.pheweb) as dot_pheweb in the repository root.
@@ -37,19 +39,21 @@ If necessary:
 
 If using a running cluster:
 
-In `deploy/pheweb-deployment.yaml`, change the Docker image to the one you just created (or make other desired changes). Make sure the GCE disk is the one you want with the wanted data - and that there is a correct config.py in the /pheweb directory of the disk. In a running kubernetes node, mounted disks are at
+In `deploy/pheweb-deployment.yaml`, change the Docker image to the one you just created (or make other desired changes). Make sure that in `deploy/pheweb-pv.yaml` the GCE disk is the one you want with the wanted data - and that there is a correct config.py in the /mnt/data-disk-ssd/pheweb directory of the disk. In a running kubernetes node, mounted disks are at
 `/home/kubernetes/containerized_mounter/rootfs/var/lib/kubelet/plugins/kubernetes.io/gce-pd/mounts/`
 
-Then
+Then, apply the changes you made:
 
+`kubectl apply -f deploy/pheweb-pv.yaml` and/or  
 `kubectl apply -f deploy/pheweb-deployment.yaml`
 
 Or if using a new cluster:
 
-Modify `deploy/pheweb-ingress.yaml` (production) or `deploy/pheweb-ingress-dev.yaml` (preproduction) and `deploy/pheweb-deployment.yaml` as needed. Then
+Modify `deploy/pheweb-ingress.yaml` (production) or `deploy/pheweb-ingress-dev.yaml` (preproduction), `deploy/pheweb-deployment.yaml` and `deploy/pheweb-pv.yaml` as needed. Then
 
 `kubectl create -f deploy/pheweb-ingress.yaml` or  
 `kubectl create -f deploy/pheweb-ingress-dev.yaml` and  
+`kubectl create -f deploy/pheweb-pv.yaml` and  
 `kubectl create -f deploy/pheweb-deployment.yaml`
 
 ### 5. Useful commands
