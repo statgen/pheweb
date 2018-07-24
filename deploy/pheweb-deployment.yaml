@@ -1,11 +1,12 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1beta1
+kind: StatefulSet
 metadata:
   name: pheweb-front
   labels:
     app: pheweb
     tier: frontend
 spec:
+  serviceName: pheweb-front
   replicas: 1
   template:
     metadata:
@@ -20,12 +21,13 @@ spec:
         - containerPort: 8080
         volumeMounts:
         - mountPath: /mnt/data-disk-ssd
-          name: pheweb-disk
-      volumes:
-      - name: pheweb-disk
-        gcePersistentDisk:
-          pdName: pheweb-fg-r1-ukbb
-          fsType: ext4
-        mountOptions:
-          - noatime
-          - nodiratime
+          name: pheweb-pv
+  volumeClaimTemplates:
+  - metadata:
+      name: pheweb-pv
+    spec:
+      storageClassName: ""
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 1900Gi
