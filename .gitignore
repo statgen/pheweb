@@ -8,5 +8,4 @@ dist
 pheweb/load/cffi/_x*
 .eggs
 js/node_modules
-dot_pheweb
 generated-by-pheweb
