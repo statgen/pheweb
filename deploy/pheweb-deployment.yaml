@@ -15,14 +15,17 @@ spec:
     spec:
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:genepage04
+        image: gcr.io/phewas-development/pheweb:ukbb1
         ports:
         - containerPort: 8080
         volumeMounts:
-        - mountPath: /pheweb-data
+        - mountPath: /mnt/data-disk-ssd
           name: pheweb-disk
       volumes:
       - name: pheweb-disk
         gcePersistentDisk:
-          pdName: pheweb-fg-r1-2
+          pdName: pheweb-fg-r1-ukbb
           fsType: ext4
+        mountOptions:
+          - noatime
+          - nodiratime
