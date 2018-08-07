@@ -96,6 +96,32 @@ function populate_drugs_streamtable(data) {
     $('#drugs-container').css('display', 'block')
 }
 
+function populate_lof_streamtable(data) {
+
+    var template = _.template($('#streamtable-lof-template').html());
+    var view = function(r) {
+        return template({r: r});
+    };
+
+    var options = {
+        view: view,
+        search_box: '#search-lof',
+        pagination: {
+            span: 5,
+            next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
+            prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
+    	    container_class: 'lof-pagination',
+    	    ul_class: 'lof-pagination',
+            per_page_select: true,
+            per_page_opts: [10],
+            per_page: 10
+        }
+    }
+
+    $('#stream_table_lof').stream_table(options, data);
+    $('#lof-container').css('display', 'block')
+}
+
 function populate_streamtable(data) {
 
     var template = _.template($('#streamtable-template').html());
@@ -176,6 +202,12 @@ $(function () {
 $(function () {
   $("#export_drugs").click( function (event) {
       exportTableToCSV.apply(this, [$('#stream_table_drugs'),window.gene_symbol + "_drugs.tsv",window.drug_export_fields])
+  });
+})
+
+$(function () {
+  $("#export_lof").click( function (event) {
+      exportTableToCSV.apply(this, [$('#stream_table_lof'),window.gene_symbol + "_lof.tsv",window.lof_export_fields])
   });
 })
 
@@ -344,6 +376,23 @@ $(function() {
 	    } else {
 		$('#drugs-container').html('<span>No known drugs for ' + window.gene_symbol + '</span>')
 		$('#drugs-container').css('display', 'block')
+	    }
+	})
+    $.getJSON("/api/lof/" + window.gene_symbol)
+	.done(function(data) {
+	    if (data.length > 0) {
+		data = data.map(function(r) { return r.gene_data })
+		data.forEach(function(datum) {
+		    datum.variants = datum.variants.split(',').map(function (variant) {
+			    return variant.replace('chr', '').replace('_', ':').replace(/_/g, '-')
+		    })
+		    datum.ref_alt_cases = datum.ref_count_cases + '/' + datum.alt_count_cases
+		    datum.ref_alt_ctrls = datum.ref_count_ctrls + '/' + datum.alt_count_ctrls
+		})
+		populate_lof_streamtable(data)
+	    } else {
+		$('#lof-container').html('<span>No high-confidence loss of function variants for ' + window.gene_symbol + '</span>')
+		$('#lof-container').css('display', 'block')
 	    }
 	})
     $.getJSON("/api/gene_functional_variants/" + window.gene_symbol + "?p=" + window.func_var_report_p_threshold )

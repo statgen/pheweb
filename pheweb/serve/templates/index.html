@@ -13,8 +13,23 @@
     datum.lambda = datum.gc_lambda['0.5']
   }
   })
-    window.phenolist = data;
-      populate_streamtable(data);
+  window.phenolist = data;
+  populate_streamtable(data);
+  $.getJSON("/api/lof")
+  .done(function(data) {
+  data = data.map(function(r) { return r.gene_data })
+  data.forEach(function(datum) {
+  datum.variants = datum.variants.split(',').map(function (variant) {
+      return variant.replace('chr', '').replace('_', ':').replace(/_/g, '-')
+  })
+  datum.ref_alt_cases = datum.ref_count_cases + '/' + datum.alt_count_cases
+  datum.ref_alt_ctrls = datum.ref_count_ctrls + '/' + datum.alt_count_ctrls
+  })
+      populate_lof_streamtable(data);
+  })
+  .fail(function() {
+      console.log("LoF XHR failed");
+  });
   })
   .fail(function() {
       console.log("Phenolist XHR failed");
@@ -65,6 +80,9 @@
           <li class="nav-item">
               <a class="nav-link" id="phenotypes-tab" data-toggle="tab" href="#phenotypes" role="tab" aria-controls="phenotypes" aria-selected="false">Phenotype list</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" id="lof-tab" data-toggle="tab" href="#lof" role="tab" aria-controls="lof" aria-selected="false">LoF burden</a>
+          </li>
         </ul>
     <div class="tab-content">
       <div class="tab-pane active" id="search-general" role="tabpanel" style="padding-top: 20px;">
@@ -73,38 +91,57 @@
              <fieldset>
               <div class="form-group">
                 <input name="query" id="query" class="form-control typeahead" type="text" placeholder="Search for a variant, gene, or phenotype" autofocus>
-            </div>
-        </fieldset>
-    </form>
-    {% include 'index/below-query.html' ignore missing %}
-    </div>
-  </div>
-  <div class="tab-pane" id="phenotypes" role="tabpanel" style="padding-top: 20px;">
-    <input type="text" class="form-control" id="search" placeholder="Search for a phenotype">
-    <div class="btn-group btn-group-toggle" data-toggle="buttons" style="display: block; padding-top: 10px;">
-      <label class="btn btn-primary active">
-        <input type="radio" name="options" id="button-phenostring" autocomplete="off" checked> Search by name
-    </label>
-    <label class="btn btn-primary">
-        <input type="radio" name="options" id="button-category" autocomplete="off"> Search by category
-    </label>
-    </div>
-    <h5 class="pull-left" style="clear: both;"><div id="phenolist-streamtable-found" class="label label-primary"></div></h5>
-    <table id="stream_table" class="table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th style="cursor: pointer;" data-sort="phenostring:asc">phenotype</th>
-            <th style="cursor: pointer;" data-sort="category:asc">category</th>
-            <th style="cursor: pointer;" data-sort="num_cases:desc:number">number of cases</th>
-            <th style="cursor: pointer;" data-sort="num_controls:desc:number">number of controls</th>
-            <th style="cursor: pointer;" data-sort="num_gw_significant:desc:number">genome-wide significant loci</th>
-            <th style="cursor: pointer;" data-sort="lambda:desc:number">genomic control lambda</th>
-          </tr>
-    </thead>
-    <tbody>
-    </tbody>
-    </table>
-  </div>
+              </div>
+             </fieldset>
+	    </form>
+	    {% include 'index/below-query.html' ignore missing %}
+	</div>
+      </div>
+      <div class="tab-pane" id="phenotypes" role="tabpanel" style="padding-top: 20px;">
+	<input type="text" class="form-control" id="search" placeholder="Search for a phenotype">
+	<div class="btn-group btn-group-toggle" data-toggle="buttons" style="display: block; padding-top: 10px;">
+	  <label class="btn btn-primary active">
+            <input type="radio" name="options" id="button-phenostring" autocomplete="off" checked> Search by name
+	  </label>
+	  <label class="btn btn-primary">
+            <input type="radio" name="options" id="button-category" autocomplete="off"> Search by category
+	  </label>
+	</div>
+	<h5 class="pull-left" style="clear: both;"><div id="phenolist-streamtable-found" class="label label-primary"></div></h5>
+	<table id="stream_table" class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th style="cursor: pointer;" data-sort="phenostring:asc">phenotype</th>
+              <th style="cursor: pointer;" data-sort="category:asc">category</th>
+              <th style="cursor: pointer;" data-sort="num_cases:desc:number">number of cases</th>
+              <th style="cursor: pointer;" data-sort="num_controls:desc:number">number of controls</th>
+              <th style="cursor: pointer;" data-sort="num_gw_significant:desc:number">genome-wide significant loci</th>
+              <th style="cursor: pointer;" data-sort="lambda:desc:number">genomic control lambda</th>
+            </tr>
+	  </thead>
+	  <tbody>
+	  </tbody>
+	</table>
+      </div>
+      <div class="tab-pane" id="lof" role="tabpanel" style="padding-top: 20px;">
+	<input type="text" class="form-control" id="search-lof" placeholder="Search for a gene or phenotype">
+	<h5 class="pull-left" style="clear: both;"><div id="lof-streamtable-found" class="label label-primary"></div></h5>
+	<table id="lof_stream_table" class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th style="cursor: pointer;" data-sort="phenostring:asc">phenotype</th>
+              <th style="cursor: pointer;" data-sort="gene:asc">gene</th>
+              <th>variants</th>
+              <th style="cursor: pointer;" data-sort="p_value:desc:number">p-value</th>
+              <th style="cursor: pointer;" data-sort="beta:desc:number">beta</th>
+              <th>ref/alt cases</th>
+              <th>ref/alt controls</th>
+            </tr>
+	  </thead>
+	  <tbody>
+	  </tbody>
+	</table>
+      </div>
     </div>
     </div>
 </div>
@@ -117,6 +154,22 @@
         <td style="width:6%; text-align: right;"><%= p.num_controls %></td>
         <td style="width:6%; text-align: right;"><%= p.num_gw_significant %></td>
         <td style="width:6%; text-align: right;"><%= p.lambda %></td>
+    </tr>
+</script>
+
+<script type="text/template" id="lof-streamtable-template">
+    <tr>
+        <td style="width:45%;"><a style="color:black" target="_blank" href="/pheno/<%= r.pheno %>"><%= r.phenostring %></a></td>
+        <td style="width:10%;"><a style="color:black" target="_blank" href="/gene/<%= r.gene %>"><%= r.gene %></a></td>
+	<td style="width:15%;">
+	  <%= r.variants.map(function(variant) {
+	      return '<a style="color:black" target="_blank" href="/variant/' + variant + '?pheno=' + r.phenostring + '">' + variant + '</a>'
+	      }).join(', ') %>
+        </td>
+        <td style="width:8%; text-align: right;"><%= r.p_value == 0 ? 'N/A' : r.p_value.toExponential(1) %></td>
+        <td style="width:6%; text-align: right;"><%= r.beta %></td>
+        <td style="width:6%; text-align: right;"><%= r.ref_alt_cases %></td>
+        <td style="width:6%; text-align: right;"><%= r.ref_alt_ctrls %></td>
     </tr>
 </script>
 

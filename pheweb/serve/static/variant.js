@@ -365,6 +365,13 @@ $(function() {
 
     $('#stream_table').stream_table(options, data);
 
+    var pheno = new URL(window.location.href).searchParams.get('pheno')
+    if (pheno) {
+	$('#search').val(pheno)
+        $('#search').focus()
+        var st = $('#stream_table').data('st')
+        st.search($('#search')[0].value)
+    }
 });
 
 $(function () {

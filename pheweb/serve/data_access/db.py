@@ -92,6 +92,14 @@ class GnomadDB(object):
         """
         return
 
+class LofDB(object):
+    @abc.abstractmethod
+    def get_all_lofs(self, p_threshold):
+        """ Retrieve all loss of function burden test results
+            Returns: A list of dictionaries. Dictionary has 2 elements "id" which contains the gene id and "gene_data" containing dictionary with all gene data.
+        """
+        return
+    
 class KnownHitsDB(object):
     @abc.abstractmethod
     def get_hits_by_loc(self, chr, start, stop):
@@ -661,6 +669,69 @@ class TabixAnnotationDao(AnnotationDB):
         print('TABIX get_gene_functional_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
         return annotations
 
+class ElasticLofDao(LofDB):
+
+    def __init__(self, host, port, gene_index):
+
+        self.index = gene_index
+        self.host = host
+        self.port = port
+
+        self.elastic = Elasticsearch(host + ':' + str(port))
+        if not self.elastic.ping():
+            raise ValueError("Could not connect to elasticsearch at " + host + ":" + str(port))
+
+        if not self.elastic.indices.exists(index=gene_index):
+            raise ValueError("Elasticsearch index does not exist:" + gene_index)
+
+    def get_all_lofs(self, p_threshold):
+        t = time.time()
+        result = self.elastic.search(
+            index=self.index,
+            body={
+                "timeout": "5s",
+                "size": 10000,
+                "_source": True,
+                "stored_fields" : "*",
+                "query" : {
+                    'range' : {
+                        'p_value': {
+                            'lt': p_threshold
+                        }
+                    }
+                }
+            }
+        )
+        print('ELASTIC get_all_lofs hits ' + str(result['hits']['total']))
+        print('ELASTIC get_all_lofs took ' + str(result['took']))
+        print('ELASTIC get_all_lofs ' + str(round(10 *(time.time() - t)) / 10))
+        return [ {"id": r["_id"],
+                  "gene_data": r["_source"] }
+                 for r in result['hits']['hits'] ]
+
+    def get_lofs(self, gene):
+        t = time.time()
+        result = self.elastic.search(
+            index=self.index,
+            body={
+                "timeout": "5s",
+                "size": 10000,
+                "_source": True,
+                "stored_fields" : "*",
+                "query" : {
+                    "constant_score" : {
+                        "filter" : { "term": { "gene" : gene } }
+                    }
+                }
+            }
+        )
+        print('ELASTIC get_lofs hits ' + str(result['hits']['total']))
+        print('ELASTIC get_lofs took ' + str(result['took']))
+        print('ELASTIC get_lofs ' + str(round(10 *(time.time() - t)) / 10))
+        return [ {"id": r["_id"],
+                  "gene_data": r["_source"] }
+                 for r in result['hits']['hits'] ]
+
 class DataFactory(object):
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
                        "MATRIX_PATH": common_filepaths['matrix'],
@@ -697,6 +768,9 @@ class DataFactory(object):
 
     def get_gnomad_dao(self):
         return self.dao_impl["gnomad"]
+
+    def get_lof_dao(self):
+        return self.dao_impl["lof"]
 
     def get_result_dao(self):
         return self.dao_impl["result"]

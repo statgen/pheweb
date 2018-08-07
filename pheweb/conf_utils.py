@@ -488,6 +488,8 @@ def _ensure_conf():
     "phewas_string","category_name"]  )
     conf.set_default_value("gene_pheno_export_fields", ["assoc.id", "assoc.pval", "assoc.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring"])
     conf.set_default_value("drug_export_fields", ["drug.molecule_name", "drug.molecule_type", "evidence.target2drug.action_type", "disease.efo_info.label", "evidence.drug2clinic.max_phase_for_disease.label", "drug.id"])
+    conf.set_default_value("lof_export_fields", ["pheno", "variants", "p_value", "beta", "ref_alt_cases", "ref_alt_ctrls"])
 
     conf.set_default_value("report_conf", {"func_var_assoc_threshold":0.0001}  )
     conf.set_default_value("vis_conf", {"loglog_threshold": 10})
+    conf.set_default_value("lof_threshold", 1e-3)
