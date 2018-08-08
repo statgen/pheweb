@@ -49,6 +49,7 @@ phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 dbs_fact = DataFactory( conf.database_conf  )
 annotation_dao = dbs_fact.get_annotation_dao()
 gnomad_dao = dbs_fact.get_gnomad_dao()
+lof_dao = dbs_fact.get_lof_dao()
 result_dao = dbs_fact.get_result_dao()
 ukbb_dao = dbs_fact.get_UKBB_dao()
 ukbb_matrixdao =dbs_fact.get_UKBB_dao(True)
@@ -248,6 +249,22 @@ def api_gene_functional_variants(gene):
     annotations = gene_functional_variants(gene, pThreshold)
     return jsonify(annotations)
 
+@app.route('/api/lof')
+@check_auth
+def api_lof():
+    lofs = lof_dao.get_all_lofs(conf.lof_threshold)
+    for lof in lofs:
+        lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
+    return jsonify(lofs)
+
+@app.route('/api/lof/<gene>')
+@check_auth
+def api_lof_gene(gene):
+    lofs = lof_dao.get_lofs(gene)
+    for lof in lofs:
+        lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
+    return jsonify(lofs)
+
 @app.route('/api/top_hits.json')
 @check_auth
 def api_top_hits():
@@ -361,6 +378,7 @@ def gene_phenocode_page(phenocode, genename):
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
                                gene_pheno_export_fields=conf.gene_pheno_export_fields,
                                drug_export_fields=conf.drug_export_fields,
+                               lof_export_fields=conf.lof_export_fields,
                                func_var_report_p_threshold = conf.report_conf["func_var_assoc_threshold"]
         )
     except Exception as exc:
