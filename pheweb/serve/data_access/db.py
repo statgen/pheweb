@@ -99,6 +99,13 @@ class LofDB(object):
             Returns: A list of dictionaries. Dictionary has 2 elements "id" which contains the gene id and "gene_data" containing dictionary with all gene data.
         """
         return
+
+    @abc.abstractmethod
+    def get_lofs(self, gene):
+        """ Retrieve all loss of function burden test results for a given gene
+            Returns: A list of dictionaries. Dictionary has 2 elements "id" which contains the gene id and "gene_data" containing dictionary with all gene data.
+        """
+        return
     
 class KnownHitsDB(object):
     @abc.abstractmethod
