@@ -110,7 +110,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
     if(reqFields.isrefvarin && chain.header.ldrefvar) {
         tagRefVariant(chain.body, chain.header.ldrefvar, keys.id, reqFields.isrefvarout);
     }
-    return chain;   
+    return chain;
 };
 
 (function() {
