@@ -115,7 +115,18 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
 
 (function() {
     // Define LocusZoom Data Sources object
-    var localBase = window.model.urlprefix + "/api/region/" + window.pheno.phenocode + "/lz-";
+    if (! window.pheno.dataset) {
+        var localBase = window.model.urlprefix + "/api/region/" + window.pheno.phenocode + "/lz-";
+    } else {
+        var prefixes = {
+            'mgi_sna2':'http://pheweb.sph.umich.edu',
+            'hunt': 'http://pheweb.sph.umich.edu:5002',
+            'sard_quant': 'http://sardinia-pheweb.sph.umich.edu',
+            'UKB-Neale': 'http://pheweb.sph.umich.edu:5000',
+            'UKB-saige-1400': 'http://pheweb.sph.umich.edu:5003',
+        };
+        var localBase = prefixes[window.pheno.dataset] + "/api/region/" + window.pheno.phenocode + "/lz-";
+    }
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
     data_sources.add("base", ["AssociationLZ", localBase]);

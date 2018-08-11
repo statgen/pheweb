@@ -36,6 +36,7 @@
               <tr>
                 <th>Top p-value in gene</th>
                 <th>Phenotype</th>
+                <th>Dataset</th>
               </tr>
             </thead>
             <tbody>
@@ -82,6 +83,7 @@
   <tr style="background-color:lightblue">
     <td><%= p.assoc.pval.toExponential(1) %></td>
     <td><%= p.pheno.phenostring || p.pheno.phenocode %></td>
+    <td><%= p.pheno.dataset %></td>
   </tr>
   <% } else { %>
   <tr onclick="window.location='{{ url_for('.region_page', phenocode='', region='').rstrip('/') }}/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>'" style="cursor:pointer">
@@ -89,6 +91,7 @@
     <td><a style="color:black" href="{{ url_for('.region_page', phenocode='', region='').rstrip('/') }}/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>">
         <%= p.pheno.phenostring || p.pheno.phenocode %>
     </a></td>
+    <td><%= p.pheno.dataset %></td>
   </tr>
   <% } %>
 </script>

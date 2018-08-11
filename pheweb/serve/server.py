@@ -148,12 +148,7 @@ def pheno_page(phenocode):
         pheno = phenos[phenocode]
     except KeyError:
         die("Sorry, I couldn't find the pheno code {!r}".format(phenocode))
-    return render_template('pheno.html',
-                           phenocode=phenocode,
-                           pheno=pheno,
-                           tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
-    )
-
+    return redirect(conf.urls[pheno['dataset']] + '/pheno/' + phenocode)
 
 
 @bp.route('/region/<phenocode>/<region>')
