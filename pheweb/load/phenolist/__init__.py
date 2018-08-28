@@ -48,7 +48,8 @@ assert _extract_star('/foo/*/pheno-*.epacts.gz', '/foo/bar/pheno-bar.epacts.gz')
 
 def extract_phenocode_from_filepath(phenolist, regex):
     print("NOTE: working with {} phenos".format(len(phenolist)))
-    if not isinstance(regex, re._pattern_type):
+    re_pattern_type = re._pattern_type if hasattr(re, '_pattern_type') else re.Pattern # changed in py3.7
+    if not isinstance(regex, re_pattern_type):
         regex = re.compile(regex)
     for pheno in phenolist:
         if 'assoc_files' not in pheno:
