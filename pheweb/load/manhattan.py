@@ -28,18 +28,21 @@ def run(argv):
     parallelize_per_pheno(
         get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
         get_output_filepaths = lambda pheno: common_filepaths['manhattan'](pheno['phenocode']),
-        convert = make_json_file,
+        convert = make_manhattan_json_file,
         cmd = 'manhattan',
     )
 
 
-def make_json_file(pheno):
+def make_manhattan_json_file(pheno):
+    make_manhattan_json_file_explicit(common_filepaths['pheno'](pheno['phenocode']),
+                                      common_filepaths['manhattan'](pheno['phenocode']))
+def make_manhattan_json_file_explicit(in_filepath, out_filepath):
     binner = Binner()
-    with VariantFileReader(common_filepaths['pheno'](pheno['phenocode'])) as variants:
+    with VariantFileReader(in_filepath) as variants:
         for variant in variants:
             binner.process_variant(variant)
     data = binner.get_result()
-    write_json(filepath=common_filepaths['manhattan'](pheno['phenocode']), data=data)
+    write_json(filepath=out_filepath, data=data)
 
 
 class Binner:

@@ -23,7 +23,10 @@ def test_all(tmpdir, capsys):
     cl_run(conf+['phenolist', 'merge-in-info', '{}/pheno-list-categories.json'.format(p)])
     cl_run(conf+['phenolist', 'verify', '--required-columns', 'category'])
     with capsys.disabled(): print(1)
+    # TODO: verify that `dbsnp-{latest}.tsv` exists (so that it won't be downloaded/parsed)
+    # TODO: replace `process` with each sub-step.
     cl_run(conf+['process'])
+    # TODO: check some properties of our files, such as manh.json
     cl_run(conf+['top-loci'])
     cl_run(conf+['wsgi'])
     with capsys.disabled(): print(2)
