@@ -115,6 +115,15 @@ def _ensure_conf():
                 for key in dir(_conf_module):
                     if not key.startswith('_'):
                         conf[key] = getattr(_conf_module, key)
+        if conf.authentication:
+            try:
+                _auth_module = imp.load_source('config', conf.authentication_file)
+            except Exception:
+                raise utils.PheWebError("PheWeb tried to load your authentication file at {!r} but it failed.".format(conf.authentication_file))
+            else:
+                for key in dir(_auth_module):
+                    if not key.startswith('_'):
+                        conf[key] = getattr(_conf_module, key)
 
     _load_config_file()
 

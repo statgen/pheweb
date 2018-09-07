@@ -48,14 +48,13 @@
 {% if current_user and not current_user.is_authenticated %}
 <div class="row">
   <div class="col-xs-10 col-xs-offset-1">
-    <div class="jumbotron">
-      <p>Please log in to view this data.</p>
+    <div class="jumbotron" style="border-radius: 0px;">
+      <p>Please log in with your finngen.fi account to view FinnGen results.</p>
       <br>
       <p><a class="btn-lg btn-primary" role="button" href="{{ url_for('login_with_google') }}">Click here to login with Google</a></p>
       <br>
       <p style="margin-bottom:0">
-        If your email address is on the whitelist but is not connected to a Google account, please
-        <a href="https://accounts.google.com/SignUpWithoutGmail">create a Google account for it</a>.
+        If you are a FinnGen partner but don't yet have a finngen.fi account, please contact <a href="mailto:humgen-servicedesk@helsinki.fi">humgen-servicedesk@helsinki.fi</a> to get your account set up.
       </p>
     </div>
   </div>
