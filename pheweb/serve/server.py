@@ -9,7 +9,7 @@ from ..version import version as pheweb_version
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
-
+from flask_cors import cross_origin
 
 from .reporting import Report
 
@@ -530,6 +530,7 @@ if 'login' in conf:
         return redirect(url_for('get_authorized'))
 
     @app.route('/get_authorized')
+    @cross_origin()
     def get_authorized():
         "This route tries to be clever and handle lots of situations."
         if current_user.is_anonymous:
