@@ -509,10 +509,13 @@ if 'login' in conf:
 
     @lm.user_loader
     def load_user(id):
-        if id in conf.login['whitelist']:
-            return User(email=id)
+        if 'whitelist' in conf.login.keys():
+            if id.endswith('@finngen.fi') or id in conf.login['whitelist']:
+                return User(email=id)
+        else:
+            if id.endswith('@finngen.fi'):
+                return User(email=id)
         return None
-
 
     @app.route('/logout')
     def logout():
@@ -556,9 +559,14 @@ if 'login' in conf:
             flash('Authentication failed by failing to get an email address.')
             return redirect(url_for('homepage'))
 
-        if email.lower() not in conf.login['whitelist']:
-            flash('{!r}, is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi')
-            return redirect(url_for('homepage'))
+        if 'whitelist' in conf.login.keys():
+            if not email.lower().endswith('@finngen.fi') and email.lower() not in conf.login['whitelist']:
+                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
+                return redirect(url_for('homepage'))
+        else:
+            if not email.lower().endswith('@finngen.fi'):
+                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
+                return redirect(url_for('homepage'))
 
         # Log in the user, by default remembering them for their next visit.
         user = User(username, email)
