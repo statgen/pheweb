@@ -7,6 +7,10 @@ from .load_utils import parallelize_per_pheno
 sites_filepath = common_filepaths['sites']
 
 def run(argv):
+    if '-h' in argv or '--help' in argv:
+        print('Make copies of the association files with annotation included.')
+        exit(1)
+
     parallelize_per_pheno(
         get_input_filepaths = lambda pheno: [common_filepaths['parsed'](pheno['phenocode']), sites_filepath],
         get_output_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),

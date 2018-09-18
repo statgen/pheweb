@@ -43,7 +43,7 @@ shown.  If you want all hits, use `pheweb top-hits`.
            conf.within_pheno_mask_around_peak,
            conf.between_pheno_mask_around_peak,
 ))
-        exit(0)
+        exit(1)
 
     loci = sorted(get_loci(), key=lambda l: l['pval'])
     write_json(filepath=out_filepath_json, data=loci, sort_keys=True)

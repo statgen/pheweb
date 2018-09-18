@@ -31,7 +31,7 @@ def run(argv):
             '  -h   print this message\n' +
             '  -f   run even if {} is up-to-date\n'.format(os.path.basename(out_filepath))
         )
-        exit(0)
+        exit(1)
 
     manna = MergeManager()
 

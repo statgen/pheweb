@@ -40,6 +40,10 @@ def should_run():
 
 def run(argv):
 
+    if '-h' in argv or '--help' in argv:
+        print('Make a single large tabixed file of all phenotypes data')
+        exit(1)
+
     if should_run():
         # we don't need `ffi.new('char[]', ...)` because args are `const`
         ret = lib.cffi_make_matrix(sites_filepath.encode('utf8'),

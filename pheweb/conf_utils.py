@@ -58,10 +58,10 @@ def Attrdict():
 
         def __str__(self):
             _ensure_conf()
-            ret = ''.join('{} = {}\n'.format(k, self[k]) for k in sorted(attrs) if k != 'parse')
+            ret = ''.join('{} = {}\n'.format(k, repr(self[k])) for k in sorted(attrs) if k != 'parse')
             if ret: ret += '\n'
             ret += '[defaults]\n'
-            ret += '\n'.join('{} = {}'.format(k, self[k]) for k in sorted(defaults) if k not in attrs)
+            ret += '\n'.join('{} = {}'.format(k, repr(self[k])) for k in sorted(defaults) if k not in attrs)
             return ret
     return _Attrdict()
 conf = Attrdict()

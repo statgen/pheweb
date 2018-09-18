@@ -29,7 +29,7 @@ genes_version = '27'
 common_filepaths = {
     'phenolist': os.path.join(conf.data_dir, 'pheno-list.json'),
     'genes': get_cacheable_file_location('sites/genes', 'genes-{}.bed'.format(genes_version)),
-    'gene-aliases-trie': get_cacheable_file_location('sites/genes', 'gene_aliases.marisa_trie'),
+    'gene-aliases-trie': get_cacheable_file_location('sites/genes', 'gene_aliases.marisa_trie'), # TODO: add dbSNP version number
     'rsids': get_cacheable_file_location('sites/dbSNP', 'rsids-{}.vcf.gz'.format(dbsnp_version)),
     'unanno': get_generated_path('sites/sites-unannotated.tsv'),
     'sites-rsids': get_generated_path('sites/sites-rsids.tsv'),

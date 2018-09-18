@@ -27,6 +27,10 @@ def get_phenotypes_including_top_variants():
         yield ret
 
 def run(argv):
+    if '-h' in argv or '--help' in argv:
+        print('Make a file summarizing information about each phenotype (for use in the phenotypes table)')
+        exit(1)
+
     out_filepath = common_filepaths['phenotypes_summary']
     data = list(get_phenotypes_including_top_variants())
     data.sort(key=lambda p: p['pval'])

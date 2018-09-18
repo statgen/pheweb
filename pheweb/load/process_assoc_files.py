@@ -31,7 +31,7 @@ def run(argv):
         print(' &&\n'.join('    pheweb {}'.format(script.replace('_', '-')) for script in scripts))
         print('')
         print('Passing `--no-parse` will skip `pheweb parse-input-files`')
-        exit(0)
+        exit(1)
 
     if argv and argv == ['--no-parse']:
         myscripts = [s for s in scripts if s != 'parse_input_files']

@@ -58,6 +58,11 @@ def get_gene_aliases():
 
 def run(argv):
 
+    if '-h' in argv or '--help' in argv:
+        print('Make a trie of all gene names for easy searching.')
+        exit(1)
+
+
     if not os.path.exists(common_filepaths['genes']):
         print('Downloading genes')
         from . import download_genes

@@ -92,6 +92,10 @@ def are_match(seq1, seq2):
 
 def run(argv):
 
+    if '-h' in argv or '--help' in argv:
+        print('Annotate the sites file with rsids. Download the relevant version of dbSNP if not already present.')
+        exit(1)
+
     if not os.path.exists(rsids_filepath):
         print('Downloading rsids from dbSNP')
         from . import download_rsids

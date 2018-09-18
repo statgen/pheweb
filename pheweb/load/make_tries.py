@@ -19,6 +19,10 @@ def should_replace(filepath):
 
 def run(argv):
 
+    if '-h' in argv or '--help' in argv:
+        print('Make tries for converting between chr-pos-ref-alt and rsid')
+        exit(1)
+
     if not should_replace(cpra_to_rsids_trie_filepath) and not should_replace(rsid_to_cpra_trie_filepath):
         print('tries are up-to-date!')
 

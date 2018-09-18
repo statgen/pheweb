@@ -88,6 +88,10 @@ def annotate_genes(in_filepath, out_filepath):
 
 def run(argv):
 
+    if '-h' in argv or '--help' in argv:
+        print('Annotate the sites file with nearest genes.  Download the relevant version of Gencode if not already present.')
+        exit(1)
+
     input_filepath = common_filepaths['sites-rsids']
     genes_filepath = common_filepaths['genes']
     out_filepath = common_filepaths['sites']
