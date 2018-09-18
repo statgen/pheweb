@@ -53,7 +53,7 @@ Some loci may have hits for multiple phenotypes.  If you want a list of loci wit
 just the top phenotype for each, use `pheweb top-loci`.
 '''.format(out_filepath_json,
            out_filepath_tsv,
-           '{:0.0e}'.format(conf.manhattan_peak_pval_threshold).replace('e-0', 'e-'),
+           '{:0.0e}'.format(conf.top_hits_pval_cutoff).replace('e-0', 'e-'),
            conf.manhattan_num_unbinned,
            conf.within_pheno_mask_around_peak,
 ))
