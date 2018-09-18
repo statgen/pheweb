@@ -25,7 +25,14 @@ The data used for unit tests can also provide the basis for a persistent local d
 
 First, generate a working *pheno-list.json* file:
 
-`pheweb phenolist import-phenolist tests/input_files/categories.csv`
+```
+pheweb phenolist glob --simple-phenocode 'tests/input_files/assoc-files/*'
+pheweb phenolist unique-phenocode
+pheweb phenolist read-info-from-association-files
+pheweb phenolist import-phenolist -f pheno-list-categories.json tests/input_files/categories.csv
+pheweb phenolist merge-in-info pheno-list-categories.json
+pheweb phenolist verify --required-columns category
+```
 
 Then process the data. The first iteration will typically take much longer than future iterations, due to the 
 one-time need to download an updated copy of dbSNP.
