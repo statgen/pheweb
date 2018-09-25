@@ -1,49 +1,21 @@
 'use strict';
 
-LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fields, outnames, trans) {
-    // This overrides the default to keep all fields in `x` (the response)
-    // If <https://github.com/statgen/locuszoom/pull/102> gets accepted, it won't be necessary.
-
-    //intended for an object of arrays
-    //{"id":[1,2], "val":[5,10]}
-    if (Object.keys(x).length === 0) {
-        throw "The association source sent back no data for this region.";
+LocusZoom.KnownDataSources.extend("AssociationLZ", "AssociationPheWeb", {
+    // TODO: Override getUrl so it doesn't send params that pheweb can't understand (eg analysis = 3)
+    annotateData: function(records, chain) {
+        records.forEach(function (item) {
+            // Dynamically add a field that LZ finds useful, not present in the pheweb api payload
+            // FIXME: Really, we should just send the "variant" field from the API
+            item.variant = [item.chr, ":", item.position, "_", item.ref, "/", item.alt].join("")
+        });
+        return records;
     }
-    var records = [];
-    fields.forEach(function(f, i) {
-        if (!(f in x)) {throw "field " + f + " not found in response for " + outnames[i];}
-    });
-    var x_keys = Object.keys(x);
-    var N = x[x_keys[0]].length; // NOTE: this was [1] before, why?
-    x_keys.forEach(function(key) {
-        if (x[key].length !== N) {
-            throw "the response column " + key + " had " + x[key].length.toString() +
-                " elements but " + x_keys[0] + " had " + N.toString();
-        }
-    });
-    var nonfield_keys = x_keys.filter(function(key) {
-        return fields.indexOf(key) === -1;
-    });
-    for(var i = 0; i < N; i++) {
-        var record = {};
-        for(var j=0; j<fields.length; j++) {
-            var val = x[fields[j]][i];
-            if (trans && trans[j]) {
-                val = trans[j](val);
-            }
-            record[outnames[j]] = val;
-        }
-        for(var j=0; j<nonfield_keys.length; j++) {
-            record[nonfield_keys[j]] = x[nonfield_keys[j]][i];
-        }
-        records.push(record);
-    }
-    return records;
-};
+    // TODO: Discuss restoring "extra fields" functionality by implementing extractFields (which selects + applies namespacing where appropriate)
+});
 
 LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (x === 1) { return "100%"; }
-    var x = (x*100).toPrecision(2);
+    x = (x*100).toPrecision(2);
     if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }
     if (x.endsWith('.')) { x = x.substr(0, x.length-1); }
     return x + '%';
@@ -52,15 +24,16 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 
 // monkeypatch to handle `NaN` in response.
 LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, outnames) {
+    var json;
     try {
-        var json = JSON.parse(resp);
+        json = JSON.parse(resp);
     } catch (exc) {
         if (exc instanceof SyntaxError) {
             resp = resp.replace(/\bNaN\b/g, 'null');
             var junk = JSON.parse(resp);
-            var json = { data:{} };
+            json = { data:{} };
             Object.keys(junk).forEach(function(key) {
-                if (key != 'data') { json[key] = junk[key]; }
+                if (key !== 'data') { json[key] = junk[key]; }
             });
             var json_data_keys = Object.keys(junk.data);
             json_data_keys.forEach(function(key) {
@@ -117,16 +90,16 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
     // Define LocusZoom Data Sources object
     var localBase = window.model.urlprefix + "/api/region/" + window.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
-    var data_sources = new LocusZoom.DataSources();
-    data_sources.add("base", ["AssociationLZ", { url: localBase, params: { analysis: 3 } } ]); // FIXME: Write a new assoc source that does not hardcode an analysis param
-    data_sources.add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10_or_100" }}]);
-    data_sources.add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }]);
-    data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }])
+    var data_sources = new LocusZoom.DataSources()
+        .add("assoc", ["AssociationPheWeb", { url: localBase, params: { analysis: 3 } } ]) // FIXME: Write a new assoc source that does not hardcode an analysis param
+        .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { source: 2 }}])
+        .add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10_or_100" }}])
+        .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }])
+        .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }]);
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
-        var log = -Math.log(x) / Math.LN10;
-        return log;
+        return -Math.log(x) / Math.LN10;
     });
 
     // dashboard components
@@ -153,7 +126,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
         LocusZoom.Dashboard.Component.apply(this, arguments);
         this.initialize = function(){
             this.parent_plot.state.ldrefsource = 1;
-        }
+        };
 
         this.update = function() {
             if (this.button){ return this; }
@@ -163,7 +136,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
                 .setHtml("LD source: 1000G ALL")
                 .setTitle("click to switch to next LD source")
                 .setOnclick(function(){
-                    if (this.parent_plot.state.ldrefsource == 1) {
+                    if (this.parent_plot.state.ldrefsource === 1) {
                         this.parent_plot.state.ldrefsource = 2;
                         this.button.setHtml('LD source: 1000G EUR');
                     } else {
@@ -212,26 +185,16 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
         }
     });
 
-    // TODO: copying the whole layout was a bad choice.
-    //       I should just have copied the standard and adjusted it like in variant.js
-    //       That makes it more clear when I've changed things from the default.
-    //       It means that I often have to change my code when the default changes,
-    //       But I already usually have to make changes when the default changes, and they'd be easier.
-    var layout = {
-        width: 800,
-        height: 400,
-        "min_width": 800,
-        "min_height": 400,
-        responsive_resize: true,
-        "resizable": "responsive",
-        // aspect_ratio: 2, // do I want this?
-        "min_region_scale": 2e4,
-        "max_region_scale": 5e5,
-        "panel_boundaries": true,
-        mouse_guide: true,
-
-        "dashboard": {
-            "components": [{
+    // Define the layout, then fetch it via the LZ machinery responsible for namespacing
+    var layout = LocusZoom.Layouts.get("plot", "association_catalog", {
+        unnamespaced: true,
+        height: 450,
+        min_width: 800,
+        // resizable: "responsive", // TODO: possibly deprecated option
+        max_region_scale: 5e5,
+        panel_boundaries: true,  // TODO: check difference if removed
+        dashboard: {
+            components: [{
                 type: 'link',
                 title: 'Go to Manhattan Plot',
                 text:' Manhattan Plot',
@@ -241,368 +204,205 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
                 text: '<<',
                 title: 'Shift view 1/4 to the left',
                 direction: -0.75,
-                group_position: "start",
+                group_position: "start"
             },{
                 type: 'move',
                 text: '<',
                 title: 'Shift view 1/4 to the left',
                 direction: -0.25,
-                group_position: "middle",
+                group_position: "middle"
             },{
                 type: 'zoom_region',
                 button_html: 'z+',
                 title: 'zoom in 2x',
                 step: -0.5,
-                group_position: "middle",
+                group_position: "middle"
             },{
                 type: 'zoom_region',
                 button_html: 'z-',
                 title: 'zoom out 2x',
                 step: 1,
-                group_position: "middle",
+                group_position: "middle"
             },{
                 type: 'move',
                 text: '>',
                 title: 'Shift view 1/4 to the right',
                 direction: 0.25,
-                group_position: "middle",
+                group_position: "middle"
             },{
                 type: 'move',
                 text: '>>',
                 title: 'Shift view 3/4 to the right',
                 direction: 0.75,
-                group_position: "end",
+                group_position: "end"
             },{
                 "type": "download",
-                "position": "right",
+                "position": "right"
             },{
                 "type": "ldrefsource_selector",
-                "position": "right",
+                "position": "right"
             }]
-        },
-        "panels": [{
-            "id": "association",
-            "title": "",
-            "proportional_height": 0.5,
-            "min_width": 400,
-            "min_height": 100,
-            "margin": {
-                "top": 10,
-                "right": 50,
-                "bottom": 40,
-                "left": 50
-            },
-            "inner_border": "rgb(210, 210, 210)",
-            "dashboard": {
-                "components": [{
-                    "type": "toggle_legend",
-                    "position": "right",
-                    "color": "green"
-                }]
-            },
-            "axes": {
-                "x": {
-                    "label_function": "chromosome",
-                    "label_offset": 32,
-                    "tick_format": "region",
-                    "extent": "state",
-                    "render": true,
-                    "label": "Chromosome {{chr}} (Mb)"
-                },
-                "y1": {
-                    "label": "-log10 p-value",
-                    "label_offset": 28,
-                    "render": true,
-                    "label_function": null
-                },
-                "y2": {
-                    "label": "Recombination Rate (cM/Mb)",
-                    "label_offset": 40,
-                    "render": true,
-                    "label_function": null
-                }
-            },
-            "legend": {
-                "orientation": "vertical",
-                "origin": {
-                    "x": 55,
-                    "y": 40
-                },
-                "hidden": true,
-                "width": 91.66200256347656,
-                "height": 138,
-                "padding": 5,
-                "label_size": 12
-            },
-            "interaction": {
-                "drag_background_to_pan": true,
-                "drag_x_ticks_to_scale": true,
-                "drag_y1_ticks_to_scale": true,
-                "drag_y2_ticks_to_scale": true,
-                "scroll_to_zoom": true,
-                "x_linked": true,
-                "y1_linked": false,
-                "y2_linked": false
-            },
-            "data_layers": [{
-                "id": "significance",
-                type: "orthogonal_line",
-                orientation: "horizontal",
-                offset: -Math.log10(5e-8),
-            }, {
-                "namespace": {
-                    "recomb": "recomb"
-                },
-                "id": "recombrate",
-                "type": "line",
-                "fields": ["recomb:position", "recomb:recomb_rate"],
-                "z_index": 1,
-                "style": {
-                    "stroke": "#0000FF",
-                    "stroke-width": "1.5px",
-                    "fill": "none"
-                },
-                "x_axis": {
-                    "field": "recomb:position",
-                    "axis": 1
-                },
-                "y_axis": {
-                    "axis": 2,
-                    "field": "recomb:recomb_rate",
-                    "floor": 0,
-                    "ceiling": 100
-                },
-                "transition": false,
-                "interpolate": "linear",
-                "hitarea_width": 5
-            }, {
-                "namespace": {
-                    "default": "",
-                    "ld": "ld"
-                },
-                "id": "associationpvalues",
-                "type": "scatter",
-                "point_shape": {
-                    "scale_function": "if",
-                    "field": "ld:isrefvar",
-                    "parameters": {
-                        "field_value": 1,
-                        "then": "diamond",
-                        "else": "circle"
-                    }
-                },
-                "point_size": {
-                    "scale_function": "if",
-                    "field": "ld:isrefvar",
-                    "parameters": {
-                        "field_value": 1,
-                        "then": 80,
-                        "else": 40
-                    }
-                },
-                "color": [{
-                    "scale_function": "if",
-                    "field": "ld:isrefvar",
-                    "parameters": {
-                        "field_value": 1,
-                        "then": "#9632b8"
-                    }
-                }, {
-                    "scale_function": "numerical_bin",
-                    "field": "ld:state",
-                    "parameters": {
-                        "breaks": [0, 0.2, 0.4, 0.6, 0.8],
-                        "values": ["#357ebd", "#46b8da", "#5cb85c", "#eea236", "#d43f3a"]
-                    }
-                }, "#B8B8B8"],
-                fill_opacity: 0.7,
-                "legend": [{
-                    "shape": "diamond",
-                    "color": "#9632b8",
-                    "size": 40,
-                    "label": "LD Ref Var",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#d43f3a",
-                    "size": 40,
-                    "label": "1.0 > r² ≥ 0.8",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#eea236",
-                    "size": 40,
-                    "label": "0.8 > r² ≥ 0.6",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#5cb85c",
-                    "size": 40,
-                    "label": "0.6 > r² ≥ 0.4",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#46b8da",
-                    "size": 40,
-                    "label": "0.4 > r² ≥ 0.2",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#357ebd",
-                    "size": 40,
-                    "label": "0.2 > r² ≥ 0.0",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#B8B8B8",
-                    "size": 40,
-                    "label": "no r² data",
-                    "class": "lz-data_layer-scatter"
-                }],
+    },
+        panels: [
+            LocusZoom.Layouts.get("panel", "association_catalog", {
+                unnamespaced: true,
+                proportional_height: 0.5,
+                margin: { top: 10, right: 50, bottom: 40, left: 50 },
+                dashboard: {
+                    components: [
+                        {
+                            type: "toggle_legend",
+                            position: "right",
+                            color: "green"
+                        },
+                        {
+                            type: "display_options",
+                            position: "right",
+                            color: "blue",
+                            // Below: special config specific to this widget
+                            button_html: "Display options...",
+                            button_title: "Control how plot items are displayed",
 
-                fields: ["id", "chr", "position", "ref", "alt", "pvalue", "pvalue|neglog10_or_100", "ld:state", "ld:isrefvar"],
-                // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
-                id_field: "id",
-                behaviors: {
-                    onmouseover: [{action: "set", status:"selected"}],
-                    onmouseout: [{action: "unset", status:"selected"}],
-                    onclick: [{action: "link", href:window.model.urlprefix+"/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}"}],
-                },
-                tooltip: {
-                    closable: false,
-                    "show": {
-                        "or": ["highlighted", "selected"]
-                    },
-                    "hide": {
-                        "and": ["unhighlighted", "unselected"]
-                    },
-                    html: '<strong>{{id}}</strong><br>\n\n' + window.model.tooltip_lztemplate
-                },
-                "z_index": 2,
-                "x_axis": {
-                    "field": "position",
-                    "axis": 1
-                },
-                "y_axis": {
-                    "axis": 1,
-                    "field": "pvalue|neglog10_or_100",
-                    "floor": 0,
-                    "upper_buffer": 0.1,
-                    "min_extent": [0, 10]
-                },
-                "transition": false,
-            }],
-            "description": null,
-            "y_index": 0,
-            "origin": {
-                "x": 0,
-                "y": 0
-            },
-            "proportional_origin": {
-                "x": 0,
-                "y": 0
-            },
-            "background_click": "clear_selections",
-        }, {
-            "id": "genes",
-            "proportional_height": 0.5,
-            "min_width": 400,
-            "min_height": 100,
-            "margin": {
-                "top": 17,
-                "right": 50,
-                "bottom": 20,
-                "left": 50
-            },
-            "axes": {
-                "x": {"render": false},
-                "y1": {"render": false},
-                "y2": {"render": false}
-            },
-            "interaction": {
-                "drag_background_to_pan": true,
-                "scroll_to_zoom": true,
-                "x_linked": true,
-                "drag_x_ticks_to_scale": false,
-                "drag_y1_ticks_to_scale": false,
-                "drag_y2_ticks_to_scale": false,
-                "y1_linked": false,
-                "y2_linked": false
-            },
-            "dashboard": {
-                "components": [{
-                    "type": "resize_to_data",
-                    "position": "right",
-                    "color": "blue"
-                }]
-            },
-            "data_layers": [{
-                "namespace": {
-                    "gene": "gene",
-                    // "constraint": "constraint"
-                },
-                "id": "genes",
-                "type": "genes",
-                "fields": ["gene:gene"],
-                "id_field": "gene_id",
-                "highlighted": {
-                    "onmouseover": "on",
-                    "onmouseout": "off"
-                },
-                "selected": {
-                    "onclick": "toggle_exclusive",
-                    "onshiftclick": "toggle"
-                },
-                "transition": false,
-                behaviors: {
-                    onclick: [{action: "toggle", status: "selected", exclusive: true}],
-                    onmouseover: [{action: "set", status: "highlighted"}],
-                    onmouseout: [{action: "unset", status: "highlighted"}],
-                },
-                "tooltip": {
-                    "closable": true,
-                    "show": {
-                        "or": ["highlighted", "selected"]
-                    },
-                    "hide": {
-                        "and": ["unhighlighted", "unselected"]
-                    },
-                    "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div>Gene ID: <strong>{{gene_id}}</strong></div><div>Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
-                    // "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div style=\"float: left;\">Gene ID: <strong>{{gene_id}}</strong></div><div style=\"float: right;\">Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table><tr><th>Constraint</th><th>Expected variants</th><th>Observed variants</th><th>Const. Metric</th></tr><tr><td>Synonymous</td><td>{{exp_syn}}</td><td>{{n_syn}}</td><td>z = {{syn_z}}</td></tr><tr><td>Missense</td><td>{{exp_mis}}</td><td>{{n_mis}}</td><td>z = {{mis_z}}</td></tr><tr><td>LoF</td><td>{{exp_lof}}</td><td>{{n_lof}}</td><td>pLI = {{pLI}}</td></tr></table><table width=\"100%\"><tr><td><button onclick=\"LocusZoom.getToolTipPlot(this).panel_ids_by_y_index.forEach(function(panel){ if(panel == 'genes'){ return; } var filters = (panel.indexOf('intervals') != -1 ? [['intervals:start','>=','{{start}}'],['intervals:end','<=','{{end}}']] : [['position','>','{{start}}'],['position','<','{{end}}']]); LocusZoom.getToolTipPlot(this).panels[panel].undimElementsByFilters(filters, true); }.bind(this)); LocusZoom.getToolTipPanel(this).data_layers.genes.unselectAllElements();\">Identify data in region</button></td><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
-                },
-                "label_font_size": 12,
-                "label_exon_spacing": 3,
-                "exon_height": 8,
-                "bounding_box_padding": 5,
-                "track_vertical_spacing": 5,
-                "hover_element": "bounding_box",
-                "x_axis": {
-                    "axis": 1
-                },
-                "y_axis": {
-                    "axis": 1
-                },
-                "z_index": 0
-            }],
-            "title": null,
-            "description": null,
-            "y_index": 1,
-            "origin": {
-                "x": 0,
-                "y": 225
-            },
-            "proportional_origin": {
-                "x": 0,
-                "y": 0.5
-            },
-            "background_click": "clear_selections",
-            "legend": null
-        }]
-    }
+                            layer_name: "associationpvaluescatalog",
+                            default_config_display_name: "No catalog labels (default)", // display name for the default plot color option (allow user to revert to plot defaults)
 
-    window.debug.data_sources = data_sources;
-    window.debug.layout = layout;
-    window.debug.assoc_data_layer = layout.panels[0].data_layers[2];
+                            options: [
+                                {
+                                    // First dropdown menu item
+                                    display_name: "Label catalog traits",  // Human readable representation of field name
+                                    display: {  // Specify layout directives that control display of the plot for this option
+                                        label: {
+                                            text: "{{{{namespace[catalog]}}trait}}",
+                                            spacing: 6,
+                                            lines: {
+                                                style: {
+                                                    "stroke-width": "2px",
+                                                    "stroke": "#333333",
+                                                    "stroke-dasharray": "2px 2px"
+                                                }
+                                            },
+                                            filters: [
+                                                // Only label points if they are significant for some trait in the catalog, AND in high LD
+                                                //  with the top hit of interest
+                                                {
+                                                    field: "{{namespace[catalog]}}trait",
+                                                    operator: "!=",
+                                                    value: null
+                                                },
+                                                {
+                                                    field: "{{namespace[catalog]}}log_pvalue",
+                                                    operator: ">",
+                                                    value: 7.301
+                                                },
+                                                {
+                                                    field: "{{namespace[ld]}}state",
+                                                    operator: ">",
+                                                    value: 0.4
+                                                },
+                                            ],
+                                            style: {
+                                                "font-size": "10px",
+                                                "font-weight": "bold",
+                                                "fill": "#333333"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                    },
+                legend: {
+                    orientation: "vertical",
+                    origin: { x: 55, y: 40 },
+                    hidden: true,
+                    width: 91.66200256347656,
+                    height: 138,
+                    padding: 5,
+                    label_size: 12
+                },
+                data_layers: [
+                    LocusZoom.Layouts.get("data_layer", "significance", { unnamespaced: true }),
+                    LocusZoom.Layouts.get("data_layer", "recomb_rate", { unnamespaced: true }),
+                    LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog", {
+                        unnamespaced: true,
+                        fields: [
+                            "{{namespace[assoc]}}id", "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
+                            "{{namespace[assoc]}}ref", "{{namespace[assoc]}}alt", "{{namespace[assoc]}}pvalue",
+                            "{{namespace[assoc]}}pvalue|neglog10_or_100",
+                            "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar"
+                        ],
+                        id_field: "{{namespace[assoc]}}id",
+                        tooltip: {
+                            closable: false,
+                            show: {
+                                "or": ["highlighted", "selected"]
+                            },
+                            "hide": {
+                                "and": ["unhighlighted", "unselected"]
+                            },
+                            html: '<strong>{{{{namespace[assoc]}}id}}</strong><br>\n\n' + window.model.tooltip_lztemplate
+                        },
+                        behaviors: {
+                            onmouseover: [{action: "set", status:"selected"}],
+                            onmouseout: [{action: "unset", status:"selected"}],
+                            onclick: [{action: "link", href:window.model.urlprefix+"/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}"}]
+                        },
+                        x_axis: { field: "{{namespace[assoc]}}position" },
+                        y_axis: {
+                            axis: 1,
+                            field: "{{namespace[assoc]}}pvalue|neglog10_or_100",
+                            floor: 0,
+                            upper_buffer: 0.1,
+                            min_extent: [0, 10]
+                        }
+                    })
+                ]
+            }),
+            LocusZoom.Layouts.get("panel", "annotation_catalog", {
+                unnamespaced: true,
+                // proportional_height: 0.1
+            }),
+            LocusZoom.Layouts.get("panel", "genes", {
+                unnamespaced: true,
+                proportional_height: 0.5,
+                margin: { top: 17, right: 50, bottom: 20, left: 50 },
+                dashboard: {
+                    components: [{
+                        type: "resize_to_data",
+                        position: "right",
+                        color: "blue"
+                    }]
+                },
+                data_layers: [
+                    LocusZoom.Layouts.get("data_layer", "genes", {
+                        unnamespaced: true,
+                        fields: ["{{namespace[gene]}}all"],
+                        tooltip: {
+                            closable: true,
+                            show: {
+                                or: ["highlighted", "selected"]
+                            },
+                            hide: {
+                                and: ["unhighlighted", "unselected"]
+                            },
+                            html: "<h4><strong><i>{{gene_name}}</i></strong></h4><div>Gene ID: <strong>{{gene_id}}</strong></div><div>Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
+                        },
+                        label_exon_spacing: 3,
+                        exon_height: 8,
+                        bounding_box_padding: 5,
+                        track_vertical_spacing: 5
+                    })
+                ]
+            })
+        ]
+    });
+    layout.panels[1].data_layers[0].fields = [  // Modify the fields array of the association track
+        "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position", "{{namespace[assoc]}}variant",
+        "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
+    ];
+    LocusZoom.Layouts.add("plot", "pheweb_association", layout);
+    layout = LocusZoom.Layouts.get("plot", "pheweb_association");
 
     $(function() {
         // Populate the div with a LocusZoom plot using the default layout
