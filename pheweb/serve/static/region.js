@@ -110,7 +110,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
     if(reqFields.isrefvarin && chain.header.ldrefvar) {
         tagRefVariant(chain.body, chain.header.ldrefvar, keys.id, reqFields.isrefvarout);
     }
-    return chain;   
+    return chain;
 };
 
 (function() {
@@ -118,7 +118,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
     var localBase = window.model.urlprefix + "/api/region/" + window.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
-    data_sources.add("base", ["AssociationLZ", localBase]);
+    data_sources.add("base", ["AssociationLZ", { url: localBase, params: { analysis: 3 } } ]); // FIXME: Write a new assoc source that does not hardcode an analysis param
     data_sources.add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10_or_100" }}]);
     data_sources.add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }]);
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }])
@@ -160,15 +160,15 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
 
             this.button = new LocusZoom.Dashboard.Component.Button(this);
             this.button
-                .setText("LD source: 1000G ALL")
+                .setHtml("LD source: 1000G ALL")
                 .setTitle("click to switch to next LD source")
                 .setOnclick(function(){
                     if (this.parent_plot.state.ldrefsource == 1) {
                         this.parent_plot.state.ldrefsource = 2;
-                        this.button.setText('LD source: 1000G EUR');
+                        this.button.setHtml('LD source: 1000G EUR');
                     } else {
                         this.parent_plot.state.ldrefsource = 1;
-                        this.button.setText('LD source: 1000G ALL');
+                        this.button.setHtml('LD source: 1000G ALL');
                     }
                     this.button.show();
                     this.parent_plot.applyState({});
@@ -185,7 +185,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
                 if (this.button)
                     return this;
                 this.button = new LocusZoom.Dashboard.Component.Button(this)
-                    .setColor(layout.color).setText(layout.text).setTitle(layout.title)
+                    .setColor(layout.color).setHtml(layout.text).setTitle(layout.title)
                     .setOnclick(func(layout).bind(this));
                 this.button.show();
                 return this.update();
