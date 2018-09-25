@@ -6,7 +6,7 @@ function deepcopy(obj) {
 
 LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (x === 1) { return "100%"; }
-    var x = (x*100).toPrecision(2);
+    x = (x * 100).toPrecision(2);
     if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }
     if (x.endsWith('.')) { x = x.substr(0, x.length-1); }
     return x + '%';
@@ -85,7 +85,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     });
 
     LocusZoom.Data.PheWASSource.prototype.getData = function(state, fields, outnames, trans) {
-        window.debug.getData_args = [state, fields, outnames, trans];
         trans = trans || [];
 
         var data = deepcopy(window.variant.phenos); //otherwise LZ adds attributes I don't want to the original data.
@@ -98,7 +97,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 }
             });
         });
-        window.debug.data = data;
         return function(chain) {
             return {header: chain.header || {}, body: data};
         }.bind(this);
@@ -181,8 +179,8 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     pval_data_layer.x_axis.min_extent = [-1, window.variant.phenos.length];
 
 
-    window.debug.phewas_panel = phewas_panel;
-    window.debug.pval_data_layer = pval_data_layer;
+
+
     var layout = {
         state: {
             variant: ['chrom', 'pos', 'ref', 'alt'].map(function(d) { return window.variant[d];}).join("-"),
@@ -200,7 +198,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         panels: [phewas_panel],
         mouse_guide: false
     };
-    window.debug.layout = layout;
 
     $(function() {
         window.debug.plot = LocusZoom.populate("#phewas_plot_container", data_sources, layout);
@@ -217,7 +214,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         else if (isnum(v.ac) && isnum(v.num_samples)) { return v.ac / (2*v.num_samples); }
         else { return undefined; }
     });
-    window.debug.mafs = mafs;
     var num_phenos_with_maf = _.filter(mafs, function(d) { return isnum(d) }).length;
     if (num_phenos_with_maf === mafs.length) {
         var range = d3.extent(mafs);
