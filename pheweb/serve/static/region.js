@@ -5,17 +5,41 @@ LocusZoom.KnownDataSources.extend("AssociationLZ", "AssociationPheWeb", {
     annotateData: function(records, chain) {
         records.forEach(function (item) {
             // Dynamically add a field that LZ finds useful, not present in the pheweb api payload
-            // FIXME: Really, we should just send the "variant" field from the API
-            item.variant = [item.chr, ":", item.position, "_", item.ref, "/", item.alt].join("")
+            item.variant = item.id;
         });
         return records;
+    },
+    // Although the layout fields array is useful for specifying transforms, this source will magically re-add
+    //  any data that was not explicitly requested
+    extractFields: function(data, fields, outnames, trans) {
+        // The field "all" has a special meaning, and only exists to trigger a request to this source.
+        // We're not actually trying to request a field by that name.
+        var has_all = fields.indexOf("all");
+        if (has_all !== -1) {
+            fields.splice(has_all, 1);
+            outnames.splice(has_all, 1);
+            trans.splice(has_all, 1);
+        }
+        // Find all fields that have not been requested (sans transforms), and add them back to the fields array
+        if (data.length) {
+            var fieldnames = Object.keys(data[0]);
+            var ns = this.source_id + ":"; // ensure that namespacing is applied to the fields
+            fieldnames.forEach(function(item) {
+                var ref = fields.indexOf(item);
+                if (ref === -1 || trans[ref]) {
+                    fields.push(item);
+                    outnames.push(ns + item);
+                    trans.push(null);
+                }
+            });
+        }
+        return LocusZoom.Data.AssociationSource.prototype.extractFields.call(this, data, fields, outnames, trans);
     }
-    // TODO: Discuss restoring "extra fields" functionality by implementing extractFields (which selects + applies namespacing where appropriate)
 });
 
 LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (x === 1) { return "100%"; }
-    x = (x*100).toPrecision(2);
+    x = (x * 100).toPrecision(2);
     if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }
     if (x.endsWith('.')) { x = x.substr(0, x.length-1); }
     return x + '%';
@@ -327,8 +351,8 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
                     LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog", {
                         unnamespaced: true,
                         fields: [
-                            "{{namespace[assoc]}}id", "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
-                            "{{namespace[assoc]}}ref", "{{namespace[assoc]}}alt", "{{namespace[assoc]}}pvalue",
+                            "{{namespace[assoc]}}all", // convention
+                            "{{namespace[assoc]}}id",
                             "{{namespace[assoc]}}pvalue|neglog10_or_100",
                             "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar"
                         ],
@@ -338,7 +362,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
                             show: {
                                 "or": ["highlighted", "selected"]
                             },
-                            "hide": {
+                            hide: {
                                 "and": ["unhighlighted", "unselected"]
                             },
                             html: '<strong>{{{{namespace[assoc]}}id}}</strong><br>\n\n' + window.model.tooltip_lztemplate
