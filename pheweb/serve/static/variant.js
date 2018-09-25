@@ -62,13 +62,12 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 
     var neglog10_handle0 = function(x) {
         if (x === 0) return best_neglog10_pval * 1.1;
-        var log = -Math.log(x) / Math.LN10;
-        return log;
+        return -Math.log(x) / Math.LN10;
     };
     LocusZoom.TransformationFunctions.set("neglog10_handle0", neglog10_handle0);
 
     LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
-        if (typeof input == "undefined"){
+        if (typeof input === "undefined"){
             return null;
         } else if (!isNaN(input.beta)) {
             if (!isNaN(input.sebeta)) {
@@ -94,7 +93,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             data[i].x = i;
             data[i].id = i.toString();
             trans.forEach(function(transformation, t){
-                if (typeof transformation == "function"){
+                if (typeof transformation === "function"){
                     data[i][outnames[t]] = transformation(data[i][fields[t]]);
                 }
             });
@@ -109,7 +108,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var significance_threshold = 0.05 / window.variant.phenos.length;
     var neglog10_significance_threshold = -Math.log10(significance_threshold);
     var data_sources = new LocusZoom.DataSources()
-      .add("base", ["PheWASLZ", {url: '/this/is/not/used'}])
+      .add("phewas", ["PheWASLZ", {url: '/this/is/not/used'}]);
 
     var phewas_panel = LocusZoom.Layouts.get("panel", "phewas");
     var sig_data_layer = phewas_panel.data_layers[0]; //significance line
@@ -123,6 +122,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         hide: { 'and': ['unhighlighted', 'unselected'] },
         show: { 'or': ['highlighted', 'selected'] }
     };
+    pval_data_layer.id_field = 'idx';
     pval_data_layer.y_axis.min_extent = [0, neglog10_significance_threshold*1.05];
     pval_data_layer.y_axis.upper_buffer = 0.1;
 
@@ -139,7 +139,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     // Show labels that are: in the top 10, and (by neglog10) >=75% of sig threshold, and >=25% of best.
     pval_data_layer.label.filters = [
         {field:"pval|neglog10_handle0", operator:">", value:neglog10_significance_threshold * 3/4},
-        {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 4},
+        {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 4}
     ];
     if (window.variant.phenos.length > 10) {
         pval_data_layer.label.filters.push(
@@ -156,7 +156,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             scale_function: 'effect_direction',
             parameters: {
                 '+': 'triangle-up',
-                '-': 'triangle-down',
+                '-': 'triangle-down'
             }
         },
         'circle'
@@ -171,7 +171,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             style: {fill: pheno.color, "font-size":"11px", "font-weight":"bold", "text-anchor":"start"},
             transform: "translate(15, 0) rotate(50)",
             text: pheno.category,
-            x: pheno.idx,
+            x: pheno.idx
         };
     });
 
@@ -199,19 +199,18 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         responsive_resize: true,
         panels: [phewas_panel],
         mouse_guide: false
-    }
+    };
     window.debug.layout = layout;
 
     $(function() {
-        var plot = LocusZoom.populate("#phewas_plot_container", data_sources, layout);
-        window.debug.plot = plot;
+        window.debug.plot = LocusZoom.populate("#phewas_plot_container", data_sources, layout);
     });
 })();
 
 
 // Check MAF/AF/AC and render
 (function() {
-    var isnum = function(d) { return typeof d == "number"; };
+    var isnum = function(d) { return typeof d === "number"; };
     var mafs = window.variant.phenos.map(function(v) {
         if (isnum(v.maf))  { return v.maf; }
         else if (isnum(v.af)) { return Math.min(v.af, 1-v.af); }
@@ -271,7 +270,7 @@ if (typeof window.variant.rsids !== "undefined") {
                 var count_elem = result.querySelector('eSearchResult Count');
                 var num_pubmed_results = (count_elem === null) ? 0 : parseInt(count_elem.textContent);
                 if (num_pubmed_results > 0) {
-                    if (rsids.length == 1) {
+                    if (rsids.length === 1) {
                         $('#pubmed-link').html(', <a href="{URL}" target="_blank">PubMed ({NUM} results)</a>'
                                                .replace('{URL}', pubmed_link_url)
                                                .replace('{NUM}', num_pubmed_results));
@@ -309,7 +308,7 @@ $(function() {
                 $found.text(data.length + " total codes");
             }
         }
-    }
+    };
 
     var options = {
         view: view,
@@ -323,7 +322,7 @@ $(function() {
             per_page_select: false,
             per_page: 10
         }
-    }
+    };
 
     $('#stream_table').stream_table(options, data);
 
