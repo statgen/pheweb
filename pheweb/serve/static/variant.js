@@ -85,6 +85,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     });
 
     LocusZoom.Data.PheWASSource.prototype.getData = function(state, fields, outnames, trans) {
+        // Override all parsing, namespacing, and field extraction mechanisms, and load data embedded within the page
         trans = trans || [];
 
         var data = deepcopy(window.variant.phenos); //otherwise LZ adds attributes I don't want to the original data.
@@ -110,7 +111,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 
     var phewas_panel = LocusZoom.Layouts.get("panel", "phewas");
     var sig_data_layer = phewas_panel.data_layers[0]; //significance line
-    var pval_data_layer = phewas_panel.data_layers[1];
+    var pval_data_layer = phewas_panel.data_layers[1]; // phewas p values
 
     // Make sig line, and always show it.
     sig_data_layer.offset = neglog10_significance_threshold;
@@ -145,6 +146,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     }
 
     // Color points by category.
+    pval_data_layer.color.field = "category_name"; // As per 0.5.6, when this plot was written
     pval_data_layer.color.parameters.categories = window.unique_categories;
     pval_data_layer.color.parameters.values = window.unique_categories.map(function(cat) { return window.color_by_category(cat); });
 
@@ -190,8 +192,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 {type: "download", position: "right"}
             ]
         },
-        //height: 200, // doesn't work?
-        //min_height: 200
         width: 800,
         min_width: 500,
         responsive_resize: true,
