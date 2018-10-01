@@ -136,6 +136,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     pval_data_layer.y_axis.field = 'pval|neglog10_handle0';
 
     // Show labels that are: in the top 10, and (by neglog10) >=75% of sig threshold, and >=25% of best.
+    pval_data_layer.label.text = "{{phewas_string}}";
     pval_data_layer.label.filters = [
         {field:"pval|neglog10_handle0", operator:">", value:neglog10_significance_threshold * 3/4},
         {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 4}
