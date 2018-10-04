@@ -3,15 +3,16 @@
 <title>{% include 'title.html' %}</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="{{ url_for('.static', filename='vendor/jquery-1.12.3.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('.static', filename='vendor/underscore-1.8.3.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('.static', filename='vendor/typeahead-corejs-1.2.1.bundle.min.js') }}" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/underscore@1.8.3/underscore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/corejs-typeahead@1.2.1/dist/typeahead.bundle.min.js" integrity="sha256-VCsWOz+0GuHdS/sIICtQNTFJdbaDI80rxvoB7BXabrU=" crossorigin="anonymous"></script>
 
-<link  href="{{ url_for('.static', filename='vendor/bootstrap-3.3.6.min.css') }}" rel="stylesheet" type="text/css" crossorigin="anonymous">
-<script src="{{ url_for('.static', filename='vendor/bootstrap-3.3.6.min.js') }}" type="text/javascript" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-<script src="{{ url_for('.static', filename='vendor/d3-3.5.16.min.js') }}"> type="text/javascript"</script>
-<script src="{{ url_for('.static', filename='vendor/d3-tip-0.6.7.min.js') }}" type="text/javascript"></script>
+{# LZ.js vendor bundle (includes d3) #}
+<script src="https://cdn.jsdelivr.net/npm/locuszoom@{{ config.LZJS_VERSION }}/dist/locuszoom.vendor.min.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-tip@0.6.7/index.min.js"></script>
 
 <script type="text/javascript">
   window.model = window.model || {};
