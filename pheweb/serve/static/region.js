@@ -42,6 +42,40 @@ LocusZoom.KnownDataSources.extend("AssociationLZ", "AssociationPheWeb", {
     }
 });
 
+// Modified LD source that handles `NaN` in response.
+LocusZoom.KnownDataSources.extend("LDLZ", "LDPheweb", {
+    parseResponse: function (resp, chain, fields, outnames, trans) {
+        var json;
+        try {
+            json = JSON.parse(resp);
+        } catch (exc) {
+            if (exc instanceof SyntaxError) {
+                resp = resp.replace(/\bNaN\b/g, 'null');
+                var junk = JSON.parse(resp);
+                json = { data:{} };
+                Object.keys(junk).forEach(function(key) {
+                    if (key !== 'data') { json[key] = junk[key]; }
+                });
+                var json_data_keys = Object.keys(junk.data);
+                json_data_keys.forEach(function(key) {
+                    json.data[key] = [];
+                });
+                for (var i=0; i<junk.data.rsquare.length; i++) {
+                    if (junk.data.rsquare[i] !== null) {
+                        json_data_keys.forEach(function(key) {
+                            json.data[key].push(junk.data[key][i]);
+                        });
+                    }
+                }
+            } else {
+                console.error('Unhandled exception when processing LD source', exc);
+                throw exc;
+            }
+        }
+        return LocusZoom.Data.LDSource.prototype.parseResponse.call(this, json, chain, fields, outnames);
+    }
+});
+
 LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (x === 1) { return "100%"; }
     x = (x * 100).toPrecision(2);
@@ -50,71 +84,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     return x + '%';
 });
 
-
-// monkeypatch to handle `NaN` in response.
-LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, outnames) {
-    var json;
-    try {
-        json = JSON.parse(resp);
-    } catch (exc) {
-        if (exc instanceof SyntaxError) {
-            resp = resp.replace(/\bNaN\b/g, 'null');
-            var junk = JSON.parse(resp);
-            json = { data:{} };
-            Object.keys(junk).forEach(function(key) {
-                if (key !== 'data') { json[key] = junk[key]; }
-            });
-            var json_data_keys = Object.keys(junk.data);
-            json_data_keys.forEach(function(key) {
-                json.data[key] = [];
-            });
-            for (var i=0; i<junk.data.rsquare.length; i++) {
-                if (junk.data.rsquare[i] !== null) {
-                    json_data_keys.forEach(function(key) {
-                        json.data[key].push(junk.data[key][i]);
-                    });
-                }
-            }
-        } else {
-            console.log('caught and rethrowing', exc);
-            throw exc;
-        }
-    }
-    var keys = this.findMergeFields(chain);
-    var reqFields = this.findRequestedFields(fields, outnames);
-    if (!keys.position) {
-        throw("Unable to find position field for merge: " + keys._names_);
-    }
-    var leftJoin = function(left, right, lfield, rfield) {
-        var i=0, j=0;
-        while (i < left.length && j < right.position2.length) {
-            if (left[i][keys.position] == right.position2[j]) {
-                left[i][lfield] = right[rfield][j];
-                i++;
-                j++;
-            } else if (left[i][keys.position] < right.position2[j]) {
-                i++;
-            } else {
-                j++;
-            }
-        }
-    };
-    var tagRefVariant = function(data, refvar, idfield, outname) {
-        for(var i=0; i<data.length; i++) {
-            if (data[i][idfield] && data[i][idfield]===refvar) {
-                data[i][outname] = 1;
-            } else {
-                data[i][outname] = 0;
-            }
-        }
-    };
-    leftJoin(chain.body, json.data, reqFields.ldout, "rsquare");
-    if(reqFields.isrefvarin && chain.header.ldrefvar) {
-        tagRefVariant(chain.body, chain.header.ldrefvar, keys.id, reqFields.isrefvarout);
-    }
-    return chain;
-};
-
 (function() {
     // Define LocusZoom Data Sources object
     var localBase = window.model.urlprefix + "/api/region/" + window.pheno.phenocode + "/lz-";
@@ -122,7 +91,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
     var data_sources = new LocusZoom.DataSources()
         .add("assoc", ["AssociationPheWeb", { url: localBase, params: { analysis: 3 } } ]) // FIXME: Write a new assoc source that does not hardcode an analysis param
         .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { source: 2 }}])
-        .add("ld", ["LDLZ", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10_or_100" }}])
+        .add("ld", ["LDPheweb", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10_or_100" }}])
         .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }])
         .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }]);
 
@@ -217,11 +186,10 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
     // Define the layout, then fetch it via the LZ machinery responsible for namespacing
     var layout = LocusZoom.Layouts.get("plot", "association_catalog", {
         unnamespaced: true,
-        height: 450,
-        min_width: 800,
-        // resizable: "responsive", // TODO: possibly deprecated option
+        width: 800,
+        height: 550,
+        responsive_resize: true,
         max_region_scale: 5e5,
-        panel_boundaries: true,  // TODO: check difference if removed
         dashboard: {
             components: [{
                 type: 'link',
@@ -276,7 +244,6 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
             LocusZoom.Layouts.get("panel", "association_catalog", {
                 unnamespaced: true,
                 proportional_height: 0.5,
-                margin: { top: 10, right: 50, bottom: 40, left: 50 },
                 dashboard: {
                     components: [
                         {
@@ -341,15 +308,6 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
                         }
                     ]
                     },
-                legend: {
-                    orientation: "vertical",
-                    origin: { x: 55, y: 40 },
-                    hidden: true,
-                    width: 91.66200256347656,
-                    height: 138,
-                    padding: 5,
-                    label_size: 12
-                },
                 data_layers: [
                     LocusZoom.Layouts.get("data_layer", "significance", { unnamespaced: true }),
                     LocusZoom.Layouts.get("data_layer", "recomb_rate", { unnamespaced: true }),
@@ -370,12 +328,10 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
                             hide: {
                                 "and": ["unhighlighted", "unselected"]
                             },
-                            html: '<strong>{{{{namespace[assoc]}}id}}</strong><br>\n\n' + window.model.tooltip_lztemplate
-                        },
-                        behaviors: {
-                            onmouseover: [{action: "set", status:"selected"}],
-                            onmouseout: [{action: "unset", status:"selected"}],
-                            onclick: [{action: "link", href:window.model.urlprefix+"/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}"}]
+                            html: "<strong>{{{{namespace[assoc]}}id}}</strong><br>" +
+                                "<a href=\"" + window.model.urlprefix+ "/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}\"" + ">Go to PheWAS</a>" +
+                                window.model.tooltip_lztemplate +
+                                "<br><a href=\"javascript:void(0);\" onclick=\"LocusZoom.getToolTipDataLayer(this).makeLDReference(LocusZoom.getToolTipData(this));\">Make LD Reference</a><br>"
                         },
                         x_axis: { field: "{{namespace[assoc]}}position" },
                         y_axis: {
@@ -388,14 +344,10 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
                     })
                 ]
             }),
-            LocusZoom.Layouts.get("panel", "annotation_catalog", {
-                unnamespaced: true,
-                // proportional_height: 0.1
-            }),
+            LocusZoom.Layouts.get("panel", "annotation_catalog", { unnamespaced: true, height: 100, }),
             LocusZoom.Layouts.get("panel", "genes", {
                 unnamespaced: true,
                 proportional_height: 0.5,
-                margin: { top: 17, right: 50, bottom: 20, left: 50 },
                 dashboard: {
                     components: [{
                         type: "resize_to_data",
@@ -426,7 +378,7 @@ LocusZoom.Data.LDSource.prototype.parseResponse = function(resp, chain, fields, 
             })
         ]
     });
-    layout.panels[1].data_layers[0].fields = [  // Modify the fields array of the association track
+    layout.panels[1].data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
         "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position", "{{namespace[assoc]}}variant",
         "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
     ];
