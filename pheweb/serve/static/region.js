@@ -6,14 +6,6 @@ LocusZoom.KnownDataSources.extend("AssociationLZ", "AssociationPheWeb", {
             " and position ge " + state.start +
             " and position le " + state.end;
     },
-
-    annotateData: function(records, chain) {
-        records.forEach(function (item) {
-            // Dynamically add a field that LZ finds useful, not present in the pheweb api payload
-            item.variant = item.id;
-        });
-        return records;
-    },
     // Although the layout fields array is useful for specifying transforms, this source will magically re-add
     //  any data that was not explicitly requested
     extractFields: function(data, fields, outnames, trans) {
@@ -89,9 +81,9 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var localBase = window.model.urlprefix + "/api/region/" + window.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources()
-        .add("assoc", ["AssociationPheWeb", { url: localBase, params: { analysis: 3 } } ]) // FIXME: Write a new assoc source that does not hardcode an analysis param
+        .add("assoc", ["AssociationPheWeb", localBase])
         .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { source: 2 }}])
-        .add("ld", ["LDPheweb", {url: remoteBase + "pair/LD/", params: { pvalue_field: "pvalue|neglog10_or_100" }}])
+        .add("ld", ["LDPheweb", {url: remoteBase + "pair/LD/", params: { pvalue_field: "assoc:pvalue|neglog10_or_100" }}])
         .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }])
         .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }]);
 
@@ -307,7 +299,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                             ]
                         }
                     ]
-                    },
+                },
                 data_layers: [
                     LocusZoom.Layouts.get("data_layer", "significance", { unnamespaced: true }),
                     LocusZoom.Layouts.get("data_layer", "recomb_rate", { unnamespaced: true }),
@@ -316,13 +308,14 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                         fields: [
                             "{{namespace[assoc]}}all", // special mock value for the custom source
                             "{{namespace[assoc]}}id",
+                            "{{namespace[assoc]}}position",
                             "{{namespace[assoc]}}pvalue|neglog10_or_100",
                             "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar",
                             "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
                         ],
                         id_field: "{{namespace[assoc]}}id",
                         tooltip: {
-                            closable: false,
+                            closable: true,
                             show: {
                                 "or": ["highlighted", "selected"]
                             },
@@ -381,7 +374,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         ]
     });
     layout.panels[1].data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
-        "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position", "{{namespace[assoc]}}variant",
+        "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
         "{{namespace[catalog]}}variant", "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
     ];
     LocusZoom.Layouts.add("plot", "pheweb_association", layout);
