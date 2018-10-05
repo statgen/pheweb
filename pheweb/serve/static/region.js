@@ -1,7 +1,12 @@
 'use strict';
 
 LocusZoom.KnownDataSources.extend("AssociationLZ", "AssociationPheWeb", {
-    // TODO: Override getUrl so it doesn't send params that pheweb can't understand (eg analysis = 3)
+    getURL: function (state, chain, fields) {
+        return this.url + "results/?filter=chromosome in  '" + state.chr + "'" +
+            " and position ge " + state.start +
+            " and position le " + state.end;
+    },
+
     annotateData: function(records, chain) {
         records.forEach(function (item) {
             // Dynamically add a field that LZ finds useful, not present in the pheweb api payload
