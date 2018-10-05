@@ -322,7 +322,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                             hide: {
                                 "and": ["unhighlighted", "unselected"]
                             },
-                            html: "<strong>{{{{namespace[assoc]}}id}}</strong><br>" +
+                            html: "<strong>{{{{namespace[assoc]}}id}}</strong><br><br>" +
                                 "<a href=\"" + window.model.urlprefix+ "/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}\"" + ">Go to PheWAS</a>" +
                                 "{{#if {{namespace[catalog]}}rsid}}<a href=\"https://www.ebi.ac.uk/gwas/search?query={{{{namespace[catalog]}}rsid}}\" target=\"_new\">See hits on GWAS catalog</a><br>{{/if}}" +
                                 "<br><a href=\"javascript:void(0);\" onclick=\"LocusZoom.getToolTipDataLayer(this).makeLDReference(LocusZoom.getToolTipData(this));\">Make LD Reference</a><br>" +
