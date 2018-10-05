@@ -1,4 +1,4 @@
-.lz-dashboard.lz-plot-dashboard { text-align: center; padding-bottom: 0; }
+.lz-dashboard.lz-plot-dashboard { text-align: center; }
 .lz-dashboard-left, .lz-dashboard-right { display: inline-block; }
 .lz-dashboard-group-start, .lz-dashboard-group-middle, .lz-dashboard-group-end { float: none !important; }
 /*
