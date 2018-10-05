@@ -175,8 +175,7 @@ def region_page(phenocode, region):
 @check_auth
 def api_region(phenocode):
     filter_param = request.args.get('filter')
-    # FIXME: This regex hardcodes "3" for analysis- it directly relies on a (since fixed) bug in LZ.js core
-    groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
+    groups = re.match(r"chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
     rv = get_pheno_region(phenocode, chrom, pos_start, pos_end)
     return jsonify(rv)
