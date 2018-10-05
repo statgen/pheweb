@@ -314,10 +314,11 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                     LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog", {
                         unnamespaced: true,
                         fields: [
-                            "{{namespace[assoc]}}all", // convention
+                            "{{namespace[assoc]}}all", // special mock value for the custom source
                             "{{namespace[assoc]}}id",
                             "{{namespace[assoc]}}pvalue|neglog10_or_100",
-                            "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar"
+                            "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar",
+                            "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
                         ],
                         id_field: "{{namespace[assoc]}}id",
                         tooltip: {
@@ -330,8 +331,9 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                             },
                             html: "<strong>{{{{namespace[assoc]}}id}}</strong><br>" +
                                 "<a href=\"" + window.model.urlprefix+ "/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}\"" + ">Go to PheWAS</a>" +
-                                window.model.tooltip_lztemplate +
-                                "<br><a href=\"javascript:void(0);\" onclick=\"LocusZoom.getToolTipDataLayer(this).makeLDReference(LocusZoom.getToolTipData(this));\">Make LD Reference</a><br>"
+                                "{{#if {{namespace[catalog]}}rsid}}<a href=\"https://www.ebi.ac.uk/gwas/search?query={{{{namespace[catalog]}}rsid}}\" target=\"_new\">See hits on GWAS catalog</a><br>{{/if}}" +
+                                "<br><a href=\"javascript:void(0);\" onclick=\"LocusZoom.getToolTipDataLayer(this).makeLDReference(LocusZoom.getToolTipData(this));\">Make LD Reference</a><br>" +
+                                window.model.tooltip_lztemplate
                         },
                         x_axis: { field: "{{namespace[assoc]}}position" },
                         y_axis: {
@@ -380,7 +382,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     });
     layout.panels[1].data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
         "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position", "{{namespace[assoc]}}variant",
-        "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
+        "{{namespace[catalog]}}variant", "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
     ];
     LocusZoom.Layouts.add("plot", "pheweb_association", layout);
     layout = LocusZoom.Layouts.get("plot", "pheweb_association");
