@@ -233,6 +233,14 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             }]
     },
         panels: [
+            function() {
+                var l = LocusZoom.Layouts.get("panel", "annotation_catalog", { unnamespaced: true, height: 100, });
+                l.data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
+                    "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
+                    "{{namespace[catalog]}}variant", "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
+                ];
+                return l;
+            }(),
             LocusZoom.Layouts.get("panel", "association_catalog", {
                 unnamespaced: true,
                 proportional_height: 0.5,
@@ -339,7 +347,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                     })
                 ]
             }),
-            LocusZoom.Layouts.get("panel", "annotation_catalog", { unnamespaced: true, height: 100, }),
             LocusZoom.Layouts.get("panel", "genes", {
                 unnamespaced: true,
                 proportional_height: 0.5,
@@ -373,10 +380,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             })
         ]
     });
-    layout.panels[1].data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
-        "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
-        "{{namespace[catalog]}}variant", "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
-    ];
     LocusZoom.Layouts.add("plot", "pheweb_association", layout);
     layout = LocusZoom.Layouts.get("plot", "pheweb_association");
 
