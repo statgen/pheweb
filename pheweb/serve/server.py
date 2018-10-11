@@ -30,6 +30,36 @@ phenos = utils.get_phenos_with_colnums()
 
 autocompleter = Autocompleter(phenos)
 
+@app.route('/ukbiobank-neale', defaults={'path':''})
+@app.route('/UKBiobank-Neale', defaults={'path':''})
+@app.route('/UKBiobank-Neale/<path:path>')
+def go_ukbbn(path):
+    return redirect(f'http://pheweb.sph.umich.edu:5000/{path}')
+
+@app.route('/ukbiobank', defaults={'path':''})
+@app.route('/UKBiobank', defaults={'path':''})
+@app.route('/UKBiobank/<path:path>')
+def go_ukbbs(path):
+    #return redirect(f'http://browser.sph.umich.edu/{path}')
+    return redirect(f'http://pheweb.sph.umich.edu:5003/{path}')
+
+@app.route('/ukbiobank-icd', defaults={'path':''})
+@app.route('/UKBiobank-ICD', defaults={'path':''})
+@app.route('/UKBiobank-ICD/<path:path>')
+def go_ukb_icd(path):
+    return redirect(f'http://pheweb.sph.umich.edu:5004/{path}')
+
+@app.route('/hunt', defaults={'path':''})
+@app.route('/HUNT', defaults={'path':''})
+@app.route('/HUNT/<path:path>')
+def go_hunt(path):
+    return redirect(f'http://pheweb.sph.umich.edu:5002/{path}')
+
+@app.route('/mgi-biovu-labs', defaults={'path':''})
+@app.route('/mgi-biovu-labs/<path:path>')
+def go_mgi_biovu_labs(path):
+    return redirect(f'http://pheweb.sph.umich.edu:5004/{path}')
+
 @app.route('/api/autocomplete')
 def autocomplete():
     query = request.args.get('query', '')
