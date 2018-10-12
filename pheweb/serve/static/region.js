@@ -237,7 +237,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 var l = LocusZoom.Layouts.get("panel", "annotation_catalog", {
                     unnamespaced: true,
                     height: 40, min_height: 40,
-                    margin: { top: 30, bottom: 5 },
+                    margin: { top: 30, bottom: 10 },
                 });
                 l.data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
                     "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
