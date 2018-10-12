@@ -180,7 +180,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         unnamespaced: true,
         width: 800,
         // height: 550,
-        responsive_resize: true,
+        responsive_resize: true, // TODO: perhaps setting this to `false` would fix all my sizing problems.
         max_region_scale: 5e5,
         dashboard: {
             components: [{
