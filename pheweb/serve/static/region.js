@@ -179,7 +179,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var layout = LocusZoom.Layouts.get("plot", "association_catalog", {
         unnamespaced: true,
         width: 800,
-        height: 550,
+        // height: 550,
         responsive_resize: true,
         max_region_scale: 5e5,
         dashboard: {
@@ -234,7 +234,11 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     },
         panels: [
             function() {
-                var l = LocusZoom.Layouts.get("panel", "annotation_catalog", { unnamespaced: true, height: 100, });
+                var l = LocusZoom.Layouts.get("panel", "annotation_catalog", {
+                    unnamespaced: true,
+                    height: 40, min_height: 40,
+                    margin: { top: 30, bottom: 10 },
+                });
                 l.data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
                     "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
                     "{{namespace[catalog]}}variant", "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
@@ -243,7 +247,10 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             }(),
             LocusZoom.Layouts.get("panel", "association_catalog", {
                 unnamespaced: true,
-                proportional_height: 0.5,
+                // proportional_height: 0.5,
+                height: 200, // I don't understand how this parameter works.
+                // min_height: 250,
+                margin: { top: 10 },
                 dashboard: {
                     components: [
                         {
@@ -345,11 +352,11 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                             min_extent: [0, 10]
                         }
                     })
-                ]
+                ],
             }),
             LocusZoom.Layouts.get("panel", "genes", {
                 unnamespaced: true,
-                proportional_height: 0.5,
+                // proportional_height: 0.5,
                 dashboard: {
                     components: [{
                         type: "resize_to_data",
@@ -376,7 +383,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                         bounding_box_padding: 5,
                         track_vertical_spacing: 5
                     })
-                ]
+                ],
             })
         ]
     });
