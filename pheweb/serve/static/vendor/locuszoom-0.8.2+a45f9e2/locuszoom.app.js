@@ -3541,7 +3541,8 @@
             // In the future we may add additional options for controlling marker size/ shape, based on user feedback
             this.DefaultLayout = {
                 color: '#000000',
-                filters: []
+                filters: [],
+                hit_area_width: 8,
             };
             layout = LocusZoom.Layouts.merge(layout, this.DefaultLayout);
             if (!Array.isArray(layout.filters)) {
@@ -3553,7 +3554,34 @@
                 var self = this;
                 // Only render points that currently satisfy all provided filter conditions.
                 var trackData = this.filter(this.layout.filters, 'elements');
-                var selection = this.svg.group.selectAll('rect.lz-data_layer-' + self.layout.type).data(trackData, function (d) {
+
+                var hit_areas_group = this.svg.group.select('g.lz-data_layer-' + self.layout.type + '-hit_areas');
+                if (hit_areas_group.size() === 0) {
+                    hit_areas_group = this.svg.group.append('g').attr('class', 'lz-data_layer-' + self.layout.type + '-hit_areas');
+                }
+                var hit_areas_selection = hit_areas_group.selectAll('rect.lz-data_layer-' + self.layout.type).data(trackData, function (d) {
+                    return d[self.layout.id_field];
+                });
+                // Add new elements as needed
+                hit_areas_selection.enter().append('rect').attr('class', 'lz-data_layer-' + this.layout.type).attr('id', function (d) {
+                    return self.getElementId(d);
+                });
+                // Update the set of elements to reflect new data
+                hit_areas_selection.attr('x', function (d) {
+                    return self.parent['x_scale'](d[self.layout.x_axis.field]) - self.layout.hit_area_width / 2;
+                }).attr('width', self.layout.hit_area_width)
+                    .attr('height', self.parent.layout.height)
+                    .attr('opacity', 0);
+                // Remove unused elements
+                hit_areas_selection.exit().remove();
+                // Set up tooltips and mouse interaction
+                this.applyBehaviors(hit_areas_selection);
+
+                var visible_lines_group = this.svg.group.select('g.lz-data_layer-' + self.layout.type + '-visible_lines');
+                if (visible_lines_group.size() === 0) {
+                    visible_lines_group = this.svg.group.append('g').attr('class', 'lz-data_layer-' + self.layout.type + '-visible_lines');
+                }
+                var selection = visible_lines_group.selectAll('rect.lz-data_layer-' + self.layout.type).data(trackData, function (d) {
                     return d[self.layout.id_field];
                 });
                 // Add new elements as needed
@@ -3562,9 +3590,9 @@
                 });
                 // Update the set of elements to reflect new data
                 selection.attr('x', function (d) {
-                    return self.parent['x_scale'](d[self.layout.x_axis.field]);
+                    return self.parent['x_scale'](d[self.layout.x_axis.field]) - 0.5; //0.5 is for centering
                 }).attr('width', 1)    // TODO autocalc width of track? Based on datarange / pixel width presumably
-.attr('height', self.parent.layout.height).attr('fill', function (d) {
+                    .attr('height', self.parent.layout.height).attr('fill', function (d) {
                     return self.resolveScalableParameter(self.layout.color, d);
                 });
                 // Remove unused elements
@@ -3592,7 +3620,7 @@
                 var data_layer_height = this.parent.layout.height - (this.parent.layout.margin.top + this.parent.layout.margin.bottom);
                 var data_layer_width = this.parent.layout.width - (this.parent.layout.margin.left + this.parent.layout.margin.right);
                 var x_center = this.parent.x_scale(tooltip.data[this.layout.x_axis.field]);
-                var y_center = data_layer_height / 2;
+                var y_center = 3; // places the point of the triangle flush with the top line
                 // Tooltip should be horizontally centered above the point to be annotated. (or below if space is limited)
                 var offset_right = Math.max(tooltip_box.width / 2 - x_center, 0);
                 var offset_left = Math.max(tooltip_box.width / 2 + x_center - data_layer_width, 0);
