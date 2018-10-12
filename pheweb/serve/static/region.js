@@ -179,7 +179,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var layout = LocusZoom.Layouts.get("plot", "association_catalog", {
         unnamespaced: true,
         width: 800,
-        height: 550,
         responsive_resize: true,
         max_region_scale: 5e5,
         dashboard: {
@@ -234,16 +233,24 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     },
         panels: [
             function() {
-                var l = LocusZoom.Layouts.get("panel", "annotation_catalog", { unnamespaced: true, height: 100, });
+                var l = LocusZoom.Layouts.get("panel", "annotation_catalog", {
+                    unnamespaced: true,
+                    height: 40,
+                    min_height: 40,
+                    margin: { top: 30, bottom: 10 },
+                });
                 l.data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
                     "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
                     "{{namespace[catalog]}}variant", "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
                 ];
+                l.data_layers[0].tooltip_positioning = "top";
                 return l;
             }(),
             LocusZoom.Layouts.get("panel", "association_catalog", {
                 unnamespaced: true,
-                proportional_height: 0.5,
+                height: 200,
+                margin: { top: 10 },
+                legend: { origin: { y: 15 } },
                 dashboard: {
                     components: [
                         {
@@ -332,7 +339,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                             },
                             html: "<strong>{{{{namespace[assoc]}}id}}</strong><br><br>" +
                                 "<a href=\"" + window.model.urlprefix+ "/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}\"" + ">Go to PheWAS</a>" +
-                                "{{#if {{namespace[catalog]}}rsid}}<a href=\"https://www.ebi.ac.uk/gwas/search?query={{{{namespace[catalog]}}rsid}}\" target=\"_new\">See hits on GWAS catalog</a><br>{{/if}}" +
+                                "{{#if {{namespace[catalog]}}rsid}}<br><a href=\"https://www.ebi.ac.uk/gwas/search?query={{{{namespace[catalog]}}rsid}}\" target=\"_new\">See hits in GWAS catalog</a><br>{{/if}}" +
                                 "<br><a href=\"javascript:void(0);\" onclick=\"LocusZoom.getToolTipDataLayer(this).makeLDReference(LocusZoom.getToolTipData(this));\">Make LD Reference</a><br>" +
                                 window.model.tooltip_lztemplate
                         },
@@ -349,7 +356,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             }),
             LocusZoom.Layouts.get("panel", "genes", {
                 unnamespaced: true,
-                proportional_height: 0.5,
                 dashboard: {
                     components: [{
                         type: "resize_to_data",

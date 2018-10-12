@@ -41,7 +41,7 @@ def test_all(tmpdir, capsys):
         assert client.get('/api/manhattan/pheno/snowstorm.json').status_code == 200
         assert client.get('/api/qq/pheno/snowstorm.json').status_code == 200
         assert client.get('/region/snowstorm/8-926279-1326279').status_code == 200
-        assert client.get('/api/region/snowstorm/lz-results/?filter=analysis%20in%203%20and%20chromosome%20in%20%20%278%27%20and%20position%20ge%20976279%20and%20position%20le%201276279').status_code == 200
+        assert client.get('/api/region/snowstorm/lz-results/?filter=chromosome%20in%20%20%278%27%20and%20position%20ge%20976279%20and%20position%20le%201276279').status_code == 200
         assert client.get('/region/snowstorm/gene/DNAH14?include=1-225494097').status_code == 200
         assert client.get('/api/autocomplete?query=%20DAP-2').status_code == 200
         assert b'EAR-LENGTH' in client.get('/region/1/gene/SAMD11').data
