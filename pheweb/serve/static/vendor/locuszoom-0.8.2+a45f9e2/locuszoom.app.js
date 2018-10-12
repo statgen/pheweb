@@ -3555,28 +3555,7 @@
                 // Only render points that currently satisfy all provided filter conditions.
                 var trackData = this.filter(this.layout.filters, 'elements');
 
-                var hit_areas_group = this.svg.group.select('g.lz-data_layer-' + self.layout.type + '-hit_areas');
-                if (hit_areas_group.size() === 0) {
-                    hit_areas_group = this.svg.group.append('g').attr('class', 'lz-data_layer-' + self.layout.type + '-hit_areas');
-                }
-                var hit_areas_selection = hit_areas_group.selectAll('rect.lz-data_layer-' + self.layout.type).data(trackData, function (d) {
-                    return d[self.layout.id_field];
-                });
-                // Add new elements as needed
-                hit_areas_selection.enter().append('rect').attr('class', 'lz-data_layer-' + this.layout.type).attr('id', function (d) {
-                    return self.getElementId(d);
-                });
-                // Update the set of elements to reflect new data
-                hit_areas_selection.attr('x', function (d) {
-                    return self.parent['x_scale'](d[self.layout.x_axis.field]) - self.layout.hit_area_width / 2;
-                }).attr('width', self.layout.hit_area_width)
-                    .attr('height', self.parent.layout.height)
-                    .attr('opacity', 0);
-                // Remove unused elements
-                hit_areas_selection.exit().remove();
-                // Set up tooltips and mouse interaction
-                this.applyBehaviors(hit_areas_selection);
-
+                // Put the <g> containing visible lines before the one containing hit areas, so that the hit areas will be on top.
                 var visible_lines_group = this.svg.group.select('g.lz-data_layer-' + self.layout.type + '-visible_lines');
                 if (visible_lines_group.size() === 0) {
                     visible_lines_group = this.svg.group.append('g').attr('class', 'lz-data_layer-' + self.layout.type + '-visible_lines');
@@ -3597,8 +3576,42 @@
                 });
                 // Remove unused elements
                 selection.exit().remove();
+
+                var hit_areas_group = this.svg.group.select('g.lz-data_layer-' + self.layout.type + '-hit_areas');
+                if (hit_areas_group.size() === 0) {
+                    hit_areas_group = this.svg.group.append('g').attr('class', 'lz-data_layer-' + self.layout.type + '-hit_areas');
+                }
+                var hit_areas_selection = hit_areas_group.selectAll('rect.lz-data_layer-' + self.layout.type).data(trackData, function (d) {
+                    return d[self.layout.id_field];
+                });
+                // Add new elements as needed
+                hit_areas_selection.enter().append('rect').attr('class', 'lz-data_layer-' + this.layout.type).attr('id', function (d) {
+                    return self.getElementId(d);
+                });
+                // Update the set of elements to reflect new data
+                hit_areas_selection
+                    .attr('height', self.parent.layout.height)
+                    .attr('opacity', 0.3);
+                hit_areas_selection.attr('fill', function() { return 'rgb('+Math.floor(Math.random()*255).toString()+','+Math.floor(Math.random()*255).toString()+','+Math.floor(Math.random()*255).toString()+')'; });
+                // Set x and width
+                hit_areas_selection.each(function(d, i) {
+                    var x_center = self.parent['x_scale'](d[self.layout.x_axis.field]);
+                    var x_left = x_center - self.layout.hit_area_width / 2;
+                    if (i >= 1) {
+                        // This assumes that the data are in sorted order.
+                        var left_node = hit_areas_selection.data()[i-1];
+                        var left_node_x_center = self.parent['x_scale'](left_node[self.layout.x_axis.field]);
+                        x_left = Math.max(x_left, (x_center + left_node_x_center) / 2);
+                    }
+                    d3.select(this)
+                        .attr('x', x_left)
+                        .attr('width', (x_center - x_left) + self.layout.hit_area_width / 2);
+                });
+                // Remove unused elements
+                hit_areas_selection.exit().remove();
                 // Set up tooltips and mouse interaction
-                this.applyBehaviors(selection);
+                this.applyBehaviors(hit_areas_selection);
+
             };
             // Reimplement the positionTooltip() method to be annotation-specific
             this.positionTooltip = function (id) {
