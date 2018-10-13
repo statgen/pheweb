@@ -3591,8 +3591,9 @@
                 // Update the set of elements to reflect new data
                 hit_areas_selection
                     .attr('height', self.parent.layout.height)
-                    .attr('opacity', 0.3);
-                hit_areas_selection.attr('fill', function() { return 'rgb('+Math.floor(Math.random()*255).toString()+','+Math.floor(Math.random()*255).toString()+','+Math.floor(Math.random()*255).toString()+')'; });
+                    .attr('opacity', 0);
+                //     .attr('opacity', 0.3);
+                // hit_areas_selection.attr('fill', function() { return 'rgb('+Math.floor(Math.random()*255).toString()+','+Math.floor(Math.random()*255).toString()+','+Math.floor(Math.random()*255).toString()+')'; });
                 // Set x and width
                 hit_areas_selection.each(function(d, i) {
                     var x_center = self.parent['x_scale'](d[self.layout.x_axis.field]);
