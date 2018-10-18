@@ -236,20 +236,19 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             function() {
                 var l = LocusZoom.Layouts.get("panel", "annotation_catalog", {
                     unnamespaced: true,
-                    height: 40, min_height: 40,
-                    margin: { top: 30, bottom: 10 },
+                    height: 52, min_height: 52,
+                    margin: { top: 30, bottom: 13 },
                 });
                 l.data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
                     "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
                     "{{namespace[catalog]}}variant", "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
                 ];
+                l.data_layers[0].hit_area_width = 50;
                 return l;
             }(),
             LocusZoom.Layouts.get("panel", "association_catalog", {
                 unnamespaced: true,
-                // proportional_height: 0.5,
-                height: 200, // I don't understand how this parameter works.
-                // min_height: 250,
+                height: 200, min_height: 200,
                 margin: { top: 10 },
                 dashboard: {
                     components: [
