@@ -161,7 +161,7 @@ def run(argv):
         if not os.path.exists(gencode_filepath):
             make_basedir(gencode_filepath)
             wget.download(
-                url="ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_{0}/GRCh37_mapping/gencode.v{0}lift37.annotation.gtf.gz".format(genes_version),
+                url="ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_{0}/GRCh37_mapping/gencode.v{0}lift37.annotation.gtf.gz".format(genes_version),
                 out=gencode_filepath
             )
             print('')
