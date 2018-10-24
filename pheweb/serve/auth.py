@@ -53,5 +53,5 @@ class GoogleSignIn(object):
                 decoder = lambda x: json.loads(x.decode('utf-8'))
         )
         me = oauth_session.get('').json()
-        return (me['name'],
+        return (me['name'] if 'name' in me else me['email'], # SAML emails (like @umich.edu) don't have 'name'
                 me['email'])
