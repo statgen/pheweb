@@ -26,7 +26,7 @@ Run `pheweb serve --open`.  That command should either open a browser to your ne
 
 At this point your PheWeb should be working how you want it to, except maybe the URL you're using.
 
-`pheweb serve` already uses gunicorn. For maximum speed and safety, you should run gunicorn routed through a reverse proxy like Apache2 or Nginx. If you choose Apache2, I have some documentation [here](etc/detailed-apache2-instructions/README.md).
+`pheweb serve` already uses gunicorn. For maximum speed and safety, you should run gunicorn routed through a reverse proxy like Apache2 or Nginx. If you choose Apache2, I have some documentation [here](detailed-apache2-instructions/README.md).
 
 
 
