@@ -524,6 +524,7 @@ if 'login' in conf:
         return redirect(url_for('homepage'))
 
     @app.route('/login_with_google')
+    @cross_origin()
     def login_with_google():
         "this route is for the login button"
         session['original_destination'] = url_for('homepage')
@@ -544,6 +545,7 @@ if 'login' in conf:
             return redirect(orig_dest)
 
     @app.route('/callback/google')
+    @cross_origin()
     def oauth_callback_google():
         if not current_user.is_anonymous:
             return redirect(url_for('homepage'))
