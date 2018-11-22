@@ -285,7 +285,7 @@ def _ensure_conf():
         }),
         ('maf', {
             'type': float,
-            'range': [0, 0.5],
+            'range': [0, 1],
             'sigfigs': 2,
             'tooltip_underscoretemplate': 'MAF: <%= d.maf.toFixed(4) %><br>',
             'tooltip_lztemplate': {'transform': '|percent'},
