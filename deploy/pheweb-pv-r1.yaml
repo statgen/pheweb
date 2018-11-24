@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pheweb-pv
+spec:
+  capacity:
+      storage: 1900Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  gcePersistentDisk:
+    fsType: ext4
+    pdName: pheweb-fg-r1-ukbb-dev
+  mountOptions:
+    - noatime
+    - nodiratime
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pheweb-pv-pheweb-front-0
+spec:
+  storageClassName: ""
+  volumeName: pheweb-pv
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1900Gi
