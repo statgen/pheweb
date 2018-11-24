@@ -9,7 +9,6 @@ from ..version import version as pheweb_version
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
-from flask_cors import cross_origin
 
 from .reporting import Report
 
@@ -153,7 +152,7 @@ def api_pheno(phenocode):
         d = {i['id']: i['var_data'] for i in annotations}
         gd = {i['id']: i['var_data'] for i in gnomad}
 
-        
+
         ukbbvars = ukbb_dao.get_matching_results(phenocode ,
             list(map( lambda variant: ( "chr" + variant["chrom"], variant["pos"], variant["ref"], variant["alt"]), variants['unbinned_variants'])))
         for variant in variants['unbinned_variants']:
@@ -524,14 +523,12 @@ if 'login' in conf:
         return redirect(url_for('homepage'))
 
     @app.route('/login_with_google')
-    @cross_origin()
     def login_with_google():
         "this route is for the login button"
         session['original_destination'] = url_for('homepage')
         return redirect(url_for('get_authorized'))
 
     @app.route('/get_authorized')
-    @cross_origin()
     def get_authorized():
         "This route tries to be clever and handle lots of situations."
         if current_user.is_anonymous:
@@ -545,7 +542,6 @@ if 'login' in conf:
             return redirect(orig_dest)
 
     @app.route('/callback/google')
-    @cross_origin()
     def oauth_callback_google():
         if not current_user.is_anonymous:
             return redirect(url_for('homepage'))

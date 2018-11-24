@@ -5,6 +5,7 @@
 {% block in_head %}
 <script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='index.js') }}" type="text/javascript"></script>
+{% if not current_user or current_user.is_authenticated %}
 <script type="text/javascript">
   $.getJSON("/api/phenos")
   .done(function(data) {
@@ -40,6 +41,7 @@
     border: none;
   }
 </style>
+{% endif %}
 {% endblock %}
 
 {% block contained %}
@@ -61,7 +63,6 @@
 </div>
 {% else %}
 <br style="margin-top: 3em">
-{% endif %}
 
 <div class="row">
     <div class="col-xs-12 col-sm-offset-1 col-sm-10">
@@ -172,4 +173,5 @@
     </tr>
 </script>
 
+{% endif %}
 {% endblock %}

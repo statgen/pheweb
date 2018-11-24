@@ -49,7 +49,6 @@ setup(
         'Flask>=0.12',
         'Flask-Compress~=1.4',
         'Flask-Login~=0.4',
-        'flask-cors~=3.0',
         'rauth~=0.7',
         'pysam~=0.14',
         'marisa-trie~=0.7',
