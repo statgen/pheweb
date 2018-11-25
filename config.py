@@ -1,4 +1,7 @@
 
+authentication=False
+authentication_file = "/mnt/data-disk-ssd/pheweb/google.dev.conf"
+
 data_dir="/mnt/data-disk-ssd/pheweb"
 
 database_conf = ({ "annotation":

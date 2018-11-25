@@ -1,0 +1,33 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: pheweb
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: finngen-r1-ip
+  labels:
+    app: pheweb
+spec:
+  rules:
+  - host: r1.finngen.fi
+    http:
+      paths:
+      - backend:
+          serviceName: pheweb-front
+          servicePort: 80
+        path: /*
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pheweb-front
+  labels:
+    app: pheweb
+    tier: frontend
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: pheweb
+    tier: frontend

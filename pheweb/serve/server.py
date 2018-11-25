@@ -10,7 +10,6 @@ from flask import Flask, jsonify, render_template, request, redirect, abort, fla
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 
-
 from .reporting import Report
 
 import functools
@@ -64,7 +63,7 @@ def check_auth(func):
     If they haven't, their intended destination is stored and they're sent to get authorized.
     It has to be placed AFTER @app.route() so that it can capture `request.path`.
     """
-    if 'login' not in conf:
+    if not conf.authentication:
         return func
     # inspired by <https://flask-login.readthedocs.org/en/latest/_modules/flask_login.html#login_required>
     @functools.wraps(func)
@@ -74,7 +73,10 @@ def check_auth(func):
             session['original_destination'] = request.path
             return redirect(url_for('get_authorized'))
         print('{} visited {!r}'.format(current_user.email, request.path))
-        assert current_user.email.lower() in conf.login['whitelist'], current_user
+        if 'whitelist' in conf.login.keys():
+            assert current_user.email.lower().endswith('@finngen.fi') or current_user.email.lower() in conf.login['whitelist'], current_user
+        else:
+            assert current_user.email.lower().endswith('@finngen.fi'), current_user
         return func(*args, **kwargs)
     return decorated_view
 
@@ -150,7 +152,7 @@ def api_pheno(phenocode):
         d = {i['id']: i['var_data'] for i in annotations}
         gd = {i['id']: i['var_data'] for i in gnomad}
 
-        
+
         ukbbvars = ukbb_dao.get_matching_results(phenocode ,
             list(map( lambda variant: ( "chr" + variant["chrom"], variant["pos"], variant["ref"], variant["alt"]), variants['unbinned_variants'])))
         for variant in variants['unbinned_variants']:
@@ -506,10 +508,13 @@ if 'login' in conf:
 
     @lm.user_loader
     def load_user(id):
-        if id in conf.login['whitelist']:
-            return User(email=id)
+        if 'whitelist' in conf.login.keys():
+            if id.endswith('@finngen.fi') or id in conf.login['whitelist']:
+                return User(email=id)
+        else:
+            if id.endswith('@finngen.fi'):
+                return User(email=id)
         return None
-
 
     @app.route('/logout')
     def logout():
@@ -546,16 +551,21 @@ if 'login' in conf:
             print('Error in google_sign_in.callback():')
             print(exc)
             print(traceback.format_exc())
-            flash('Something is wrong with authentication.  Please email pheweb@finngen.fi')
+            flash('Something is wrong with authentication. Please contact humgen-servicedesk@helsinki.fi')
             return redirect(url_for('homepage'))
         if email is None:
             # I need a valid email address for my user identification
-            flash('Authentication failed by failing to get an email address.  Please email pheweb@finngen.fi')
+            flash('Authentication failed by failing to get an email address.')
             return redirect(url_for('homepage'))
 
-        if email.lower() not in conf.login['whitelist']:
-            flash('Your email, {!r}, is not in the list of allowed emails.'.format(email))
-            return redirect(url_for('homepage'))
+        if 'whitelist' in conf.login.keys():
+            if not email.lower().endswith('@finngen.fi') and email.lower() not in conf.login['whitelist']:
+                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
+                return redirect(url_for('homepage'))
+        else:
+            if not email.lower().endswith('@finngen.fi'):
+                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
+                return redirect(url_for('homepage'))
 
         # Log in the user, by default remembering them for their next visit.
         user = User(username, email)

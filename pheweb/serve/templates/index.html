@@ -5,6 +5,7 @@
 {% block in_head %}
 <script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='index.js') }}" type="text/javascript"></script>
+{% if not current_user or current_user.is_authenticated %}
 <script type="text/javascript">
   $.getJSON("/api/phenos")
   .done(function(data) {
@@ -40,6 +41,7 @@
     border: none;
   }
 </style>
+{% endif %}
 {% endblock %}
 
 {% block contained %}
@@ -48,21 +50,19 @@
 {% if current_user and not current_user.is_authenticated %}
 <div class="row">
   <div class="col-xs-10 col-xs-offset-1">
-    <div class="jumbotron">
-      <p>Please log in to view this data.</p>
+    <div class="jumbotron" style="border-radius: 0px;">
+      <p>Please log in with your finngen.fi account to view FinnGen results.</p>
       <br>
       <p><a class="btn-lg btn-primary" role="button" href="{{ url_for('login_with_google') }}">Click here to login with Google</a></p>
       <br>
       <p style="margin-bottom:0">
-        If your email address is on the whitelist but is not connected to a Google account, please
-        <a href="https://accounts.google.com/SignUpWithoutGmail">create a Google account for it</a>.
+        If you are a FinnGen partner but don't yet have a finngen.fi account, please contact <a href="mailto:humgen-servicedesk@helsinki.fi">humgen-servicedesk@helsinki.fi</a> to get your account set up.
       </p>
     </div>
   </div>
 </div>
 {% else %}
 <br style="margin-top: 3em">
-{% endif %}
 
 <div class="row">
     <div class="col-xs-12 col-sm-offset-1 col-sm-10">
@@ -173,4 +173,5 @@
     </tr>
 </script>
 
+{% endif %}
 {% endblock %}
