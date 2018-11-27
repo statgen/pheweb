@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:ukbb1
+        image: gcr.io/phewas-development/pheweb:r1-terminal
         ports:
         - containerPort: 8080
         volumeMounts:
