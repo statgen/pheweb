@@ -106,7 +106,7 @@ class LofDB(object):
             Returns: A list of dictionaries. Dictionary has 2 elements "id" which contains the gene id and "gene_data" containing dictionary with all gene data.
         """
         return
-    
+
 class KnownHitsDB(object):
     @abc.abstractmethod
     def get_hits_by_loc(self, chr, start, stop):
@@ -382,7 +382,7 @@ class TabixResultDao(ResultDB):
                     beta = split[pheno['p_col_idx']+1]
                     maf_case = split[pheno['p_col_idx']+4]
                     maf_control = split[pheno['p_col_idx']+5]
-                    if pval is not '' and (float(pval) < pheno['assoc']['pval']):
+                    if pval is not '' and pval != 'NA' and (float(pval) < pheno['assoc']['pval']):
                         pheno['assoc']['pval'] = float(pval)
                         pheno['assoc']['beta'] = float(beta)
                         pheno['assoc']['maf_case'] = float(maf_case)

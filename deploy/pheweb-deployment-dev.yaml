@@ -1,0 +1,33 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: pheweb-front
+  labels:
+    app: pheweb
+    tier: frontend
+spec:
+  serviceName: pheweb-front
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pheweb
+        tier: frontend
+    spec:
+      containers:
+      - name: pheweb-container
+        image: gcr.io/phewas-development/pheweb:r2-initial
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /mnt/r2
+          name: pheweb-pv
+  volumeClaimTemplates:
+  - metadata:
+      name: pheweb-pv
+    spec:
+      storageClassName: ""
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 1900Gi

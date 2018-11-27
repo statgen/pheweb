@@ -166,7 +166,7 @@ OR: <%= d.or.toExponential(1) %><br>
     </td>
     <td style="width:15%"><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
     <td style="width: 6%"><%= d.beta ? (d.beta.toPrecision(2) + (d.sebeta ? " (" + d.sebeta.toPrecision(2) + ")" : "")) : "" %></td>
-    <td style="width: 6%"><%= d.pval.toExponential(1) %></td>
+    <td style="width: 6%"><%= d.pval ? d.pval.toExponential(1) : "" %></td>
     <td style="width: 6%"><% if (d.num_cases) { %>
       <%= d.num_cases %> / <%= d.num_controls %>
       <% } else if (d.num_samples) { %>

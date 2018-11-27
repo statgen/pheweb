@@ -19,7 +19,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     } else {
         window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return parseFloat(d.phenocode); });
     }
-    
+
     window.first_of_each_category = (function() {
         var categories_seen = {};
         return window.variant.phenos.filter(function(pheno) {
@@ -64,7 +64,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 	    pheno.pScaled = window.vis_conf.loglog_threshold * Math.log10(pheno.pScaled) / Math.log10(window.vis_conf.loglog_threshold)
 	}
     })
-    
+
     var best_neglog10_pval = d3.max(window.variant.phenos.map(function(x) { return LocusZoom.TransformationFunctions.get('neglog10')(x.pval); }));
 
     var neglog10_handle0 = function(x) {
@@ -245,13 +245,13 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (num_phenos_with_maf === mafs.length) {
         var range = d3.extent(mafs);
         $(function() {
-            $('#maf-range').html('<p>MAF ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + '</p>');
+            $('#maf-range').html('<p>AF ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + '</p>');
             $('#maf-range p').css('margin-bottom', '0');
         });
     } else if (num_phenos_with_maf > 0) {
         var range = d3.extent(mafs);
         $(function() {
-            $('#maf-range').html('<p>MAF ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ' for phenotypes where it is defined</p>');
+            $('#maf-range').html('<p>AF ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ' for phenotypes where it is defined</p>');
             $('#maf-range p').css('margin-bottom', '0');
         });
     }
@@ -330,7 +330,8 @@ if (typeof window.variant.rsids !== "undefined") {
 // Populate StreamTable
 $(function() {
     // This is mostly copied from <https://michigangenomics.org/health_data.html>.
-    var data = _.sortBy(window.variant.phenos, function(pheno) { return pheno.pval; });
+    var data = _.filter(window.variant.phenos, function(pheno) { return !!pheno.pval });
+    data = _.sortBy(data, function(pheno) { return pheno.pval; });
     var template = _.template($('#streamtable-template').html());
 
     var view = function(phenotype) {
