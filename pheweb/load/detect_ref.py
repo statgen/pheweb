@@ -118,7 +118,7 @@ def download_ref(build, chrom):
     tr -d "\n" > '{tmp_filepath}'
     '''.format(dl_filepath=dl_filepath, tmp_filepath=tmp_filepath))
     os.rename(tmp_filepath, dest_filepath)
-    print("ref is at", dest_filepath)
+    print("this reference file has been downloaded to", dest_filepath)
 
 def ref_filepath(build, chrom, download=True):
     filepath = get_cacheable_file_location('ref', 'reference-{}-chrom-{}.fa'.format(build['hg'], chrom))
