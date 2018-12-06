@@ -25,7 +25,7 @@ TR_V_gene
 '''.split())
 bad_genetypes = set('''
 3prime_overlapping_ncRNA
-antisense_RNA
+antisense
 bidirectional_promoter_lncRNA
 lincRNA
 macro_lncRNA
