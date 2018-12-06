@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# to install: `pip install -e .` or `pip install .`
-# to upload to pypi:
-#     0. have a good `~/.pypirc`
-#     1. set a new version in `pheweb/version.py`
-#     2. `rm -r dist && python3 setup.py sdist bdist_wheel && twine upload dist/*`
-# to upgrade: `pip3 install --upgrade --upgrade-strategy only-if-needed --no-cache-dir pheweb`
-# to test: `python3 setup.py test`
+# to install: `pip install -e .`
+# to install latest from pypi: `pip3 install --upgrade --upgrade-strategy eager --no-cache-dir pheweb`
+# to upload to pypi: have `~/.pypirc`, update `pheweb/version.py`, `rm -r dist && python3 setup.py sdist bdist_wheel && twine upload dist/*`
+# to update dependencies: `./tests/check-for-old-requirements.py`, edit, `pip3 install -U --upgrade-strategy=eager ipython`, test
+# to test: `python3 setup.py test` or `pytest`
 
 
 from setuptools import setup
@@ -59,29 +57,29 @@ setup(
     python_requires=">=3.4",
     setup_requires=[
         'cffi~=1.11',
-        'pytest-runner~=4.0',
+        'pytest-runner~=4.2',
     ],
     install_requires=[
-        'Flask>=0.12',
+        'Flask>=1.0',
         'Flask-Compress~=1.4',
         'Flask-Login~=0.4',
         'rauth~=0.7',
-        'pysam~=0.14',
+        'pysam~=0.15',
         'marisa-trie~=0.7',
         'intervaltree~=2.1',
-        'tqdm~=4.14',
+        'tqdm~=4.28',
         'openpyxl~=2.5',
-        'scipy~=1.0',
-        'numpy~=1.14',
-        'requests[security]~=2.18',
-        'gunicorn~=19.7',
+        'scipy~=1.1',
+        'numpy~=1.15',
+        'requests[security]~=2.20',
+        'gunicorn~=19.9',
         'boltons~=18.0',
         'blist~=1.3',
         'cffi~=1.11',
         'wget~=3.2',
-        'gevent~=1.2',
+        'gevent~=1.3',
     ],
     tests_require=[
-        'pytest~=3.4',
+        'pytest~=4.0',
     ],
 )

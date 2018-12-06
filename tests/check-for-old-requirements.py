@@ -10,8 +10,8 @@ def check_pkg(pkg, opt, version, line=None):
         j = json.loads(urllib.request.urlopen(url).read())
         latest = j['info']['version']
         v = version.lstrip('~=>')
-        importance = '' if latest == v or latest==v+'.0' or latest.startswith(v) else '<<'
-        print('{:20}{:10}{:10}{}'.format(pkg+opt, version, latest, importance))
+        importance = '' if latest == v or latest==v+'.0' or latest.startswith(v) else '>>'
+        print('{:<3}{:20}{:10}{:10}'.format(importance, pkg+opt, version, latest))
     except Exception:
         print([pkg, opt, version, line])
         raise
