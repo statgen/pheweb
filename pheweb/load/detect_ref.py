@@ -71,19 +71,43 @@ def get_default_builds():
         yield Build('hg{}'.format(hg_num), 'GRCh{}'.format(grch_num))
 
 
-@list_from_iter
-def get_matching_builds(build_scores, build_threshold=1, ref_threshold=1):
-    def build_goodness(build): return (build_scores[build]['either'], build_scores[build]['a1'], build_scores[build]['a2'])
-    for build in sorted(build_scores.keys(), key=build_goodness):
-        score = build_scores[build]
-        if score['either'] >= build_threshold:
-            if score['a1'] >= ref_threshold:  yield (build, 'a1')
-            elif score['a2'] >= ref_threshold: yield (build, 'a2')
-            elif score['either'] >= ref_threshold: yield (build, 'either')
-            else: yield (build, None)
+def detect_build(build_scores, match_threshold=1):
+    '''
+    `build_scores` is the output of `get_build_scores`.
+
+    A build matches the variants if either `allele1` or `allele2` match the build's reference bases in at least `match_threshold` fraction of variants.
+    Within a build, an allele column matches if that allele column matches the build's reference bases in at least `match_threshold` fraction of variants.
+
+    Returns:
+        (None, None) if multiple builds match or if no builds match.
+        (build, 'allele1' or 'allele2') if one build matches and one allele column matches.
+        (build, 'either') if one build matches but neither allele1 nor allele2 match.
+
+    `build` is an instance of `Build`.  `build.hg_name` is "hg38" or similar.  `build.grch_name` is "GRCh38" or similar.
+
+    Usage:
+        variant_iterator = pheweb.load.detect_ref.make_variant_iterator('a.vcf', chrom_pos_a1_a2_cols=(0,1,3,4)) # by default, it checks 1000 variants and skips "#" lines.
+        build_scores = get_build_scores(variant_iterator) # by default, it tries [hg18, hg19, hg38].
+        build, allele_col = detect_build(build_scores, match_threshold=0.999)
+        if build is None:
+            print("Sorry, this file doesn't match common genome builds.")
+        elif allele_col == 'either':
+            print("This file matches {} but neither allele column is consistently reference.  Maybe they are effect/non-affect?".format(build.hg_name))
+        else:
+            print("This file matches {} and column {} matches is the reference.".format(build.hg_name, allele_col))
+    '''
+    matching_builds = []
+    for build, score in build_scores.items():
+        if score['either'] >= match_threshold:
+            if score['a1'] >= match_threshold:  matching_builds.append((build, 'a1'))
+            elif score['a2'] >= match_threshold: matching_builds.append((build, 'a2'))
+            else: matching_builds.append((build, 'either'))
+    return matching_builds[0] if len(matching_builds) == 1 else (None, None)
 
 def get_build_scores(variant_iterator, builds=None):
-    # return `{build_GRCh36:{'allele1':0.99, 'allele2':0.01, 'either':'1.0}, ...}`
+    '''
+    return `{build_GRCh36:{'allele1':0.99, 'allele2':0.01, 'either':'1.0}, ...}`
+    '''
     if builds is None: builds = get_default_builds()
     with contextlib.ExitStack() as es:
         for build in builds:  es.callback(build.close) # close all the builds' files when we finish.
@@ -145,14 +169,29 @@ def progressbar_handle_variants(variant_iterator, builds=None):
             print()
 
 
-def make_variant_iterator(filepath_or_file_or_iterable, chrom_pos_a1_a2_cols=(0,1,2,3), comment_char='#', num_header_lines=0):
+def make_variant_iterator(filepath_or_file_or_iterable, chrom_pos_a1_a2_cols=(0,1,2,3), comment_char='#', num_header_lines=0, limit_num_variants=1000):
+    '''
+    returns an iterator where each item is `(chrom, pos, allele1, allele2)`.  For example, `('X', 23456, 'A', 'TGG')`.
+
+    `filepath_or_file_or_iterable` can any of these:
+       - the path to a tab-delimited file.
+       - an already-opened file, like `open(filepath)` or `sys.stdin`.
+       - a list or iterable of strings, like ["X\t123\tC\tG", "X\t456\tA\tGG"].
+
+    It skips line that being with `comment_char` ('#' by default). If your header lines don't begin with a consistent character, use `num_header_lines` to skip them.
+
+    It only looks at `limit_num_variants` (1000 by default) to save time.  Set `limit_num_variants=None` to check all variants in the file or iterable.
+
+    It extracts chromosome, position, allele1 and allele2 from the zero-indexed columns `chrom_pos_a1_a2`.  For example, use `(0,1,3,4)` for a VCF.
+    '''
     if isinstance(filepath_or_file_or_iterable, str):
         with read_maybe_gzip(filepath_or_file_or_iterable) as f:
-            yield from make_variant_iterator(f, chrom_pos_a1_a2_cols, comment_char, num_header_lines)
+            yield from make_variant_iterator(f, chrom_pos_a1_a2_cols, comment_char, num_header_lines, limit_num_variants)
     else:
         chrom_col, pos_col, a1_col, a2_col = chrom_pos_a1_a2_cols
         for i, line in enumerate(filepath_or_file_or_iterable):
             if i < num_header_lines or comment_char and line.startswith(comment_char): continue
+            if limit_num_variants and i >= limit_num_variants + num_header_lines: break
             parts = line.split('\t')
             yield (parts[chrom_col], int(parts[pos_col]), parts[a1_col], parts[a2_col])
 

@@ -75,10 +75,9 @@ def test_detect_ref():
         assert sorted(score.keys()) == ['a1','a2','either']
         for a,frac in score.items(): assert 0 <= frac <= 1
         assert score['a1'] + score['a2'] >= score['either']
-    matching_builds = pheweb.load.detect_ref.get_matching_builds(build_scores)
-    assert len(matching_builds) == 1
-    matching_build, matching_allele = matching_builds[0]
+    matching_build, matching_allele_col = pheweb.load.detect_ref.detect_build(build_scores)
+    assert isinstance(matching_build, pheweb.load.detect_ref.Build)
     assert matching_build in default_builds
     assert matching_build.hg_name == 'hg19'
     assert matching_build.grch_name == 'GRCh37'
-    assert matching_allele == 'a1'
+    assert matching_allele_col == 'a1'
