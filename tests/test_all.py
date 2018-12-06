@@ -4,12 +4,21 @@
 
 import os
 
+
+
 def test_all(tmpdir, capsys):
     p = tmpdir.realpath()
     with capsys.disabled(): print('\n{}'.format(p))
     indir = os.path.join(os.path.dirname(__file__), 'input_files/')
-
     conf = ['conf', 'data_dir="{}"'.format(p), 'cache="{}/fake-cache"'.format(indir)]
+
+    # with capsys.disabled():
+    #     print('tmpdir:', repr(p))
+    #     print('__file__:', repr(__file__))
+    #     print('indir:', repr(indir))
+    #     print('conf:', repr(conf))
+    #     print('fake-cache:', repr(os.listdir(indir+'/fake-cache')))
+
 
     from pheweb.command_line import run as cl_run
     cl_run(conf+['-h'])
@@ -22,14 +31,17 @@ def test_all(tmpdir, capsys):
     cl_run(conf+['phenolist', 'import-phenolist', '-f', '{}/pheno-list-categories.json'.format(p), '{}/categories.csv'.format(indir)])
     cl_run(conf+['phenolist', 'merge-in-info', '{}/pheno-list-categories.json'.format(p)])
     cl_run(conf+['phenolist', 'verify', '--required-columns', 'category'])
-    with capsys.disabled(): print(1)
+    # with capsys.disabled(): print(1)
+    # with capsys.disabled():
+    #     import pheweb.conf_utils
+    #     print(pheweb.conf_utils.conf)
     # TODO: verify that `dbsnp-{latest}.tsv` exists (so that it won't be downloaded/parsed)
     # TODO: replace `process` with each sub-step.
     cl_run(conf+['process'])
     # TODO: check some properties of our files, such as manh.json
     cl_run(conf+['top-loci'])
     cl_run(conf+['wsgi'])
-    with capsys.disabled(): print(2)
+    # with capsys.disabled(): print(2)
 
     from pheweb.serve.server import app # TODO: this relies on data_dir being set earlier, but shouldn't.
     app.testing = True # makes application exception propogate up to `client`
@@ -46,3 +58,27 @@ def test_all(tmpdir, capsys):
         assert client.get('/api/autocomplete?query=%20DAP-2').status_code == 200
         assert b'EAR-LENGTH' in client.get('/region/1/gene/SAMD11').data
         assert b'\t' in client.get('/download/top_hits.tsv').data
+
+
+# Note: this doesn't work if I put it BEFORE test_all()
+#       that's because `conf` is global, and `file_utils` makes `common_filepaths` the first time it is loaded.
+#       that will never be relevant for command-line pheweb usage, but it makes testing harder, so find a better approach.
+def test_detect_ref():
+    import pheweb.load.detect_ref
+    default_builds = pheweb.load.detect_ref.get_default_builds()
+    filepath = os.path.join(os.path.dirname(__file__), 'input_files/', 'assoc-files', 'has-fields-ac-af-maf.txt')
+    variant_iterator = pheweb.load.detect_ref.make_variant_iterator(filepath, num_header_lines=1)
+    build_scores = pheweb.load.detect_ref.get_build_scores(variant_iterator)
+    for build, score in build_scores.items():
+        assert build.hg_name.startswith('hg')
+        assert build.grch_name.startswith('GRCh')
+        assert sorted(score.keys()) == ['a1','a2','either']
+        for a,frac in score.items(): assert 0 <= frac <= 1
+        assert score['a1'] + score['a2'] >= score['either']
+    matching_builds = pheweb.load.detect_ref.get_matching_builds(build_scores)
+    assert len(matching_builds) == 1
+    matching_build, matching_allele = matching_builds[0]
+    assert matching_build in default_builds
+    assert matching_build.hg_name == 'hg19'
+    assert matching_build.grch_name == 'GRCh37'
+    assert matching_allele == 'a1'
