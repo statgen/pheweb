@@ -22,7 +22,7 @@ def get_genenamesorg_ensg_aliases_map(ensgs_to_consider):
         ensg_to_aliases[row['ensg']] = aliases
     return ensg_to_aliases
 def _parse_rows(lines):
-    assert lines[0].split('\t') == ['Approved Symbol','Previous Symbols','Synonyms','Ensembl Gene ID']
+    assert [x.lower() for x in lines[0].split('\t')] == ['approved symbol','previous symbols','synonyms','ensembl gene id']
     rows = (line.split('\t') for line in lines[1:] if line)
     for row in rows:
         try: yield {'approved_symbol': row[0], 'previous_symbols':row[1].split(', '), 'synonyms': row[2].split(', '), 'ensg': row[3]}
