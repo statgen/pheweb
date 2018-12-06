@@ -21,7 +21,7 @@ class Build:
     def __str__(self): return self.hg_name
     def __repr__(self): return '<Build hg_name={} grch_name={}>'.format(self.hg_name, self.grch_name)
     def matches(self, chrom, pos, bases):
-        # TODO: handle `N`, `*`, `.`, 
+        # TODO: handle `N`, `*`, `.`
         ref_bases = self.get_bases(chrom, pos, len(bases))
         return ref_bases is None or bases.upper() == ref_bases.upper()
     def get_bases(self, chrom, pos, length=1):

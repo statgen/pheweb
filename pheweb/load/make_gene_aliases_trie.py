@@ -1,5 +1,5 @@
 
-from ..utils import get_gene_tuples
+from ..utils import get_gene_tuples, PheWebError
 from ..file_utils import common_filepaths
 
 import os, re, json
@@ -19,8 +19,8 @@ def get_genenamesorg_ensg_aliases_map(ensgs_to_consider):
             aliases = [alias for alias in aliases if re.match(r'^[-\._a-zA-Z0-9]+$', alias)]
             # for alias in aliases: assert re.match(r'^[-\._a-zA-Z0-9]+$', alias), (alias, [ord(c) for c in alias], row)
             ensg_to_aliases[row['ensembl_gene_id']] = aliases
-        except:
-            raise PheWebException('Cannot handle genenames row: {}'.format(row))
+        except Exception:
+            raise PheWebError('Cannot handle genenames row: {}'.format(row))
     return ensg_to_aliases
 
 def get_gene_aliases():
