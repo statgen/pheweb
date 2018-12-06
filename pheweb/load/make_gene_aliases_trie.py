@@ -2,37 +2,32 @@
 from ..utils import get_gene_tuples
 from ..file_utils import common_filepaths
 
-import os
-import re
-import requests
+import os, re, json
+import urllib.request
 import marisa_trie
 
 def get_genenamesorg_ensg_aliases_map(ensgs_to_consider):
     ensgs_to_consider = set(ensgs_to_consider)
-    r = requests.get('http://www.genenames.org/cgi-bin/download?col=gd_app_sym&col=gd_prev_sym&col=gd_aliases&col=gd_pub_ensembl_id&status=Approved&status=Entry+Withdrawn&status_opt=2&where=&order_by=gd_app_sym_sort&format=text&limit=&hgnc_dbtag=on&submit=submit')
-    r.raise_for_status()
+    r = urllib.request.urlopen('ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/non_alt_loci_set.json')
     ensg_to_aliases = {}
-    for row in _parse_rows(r.content.decode('utf-8').split('\n')):
-        if not row['ensg'] or row['ensg'] not in ensgs_to_consider: continue
-        assert re.match(r'^ENSG[R0-9\.]+$', row['ensg']), row
-        aliases = [row['approved_symbol']] + row['previous_symbols'] + row['synonyms']
-        aliases = [alias for alias in aliases if alias != '']
-        aliases = [alias for alias in aliases if re.match(r'^[-\._a-zA-Z0-9]+$', alias)]
-        # for alias in aliases: assert re.match(r'^[-\._a-zA-Z0-9]+$', alias), (alias, [ord(c) for c in alias], row)
-        ensg_to_aliases[row['ensg']] = aliases
+    for row in json.load(r)['response']['docs']:
+        try:
+            if not row.get('ensembl_gene_id',None) or row['ensembl_gene_id'] not in ensgs_to_consider: continue
+            assert re.match(r'^ENSG[R0-9\.]+$', row['ensembl_gene_id']), row
+            aliases = [row['symbol']] + row.get('prev_symbol',[]) + row.get('alias_symbol',[])
+            aliases = [alias for alias in aliases if alias != '']
+            aliases = [alias for alias in aliases if re.match(r'^[-\._a-zA-Z0-9]+$', alias)]
+            # for alias in aliases: assert re.match(r'^[-\._a-zA-Z0-9]+$', alias), (alias, [ord(c) for c in alias], row)
+            ensg_to_aliases[row['ensembl_gene_id']] = aliases
+        except:
+            raise PheWebException('Cannot handle genenames row: {}'.format(row))
     return ensg_to_aliases
-def _parse_rows(lines):
-    assert [x.lower() for x in lines[0].split('\t')] == ['approved symbol','previous symbols','synonyms','ensembl gene id']
-    rows = (line.split('\t') for line in lines[1:] if line)
-    for row in rows:
-        try: yield {'approved_symbol': row[0], 'previous_symbols':row[1].split(', '), 'synonyms': row[2].split(', '), 'ensg': row[3]}
-        except Exception: raise Exception(repr(row))
 
 def get_gene_aliases():
     # NOTE: "canonical" refers to the canonical symbol for a gene
     genes = [{'canonical': canonical, 'ensg':ensg} for _,_,_,canonical,ensg in get_gene_tuples(include_ensg=True)]
-    assert len({g['ensg'] for g in genes}) == len([g['ensg'] for g in genes])
-    assert len({g['canonical'] for g in genes}) == len([g['canonical'] for g in genes])
+    assert len({g['ensg'] for g in genes}) == len(genes)
+    assert len({g['canonical'] for g in genes}) == len(genes)
     for g in genes:
         assert re.match(r'^ENSGR?[0-9]+(?:\.[0-9]+_[0-9]+(?:_PAR_[XY])?)?$', g['ensg']), g
         #assert re.match(r'^[-\._a-zA-Z0-9]+$', g['canonical']), (g['canonical'], [ord(c) for c in g['canonical']], g)
