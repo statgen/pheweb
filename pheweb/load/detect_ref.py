@@ -86,7 +86,7 @@ def detect_build(build_scores, match_threshold=1):
     `build` is an instance of `Build`.  `build.hg_name` is "hg38" or similar.  `build.grch_name` is "GRCh38" or similar.
 
     Usage:
-        variant_iterator = pheweb.load.detect_ref.make_variant_iterator('a.vcf', chrom_pos_a1_a2_cols=(0,1,3,4)) # by default, it checks 1000 variants and skips "#" lines.
+        variant_iterator = pheweb.load.detect_ref.make_variant_iterator('a.vcf', chrom_pos_a1_a2_cols=(0,1,3,4), limit_num_variants=1000) # by default, it skips "#" lines.
         build_scores = get_build_scores(variant_iterator) # by default, it tries [hg18, hg19, hg38].
         build, allele_col = detect_build(build_scores, match_threshold=0.999)
         if build is None:
@@ -169,7 +169,7 @@ def progressbar_handle_variants(variant_iterator, builds=None):
             print()
 
 
-def make_variant_iterator(filepath_or_file_or_iterable, chrom_pos_a1_a2_cols=(0,1,2,3), comment_char='#', num_header_lines=0, limit_num_variants=1000):
+def make_variant_iterator(filepath_or_file_or_iterable, chrom_pos_a1_a2_cols=(0,1,2,3), comment_char='#', num_header_lines=0, limit_num_variants=None):
     '''
     returns an iterator where each item is `(chrom, pos, allele1, allele2)`.  For example, `('X', 23456, 'A', 'TGG')`.
 
@@ -180,7 +180,7 @@ def make_variant_iterator(filepath_or_file_or_iterable, chrom_pos_a1_a2_cols=(0,
 
     It skips line that being with `comment_char` ('#' by default). If your header lines don't begin with a consistent character, use `num_header_lines` to skip them.
 
-    It only looks at `limit_num_variants` (1000 by default) to save time.  Set `limit_num_variants=None` to check all variants in the file or iterable.
+    It only looks at `limit_num_variants` (all by default) to save time.  If `limit_num_variants` is `None`, it checks all variants in the file or iterable.
 
     It extracts chromosome, position, allele1 and allele2 from the zero-indexed columns `chrom_pos_a1_a2`.  For example, use `(0,1,3,4)` for a VCF.
     '''
