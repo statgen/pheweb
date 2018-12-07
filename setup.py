@@ -78,6 +78,7 @@ setup(
         'cffi~=1.11',
         'wget~=3.2',
         'gevent~=1.3',
+        'kpa~=1.0',
     ],
     tests_require=[
         'pytest~=4.0',

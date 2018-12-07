@@ -190,10 +190,14 @@ def make_variant_iterator(filepath_or_file_or_iterable, chrom_pos_a1_a2_cols=(0,
     else:
         chrom_col, pos_col, a1_col, a2_col = chrom_pos_a1_a2_cols
         for i, line in enumerate(filepath_or_file_or_iterable):
+            line = line.rstrip('\n')
             if i < num_header_lines or comment_char and line.startswith(comment_char): continue
             if limit_num_variants and i >= limit_num_variants + num_header_lines: break
             parts = line.split('\t')
-            yield (parts[chrom_col], int(parts[pos_col]), parts[a1_col], parts[a2_col])
+            if len(parts) < 4:
+                raise PheWebError("There should be 4 tab-delimited items (chromosome, position, allel1, allele2) but there are only {} on the line {!r}".format(
+                    len(parts), line))
+            yield (parse_chrom(parts[chrom_col].strip()), parse_pos(parts[pos_col].strip()), parts[a1_col].strip(), parts[a2_col].strip())
 
 
 def parse_build(build_string):
@@ -204,11 +208,11 @@ def parse_build(build_string):
 def parse_chrom(chrom):
     if chrom.startswith('chr'): chrom = chrom[3:]
     if chrom == 'MT': chrom = 'M' # UCSC says "chrM"
-    if chrom not in Build._allowed_chroms: raise PheWebError("unknown chromosome {}".format(chrom))
+    if chrom not in Build._allowed_chroms: raise PheWebError("unknown chromosome {!r} (accepted chromosomes are {} with optional prefix 'chr')".format(chrom, Build._allowed_chroms+['MT']))
     return chrom
 def parse_pos(pos_string):
     try: return int(pos_string)
-    except ValueError: raise PheWebError("pos {} is not an integer".format(pos_string))
+    except ValueError: raise PheWebError("position {!r} is not an integer".format(pos_string))
 
 def run(argv):
     def usage():
