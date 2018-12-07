@@ -28,18 +28,18 @@ version = imp.load_source('pheweb.version', os.path.join('pheweb', 'version.py')
 
 
 if sys.argv[-1] in ['publish', 'pub']:
+    # TODO: use `class UploadCommand(setuptools.Command)` from <https://github.com/kennethreitz/setup.py/blob/master/setup.py#L49>
     import subprocess, json
     from pathlib import Path
     from urllib.request import urlopen
-    # TODO: use `class UploadCommand(setuptools.Command)` from <https://github.com/kennethreitz/setup.py/blob/master/setup.py#L49>
-
+    # make sure there's no unstaged changess
     git_workdir_returncode = subprocess.run('git diff-files --quiet'.split()).returncode
     assert git_workdir_returncode in [0,1]
     if git_workdir_returncode == 1:
         print('=> git workdir has changes')
         print('=> please either revert or stage them')
         sys.exit(1)
-
+    # if the local version is the same as the PyPI version, increment it
     pypi_url = 'https://pypi.python.org/pypi/PheWeb/json'
     latest_version = json.loads(urlopen(pypi_url).read())['info']['version']
     # Note: it takes pypi a minute to update the API, so this can be wrong.
@@ -47,20 +47,20 @@ if sys.argv[-1] in ['publish', 'pub']:
         new_version_parts = version.split('.')
         new_version_parts[2] = str(1+int(new_version_parts[2]))
         new_version = '.'.join(new_version_parts)
-        print(f'=> autoincrementing version {version} -> {new_version}')
-        Path('pheweb/version.py').write_text(f"version = '{new_version}'\n")
+        print('=> autoincrementing version {} -> {}'.format(version, new_version))
+        Path('pheweb/version.py').write_text("version = '{}'\n".format(new_version))
         version = new_version
         subprocess.run(['git','stage','pheweb/version.py'])
-
+    # commit any staged changes
     git_index_returncode = subprocess.run('git diff-index --quiet --cached HEAD'.split()).returncode
     assert git_index_returncode in [0,1]
     if git_index_returncode == 1:
         print('=> git index has changes')
         subprocess.run(['git','commit','-m',version])
-
+    # make sure there's a ~/.pypirc
     if not Path('~/.pypirc').expanduser().exists():
         print('=> warning: you need a ~/.pypirc')
-
+    # delete ./dist/PheWeb-* and repopulate it and upload to PyPI
     if Path('dist').exists() and list(Path('dist').iterdir()):
         setuppy = Path('setup.py').absolute()
         assert setuppy.is_file() and 'pheweb' in setuppy.read_text()
@@ -68,10 +68,8 @@ if sys.argv[-1] in ['publish', 'pub']:
             assert child.name.startswith('PheWeb-'), child
             print('=> unlinking', child)
             child.unlink()
-
     subprocess.run('python3 setup.py sdist bdist_wheel'.split(), check=True)
     subprocess.run('twine upload dist/*'.split(), check=True)
-
     if git_index_returncode == 1:
         print('=> Now do `git push`.')
     sys.exit(0)
