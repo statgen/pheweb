@@ -5,7 +5,6 @@ from .load_utils import run_script, ProgressBar
 
 from collections import OrderedDict
 import os, sys, contextlib, urllib.request, functools
-from kpa.func_utils import list_from_iter
 
 
 class Build:
@@ -65,10 +64,11 @@ class Build:
             except FileNotFoundError: pass
 
 @functools.lru_cache(None)
-@list_from_iter
 def get_default_builds():
+    builds = []
     for hg_num, grch_num in [('18','36'),('19','37'),('38','38')]:
-        yield Build('hg{}'.format(hg_num), 'GRCh{}'.format(grch_num))
+        builds.append(Build('hg{}'.format(hg_num), 'GRCh{}'.format(grch_num)))
+    return builds
 
 
 def detect_build(build_scores, match_threshold=1):
