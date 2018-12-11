@@ -10,4 +10,4 @@ RUN apt-get update && \
 RUN apt-get install --no-install-recommends texlive --yes
 
 EXPOSE 8080
-CMD cd /mnt/data-disk-ssd/pheweb && pheweb serve --port 8080
+CMD cd /mnt/r2 && pheweb serve --port 8080

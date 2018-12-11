@@ -3,11 +3,12 @@ kind: Ingress
 metadata:
   name: pheweb
   annotations:
-    kubernetes.io/ingress.global-static-ip-name: phewas-dev-ip
+    #kubernetes.io/ingress.global-static-ip-name: phewas-dev-ip
     kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: "gce"
-    #ssl-redirect doesn't work yet on gce
-    #ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/ingress.allow-http: "false"
+    ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/force-ssl-redirect: "true"
   labels:
     app: pheweb
 spec:
