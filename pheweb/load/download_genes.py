@@ -99,8 +99,8 @@ def dedup_symbol(genes):
         if len(symbol_group) == 1:
             yield symbol_group[0]
         elif (boltons.iterutils.same(g['chrom'] for g in symbol_group) and
-              all(g1['end'] + 400e3 > g2['start'] for g1,g2 in boltons.iterutils.pairwise(sorted(symbol_group, key=lambda g:g['start'])))):
-            # 400kb is long enough to resolve all problems.
+              all(g1['end'] + 600e3 > g2['start'] for g1,g2 in boltons.iterutils.pairwise(sorted(symbol_group, key=lambda g:g['start'])))):
+            # 600kb is long enough to resolve all problems.
             yield {
                 'chrom': symbol_group[0]['chrom'],
                 'start': min(g['start'] for g in symbol_group),
@@ -124,7 +124,7 @@ def run(argv):
         if not os.path.exists(gencode_filepath):
             make_basedir(gencode_filepath)
             wget.download(
-                url="ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz",
+                url="ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz",
                 out=gencode_filepath
             )
             print('')

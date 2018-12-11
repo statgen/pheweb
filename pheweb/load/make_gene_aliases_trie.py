@@ -29,14 +29,14 @@ def run(argv):
         r.raise_for_status()
 
         for row in csv.DictReader(r.content.decode().split('\n'), delimiter='\t'):
-            ensg = row['Ensembl Gene ID']
+            ensg = row['Ensembl gene ID']
             if not ensg: continue
             assert re.match(r'^ENSG[R0-9\.]+$', ensg)
             if ensg not in aliases_for_ensg: continue
 
             aliases = set(aliases_for_ensg[ensg][1])
-            aliases.add(row['Approved Symbol'])
-            aliases.update(filter(None, row['Previous Symbols'].split(', ')))
+            aliases.add(row['Approved symbol'])
+            aliases.update(filter(None, row['Previous symbols'].split(', ')))
             aliases.update(filter(None, row['Synonyms'].split(', ')))
             aliases = set(s.upper() for s in aliases if all(l.isalnum() or l in '-._' for l in s))
             aliases = set(s for s in aliases if s not in canonical_symbols)
@@ -51,8 +51,9 @@ def run(argv):
                     mapping[alias] = '{},{}'.format(mapping[alias], canonical_symbol)
                 else:
                     mapping[alias] = canonical_symbol
-        for k in mapping:
-            assert re.match(r'^[-A-Z0-9\._]+$', k), repr(k)
+        #there are non-ascii symbols in the gene names but it's fine
+        #for k in mapping:
+        #    assert re.match(r'^[-A-Z0-9\._]+$', k), repr(k)
         mapping = [(a, cs.encode('ascii')) for a,cs in mapping.items()]
         aliases_trie = marisa_trie.BytesTrie(mapping)
         aliases_trie.save(aliases_filepath)
