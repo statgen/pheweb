@@ -135,6 +135,10 @@ def _ensure_conf():
     conf.set_default_value('within_pheno_mask_around_peak', int(500e3))
     conf.set_default_value('between_pheno_mask_around_peak', int(1e6))
     conf.set_default_value('manhattan_num_unbinned', 2000)
+    conf.set_default_value('manhattan_hla_num_unbinned', 200)
+    conf.set_default_value('hla_begin', 26000000)
+    conf.set_default_value('hla_end', 36000000)
+
     conf.set_default_value('peak_pval_cutoff', 1e-6)
     conf.set_default_value('elastic_host', 'localhost')
     conf.set_default_value('elastic_port', 9200)
