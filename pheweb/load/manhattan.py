@@ -104,7 +104,7 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
     max_p = unbinned_variant_pq.peek()
 
     for v in filter(lambda x: x['pval']<=max_p['pval'],  list(hla_variant_pq.pop_all()) ):
-        unbinned_variant_pq.add(v)
+        unbinned_variant_pq.add(v, v['pval'])
     unbinned_variants = list(unbinned_variant_pq.pop_all())
 
     # unroll bins into simple array (preserving chromosomal order)
