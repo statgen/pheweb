@@ -91,7 +91,6 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
         unbinned_variant_pq.add(variant, variant['pval'])
 
         chrom_key = chrom_order[variant['chrom']]
-
         if variant['chrom']=="6" and variant['pos'] > conf.hla_begin and variant['pos'] < conf.hla_end:
             hla_variant_pq.add(variant, variant['pval'])
             if( len(hla_variant_pq) > conf.manhattan_hla_num_unbinned ):
@@ -104,7 +103,7 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
 
     max_p = unbinned_variant_pq.peek()
 
-    for v in filter(lambda x: x['p_val']<=max_p['p_val'],  list(hla_variant_pq.pop_all()) ):
+    for v in filter(lambda x: x['pval']<=max_p['pval'],  list(hla_variant_pq.pop_all()) ):
         unbinned_variant_pq.add(v)
     unbinned_variants = list(unbinned_variant_pq.pop_all())
 
