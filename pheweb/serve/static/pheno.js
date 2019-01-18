@@ -94,14 +94,19 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
     })
     variant_bins.forEach(function(bin) {
         bin.neglog10_pval_extents.forEach( function(ext) {
-        if( ext[0]>window.vis_conf.loglog_threshold) {
-             ext[0]= window.vis_conf.loglog_threshold * Math.log10(ext[0]) / Math.log10(window.vis_conf.loglog_threshold)
-        }
-        if( ext[1]>window.vis_conf.loglog_threshold) {
-             ext[1]= window.vis_conf.loglog_threshold * Math.log10(ext[1]) / Math.log10(window.vis_conf.loglog_threshold)
-        }   
-        })
-    
+            if( ext[0]>window.vis_conf.loglog_threshold) {
+                 ext[0]= window.vis_conf.loglog_threshold * Math.log10(ext[0]) / Math.log10(window.vis_conf.loglog_threshold)
+            }
+            if( ext[1]>window.vis_conf.loglog_threshold) {
+                 ext[1]= window.vis_conf.loglog_threshold * Math.log10(ext[1]) / Math.log10(window.vis_conf.loglog_threshold)
+            }   
+            })
+        bin.neglog10_pvals.forEach( function(pval, indx, arr) {
+            if( pval>window.vis_conf.loglog_threshold) {
+                arr[indx]= window.vis_conf.loglog_threshold * Math.log10(pval) / Math.log10(window.vis_conf.loglog_threshold)            
+            }
+            
+        } )   
     })
         // 1.03 puts points clamped to the top (pval=0) slightly above other points.
     var highest_plot_neglog10_pval = -1.03 *
