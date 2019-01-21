@@ -86,12 +86,25 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
         bin["neglog10_pvals"].add(rounded_neglog10(variant['pval'], neglog10_pval_bin_size, neglog10_pval_bin_digits))
 
     # put most-significant variants into the priorityqueue and bin the rest
+    hla_variant_pq =MaxPriorityQueue()
     for variant in variant_iterator:
         unbinned_variant_pq.add(variant, variant['pval'])
+
+        chrom_key = chrom_order[variant['chrom']]
+        if variant['chrom']=="6" and variant['pos'] > conf.hla_begin and variant['pos'] < conf.hla_end:
+            hla_variant_pq.add(variant, variant['pval'])
+            if( len(hla_variant_pq) > conf.manhattan_hla_num_unbinned ):
+                old = hla_variant_pq.pop()
+                bin_variant(old)
+            continue
         if len(unbinned_variant_pq) > conf.manhattan_num_unbinned:
             old = unbinned_variant_pq.pop()
             bin_variant(old)
 
+    max_p = unbinned_variant_pq.peek()
+
+    for v in filter(lambda x: x['pval']<=max_p['pval'],  list(hla_variant_pq.pop_all()) ):
+        unbinned_variant_pq.add(v, v['pval'])
     unbinned_variants = list(unbinned_variant_pq.pop_all())
 
     # unroll bins into simple array (preserving chromosomal order)

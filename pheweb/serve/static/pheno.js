@@ -86,19 +86,34 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .domain(genomic_position_extent)
             .range([0, plot_width]);
 
-	unbinned_variants.forEach(function(variant) {
-	    variant.pScaled = -Math.log10(variant.pval)
-	    if (variant.pScaled > window.vis_conf.loglog_threshold) {
-		variant.pScaled = window.vis_conf.loglog_threshold * Math.log10(variant.pScaled) / Math.log10(window.vis_conf.loglog_threshold)
-	    }
-	})
-
+    unbinned_variants.forEach(function(variant) {
+        variant.pScaled = -Math.log10(variant.pval)
+        if (variant.pScaled > window.vis_conf.loglog_threshold) {
+        variant.pScaled = window.vis_conf.loglog_threshold * Math.log10(variant.pScaled) / Math.log10(window.vis_conf.loglog_threshold)
+        }
+    })
+    variant_bins.forEach(function(bin) {
+        bin.neglog10_pval_extents.forEach( function(ext) {
+            if( ext[0]>window.vis_conf.loglog_threshold) {
+                 ext[0]= window.vis_conf.loglog_threshold * Math.log10(ext[0]) / Math.log10(window.vis_conf.loglog_threshold)
+            }
+            if( ext[1]>window.vis_conf.loglog_threshold) {
+                 ext[1]= window.vis_conf.loglog_threshold * Math.log10(ext[1]) / Math.log10(window.vis_conf.loglog_threshold)
+            }   
+            })
+        bin.neglog10_pvals.forEach( function(pval, indx, arr) {
+            if( pval>window.vis_conf.loglog_threshold) {
+                arr[indx]= window.vis_conf.loglog_threshold * Math.log10(pval) / Math.log10(window.vis_conf.loglog_threshold)            
+            }
+            
+        } )   
+    })
         // 1.03 puts points clamped to the top (pval=0) slightly above other points.
-	var highest_plot_neglog10_pval = -1.03 *
+    var highest_plot_neglog10_pval = -1.03 *
             Math.min(Math.log10(significance_threshold*0.8),
                      (function() {
                          var best_unbinned_pval = d3.min(unbinned_variants, function(d) {
-			     return (d.pScaled === 0) ? 1 : -d.pScaled;
+                 return (d.pScaled === 0) ? 1 : -d.pScaled;
                          });
                          if (best_unbinned_pval !== undefined) return best_unbinned_pval;
                          return d3.max(variant_bins, function(bin) {
@@ -165,7 +180,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
                     return x_scale(get_genomic_position(d));
                 })
                 .attr('cy', function(d) {
-		    return y_scale(d.pScaled);
+            return y_scale(d.pScaled);
                 })
                 .attr('r', 7)
                 .style('opacity', 0)
@@ -263,9 +278,9 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         var yAxis = d3.svg.axis()
             .scale(y_scale)
             .orient("left")
-	    .tickFormat(function(d) {
-		return d <= window.vis_conf.loglog_threshold ? d : Math.round(Math.pow(window.vis_conf.loglog_threshold, d/window.vis_conf.loglog_threshold))
-	    })
+        .tickFormat(function(d) {
+        return d <= window.vis_conf.loglog_threshold ? d : Math.round(Math.pow(window.vis_conf.loglog_threshold, d/window.vis_conf.loglog_threshold))
+        })
         gwas_plot.append("g")
             .attr("class", "y axis")
             .attr('transform', 'translate(-8,0)') // avoid letting points spill through the y axis.
@@ -276,14 +291,14 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .attr('transform', fmt('translate({0},{1})rotate(-90)',
                                    plot_margin.left*.4,
                                    plot_height/2 + plot_margin.top))
-	    .text(function() {
-		var maxLogLogP = d3.max(unbinned_variants, function(d) { return d.pScaled });
-		return maxLogLogP <= window.vis_conf.loglog_threshold ?
-		    '-log\u2081\u2080(p-value)' :
-		    window.vis_conf.loglog_threshold == 10 ?
-		    '-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value))':
-		    '-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value)) / log\u2081\u2080(' + window.vis_conf.loglog_threshold + ')'
-	    });
+        .text(function() {
+        var maxLogLogP = d3.max(unbinned_variants, function(d) { return d.pScaled });
+        return maxLogLogP <= window.vis_conf.loglog_threshold ?
+            '-log\u2081\u2080(p-value)' :
+            window.vis_conf.loglog_threshold == 10 ?
+            '-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value))':
+            '-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value)) / log\u2081\u2080(' + window.vis_conf.loglog_threshold + ')'
+        });
 
         var chroms_and_midpoints = (function() {
             var v = get_chrom_offsets();
@@ -557,9 +572,9 @@ function populate_streamtable(variants) {
         }
 
         $('#stream_table').stream_table(options, data);
-	if (window.stream_table_sortingFunc) {
-	    $('#stream_table').data('st')._sortingFunc = window.stream_table_sortingFunc
-	}
+    if (window.stream_table_sortingFunc) {
+        $('#stream_table').data('st')._sortingFunc = window.stream_table_sortingFunc
+    }
     });
 
     $(function () {
@@ -723,34 +738,34 @@ $(function () {
                 variant.info = variant.annotation.info
             })
             data.unbinned_variants.forEach(function(variant) {
-		if (!variant.gnomad) {
+        if (!variant.gnomad) {
                     variant.fin_enrichment = 'No data in Gnomad'
-		} else {
+        } else {
                     if (variant.gnomad.POPMAX === 'FIN') {
-			var afs = Object.keys(variant.gnomad)
-			    .filter(function(key) {
-				return key.startsWith('AF_') && key !== 'AF_OTH'
-			    })
-			    .map(function(key) {
-				return {key: key, value: variant.gnomad[key]}
-			    })
-			    .sort(function(a, b) {
-				return a.value - b.value
-			    })
-			if (+afs[afs.length - 3].value === 0) {
-			    variant.fin_enrichment = 'Only FIN in Gnomad'
-			} else {
-			    variant.fin_enrichment = +variant.gnomad.AF_FIN / +afs[afs.length - 3].value
-			    variant.fin_enrichment_versus = afs[afs.length - 3].key.replace('AF_', '')
-			}
+            var afs = Object.keys(variant.gnomad)
+                .filter(function(key) {
+                return key.startsWith('AF_') && key !== 'AF_OTH'
+                })
+                .map(function(key) {
+                return {key: key, value: variant.gnomad[key]}
+                })
+                .sort(function(a, b) {
+                return a.value - b.value
+                })
+            if (+afs[afs.length - 3].value === 0) {
+                variant.fin_enrichment = 'Only FIN in Gnomad'
+            } else {
+                variant.fin_enrichment = +variant.gnomad.AF_FIN / +afs[afs.length - 3].value
+                variant.fin_enrichment_versus = afs[afs.length - 3].key.replace('AF_', '')
+            }
                     } else if (variant.gnomad.AF_FIN === 0) {
-			variant.fin_enrichment = 'No FIN in Gnomad'
-		    } else {
-			variant.fin_enrichment = +variant.gnomad.AF_FIN / +variant.gnomad.AF_POPMAX
-			variant.fin_enrichment_versus = variant.gnomad.POPMAX
+            variant.fin_enrichment = 'No FIN in Gnomad'
+            } else {
+            variant.fin_enrichment = +variant.gnomad.AF_FIN / +variant.gnomad.AF_POPMAX
+            variant.fin_enrichment_versus = variant.gnomad.POPMAX
                     }
-		}
-	    })
+        }
+        })
             create_gwas_plot(data.variant_bins, data.unbinned_variants);
 
             populate_streamtable(data.unbinned_variants);
@@ -763,16 +778,16 @@ $(function () {
                                       st.search($('#search')[0].value);
                                   }
                                  );
-	    if (data.unbinned_variants[data.unbinned_variants.length - 1].pScaled >= window.vis_conf.loglog_threshold) {
-		$("#manhattan-note").append("<span>p-values smaller than 1e-" + window.vis_conf.loglog_threshold + " are shown on a log-log scale</span>");
-		$("#manhattan-note").css("display", "inline-block");
-	    }
+        if (data.unbinned_variants[data.unbinned_variants.length - 1].pScaled >= window.vis_conf.loglog_threshold) {
+        $("#manhattan-note").append("<span>p-values smaller than 1e-" + window.vis_conf.loglog_threshold + " are shown on a log-log scale</span>");
+        $("#manhattan-note").css("display", "inline-block");
+        }
         })
         .fail(function(error) {
             $('#manhattanloader').css("display", "none")
-	    $("#manhattan-note").append("<span>Could not fetch results. Please try again!</span>");
-	    $("#manhattan-note").css("display", "inline-block");
-	})
+        $("#manhattan-note").append("<span>Could not fetch results. Please try again!</span>");
+        $("#manhattan-note").css("display", "inline-block");
+    })
     $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
         .done(function(data) {
             window.debug.qq = data;
