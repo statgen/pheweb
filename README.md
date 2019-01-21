@@ -10,8 +10,6 @@ Note that there can be at most one minor version difference between kubectl clie
 
 ### 2. Build a Docker image and push to Google Container Registry
 
-Copy the .pheweb directory from a running PheWeb instance ($HOME/.pheweb) as dot_pheweb in the repository root.
-
 In repository root:
 
 `docker build -t gcr.io/phewas-development/pheweb:[TAG] -f deploy/Dockerfile .`  
