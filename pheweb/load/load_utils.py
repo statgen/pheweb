@@ -140,7 +140,7 @@ class MaxPriorityQueue:
         return self._items.pop(idx)
 
     def peek(self):
-        priority, idx = self._q[0]
+        priority, idx = self._q[-1]
         return self._items[idx]
 
 

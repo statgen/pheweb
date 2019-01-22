@@ -354,9 +354,14 @@ def convert_VariantFile_to_IndexedVariantFile(vf_path, ivf_path):
 
 
 
-def write_json(*, filepath=None, data=None, indent=None, sort_keys=False):
-    assert filepath is not None and data is not None
-    part_file = get_tmp_path(filepath)
-    make_basedir(filepath)
-    with AtomicSaver(filepath, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
-        json.dump(data, f, indent=indent, sort_keys=sort_keys)
+def write_json(*, filepath=None, data=None, indent=None, sort_keys=False, write_as_given=False):
+
+    if not write_as_given:
+        assert filepath is not None and data is not None
+        part_file = get_tmp_path(filepath)
+        make_basedir(filepath)
+        with AtomicSaver(filepath, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
+            json.dump(data, f, indent=indent, sort_keys=sort_keys)
+    else:
+        with open(filepath, 'w') as f:
+            json.dump(data,f)

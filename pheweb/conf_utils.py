@@ -115,6 +115,7 @@ def _ensure_conf():
                 for key in dir(_conf_module):
                     if not key.startswith('_'):
                         conf[key] = getattr(_conf_module, key)
+        print(str(conf))
         if conf.authentication:
             try:
                 _auth_module = imp.load_source('config', conf.authentication_file)

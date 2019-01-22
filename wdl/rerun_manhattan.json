@@ -1,0 +1,7 @@
+{
+  "manhattan.disk": "10",
+  "manhattan.augmented_results": "gs://r2_data/import_data/r2_aug_phenos_for_manhattan",
+  "manhattan.mem": "4",
+  "manhattan.docker": "eu.gcr.io/finngen-refinery-dev/run_manhattan:1",
+  "manhattan.cpu": "1"
+}

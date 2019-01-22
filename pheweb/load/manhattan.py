@@ -12,22 +12,23 @@ from .load_utils import MaxPriorityQueue, parallelize_per_pheno
 
 import math
 
-
 def run(argv):
     parallelize_per_pheno(
         get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
         get_output_filepaths = lambda pheno: common_filepaths['manhattan'](pheno['phenocode']),
-        convert = make_json_file,
+        convert = create_manhattan,
         cmd = 'manhattan',
     )
 
 
-def make_json_file(pheno):
+def create_manhattan(pheno):
+    make_json_file(common_filepaths['pheno'](pheno['phenocode']), common_filepaths['manhattan'](pheno['phenocode']))
+
+def make_json_file(result_file, output_file, write_as_given=False):
     BIN_LENGTH = int(3e6)
     NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
     NEGLOG10_PVAL_BIN_DIGITS = 2 # Then round to this many digits
-
-    with VariantFileReader(common_filepaths['pheno'](pheno['phenocode'])) as variants:
+    with VariantFileReader(result_file) as variants:
         variant_bins, unbinned_variants = bin_variants(
             variants,
             BIN_LENGTH,
@@ -39,13 +40,11 @@ def make_json_file(pheno):
         'variant_bins': variant_bins,
         'unbinned_variants': unbinned_variants,
     }
-
-    write_json(filepath=common_filepaths['manhattan'](pheno['phenocode']), data=rv)
+    write_json(filepath=output_file, data=rv, write_as_given=write_as_given)
 
 
 def rounded_neglog10(pval, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     return round(-math.log10(pval) // neglog10_pval_bin_size * neglog10_pval_bin_size, neglog10_pval_bin_digits)
-
 
 def get_pvals_and_pval_extents(pvals, neglog10_pval_bin_size):
     # expects that NEGLOG10_PVAL_BIN_SIZE is the distance between adjacent bins.
@@ -88,22 +87,21 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
     # put most-significant variants into the priorityqueue and bin the rest
     hla_variant_pq =MaxPriorityQueue()
     for variant in variant_iterator:
-        unbinned_variant_pq.add(variant, variant['pval'])
-
-        chrom_key = chrom_order[variant['chrom']]
         if variant['chrom']=="6" and variant['pos'] > conf.hla_begin and variant['pos'] < conf.hla_end:
             hla_variant_pq.add(variant, variant['pval'])
             if( len(hla_variant_pq) > conf.manhattan_hla_num_unbinned ):
                 old = hla_variant_pq.pop()
                 bin_variant(old)
             continue
-        if len(unbinned_variant_pq) > conf.manhattan_num_unbinned:
-            old = unbinned_variant_pq.pop()
-            bin_variant(old)
+        else:
+            unbinned_variant_pq.add(variant, variant['pval'])
+            if len(unbinned_variant_pq) > conf.manhattan_num_unbinned:
+                old = unbinned_variant_pq.pop()
+                bin_variant(old)
 
     max_p = unbinned_variant_pq.peek()
-
-    for v in filter(lambda x: x['pval']<=max_p['pval'],  list(hla_variant_pq.pop_all()) ):
+    add_hla = list(hla_variant_pq.pop_all())
+    for v in filter(lambda x: x['pval']<=max_p['pval'], add_hla ):
         unbinned_variant_pq.add(v, v['pval'])
     unbinned_variants = list(unbinned_variant_pq.pop_all())
 
