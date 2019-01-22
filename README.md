@@ -54,7 +54,18 @@ Modify `deploy/pheweb-ingress.yaml` (production) or `deploy/pheweb-ingress-dev.y
 `kubectl create -f deploy/pheweb-pv.yaml` and  
 `kubectl create -f deploy/pheweb-deployment.yaml`
 
-### 5. Useful commands
+### 5. Update running StateFulSet
+
+Example of updating the image used in StatefulSet
+`kubectl patch statefulset pheweb-front --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value":"gcr.io/phewas-development/pheweb:r2-2"}]'`
+
+Kubernetes will try to rolling update so that while some pods are updating, the others are serving using the old image. 
+In case the new image or settings are not functional Kubernetes will keep on retrying. In this case you need to update settings again first and then delete those pods that keep trying to run with the old settings.
+
+`kubectl delete pod pheweb-front-3`
+
+
+### 6. Useful commands
 
 `kubectl get ingress`  
 `kubectl describe ingress`  
