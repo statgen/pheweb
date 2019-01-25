@@ -72,12 +72,8 @@ def run(argv):
     parser.add_argument('--ref', default="ref", action='store', type=str, help='ref column name in result files')
     parser.add_argument('--alt', default="alt", action='store', type=str, help='alt column name in result files')
     parser.add_argument('--other_fields', action='store', type=str, help='comma separated list of other column names in result files')
-    parser.add_argument('--require_match', dest="require_match", action='store_true', help='if given, require a variant to match between the sites and pheno files for it to be written')
     parser.add_argument('--no_require_match', dest="require_match", action='store_false', help='if given, dont require a variant to match between the sites and pheno files for it to be written')
-    parser.add_argument('--tabix', dest="tabix", action='store_true', help='if given, will bgzip and tabix the result file')
     parser.add_argument('--no_tabix', dest="tabix", action='store_false', help='if given, will not bgzip and tabix the result file')
-    parser.set_defaults(require_match=True)
-    parser.set_defaults(tabix=True)
 
     args = parser.parse_args()
     phenos = []
