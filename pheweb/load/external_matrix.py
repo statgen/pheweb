@@ -50,7 +50,7 @@ def scroll_to_current(variant, phenodat):
         else:
             break
 
-def run(argv):
+def run():
     '''
         This module generates matrix from external single association results for fast access to browsingself.
         First parameter should be a path to configuration file with 5 colums(no header):
