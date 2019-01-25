@@ -164,4 +164,4 @@ def run(argv):
         subprocess.check_call(["bgzip", args.path_to_res + "matrix.tsv" ])
         subprocess.check_call(["tabix","-s 1","-e 2","-b 2", args.path_to_res + "matrix.tsv.gz" ])
 
-run("asd")
+run()
