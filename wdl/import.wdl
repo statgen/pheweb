@@ -89,31 +89,60 @@ task matrix {
 
     File sites
     File bed
-    Array[File] pheno
+    Array[File] pheno_gz
     Array[File] manhattan
+    Int n_phenobatch
     String docker
     Int cpu
     Int mem
     Int disk
     String disktype
+    String dollar = "$"
 
-    command {
-        mkdir -p pheweb/generated-by-pheweb/sites && \
-            mkdir -p pheweb/generated-by-pheweb/tmp && \
-            mkdir -p pheweb/generated-by-pheweb/pheno && \
+    command <<<
+
+        mkdir -p pheweb/generated-by-pheweb/tmp && \
+            mkdir -p pheweb/generated-by-pheweb/pheno_gz && \
             mkdir -p pheweb/generated-by-pheweb/manhattan && \
             mkdir -p /root/.pheweb/cache && \
-            mv ${sites} pheweb/generated-by-pheweb/sites/ && \
             mv ${bed} /root/.pheweb/cache/ && \
-            mv ${sep=" " pheno} pheweb/generated-by-pheweb/pheno/ && \
+            mv ${sep=" " pheno_gz} pheweb/generated-by-pheweb/pheno_gz/ && \
             mv ${sep=" " manhattan} pheweb/generated-by-pheweb/manhattan/ && \
             cd pheweb && \
-            pheweb phenolist glob generated-by-pheweb/pheno/* && \
-            pheweb phenolist extract-phenocode-from-filepath --simple && \
-            pheweb matrix && \
-            pheweb top-hits && \
-            pheweb gather-pvalues-for-each-gene
-    }
+            pheweb phenolist glob generated-by-pheweb/pheno_gz/* && \
+            pheweb phenolist extract-phenocode-from-filepath --simple
+
+        echo -n > pheno_config.txt
+        for file in generated-by-pheweb/pheno_gz/*; do
+            pheno=`basename ${dollar}file | sed 's/.gz//g' | sed 's/.pheweb//g'`
+            printf "${dollar}pheno\t${dollar}pheno\t0\t0\t${dollar}file\n" >> pheno_config.txt
+        done
+        split -l ${n_phenobatch} --additional-suffix pheno_piece pheno_config.txt
+
+        tail -n+2 ${sites} > ${sites}.noheader
+        python3 <<KARMES
+        import glob
+        import subprocess
+        processes = set()
+        for file in glob.glob("*pheno_piece"):
+            processes.add(subprocess.Popen(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "pval,beta,sebeta,maf,maf_cases,maf_controls", "--no_require_match", "--no_tabix"]))
+        for p in processes:
+            if p.poll() is None:
+                p.wait()
+        KARMES
+
+        cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
+        for file in *pheno_piece.matrix.tsv; do
+            cmd="${dollar}cmd <(cut -f5- ${dollar}file) "
+        done
+        ${dollar}cmd > generated-by-pheweb/matrix.tsv
+
+        bgzip -@ ${dollar}((${cpu}-1)) generated-by-pheweb/matrix.tsv
+        tabix -S 1 -b 2 -e 2 -s 1 generated-by-pheweb/matrix.tsv.gz
+
+        pheweb top-hits
+        pheweb gather-pvalues-for-each-gene
+    >>>
 
     output {
         File phenolist = "pheweb/pheno-list.json"
@@ -153,6 +182,6 @@ workflow pheweb_import {
     }
 
     call matrix {
-        input: sites=annotation.sites, bed=annotation.bed, pheno=pheno.pheno, manhattan=pheno.manhattan, docker=docker, disktype=disktype
+        input: sites=annotation.sites, bed=annotation.bed, pheno_gz=pheno.pheno_gz, manhattan=pheno.manhattan, docker=docker, disktype=disktype
     }
 }

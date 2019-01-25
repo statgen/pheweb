@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import os
 import glob
@@ -8,8 +10,11 @@ import subprocess
 import time
 
 chrord = { "chr"+str(chr):int(chr) for chr in list(range(1,23))}
+chrord["X"] = 23
 chrord["chrX"] = 23
-chrord["chrT"] = 24
+chrord["Y"] = 24
+chrord["chrY"] = 24
+chrord["MT"] = 25
 chrord["chrMT"] = 25
 
 chrord.update({str(chr):int(chr) for chr in list(range(1,23)) } )
@@ -67,6 +72,8 @@ def run(argv):
     parser.add_argument('--ref', default="ref", action='store', type=str, help='ref column name in result files')
     parser.add_argument('--alt', default="alt", action='store', type=str, help='alt column name in result files')
     parser.add_argument('--other_fields', action='store', type=str, help='comma separated list of other column names in result files')
+    parser.add_argument('--no_require_match', dest="require_match", action='store_false', help='if given, dont require a variant to match between the sites and pheno files for it to be written')
+    parser.add_argument('--no_tabix', dest="tabix", action='store_false', help='if given, will not bgzip and tabix the result file')
 
     args = parser.parse_args()
     phenos = []
@@ -149,11 +156,12 @@ def run(argv):
                         anymatch=True
                         linedat.extend(p["cur_lines"][match_idx[0]][4:])
                         del p["cur_lines"][match_idx[0]]
-                if(anymatch):
+                if(not args.require_match or anymatch):
                     out.write("\t".join(linedat) + "\n")
                 linedat.clear()
 
-    subprocess.check_call(["bgzip", args.path_to_res + "matrix.tsv" ])
-    subprocess.check_call(["tabix","-s 1","-e 2","-b 2", args.path_to_res + "matrix.tsv.gz" ])
+    if args.tabix:
+        subprocess.check_call(["bgzip", args.path_to_res + "matrix.tsv" ])
+        subprocess.check_call(["tabix","-s 1","-e 2","-b 2", args.path_to_res + "matrix.tsv.gz" ])
 
-run("asd")
+run()

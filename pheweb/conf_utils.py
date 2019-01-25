@@ -78,6 +78,9 @@ def _run_only_once(f):
 @_run_only_once
 def _ensure_conf():
 
+    if not hasattr(conf, 'authentication'):
+        conf.set_default_value('authentication', False)
+
     if hasattr(conf, 'data_dir'):
         conf.data_dir = os.path.abspath(conf.data_dir)
     else:
