@@ -171,7 +171,3 @@ def main():
         else: print('\nAn exception occurred')
         print('(Details in {})\n'.format(exc_filepath))
         exit(1)
-
-
-
-main()
