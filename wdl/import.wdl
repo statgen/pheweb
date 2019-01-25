@@ -135,7 +135,7 @@ task matrix {
         for file in *pheno_piece.matrix.tsv; do
             cmd="${dollar}cmd <(cut -f5- ${dollar}file) "
         done
-        echo ${dollar}cmd | bash > generated-by-pheweb/matrix.tsv
+        ${dollar}cmd > generated-by-pheweb/matrix.tsv
 
         bgzip -@ ${dollar}((${cpu}-1)) generated-by-pheweb/matrix.tsv
         tabix -S 1 -b 2 -e 2 -s 1 generated-by-pheweb/matrix.tsv.gz
@@ -152,7 +152,7 @@ task matrix {
         File top_hits_tsv = "pheweb/generated-by-pheweb/top_hits.tsv"
         File top_hits_1k = "pheweb/generated-by-pheweb/top_hits_1k.json"
         File pheno_gene = "pheweb/generated-by-pheweb/best-phenos-by-gene.json"
-        #Array[File] tmp = glob("pheweb/generated-by-pheweb/tmp/*")
+        Array[File] tmp = glob("pheweb/generated-by-pheweb/tmp/*")
     }
 
     runtime {

@@ -1,6 +1,6 @@
 {
     "pheweb_import.summaryfiles":"gs://r2_data/pheweb_files.txt",
-    "pheweb_import.docker": "gcr.io/finngen-refinery-dev/pheweb-import:r2_3",
+    "pheweb_import.docker": "gcr.io/finngen-refinery-dev/pheweb-import:r2_4",
     "pheweb_import.disktype": "SSD",
 
     "pheweb_import.annotation.phenofile": "gs://finngen-cromwell-refinery/postscript/8bdd3fa7-1797-4e82-9c9e-4b24681abd7d/call-postscript_plot/shard-802/finngen-production-library-green/R2/summary_stats/I9_CVD.gz.pheweb",
