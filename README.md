@@ -37,22 +37,21 @@ If necessary:
 
 If using a running cluster:
 
-In `deploy/pheweb-deployment.yaml`, change the Docker image to the one you just created (or make other desired changes). Make sure that in `deploy/pheweb-pv.yaml` the GCE disk is the one you want with the wanted data - and that there is a correct config.py in the /mnt/data-disk-ssd/pheweb directory of the disk. In a running kubernetes node, mounted disks are at
+In `deploy/pheweb-deployment-dev.yaml` (or other pheweb-deployment-* file), change the Docker image to the one you just created (or make other desired changes). Make sure that in `deploy/pheweb-pv-dev.yaml` (or other pheweb-pv-* file) the GCE disk is the one you want with the wanted data - and that there is a correct config.py in the /mnt/data-disk-ssd/pheweb directory of the disk. In a running kubernetes node, mounted disks are at
 `/home/kubernetes/containerized_mounter/rootfs/var/lib/kubelet/plugins/kubernetes.io/gce-pd/mounts/`
 
-Then, apply the changes you made:
+Then, apply the changes you made (example with dev config):
 
-`kubectl apply -f deploy/pheweb-pv.yaml` and/or  
-`kubectl apply -f deploy/pheweb-deployment.yaml`
+`kubectl apply -f deploy/pheweb-pv-dev.yaml` and/or  
+`kubectl apply -f deploy/pheweb-deployment-dev.yaml`
 
 Or if using a new cluster:
 
-Modify `deploy/pheweb-ingress.yaml` (production) or `deploy/pheweb-ingress-dev.yaml` (preproduction), `deploy/pheweb-deployment.yaml` and `deploy/pheweb-pv.yaml` as needed. Then
+Modify `deploy/pheweb-ingress-dev.yaml`, `deploy/pheweb-deployment-dev.yaml` and `deploy/pheweb-pv-dev.yaml` -- or other than `-dev` files -- as needed. Then
 
-`kubectl create -f deploy/pheweb-ingress.yaml` or  
 `kubectl create -f deploy/pheweb-ingress-dev.yaml` and  
-`kubectl create -f deploy/pheweb-pv.yaml` and  
-`kubectl create -f deploy/pheweb-deployment.yaml`
+`kubectl create -f deploy/pheweb-pv-dev.yaml` and  
+`kubectl create -f deploy/pheweb-deployment-dev.yaml`
 
 ### 5. Update running StateFulSet
 
@@ -64,8 +63,20 @@ In case the new image or settings are not functional Kubernetes will keep on ret
 
 `kubectl delete pod pheweb-front-3`
 
+### 6. Total reset
 
-### 6. Useful commands
+In case of an incomprehensible situation and it would be great to bring the service back asap, here's how to do a full restart of the cluster (example with R2 and 4 nodes):
+
+```
+gcloud container clusters delete [CLUSTER_NAME]
+gcloud container clusters create [CLUSTER_NAME] --num-nodes=4 --machine-type=n1-standard-1 --zone=europe-west1-b
+kubectl create secret tls finngen-tls --key /path/to/star_finngen_fi.key --cert /path/to/star_finngen_fi.crt
+kubectl create -f deploy/pheweb-ingress.yaml
+kubectl create -f deploy/pheweb-pv-r2.yaml
+kubectl create -f deploy/pheweb-deployment-r2.yaml
+```
+
+### 7. Useful commands
 
 `kubectl get ingress`  
 `kubectl describe ingress`  
