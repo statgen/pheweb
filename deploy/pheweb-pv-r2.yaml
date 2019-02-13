@@ -4,14 +4,14 @@ metadata:
   name: pheweb-pv-0
 spec:
   capacity:
-      storage: 1500Gi
+      storage: 1300Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   gcePersistentDisk:
     fsType: ext4
-    pdName: pheweb-r2-0
+    pdName: finngen-r2-results-update-1-0
   mountOptions:
     - noatime
     - nodiratime
@@ -27,7 +27,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1500Gi
+      storage: 1300Gi
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -35,14 +35,14 @@ metadata:
   name: pheweb-pv-1
 spec:
   capacity:
-      storage: 1500Gi
+      storage: 1300Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   gcePersistentDisk:
     fsType: ext4
-    pdName: pheweb-r2-1
+    pdName: finngen-r2-results-update-1-1
   mountOptions:
     - noatime
     - nodiratime
@@ -58,7 +58,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1500Gi
+      storage: 1300Gi
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -66,14 +66,14 @@ metadata:
   name: pheweb-pv-2
 spec:
   capacity:
-      storage: 1500Gi
+      storage: 1300Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   gcePersistentDisk:
     fsType: ext4
-    pdName: pheweb-r2-2
+    pdName: finngen-r2-results-update-1-2
   mountOptions:
     - noatime
     - nodiratime
@@ -89,7 +89,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1500Gi
+      storage: 1300Gi
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -97,14 +97,14 @@ metadata:
   name: pheweb-pv-3
 spec:
   capacity:
-      storage: 1500Gi
+      storage: 1300Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   gcePersistentDisk:
     fsType: ext4
-    pdName: pheweb-r2-3
+    pdName: finngen-r2-results-update-1-3
   mountOptions:
     - noatime
     - nodiratime
@@ -120,4 +120,4 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1500Gi
+      storage: 1300Gi

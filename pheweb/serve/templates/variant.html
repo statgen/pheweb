@@ -8,16 +8,6 @@
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
   window.var_top_pheno_export_fields = {{ var_top_pheno_export_fields|tojson }};
   window.vis_conf = {{ vis_conf|tojson|safe }};
-
-  $.getJSON("/api/variant_annotation/" + window.variant.chrom + "-" + window.variant.pos + "-" + window.variant.ref + "-" + window.variant.alt)
-  .done(function(data) {
-    $('#annotation').html('<span><strong>{MS}</strong>, info: {INFO}</span>'
-                           .replace('{MS}', data.most_severe.replace(/_/g, ' '))
-                           .replace('{INFO}', data.info.toPrecision(3)))
-  })
-  .fail(function() {
-    console.log("Manhattan XHR failed");
-  });
 </script>
 <script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/locuszoom-0.5.6.vendor.min.js') }}" type="text/javascript"></script>
@@ -50,6 +40,13 @@
           {% endwith %}
         </p>
         <p id="annotation"></p>
+	{% if variant.anno %}
+	<p>INFO score: {{ variant.anno.var_data.info|round(3) }}</p>
+	<p>Most severe consequence: {{ variant.anno.var_data.most_severe.replace('_', ' ') }}</p>
+	{% endif %}
+	{% if variant.gnomad_str %}
+	<p>Allele frequencies in gnomAD genomes 2.0.2: {{ variant.gnomad_str }}</p>
+	{% endif %}
         <span id="maf-range"></span>
 {#        {% if variant.ac %}<p>AC: {{ variant.ac }}</p>{% endif %} #}
         <p>View on
