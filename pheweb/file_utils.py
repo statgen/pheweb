@@ -247,10 +247,6 @@ class _mr(_ivfr):
     def _parse_field(self, variant_row, field, phenocode=None):
         colidx = self._colidxs[field] if phenocode is None else self._colidxs_for_pheno[phenocode][field]
         val = variant_row[colidx]
-        # some variants don't have results for all phenos
-        if val == 'NA':
-            print('Warning: replacing NA with 1: ' + field + ' ' + str(phenocode))
-            val = 1
         parser = conf.parse.fields[field]['_read']
         try:
             return parser(val)

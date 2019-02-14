@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:r2_update_1_1
+        image: gcr.io/phewas-development/pheweb:r2-initial
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -30,4 +30,4 @@ spec:
       accessModes: [ ReadWriteOnce ]
       resources:
         requests:
-          storage: 1300Gi
+          storage: 1500Gi

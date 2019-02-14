@@ -34,7 +34,7 @@ def get_phenolist():
     from .file_utils import common_filepaths
     filepath = common_filepaths['phenolist']
     try:
-        with open(os.path.join(filepath), encoding='utf-8') as f:
+        with open(os.path.join(filepath)) as f:
             phenolist = json.load(f)
     except (FileNotFoundError, PermissionError):
         raise PheWebError(

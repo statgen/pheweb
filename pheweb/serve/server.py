@@ -43,7 +43,7 @@ if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
-gnomad_pops = {'AF_FIN': 'Finnish', 'AF_NFE_est': 'Estonian', 'AF_NFE': 'Non-Finnish European', 'AF_NFE_NWE': 'North-Western European', 'AF_NFE_SEU': 'Southern European', 'AF_NFE_ONF': 'Other non-Finnish European', 'AF_AFR': 'African', 'AF_AMR': 'Latino', 'AF_ASJ': 'Ashkenazi Jewish', 'AF_EAS': 'South Asian', 'AF_OTH': 'Other'}
+
 
 dbs_fact = DataFactory( conf.database_conf  )
 annotation_dao = dbs_fact.get_annotation_dao()
@@ -117,10 +117,6 @@ def api_variant(query):
 def variant_page(query):
     try:
         variant = get_variant(query)
-        variant['anno'] = annotation_dao.get_variant_annotations([query.replace('-', ':')])[0]
-        variant['gnomad'] = gnomad_dao.get_variant_annotations([query.replace('-', ':')])[0]
-        variant['gnomad_str'] = ', '.join([gnomad_pops[field] + ': ' + '{:.3f}'.format(variant['gnomad']['var_data'][field]) for field in variant['gnomad']['var_data'].keys() if field.startswith('AF_') and field not in ['AF_POPMAX', 'AF_raw', 'AF_Male', 'AF_Female']])
-        #variant['gnomad_str'] = filter(lambda field: field.startswith('AF_'), list(variant['gnomad']['var_data'].keys()))
         varpheno = {}
         var =":".join(["chr" + variant["chrom"],str(variant["pos"]),variant["ref"],variant["alt"]])
         varpheno[var]=[]
@@ -259,25 +255,17 @@ def api_gene_functional_variants(gene):
 @check_auth
 def api_lof():
     lofs = lof_dao.get_all_lofs(conf.lof_threshold)
-    lofs_use = []
     for lof in lofs:
-        if lof['gene_data']['pheno'] in phenos.keys():
-            lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
-            lof['gene_data']['beta'] = '{:.3f}'.format(float(lof['gene_data']['beta']))
-            lofs_use.append(lof)
-    return jsonify(sorted(lofs_use, key=lambda lof: lof['gene_data']['p_value']))
+        lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
+    return jsonify(lofs)
 
 @app.route('/api/lof/<gene>')
 @check_auth
 def api_lof_gene(gene):
     lofs = lof_dao.get_lofs(gene)
-    lofs_use = []
     for lof in lofs:
-        if lof['gene_data']['pheno'] in phenos.keys():
-            lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
-            lof['gene_data']['beta'] = '{:.3f}'.format(float(lof['gene_data']['beta']))
-            lofs_use.append(lof)
-    return jsonify(lofs_use)
+        lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
+    return jsonify(lofs)
 
 @app.route('/api/top_hits.json')
 @check_auth

@@ -80,15 +80,8 @@
 <div class="row">
     <div class="pheno-info col-xs-12">
         {% if pheno.category %}
-          <p>Category: {{ pheno.category}}</p>
+          <p>{{ pheno.category}}</p>
         {% endif %}
-          {% if pheno.desc_html %}
-	  <br/>
-          <p>{{ pheno.desc_html|safe}}</p>
-        {% endif %}
-        {% if pheno.desc_url %}
-        <p><a href={{pheno.desc_url}} target="_blank">Detailed info on endpoint definition</a></p>
-      {% endif %}
     </br>
         {% if 'num_cases' in pheno %}
           <p>FINNGEN:<b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
