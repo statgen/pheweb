@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All influenza (not pneumonia)</title>
+<style>.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+  }
+
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+      text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+      position: absolute;
+    z-index: 1;
+    top: -5px;
+    left: 105%;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }</style>
+</head>
+<body>
+<br>
+<h1>All influenza (not pneumonia) (ICD-10: J1[0-1])</h1>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ENDPOINT</th><th>EXCLUDE</th></tr>
+<tr><td>INFLUENZA</td><td><a href="J10_INFLUPNEU.html">[2] J10_INFLUPNEU</a></td></tr>
+</table>
+
+<p><br>
+
+<table border="1" cellspacing="0" cellpadding="1">
+ <tr><td><a href="TAG_ASTHMA.html">#ASTHMA
+</a>
+</td><td>Asthma and related endpoints</td></tr>
+ <tr><td><a href="TAG_COPD_CM.html">#COPD_CM
+</a>
+</td><td>Comorbidities of COPD</td></tr>
+ <tr><td><a href="TAG_ILD.html">#ILD
+</a>
+</td><td>Interstitial lung disease endpoints</td></tr>
+ </table>
+
+<h3>Hospital discharges and causes of deaths</h3>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ICD-10</th><th>ICD-9</th><th>ICD-8</th></tr>
+ <tr><td><div class="tooltip">J1[0-1] <span class="tooltiptext">J10: Influenza due to identified influenza virus<br>J11: Influenza, virus not identified</span>
+</div>
+; !(<div class="tooltip">J100|J110 <span class="tooltiptext">J100: Influenza with pneumonia, influenza virus identified<br>J110: Influenza with pneumonia, virus not identified</span>
+</div>
+)</td><td><div class="tooltip">487 <span class="tooltiptext">487: INFLUENZA</span>
+</div>
+; !(<div class="tooltip">4870 <span class="tooltiptext">4870A: INFLUENZA CUM PNEUMONIA</span>
+</div>
+)</td><td><div class="tooltip">47[0-4] <span class="tooltiptext">470: Influenza<br>471: Influenza cum pneumonia<br>472: Influenza cum aliis symptomatibus respirationis<br>473: Influenza cum aliis symptomatibus respirationis<br>474: Influenza cum aliis symptomatibus respirationis</span>
+</div>
+; !(<div class="tooltip">471 <span class="tooltiptext">471: Influenza cum pneumonia</span>
+</div>
+)</td></tr>
+ </table>
+
+<address><br>Created by: Aki Havulinna, Tuomo Kiiskinen on 2018-12-04 21:35:32</address>
+ </body>
+ </html>

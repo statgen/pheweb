@@ -4,14 +4,14 @@ metadata:
   name: pheweb-pv
 spec:
   capacity:
-      storage: 1500Gi
+      storage: 1300Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   gcePersistentDisk:
     fsType: ext4
-    pdName: pheweb-r2-dev
+    pdName: finngen-r2-results-update-1-dev
   mountOptions:
     - noatime
     - nodiratime
@@ -27,4 +27,4 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1500Gi
+      storage: 1300Gi
