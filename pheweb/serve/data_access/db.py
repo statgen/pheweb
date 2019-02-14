@@ -184,6 +184,9 @@ class DrugDao(DrugDB):
 
     def get_drugs(self, gene):
         r = requests.get("http://rest.ensembl.org/xrefs/symbol/human/" + gene + "?content-type=application/json")
+        dat = r.json()
+        if len(dat)==0:
+            return []
         ensg = r.json()[0]['id']
         drugfields = ['target.gene_info.symbol',
                       'target.target_class',
@@ -366,15 +369,23 @@ class TabixResultDao(ResultDB):
         self.phenos = phenos(0)
 
     def get_variant_results_range(self, chrom, start, end):
+        print(self.matrix_path)
         with pysam.TabixFile(self.matrix_path, parser=None) as tabix_file:
             headers = tabix_file.header[0].split('\t')
-            tabix_iter = tabix_file.fetch(chrom, start-1, end, parser=None)
+
             top = [ { 'pheno': self.phenos[header.split('@')[1]],
                       'p_col_idx': i,
                       'assoc': { 'pval': 1, 'id': None, 'rsids': None }
                     }
                     for i, header in enumerate(headers) if header.startswith('pval')
             ]
+
+            try:
+                tabix_iter = tabix_file.fetch(chrom, start-1, end, parser=None)
+            except ValueError:
+                print("No variants in the given range.")
+                return []
+
             for variant_row in tabix_iter:
                 split = variant_row.split('\t')
                 for pheno in top:

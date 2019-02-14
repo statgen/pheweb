@@ -44,7 +44,6 @@ if os.path.isdir(conf.custom_templates):
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
-
 dbs_fact = DataFactory( conf.database_conf  )
 annotation_dao = dbs_fact.get_annotation_dao()
 gnomad_dao = dbs_fact.get_gnomad_dao()
@@ -177,34 +176,6 @@ def api_pheno(phenocode):
 def api_gene_phenos(gene):
         return jsonify(gene_phenos(gene))
 
-def gene_functional_variants(gene, pThreshold):
-    try:
-        gene = gene.upper()
-        annotations = annotation_dao.get_gene_functional_variant_annotations(gene)
-        for i in range(len(annotations)):
-            chrom, pos, ref, alt = annotations[i]["id"].split(":")
-            chrom = chrom.replace("chr", "")
-            result = result_dao.get_variant_results_range(chrom, int(pos), int(pos))
-            filtered = { "rsids": result[0]["assoc"]["rsids"], "significant_phenos": [res for res in result if res["assoc"]["pval"] < pThreshold ] }
-            for ph in filtered["significant_phenos"]:
-                var = ph["assoc"]["id"].split(":")
-                var[1] = int(var[1])
-                uk_var = ukbb_dao.get_matching_results(ph["pheno"]["phenocode"], [var])
-                if(len(uk_var)>0):
-                    ph["ukbb"] =uk_var[ph["assoc"]["id"]]
-
-
-            annotations[i] = {**annotations[i], **filtered}
-        ids = [v["id"] for v in annotations]
-        gnomad = gnomad_dao.get_variant_annotations(ids)
-        gd = {i['id']: i['var_data'] for i in gnomad}
-        for v in annotations:
-            if v['id'] in gd:
-                v['gnomad'] = gd[v['id']]
-        return annotations
-    except Exception as exc:
-        print(exc)
-        die('Oh no, something went wrong', exc)
 
 def gene_phenos(gene):
     try:
