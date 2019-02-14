@@ -45,7 +45,7 @@ class ServerJeeves(object):
 
             annotations[i] = {**annotations[i], **filtered}
         ids = [v["id"] for v in annotations]
-        gnomad = gnomad_dao.get_variant_annotations(ids)
+        gnomad = self.gnomad_dao.get_variant_annotations(ids)
         gd = {i['id']: i['var_data'] for i in gnomad}
         for v in annotations:
             if v['id'] in gd:
@@ -88,7 +88,7 @@ class ServerJeeves(object):
     def get_gene_lofs(self, gene):
         lofs = self.lof_dao.get_lofs(gene)
         for lof in lofs:
-            if 'phenostring' in self.phenos[lof['gene_data']['pheno']]:
+            if lof['gene_data']['pheno'] in self.phenos and 'phenostring' in self.phenos[lof['gene_data']['pheno']]:
                 lof['gene_data']['phenostring'] = self.phenos[lof['gene_data']['pheno']]['phenostring']
             else:
                 lof['gene_data']['phenostring'] = ""
