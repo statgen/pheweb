@@ -641,7 +641,7 @@ class TabixAnnotationDao(AnnotationDB):
 
     def get_variant_annotations(self, id_list):
         split = [id.split(':') for id in id_list]
-        variants = [{'chrom': s[0], 'pos': int(s[1])} for s in split]
+        variants = [{'chrom': s[0] if s[0].startswith('chr') else 'chr' + s[0], 'pos': int(s[1])} for s in split]
         annotations = []
         t = time.time()
         with pysam.TabixFile(self.matrix_path, parser=None) as tabix_file:

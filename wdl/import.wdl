@@ -2,14 +2,11 @@ task annotation {
 
     File phenofile
     String docker
-    Int cpu
-    Int mem
-    Int disk
-    String disktype
 
     command {
         mkdir -p pheweb/generated-by-pheweb/parsed && \
             mkdir -p pheweb/generated-by-pheweb/tmp && \
+            echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
             mv ${phenofile} pheweb/generated-by-pheweb/parsed/ && \
             cd pheweb && \
             pheweb phenolist glob generated-by-pheweb/parsed/* && \
@@ -29,13 +26,14 @@ task annotation {
         File gene_trie = "pheweb/generated-by-pheweb/gene_aliases_b38.marisa_trie"
         File sites = "pheweb/generated-by-pheweb/sites/sites.tsv"
         File bed = "pheweb/generated-by-pheweb/genes-b38-v25.bed"
+        Array[File] tmp = glob("pheweb/generated-by-pheweb/tmp/*")
     }
 
     runtime {
         docker: "${docker}"
-    	cpu: "${cpu}"
-    	memory: "${mem} GB"
-        disks: "local-disk ${disk} ${disktype}"
+    	cpu: 2
+    	memory: "7 GB"
+        disks: "local-disk 50 SSD"
         preemptible: 0
     }
 }
@@ -43,23 +41,25 @@ task annotation {
 task pheno {
 
     File phenofile
-    String base = sub(basename(phenofile), ".gz.pheweb$", "")
+    String base = sub(sub(basename(phenofile), ".gz.pheweb$", ""), ".pheweb", "")
+    String base_nogz = sub(base, ".gz$", "")
     File trie1
     File trie2
     File sites
     String docker
-    String disktype
-    Int preemptible
 
     command {
         mkdir -p pheweb/generated-by-pheweb/parsed && \
             mkdir -p pheweb/generated-by-pheweb/tmp && \
+            echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
             mkdir -p pheweb/generated-by-pheweb/sites && \
             mv ${phenofile} pheweb/generated-by-pheweb/parsed/${base} && \
             mv ${trie1} pheweb/generated-by-pheweb/sites/ && \
             mv ${trie2} pheweb/generated-by-pheweb/sites/ && \
             mv ${sites} pheweb/generated-by-pheweb/sites/ && \
             cd pheweb && \
+            if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi && \
+            sed -i 's/#chrom/chrom/' generated-by-pheweb/parsed/* && \
             pheweb phenolist glob generated-by-pheweb/parsed/* && \
             pheweb phenolist extract-phenocode-from-filepath --simple && \
             pheweb augment-phenos && \
@@ -69,19 +69,20 @@ task pheno {
     }
 
     output {
-        File pheno = "pheweb/generated-by-pheweb/pheno/" + base
-        File pheno_gz = "pheweb/generated-by-pheweb/pheno_gz/" + base + ".gz"
-        File pheno_tbi = "pheweb/generated-by-pheweb/pheno_gz/" + base + ".gz.tbi"
-        File manhattan = "pheweb/generated-by-pheweb/manhattan/" + base + ".json"
-        File qq = "pheweb/generated-by-pheweb/qq/" + base + ".json"
+        File pheno = "pheweb/generated-by-pheweb/pheno/" + base_nogz
+        File pheno_gz = "pheweb/generated-by-pheweb/pheno_gz/" + base_nogz + ".gz"
+        File pheno_tbi = "pheweb/generated-by-pheweb/pheno_gz/" + base_nogz + ".gz.tbi"
+        File manhattan = "pheweb/generated-by-pheweb/manhattan/" + base_nogz + ".json"
+        File qq = "pheweb/generated-by-pheweb/qq/" + base_nogz + ".json"
+        Array[File] tmp = glob("pheweb/generated-by-pheweb/tmp/*")
     }
 
     runtime {
         docker: "${docker}"
     	cpu: 1
     	memory: "3 GB"
-        disks: "local-disk 20 ${disktype}"
-        preemptible: "${preemptible}"
+        disks: "local-disk 20 SSD"
+        preemptible: 2
     }
 }
 
@@ -96,12 +97,12 @@ task matrix {
     Int cpu
     Int mem
     Int disk
-    String disktype
     String dollar = "$"
 
     command <<<
 
         mkdir -p pheweb/generated-by-pheweb/tmp && \
+            echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
             mkdir -p pheweb/generated-by-pheweb/pheno_gz && \
             mkdir -p pheweb/generated-by-pheweb/manhattan && \
             mkdir -p /root/.pheweb/cache && \
@@ -121,11 +122,13 @@ task matrix {
 
         tail -n+2 ${sites} > ${sites}.noheader
         python3 <<KARMES
+        import os
         import glob
         import subprocess
+        FNULL = open(os.devnull, 'w')
         processes = set()
         for file in glob.glob("*pheno_piece"):
-            processes.add(subprocess.Popen(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "pval,beta,sebeta,maf,maf_cases,maf_controls", "--no_require_match", "--no_tabix"]))
+            processes.add(subprocess.Popen(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "pval,beta,sebeta,maf,maf_cases,maf_controls", "--no_require_match", "--no_tabix"], stdout=FNULL))
         for p in processes:
             if p.poll() is None:
                 p.wait()
@@ -135,7 +138,7 @@ task matrix {
         for file in *pheno_piece.matrix.tsv; do
             cmd="${dollar}cmd <(cut -f5- ${dollar}file) "
         done
-        ${dollar}cmd > generated-by-pheweb/matrix.tsv
+        echo ${dollar}cmd | bash > generated-by-pheweb/matrix.tsv
 
         bgzip -@ ${dollar}((${cpu}-1)) generated-by-pheweb/matrix.tsv
         tabix -S 1 -b 2 -e 2 -s 1 generated-by-pheweb/matrix.tsv.gz
@@ -159,7 +162,7 @@ task matrix {
         docker: "${docker}"
     	cpu: "${cpu}"
     	memory: "${mem} GB"
-        disks: "local-disk ${disk} ${disktype}"
+        disks: "local-disk ${disk} SSD"
         preemptible: 0
     }
 }
@@ -169,19 +172,18 @@ workflow pheweb_import {
     File summaryfiles
     Array[String] phenofiles = read_lines(summaryfiles)
     String docker
-    String disktype
 
     call annotation {
-        input: docker=docker, disktype=disktype
+        input: docker=docker
     }
 
     scatter (phenofile in phenofiles) {
         call pheno {
-            input: phenofile=phenofile, trie1=annotation.trie1, trie2=annotation.trie2, sites=annotation.sites, docker=docker, disktype=disktype
+            input: phenofile=phenofile, trie1=annotation.trie1, trie2=annotation.trie2, sites=annotation.sites, docker=docker
         }
     }
 
     call matrix {
-        input: sites=annotation.sites, bed=annotation.bed, pheno_gz=pheno.pheno_gz, manhattan=pheno.manhattan, docker=docker, disktype=disktype
+        input: sites=annotation.sites, bed=annotation.bed, pheno_gz=pheno.pheno_gz, manhattan=pheno.manhattan, docker=docker
     }
 }
