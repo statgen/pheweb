@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stroke, including SAH</title>
+<style>.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+  }
+
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+      text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+      position: absolute;
+    z-index: 1;
+    top: -5px;
+    left: 105%;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }</style>
+</head>
+<body>
+<br>
+<h1>[C] Stroke, including SAH (ICD-10: I6[0-13-4])</h1>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ENDPOINT</th><th>EXCLUDE</th></tr>
+<tr><td>I9_STR_SAH</td><td><a href="I9_STR_EXH.html">[3] I9_STR_EXH</a>, <a href="I9_TIA.html">I9_TIA</a></td></tr>
+</table>
+
+<p><br>
+
+<table border="1" cellspacing="0" cellpadding="1">
+ <tr><td><a href="TAG_I9.html">#I9
+</a>
+</td><td>IX Diseases of the circulatory system (I9_)</td></tr>
+ <tr><td><a href="TAG_ASTHMA_CM.html">#ASTHMA_CM
+</a>
+</td><td>Comorbidities of Asthma</td></tr>
+ <tr><td><a href="TAG_COPD_CM.html">#COPD_CM
+</a>
+</td><td>Comorbidities of COPD</td></tr>
+ <tr><td><a href="TAG_CARDIO.html">#CARDIO
+</a>
+</td><td>Cardiometabolic endpoints</td></tr>
+ <tr><td><a href="TAG_DIAB_CM.html">#DIAB_CM
+</a>
+</td><td>Comorbidities of Diabetes</td></tr>
+ <tr><td><a href="TAG_GASTRO_CM.html">#GASTRO_CM
+</a>
+</td><td>Comorbidities of Gastrointestinal endpoints</td></tr>
+ <tr><td><a href="TAG_ILD_CM.html">#ILD_CM
+</a>
+</td><td>Comorbidities of Interstitial lung disease endpoints</td></tr>
+ <tr><td><a href="TAG_NEURO_CM.html">#NEURO_CM
+</a>
+</td><td>Comorbidities of Neurological endpoints</td></tr>
+ <tr><td><a href="TAG_RHEUMA_CM.html">#RHEUMA_CM
+</a>
+</td><td>Comorbidities of Rheuma endpoints</td></tr>
+ </table>
+
+<h3>Hospital discharges and causes of deaths</h3>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ICD-10</th><th>ICD-9</th><th>ICD-8</th></tr>
+ <tr><td><div class="tooltip">I60|I61|I63|I64 <span class="tooltiptext">I60: Subarachnoid haemorrhage<br>I61: Intracerebral haemorrhage<br>I63: Cerebral infarction<br>I64: Stroke, not specified as haemorrhage or infarction</span>
+</div>
+; !(<div class="tooltip">I636 <span class="tooltiptext">I636: Cerebral infarction due to cerebral venous thrombosis, nonpyogenic</span>
+</div>
+)</td><td><div class="tooltip">430|431|4330A|4331A|4339A|4340A|4341A|4349A|436 <span class="tooltiptext">430: HAEMORRHAGIA SUBARACHNOIDALIS<br>431: HAEMORRHAGIA INTRACEREBRALIS<br>4330A: OCCL/STENOS ART.VERTEBRAL. SEU BASILAR. CUM INFARCT<br>4331A: OCCL/STENOSIS ARTERIAE CAROTIS CUM INFARCTU CEREBRI<br>4339A: OCCL/STENOSIS ARTER.PRAECEREBRALES NUD CUM INFARCTU<br>4340A: THROMBOSIS CEREBRI<br>4341A: EMBOLIA CEREBRI<br>4349A: OCCL/STENOS ARTER.CEREBRALES NUD CUM INFARCTU CEREB<br>436: MORBUS CEREBROVASCULARIS ACUTUS NON DEFINITUS</span>
+</div>
+</td><td><div class="tooltip">430|431|433|434|436 <span class="tooltiptext">430: Haemorrhagia subarachnoidalis<br>431: Haemorrhagia cerebri<br>433: Thrombosis cerebri<br>434: Embolia cerebri<br>436: Morbus cerebrovascularis acutus non definitus</span>
+</div>
+; !(<div class="tooltip">43101|43191 <span class="tooltiptext">43101: Haemorrhagia cerebri/Subduralis non traumatica, cum hypertonia<br>43191: Haemorrhagia cerebri/Subduralis non traumatica, hypertonia non indicata</span>
+</div>
+)</td></tr>
+ </table>
+
+<address><br>Created by: Aki Havulinna, Tuomo Kiiskinen on 2018-12-04 21:35:33</address>
+ </body>
+ </html>
