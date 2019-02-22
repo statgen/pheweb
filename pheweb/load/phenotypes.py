@@ -32,7 +32,7 @@ def run(argv):
         exit(1)
 
     out_filepath = common_filepaths['phenotypes_summary']
-    data = list(get_phenotypes_including_top_variants())
+    data = sorted(get_phenotypes_including_top_variants(), key=lambda p: p['pval'])
     data.sort(key=lambda p: p['pval'])
     write_json(filepath=out_filepath, data=data)
     print("wrote {} phenotypes to {}".format(len(data), out_filepath))
