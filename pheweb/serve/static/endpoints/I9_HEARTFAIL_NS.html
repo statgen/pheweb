@@ -1,0 +1,88 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart failure, not strict</title>
+<style>.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+  }
+
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+      text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+      position: absolute;
+    z-index: 1;
+    top: -5px;
+    left: 105%;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }</style>
+</head>
+<body>
+<br>
+<h1>[C] Heart failure, not strict (ICD-10: I110|I13[02]|I50)</h1>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ENDPOINT</th><th>EXCLUDE</th></tr>
+<tr><td>I9_HEARTFAIL_NS</td><td>&lt;CASES&gt;</td></tr>
+</table>
+
+<p><br>
+
+<table border="1" cellspacing="0" cellpadding="1">
+ <tr><td><a href="TAG_I9.html">#I9
+</a>
+</td><td>IX Diseases of the circulatory system (I9_)</td></tr>
+ <tr><td><a href="TAG_CARDIO.html">#CARDIO
+</a>
+</td><td>Cardiometabolic endpoints</td></tr>
+ </table>
+
+<h3>Hospital discharges</h3>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ICD-10</th><th>ICD-9</th><th>ICD-8</th></tr>
+ <tr><td><div class="tooltip">I50|I110|I130|I132 <span class="tooltiptext">I110: Hypertensive heart disease with (congestive) heart failure<br>I130: Hypertensive heart and renal disease with (congestive) heart failure<br>I132: Hypertensive heart and renal disease with both (congestive) heart failure and renal failure<br>I50: Heart failure</span>
+</div>
+</td><td><div class="tooltip">4029B|428 <span class="tooltiptext">4029B: CUM DECOMPENSATIONE CORDIS (WHO  III)<br>428: INSUFFICIENTIA CORDIS</span>
+</div>
+</td><td><div class="tooltip">42700|42710|428|7824 <span class="tooltiptext">42700: Morbi cordis symptomatici/Incompensatio cordis. Oedema cardiale<br>42710: Morbi cordis symptomatici/Oedema pulmonum acutum<br>78240: Symptomata organorum cardiovascularium et lymphaticorum/Insufficientia cordis acuta<br>428: Morbi cordis symptomatici</span>
+</div>
+</td></tr>
+ </table>
+
+<h3>Causes of deaths (differs for hospital discharges)</h3>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ICD-10</th><th>ICD-9</th><th>ICD-8</th></tr>
+ <tr><td><div class="tooltip">I50|I110|I130|I132 <span class="tooltiptext">I110: Hypertensive heart disease with (congestive) heart failure<br>I130: Hypertensive heart and renal disease with (congestive) heart failure<br>I132: Hypertensive heart and renal disease with both (congestive) heart failure and renal failure<br>I50: Heart failure</span>
+</div>
+</td><td><div class="tooltip">4029B|404|4148|428 <span class="tooltiptext">4029B: CUM DECOMPENSATIONE CORDIS (WHO  III)<br>404: MORBI CORDIS ET RENALIS HYPERTONICI<br>4148A: MORBUS CORDIS ISCHAEMICUS ALIA,EI AHTAUMAA<br>4148B: MORBUS CORDIS ISCHAEMICUS ALIA,AHTAUTUNUT<br>4148C: MORBUS CORDIS ISCHAEMICUS ALIA,TROMBI<br>4148D: MORBUS CORDIS ISCHAEMICUS ALIA,EMBOLUS<br>4148E: MORBUS CORDIS ISCHAEMICUS ALIA,MUU TUKOS<br>4148X: MORBUS CORDIS ISCHAEMICUS ALIA,M<h3>KELA special reimbursement (KELA codes)</h3>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>REIMBURSEMENT</th><th>Cause (ICD)</th></tr>
+ <tr><td><div class="tooltip">201 <span class="tooltiptext">Chronic heart failure</span>
+</div>
+</td><td>NA</td></tr>
+ </table>
+
+<h3>KELA medicine purchases (ATC)</h3>
+<table border="1" cellspacing="0" cellpadding="1">
+ <tr><td><div class="tooltip">C03CA01 <span class="tooltiptext">C03C: High-ceiling diuretics<br>C03CA: Sulfonamides, plain<br>C03CA01: furosemide</span>
+</div>
+</td><td><div class="tooltip">C03EB01 <span class="tooltiptext"></span>
+</div>
+</td></tr>
+ </table>
+
+<address><br>Created by: Aki Havulinna, Tuomo Kiiskinen on 2018-12-04 21:35:42</address>
+ </body>
+ </html>

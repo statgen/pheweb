@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diabetic neuropathy</title>
+<style>.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+  }
+
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+      text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+      position: absolute;
+    z-index: 1;
+    top: -5px;
+    left: 105%;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }</style>
+</head>
+<body>
+<br>
+<h1>Diabetic neuropathy (ICD-10: E1[0-4]4|G590E104|G590G114|G990E1[0-1]4|G730E1[0-1]4|G632E1[0-1]4)</h1>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ENDPOINT</th><th>EXCLUDE</th></tr>
+<tr><td>DM_NEUROPATHY</td><td><a href="DM_COMORB.html">DM_COMORB</a></td></tr>
+</table>
+
+<p><br>
+
+<table border="1" cellspacing="0" cellpadding="1">
+ <tr><td><a href="TAG_DIAB.html">#DIAB
+</a>
+</td><td>Diabetes endpoints</td></tr>
+ </table>
+
+<p>Includes:
+ <p><a href="DM_MONONEURO.html">DM_MONONEURO</a>, <a href="DM_POLYNEURO.html">DM_POLYNEURO</a>, <a href="DM_AMYOTROPHY.html">DM_AMYOTROPHY</a>, <a href="DM_AUTONOMIC.html">DM_AUTONOMIC</a>
+<h3>Hospital discharges and causes of deaths</h3>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ICD-10</th><th>ICD-9</th><th>ICD-8</th></tr>
+ <tr><td><div class="tooltip">E1[0-4]4 <span class="tooltiptext">E104+: Insulin-dependent diabetes mellitus - With neurological complications<br>E114+: Non-insulin-dependent diabetes mellitus - With neurological complications<br>E124+: Malnutrition-related diabetes mellitus - With neurological complications<br>E134+: Other specified diabetes mellitus - With neurological complications<br>E144+: Unspecified diabetes mellitus - With neurological complications</span>
+</div>
+</td><td><div class="tooltip">2505 <span class="tooltiptext">2505A: NEUROPATHIA DIABETICA,TYYPPI II<br>2505B: NEUROPATHIA DIABETICA,TYYPPI I<br>2505C: NEUROPATHIA DIABETIC,MODY<br>2505X: NEUROPATHIA DIABETICA,NUD</span>
+</div>
+</td><td><div class="tooltip">25005 <span class="tooltiptext">25005: Diabetes mellitus/Neuropathia diabetica / Polyneuritis diabetica</span>
+</div>
+</td></tr>
+ </table>
+
+<address><br>Created by: Aki Havulinna, Tuomo Kiiskinen on 2018-12-04 21:35:43</address>
+ </body>
+ </html>

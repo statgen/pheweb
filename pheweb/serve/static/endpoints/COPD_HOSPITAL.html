@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COPD, hospital admissions</title>
+<style>.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+  }
+
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+      text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+      position: absolute;
+    z-index: 1;
+    top: -5px;
+    left: 105%;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }</style>
+</head>
+<body>
+<br>
+<h1>COPD, hospital admissions (ICD-10: J44)</h1>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ENDPOINT</th><th>EXCLUDE</th></tr>
+<tr><td>COPD_HOSPITAL</td><td>&lt;CASES&gt;</td></tr>
+</table>
+
+<p><br>
+
+<table border="1" cellspacing="0" cellpadding="1">
+ <tr><td><a href="TAG_COPD.html">#COPD
+</a>
+</td><td>COPD and related endpoints</td></tr>
+ </table>
+
+<h3>Hospital discharges</h3>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ICD-10</th><th>ICD-9</th><th>ICD-8</th></tr>
+ <tr><td><div class="tooltip">J44 <span class="tooltiptext">J44: Other chronic obstructive pulmonary disease</span>
+</div>
+</td><td><div class="tooltip">4912 <span class="tooltiptext">4912A: BRONCHITIS CHRONICA OBSTRUCTIVA<br>4912B: BRONCHITIS OBSTRUCTIVA CUM EMPHYSEMATE</span>
+</div>
+</td><td><div class="tooltip">49104 <span class="tooltiptext">49104: Bronchitis chronica/Cum emphysemate</span>
+</div>
+</td></tr>
+ </table>
+
+<address><br>Created by: Aki Havulinna, Tuomo Kiiskinen on 2018-12-04 21:35:40</address>
+ </body>
+ </html>

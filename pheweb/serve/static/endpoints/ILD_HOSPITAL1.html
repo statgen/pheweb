@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ILD, hospital admissions 1</title>
+<style>.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+  }
+
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+      text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+      position: absolute;
+    z-index: 1;
+    top: -5px;
+    left: 105%;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }</style>
+</head>
+<body>
+<br>
+<h1>ILD, hospital admissions 1 (ICD-10: J84)</h1>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ENDPOINT</th><th>EXCLUDE</th></tr>
+<tr><td>ILD_HOSPITAL1</td><td>&lt;CASES&gt;</td></tr>
+</table>
+
+<p><br>
+
+<table border="1" cellspacing="0" cellpadding="1">
+ <tr><td><a href="TAG_ILD.html">#ILD
+</a>
+</td><td>Interstitial lung disease endpoints</td></tr>
+ </table>
+
+<h3>Hospital discharges</h3>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ICD-10</th><th>ICD-9</th><th>ICD-8</th></tr>
+ <tr><td><div class="tooltip">J84 <span class="tooltiptext">J84: Other interstitial pulmonary diseases</span>
+</div>
+</td><td><div class="tooltip">515|516 <span class="tooltiptext">515: FIBROSIS PULMONUM E CAUSA IGNOTA<br>516: ALII MORBI ALVEOLARIS PULMONUM</span>
+</div>
+</td><td><div class="tooltip">48499|51701 <span class="tooltiptext">48499: Pneumonia acuta interstitialis/NA<br>51701: Alia pneumonia chronica interstitialis/Fibrosis interstitialis diffusa pulmonum essentialis (Hamman-Rich)</span>
+</div>
+</td></tr>
+ </table>
+
+<ul><li>Note: main diagnoses only=YES
+</ul>
+<address><br>Created by: Aki Havulinna, Tuomo Kiiskinen on 2018-12-04 21:36:06</address>
+ </body>
+ </html>
