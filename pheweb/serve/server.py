@@ -6,10 +6,12 @@ from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
 
+from .data_access.db import Variant 
+
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
-
+from flask.json import JSONEncoder
 from .reporting import Report
 
 import functools
@@ -22,9 +24,34 @@ import os.path
 from .data_access import DataFactory
 from concurrent.futures import ThreadPoolExecutor
 
+from .server_jeeves  import ServerJeeves
+
 from collections import defaultdict
 
 app = Flask(__name__)
+
+
+## allows debug statements in jinja
+@app.context_processor
+def utility_functions():
+    def print_in_console(message):
+        print(str(message))
+
+    return dict(mdebug=print_in_console)
+
+class FGJSONEncoder(JSONEncoder):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args,**kwargs)
+
+    def default(self,o):
+        try:
+            rep =o.json_rep()
+        except Exception as e:
+            pass
+        else:
+            return rep
+        return JSONEncoder.default(self, o)
+
 Compress(app)
 
 report = Report(app)
@@ -38,6 +65,7 @@ if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
 if 'SENTRY_DSN' in conf:
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
 app.config['PHEWEB_VERSION'] = pheweb_version
+app.json_encoder = FGJSONEncoder
 
 if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
@@ -53,8 +81,10 @@ ukbb_dao = dbs_fact.get_UKBB_dao()
 ukbb_matrixdao =dbs_fact.get_UKBB_dao(True)
 threadpool = ThreadPoolExecutor(max_workers=4)
 
+jeeves = ServerJeeves( conf )
+
 def variant_to_id(variant):
-    return "chr" + variant["chrom"] + ":" + str(variant["pos"]) + ":" + variant["ref"] + ":" + variant["alt"]
+    return variant["chrom"] + ":" + str(variant["pos"]) + ":" + variant["ref"] + ":" + variant["alt"]
 
 def check_auth(func):
     """
@@ -115,17 +145,11 @@ def api_variant(query):
 @check_auth
 def variant_page(query):
     try:
-        variant = get_variant(query)
-        varpheno = {}
-        var =":".join(["chr" + variant["chrom"],str(variant["pos"]),variant["ref"],variant["alt"]])
-        varpheno[var]=[]
-        phenos = [ p['phenocode'] for p in variant["phenos"]]
-        ukbb =ukbb_matrixdao.get_multiphenoresults({ var:phenos} )
-        if(len(ukbb[var])>0):
-            for p in variant["phenos"]:
-                if p['phenocode'] in ukbb[var]:
-                    p["ukbb"] = ukbb[var][p['phenocode']]
-
+        q=query.split("-")
+        if len(q)!=4:
+            die("Malformed variant query. Use chr-pos-ref-alt")
+        v = Variant(q[0],q[1],q[2], q[3])
+        variant = jeeves.get_single_variant_data(v)
         if variant is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
@@ -141,77 +165,14 @@ def variant_page(query):
 @check_auth
 def api_pheno(phenocode):
     try:
-        with open(common_filepaths['manhattan'](phenocode)) as f:
-            variants = json.load(f)
-        ids = [variant_to_id(x) for x in variants['unbinned_variants'] if 'peak' in x]
-        f_annotations = threadpool.submit(annotation_dao.get_variant_annotations, ids)
-        f_gnomad = threadpool.submit(gnomad_dao.get_variant_annotations, ids)
-        annotations = f_annotations.result()
-        gnomad = f_gnomad.result()
-        d = {i['id']: i['var_data'] for i in annotations}
-        gd = {i['id']: i['var_data'] for i in gnomad}
-
-
-        ukbbvars = ukbb_dao.get_matching_results(phenocode ,
-            list(map( lambda variant: ( "chr" + variant["chrom"], variant["pos"], variant["ref"], variant["alt"]), variants['unbinned_variants'])))
-        for variant in variants['unbinned_variants']:
-            if 'peak' in variant:
-                id = variant_to_id(variant)
-                if id in d:
-                    variant['annotation'] = d[id]
-                if id in gd:
-                    variant['gnomad'] = gd[id]
-
-                if id in ukbbvars:
-                    ## convert tuple to dict for jsonify to keep field dames
-                    variant['ukbb'] = ukbbvars[id]
-
-
-        return jsonify(variants)
+        return jsonify( jeeves.get_pheno(phenocode))
     except Exception as exc:
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
 
 @app.route('/api/gene_phenos/<gene>')
 @check_auth
 def api_gene_phenos(gene):
-        return jsonify(gene_phenos(gene))
-
-
-def gene_phenos(gene):
-    try:
-        gene = gene.upper()
-        gene_region_mapping = get_gene_region_mapping()
-        chrom, start, end = gene_region_mapping[gene]
-        start, end = pad_gene(start, end)
-        results = result_dao.get_variant_results_range(chrom, start, end)
-        ids = list(set([pheno['assoc']['id'] for pheno in results]))
-
-        varpheno = defaultdict(lambda: [])
-        for p in results:
-            var =p['assoc']['id']
-            varpheno[var].append( p['pheno']['phenocode'])
-
-        gnomad = gnomad_dao.get_variant_annotations(ids)
-        gd = {i['id']: i['var_data'] for i in gnomad}
-
-        ukbbs = ukbb_matrixdao.get_multiphenoresults(varpheno)
-        for pheno in results:
-            gnomad_id = pheno['assoc']['id'].replace('chr', '').replace(':', '-')
-
-            var = pheno['assoc']['id'].split(":")
-            var[1] = int(var[1])
-            #uk_var = ukbb_matrixdao.get_matching_results( pheno['pheno']['phenocode'], tuple(var) )
-            if pheno['assoc']['id'] in ukbbs and pheno['pheno']['phenocode'] in ukbbs[pheno['assoc']['id']]:
-                pheno['assoc']['ukbb'] = ukbbs[pheno['assoc']['id']][pheno['pheno']['phenocode']]
-
-            if pheno['assoc']['id'] in gd:
-                pheno['assoc']['gnomad'] = gd[pheno['assoc']['id']]
-
-
-        return results
-    except Exception as exc:
-        print(exc)
-        die('Oh no, something went wrong', exc)
+        return jsonify( jeeves.gene_phenos(gene) )
 
 @app.route('/api/gene_functional_variants/<gene>')
 @check_auth
@@ -219,7 +180,7 @@ def api_gene_functional_variants(gene):
     pThreshold=1.1
     if ('p' in request.args):
         pThreshold= float(request.args.get('p'))
-    annotations = gene_functional_variants(gene, pThreshold)
+    annotations = jeeves.gene_functional_variants(gene, pThreshold)
     return jsonify(annotations)
 
 @app.route('/api/lof')
@@ -341,7 +302,6 @@ def gene_phenocode_page(phenocode, genename):
                 'pheno': {k:v for k,v in phenos[pheno_in_gene['phenocode']].items() if k not in ['assoc_files', 'colnum']},
                 'assoc': {k:v for k,v in pheno_in_gene.items() if k != 'phenocode'},
             })
-        ## return functional variants for genes
 
         return render_template('gene.html',
                                pheno=pheno,
@@ -373,39 +333,35 @@ def gene_report(genename):
     phenos_in_gene = get_best_phenos_by_gene().get(genename, [])
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
-    func_vars = gene_functional_variants( genename,  conf.report_conf["func_var_assoc_threshold"])
+    func_vars = jeeves.gene_functional_variants( genename,  conf.report_conf["func_var_assoc_threshold"])
     funcvar = []
     chunk_size = 10
 
-    def formatukbb(resline):
+    def formatukbb(res):
         ukbline = ""
-        if('ukbb' in resline):
-            pval = float(resline['ukbb']['pval'])
-            beta = float(resline['ukbb']['beta'])
+        ukbdat = res.get_matching_result("ukbb")
+        if( ukbdat is not None):
+            pval = float( ukbdat["pval"] )
+            beta = float( ukbdat["beta"] )
             ukbline = " \\newline UKBB: " + (" $\\Uparrow$ " if beta>=0 else " $\Downarrow$ ") + ", p:" + "{:.2e}".format(pval)
         return ukbline
-
     for var in func_vars:
         i = 0
         while i < len(var["significant_phenos"]):
             phenos = var["significant_phenos"][i:min(i+chunk_size,len(var["significant_phenos"]))]
-            sigphenos = "\\newline \\medskip ".join( list(map(lambda x: x['pheno']['phenostring'] + " \\newline (OR:" + "{:.2f}".format( math.exp(x['assoc']['beta'])) + ",p:"  + "{:.2e}".format(x['assoc']['pval']) + ")" +  formatukbb(x) + " " , phenos)))
+            sigphenos = "\\newline \\medskip ".join( list(map(lambda x: x.phenostring + " \\newline (OR:" + "{:.2f}".format( math.exp(x.beta)) + ",p:"  + "{:.2e}".format(x.pval) + ")" +  formatukbb(x) + " " , phenos)))
             if i+chunk_size < len(var["significant_phenos"]):
                 sigphenos = sigphenos + "\\newline ..."
-            funcvar.append( { 'rsid': var["rsids"], 'variant':var['id'].replace(':', ' '), 'gnomad':var['gnomad'],
-                              "consequence": var["var_data"]["most_severe"].replace('_', ' ').replace(' variant', ''), 'nSigPhenos':len(var["significant_phenos"]), "maf": var["var_data"]["maf"], "info": var["var_data"]["info"] ,
+            funcvar.append( { 'rsid': var['var'].get_annotation('rsids'), 'variant':var['var'].id.replace(':', ' '), 'gnomad':var['gnomad']['var_data'],
+                              "consequence": var["var_data"]["most_severe"].replace('_', ' ').replace(' variant', ''), 'nSigPhenos':len(var["significant_phenos"]), "maf": var["var_data"]["AF"], "info": var["var_data"]["INFO"] ,
                               "sigPhenos": sigphenos })
             i = i + chunk_size
-
-    top_phenos = gene_phenos(genename)
-    top_assoc = [ {**assoc["assoc"], **assoc["pheno"] } for assoc in top_phenos if assoc["assoc"]["pval"]<  conf.report_conf["gene_top_assoc_threshold"]  ]
-
+    top_phenos = jeeves.gene_phenos(genename)
+    top_assoc = [ assoc for assoc in top_phenos if assoc["assoc"].pval<  conf.report_conf["gene_top_assoc_threshold"]  ]
     for assoc in top_assoc:
-        assoc['ukbbdisplay'] = formatukbb(assoc)
-
+        assoc['ukbbdisplay'] = formatukbb(assoc['assoc'])
     gi_dao = dbs_fact.get_geneinfo_dao()
     genedata = gi_dao.get_gene_info(genename)
-
     gene_region_mapping = get_gene_region_mapping()
     chrom, start, end = gene_region_mapping[genename]
 
@@ -414,7 +370,6 @@ def gene_report(genename):
     pdf =  report.render_template('gene_report.tex',imp0rt = importlib.import_module,
                                   gene=genename, functionalVars=funcvar, topAssoc=top_assoc, geneinfo=genedata, knownhits=knownhits, drugs=drugs,
                                   gene_top_assoc_threshold=conf.report_conf["gene_top_assoc_threshold"], func_var_assoc_threshold=conf.report_conf["func_var_assoc_threshold"] )
-
     response = make_response( pdf.readb())
     response.headers.set('Content-Disposition', 'attachment', filename=genename + '_report.pdf')
     response.headers.set('Content-Type', 'application/pdf')

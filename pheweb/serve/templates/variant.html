@@ -8,16 +8,11 @@
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
   window.var_top_pheno_export_fields = {{ var_top_pheno_export_fields|tojson }};
   window.vis_conf = {{ vis_conf|tojson|safe }};
+  console.log(variant)
+   $('#annotation').html('<span><strong>{MS}</strong>, info: {INFO}</span>'
+                           .replace('{MS}',variant.annotation.most_severe.replace(/_/g, ' '))
+                           .replace('{INFO}', variant.annotation.INFO.toPrecision(3)))
 
-  $.getJSON("/api/variant_annotation/" + window.variant.chrom + "-" + window.variant.pos + "-" + window.variant.ref + "-" + window.variant.alt)
-  .done(function(data) {
-    $('#annotation').html('<span><strong>{MS}</strong>, info: {INFO}</span>'
-                           .replace('{MS}', data.most_severe.replace(/_/g, ' '))
-                           .replace('{INFO}', data.info.toPrecision(3)))
-  })
-  .fail(function() {
-    console.log("Manhattan XHR failed");
-  });
 </script>
 <script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/locuszoom-0.5.6.vendor.min.js') }}" type="text/javascript"></script>
@@ -39,11 +34,11 @@
 <div class="row">
     <div class="variant-info col-xs-12">
         <h1 style="margin-top:0">
-          {{ variant.variant_name }}
-          {% if variant.rsids %}({{ variant.rsids }}){% endif %}
+          {{ variant.var.id }}
+          {% if variant.annotation.rsids %}({{ variant.annotation.rsids }}){% endif %}
         </h1>
         <p>Nearest gene:
-          {% with genes = variant.nearest_genes.split(",") %}
+          {% with genes = variant.annotation.nearest_genes.split(",") %}
           {% for gene in genes %}
           <a style="color:black" href="/gene/{{ gene }}">{{ gene }}</a>{% if not loop.last %} , {% endif %}
           {% endfor %}
@@ -51,9 +46,10 @@
         </p>
         <p id="annotation"></p>
         <span id="maf-range"></span>
+        <span id="info-range"></span>
 {#        {% if variant.ac %}<p>AC: {{ variant.ac }}</p>{% endif %} #}
         <p>View on
-          <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>
+          <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.var.chrom }}%3A{ variant.pos }}-{{ variant.var.pos }}&position=chr{{ variant.var.chrom }}%3A{{ variant.var.pos - 200000 }}-{{ variant.var.pos + 200000 }}">UCSC</a>
           {% with rsids = (variant.rsids.split(',') if variant.rsids else []) %}
             {% if rsids|length == 1 %}
               , <a href="https://www.ebi.ac.uk/gwas/search?query={{ rsids[0] }}">GWAS Catalog</a>
@@ -116,6 +112,19 @@
     </a>
 </div>
 
+<script type="text/template" id="info-tooltip-template">
+  <table>
+    <%= Object.keys(v.annotation)
+    .filter(function(key) {
+      return key.indexOf('INFO_') === 0
+    }).map(function(key) {
+      return '<tr><td style=\'text-align: right; padding-right: 10px;\'>' + v.annotation[key].toPrecision(3) + '</td>' +
+        '<td nowrap style=\'text-align: left;\'>' + key.replace(/info_|_r1/g, '') + '</td></tr>'
+    }).join('')
+    %>
+  </table>
+</script>
+
 <!--
 <script type="text/template" id="tooltip-template">
 
@@ -167,15 +176,15 @@ OR: <%= d.or.toExponential(1) %><br>
     <td style="width:15%"><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
     <td style="width: 6%"><%= d.beta ? (d.beta.toPrecision(2) + (d.sebeta ? " (" + d.sebeta.toPrecision(2) + ")" : "")) : "" %></td>
     <td style="width: 6%"><%= d.pval ? d.pval.toExponential(1) : "" %></td>
-    <td style="width: 6%"><% if (d.num_cases) { %>
-      <%= d.num_cases %> / <%= d.num_controls %>
+    <td style="width: 6%"><% if (d.n_case) { %>
+      <%= d.n_case %> / <%= d.n_control %>
       <% } else if (d.num_samples) { %>
       <%= d.num_samples %>
       <% } %>
     </td>
 
-    <td style="width: 6%"> <%= (d.ukbb?_.template($('#beta-template-dir').html())({assoc: d.ukbb}):"NA") %> </td>
-    <td style="width: 6%"> <%= (d.ukbb? d.ukbb.n_cases + " / " + d.ukbb.n_controls :"NA") %> </td>
+    <td style="width: 6%"> <%= (d.matching_results.ukbb?_.template($('#beta-template-dir').html())({assoc: d.matching_results.ukbb}):"NA") %> </td>
+    <td style="width: 6%"> <%= (d.matching_results.ukbb? d.matching_results.ukbb.n_cases + " / " + d.matching_results.ukbb.n_controls :"NA") %> </td>
 
   </tr>
 </script>

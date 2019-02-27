@@ -503,7 +503,7 @@ def _ensure_conf():
     conf.set_default_value("var_top_pheno_export_fields", ["beta","category",
     "maf","maf_cases","maf_controls","num_cases","num_controls","phenocode","phenostring","pval","sebeta","phewas_code",
     "phewas_string","category_name"]  )
-    conf.set_default_value("gene_pheno_export_fields", ["assoc.id", "assoc.pval", "assoc.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring"])
+    conf.set_default_value("gene_pheno_export_fields", ["assoc.variant.id", "assoc.pval","assoc.beta","assoc.variant.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring"])
     conf.set_default_value("drug_export_fields", ["drug.molecule_name", "drug.molecule_type", "evidence.target2drug.action_type", "disease.efo_info.label", "evidence.drug2clinic.max_phase_for_disease.label", "drug.id"])
     conf.set_default_value("lof_export_fields", ["pheno", "variants", "p_value", "beta", "ref_alt_cases", "ref_alt_ctrls"])
 

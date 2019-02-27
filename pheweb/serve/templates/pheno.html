@@ -133,7 +133,56 @@
     <h5 class="pull-right"><div id="streamtable-found" class="label label-primary"></div></h5>
   </div>
 </div>
-<div class="row stream_table_row">
+<div class="row strfrom ..utils import get_phenolist, get_gene_tuples, pad_gene
+from ..conf_utils import conf
+from ..file_utils import common_filepaths
+from .server_utils import get_variant, get_random_page, get_pheno_region
+from .autocomplete import Autocompleter
+from .auth import GoogleSignIn
+from ..version import version as pheweb_version
+
+from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
+from flask_compress import Compress
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
+from flask.json import JSONEncoder
+from .reporting import Report
+
+import functools
+import importlib
+import re
+import math
+import traceback
+import json
+import os.path
+from .data_access import DataFactory
+from concurrent.futures import ThreadPoolExecutor
+
+from .server_jeeves  import ServerJeeves
+
+from collections import defaultdict
+
+app = Flask(__name__)
+
+
+class FGJSONEncoder(JSONEncoder):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args,**kwargs)
+
+    def default(self,o):
+        try:
+            rep =o.json_rep()
+        except:
+            pass
+        else:
+            return rep
+        return JSONEncoder.default(self, o)
+
+Compress(app)
+
+report = Report(app)
+
+app.config['COMPRESS_LEVEL'] = 2 # Since we don't cache, faster=better
+app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'eam_table_row">
   <div class="col-xs-12">
     <table id="stream_table" class="table table-striped table-bordered">
       <thead>
@@ -199,7 +248,7 @@
   <table>
     <%= Object.keys(v.annotation)
     .filter(function(key) {
-      return key.indexOf('info_') === 0
+      return key.indexOf('INFO_') === 0
     }).map(function(key) {
       return '<tr><td style=\'text-align: right; padding-right: 10px;\'>' + v.annotation[key].toPrecision(3) + '</td>' +
         '<td nowrap style=\'text-align: left;\'>' + key.replace(/info_|_r1/g, '') + '</td></tr>'
@@ -267,8 +316,8 @@
   <td style="width: 6%;">
     <%= (v.most_severe)? v.most_severe : "" %>
   </td>
-  <td class="info-score" style="width: 6%;">
-    <%= (v.annotation)? v.annotation.info.toPrecision(3) : "" %>
+  <td class="info-score" style="width: 6%;" title="<%= _.template($('#info-tooltip-template').html())({v:v}) %>" data-toggle="tooltip">
+    <%= (v.annotation)? v.annotation.INFO.toPrecision(3) : "" %>
   </td>
   <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: v}) %>" data-toggle="tooltip">
     <%= (v.fin_enrichment)? $.isNumeric(v.fin_enrichment) ? v.fin_enrichment.toPrecision(3) : v.fin_enrichment : "" %>

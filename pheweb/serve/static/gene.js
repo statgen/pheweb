@@ -3,6 +3,7 @@
 function populate_variant_streamtable(data) {
 
     // data = _.sortBy(data, _.property('pval'));
+    //
     var template = _.template($('#streamtable-functional-variants-template').html());
     var view = function(v) {
         return template({v: v});
@@ -47,7 +48,6 @@ function populate_variant_streamtable(data) {
     $("<style type='text/css'> .functional-pagination { display: None }</style>").appendTo("head");
     options.pagination.next_text = "";
     options.pagination.prev_text = "";
-
     $('#stream_table_functional_variants').stream_table(options, data);
 
     if (window.stream_table_sortingFunc) {
@@ -133,7 +133,7 @@ function populate_streamtable(data) {
 	    item.pheno.phenocode,
 	    item.pheno.phenostring,
 	    item.pheno.category,
-	    item.assoc.rsid
+	    item.variant.rsids
 	].join(' ')
     }
     var callbacks = {
@@ -173,7 +173,6 @@ function populate_streamtable(data) {
         },
 	fields: fields
     }
-
     $('#stream_table').stream_table(options, data);
     if (window.stream_table_sortingFunc) {
 	$('#stream_table').data('st')._sortingFunc = window.stream_table_sortingFunc
@@ -225,14 +224,14 @@ $(function () {
 
       sTableData.forEach( function(variant) {
 	  if (variant.significant_phenos.length === 0) {
-	      csv += [variant.id, variant.rsids, variant.info, variant.most_severe,
-		      variant.gnomad.AF_FIN, variant.gnomad.AF_NFE,
+	      csv += [variant.var.id, variant.var.rsids, variant.var_data.info, variant.var_data.most_severe,
+		      variant.gnomad.var_data.AF_FIN, variant.gnomad.var_data.AF_NFE,
 		      '', '', '', '', '', '', '', ''].join( colDelim ) + rowDelim
 	  } else {
               variant.significant_phenos.forEach( function(assoc, idx) {
-		  csv += [variant.id, variant.rsids, variant.info, variant.most_severe, variant.gnomad.AF_FIN, variant.gnomad.AF_NFE,
-			  assoc.pheno.phenostring, assoc.pheno.num_cases, assoc.pheno.num_controls, assoc.assoc.maf, assoc.assoc.maf_case,
-			  assoc.assoc.maf_control,  Math.exp( assoc.assoc.beta ), assoc.assoc.pval.toExponential()].join( colDelim ) + rowDelim
+		  csv += [variant.var.id, variant.var.rsids, variant.var_data.info, variant.var_data.most_severe, variant.gnomad.var_data.AF_FIN, variant.gnomad.var_data.AF_NFE,
+			  assoc.phenostring, assoc.num_cases, assoc.num_controls, assoc.maf_case,
+			  assoc.maf_control,  Math.exp( assoc.beta ), assoc.pval.toExponential()].join( colDelim ) + rowDelim
               } )
 	  }
       } )

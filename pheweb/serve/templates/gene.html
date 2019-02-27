@@ -235,34 +235,31 @@
 </script>
 
 
-
-
-
 <script type="text/template" id="streamtable-template">
   <% if (p.pheno.phenocode === pheno.phenocode) { %>
   <tr style="background-color:rgb(247,245,230)">
-    <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(p.assoc.id) %>">
-  	<%= p.assoc.rsids ? p.assoc.rsids : (p.assoc.id.length > 20) ? p.assoc.id.substring(0, 17) + '...' : p.assoc.id %>
+    <td><a style="color:black" href="/variant/<%=  variant_id_to_pheweb_format(p.variant.id) %>">
+  	<%= p.variant.rsids ? p.variant.rsids : (p.variant.id.length > 20) ? p.variant.id.substring(0, 17) + '...' : p.variant.id %>
     </a></td>
-    <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: p.assoc}) %>" data-toggle="tooltip">
-      <%= (p.fin_enrichment)? $.isNumeric(p.fin_enrichment) ? p.fin_enrichment.toPrecision(3) : p.fin_enrichment : "" %>
+    {{ mdebug("any text or variable") }}    
+    <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: p.variant}) %>" data-toggle="tooltip">
+      <%= (p.variant.gnomad)? $.isNumeric(p.variant.gnomad.AF_FIN) ? (p.variant.gnomad.AF_FIN/p.variant.gnomad.AF_NFE).toPrecision(3) : "" : "" %>
     </td>
     <td><%= p.pheno.phenostring || p.pheno.phenocode %></td>
     <td><%= p.pheno.category || 'Unknown' %></td>
     <td><%= _.template($('#beta-template-dir').html())({assoc: p.assoc}) + Math.exp(p.assoc.beta).toFixed(2) %></td>
     <td><%= p.assoc.pval.toExponential(1) %></td>
     <td style="text-align: right;"><%= p.pheno.num_cases %></td>
-    <td><%= p.assoc.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.ukbb}) + '<span>' + Number(p.assoc.ukbb.pval).toExponential(1) + '</span>'  : 'NA' %></td>
-    <td><%= p.assoc.ukbb ? p.assoc.ukbb.n_cases:"NA"  %></td>
-
+    <td><%= p.assoc.matching_results.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.matching_results.ukbb}) + '<span>' + Number(p.assoc.matching_results.ukbb.pval).toExponential(1) + '</span>'  : 'NA' %></td>
+    <td><%= p.assoc.matching_results.ukbb ? p.assoc.matching_results.ukbb.n_cases:"NA"  %></td>
   </tr>
   <% } else { %>
   <tr>
-    <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(p.assoc.id) %>">
-    	<%= p.assoc.rsids ? p.assoc.rsids : (p.assoc.id.length > 20) ? p.assoc.id.substring(0, 17) + '...' : p.assoc.id %>
+    <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(p.variant.id) %>">
+    	<%= p.variant.rsids ? p.variant.rsids: (p.variant.id.length > 20) ? p.variant.id.substring(0, 17) + '...' : p.variant.id %>
     </a></td>
-    <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: p.assoc}) %>" data-toggle="tooltip">
-      <%= (p.fin_enrichment)? $.isNumeric(p.fin_enrichment) ? p.fin_enrichment.toPrecision(3) : p.fin_enrichment : "" %>
+    <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: p.variant}) %>" data-toggle="tooltip">
+      <%= (p.variant.gnomad )? $.isNumeric( p.variant.gnomad.AF_FIN ) ? (p.variant.gnomad.AF_FIN/p.variant.gnomad.AF_NFE).toPrecision(3) : "" : "" %>
     </td>
     <td><a style="color:black" href="/region/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>">
           <%= p.pheno.phenostring || p.pheno.phenocode %>
@@ -271,9 +268,8 @@
     <td><%= _.template($('#beta-template-dir').html())({assoc: p.assoc}) +  Math.exp(p.assoc.beta).toPrecision(2) %></td>
     <td><%= p.assoc.pval.toExponential(1) %></td>
     <td style="text-align: right;"><%= p.pheno.num_cases %></td>
-    <td><%= p.assoc.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.ukbb}) + '<span>p:' + Number(p.assoc.ukbb.pval).toExponential(1) +'</span>' : 'NA' %></td>
-    <td><%= p.assoc.ukbb ? p.assoc.ukbb.n_cases:"NA"  %></td>
-
+    <td><%= p.assoc.matching_results.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.matching_results.ukbb}) + '<span>p:' + Number(p.assoc.matching_results.ukbb.pval).toExponential(1) +'</span>' : 'NA' %></td>
+    <td><%= p.assoc.matching_results.ukbb ? p.assoc.matching_results.ukbb.n_cases:"NA"  %></td>
   </tr>
   <% } %>
 </script>
@@ -292,27 +288,27 @@
 
 <script type="text/template" id="streamtable-functional-variants-template">
   <tr>
-    <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(v.id) %>">
-	<%= v.rsids || v.id %>
+    <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(v.var.id) %>">
+	<%= v.var.rsids || v.var.id %>
     </a></td>
     <td><%= v.most_severe.replace(/_/g, ' ').replace(' variant', '') %></td>
-    <td><%= v.info.toPrecision(3) %></td>
+    <td><%= Number(v.var_data.INFO).toPrecision(3) %></td>
     <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: v}) %>" data-toggle="tooltip">
-      <%= (v.fin_enrichment)? $.isNumeric(v.fin_enrichment) ? v.fin_enrichment.toPrecision(3) : v.fin_enrichment : "" %>
+      <%= (v.gnomad.var_data.AF_FIN)? $.isNumeric(v.gnomad.var_data.AF_FIN) ? (v.gnomad.var_data.AF_FIN/v.gnomad.var_data.AF_NFE).toPrecision(3) : v.fin_enrichment : "" %>
     </td>
-    <td><%= v.maf < 0.01 ? v.maf.toExponential(1) : v.maf.toPrecision(2) %></td>
+    <td><%= v.var_data.AF < 0.01 ?  v.var_data.AF.toExponential(1) :  v.var_data.AF.toPrecision(2) %></td>
     <td><table> <%= v.significant_phenos
-	    .sort(function(pheno1, pheno2) { return pheno1.assoc.pval - pheno2.assoc.pval })
+	    .sort(function(pheno1, pheno2) { return pheno1.pval - pheno2.pval })
 	    .map(function(pheno) {
-            return '<tr class="gene_func_var_tab"> <tr> <td class="gene_func_var_row" width="100px"> OR ' + _.template($('#beta-template-dir').html())({assoc:pheno.assoc}) + Math.exp(pheno.assoc.beta).toPrecision(2) + '<br> p-val ' + pheno.assoc.pval.toExponential(1) +
-                ' </td> <td> <a style="color:black" href="/pheno/' + pheno.pheno.phenocode + '">' + pheno.pheno.phenostring + ' </td> </tr>'
+            return '<tr class="gene_func_var_tab"> <tr> <td class="gene_func_var_row" width="100px"> OR ' + _.template($('#beta-template-dir').html())({assoc:pheno}) + Math.exp(pheno.beta).toPrecision(2) + '<br> p-val ' + pheno.pval.toExponential(1) +
+                ' </td> <td> <a style="color:black" href="/pheno/' + pheno.phenocode + '">' + pheno.phenostring + ' </td> </tr>'
 	    }).join(" ") %>
         </table>
     </td>
     <td><table> <%= v.significant_phenos
-	    .sort(function(pheno1, pheno2) { return pheno1.assoc.pval - pheno2.assoc.pval })
+	    .sort(function(pheno1, pheno2) { return pheno1.pval - pheno2.pval })
 	    .map(function(pheno) {
-            return '<tr class="gene_func_var_tab"> <tr> <td class="gene_func_var_row" width="100px">' + (pheno.ukbb ? _.template($('#beta-template-dir').html())({assoc:pheno.ukbb}) + '<span>p:' + Number(pheno.ukbb.pval).toExponential(1) + '</span>':"NA" ) +
+            return '<tr class="gene_func_var_tab"> <tr> <td class="gene_func_var_row" width="100px">' + (pheno.matching_results.ukbb ? _.template($('#beta-template-dir').html())({assoc:pheno.matching_results.ukbb}) + '<span>p:' + Number(pheno.matching_results.ukbb.pval).toExponential(1) + '</span>':"NA" ) +
                 ' </td> </tr>'
 	    }).join(" ") %>
         </table>
