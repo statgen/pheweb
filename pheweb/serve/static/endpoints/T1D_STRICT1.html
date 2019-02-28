@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Type 1 diabetes, strict definition, subgroup 1</title>
+<style>.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+  }
+
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+      text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+      position: absolute;
+    z-index: 1;
+    top: -5px;
+    left: 105%;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }</style>
+</head>
+<body>
+<br>
+<h1>Type 1 diabetes, strict definition, subgroup 1 (ICD-10: E10)</h1>
+<table border="1" cellspacing="0" cellpadding="1">
+<tr><th>ENDPOINT</th><th>EXCLUDE</th><th>CONDITIONS</th></tr>
+<tr><td>T1D_STRICT1</td><td><a href="DIABETES_FG.html">DIABETES_FG</a></td><td>!PANCREATITIS&EVENT_AGE<40</td></tr>
+</table>
+
+<p><br>
+
+<table border="1" cellspacing="0" cellpadding="1">
+ <tr><td><a href="TAG_DIAB.html">#DIAB
+</a>
+</td><td>Diabetes endpoints</td></tr>
+ </table>
+
+<p>Preconditions: EVENT_AGE<40
+<p>Conditions: !E4_DM2&!PANCREATITIS&KELA_DIAB_INSUL&INSULIN_SHORTFAST&INSULIN_INTER_AND_LONG
+<p>Includes:
+ <p><a href="T1D_ICD9_10.html">T1D_ICD9_10</a>
+<address><br>Created by: Aki Havulinna, Tuomo Kiiskinen on 2018-12-04 21:35:42</address>
+ </body>
+ </html>

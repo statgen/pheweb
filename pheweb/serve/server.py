@@ -182,15 +182,19 @@ def api_lof():
             del lofs[i]
         else:
             lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
-    return jsonify(lofs)
+    return jsonify(sorted(lofs,  key=lambda lof: lof['gene_data']['p_value'])
 
 @app.route('/api/lof/<gene>')
 @check_auth
 def api_lof_gene(gene):
     lofs = lof_dao.get_lofs(gene)
+    lofs_use = []
     for lof in lofs:
-        lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
-    return jsonify(lofs)
+        if lof['gene_data']['pheno'] in phenos.keys():
+            lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
+            lof['gene_data']['beta'] = '{:.3f}'.format(float(lof['gene_data']['beta']))
+            lofs_use.append(lof)
+    return jsonify(lofs_use)
 
 @app.route('/api/top_hits.json')
 @check_auth

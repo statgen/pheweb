@@ -1,12 +1,16 @@
 FROM debian:latest
 
+ENV LC_CTYPE en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+
 ADD . /pheweb
 ADD dot_pheweb /root/.pheweb
 
 RUN apt-get update && \
     apt-get install python3-pip libffi-dev libz-dev libssl-dev  --yes && \
     pip3 install /pheweb
-   
+
 RUN apt-get install --no-install-recommends texlive --yes
 
 EXPOSE 8080

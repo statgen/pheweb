@@ -45,6 +45,13 @@
           {% endwith %}
         </p>
         <p id="annotation"></p>
+	{% if variant.anno %}
+	<p>INFO score: {{ variant.anno.var_data.info|round(3) }}</p>
+	<p>Most severe consequence: {{ variant.anno.var_data.most_severe.replace('_', ' ') }}</p>
+	{% endif %}
+	{% if variant.gnomad_str %}
+	<p>Allele frequencies in gnomAD genomes 2.0.2: {{ variant.gnomad_str }}</p>
+	{% endif %}
         <span id="maf-range"></span>
         <span id="info-range"></span>
 {#        {% if variant.annot.AC %}<p>AC: {{ variant.annot.AC }}</p>{% endif %} #}

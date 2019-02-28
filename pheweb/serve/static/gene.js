@@ -377,23 +377,24 @@ $(function() {
 		$('#drugs-container').css('display', 'block')
 	    }
 	})
-    // $.getJSON("/api/lof/" + window.gene_symbol)
-	// .done(function(data) {
-	//     if (data.length > 0) {
-	// 	data = data.map(function(r) { return r.gene_data })
-	// 	data.forEach(function(datum) {
-	// 	    datum.variants = datum.variants.split(',').map(function (variant) {
-	// 		    return variant.replace('chr', '').replace('_', ':').replace(/_/g, '-')
-	// 	    })
-	// 	    datum.ref_alt_cases = datum.ref_count_cases + '/' + datum.alt_count_cases
-	// 	    datum.ref_alt_ctrls = datum.ref_count_ctrls + '/' + datum.alt_count_ctrls
-	// 	})
-	// 	populate_lof_streamtable(data)
-	//     } else {
-	// 	$('#lof-container').html('<span>No high-confidence loss of function variants for ' + window.gene_symbol + '</span>')
-	// 	$('#lof-container').css('display', 'block')
-	//     }
-	// })
+    $.getJSON("/api/lof/" + window.gene_symbol)
+	.done(function(data) {
+	    console.log(data)
+	    if (data.length > 0) {
+		data = data.map(function(r) { return r.gene_data })
+		data.forEach(function(datum) {
+		    datum.variants = datum.variants.split(',').map(function (variant) {
+			    return variant.replace('chr', '').replace('_', ':').replace(/_/g, '-')
+		    })
+		    datum.ref_alt_cases = datum.ref_count_cases + '/' + datum.alt_count_cases
+		    datum.ref_alt_ctrls = datum.ref_count_ctrls + '/' + datum.alt_count_ctrls
+		})
+		populate_lof_streamtable(data)
+	    } else {
+		$('#lof-container').html('<span>No loss of function variants for ' + window.gene_symbol + '</span>')
+		$('#lof-container').css('display', 'block')
+	    }
+	})
     $.getJSON("/api/gene_functional_variants/" + window.gene_symbol + "?p=" + window.func_var_report_p_threshold )
 	.done(function(data) {
 	    data.forEach(function(variant){

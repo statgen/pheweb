@@ -1,16 +1,10 @@
 {
-    "pheweb_import.summaryfiles":"gs://r2_data/pheweb_files.txt",
-    "pheweb_import.docker": "gcr.io/finngen-refinery-dev/pheweb-import:r2_4",
-    "pheweb_import.disktype": "SSD",
+    "pheweb_import.summaryfiles":"gs://r2_data/pheweb_r2_phenos_update.txt",
+    "pheweb_import.docker": "gcr.io/finngen-refinery-dev/pheweb-import:r2_5",
 
     "pheweb_import.annotation.phenofile": "gs://finngen-cromwell-refinery/postscript/8bdd3fa7-1797-4e82-9c9e-4b24681abd7d/call-postscript_plot/shard-802/finngen-production-library-green/R2/summary_stats/I9_CVD.gz.pheweb",
-    "pheweb_import.annotation.cpu": 2,
-    "pheweb_import.annotation.mem": 7,
-    "pheweb_import.annotation.disk": 50,
 
-    "pheweb_import.pheno.preemptible": 0,
-
-    "pheweb_import.matrix.n_phenobatch": 25,
+    "pheweb_import.matrix.n_phenobatch": 20,
     "pheweb_import.matrix.cpu": 64,
     "pheweb_import.matrix.mem": 3,
     "pheweb_import.matrix.disk": 4000
