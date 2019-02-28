@@ -309,7 +309,7 @@ class DrugDao(DrugDB):
         dat = r.json()
         if len(dat)==0:
             return []
-        ensg = r.json()[0]['id']
+        ensg = dat[0]['id']
         drugfields = ['target.gene_info.symbol',
                       'target.target_class',
                       'evidence.target2drug.action_type',
