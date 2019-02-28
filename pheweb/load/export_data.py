@@ -2,7 +2,7 @@
 from ..file_utils import common_filepaths
 from ..conf_utils import conf
 from ..serve.server_jeeves import ServerJeeves
-from ..serve.server import FGJSONEncoder
+from ..serve.encoder import FGJSONEncoder
 #from flask.json import dump
 from json import dump
 
@@ -30,7 +30,6 @@ def run(argv):
 
     args = parser.parse_args(argv)
 
-    print("Initializing jeeves.")
     if args.gene_report:
         export_gene_reports(args, args.outpath)
 
@@ -50,12 +49,11 @@ def export_gene_reports(args, outpath):
         geneList = np.loadtxt(args.bed_file,dtype = str,usecols = (3,))
     else:
         geneList = np.loadtxt(common_filepaths['genes'],dtype = str,usecols = (3,))
-
+    
     print("Generating data for : {} genes".format( len(geneList) ))
 
     ### split input for n_cpus processing.
     multiprocessing.set_start_method("spawn")
-    random.shuffle(geneList) 
     processes = []
     chunksize = len(geneList) // args.n_cpus 
     for i in range(args.n_cpus):
@@ -85,6 +83,7 @@ def process_genes(genes,args, outpath):
     genes_done=0 
     jeeves = ServerJeeves(conf)
     print("Created jeeves for process {}".format(os.getpid()), file= process_log )
+    ten_start = time.time()
     for gene in genes:
         gene_f ="{}/{}_{}".format(outpath,gene,"_report_data.json")
         print("Processing gene {}".format(gene) )
@@ -131,10 +130,11 @@ def process_genes(genes,args, outpath):
         genes_done = genes_done +1
         
         if genes_done % 10 == 0:
-            print("{} genes done. Last 10 in {}".format(genes_done, time.time() - gene_start ), file=process_log )
+            print("{} genes done. Last 10 in {}".format(genes_done, time.time() - ten_start ), file=process_log )
+            ten_start = time.time()
 
 
-        print("Getting gene data for {} took {} seconds".format(gene, time.time()-begin))
+        print("Getting gene data for {} took {} seconds".format(gene, time.time()-begin), file=process_log)
         data = {"func_vars":func_vars, "gene_phenos":gene_phenos, "gene_lofs":gene_lofs, "gene_drugs":gene_drugs}
         with open(gene_f, 'wt') as f:
             dump(data, f, cls=FGJSONEncoder )

@@ -218,19 +218,19 @@ $(function () {
       var colDelim = '\t'
       var rowDelim = '\r\n'
 
-      var csv = ["var","rsid","info","consequence","gnomad.AF_FIN","gnomad.AF_NFE",
+      var csv = ["var","rsid","var.annot.INFO","consequence","gnomad.AF_FIN","gnomad.AF_NFE",
                  "pheno","num_cases","num_controls",
                     "maf_case","maf_control","OR","pval"].join(colDelim) + rowDelim
 
       sTableData.forEach( function(variant) {
 	  if (variant.significant_phenos.length === 0) {
-	      csv += [variant.var.id, variant.var.rsids, variant.var_data.info, variant.var_data.most_severe,
-		      variant.gnomad.var_data.AF_FIN, variant.gnomad.var_data.AF_NFE,
+	      csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe,
+		      variant.var.gnomad.AF_FIN, variant.var.gnomad.AF_NFE,
 		      '', '', '', '', '', '', '', ''].join( colDelim ) + rowDelim
 	  } else {
               variant.significant_phenos.forEach( function(assoc, idx) {
-		  csv += [variant.var.id, variant.var.rsids, variant.var_data.info, variant.var_data.most_severe, variant.gnomad.var_data.AF_FIN, variant.gnomad.var_data.AF_NFE,
-			  assoc.phenostring, assoc.num_cases, assoc.num_controls, assoc.maf_case,
+		  csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe, variant.var.gnomad.AF_FIN, variant.var.gnomad.AF_NFE,
+			  assoc.phenostring, assoc.n_case, assoc.n_control, assoc.maf_case,
 			  assoc.maf_control,  Math.exp( assoc.beta ), assoc.pval.toExponential()].join( colDelim ) + rowDelim
               } )
 	  }
@@ -396,10 +396,10 @@ $(function() {
 	// })
     $.getJSON("/api/gene_functional_variants/" + window.gene_symbol + "?p=" + window.func_var_report_p_threshold )
 	.done(function(data) {
-	    data.forEach(function(variant) {
-		variant.most_severe = variant.var_data.most_severe.replace(/_/g, ' ').replace(' variant', '')
-		variant.info = variant.var_data.info
-		variant.maf = variant.var_data.af < 0.5 ? variant.var_data.af : 1 - variant.var_data.af
+	    data.forEach(function(variant){
+		variant.most_severe = variant.var.annot.most_severe.replace(/_/g, ' ').replace(' variant', '')
+		variant.info = variant.var.annot.INFO
+		variant.maf = variant.var.annot.AF < 0.5 ? variant.var.annot.af : 1 - variant.var.annot.AF
 		gnomadize(variant)
 	    })
 	    populate_variant_streamtable(data)

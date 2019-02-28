@@ -1,4 +1,5 @@
 from .data_access import DataFactory
+        ionsole.log(data)
 from .data_access.db import Variant, PhenoResult
 from concurrent.futures import ThreadPoolExecutor
 from ..utils import get_phenolist, get_gene_tuples, pad_gene
@@ -8,6 +9,8 @@ import traceback
 import time
 from ..file_utils import common_filepaths
 import json
+
+from typing import List, Tuple
 
 class ServerJeeves(object):
     '''
@@ -41,7 +44,7 @@ class ServerJeeves(object):
         chrom,start,end = self.get_gene_region_mapping()[gene]
         startt = time.time()
         ## if there are not many functional variants and gene is large it is better to get them one by one 
-        results = self.result_dao.get_variant_results( func_var_annot )
+        results = self.result_dao.get_variants_results( func_var_annot )
         print(" gene variant results for func annot n={} took {}".format(len(func_var_annot),time.time()-startt) )
 
         res_indx = { v:(v,p) for v,p in results }
@@ -71,7 +74,6 @@ class ServerJeeves(object):
         
         vars = [v["var"] for v in func_var_annot]
         startt = time.time()
-        print("getting gnomad")
         gnomad = self.gnomad_dao.get_variant_annotations(vars)
         print(" gnomad took {}".format( time.time()-startt) )
 
@@ -84,17 +86,14 @@ class ServerJeeves(object):
         return func_var_annot
 
     def gene_phenos(self, gene):
-        print('jeevesing {}'.format(gene))
         gene = gene.upper()
         gene_region_mapping = self.get_gene_region_mapping()
 
         if gene not in gene_region_mapping:
-            print("its not in mapping!!!!!")
             return []
         chrom, start, end = gene_region_mapping[gene]
         start, end = pad_gene(start, end)
         starttime = time.time()
-        print("getting top phenos:")
         results = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)
         print("get top per pheno variants  took {} seconds".format(time.time()-starttime))
         vars = list(set([pheno['variant'] for pheno in results]))
@@ -112,7 +111,7 @@ class ServerJeeves(object):
         gd = { g['variant']:g['var_data'] for g in gnomad}
         starttime = time.time()
         ukbbs = self.ukbb_matrixdao.get_multiphenoresults(varpheno, known_range=(chrom,start,end))
-        print("UKB fetching for {} variants took {}".format( len( list(varpheno.keys()) ),time.time()-starttim) )
+        print("UKB fetching for {} variants took {}".format( len( list(varpheno.keys()) ),time.time()-starttime) )
         for pheno in results:
             if pheno['variant'] in ukbbs and pheno['assoc'].phenocode in ukbbs[pheno['variant']]:
                 pheno['assoc'].add_matching_result('ukbb', ukbbs[pheno['variant']][pheno['assoc'].phenocode])
@@ -149,34 +148,43 @@ class ServerJeeves(object):
         f_gnomad = self.threadpool.submit( self.gnomad_dao.get_variant_annotations, vars)
         annotations = f_annotations.result()
         gnomad = f_gnomad.result()
-        d = { v["variant"]:v['var_data']  for v in annotations }
-        gd = { v['variant']:v['var_data'] for v in gnomad}
+        d = { v:v  for v in annotations }
+        # TODO... refactor gnomaddao to behave similary as annotation dao i.e. returning stuff as Variant annotations.
+        gd = { v["variant"]:v["var_data"] for v in gnomad}
 
         ukbbvars = self.ukbb_dao.get_matching_results(phenocode, vars)
-
+         
         for variant in variants['unbinned_variants']:
-            if 'peak' in variant:
-                ## TODO remove chr dickery when new annots ready
-                chrom =  variant['chrom'].replace("chr","").replace('X','23').replace('Y','24').replace("MT","25")
-                v = Variant( chrom, variant['pos'], variant['ref'], variant['alt'])
-                if v in d:
-                    variant['annotation'] = d[v]
-                if v in gd:
-                    variant['gnomad'] = gd[v]
+            ## TODO remove chr dickery when new annots ready
+            
+            chrom =  variant['chrom'].replace("chr","").replace('X','23').replace('Y','24').replace("MT","25")
+            v = Variant( chrom, variant['pos'], variant['ref'], variant['alt'])
+            if v in d:
+                variant['annotation'] = d[v].get_annotations()["annot"]
+            if v in gd:
+                variant['gnomad'] = gd[v]
 
-                if v in ukbbvars:
-                    variant['ukbb'] = ukbbvars[v]
-
+            if v in ukbbvars:
+                variant['ukbb'] = ukbbvars[v]
         return variants
 
-    def get_single_variant_data(self, variant: Variant):
-        r = self.result_dao.get_variant_results(variant)
-        annot = self.annotation_dao.get_variant_annotations([variant])
+    def get_single_variant_data(self, variant: Variant)-> Tuple[Variant, List[PhenoResult]]:
+        """
+            Returns association results and basic annotations for a single variant. Returns tuple with variant and phenoresults.
+        """
+
+        ## TODO.... would be better to just return the results but currently rsid and nearest genes are stored alongside the result
+        ## chaining variants like thise retains all the existing annotations.
+        r = self.result_dao.get_single_variant_results(variant)
+        v_annot = self.annotation_dao.get_single_variant_annotations(r[0])
 
         if r is not None:
-            var = r[0]
-            annot[0]['var_data']['rsids'] = var.get_annotation("rsids")
-            annot[0]['var_data']['nearest_genes'] = var.get_annotation("nearest_gene")
+            if v_annot is None:
+                ## no annotations found even results were found. Should not happen except if the results and annotation files are not in sync
+                print("Error! Variant results for {} found but no basic annotation!")
+                var = r[0]
+            else:
+                var = v_annot
             phenos = [ p.phenocode for p in r[1]]
             ukb = self.ukbb_matrixdao.get_multiphenoresults( {variant:phenos} )
             if var in ukb:
@@ -184,9 +192,9 @@ class ServerJeeves(object):
                 for res in r[1]:
                     if res.phenocode in ukb_idx:
                         res.add_matching_result('ukbb',ukb[var][res.phenocode])
+            return (var,r[1])
         else:
             return None
-        return {"var":r[0],"annotation":annot[0]['var_data'],"results":r[1]}
 
     @functools.lru_cache(None)
     def get_gene_region_mapping(self):

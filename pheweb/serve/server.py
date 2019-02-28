@@ -11,7 +11,6 @@ from .data_access.db import Variant
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
-from flask.json import JSONEncoder
 from .reporting import Report
 
 import functools
@@ -27,7 +26,7 @@ from concurrent.futures import ThreadPoolExecutor
 from .server_jeeves  import ServerJeeves
 
 from collections import defaultdict
-
+from .encoder import FGJSONEncoder
 app = Flask(__name__)
 
 
@@ -38,19 +37,6 @@ def utility_functions():
         print(str(message))
 
     return dict(mdebug=print_in_console)
-
-class FGJSONEncoder(JSONEncoder):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args,**kwargs)
-
-    def default(self,o):
-        try:
-            rep =o.json_rep()
-        except Exception as e:
-            pass
-        else:
-            return rep
-        return JSONEncoder.default(self, o)
 
 Compress(app)
 
@@ -149,11 +135,12 @@ def variant_page(query):
         if len(q)!=4:
             die("Malformed variant query. Use chr-pos-ref-alt")
         v = Variant(q[0],q[1],q[2], q[3])
-        variant = jeeves.get_single_variant_data(v)
-        if variant is None:
+        variantdat = jeeves.get_single_variant_data(v)
+        if variantdat is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
-                               variant=variant,
+                               variant=variantdat[0],
+                               results=variantdat[1],
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
                                var_top_pheno_export_fields=conf.var_top_pheno_export_fields,
                                vis_conf=conf.vis_conf
@@ -187,8 +174,14 @@ def api_gene_functional_variants(gene):
 @check_auth
 def api_lof():
     lofs = lof_dao.get_all_lofs(conf.lof_threshold)
-    for lof in lofs:
-        lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
+    for i in range( len(lofs)-1,-1,-1):
+        ## lof data is retrieved externally so it can be out of sync with phenotypes that we want to show
+        # TODO: alerting mechanism + test cases for installation to detect accidental out of sync issues.
+        lof = lofs[i]
+        if lof['gene_data']['pheno'] not in phenos:
+            del lofs[i]
+        else:
+            lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
     return jsonify(lofs)
 
 @app.route('/api/lof/<gene>')
@@ -345,6 +338,7 @@ def gene_report(genename):
             beta = float( ukbdat["beta"] )
             ukbline = " \\newline UKBB: " + (" $\\Uparrow$ " if beta>=0 else " $\Downarrow$ ") + ", p:" + "{:.2e}".format(pval)
         return ukbline
+
     for var in func_vars:
         i = 0
         while i < len(var["significant_phenos"]):
@@ -352,8 +346,9 @@ def gene_report(genename):
             sigphenos = "\\newline \\medskip ".join( list(map(lambda x: x.phenostring + " \\newline (OR:" + "{:.2f}".format( math.exp(x.beta)) + ",p:"  + "{:.2e}".format(x.pval) + ")" +  formatukbb(x) + " " , phenos)))
             if i+chunk_size < len(var["significant_phenos"]):
                 sigphenos = sigphenos + "\\newline ..."
-            funcvar.append( { 'rsid': var['var'].get_annotation('rsids'), 'variant':var['var'].id.replace(':', ' '), 'gnomad':var['gnomad']['var_data'],
-                              "consequence": var["var_data"]["most_severe"].replace('_', ' ').replace(' variant', ''), 'nSigPhenos':len(var["significant_phenos"]), "maf": var["var_data"]["AF"], "info": var["var_data"]["INFO"] ,
+            funcvar.append( { 'rsid': var['var'].get_annotation('rsids'), 'variant':var['var'].id.replace(':', ' '), 'gnomad':var['var'].get_annotation('gnomad'),
+                              "consequence": var['var'].get_annotation("annot")["most_severe"].replace('_', ' ').replace(' variant', ''),
+                             'nSigPhenos':len(var["significant_phenos"]), "maf": var["var"].get_annotation('annot')["AF"], "info": var["var"].get_annotation("annot")["INFO"] ,
                               "sigPhenos": sigphenos })
             i = i + chunk_size
     top_phenos = jeeves.gene_phenos(genename)

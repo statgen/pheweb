@@ -21,6 +21,102 @@ import subprocess
 
 from pathlib import Path
 
+
+class JSONifiable(object):
+     @abc.abstractmethod
+     def json_rep(self):
+         """
+            Return an object that can be jsonencoded.
+         """
+
+class Variant(JSONifiable):
+    def __init__(self, chr, pos,ref,alt):
+        try:
+            self.chr=int(chr)
+        except:
+            raise Exception("Chromosome can be only numeric! Use x=23, y=24 and MT=25")
+        
+        self.pos=int(pos)
+        self.ref=ref
+        self.alt=alt
+        self.varid = "{}:{}:{}:{}".format(self.chr,self.pos,self.ref,self.alt)
+        self.annotation = {}
+        
+
+    def add_annotation(self, name, value):
+        self.annotation[name]=value
+
+    @property
+    def id(self):
+        return self.varid
+
+    @property
+    def rsids(self):
+        if "rsids" in self.annotation:
+            return self.annotation["rsids"]
+        else:
+            return None
+    
+    @rsids.setter
+    def rsids(self, value):
+        self.annotation['rsids'] = value
+
+
+    def get_annotation(self, name):
+        if name in self.annotation:
+            return self.annotation[name]
+        else:
+            return None
+    
+    def get_annotations(self):
+        return self.annotation
+
+    def merge_annot(self, other, overwrite=True):
+        """
+            Merges annotations from another Variant object. overwrite determines if annotation with the same name is overwritten or kept 
+        """
+        for k,v in other.get_annotations():
+            if k not in self.annotation or overwrite:
+                self.add_annotation(k,v)
+
+    def __eq__(self, other):
+        return self.chr == other.chr and self.pos==other.pos and self.ref==other.ref and self.alt==other.alt
+    
+    def __hash__(self):
+        return hash(self.varid)
+    def __repr__(self):
+        return self.varid
+
+    def json_rep(self):
+        return {'chr':self.chr,'pos':self.pos,'ref':self.ref, 'alt':self.alt, "id":self.varid, **self.annotation }
+    
+        
+class PhenoResult(JSONifiable):
+
+    def __init__(self, phenocode,phenostring, category_name,pval,beta, maf_case,maf_control, n_case,n_control):
+        self.phenocode = phenocode
+        self.phenostring = phenostring
+        self.pval = float(pval) if pval is not None and pval!='NA' else None
+        self.beta = float(beta) if beta is not None and beta!='NA' else None
+        self.maf_case = float(maf_case) if maf_case is not None and maf_case!='NA' else None
+        self.maf_control = float(maf_control) if maf_control is not None and maf_control!='NA' else None
+        self.matching_results = {}
+        self.category_name = category_name
+        self.n_case = n_case
+        self.n_control = n_control
+
+    def add_matching_result(self, resultname, result):
+        self.matching_results[resultname] = result
+
+    def get_matching_result(self, resultname):
+        return self.matching_results[resultname] if resultname in self.matching_results else None
+    
+    def json_rep(self):
+        return {'phenocode':self.phenocode,'phenostring':self.phenostring, 'pval':self.pval, 'beta':self.beta, "maf_case":self.maf_case,
+                "maf_control":self.maf_control, 'matching_results':self.matching_results, 'category':self.category_name, "n_case":self.n_case, "n_control":self.n_control}
+
+
+
 class GeneInfoDB(object):
 
     @abc.abstractmethod
@@ -71,12 +167,17 @@ class ExternalResultDB(object):
 class AnnotationDB(object):
 
     @abc.abstractmethod
-    def get_variant_annotations(self, id_list):
-        """ Retrieve variant annotations given variant id list.
-            Args: id_list list of string in format chr:pos:ref:alt
-            Returns: A list of . Dictionary has 2 elements "id" which contains the query id and "var_data" containing dictionary with all variant data.
+    def get_variant_annotations(self, variants:List[Variant] ) -> List[Variant]:
+        """ Retrieve variant annotations given a list of Variants.
+            Returns a list of Variant objects with new annotations with id 'annot' and with all annotations that existed in the search Variant
         """
         return
+
+    @abc.abstractmethod
+    def get_single_variant_annotations(self, variant:Variant) -> Variant:
+        """
+            Retrieve variant annotations for a single variant. Returns a variant with annotations in id 'annot'  and including all old annotations
+        """
 
     @abc.abstractmethod
     def get_gene_functional_variant_annotations(self, gene):
@@ -122,86 +223,6 @@ class KnownHitsDB(object):
                   stop
             Returns: A list of dictionaries. Dictionary has x elements: "pheno" which contains a phenotype dict, and "assoc" containing a variant dict ("pval", "id", "rsids"). The list is sorted by p-value.
         """
-class JSONifiable(object):
-     @abc.abstractmethod
-     def json_rep(self):
-         """
-            Return an object that can be jsonencoded.
-         """
-        
-class Variant(JSONifiable):
-    def __init__(self, chr, pos,ref,alt):
-        try:
-            self.chr=int(chr)
-        except:
-            raise Exception("Chromosome can be only numeric! Use x=23, y=24 and MT=25")
-        
-        self.pos=int(pos)
-        self.ref=ref
-        self.alt=alt
-        self.varid = "{}:{}:{}:{}".format(self.chr,self.pos,self.ref,self.alt)
-        self.annotation = {}
-        
-
-    def add_annotation(self, name, value):
-        self.annotation[name]=value
-
-    @property
-    def id(self):
-        return self.varid
-
-    @property
-    def rsids(self):
-        if "rsids" in self.annotation:
-            return self.annotation["rsids"]
-        else:
-            return None
-    
-    @rsids.setter
-    def rsids(self, value):
-        self.annotation['rsids'] = value
-
-
-    def get_annotation(self, name):
-        if name in self.annotation:
-            return self.annotation[name]
-        else:
-            return None
-
-    def __eq__(self, other):
-        return self.chr == other.chr and self.pos==other.pos and self.ref==other.ref and self.alt==other.alt
-    
-    def __hash__(self):
-        return hash(self.varid)
-    def __repr__(self):
-        return self.varid
-
-    def json_rep(self):
-        return {'chr':self.chr,'pos':self.pos,'ref':self.ref, 'alt':self.alt, "id":self.varid, **self.annotation }
-    
-class PhenoResult(JSONifiable):
-
-    def __init__(self, phenocode,phenostring, category_name,pval,beta, maf_case,maf_control, n_case,n_control):
-        self.phenocode = phenocode
-        self.phenostring = phenostring
-        self.pval = float(pval) if pval is not None and pval!='NA' else None
-        self.beta = float(beta) if beta is not None and beta!='NA' else None
-        self.maf_case = float(maf_case) if maf_case is not None and maf_case!='NA' else None
-        self.maf_control = float(maf_control) if maf_control is not None and maf_control!='NA' else None
-        self.matching_results = {}
-        self.category_name = category_name
-        self.n_case = n_case
-        self.n_control = n_control
-
-    def add_matching_result(self, resultname, result):
-        self.matching_results[resultname] = result
-
-    def get_matching_result(self, resultname):
-        return self.matching_results[resultname] if resultname in self.matching_results else None
-    
-    def json_rep(self):
-        return {'phenocode':self.phenocode,'phenostring':self.phenostring, 'pval':self.pval, 'beta':self.beta, "maf_case":self.maf_case,
-                "maf_control":self.maf_control, 'matching_results':self.matching_results, 'category':self.category_name, "n_case":self.n_case, "n_control":self.n_control}
 
 class ResultDB(object):
     @abc.abstractmethod
@@ -218,10 +239,18 @@ class ResultDB(object):
         """
         return
 
-    def get_variant_results(self, variant:Variant) -> PhenoResult:
+    def get_variants_results(self, variants:List[Variant]) -> List[Tuple[Variant,List[PhenoResult]]]:
         """
-            Returns all results for a given variant. If variant not found returns None
+            Returns all results and annotations for given variant list. Returns empty list if no results found
         """
+
+    def get_single_variant_results(self, variant: Variant ) -> Tuple[Variant, List[PhenoResult]]:
+        """
+            Returns all results and annotations for given variant. Returns tuple of Variant (including updated annotations if any) and phenotype results. 
+            Returns None if variant does not exist.
+        """
+    
+
 class DrugDB(object):
     @abc.abstractmethod
     def get_drugs(self, gene):
@@ -485,7 +514,6 @@ class TabixResultDao(ResultDB):
             split = variant_row.split('\t')
             chrom = split[0].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")
             v = Variant( chrom,split[1],split[2],split[3])
-            print("reading variant {}".format(v) )
             if split[4] is not '':v.add_annotation("rsids", split[4] )
             v.add_annotation('nearest_gene', split[5])
             phenores = []
@@ -500,18 +528,24 @@ class TabixResultDao(ResultDB):
             result.append((v,phenores))
         return result
    
-
-    def get_variant_results(self, variants: List[Variant]) -> List[ Tuple[Variant, PhenoResult] ]:
+    def get_single_variant_results(self, variant: Variant ) -> Tuple[Variant, PhenoResult]:
+        
+        res = self.get_variants_results([variant])
+        for r in res:
+            if r[0]==variant:
+                return r
+        return None 
+        
+    def get_variants_results(self, variants: List[Variant]) -> List[ Tuple[Variant, PhenoResult] ]:
         if type(variants) is not list:
             variants = [variants]
-        result = []
-
+        results = []
         for v in variants:
             res = self.get_variant_results_range(v.chr, v.pos, v.pos)
             for r in res:
                 if r[0]==v:
-                    result.append(r)
-        return result
+                    results.append(r)
+        return results
 
     def get_top_per_pheno_variant_results_range(self, chrom, start, end):
         try:
@@ -859,6 +893,13 @@ class TabixAnnotationDao(AnnotationDB):
                         raise ConfigurationException("Unkown datatype given in datatype configuration file. Type given {}. Accepted types: {}".format(dtype, ",".join(list(TabixAnnotationDao.DATA_CONVS.keys()))) )
                     self.dconv[col]=TabixAnnotationDao.DATA_CONVS[dtype]
 
+    def get_single_variant_annotations(self, variant:Variant) -> Variant:
+        res = self.get_variant_annotations([variant])
+        for r in res:
+            if r==variant:
+                return r
+        return None
+
     def get_variant_annotations(self, variants:List[Variant]):
         annotations = []
         t = time.time()
@@ -877,7 +918,12 @@ class TabixAnnotationDao(AnnotationDB):
                 v[0] = v[0].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")
                 v = Variant(v[0],v[1],v[2],v[3])
                 if variant == v:
-                   annotations.append({'variant': v, 'var_data': {self.headers[i]: self.dconv[self.headers[i]](split[i]) for i in range(0,len(split))}})
+                    ## keeps all old annotations in the returned variant.
+                    for k,anno in  variant.get_annotations().items():
+                        v.add_annotation(k,anno)
+                    v.add_annotation("annot",{self.headers[i]: self.dconv[self.headers[i]](split[i]) for i in range(0,len(split)) } )
+                    annotations.append(v)
+
         print('TABIX get_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
         return annotations
     
@@ -927,7 +973,7 @@ class TabixAnnotationDao(AnnotationDB):
                 split[1]=split[1].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25") 
                 split[len(split)-7] = split[len(split)-7].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")  
                 var_dat = {self.headers[i]:(self.dconv[self.headers[i]])(split[i]) for i in range(0,len(split))}
-                v.add_annotation( 'annotation',  {self.headers[i]:(self.dconv[self.headers[i]])(split[i]) for i in range(0,len(split))} )
+                v.add_annotation( 'annot',  {self.headers[i]:(self.dconv[self.headers[i]])(split[i]) for i in range(0,len(split))} )
                 annotations.append(v)
         self.n_calls +=1
         if self.n_calls %100==0:

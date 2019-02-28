@@ -93,7 +93,6 @@ function exportTableToCSV($table, filename, export_cols=null) {
         return export_cols.map(col => {
             var s = col.split('.')
             var val = row
-            console.log(s)
             s.forEach( s =>  {
                 val = val[s] || 'NA'
             })

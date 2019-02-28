@@ -521,7 +521,6 @@ function populate_streamtable(variants) {
                 $('.selectpicker').val().map(function(val) {
                     return val.replace(/\([0-9]+\) /,'')
                 }) : [];
-            //console.log(selected);
             if (selected.length > 0 && selected.indexOf(variant.most_severe) === -1) {
                 return null;
             } else {
@@ -734,8 +733,8 @@ $(function () {
             window.data = data;
             // add consequence so that stream table can be filtered on it
             data.unbinned_variants.filter(function(variant) { return !!variant.annotation } ).forEach(function(variant) {
-                variant.most_severe = variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '')
-                variant.info = variant.annotation.info
+                variant.annotation.most_severe = variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '')
+                variant.info = variant.annotation.INFO
             })
             data.unbinned_variants.forEach(function(variant) {
         if (!variant.gnomad) {
@@ -767,7 +766,6 @@ $(function () {
         }
         })
             create_gwas_plot(data.variant_bins, data.unbinned_variants);
-
             populate_streamtable(data.unbinned_variants);
             //TODO filtering with streamtable
             //create_consequence_dropdown(data.unbinned_variants);
