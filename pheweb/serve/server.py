@@ -6,6 +6,7 @@ from .server_utils import get_variant, get_random_page, get_pheno_region
 from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
+from ..import weetabix
 
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for, Blueprint
 from flask_compress import Compress
@@ -149,6 +150,7 @@ def pheno_page(phenocode):
     except KeyError:
         die("Sorry, I couldn't find the pheno code {!r}".format(phenocode))
     return render_template('pheno.html',
+                           show_correlations=conf.show_correlations,
                            phenocode=phenocode,
                            pheno=pheno,
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
@@ -178,6 +180,28 @@ def api_region(phenocode):
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
     rv = get_pheno_region(phenocode, chrom, pos_start, pos_end)
     return jsonify(rv)
+
+
+if conf.show_correlations:
+    @bp.route('/api/region/<phenocode>/correlations/')
+    def api_pheno_correlations(phenocode):
+        annotated_correl_fn = common_filepaths['correlations']
+        rows = weetabix.get_indexed_rows(annotated_correl_fn, phenocode, strict=False)
+        # TODO: Decouple so that the route doesn't contain assumptions about file format
+        # TODO: Check for "edge case" type assumptions- eg underflow on pvalues?
+        payload = []
+        for row in rows:
+            _, t2, rg, se, z, p, method, desc = row.split('\t')
+            payload.append({
+                'trait': t2,
+                'label': desc,
+                'rg': float(rg),
+                'SE': float(se),
+                'Z': float(z),
+                'pvalue': float(p),
+                'method': method
+            })
+        return jsonify({'data': payload})
 
 
 @functools.lru_cache(None)

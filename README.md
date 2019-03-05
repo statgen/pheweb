@@ -144,6 +144,10 @@ There are four ways to make a `pheno-list.json`:
 
    No matter what you do, please run `pheweb phenolist verify` when you are done to check that it worked correctly. At any point, you may run `pheweb phenolist view` or `pheweb phenolist print-as-csv` to view the current file.
 
+5. (optional) PheWeb has the ability to display "correlated phenotype" information generated previously by 
+    [another tool](https://github.com/statgen/pheweb-rg-pipeline). To use this feature, set `show_correlations = True` 
+    in your configuration file, and place the file `pheno-correlations.txt` in the same folder as `pheno-list.json`. 
+
 ### 5. Load your association files
 
 1. Run `pheweb process`.

@@ -4,9 +4,18 @@
 {% block in_head %}
 <script src="{{ url_for('.static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('.static', filename='pheno.js') }}" type="text/javascript"></script>
+{% if show_correlations %}
+  {#  TODO: Better dependency management #}
+  <link href="https://unpkg.com/tabulator-tables@4.2.2/dist/css/bootstrap/tabulator_bootstrap.min.css" rel="stylesheet">
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.2.2/dist/js/tabulator.min.js"></script>
+{% endif %}
+
 <script type="text/javascript">
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }};
   window.pheno = {{ phenocode|tojson|safe }};
+  window.model.show_correlations = {{ show_correlations | tojson }};
+  window.model.correlations_url = {{ url_for('.api_pheno_correlations', phenocode=pheno['phenocode'] ) | tojson }};
+
   $.getJSON(window.model.urlprefix + "/api/manhattan/pheno/" + window.pheno + ".json")
   .done(function(data) {
       window.debug.manhattan = data;
@@ -172,6 +181,16 @@
     </div>
 </div>
 
+{% if show_correlations %}
+  <h2>Related phenotypes for {% include "pheno/h1.html" %}</h2>
+  <div class="row">
+    <div class="col-md-12">
+      <div id="correlations-table" class="table-striped table-bordered"></div>
+    </div>
+  </div>
+{% endif %}
+
+
 <script type="text/template" id="streamtable-template">
 <tr>
 <td><a style="color:black" href="{{ url_for('.variant_page', query='').rstrip('/') }}/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>">
@@ -183,5 +202,4 @@
 <td><%= v.pval.toExponential(1) %></td>
 </tr>
 </script>
-
 {% endblock %}

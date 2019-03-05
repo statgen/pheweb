@@ -608,3 +608,31 @@ function populate_streamtable(variants) {
 
     });
 }
+
+
+// Optionally populate a table of correlated phenotypes.
+$(document).ready(function () {
+    if (window.model.show_correlations) {
+        var corrTable = new Tabulator('#correlations-table', {
+            height: 300, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+            ajaxURL: window.model.correlations_url,
+            ajaxResponse: function(url, params, response) {
+                return response.data;
+            },
+            placeholder: 'No correlation data available for this phenotype',
+            layout: 'fitColumns',
+            pagination: 'local',
+            paginationSize: 10,
+            initialFilter: [ { field: 'pvalue', type: '<', value: 0.05 } ],
+            initialSort: [ { column: 'pvalue', dir: 'asc' } ],
+            columns: [
+                { title: 'Trait', field: 'label' },  // TODO: link to the correlated trait. (pheno overview page?)
+                { title: 'r<sub>g</sub>', field: 'rg', sorter: 'number' },
+                { title: 'SE', field: 'SE' },
+                { title: 'Z', field: 'Z' },
+                { title: 'P-value', field: 'pvalue', sorter: 'number' },
+                { title: 'Method', field: 'method', headerFilter: true }
+            ]
+        });
+    }
+});
