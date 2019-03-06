@@ -16,13 +16,16 @@ def _index_name(filename):
     return '{}.pickle'.format(filename)
 
 
-def make_byte_index(filename: str, key_col: int, skip_lines: int = 1, delimiter: str = '\t') -> str:
+def make_byte_index(filename: str, key_col: int,
+                    skip_lines: int = 1, delimiter: str = '\t',
+                    index_fn: str = None) -> str:
     """
     Generate a crude index specifying byte ranges of lines where each value can be found
     :param filename: The file to index
     :param key_col: The column to use as index values (starts at 1)
     :param skip_lines: Number of headers/other lines to skip
     :param delimiter: The character used to separate fields
+    :param index_fn: (optional) path to the index file
     :return:
     """
     byte_index = {}
@@ -44,7 +47,7 @@ def make_byte_index(filename: str, key_col: int, skip_lines: int = 1, delimiter:
 
             if key != last_key:
                 byte_index[last_key] = [span_start, last_line_end]
-                span_start = position
+                span_start = last_line_end
 
             # Advance the iteration
             last_key = key
@@ -55,26 +58,28 @@ def make_byte_index(filename: str, key_col: int, skip_lines: int = 1, delimiter:
             # In case file has no newline at end
             byte_index[last_key] = [span_start, last_line_end]
 
-    index_fn = _index_name(filename)
+    index_fn = index_fn or _index_name(filename)
     with open(index_fn, 'wb') as f:
         pickle.dump(byte_index, f)
 
     return index_fn
 
 
-def get_indexed_rows(filename: str, key, strict=False) -> list:
+def get_indexed_rows(filename: str, key,
+                     strict=False, index_fn: str = None) -> list:
     """
     Fetch all lines that reference the specified key, from a previously indexed file
     :param filename: The filename to search
     :param key: The value to be read. If the specified value was not in the target file, raises a KeyError.
     :param strict: Whether to require that the value is present in the file.
+    :param index_fn: (optional) path to the index file
     :return: An array of strings, one per line of file
     """
-    index_path = _index_name(filename)
-    if not os.path.isfile(index_path):
+    index_fn = index_fn or _index_name(filename)
+    if not os.path.isfile(index_fn):
         raise FileNotFoundError()
 
-    with open(index_path, 'rb') as f:
+    with open(index_fn, 'rb') as f:
         byte_index = pickle.load(f)
 
     if key not in byte_index and not strict:
