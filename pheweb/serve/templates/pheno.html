@@ -96,6 +96,16 @@
   margin-bottom: 0;
 }
 
+.section-link {
+  margin-right: 20px;
+  display: inline;
+}
+
+.tabulator .tabulator-footer .tabulator-page.active {
+  background-color: #337ab7;
+  color: white;
+}
+
 </style>
 {% endblock %}
 
@@ -133,6 +143,15 @@
       </span>
       {% endif %}
     </div>
+</div>
+<div class="row">
+  <div class="col-xs-12">
+    <ul>
+      <li class="section-link"><a href="#manhattan_plot_container">Manhattan</a></li>
+      <li class="section-link"><a href="#qq_plot_container">QQ</a></li>
+      {% if show_correlations %}<li class="section-link"><a href="#correlations-section">Related phenotypes</a></li>{% endif %}
+    </ul>
+  </div>
 </div>
 <div class="row">
     <div class="col-xs-12">
@@ -182,9 +201,12 @@
 </div>
 
 {% if show_correlations %}
-  <h2>Related phenotypes for {% include "pheno/h1.html" %}</h2>
-  <div class="row">
+  <div class="row" id="correlations-section">
     <div class="col-md-12">
+      <h2>Related phenotypes for {% include "pheno/h1.html" %}</h2>
+      <p>
+        Genetically correlated traits are calculated using genome-wide association summary statistics via LD Score regression (<a href="https://doi.org/10.1038/ng.3211">LDSC</a>).
+      </p>
       <div id="correlations-table" class="table-striped table-bordered"></div>
     </div>
   </div>

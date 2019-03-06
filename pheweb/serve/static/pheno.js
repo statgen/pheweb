@@ -626,7 +626,10 @@ $(document).ready(function () {
             initialFilter: [ { field: 'pvalue', type: '<', value: 0.05 } ],
             initialSort: [ { column: 'pvalue', dir: 'asc' } ],
             columns: [
-                { title: 'Trait', field: 'label' },  // TODO: link to the correlated trait. (pheno overview page?)
+                {
+                    title: 'Trait', field: 'trait', formatter: 'link',
+                    formatterParams: {labelField: 'trait', urlPrefix: '/pheno/' }
+                },
                 { title: 'r<sub>g</sub>', field: 'rg', sorter: 'number' },
                 { title: 'SE', field: 'SE' },
                 { title: 'Z', field: 'Z' },
