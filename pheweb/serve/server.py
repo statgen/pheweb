@@ -183,7 +183,7 @@ def api_region(phenocode):
 
 
 if conf.show_correlations:
-    @bp.route('/api/region/<phenocode>/correlations/')
+    @bp.route('/api/<phenocode>/correlations/')
     @check_auth
     def api_pheno_correlations(phenocode):
         """Send information about phenotype correlations. This is an optional feature controlled by configuration."""
