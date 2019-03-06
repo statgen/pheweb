@@ -11,8 +11,10 @@ from pheweb import weetabix
 
 FIXTURE = os.path.join(os.path.dirname(__file__), 'input_files/correlations/rg-pipeline-output.txt')
 
+# TODO: Add unit tests for the various indexing options (eg column number etc)
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope='module')
 def sample_data(tmpdir_factory):
     """Index a test file"""
     fn = tmpdir_factory.getbasetemp() / 'sample.txt'
@@ -35,12 +37,12 @@ def test_index_has_all_column_values(sample_data):
 
     keys = contents.keys()
     assert len(keys) == 3, 'has expected number of keys'
-    assert set(keys) == {'008', '008.5', '038'}, 'has correct set of unique keys'
+    assert set(keys) == {'559', '008.5', '038'}, 'has correct set of unique keys'
 
 
 def test_gets_correct_number_of_lines_for_each_key(sample_data):
     expected = (
-        ('008', 1),
+        ('559', 1),
         ('008.5', 2),
         ('038', 3)
     )
@@ -51,8 +53,8 @@ def test_gets_correct_number_of_lines_for_each_key(sample_data):
 
 
 def test_fetches_line_content_for_key(sample_data):
-    expected = ['008	038	-0.5524	1.5359	-0.3597	0.7191	ldsc']
-    rows = weetabix.get_indexed_rows(sample_data, '008')
+    expected = ['559	038	-0.5524	1.5359	-0.3597	0.7191	ldsc']
+    rows = weetabix.get_indexed_rows(sample_data, '559')
     assert rows == expected, 'returned expected row content'
 
 
