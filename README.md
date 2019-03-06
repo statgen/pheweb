@@ -146,7 +146,8 @@ There are four ways to make a `pheno-list.json`:
 
 5. (optional) PheWeb has the ability to display "correlated phenotype" information generated previously by 
     [another tool](https://github.com/statgen/pheweb-rg-pipeline). To use this feature, set `show_correlations = True` 
-    in your configuration file, and place the file `pheno-correlations.txt` in the same folder as `pheno-list.json`. 
+    in your configuration file, and place the output of the rg pipeline as `pheno-correlations.txt` in the same folder 
+    as `pheno-list.json`. 
 
 ### 5. Load your association files
 

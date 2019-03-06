@@ -614,7 +614,7 @@ function populate_streamtable(variants) {
 $(document).ready(function () {
     if (window.model.show_correlations) {
         var corrTable = new Tabulator('#correlations-table', {
-            height: 300, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+            height: 300,
             ajaxURL: window.model.correlations_url,
             ajaxResponse: function(url, params, response) {
                 return response.data;

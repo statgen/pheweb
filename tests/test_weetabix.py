@@ -1,4 +1,4 @@
-"""Test simple tabixing of files"""
+"""Test simple key-based indexing of files"""
 
 import os
 import pickle
