@@ -29,10 +29,10 @@ assert not approx_equal(42, 42.01)
 
 
 
-def get_phenolist():
+def get_phenolist(filepath=None):
     # TODO: should this be memoized?
     from .file_utils import common_filepaths
-    filepath = common_filepaths['phenolist']
+    filepath = filepath or common_filepaths['phenolist']  # Allow override for unit testing
     try:
         with open(os.path.join(filepath)) as f:
             phenolist = json.load(f)

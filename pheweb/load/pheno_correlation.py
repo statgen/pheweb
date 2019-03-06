@@ -1,13 +1,8 @@
 """
-Display (and eventually generate) a set of correlated phenotypes
+Display (and eventually generate) a set of correlated phenotypes as generated from an external pipeline
 
-# Pipeline:
-# - 1. Load the file. Annotate it with a Trait2 description. Save the file.
-# - 2. Create a new format that supports fast atomic lookups by Phenocode
-# - 3. Add a route that allows fetching this incremental data, and marshals/serializes to JSON
-# - 4. If a config option is present, render this data in the jinja2 template for the region view.
-
-
+This information will be shown on phenotype summary pages. This is an OPTIONAL feature-
+    if information is not available, it will usually skip this step without failure.
 """
 import logging
 import os
@@ -31,7 +26,7 @@ def run(argv):
     annotated_correl_fn = common_filepaths['correlations']
 
     if not os.path.isfile(raw_correl_fn):
-        logger.warning('No "pheno-correlations.txt" file was found; processing step cannot be completed.')
+        logger.info('No "pheno-correlations.txt" file was found; processing step cannot be completed.')
         if conf.show_correlations:
             # This is an optional feature, so don't fail unless config file specifies to do so
             raise PheWebError(
@@ -43,7 +38,7 @@ def run(argv):
     main(raw_correl_fn, annotated_correl_fn)
 
 
-def annotate_trait_descriptions(in_fn, out_fn):
+def annotate_trait_descriptions(in_fn, out_fn, phenolist_path=None):
     """
     Annotate a phenotype correlation file with an additional "Trait2Label" description (where possible)
     FIXME: This makes simplistic assumptions about file format/contents, and performs no validation
@@ -52,7 +47,7 @@ def annotate_trait_descriptions(in_fn, out_fn):
     #   Trait1  Trait2  rg  SE  Z  P-value  Method
 
     pheno_labels = {pheno['phenocode']: pheno.get('phenostring', pheno['phenocode'])
-                    for pheno in get_phenolist()}
+                    for pheno in get_phenolist(filepath=phenolist_path)}
 
     with open(in_fn, 'r') as inp_f, open(out_fn, 'w') as out_f:
 
@@ -70,7 +65,7 @@ def annotate_trait_descriptions(in_fn, out_fn):
             out_f.write(line + '\t{}\n'.format(pheno_labels[trait2_code]))
 
 
-def main(raw_filename, annotated_filename):
+def main(raw_filename, annotated_filename, phenolist_path=None):
     """Process a correlations file in the format required for display"""
-    annotate_trait_descriptions(raw_filename, annotated_filename)
+    annotate_trait_descriptions(raw_filename, annotated_filename, phenolist_path=phenolist_path)
     weetabix.make_byte_index(annotated_filename, 1, skip_lines=1, delimiter='\t')
