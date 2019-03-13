@@ -25,7 +25,7 @@ gather_pvalues_for_each_gene
 scripts = [script for script in scripts if script]
 
 def run(argv):
-    if argv and argv[0] == '-h':
+    if any(arg in ['-h', '--help'] for arg in argv):
         print('Run all the steps to go from a prepared phenolist to a ready-to-serve pheweb.')
         print('This is equivalent to running:\n')
         print(' &&\n'.join('    pheweb {}'.format(script.replace('_', '-')) for script in scripts))
@@ -33,7 +33,7 @@ def run(argv):
         print('Passing `--no-parse` will skip `pheweb parse-input-files`')
         exit(1)
 
-    if argv and argv == ['--no-parse']:
+    if argv == ['--no-parse']:
         myscripts = [s for s in scripts if s != 'parse_input_files']
     else:
         myscripts = scripts
