@@ -11,6 +11,11 @@
       populate_streamtable(data);
   });
 </script>
+<style type="text/css">
+.nearest_genes_col {
+  max-width: 15em;
+}
+</style>
 {% endblock %}
 
 
@@ -41,7 +46,7 @@
         <tr>
           <th>Top variant in loci</th>
           <th>Phenotype</th>
-          <th>Nearest Gene(s)</th>
+          <th class="nearest_genes_col">Nearest Gene(s)</th>
           <th>MAF</th>
           <th>P-value</th>
         </tr>
@@ -67,7 +72,7 @@
     <td><a style="color:black" href="{{ url_for('.pheno_page', phenocode='').rstrip('/') }}/<%= h.phenocode %>">
         <%= h.phenostring || h.phenocode %>
     </a></td>
-    <td>
+    <td class="nearest_genes_col">
       <% var ngs = h.nearest_genes.split(","); ngs.forEach(function(g, i) { %>
       <a style="color:black" href="{{ url_for('.region_page', phenocode='', region='').rstrip('/') }}/<%= h.phenocode %>/gene/<%= g %>?include=<%= h.chrom %>-<%= h.pos %>">
         <i><%= g %></i></a><%= (i+1 !== ngs.length)?',':'' %>

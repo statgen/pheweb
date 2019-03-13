@@ -31,7 +31,7 @@ function populate_streamtable(hits) {
                 next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
                 prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
                 per_page_select: false,
-                per_page: 10
+                per_page_ops: [10], /* this is the best way I've found to set the number of rows */
             }
         }
 
