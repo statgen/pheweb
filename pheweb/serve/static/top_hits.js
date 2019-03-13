@@ -10,14 +10,14 @@ function populate_streamtable(hits) {
             return template({h: hit});
         };
         var $found = $('#streamtable-found');
-        $found.text(data.length + " total hits");
+        $found.text(data.length + " hits");
 
         var callbacks = {
             pagination: function(summary){
                 if ($.trim($('#search').val()).length > 0){
                     $found.text(summary.total + " matching hits");
                 } else {
-                    $found.text(data.length + " total hits");
+                    $found.text(data.length + " hits");
                 }
             }
         }
@@ -31,7 +31,7 @@ function populate_streamtable(hits) {
                 next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
                 prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
                 per_page_select: false,
-                per_page_ops: [10], /* this is the best way I've found to set the number of rows */
+                per_page_opts: [100], // this is the best way I've found to control the number of rows
             }
         }
 
