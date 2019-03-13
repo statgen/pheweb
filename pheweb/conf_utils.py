@@ -130,6 +130,7 @@ def _ensure_conf():
     conf.set_default_value('manhattan_peak_sprawl_dist', int(200e3))
     conf.set_default_value('top_hits_pval_cutoff', 1e-6)
 
+    conf.set_default_value('allow_variant_json_cors', False)
     conf.set_default_value('urlprefix', '')
 
     if 'minimum_maf' in conf:

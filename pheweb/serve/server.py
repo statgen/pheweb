@@ -84,7 +84,10 @@ def go():
 @check_auth
 def api_variant(query):
     variant = get_variant(query)
-    return jsonify(variant)
+    resp = jsonify(variant)
+    if conf['allow_variant_json_cors']:
+        resp.headers.add('Access-Control-Allow-Origin', '*')
+    return resp
 
 @bp.route('/variant/<query>')
 @check_auth
