@@ -82,7 +82,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources()
         .add("assoc", ["AssociationPheWeb", localBase])
-        .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { source: 2 }}])
+        .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { source: 2, build: "GRCh37" }}])
         .add("ld", ["LDPheweb", {url: remoteBase + "pair/LD/", params: { pvalue_field: "assoc:pvalue|neglog10_or_100" }}])
         .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }])
         .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }]);
@@ -180,7 +180,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         unnamespaced: true,
         width: 800,
         // height: 550,
-        responsive_resize: true, // TODO: perhaps setting this to `false` would fix all my sizing problems.
+        responsive_resize: 'width_only',
         max_region_scale: 5e5,
         dashboard: {
             components: [{
@@ -238,6 +238,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                     unnamespaced: true,
                     height: 52, min_height: 52,
                     margin: { top: 30, bottom: 13 },
+                    dashboard: { components: [] },
                 });
                 l.data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
                     "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
