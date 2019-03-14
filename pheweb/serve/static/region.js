@@ -318,41 +318,48 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 data_layers: [
                     LocusZoom.Layouts.get("data_layer", "significance", { unnamespaced: true }),
                     LocusZoom.Layouts.get("data_layer", "recomb_rate", { unnamespaced: true }),
-                    LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog", {
-                        unnamespaced: true,
-                        fields: [
-                            "{{namespace[assoc]}}all", // special mock value for the custom source
-                            "{{namespace[assoc]}}id",
-                            "{{namespace[assoc]}}position",
-                            "{{namespace[assoc]}}pvalue|neglog10_or_100",
-                            "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar",
-                            "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
-                        ],
-                        id_field: "{{namespace[assoc]}}id",
-                        tooltip: {
-                            closable: true,
-                            show: {
-                                "or": ["highlighted", "selected"]
+                    function() {
+                        var l = LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog", {
+                            unnamespaced: true,
+                            fields: [
+                                "{{namespace[assoc]}}all", // special mock value for the custom source
+                                "{{namespace[assoc]}}id",
+                                "{{namespace[assoc]}}position",
+                                "{{namespace[assoc]}}pvalue|neglog10_or_100",
+                                "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar",
+                                "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
+                            ],
+                            id_field: "{{namespace[assoc]}}id",
+                            tooltip: {
+                                closable: true,
+                                show: {
+                                    "or": ["highlighted", "selected"]
+                                },
+                                hide: {
+                                    "and": ["unhighlighted", "unselected"]
+                                },
+                                html: "<strong>{{{{namespace[assoc]}}id}}</strong><br><br>" +
+                                    window.model.tooltip_lztemplate.replace(/{{/g, "{{assoc:").replace(/{{assoc:#if /g, "{{#if assoc:").replace(/{{assoc:\/if}}/g, "{{/if}}") +
+                                    "<br>" +
+                                    "<a href=\"" + window.model.urlprefix+ "/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}\"" + ">Go to PheWAS</a>" +
+                                    "{{#if {{namespace[catalog]}}rsid}}<br><a href=\"https://www.ebi.ac.uk/gwas/search?query={{{{namespace[catalog]}}rsid}}\" target=\"_new\">See hits in GWAS catalog</a>{{/if}}" +
+                                    "<br><a href=\"javascript:void(0);\" onclick=\"LocusZoom.getToolTipDataLayer(this).makeLDReference(LocusZoom.getToolTipData(this));\">Make LD Reference</a>"
                             },
-                            hide: {
-                                "and": ["unhighlighted", "unselected"]
-                            },
-                            html: "<strong>{{{{namespace[assoc]}}id}}</strong><br><br>" +
-                                window.model.tooltip_lztemplate.replace(/{{/g, "{{assoc:").replace(/{{assoc:#if /g, "{{#if assoc:").replace(/{{assoc:\/if}}/g, "{{/if}}") +
-                                "<br>" +
-                                "<a href=\"" + window.model.urlprefix+ "/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}\"" + ">Go to PheWAS</a>" +
-                                "{{#if {{namespace[catalog]}}rsid}}<br><a href=\"https://www.ebi.ac.uk/gwas/search?query={{{{namespace[catalog]}}rsid}}\" target=\"_new\">See hits in GWAS catalog</a>{{/if}}" +
-                                "<br><a href=\"javascript:void(0);\" onclick=\"LocusZoom.getToolTipDataLayer(this).makeLDReference(LocusZoom.getToolTipData(this));\">Make LD Reference</a>"
-                        },
-                        x_axis: { field: "{{namespace[assoc]}}position" },
-                        y_axis: {
-                            axis: 1,
-                            field: "{{namespace[assoc]}}pvalue|neglog10_or_100",
-                            floor: 0,
-                            upper_buffer: 0.1,
-                            min_extent: [0, 10]
-                        }
-                    })
+                            x_axis: { field: "{{namespace[assoc]}}position" },
+                            y_axis: {
+                                axis: 1,
+                                field: "{{namespace[assoc]}}pvalue|neglog10_or_100",
+                                floor: 0,
+                                upper_buffer: 0.1,
+                                min_extent: [0, 10]
+                            }
+                        });
+                        l.behaviors.onctrlclick = [{
+                            action: "link",
+                            href: window.model.urlprefix+"/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}"
+                        }];
+                        return l;
+                    }()
                 ],
             }),
             LocusZoom.Layouts.get("panel", "genes", {
