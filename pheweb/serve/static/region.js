@@ -239,6 +239,11 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                     height: 52, min_height: 52,
                     margin: { top: 30, bottom: 13 },
                     dashboard: { components: [] },
+                    title: {
+                        text: 'Hits in GWAS Catalog',
+                        style: {'font-size': '14px'},
+                        x: 50,
+                    },
                 });
                 l.data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
                     "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
