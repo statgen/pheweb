@@ -109,7 +109,9 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var data_sources = new LocusZoom.DataSources()
       .add("phewas", ["PheWASLZ", {url: '/this/is/not/used'}]);
 
-    var phewas_panel = LocusZoom.Layouts.get("panel", "phewas");
+    var phewas_panel = LocusZoom.Layouts.get("panel", "phewas", {
+        min_width: 640, // feels reasonable to me
+    });
     var sig_data_layer = phewas_panel.data_layers[0]; //significance line
     var pval_data_layer = phewas_panel.data_layers[1]; // phewas p values
 
@@ -193,9 +195,8 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 {type: "download", position: "right"}
             ]
         },
-        width: 800,
-        min_width: 500,
-        responsive_resize: true,
+        min_height: 400,
+        responsive_resize: "width_only",
         panels: [phewas_panel],
         mouse_guide: false
     };
