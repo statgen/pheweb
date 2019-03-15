@@ -117,12 +117,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 
     // Make sig line, and always show it.
     sig_data_layer.offset = neglog10_significance_threshold;
-    sig_data_layer.tooltip = { //TODO: modify LZ to support tooltips on a line. right now this doesn't do anything.
-        closable: true,
-        html: 'foo',
-        hide: { 'and': ['unhighlighted', 'unselected'] },
-        show: { 'or': ['highlighted', 'selected'] }
-    };
     pval_data_layer.id_field = 'idx';
     pval_data_layer.y_axis.min_extent = [0, neglog10_significance_threshold*1.05];
     pval_data_layer.y_axis.upper_buffer = 0.1;
