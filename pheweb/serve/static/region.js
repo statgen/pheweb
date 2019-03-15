@@ -406,5 +406,21 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     $(function() {
         // Populate the div with a LocusZoom plot using the default layout
         window.plot = LocusZoom.populate("#lz-1", data_sources, layout);
+
+        // Handle double-click on a variant point
+        (function() {
+            var doubleclick_delay_ms = 400;
+            var previous_data, previous_milliseconds = 0;
+            window.plot.panels.associationcatalog.on('element_clicked', function(obj) {
+                var data = obj.data, milliseconds = Date.now();
+                if ((data === previous_data) && (milliseconds - previous_milliseconds < doubleclick_delay_ms)) {
+                    window.location.href = (window.model.urlprefix + "/variant/" +
+                                            data["assoc:chr"] + "-" + data["assoc:position"] + "-" +
+                                            data["assoc:ref"] + "-" + data["assoc:alt"]);
+                }
+                previous_data = data;
+                previous_milliseconds = milliseconds;
+            });
+        })();
     });
 })();
