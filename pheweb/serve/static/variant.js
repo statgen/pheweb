@@ -32,6 +32,24 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     return x + '%';
 });
 
+LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
+    if (typeof input === "undefined"){
+        return null;
+    } else if (!isNaN(input.beta)) {
+        if (!isNaN(input.sebeta)) {
+            if      (input.beta - 2*input.sebeta > 0) { return parameters['+'] || null; }
+            else if (input.beta + 2*input.sebeta < 0) { return parameters['-'] || null; }
+        } else {
+            if      (input.beta > 0) { return parameters['+'] || null; }
+            else if (input.beta < 0) { return parameters['-'] || null; }
+        }
+    } else if (!isNaN(input.or)) {
+        if      (input.or > 0) { return parameters['+'] || null; }
+        else if (input.or < 0) { return parameters['-'] || null; }
+    }
+    return null;
+});
+
 (function() {
     // sort phenotypes
     if (_.any(window.variant.phenos.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
@@ -79,31 +97,13 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 (function() { // Create PheWAS plot.
 
     var best_neglog10_pval = d3.max(window.variant.phenos.map(function(x) { return LocusZoom.TransformationFunctions.get('neglog10')(x.pval); }));
-
     var neglog10_handle0 = function(x) {
         if (x === 0) return best_neglog10_pval * 1.1;
         return -Math.log(x) / Math.LN10;
     };
     LocusZoom.TransformationFunctions.set("neglog10_handle0", neglog10_handle0);
 
-    LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
-        if (typeof input === "undefined"){
-            return null;
-        } else if (!isNaN(input.beta)) {
-            if (!isNaN(input.sebeta)) {
-                if      (input.beta - 2*input.sebeta > 0) { return parameters['+'] || null; }
-                else if (input.beta + 2*input.sebeta < 0) { return parameters['-'] || null; }
-            } else {
-                if      (input.beta > 0) { return parameters['+'] || null; }
-                else if (input.beta < 0) { return parameters['-'] || null; }
-            }
-        } else if (!isNaN(input.or)) {
-            if      (input.or > 0) { return parameters['+'] || null; }
-            else if (input.or < 0) { return parameters['-'] || null; }
-        }
-        return null;
-    });
-
+    // Define data sources object
     LocusZoom.Data.PheWASSource.prototype.getData = function(state, fields, outnames, trans) {
         // Override all parsing, namespacing, and field extraction mechanisms, and load data embedded within the page
         trans = trans || [];
@@ -122,12 +122,10 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             return {header: chain.header || {}, body: data};
         }.bind(this);
     };
-
-    // Define data sources object
-    var significance_threshold = 0.05 / window.variant.phenos.length;
-    var neglog10_significance_threshold = -Math.log10(significance_threshold);
     var data_sources = new LocusZoom.DataSources()
       .add("phewas", ["PheWASLZ", {url: '/this/is/not/used'}]);
+
+    var neglog10_significance_threshold = -Math.log10(0.05 / window.variant.phenos.length);
 
     var layout = {
         state: {
