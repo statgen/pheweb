@@ -5,6 +5,19 @@ window.debug = window.debug || {};
 // deal with IE11 problems
 if (!Math.log10) { Math.log10 = function(x) { return Math.log(x) / Math.LN10; }; }
 if (!!window.MSInputMethodContext && !!document.documentMode) { /*ie11*/ $('<style type=text/css>.lz-locuszoom {height: 400px;}</style>').appendTo($('head')); }
+if (!String.prototype.includes) {
+  String.prototype.includes = function(search, start) {
+    'use strict';
+    if (typeof start !== 'number') {
+      start = 0;
+    }
+    if (start + search.length > this.length) {
+      return false;
+    } else {
+      return this.indexOf(search, start) !== -1;
+    }
+  };
+}
 
 
 (function() {
