@@ -95,11 +95,15 @@ def VariantFileReader(filepath, only_per_variant_fields=False):
     Reads variants (as dictionaries) from an internal file.  Iterable.  Exposes `.fields`.
 
         with VariantFileReader('a.tsv') as reader:
-            print(list(reader.values()))
+            print(reader.fields)
+            for variant in reader:
+                print(variant)
     '''
-    with open(filepath, 'rt') as f:
+    with read_maybe_gzip(filepath) as f:
         reader = csv.reader(f, dialect='pheweb-internal-dialect')
         fields = next(reader)
+        if fields[0].startswith('#'): # This won't happen in normal use but it's convenient for temporary internal re-routing
+            fields[0] = fields[0][1:]
         for field in fields:
             assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields, field
         if only_per_variant_fields:
@@ -136,16 +140,14 @@ class _vfr_only_per_variant_fields:
 @contextmanager
 def IndexedVariantFileReader(phenocode):
     filepath = common_filepaths['pheno_gz'](phenocode)
-
     with read_gzip(filepath) as f:
         reader = csv.reader(f, dialect='pheweb-internal-dialect')
-        colnames = next(reader)
-    if colnames[0].startswith('#'): # previous version of PheWeb commented the header line
-        colnames[0] = colnames[0][1:]
-    for field in colnames:
-        assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields, (field)
-    colidxs = {field: colnum for colnum, field in enumerate(colnames)}
-
+        fields = next(reader)
+    if fields[0].startswith('#'): # previous version of PheWeb commented the header line
+        fields[0] = fields[0][1:]
+    for field in fields:
+        assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields, field
+    colidxs = {field: idx for idx, field in enumerate(fields)}
     with pysam.TabixFile(filepath, parser=None) as tabix_file:
         yield _ivfr(tabix_file, colidxs)
 class _ivfr:
