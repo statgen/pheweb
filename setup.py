@@ -95,7 +95,7 @@ setup(
     python_requires=">=3.4",
     setup_requires=[
         'cffi~=1.11',
-        'pytest-runner~=4.2',
+        'pytest-runner~=4.4',
     ],
     install_requires=[
         'Flask>=1.0',
@@ -118,6 +118,6 @@ setup(
         'gevent~=1.3',
     ],
     tests_require=[
-        'pytest~=4.0',
+        'pytest~=4.3',
     ],
 )
