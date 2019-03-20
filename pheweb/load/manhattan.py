@@ -19,10 +19,6 @@ import math
 
 BIN_LENGTH = int(3e6)
 
-QVAL_STARTING_BIN_SIZE = 0.05
-QVAL_BIN_ROUND_DIGITS = 2
-QVAL_NUM_BINS = 200 # Number of bins for [0 - min(40,max_qval)]
-
 
 def run(argv):
     if '-h' in argv or '--help' in argv:
@@ -56,6 +52,7 @@ class Binner:
         self._peak_pq = MaxPriorityQueue()
         self._unbinned_variant_pq = MaxPriorityQueue()
         self._bins = {} # like {<chrom>: {<pos // bin_length>: [{chrom, startpos, qvals}]}}
+        self._qval_bin_size = 0.05 # this makes 200 bins for the minimum-allowed y-axis covering 0-10
 
     def process_variant(self, variant):
         '''
@@ -69,6 +66,13 @@ class Binner:
         Whenever `unbinned_variant_pq` exceeds the size `conf.manhattan_num_unbinned`, bin its member with the weakest pval.
         So, at the end, we'll have `peak_pq`, `unbinned_variant_pq`, and `bins`.
         '''
+
+        if variant['pval'] != 0:
+            qval = -math.log10(variant['pval'])
+            if qval > 40:
+                self._qval_bin_size = 0.2 # this makes 200 bins for a y-axis extending past 40 (but folded so that the lower half is 0-20)
+            elif qval > 20:
+                self._qval_bin_size = 0.1 # this makes 200-400 bins for a y-axis extending up to 20-40.
 
         if variant['pval'] < conf.manhattan_peak_pval_threshold: # part of a peak
             if self._peak_best_variant is None: # open a new peak
@@ -102,7 +106,7 @@ class Binner:
         pos_bin_id = variant['pos'] // BIN_LENGTH
         if pos_bin_id not in self._bins[chrom_idx]:
             self._bins[chrom_idx][pos_bin_id] = {'chrom': variant['chrom'], 'startpos': pos_bin_id * BIN_LENGTH, 'qvals': set()}
-        qval = self.rounded_neglog10(variant['pval'])
+        qval = self._rounded(-math.log10(variant['pval']))
         self._bins[chrom_idx][pos_bin_id]["qvals"].add(qval)
 
     def get_result(self):
@@ -116,21 +120,13 @@ class Binner:
         unbinned_variants = list(self._unbinned_variant_pq.pop_all())
         unbinned_variants = sorted(unbinned_variants + peaks, key=(lambda variant: variant['pval']))
 
-        # Compute a new qval_bin_size.
-        min_nonzero_pval = next(v['pval'] for v in unbinned_variants if v['pval'] != 0)
-        max_qval_or_40 = 40 if min_nonzero_pval <= 10**-40 else -math.log10(min_nonzero_pval)
-        qval_bin_size = max_qval_or_40 / QVAL_NUM_BINS # keep at least QVAL_NUM_BINS in default scaled range [0-min(40,max_qval)]
-        qval_bin_size = round(qval_bin_size // QVAL_STARTING_BIN_SIZE * QVAL_STARTING_BIN_SIZE, 2) # use a multiple of QVAL_STARTING_BIN_SIZE to avoid stripes
-        qval_bin_size = max(qval_bin_size, QVAL_STARTING_BIN_SIZE) # never go below QVAL_STARTING_BIN_SIZE
-
         # unroll dict-of-dict-of-array `bins` into array `variant_bins`
         variant_bins = []
         for chrom_idx in sorted(self._bins.keys()):
             for pos_bin_id in sorted(self._bins[chrom_idx].keys()):
                 b = self._bins[chrom_idx][pos_bin_id]
                 assert len(b['qvals']) > 0
-                b['qvals'] = [round(qval // qval_bin_size * qval_bin_size, QVAL_BIN_ROUND_DIGITS) for qval in b['qvals']]
-                b['qvals'], b['qval_extents'] = self._get_pvals_and_pval_extents(b['qvals'], qval_bin_size)
+                b['qvals'], b['qval_extents'] = self._get_qvals_and_qval_extents(b['qvals'])
                 b['pos'] = int(b['startpos'] + BIN_LENGTH/2)
                 del b['startpos']
                 variant_bins.append(b)
@@ -140,25 +136,23 @@ class Binner:
             'unbinned_variants': unbinned_variants,
         }
 
-    @staticmethod
-    def rounded_neglog10(pval):
-        return round(-math.log10(pval) // QVAL_STARTING_BIN_SIZE * QVAL_STARTING_BIN_SIZE,
-                     QVAL_BIN_ROUND_DIGITS)
+    def _rounded(self, qval):
+        # round down to the nearest multiple of `self._qval_bin_size`, then add 1/2 of `self._qval_bin_size` to be in the middle of the bin
+        x = qval // self._qval_bin_size * self._qval_bin_size + self._qval_bin_size / 2
+        return round(x, 3) # trim `0.35000000000000003` to `0.35` for convenience and network request size
 
-    @staticmethod
-    def _get_pvals_and_pval_extents(pvals, qval_bin_size):
-        # expects that QVAL_BIN_SIZE is the distance between adjacent bins.
-        pvals = sorted(pvals)
-        extents = [[pvals[0], pvals[0]]]
-        for p in pvals:
-            if extents[-1][1] + qval_bin_size * 1.1 > p:
-                extents[-1][1] = p
+    def _get_qvals_and_qval_extents(self, qvals):
+        qvals = sorted(self._rounded(qval) for qval in qvals)
+        extents = [[qvals[0], qvals[0]]]
+        for q in qvals:
+            if q <= extents[-1][1] + self._qval_bin_size * 1.1:
+                extents[-1][1] = q
             else:
-                extents.append([p,p])
-        rv_pvals, rv_pval_extents = [], []
+                extents.append([q,q])
+        rv_qvals, rv_qval_extents = [], []
         for (start, end) in extents:
             if start == end:
-                rv_pvals.append(start)
+                rv_qvals.append(start)
             else:
-                rv_pval_extents.append([start,end])
-        return (rv_pvals, rv_pval_extents)
+                rv_qval_extents.append([start,end])
+        return (rv_qvals, rv_qval_extents)
