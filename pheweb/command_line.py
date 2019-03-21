@@ -23,12 +23,6 @@ def enable_ipdb():
     # from <http://ipython.readthedocs.io/en/stable/interactive/reference.html#post-mortem-debugging>
     from IPython.core import ultratb
     sys.excepthook = ultratb.FormattedTB(mode='Verbose', color_scheme='Linux', call_pdb=1)
-def enable_debug():
-    from .conf_utils import conf
-    conf.debug = True
-def enable_quick():
-    from .conf_utils import conf
-    conf.quick = True
 
 # handle environ
 if 'PHEWEB_IPDB' in os.environ:
@@ -87,16 +81,6 @@ def configure(argv):
         exit(1)
     run(argv[i:])
 handlers['conf'] = configure
-
-def debug(argv):
-    enable_debug()
-    run(argv)
-handlers['debug'] = debug
-
-def quick(argv):
-    enable_quick()
-    run(argv)
-handlers['quick'] = quick
 
 def ipdb(argv):
     enable_ipdb()
