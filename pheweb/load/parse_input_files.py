@@ -56,7 +56,7 @@ def convert(pheno):
         with VariantFileWriter(common_filepaths['parsed'](pheno['phenocode'])) as writer:
             pheno_reader = PhenoReader(pheno, minimum_maf=conf.assoc_min_maf)
             variants = pheno_reader.get_variants()
-            if conf.quick: variants = itertools.islice(variants, 0, 10000)
+            if conf.limit_num_variants and isinstance(conf.limit_num_variants, int): variants = itertools.islice(variants, 0, conf.limit_num_variants)
             writer.write_all(variants)
     except Exception as exc:
         import traceback

@@ -101,6 +101,7 @@ def VariantFileReader(filepath, only_per_variant_fields=False):
     '''
     with read_maybe_gzip(filepath) as f:
         reader = csv.reader(f, dialect='pheweb-internal-dialect')
+        if conf.limit_num_variants and isinstance(conf.limit_num_variants, int): reader = itertools.islice(reader, 0, conf.limit_num_variants)
         fields = next(reader)
         if fields[0].startswith('#'): # This won't happen in normal use but it's convenient for temporary internal re-routing
             fields[0] = fields[0][1:]
