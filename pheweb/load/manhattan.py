@@ -25,14 +25,25 @@ def run(argv):
         print('Make a Manhattan plot for each phenotype.')
         exit(1)
 
-    parallelize_per_pheno(
-        get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
-        get_output_filepaths = lambda pheno: common_filepaths['manhattan'](pheno['phenocode']),
-        convert = make_manhattan_json_file,
-        cmd = 'manhattan',
-    )
+    if '--from-gz' in argv:
+        parallelize_per_pheno(
+            get_input_filepaths = lambda pheno: common_filepaths['pheno_gz'](pheno['phenocode']),
+            get_output_filepaths = lambda pheno: common_filepaths['manhattan'](pheno['phenocode']),
+            convert = make_manhattan_json_file_from_gz,
+            cmd = 'manhattan',
+        )
+    else:
+        parallelize_per_pheno(
+            get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
+            get_output_filepaths = lambda pheno: common_filepaths['manhattan'](pheno['phenocode']),
+            convert = make_manhattan_json_file,
+            cmd = 'manhattan',
+        )
 
 
+def make_manhattan_json_file_from_gz(pheno):
+    make_manhattan_json_file_explicit(common_filepaths['pheno_gz'](pheno['phenocode']),
+                                      common_filepaths['manhattan'](pheno['phenocode']))
 def make_manhattan_json_file(pheno):
     make_manhattan_json_file_explicit(common_filepaths['pheno'](pheno['phenocode']),
                                       common_filepaths['manhattan'](pheno['phenocode']))
