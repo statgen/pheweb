@@ -28,7 +28,8 @@ def enable_ipdb():
 if 'PHEWEB_IPDB' in os.environ:
     enable_ipdb()
 if 'PHEWEB_DEBUG' in os.environ:
-    enable_debug()
+    from .conf_utils import conf
+    conf.debug = True
 
 
 handlers = {}

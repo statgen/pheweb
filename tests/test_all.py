@@ -58,4 +58,3 @@ def test_all(tmpdir, capsys):
         assert client.get('/api/autocomplete?query=%20DAP-2').status_code == 200
         assert b'EAR-LENGTH' in client.get('/region/1/gene/SAMD11').data
         assert b'\t' in client.get('/download/top_hits.tsv').data
-

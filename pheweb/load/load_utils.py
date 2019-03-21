@@ -10,7 +10,6 @@ import os
 import subprocess
 import multiprocessing
 import random
-import itertools
 import sys
 import heapq
 from types import GeneratorType
