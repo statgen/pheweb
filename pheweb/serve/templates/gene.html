@@ -301,7 +301,7 @@
 	    .sort(function(pheno1, pheno2) { return pheno1.pval - pheno2.pval })
 	    .map(function(pheno) {
             return '<tr class="gene_func_var_tab"> <tr> <td class="gene_func_var_row" width="100px"> OR ' + _.template($('#beta-template-dir').html())({assoc:pheno}) + Math.exp(pheno.beta).toPrecision(2) + '<br> p-val ' + pheno.pval.toExponential(1) +
-                ' </td> <td> <a style="color:black" href="/pheno/' + pheno.phenocode + '">' + pheno.phenostring + ' </td> </tr>'
+                ' </td> <td> <a style="color:black" href="/pheno/' + pheno.phenocode + '">' +  (pheno.phenostring!="" ? pheno.phenostring: pheno.phenocode!=""? pheno.phenocode: "NA") + ' </td> </tr>'
 	    }).join(" ") %>
         </table>
     </td>
