@@ -293,7 +293,7 @@
     </a></td>
     <td><%= v.most_severe.replace(/_/g, ' ').replace(' variant', '') %></td>
     <td><%= Number(v.var.annot.INFO).toPrecision(3) %></td>
-    <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: v}) %>" data-toggle="tooltip">
+    <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: v.var}) %>" data-toggle="tooltip">
       <%= (v.var.gnomad.AF_FIN)? $.isNumeric(v.var.gnomad.AF_FIN) ? (v.var.gnomad.AF_FIN/v.var.gnomad.AF_NFE).toPrecision(3) : v.fin_enrichment : "" %>
     </td>
     <td><%= v.var.annot.AF < 0.01 ?  v.var.annot.AF.toExponential(1) :  v.var.annot.AF.toPrecision(2) %></td>
