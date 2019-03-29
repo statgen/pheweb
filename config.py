@@ -20,5 +20,5 @@ database_conf = ({ "annotation":
                  {"externalresult": { "ExternalFileResultDao": {"manifest":"/mnt/r2/ukbb/ukbb_r1_match_pheno_dup_correct_ssd.tsv"}}}
                 )
 
-
+n_query_threads=4
 report_conf = {"func_var_assoc_threshold":0.0001, "gene_top_assoc_threshold":0.0001}

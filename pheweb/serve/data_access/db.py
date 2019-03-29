@@ -1,11 +1,12 @@
 import abc
+import attr
 from importlib import import_module
 from collections import defaultdict
 from elasticsearch import Elasticsearch
 import pysam
 import re
 import threading
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from ...file_utils import MatrixReader, common_filepaths
 from ...utils import get_phenolist, get_gene_tuples
 
@@ -115,7 +116,13 @@ class PhenoResult(JSONifiable):
         return {'phenocode':self.phenocode,'phenostring':self.phenostring, 'pval':self.pval, 'beta':self.beta, "maf_case":self.maf_case,
                 "maf_control":self.maf_control, 'matching_results':self.matching_results, 'category':self.category_name, "n_case":self.n_case, "n_control":self.n_control}
 
-
+@attr.s
+class PhenoResults( JSONifiable):
+    pheno = attr.ib( attr.validators.instance_of( Dict) )
+    assoc = attr.ib( attr.validators.instance_of( PhenoResult ) )
+    variant= attr.ib( attr.validators.instance_of( List )  )
+    def json_rep(self):
+        return {'pheno':self.pheno, "assoc":self.assoc, "variant":self.variant}
 
 class GeneInfoDB(object):
 
@@ -130,11 +137,11 @@ class GeneInfoDB(object):
 class ExternalResultDB(object):
 
     @abc.abstractmethod
-    def get_matching_results(self, phenotype, var_list):
+    def get_matching_results(self, phenotype:str, var_list:List[Variant]) -> Dict[Variant,Dict]:
         """ Given a phenotype name and variant list returns a list of matching results.
         Args: phenotype phenotype names
-              var_list list of tuples with CHR POS:int REF ALT
-            returns list of namedtuples with elements effect_size, pvalue, study_name, n_cases, n_controls
+              var_list list of Variant objects
+            returns dictionary keyd by Variant and values are dictionary or result elements
         """
         return
 
@@ -156,13 +163,13 @@ class ExternalResultDB(object):
         return
 
     @abc.abstractmethod
-    def get_multiphenoresults(self, varphenodict, known_range=None):
-        """ Given a dictionary with variant ids as keys (chr:pos:ref:alt) and list of phenocodes as values returns corresponding geno pheno results.
+    def get_multiphenoresults(self, varphenodict:Dict[Variant,List[str]], known_range=None) -> Dict[Variant,Dict[str,Dict]]:
+        """ Given a dictionary with Variant as keys  and list of phenocodes as values returns corresponding geno pheno results.
             This interface allows implementations to optimize queries if multiple phenotype results for same variant are co-located
             known_range: tuple of 3 elements (chr,start,end) giving contiguous region in chromosome to restrict the search to e.g. improve performance by reading one contiguous region. 
             Implementations are free to ignore this parameter
 
-            returns dictionary with variant ids as keys and result dictionary as values
+            returns dictionary of dictionaries first keyed by variant and then by phenocode
         """
 class AnnotationDB(object):
 
@@ -226,16 +233,16 @@ class KnownHitsDB(object):
 
 class ResultDB(object):
     @abc.abstractmethod
-    def get_variant_results_range(self, chrom, start, end):
+    def get_variant_results_range(self, chrom, start, end)->  List[Tuple[Variant, List[PhenoResult]]]:
         """ Return associations of all phenotypes in given range
             Returns a list of variants and results in chromosomal order. Each element contains tuple of 2 elements: Variant object and a list of PhenoResult objects
         """
         return
 
     @abc.abstractmethod
-    def get_top_per_pheno_variant_results_range(self, chrom, start, end):
+    def get_top_per_pheno_variant_results_range(self, chrom, start, end) -> List[ PhenoResults ]:
         """ Retrieves top variant for each phenotype in a given range
-            Returns: A list of dictionaries. Dictionary has 3 elements: "pheno" which contains a phenotype dict, and "assoc" containing PhenoResult object, 'variant' contains Variant object The list is sorted by p-value.
+            Returns: A list of PhenoResults "pheno" which contains a phenotype dict, and "assoc" containing PhenoResult object, 'variant' contains Variant object. The list is sorted by p-value.
         """
         return
 
@@ -514,7 +521,7 @@ class TabixResultDao(ResultDB):
             split = variant_row.split('\t')
             chrom = split[0].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")
             v = Variant( chrom,split[1],split[2],split[3])
-            if split[4] is not '':v.add_annotation("rsids", split[4] )
+            if split[4] is not '':v.rsids = split[4]
             v.add_annotation('nearest_gene', split[5])
             phenores = []
             for pheno in self.phenos:
@@ -573,8 +580,8 @@ class TabixResultDao(ResultDB):
                     v.add_annotation('nearest_gene', split[5])
                     top[pheno[0]] = (v,pr)
                      
-        top = [ {"pheno":self.pheno_map[pheno],"assoc":dat, "variant":v } for pheno,(v,dat) in top.items()]
-        top.sort(key=lambda pheno: pheno['assoc'].pval)
+        top = [ PhenoResults(pheno=self.pheno_map[pheno], assoc=dat, variant=v ) for pheno,(v,dat) in top.items()]
+        top.sort(key=lambda pheno: pheno.assoc.pval)
 
         return top
 
@@ -599,7 +606,7 @@ class ExternalMatrixResultDao(ExternalResultDB):
 
             for p in meta:
                 p = p.rstrip("\n").split("\t")
-                self.meta[p[name_idx]] = { "ncases":p[ncase_idx], "ncontrol":p[ncontrol_idx] }
+                self.meta[p[name_idx]] = { "ncases":p[ncase_idx], "ncontrols":p[ncontrol_idx] }
 
         self.tabixfiles = defaultdict( lambda: pysam.TabixFile( self.matrix, parser=None))
 
@@ -645,7 +652,7 @@ class ExternalMatrixResultDao(ExternalResultDB):
                     iter = self.tabixfiles[ threading.get_ident() ].fetch(var.chrom , var.pos-1, var.pos)
                     for ext_var in iter:
                         ext_var = ext_var.split("\t")
-                        ext_v = Variant(var[0],var[1], var[2], var[3])
+                        ext_v = Variant(ext_var[0],ext_var[1], ext_var[2], ext_var[3])
                         if ext_v==var:
                             datapoints = { elem:ext_var[i] for elem,i in manifestdata.items() }
                             datapoints.update({ "var":ext_v,
@@ -658,7 +665,7 @@ class ExternalMatrixResultDao(ExternalResultDB):
 
     def get_multiphenoresults(self, varphenodict, known_range=None):
         '''
-            vapphenodict: dictionary keyed by Variant and values are a list of phenocodes to look for
+            varphenodict: dictionary keyed by Variant and values are a list of phenocodes to look for
             known_range: only searches this range for matching variants. This speeds up the query if it is known that all variants reside close to each other in a contiguous block of results
             returns dictionary of dictionaries first keyed by Variant and then by phenocode
         '''
@@ -681,7 +688,7 @@ class ExternalMatrixResultDao(ExternalResultDB):
                         manifestdata = self.res_indices[p]
                         datapoints = { elem:ext_var[i] for elem,i in manifestdata.items() }
                         datapoints.update({ "chr":ext_var[0], "varid":var.id, "pos":ext_var[1],"ref":ext_var[2],"alt":ext_var[3],
-                            "n_cases": self.meta[p]["ncases"], "n_controls": self.meta[p]["ncontrol"] })
+                            "n_cases": self.meta[p]["ncases"], "n_controls": self.meta[p]["ncontrols"] })
                         res[var][p]=datapoints
         else:
             for var, phenos in varphenodict.items():
@@ -699,7 +706,7 @@ class ExternalMatrixResultDao(ExternalResultDB):
                                 manifestdata = self.res_indices[p]
                                 datapoints = { elem:ext_var[i] for elem,i in manifestdata.items() }
                                 datapoints.update({ 'var':var,
-                                    "n_cases": self.meta[p]["ncases"], "n_controls": self.meta[p]["ncontrol"] })
+                                    "n_cases": self.meta[p]["ncases"], "n_controls": self.meta[p]["ncontrols"] })
                                 res[var][p]=datapoints
 
                 except ValueError as e:
@@ -710,7 +717,7 @@ class ExternalMatrixResultDao(ExternalResultDB):
 
 class ExternalFileResultDao(ExternalResultDB):
     FILE_REQ_HEADERS = ["achr38","apos38","REF","ALT","beta","pval"]
-    ResRecord = namedtuple('ResRecord', 'name, ncase, ncontrol, file, achr38_idx, apos38_idx, REF_idx, ALT_idx, beta_idx, pval_idx')
+    ResRecord = namedtuple('ResRecord', 'name, ncases, ncontrols, file, achr38_idx, apos38_idx, REF_idx, ALT_idx, beta_idx, pval_idx')
     VarRecord = namedtuple('VarRecord','origvariant,variant,chr,pos,ref,alt,beta, pval, study_name, n_cases, n_controls')
 
     def __init__(self, manifest):
@@ -766,7 +773,7 @@ class ExternalFileResultDao(ExternalResultDB):
                 varid = [ var[manifestdata.achr38_idx],  var[manifestdata.apos38_idx], var[manifestdata.REF_idx], var[manifestdata.ALT_idx]].join(":")
                 res.append(  {"varid":varid, "chr":var[manifestdata.achr38_idx], "pos":var[manifestdata.apos38_idx],
                         "ref":var[manifestdata.REF_idx],"alt":var[manifestdata.ALT_idx] ,"beta":var[manifestdata.beta_idx],
-                        "pval":var[manifestdata.pval_idx],  "n_cases":manifestdata.ncase, "n_controls":manifestdata.ncontrol } )
+                        "pval":var[manifestdata.pval_idx],  "n_cases":manifestdata.ncases, "n_controls":manifestdata.ncontrols } )
 
         return res
 
@@ -815,23 +822,23 @@ class ExternalFileResultDao(ExternalResultDB):
                     ext_var = Variant( chrom,ext_split[manifestdata.apos38_idx],  ext_split[manifestdata.REF_idx],ext_split[manifestdata.ALT_idx])
                     if ext_var==var:
                             res[var] = {"var":var,"beta":ext_split[manifestdata.beta_idx],"pval":ext_split[manifestdata.pval_idx],
-                            "n_cases":manifestdata.ncase, "n_controls":manifestdata.ncontrol }
+                                    "n_cases":manifestdata.ncases, "n_controls":manifestdata.ncontrols }
             tabf.close()
         return res
 
     def get_multiphenoresults(self, varphenodict):
-        res = defaultdict( lambda: [] )
+        res = defaultdict(lambda: defaultdict( lambda: dict()))
         for var, phenolist in varphenodict.items():
             for p in phenolist:
-                r = self.get_matching_results(p, [var.split(":")])
+                r = self.get_matching_results(p, [var])
                 if len(r)>0:
-                    res[var].append(r)
+                    res[var][p] = r
         return res
 
     def getNs(self, phenotype):
         if(phenotype in self.results ):
             manifest = self.results[phenotype]
-            return (manifest.ncase, manifest.ncontrol)
+            return (manifest.ncases, manifest.ncontrols)
         else:
             return None
 
@@ -878,7 +885,6 @@ class TabixAnnotationDao(AnnotationDB):
 
         self.dconv = defaultdict( lambda: f )
 
-
         print("Checking if type config exists {}".format( datatypesf ))
         if ( datatypesf.is_file()):
             print("Annotation datatype configuration file found. Using datatypes from {}".format(datatypesf) )
@@ -892,7 +898,8 @@ class TabixAnnotationDao(AnnotationDB):
                     if dtype.lower() not in TabixAnnotationDao.DATA_CONVS:
                         raise ConfigurationException("Unkown datatype given in datatype configuration file. Type given {}. Accepted types: {}".format(dtype, ",".join(list(TabixAnnotationDao.DATA_CONVS.keys()))) )
                     self.dconv[col]=TabixAnnotationDao.DATA_CONVS[dtype]
-
+        else:
+            print("No annotation datatype configuration found. Data will be stored as is.")
     def get_single_variant_annotations(self, variant:Variant) -> Variant:
         res = self.get_variant_annotations([variant])
         for r in res:

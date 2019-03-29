@@ -69,9 +69,6 @@ threadpool = ThreadPoolExecutor(max_workers=4)
 
 jeeves = ServerJeeves( conf )
 
-def variant_to_id(variant):
-    return variant["chrom"] + ":" + str(variant["pos"]) + ":" + variant["ref"] + ":" + variant["alt"]
-
 def check_auth(func):
     """
     This decorator for routes checks that the user is authorized (or that no login is required).
@@ -182,7 +179,7 @@ def api_lof():
             del lofs[i]
         else:
             lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
-    return jsonify(sorted(lofs,  key=lambda lof: lof['gene_data']['p_value'])
+    return jsonify(sorted(lofs,  key=lambda lof: lof['gene_data']['p_value']))
 
 @app.route('/api/lof/<gene>')
 @check_auth
@@ -334,7 +331,7 @@ def gene_report(genename):
     funcvar = []
     chunk_size = 10
 
-    def formatukbb(res):
+    def matching_ukbb(res):
         ukbline = ""
         ukbdat = res.get_matching_result("ukbb")
         if( ukbdat is not None):
@@ -347,7 +344,7 @@ def gene_report(genename):
         i = 0
         while i < len(var["significant_phenos"]):
             phenos = var["significant_phenos"][i:min(i+chunk_size,len(var["significant_phenos"]))]
-            sigphenos = "\\newline \\medskip ".join( list(map(lambda x: x.phenostring + " \\newline (OR:" + "{:.2f}".format( math.exp(x.beta)) + ",p:"  + "{:.2e}".format(x.pval) + ")" +  formatukbb(x) + " " , phenos)))
+            sigphenos = "\\newline \\medskip ".join( list(map(lambda x: (x.phenostring if x.phenostring!="" else x.phenocode if x.phenocode!="" else "NA") + " \\newline (OR:" + "{:.2f}".format( math.exp(x.beta)) + ",p:"  + "{:.2e}".format(x.pval) + ")" +  matching_ukbb(x) + " " , phenos)))
             if i+chunk_size < len(var["significant_phenos"]):
                 sigphenos = sigphenos + "\\newline ..."
             funcvar.append( { 'rsid': var['var'].get_annotation('rsids'), 'variant':var['var'].id.replace(':', ' '), 'gnomad':var['var'].get_annotation('gnomad'),
@@ -356,9 +353,10 @@ def gene_report(genename):
                               "sigPhenos": sigphenos })
             i = i + chunk_size
     top_phenos = jeeves.gene_phenos(genename)
-    top_assoc = [ assoc for assoc in top_phenos if assoc["assoc"].pval<  conf.report_conf["gene_top_assoc_threshold"]  ]
+    top_assoc = [ assoc for assoc in top_phenos if assoc.assoc.pval<  conf.report_conf["gene_top_assoc_threshold"]  ]
+    ukbb_match=[]
     for assoc in top_assoc:
-        assoc['ukbbdisplay'] = formatukbb(assoc['assoc'])
+        ukbb_match.append(matching_ukbb(assoc.assoc))
     gi_dao = dbs_fact.get_geneinfo_dao()
     genedata = gi_dao.get_gene_info(genename)
     gene_region_mapping = get_gene_region_mapping()
@@ -366,8 +364,11 @@ def gene_report(genename):
 
     knownhits = dbs_fact.get_knownhits_dao().get_hits_by_loc(chrom,start,end)
     drugs = dbs_fact.get_drug_dao().get_drugs(genename)
+
+    ta = list(zip(top_assoc,ukbb_match))
+    print(ta[1:4])
     pdf =  report.render_template('gene_report.tex',imp0rt = importlib.import_module,
-                                  gene=genename, functionalVars=funcvar, topAssoc=top_assoc, geneinfo=genedata, knownhits=knownhits, drugs=drugs,
+                                  gene=genename, functionalVars=funcvar, topAssoc=ta, geneinfo=genedata, knownhits=knownhits, drugs=drugs,
                                   gene_top_assoc_threshold=conf.report_conf["gene_top_assoc_threshold"], func_var_assoc_threshold=conf.report_conf["func_var_assoc_threshold"] )
     response = make_response( pdf.readb())
     response.headers.set('Content-Disposition', 'attachment', filename=genename + '_report.pdf')

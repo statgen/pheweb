@@ -39,5 +39,6 @@ class Report(object) :
 
         '''
         tmpl = self.texenv.get_template(template)
-        ##print(tmpl.render(**params))
+        f= open("/mnt/r2/mitja/templaatti.tex",'wt' )
+        f.write(tmpl.render(**params))
         return build_pdf(tmpl.render(**params))

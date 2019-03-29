@@ -39,16 +39,16 @@ def run(argv):
 #/api/gene_functional_variants/[gene]?p=0.0001
 
 
-def export_gene_reports(args, outpath):
-    
-    print(common_filepaths["genes"])
+def export_gene_reports(args, outpath): 
+
     print("Exporting data for genes: {}".format(common_filepaths["genes"]))
-    print(common_filepaths['genes'])
 
     if args.bed_file is not None:
         geneList = np.loadtxt(args.bed_file,dtype = str,usecols = (3,))
+        print("Exporting data for genes: {}".format( args.bed_file ))
     else:
         geneList = np.loadtxt(common_filepaths['genes'],dtype = str,usecols = (3,))
+        print("Exporting data for genes: {}".format(common_filepaths["genes"]))
     
     print("Generating data for : {} genes".format( len(geneList) ))
 
@@ -78,66 +78,66 @@ def export_gene_reports(args, outpath):
         
 def process_genes(genes,args, outpath):
 
-    process_log = open("{}/{}{}".format(outpath, os.getpid(), ".log" ),'wt' )
-    print("Starting process {}".format(os.getpid()), file= process_log )
-    genes_done=0 
-    jeeves = ServerJeeves(conf)
-    print("Created jeeves for process {}".format(os.getpid()), file= process_log )
-    ten_start = time.time()
-    for gene in genes:
-        gene_f ="{}/{}_{}".format(outpath,gene,"_report_data.json")
-        print("Processing gene {}".format(gene) )
-        gene_start = time.time()
-        if os.path.isfile(gene_f) and not args.force_write:
-            print("Data exists for gene {}. Skipping..".format(gene), file= process_log )
-            continue
-        begin=time.time()
-        start=time.time()
-        try:
-            func_vars = jeeves.gene_functional_variants(gene)
-        except Exception as e:
-            print("Error {}".format(e),  file=process_log)
-            traceback.print_exc(file=process_log)
-            continue
-        print("get func vars for  took {}".format( time.time()-start), file=process_log )
-        print("func vars {}".format(func_vars) )
-        start=time.time()
-        try:
-            gene_phenos = jeeves.gene_phenos(gene)
-            print("get gene phenos for {} took {}".format(gene, time.time()-start), file=process_log )
-        except Exception as e:
-            print("ERROR {}".format(e), file=process_log)
-            traceback.print_exc(file=process_log)
-            continue
-        
-        start=time.time()
-        try:
-            gene_lofs = jeeves.get_gene_lofs(gene)
-        except Exception as e:
-            print("Error {}".format(e), file=process_log)
-            traceback.print_exc(file=process_log)
-            continue
-        print("get  gene lofs for {} took {}".format(gene, time.time()-start), file=process_log )
-        
-        start=time.time()
-        try:
-            gene_drugs = jeeves.get_gene_drugs(gene)
-            print("get drugs for {} took {}".format(gene, time.time()-start), file=process_log )
-        except Exception as e:
-            print("Error {}".format(e), file=process_log)
-            traceback.print_exc(file=process_log)
-            continue
-        genes_done = genes_done +1
-        
-        if genes_done % 10 == 0:
-            print("{} genes done. Last 10 in {}".format(genes_done, time.time() - ten_start ), file=process_log )
-            ten_start = time.time()
+    with open("{}/{}{}".format(outpath, os.getpid(), ".log" ),'wt' ) as process_log:
+        print("Starting process {}".format(os.getpid()), file= process_log )
+        genes_done=0 
+        jeeves = ServerJeeves(conf)
+        print("Created jeeves for process {}".format(os.getpid()), file= process_log )
+        ten_start = time.time()
+        for gene in genes:
+            gene_f ="{}/{}_{}".format(outpath,gene,"_report_data.json")
+            print("Processing gene {}".format(gene) )
+            gene_start = time.time()
+            if os.path.isfile(gene_f) and not args.force_write:
+                print("Data exists for gene {}. Skipping..".format(gene), file= process_log )
+                continue
+            begin=time.time()
+            start=time.time()
+            try:
+                func_vars = jeeves.gene_functional_variants(gene)
+            except Exception as e:
+                print("Error while processing {}. Error:{}".format(gene,e),  file=process_log)
+                traceback.print_exc(file=process_log)
+                continue
+            print("get func vars for  took {}".format( time.time()-start), file=process_log )
+            print("func vars {}".format(func_vars) )
+            start=time.time()
+            try:
+                gene_phenos = jeeves.gene_phenos(gene)
+                print("get gene phenos for {} took {}".format(gene, time.time()-start), file=process_log )
+            except Exception as e:
+                print("ERROR {}".format(e), file=process_log)
+                traceback.print_exc(file=process_log)
+                continue
+            
+            start=time.time()
+            try:
+                gene_lofs = jeeves.get_gene_lofs(gene)
+            except Exception as e:
+                print("Error {}".format(e), file=process_log)
+                traceback.print_exc(file=process_log)
+                continue
+            print("get  gene lofs for {} took {}".format(gene, time.time()-start), file=process_log )
+            
+            start=time.time()
+            try:
+                gene_drugs = jeeves.get_gene_drugs(gene)
+                print("get drugs for {} took {}".format(gene, time.time()-start), file=process_log )
+            except Exception as e:
+                print("Error {}".format(e), file=process_log)
+                traceback.print_exc(file=process_log)
+                continue
+            genes_done = genes_done +1
+            
+            if genes_done % 10 == 0:
+                print("{} genes done. Last 10 in {}".format(genes_done, time.time() - ten_start ), file=process_log )
+                ten_start = time.time()
 
 
-        print("Getting gene data for {} took {} seconds".format(gene, time.time()-begin), file=process_log)
-        data = {"func_vars":func_vars, "gene_phenos":gene_phenos, "gene_lofs":gene_lofs, "gene_drugs":gene_drugs}
-        with open(gene_f, 'wt') as f:
-            dump(data, f, cls=FGJSONEncoder )
+            print("Getting gene data for {} took {} seconds".format(gene, time.time()-begin), file=process_log)
+            data = {"func_vars":func_vars, "gene_phenos":gene_phenos, "gene_lofs":gene_lofs, "gene_drugs":gene_drugs}
+            with open(gene_f, 'wt') as f:
+                dump(data, f, cls=FGJSONEncoder )
 
 
 

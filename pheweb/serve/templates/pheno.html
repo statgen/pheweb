@@ -140,56 +140,7 @@
     <h5 class="pull-right"><div id="streamtable-found" class="label label-primary"></div></h5>
   </div>
 </div>
-<div class="row strfrom ..utils import get_phenolist, get_gene_tuples, pad_gene
-from ..conf_utils import conf
-from ..file_utils import common_filepaths
-from .server_utils import get_variant, get_random_page, get_pheno_region
-from .autocomplete import Autocompleter
-from .auth import GoogleSignIn
-from ..version import version as pheweb_version
-
-from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
-from flask_compress import Compress
-from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
-from flask.json import JSONEncoder
-from .reporting import Report
-
-import functools
-import importlib
-import re
-import math
-import traceback
-import json
-import os.path
-from .data_access import DataFactory
-from concurrent.futures import ThreadPoolExecutor
-
-from .server_jeeves  import ServerJeeves
-
-from collections import defaultdict
-
-app = Flask(__name__)
-
-
-class FGJSONEncoder(JSONEncoder):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args,**kwargs)
-
-    def default(self,o):
-        try:
-            rep =o.json_rep()
-        except:
-            pass
-        else:
-            return rep
-        return JSONEncoder.default(self, o)
-
-Compress(app)
-
-report = Report(app)
-
-app.config['COMPRESS_LEVEL'] = 2 # Since we don't cache, faster=better
-app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'eam_table_row">
+<div class="row stream_table_row">
   <div class="col-xs-12">
     <table id="stream_table" class="table table-striped table-bordered">
       <thead>

@@ -1,5 +1,4 @@
 from .data_access import DataFactory
-        ionsole.log(data)
 from .data_access.db import Variant, PhenoResult
 from concurrent.futures import ThreadPoolExecutor
 from ..utils import get_phenolist, get_gene_tuples, pad_gene
@@ -28,7 +27,7 @@ class ServerJeeves(object):
         self.result_dao = self.dbs_fact.get_result_dao()
         self.ukbb_dao = self.dbs_fact.get_UKBB_dao()
         self.ukbb_matrixdao =self.dbs_fact.get_UKBB_dao(True)
-        self.threadpool = ThreadPoolExecutor(max_workers=4)
+        self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads if  self.conf.n_query_threads is not None else 4)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
     def gene_functional_variants(self, gene, pThreshold=None):
@@ -96,13 +95,13 @@ class ServerJeeves(object):
         starttime = time.time()
         results = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)
         print("get top per pheno variants  took {} seconds".format(time.time()-starttime))
-        vars = list(set([pheno['variant'] for pheno in results]))
+        vars = list(set([pheno.variant for pheno in results]))
         if len(results)==0:
             print("no variants in gene {}. Chr: {} pos:{}".format(gene,start,end))
             return []
         varpheno = defaultdict(lambda: [])
         for p in results:
-            varpheno[p['variant']].append( p['assoc'].phenocode )
+            varpheno[p.variant].append( p.assoc.phenocode )
         
         starttime = time.time()
         gnomad = self.gnomad_dao.get_variant_annotations(vars)
@@ -113,11 +112,11 @@ class ServerJeeves(object):
         ukbbs = self.ukbb_matrixdao.get_multiphenoresults(varpheno, known_range=(chrom,start,end))
         print("UKB fetching for {} variants took {}".format( len( list(varpheno.keys()) ),time.time()-starttime) )
         for pheno in results:
-            if pheno['variant'] in ukbbs and pheno['assoc'].phenocode in ukbbs[pheno['variant']]:
-                pheno['assoc'].add_matching_result('ukbb', ukbbs[pheno['variant']][pheno['assoc'].phenocode])
+            if pheno.variant in ukbbs and pheno.assoc.phenocode in ukbbs[pheno.variant]:
+                pheno.assoc.add_matching_result('ukbb', ukbbs[pheno.variant][pheno.assoc.phenocode])
 
-            if pheno['variant'] in gd:
-                pheno['variant'].add_annotation('gnomad', gd[pheno['variant']])
+            if pheno.variant in gd:
+                pheno.variant.add_annotation('gnomad', gd[pheno.variant])
 
         return results
 
