@@ -27,7 +27,8 @@ class ServerJeeves(object):
         self.result_dao = self.dbs_fact.get_result_dao()
         self.ukbb_dao = self.dbs_fact.get_UKBB_dao()
         self.ukbb_matrixdao =self.dbs_fact.get_UKBB_dao(True)
-        self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads if  self.conf.n_query_threads is not None else 4)
+
+        self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
     def gene_functional_variants(self, gene, pThreshold=None):
