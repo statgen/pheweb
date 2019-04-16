@@ -50,7 +50,7 @@ if sys.argv[-1] in ['publish', 'pub']:
         print('=> warning: you need a ~/.pypirc')
     # delete ./dist/PheWeb-* and repopulate it and upload to PyPI
     if Path('dist').exists() and list(Path('dist').iterdir()):
-        setuppy = Path('setup.py').absolute()
+        setuppy = Path('setup.py').absolute() # check that we are where we think we are before unlinking
         assert setuppy.is_file() and 'pheweb' in setuppy.read_text()
         for child in Path('dist').absolute().iterdir():
             assert child.name.startswith('PheWeb-'), child
