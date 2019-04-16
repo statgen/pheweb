@@ -57,6 +57,11 @@ if sys.argv[-1] in ['publish', 'pub']:
             print('=> unlinking', child)
             child.unlink()
     subprocess.run('python3 setup.py sdist bdist_wheel'.split(), check=True)
+    try:
+        subprocess.run('twine --version'.split())
+    except FileNotFoundError:
+        print('=> Run `pip3 install twine` and try again')
+        sys.exit(1)
     subprocess.run('twine upload dist/*'.split(), check=True)
     if git_index_returncode == 1:
         print('=> Now do `git push`.')
