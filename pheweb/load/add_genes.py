@@ -60,7 +60,7 @@ class GeneAnnotator(object):
         if chrom == 'MT': chrom = 'M'
         if chrom not in self._its:
             return ''
-        overlapping_genes = self._its[chrom].search(pos)
+        overlapping_genes = self._its[chrom].at(pos) if hasattr(self._its[chrom], 'at') else self._its[chrom].search(pos) # support intervaltree 2.x and 3.x
         if overlapping_genes:
             return ','.join(sorted(boltons.iterutils.unique_iter(og.data for og in overlapping_genes)))
         nearest_gene_end = self._gene_ends[chrom].get_item_before(pos)

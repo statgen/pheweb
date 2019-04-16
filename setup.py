@@ -104,7 +104,7 @@ setup(
         'rauth~=0.7',
         'pysam~=0.15.2',
         'marisa-trie~=0.7',
-        'intervaltree~=2.1',
+        'intervaltree~=3.0',
         'tqdm~=4.28',
         'openpyxl~=2.5',
         'scipy~=1.1',
