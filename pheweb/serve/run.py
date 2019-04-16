@@ -64,7 +64,10 @@ def print_ip(port, urlprefix):
     print("If that link doesn't work, it's either because:")
     print("  - the IP {} is failing to route to this computer (eg, this computer is inside a NAT), or".format(ip))
     print("  - a firewall is blocking port {}.".format(port))
-    print("In that case, try port-forwarding.")
+    print("In that case, you can view the site using an ssh tunnel:")
+    print("  - If you use Mac/Linux, run `ssh -N -L {}:localhost:{} <username>@<server>`, similar to your usual `ssh <username>@<server>`".format(port, port))
+    print("  - If you use PuTTY on Windows, follow https://stackoverflow.com/a/29168936/1166306")
+    print("  - Either way, open http://localhost:5000 in your web browser")
     print('')
 
 def get_ip():
