@@ -11,18 +11,6 @@ import imp
 import os.path
 import sys
 
-if sys.version_info[:2] == (3,7):
-    try:
-        import pysam # noqa: F401
-    except ImportError:
-        raise Exception('\n\n'
-                        'PheWeb depends on pysam, which currently cannot be installed from the python package index (pypi) for python 3.7.\n'
-                        '(More information is at <https://github.com/pysam-developers/pysam/issues/697#issuecomment-402735807>)\n'
-                        'Please run these two commands to install pysam:\n'
-                        '  pip3 install -U cython\n'
-                        '  pip3 install https://github.com/pysam-developers/pysam/archive/master.zip\n'
-                        'Then try to install pheweb again.')
-
 
 version = imp.load_source('pheweb.version', os.path.join('pheweb', 'version.py')).version
 
@@ -114,7 +102,7 @@ setup(
         'Flask-Compress~=1.4',
         'Flask-Login~=0.4',
         'rauth~=0.7',
-        'pysam~=0.15',
+        'pysam~=0.15.2',
         'marisa-trie~=0.7',
         'intervaltree~=2.1',
         'tqdm~=4.28',
