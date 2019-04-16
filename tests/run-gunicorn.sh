@@ -3,7 +3,10 @@ set -euo pipefail
 _readlinkf() { perl -MCwd -le 'print Cwd::abs_path shift' "$1"; }
 script_dir="$(cd "$(dirname "$(_readlinkf "${BASH_SOURCE[0]}")")" && echo "$PWD")"
 
-data_dir="$TMPDIR/pytest-of-$USER/pytest-current/test_all0/"
+data_dir="$TMPDIR/pytest-of-$USER/pytest-$USER/"
+if ! [[ -d "$data_dir" ]]; then
+   data_dir="$TMPDIR/pytest-of-$USER/pytest-current/test_all0/" # I've seen this format but I'm not sure where
+fi
 ln -s -f "$script_dir/input_files/config.py"  "$data_dir/"
 ln -s -f "$script_dir/input_files/fake-cache" "$data_dir/"
 ln -s -f "$script_dir/input_files/custom_templates" "$data_dir/"
