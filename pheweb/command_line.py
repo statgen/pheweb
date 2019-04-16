@@ -61,6 +61,7 @@ for submodule in '''
  wsgi
  top_loci
  detect_ref
+ export_data
 '''.split():
     def f(submodule, argv):
         module = importlib.import_module('.load.{}'.format(submodule), __package__)

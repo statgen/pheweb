@@ -48,7 +48,7 @@ Variant & rsid & Consequence & MAF & MAF FIN & MAF NFE & N phenos p\textless((( 
     Variant & pheno & cases & controls & MAF case & MAF control & OR & p-value & UKBB \\
 \hline
 ((* for var in topAssoc *))
-    ((( var.id.replace(":"," ") | escape_tex))) \newline ((( var.rsids ))) & ((( var.phenostring | escape_tex))) & (((var.num_cases ))) & (((var.num_controls))) & ((( "{:.2e}".format(var.maf_case) ))) & ((( "{:.2e}".format(var.maf_control) ))) & ((( "{:.2f}".format(math.exp(var.beta)) ))) & ((( "{:.2e}".format(var.pval) ))) & (((var.ukbbdisplay)))\\
+    ((( var[0].variant.id.replace(":"," ") | escape_tex))) \newline ((( var[0].variant.rsids ))) & ((( var[0].assoc.phenostring | escape_tex))) & (((var[0].assoc.n_case ))) & (((var[0].assoc.n_control))) & ((( "{:.2e}".format(var[0].assoc.maf_case) ))) & ((( "{:.2e}".format(var[0].assoc.maf_control) ))) & ((( "{:.2e}".format(math.exp(var[0].assoc.beta)) ))) & ((( "{:.2e}".format(var[0].assoc.pval) ))) & (((var[1])))\\
 ((* endfor *))
 \end{longtable}
 \end{landscape}

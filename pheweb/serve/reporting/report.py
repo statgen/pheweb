@@ -39,5 +39,4 @@ class Report(object) :
 
         '''
         tmpl = self.texenv.get_template(template)
-        ##print(tmpl.render(**params))
         return build_pdf(tmpl.render(**params))

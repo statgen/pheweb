@@ -67,7 +67,8 @@ setup(
         'wget~=3.2',
         'gevent~=1.2',
         'elasticsearch~=6.2.0',
-        'latex~=0.7.0'
+        'latex~=0.7.0',
+        'attrs'
     ],
     tests_require=[
         'pytest~=3.4',
