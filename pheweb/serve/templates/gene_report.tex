@@ -35,7 +35,7 @@
 Variant & rsid & Consequence & MAF & MAF FIN & MAF NFE & N phenos p\textless((( "{:.0e}".format(func_var_assoc_threshold) ))) & top phenos \\
 \hline
 ((* for var in functionalVars *))
-    ((( var.variant | escape_tex))) & ((( var.rsid ))) & (((  var.consequence | escape_tex))) & ((( "{:.2e}".format(var.maf) ))) & ((( "{:.2e}".format(var.gnomad.AF_FIN) if "gnomad" in var else "N/A" ))) & ((( "{:.2e}".format(var.gnomad.AF_NFE) if "gnomad" in var else "N/A" ))) & ((( var.nSigPhenos ))) & (((var.sigPhenos| escape_tex)))  \\
+    ((( var.variant | escape_tex))) & ((( var.rsid ))) & (((  var.consequence | escape_tex))) & ((( "{:.2e}".format(var.maf) ))) & ((( "{:.2e}".format(var.gnomad.AF_fin) if "gnomad" in var else "N/A" ))) & ((( "{:.2e}".format(var.gnomad.AF_nfe) if "gnomad" in var else "N/A" ))) & ((( var.nSigPhenos ))) & (((var.sigPhenos| escape_tex)))  \\
 ((* endfor *))
 
 \end{longtable}

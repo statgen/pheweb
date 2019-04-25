@@ -38,7 +38,7 @@ common_filepaths = {
     'rsid-to-cpra-trie': get_generated_path('sites/rsid_to_cpra_trie.marisa'),
     'matrix': get_generated_path('matrix.tsv.gz'),
     'annotation-matrix': os.path.join(conf.data_dir, 'annotations/finngen/annotated_variants.gz'),
-    'gnomad-matrix': os.path.join(conf.data_dir, 'annotations/gnomad/gnomad.genomes.r2.0.2.sites.chrALL.liftover.b38.af.tsv.gz'),
+    'gnomad-matrix': os.path.join(conf.data_dir, 'annotations/gnomad/gnomad.genomes.r2.1.sites.liftover.b38.finngen.r2pos.af.ac.an.tsv.gz'),
     'top-hits': get_generated_path('top_hits.json'),
     'top-hits-1k': get_generated_path('top_hits_1k.json'),
     'top-hits-tsv': get_generated_path('top_hits.tsv'),

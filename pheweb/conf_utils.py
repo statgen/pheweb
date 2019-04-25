@@ -299,6 +299,22 @@ def _ensure_conf():
             'tooltip_lztemplate': {'transform': '|percent'},
             'display': 'MAF',
         }),
+        ('maf_case', {
+            'type': float,
+            'range': [0, 1],
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': 'MAF cases: <%= d.maf_case.toFixed(4) %><br>',
+            'tooltip_lztemplate': {'transform': '|percent'},
+            'display': 'MAF cases',
+        }),
+        ('maf_control', {
+            'type': float,
+            'range': [0, 1],
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': 'MAF controls: <%= d.maf_control.toFixed(4) %><br>',
+            'tooltip_lztemplate': {'transform': '|percent'},
+            'display': 'MAF controls',
+        }),
         ('maf_cases', {
             'type': float,
             'range': [0, 1],
@@ -345,14 +361,14 @@ def _ensure_conf():
     ])
 
     default_per_pheno_fields = OrderedDict([
-        ('num_cases', {
+        ('n_case', {
             'aliases': ['NS.CASE', 'N_cases'],
             'type': int,
             'nullable': True,
             'range': [0, None],
             'display': '#cases',
         }),
-        ('num_controls', {
+        ('n_control', {
             'aliases': ['NS.CTRL', 'N_controls'],
             'type': int,
             'nullable': True,

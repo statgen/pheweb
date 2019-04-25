@@ -96,27 +96,31 @@ def ret_lines(dataPath):
 
 
         # work with floats only after the variant metadata
-        pVals = np.array([convert_float(line[i]) for i in listpValIndex],dtype = float)
-        for gene in treeDict[chrom][int(pos)]:
-            gene = gene[-1]
-            # get the index of the gene
-            gIx = g2i[gene]
+        try:
+            pVals = np.array([convert_float(line[i]) for i in listpValIndex],dtype = float)
+            for gene in treeDict[chrom][int(pos)]:
+                gene = gene[-1]
+                # get the index of the gene
+                gIx = g2i[gene]
 
-            #compare & update pvals
-            pMask =  (pVals < pMatrix[gIx])
-            pMatrix[gIx][pMask] = pVals[pMask]
+                #compare & update pvals
+                pMask =  (pVals < pMatrix[gIx])
+                pMatrix[gIx][pMask] = pVals[pMask]
 
-            # now i need to enter the info of the variant
-            for phenoIx in phenoRange[pMask]:
-                pheno = phenoTypes[phenoIx]
-                #get the data of the phenotype
-                for i in phenoMetaRange:
-                    geneChromDict[gene][pheno][phenoMeta[i]] = float(line[lenMeta + lenPheno*phenoIx + i])
+                # now i need to enter the info of the variant
+                for phenoIx in phenoRange[pMask]:
+                    pheno = phenoTypes[phenoIx]
+                    #get the data of the phenotype
+                    for i in phenoMetaRange:
+                        geneChromDict[gene][pheno][phenoMeta[i]] = float(line[lenMeta + lenPheno*phenoIx + i])
 
-                geneChromDict[gene][pheno]['chrom'] = chrom
-                geneChromDict[gene][pheno]['pos'] = pos
-                geneChromDict[gene][pheno]['rsids'] = rsids
-                geneChromDict[gene][pheno]['phenocode'] = pheno
+                    geneChromDict[gene][pheno]['chrom'] = chrom
+                    geneChromDict[gene][pheno]['pos'] = pos
+                    geneChromDict[gene][pheno]['rsids'] = rsids
+                    geneChromDict[gene][pheno]['phenocode'] = pheno
+        except IndexError as e:
+            print('unexpected line, n fields: ' + str(len(line)))
+            print(line)
 
     # add last chr results to resDict
     for gene in geneChromDict:

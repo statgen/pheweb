@@ -218,18 +218,18 @@ $(function () {
       var colDelim = '\t'
       var rowDelim = '\r\n'
 
-      var csv = ["var","rsid","var.annot.INFO","consequence","gnomad.AF_FIN","gnomad.AF_NFE",
+      var csv = ["var","rsid","var.annot.INFO","consequence","gnomad.AF_fin","gnomad.AF_nfe",
                  "pheno","num_cases","num_controls",
                     "maf_case","maf_control","OR","pval"].join(colDelim) + rowDelim
 
       sTableData.forEach( function(variant) {
 	  if (variant.significant_phenos.length === 0) {
 	      csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe,
-		      variant.var.gnomad.AF_FIN, variant.var.gnomad.AF_NFE,
+		      variant.var.gnomad.AF_fin, variant.var.gnomad.AF_nfe,
 		      '', '', '', '', '', '', '', ''].join( colDelim ) + rowDelim
 	  } else {
               variant.significant_phenos.forEach( function(assoc, idx) {
-		  csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe, variant.var.gnomad.AF_FIN, variant.var.gnomad.AF_NFE,
+		  csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe, variant.var.gnomad.AF_fin, variant.var.gnomad.AF_nfe,
 			  assoc.phenostring, assoc.n_case, assoc.n_control, assoc.maf_case,
 			  assoc.maf_control,  Math.exp( assoc.beta ), assoc.pval.toExponential()].join( colDelim ) + rowDelim
               } )
@@ -314,50 +314,48 @@ $(function() {
 	var obj = variant.gnomad ? variant : variant.assoc ? variant.assoc : {}
 	if (!obj.gnomad) {
             variant.fin_enrichment = 'No data in Gnomad'
+	} else if (+obj.gnomad.AF_fin === 0) {
+	    variant.fin_enrichment = 'No FIN in Gnomad'
+	} else if (+obj.gnomad['AC_nfe_nwe'] + +obj.gnomad['AC_nfe_onf'] + +obj.gnomad['AC_nfe_seu'] == 0) {
+	    variant.fin_enrichment = 'No NFEE in Gnomad'
 	} else {
-            if (obj.gnomad.POPMAX === 'FIN') {
-		var afs = Object.keys(obj.gnomad)
-		    .filter(function(key) {
-			return key.startsWith('AF_') && key !== 'AF_OTH'
-		    })
-		    .map(function(key) {
-			return {key: key, value: obj.gnomad[key]}
-		    })
-		    .sort(function(a, b) {
-			return a.value - b.value
-		    })
-		if (+afs[afs.length - 3].value === 0) {
-		    variant.fin_enrichment = 'Only FIN in Gnomad'
-		} else {
-		    variant.fin_enrichment = +obj.gnomad.AF_FIN / +afs[afs.length - 3].value
-		    variant.fin_enrichment_versus = afs[afs.length - 3].key.replace('AF_', '')
-		}
-            } else if (obj.gnomad.AF_FIN === 0) {
-		variant.fin_enrichment = 'No FIN in Gnomad'
-	    } else {
-		variant.fin_enrichment = +obj.gnomad.AF_FIN / +obj.gnomad.AF_POPMAX
-		variant.fin_enrichment_versus = obj.gnomad.POPMAX
-            }
+	    variant.fin_enrichment = +obj.gnomad['AC_fin'] / +obj.gnomad['AN_fin'] /
+		( (+obj.gnomad['AC_nfe_nwe'] + +obj.gnomad['AC_nfe_onf'] + +obj.gnomad['AC_nfe_seu']) / (+obj.gnomad['AN_nfe_nwe'] + +obj.gnomad['AN_nfe_onf'] + +obj.gnomad['AN_nfe_seu']) )
 	}
     }
 
     if (!window.gene_symbol) return
-    $.getJSON('http://rest.ensembl.org/xrefs/symbol/human/' + window.gene_symbol + '?content-type=application/json')
+    $.getJSON('http://mygene.info/v3/query?q=' +  window.gene_symbol + '&fields=symbol%2Cname%2Centrezgene%2Censembl.gene%2CMIM%2Csummary&species=human')
         .done(function(result) {
-    	    if (result.length > 0) {
-                var url = 'http://gnomad.broadinstitute.org/gene/' + result[0].id
-                $('#gnomad-link').html(', <a href=' + url + ' target="_blank">gnomAD</a>')
-                var url = 'https://www.targetvalidation.org/target/' + result[0].id
-                $('#opentarget-link').html(', <a href=' + url + ' target="_blank">Opentarget</a>')
-    	    } else {
-                console.log(window.gene_symbol + ' not found in ensembl')
-    	    }
+            var mygene = {symbol:window.gene_symbol}
+            if (result.hits && result.hits.length > 0) {
+                mygene = result.hits[0]
+            }
+            if (mygene.MIM) {
+                $('#omim-link').html('<a target="_blank" href="https://www.omim.org/entry/' + mygene.MIM + '">OMIM</a>')
+            } else {
+                $('#omim-link').html('<a target="_blank" href="https://www.omim.org/search/?index=entry&sort=score+desc%2C+prefix_sort+desc&start=1&limit=10&search=' + mygene.symbol + '">OMIM</a>')
+            }
+            $('#gtex-link').html(', <a target="_blank" href="https://www.gtexportal.org/home/eqtls/byGene?tissueName=All&geneId=' + mygene.symbol + '">GTEx</a>')
+            if (mygene.ensembl && mygene.ensembl.gene) {
+                $('#gnomad-link').html(', <a href="http://gnomad.broadinstitute.org/gene/' + mygene.ensembl.gene + '" target="_blank">gnomAD</a>')
+                $('#opentarget-link').html(', <a href="https://www.targetvalidation.org/target/' + mygene.ensembl.gene + '" target="_blank">Opentarget</a>')
+            }
+            if (mygene.name) {
+                $('#gene-description').html(mygene.name)
+            }
+            if (mygene.entrezgene) {
+                $('#gene-summary')
+                    .append('<a href="https://www.ncbi.nlm.nih.gov/gene/' + mygene.entrezgene + '" target="_blank">NCBI</a> ')
+                    .append(mygene.summary || 'No description')
+                $('#gene-summary').css({'background-color': '#f4f4f4', 'padding': '10px'})
+            }
         })
     $('#assocloader').css('display', 'block')
     $.getJSON("/api/gene_phenos/" + window.gene_symbol)
 	.done(function(data) {
 	    data.forEach(function(variant) {
-		gnomadize(variant)
+		gnomadize(variant.variant)
 	    })
 	    populate_streamtable(data);
 	    $('#phenos_container').css('display', 'block')
@@ -370,7 +368,7 @@ $(function() {
 	})
     $.getJSON("/api/drugs/" + window.gene_symbol)
 	.done(function(data) {
-	    if (data.length > 0) {
+	    if (data && data.length > 0) {
 		populate_drugs_streamtable(data)
 	    } else {
 		$('#drugs-container').html('<span>No known drugs for ' + window.gene_symbol + '</span>')
@@ -379,7 +377,6 @@ $(function() {
 	})
     $.getJSON("/api/lof/" + window.gene_symbol)
 	.done(function(data) {
-	    console.log(data)
 	    if (data.length > 0) {
 		data = data.map(function(r) { return r.gene_data })
 		data.forEach(function(datum) {
@@ -401,29 +398,10 @@ $(function() {
 		variant.most_severe = variant.var.annot.most_severe.replace(/_/g, ' ').replace(' variant', '')
 		variant.info = variant.var.annot.INFO
 		variant.maf = variant.var.annot.AF < 0.5 ? variant.var.annot.af : 1 - variant.var.annot.AF
-		gnomadize(variant)
+		gnomadize(variant.var)
 	    })
 	    populate_variant_streamtable(data)
 	    $('#functional-variants-container').css('display', 'block')
 	})
 
-    $.getJSON("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=gene&term=("
-	      + window.gene_symbol
-	      + "[gene])%20AND%20(Homo%20sapiens[orgn])%20AND%20alive[prop]%20NOT%20newentry[gene]&sort=weight&retmode=json")
-	.done(function(data) {
-	    if (data.esearchresult && +data.esearchresult.count > 0) {
-		var entrezId = data.esearchresult.idlist[0]
-		$.getJSON("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id="
-			  + entrezId + "&retmode=json")
-		    .done(function(data) {
-			$('#gene-description').html(data.result[entrezId].description)
-			$('#gene-summary')
-			    .append('<a href="https://www.ncbi.nlm.nih.gov/gene/' + entrezId + '" target="_blank">NCBI</a> ')
-			    .append(data.result[entrezId].summary || 'No description')
-			$('#gene-summary').css({'background-color': '#f4f4f4', 'padding': '10px'})
-		    })
-	    } else {
-		console.log(window.gene_symbol + ' not found in ncbi')
-	    }
-	})
 })

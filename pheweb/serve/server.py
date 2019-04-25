@@ -13,6 +13,9 @@ from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from .reporting import Report
 
+import urllib
+import urllib.parse as urlparse
+from urllib.parse import urlencode
 import functools
 import importlib
 import re
@@ -391,6 +394,17 @@ def homepage():
 @app.route('/about')
 def about_page():
     return render_template('about.html')
+
+# NCBI sometimes doesn't like cross-origin requests so do them here and not in the browser
+@app.route('/api/ncbi/<endpoint>')
+@check_auth
+def ncbi(endpoint):
+    url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/' + endpoint + '?'
+    url_parts = list(urlparse.urlparse(url))
+    query = dict(urlparse.parse_qsl(url_parts[3]))
+    query.update({param: request.args.get(param) for param in request.args})
+    url_parts[3] = urlencode(query)
+    return urllib.request.urlopen(urlparse.urlunparse(url_parts).replace(';', '?')).read()
 
 def die(message='no message', exception=None):
     if exception is not None:
