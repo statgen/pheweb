@@ -269,7 +269,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     });
     var range = d3.extent(infos);
     $(function() {
-        $('#info-range').html('<p>INFO ranges from ' + Math.round(1000 * range[0]) / 1000 + ' to ' + Math.round(1000 * range[1]) / 1000 + '</p>');
+        $('#info-range').html('<p>INFO ranges from ' + range[0].toFixed(3) + ' to ' + range[1].toFixed(3) + '</p>');
         $('#info-range p').css('margin-bottom', '0');
     });
     
@@ -278,7 +278,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 (function() {
     if (window.variant.annot && window.variant.annot.INFO) {
 	$(function() {
-	    $('#info_score').html('<p>INFO score: ' + Math.round(1000 * window.variant.annot.INFO) / 1000 + '<p>')
+	    $('#info_score').html('<p>INFO score: ' + window.variant.annot.INFO.toFixed(3) + '<p>')
             $('#info_score p').css('margin-bottom', '0');
 	})
     }

@@ -915,7 +915,6 @@ class TabixAnnotationDao(AnnotationDB):
             if row is not None:
                 split = row.split('\t')
                 v = split[0].split(":")
-                v[0] = v[0].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")
                 v = Variant(v[0],v[1],v[2],v[3])
                 if variant == v:
                     ## keeps all old annotations in the returned variant.

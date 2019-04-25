@@ -121,6 +121,7 @@ def ret_lines(dataPath):
         except IndexError as e:
             print('unexpected line, n fields: ' + str(len(line)))
             print(line)
+            raise
 
     # add last chr results to resDict
     for gene in geneChromDict:
