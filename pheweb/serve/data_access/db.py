@@ -483,7 +483,7 @@ class TabixGnomadDao(GnomadDB):
                 split = row.split('\t')
                 if split[3] == variant.ref and split[4] == variant.alt:
                     for i, s in enumerate(split):
-                        if (self.headers[i].startswith('AF') and split[i] != 'NaN'):
+                        if (self.headers[i].startswith('AF') and split[i] != 'NaN' and split[i] != '.'):
                             split[i] = float(s)
                     annotations.append({'variant': variant, 'var_data': {self.headers[i]: split[i] for i in range(0,len(split))}})
                 else:
@@ -573,9 +573,7 @@ class TabixResultDao(ResultDB):
                 if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):            
                     pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'],pval , beta, maf_case, maf_control,
                             self.pheno_map[pheno[0]]['num_cases'],  self.pheno_map[pheno[0]]['num_controls'] )
-                    #TODO... remove after new annotation
-                    chrom = split[0].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")
-                    v=  Variant( chrom, split[1], split[2], split[3])
+                    v=  Variant( split[0], split[1], split[2], split[3])
                     if split[4]!='':  v.add_annotation("rsids",split[4])
                     v.add_annotation('nearest_gene', split[5])
                     top[pheno[0]] = (v,pr)
@@ -912,17 +910,11 @@ class TabixAnnotationDao(AnnotationDB):
         t = time.time()
        
         for variant in variants:
-            ## TODO: remove chr when annotation files have been regenerated and corrected
-            fetch_chr = "chr" + str(variant.chr).replace("23","X").replace("24","Y").replace("25","Y")
-            tabix_iter = self.tabix_files[threading.get_ident()].fetch( fetch_chr, variant.pos-1, variant.pos, parser=None)
+            tabix_iter = self.tabix_files[threading.get_ident()].fetch( variant.chr, variant.pos-1, variant.pos, parser=None)
             row = next(tabix_iter)
             if row is not None:
                 split = row.split('\t')
-                ## TODO: remove this when annotation files have been regenerated and corrected
-                split[1]=split[1].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")
-                split[len(split)-7]= split[len(split)-7].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")
                 v = split[0].split(":")
-                v[0] = v[0].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")
                 v = Variant(v[0],v[1],v[2],v[3])
                 if variant == v:
                     ## keeps all old annotations in the returned variant.
@@ -962,7 +954,7 @@ class TabixAnnotationDao(AnnotationDB):
             self.start = time.time()
             self.last_time = time.time()
         try:
-            tabix_iter = self.tabix_files[threading.get_ident()].fetch('chr' + chrom, start-1, end)
+            tabix_iter = self.tabix_files[threading.get_ident()].fetch(chrom, start-1, end)
             #self._get_tabix_data('chr' + chrom, start-1, end)           
         except Exception as e:
             ## tabix_file stupidly throws an error when no results are found in the region. Just return empty list
@@ -971,14 +963,8 @@ class TabixAnnotationDao(AnnotationDB):
         for row in tabix_iter:
             split = row.split('\t')
             chrom,pos,ref,alt = split[0].split(":")
-            chrom=chrom.replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")
             if split[self.header_i['most_severe']] in self.functional_variants and split[self.header_i["gene"]].upper()==gene.upper():
-                #TODO: currently the annotation file has chr in chromosome which is not allowed anymore within FG pheweb.
                 v = Variant( chrom, pos, ref, alt)
-               
-                ##TODO hack the chr out 
-                split[1]=split[1].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25") 
-                split[len(split)-7] = split[len(split)-7].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")  
                 var_dat = {self.headers[i]:(self.dconv[self.headers[i]])(split[i]) for i in range(0,len(split))}
                 v.add_annotation( 'annot',  {self.headers[i]:(self.dconv[self.headers[i]])(split[i]) for i in range(0,len(split))} )
                 annotations.append(v)

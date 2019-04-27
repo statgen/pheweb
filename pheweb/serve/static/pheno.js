@@ -291,14 +291,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .attr('transform', fmt('translate({0},{1})rotate(-90)',
                                    plot_margin.left*.4,
                                    plot_height/2 + plot_margin.top))
-        .text(function() {
-        var maxLogLogP = d3.max(unbinned_variants, function(d) { return d.pScaled });
-        return maxLogLogP <= window.vis_conf.loglog_threshold ?
-            '-log\u2081\u2080(p-value)' :
-            window.vis_conf.loglog_threshold == 10 ?
-            '-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value))':
-            '-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value)) / log\u2081\u2080(' + window.vis_conf.loglog_threshold + ')'
-        });
+            .text('-log\u2081\u2080(p-value)')
 
         var chroms_and_midpoints = (function() {
             var v = get_chrom_offsets();
@@ -737,34 +730,17 @@ $(function () {
                 variant.info = variant.annotation.INFO
             })
             data.unbinned_variants.forEach(function(variant) {
-        if (!variant.gnomad) {
-                    variant.fin_enrichment = 'No data in Gnomad'
-        } else {
-                    if (variant.gnomad.POPMAX === 'FIN') {
-            var afs = Object.keys(variant.gnomad)
-                .filter(function(key) {
-                return key.startsWith('AF_') && key !== 'AF_OTH'
-                })
-                .map(function(key) {
-                return {key: key, value: variant.gnomad[key]}
-                })
-                .sort(function(a, b) {
-                return a.value - b.value
-                })
-            if (+afs[afs.length - 3].value === 0) {
-                variant.fin_enrichment = 'Only FIN in Gnomad'
-            } else {
-                variant.fin_enrichment = +variant.gnomad.AF_FIN / +afs[afs.length - 3].value
-                variant.fin_enrichment_versus = afs[afs.length - 3].key.replace('AF_', '')
-            }
-                    } else if (variant.gnomad.AF_FIN === 0) {
-            variant.fin_enrichment = 'No FIN in Gnomad'
-            } else {
-            variant.fin_enrichment = +variant.gnomad.AF_FIN / +variant.gnomad.AF_POPMAX
-            variant.fin_enrichment_versus = variant.gnomad.POPMAX
-                    }
-        }
-        })
+		if (!variant.gnomad) {
+		    variant.fin_enrichment = 'No data in Gnomad'
+		} else if (variant.gnomad.AF_fin === 0) {
+		    variant.fin_enrichment = 'No FIN in Gnomad'
+		} else if (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu'] == 0) {
+		    variant.fin_enrichment = 'No NFEE in Gnomad'
+		} else {
+		    variant.fin_enrichment = +variant.gnomad['AC_fin'] / +variant.gnomad['AN_fin'] /
+			( (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu']) / (+variant.gnomad['AN_nfe_nwe'] + +variant.gnomad['AN_nfe_onf'] + +variant.gnomad['AN_nfe_seu']) )
+		}
+            })
             create_gwas_plot(data.variant_bins, data.unbinned_variants);
             populate_streamtable(data.unbinned_variants);
             //TODO filtering with streamtable
@@ -777,8 +753,8 @@ $(function () {
                                   }
                                  );
         if (data.unbinned_variants[data.unbinned_variants.length - 1].pScaled >= window.vis_conf.loglog_threshold) {
-        $("#manhattan-note").append("<span>p-values smaller than 1e-" + window.vis_conf.loglog_threshold + " are shown on a log-log scale</span>");
-        $("#manhattan-note").css("display", "inline-block");
+            $("#loglog-note").append("<span>p-values smaller than 1e-" + window.vis_conf.loglog_threshold + " are shown on a log-log scale</span>");
+            $("#loglog-note").css("display", "inline-block");
         }
         })
         .fail(function(error) {

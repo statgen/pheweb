@@ -269,10 +269,25 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     });
     var range = d3.extent(infos);
     $(function() {
-        $('#info-range').html('<p>INFO ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + '</p>');
+        $('#info-range').html('<p>INFO ranges from ' + range[0].toFixed(3) + ' to ' + range[1].toFixed(3) + '</p>');
         $('#info-range p').css('margin-bottom', '0');
     });
     
+})();
+
+(function() {
+    if (window.variant.annot && window.variant.annot.INFO) {
+	$(function() {
+	    $('#info_score').html('<p>INFO score: ' + window.variant.annot.INFO.toFixed(3) + '<p>')
+            $('#info_score p').css('margin-bottom', '0');
+	})
+    }
+    if (window.variant.annot && window.variant.annot.most_severe) {
+	$(function() {
+	    $('#most_severe').html('<p>Most severe consequence: ' + window.variant.annot.most_severe.replace('_', ' ') + '<p>')
+            $('#most_severe p').css('margin-bottom', '0');
+	})
+    }
 })();
 
 
@@ -394,8 +409,8 @@ $(function() {
 });
 
 $(function () {
-  $("#export").click( function (event) {
-    exportTableToCSV.apply(this, [$('#stream_table'),window.variant.var.id.replace(/ |,|/g,"") + "_phenotype_associations.tsv",window.var_top_pheno_export_fields])
+    $("#export").click( function (event) {
+    exportTableToCSV.apply(this, [$('#stream_table'),window.variant.id.replace(/ |,|/g,"") + "_phenotype_associations.tsv",window.var_top_pheno_export_fields])
   });
 })
 

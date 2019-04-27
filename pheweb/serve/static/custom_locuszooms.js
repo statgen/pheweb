@@ -200,11 +200,15 @@ LocusZoom.Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields)
     chain.header.ldrefvar = topvar
     var windowSize= 500
     var population="1000GENOMES:phase_3:FIN"
-    return this.url + refvar + "/" + population + "?window_size=" + windowSize
+    return refvar ? this.url + refvar + "/" + population + "?window_size=" + windowSize : null
 
 };
 
 LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+
+    // if ld was not fetched, return the previous chain skipping this data source
+    if (!resp) return chain
+    
     var res = JSON.parse(resp)
     var lookup = {}
     for (var i = 0; i < res.length; i++) {
@@ -241,7 +245,7 @@ LocusZoom.Data.FG_LDDataSource.prototype.fetchRequest = function(state, chain, f
         "Content-Type": "application/json"
     };
 
-    return LocusZoom.createCORSPromise("GET", url, {}, headers);
+    return url ? LocusZoom.createCORSPromise("GET", url, {}, headers) : Q.defer()
 
 };
 

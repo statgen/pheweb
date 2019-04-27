@@ -45,10 +45,8 @@
           {% endwith %}
         </p>
         <p id="annotation"></p>
-	{% if variant.anno %}
-	<p>INFO score: {{ variant.anno.var_data.info|round(3) }}</p>
-	<p>Most severe consequence: {{ variant.anno.var_data.most_severe.replace('_', ' ') }}</p>
-	{% endif %}
+	<span id="info_score"></span>
+	<span id="most_severe"></span>
 	{% if variant.gnomad_str %}
 	<p>Allele frequencies in gnomAD genomes 2.0.2: {{ variant.gnomad_str }}</p>
 	{% endif %}
@@ -77,7 +75,7 @@
           <span style="font-weight:bold" id="pubmed-link"></span>
           <span style="font-weight:bold" id="clinvar-link"></span>
         </p>
-	<div id="loglog-note" class="alert alert-danger" role="alert" style="display: none;">
+	<div id="loglog-note" style="display: none;">
 	</div>
         <div id="phewas_plot_container">
         </div>

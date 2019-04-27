@@ -39,7 +39,7 @@ class ServerJeeves(object):
         gene = gene.upper()
         startt = time.time()
         func_var_annot = self.annotation_dao.get_gene_functional_variant_annotations(gene)
-        print(" gene functional variantts took {}".format( time.time()-startt) )
+        print(" gene functional variants took {}".format( time.time()-startt) )
         remove_indx =[]
         chrom,start,end = self.get_gene_region_mapping()[gene]
         startt = time.time()

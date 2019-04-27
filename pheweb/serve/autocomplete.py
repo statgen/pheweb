@@ -85,7 +85,6 @@ class Autocompleter(object):
             key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
 
             def f(cpra, rsids):
-                cpra = cpra.replace('-', ':', 1)
                 rsids = rsids.decode('ascii')
                 yield {
                     "value": cpra,
@@ -114,7 +113,7 @@ class Autocompleter(object):
             # Here's an attempt at being a little better.
 
             def f(rsid, cpra):
-                cpra = cpra.decode('ascii').replace('-', ':', 1)
+                cpra = cpra.decode('ascii')
                 yield {
                     "value": cpra,
                     "display": '{} ({})'.format(rsid, cpra),
