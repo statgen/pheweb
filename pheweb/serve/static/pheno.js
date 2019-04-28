@@ -517,6 +517,8 @@ function populate_streamtable(variants) {
             if (selected.length > 0 && selected.indexOf(variant.most_severe) === -1) {
                 return null;
             } else {
+		//TODO all variants should have annotation
+		if (!variant.annotation) variant.annotation = {}
                 return template({v: variant});
             }
         };

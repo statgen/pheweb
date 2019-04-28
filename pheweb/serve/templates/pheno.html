@@ -256,7 +256,7 @@
     <%= v.chrom %>
   </td>
   <td style="width: 9%;">
-    <a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>"><%= v.pos.toLocaleString() %></a>
+    <a style="color:black" href="/variant/<%= v.chrom.replace('X', '23') %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>"><%= v.pos.toLocaleString() %></a>
   </td>
   <td <%= v.ref.length > 5 ? "data-toggle=\"tooltip\" title=\"" + v.ref + "\"" : "" %> style="width: 6%; text-align: center;">
     <%= v.ref.length > 5 ? v.ref.substring(0,5) + '...' : v.ref %>
@@ -265,7 +265,7 @@
     <%= v.alt.length > 5 ? v.alt.substring(0,5) + '...' : v.alt %>
   </td>
   <td style="width: 9%;">
-    <a style="color:black" href="/variant/<%= v.chrom %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>"><% if (v.rsids) { %><%= v.rsids.replace(/,/g, ', ') %><% } %></a>
+    <a style="color:black" href="/variant/<%= v.chrom.replace('X', '23') %>-<%= v.pos %>-<%= v.ref %>-<%= v.alt %>"><% if (v.rsids) { %><%= v.rsids.replace(/,/g, ', ') %><% } %></a>
   </td>
   <td style="width: 9%;">
     <% for (let i = 0, genes = v.nearest_genes.split(','); i < genes.length; i++) { %>
@@ -277,7 +277,7 @@
     <%= (v.annotation && v.annotation.most_severe)? v.annotation.most_severe : "" %>
   </td>
   <td class="info-score" style="width: 6%;" title="<%= _.template($('#info-tooltip-template').html())({v:v}) %>" data-toggle="tooltip">
-    <%= (v.annotation)? v.annotation.INFO.toPrecision(3) : "" %>
+    <%= (v.annotation && v.annotation.INFO)? v.annotation.INFO.toPrecision(3) : "" %>
   </td>
   <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: v}) %>" data-toggle="tooltip">
     <%= (v.fin_enrichment)? $.isNumeric(v.fin_enrichment) ? v.fin_enrichment.toPrecision(3) : v.fin_enrichment : "" %>
