@@ -728,7 +728,7 @@ $(function () {
             window.data = data;
             // add consequence so that stream table can be filtered on it
             data.unbinned_variants.filter(function(variant) { return !!variant.annotation } ).forEach(function(variant) {
-                variant.annotation.most_severe = variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '')
+                variant.annotation.most_severe = variant.annotation.most_severe ? variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '') : ''
                 variant.info = variant.annotation.INFO
             })
             data.unbinned_variants.forEach(function(variant) {
