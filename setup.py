@@ -68,7 +68,8 @@ setup(
         'gevent~=1.2',
         'elasticsearch~=6.2.0',
         'latex~=0.7.0',
-        'attrs'
+        'attrs',
+        'pandas~=0.24.2'
     ],
     tests_require=[
         'pytest~=3.4',
