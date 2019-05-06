@@ -27,7 +27,8 @@ class ServerJeeves(object):
         self.result_dao = self.dbs_fact.get_result_dao()
         self.ukbb_dao = self.dbs_fact.get_UKBB_dao()
         self.ukbb_matrixdao =self.dbs_fact.get_UKBB_dao(True)
-
+        self.tsv_dao = self.dbs_fact.get_tsv_dao()
+        
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
@@ -36,7 +37,6 @@ class ServerJeeves(object):
         if pThreshold is None:
             pThreshold = self.conf.report_conf["func_var_assoc_threshold"]
 
-        gene = gene.upper()
         startt = time.time()
         func_var_annot = self.annotation_dao.get_gene_functional_variant_annotations(gene)
         print(" gene functional variants took {}".format( time.time()-startt) )
@@ -86,7 +86,7 @@ class ServerJeeves(object):
         return func_var_annot
 
     def gene_phenos(self, gene):
-        gene = gene.upper()
+
         gene_region_mapping = self.get_gene_region_mapping()
 
         if gene not in gene_region_mapping:
@@ -196,6 +196,9 @@ class ServerJeeves(object):
         else:
             return None
 
+    def coding(self):
+        return self.tsv_dao.get_coding()
+        
     @functools.lru_cache(None)
     def get_gene_region_mapping(self):
         return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}

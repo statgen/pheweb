@@ -6,6 +6,7 @@ from elasticsearch import Elasticsearch
 import pysam
 import re
 import threading
+import pandas as pd
 from typing import List, Tuple, Dict
 from ...file_utils import MatrixReader, common_filepaths
 from ...utils import get_phenolist, get_gene_tuples
@@ -264,6 +265,14 @@ class DrugDB(object):
         """ Retrieve drugs
             Args: gene name
             Returns: drugs targeting the gene
+        """
+        return
+
+class TSVDB(object):
+    @abc.abstractmethod
+    def get_coding(self):
+        """ Retrieve coding variant data
+            Returns: coding variant results and annotation
         """
         return
 
@@ -573,7 +582,7 @@ class TabixResultDao(ResultDB):
                 if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):            
                     pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'],pval , beta, maf_case, maf_control,
                             self.pheno_map[pheno[0]]['num_cases'],  self.pheno_map[pheno[0]]['num_controls'] )
-                    v=  Variant( split[0], split[1], split[2], split[3])
+                    v=  Variant( split[0].replace('X', '23'), split[1], split[2], split[3])
                     if split[4]!='':  v.add_annotation("rsids",split[4])
                     v.add_annotation('nearest_gene', split[5])
                     top[pheno[0]] = (v,pr)
@@ -954,8 +963,7 @@ class TabixAnnotationDao(AnnotationDB):
             self.start = time.time()
             self.last_time = time.time()
         try:
-            tabix_iter = self.tabix_files[threading.get_ident()].fetch(chrom, start-1, end)
-            #self._get_tabix_data('chr' + chrom, start-1, end)           
+            tabix_iter = self.tabix_files[threading.get_ident()].fetch(chrom.replace('X', '23'), start-1, end)
         except Exception as e:
             ## tabix_file stupidly throws an error when no results are found in the region. Just return empty list
             print("Error occurred {}".format(e))
@@ -1038,6 +1046,12 @@ class ElasticLofDao(LofDB):
                   "gene_data": r["_source"] }
                  for r in result['hits']['hits'] ]
 
+class TSVDao(TSVDB):
+     def __init__(self, coding):
+          self.coding_data = pd.read_csv(coding, encoding='utf8', sep='\t').fillna('NA').to_dict(orient='records')
+     def get_coding(self):
+          return self.coding_data
+   
 class DataFactory(object):
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
                        "MATRIX_PATH": common_filepaths['matrix'],
@@ -1089,6 +1103,9 @@ class DataFactory(object):
 
     def get_drug_dao(self):
         return self.dao_impl["drug"]
+
+    def get_tsv_dao(self):
+        return self.dao_impl["tsv"]
 
     def get_UKBB_dao(self, singlematrix=False):
         if singlematrix and "externalresultmatrix" in self.dao_impl:

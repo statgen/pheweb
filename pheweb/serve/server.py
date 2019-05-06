@@ -32,7 +32,6 @@ from collections import defaultdict
 from .encoder import FGJSONEncoder
 app = Flask(__name__)
 
-
 ## allows debug statements in jinja
 @app.context_processor
 def utility_functions():
@@ -214,6 +213,16 @@ def api_pheno_qq(phenocode):
 @check_auth
 def top_hits_page():
     return render_template('top_hits.html')
+
+@app.route('/coding')
+@check_auth
+def coding_page():
+    return render_template('coding.html')
+
+@app.route('/api/coding_data')
+@check_auth
+def coding_data():
+    return jsonify(jeeves.coding())
 
 @app.route('/random')
 @check_auth
