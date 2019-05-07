@@ -1,0 +1,33 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webpack.common.js",
+  "dependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "@babel/preset-react": "^7.0.0",
+    "babel": "^6.23.0",
+    "babel-cli": "^6.26.0",
+    "babel-loader": "^8.0.5",
+    "match-sorter": "^1.8.1",
+    "npm-install-all": "^1.1.21",
+    "react": "^16.8.3",
+    "react-csv": "^1.1.1",
+    "react-dom": "^16.8.3",
+    "react-router-dom": "^4.3.1",
+    "react-table": "^6.8.6",
+    "react-tabs": "^2.2.2",
+    "webpack": "^4.29.5",
+    "webpack-cli": "^3.2.3",
+    "webpack-merge": "^4.2.1"
+  },
+  "devDependencies": {
+    "webpack-dev-server": "^3.2.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

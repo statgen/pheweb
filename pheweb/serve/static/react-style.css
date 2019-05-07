@@ -1,0 +1,27 @@
+/* purple rgb(198,120,221) */
+/* orange rgb(209,154,102) */
+/* red rgb(224,108,117) */
+/* green rgb(152,195,121) */
+/* blue rgb(97,175,239) */
+/* cyan rgb(86,182,194) */
+/* lightgray rgb(171,178,191) */
+/* gray rgb(92,99,112) */
+/* darkgray rgb(40,44,52) */
+
+/* override */
+
+.rt-thead .rt-resizable-header-content {
+    text-align: left;
+}
+
+.ReactTable .rt-td {
+    padding: 6px 3px;
+}
+
+.ReactTable .rt-thead.-header {
+    box-shadow: unset;
+}
+
+.ReactTable.-striped .rt-tr.-odd {
+    background: rgba(0,0,0,0.02);
+}

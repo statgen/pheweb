@@ -1,0 +1,8 @@
+{% extends "layout.html" %}
+
+{% block contained %}
+
+<div id="reactEntry" style="height: 100%;"></div>
+<script type="text/javascript" src="{{ url_for('static', filename='bundle.js') }}"></script>
+
+{% endblock %}
