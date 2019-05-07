@@ -60,8 +60,11 @@ lines.slice(1).forEach(line => {
         if (!annotations[fields[i]]) {
 	    var code = fields[i]
 	    var name = ''
-	    if (annotations[code.replace(/_EX[A-Z]+/, '')]) {
-		name = annotations[code.replace(/_EX[A-Z]+/, '')].name
+	    if (annotations[code.replace(/_EXMORE$/, '')]) {
+		name = annotations[code.replace(/_EX[A-Z]+/, '')].name + ' (more controls excluded)'
+	    }
+	    if (annotations[code.replace(/_EXALLC$/, '')]) {
+		name = annotations[code.replace(/_EX[A-Z]+/, '')].name + ' (other cancers excluded from controls)'
 	    }
             annotations[fields[i]] = {
                 code: code,
@@ -108,6 +111,7 @@ phenolist.forEach(pheno => {
 	logger.warn(`Check: no name for ${pheno.phenocode}, using phenocode`)
 	pheno.phenostring = pheno.phenocode
     }
+    pheno.phenostring = pheno.phenostring.replace(/^"/, '').replace(/"$/, '')
 })
 
 // add num gw significant hits and lambdas
