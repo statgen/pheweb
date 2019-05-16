@@ -1,49 +1,74 @@
 #!/usr/bin/env node
 
 //// Augments a pheno-list.json for PheWeb with annotations
+//// logs to pheno-list.log and writes new pheno-list.json to stdout
 
-const fs = require('fs')
-
-if (process.argv.length !== 6) {
-    console.error(`Usage: node ${__filename} phenolistfile phenofile phenonamefile categoryfile`)
+if (process.argv.length !== 3) {
+    console.error(`Usage: node ${__filename} config_file`)
     process.exit(1)
 }
 
-const annotations = {}
-fs.readFileSync(process.argv[4], 'utf8').trim().split(/\r?\n|\r/)
-    .forEach(line => {
-	const split = line.split(/\t/)
-	annotations[split[0].trim()] = {
-	    code: split[0].trim(),
-	    name: split[1].trim(),
-	    nCases: 0,
-	    nCtrls: 0
-	}
-    })
+const fs = require('fs')
+const path = require('path')
+const winston = require('winston')
+const config = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
+const parse_endpoints = require('./parse_endpoints.js')
 
-const categories = {}
-fs.readFileSync(process.argv[5], 'utf8').trim().split(/\r?\n|\r/)
-    .forEach(line => {
-	const split = line.split(/\t/)
-	categories[split[0].trim()] = {
-	    code: split[0].trim(),
-	    name: split[1].trim()
-	}
-    })
+if (fs.existsSync('pheno-list.log')) fs.unlinkSync('pheno-list.log')
+const logger = winston.createLogger({
+    level: 'debug',
+    format: winston.format.simple(),
+    transports: [
+	new winston.transports.File({ filename: 'pheno-list.log' })
+    ]
+})
 
-var phenolist = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
-console.error(`${phenolist.length} phenotypes, ${Object.keys(annotations).length} phenotypes\' annotations and ${Object.keys(categories).length} categories read`)
+var phenolist = JSON.parse(fs.readFileSync(config.phenolist, 'utf8'))
 
-const lines = fs.readFileSync(process.argv[3], 'utf8').trim().split(/\r?\n|\r/)
+// read phenotype names from phenotype excel
+const annotations = fs.readFileSync(config.phenoname, 'utf8').trim().split(/\r?\n|\r/)
+      .reduce((acc, cur) => {
+	  const split = cur.split(/\t/)
+	  acc[split[3].trim()] = {
+	      code: split[3].trim(),
+	      name: split[4].trim(),
+	      nCases: 0,
+	      nCtrls: 0
+	  }
+	  return acc
+      }, {})
+
+// read ICD categories
+const categories = fs.readFileSync(config.category, 'utf8').trim().split(/\r?\n|\r/)
+      .reduce((acc, cur) => {
+	  const split = cur.split(/\t/)
+	  acc[split[0].trim()] = {
+	      code: split[0].trim(),
+	      name: split[1].trim()
+	  }
+	  return acc
+      }, {})
+
+logger.info(`${phenolist.length} phenotypes, ${Object.keys(annotations).length} phenotypes\' annotations and ${Object.keys(categories).length} categories read`)
+
+// read numbers of cases and controls from data file
+const lines = fs.readFileSync(config.pheno, 'utf8').trim().split(/\r?\n|\r/)
 const fields = lines[0].split(/\t/)
-
 lines.slice(1).forEach(line => {
     const split = line.split(/\t/)
     split.forEach((value, i) => {
         if (!annotations[fields[i]]) {
+	    var code = fields[i]
+	    var name = ''
+	    if (annotations[code.replace(/_EXMORE$/, '')]) {
+		name = annotations[code.replace(/_EX[A-Z]+/, '')].name + ' (more controls excluded)'
+	    }
+	    if (annotations[code.replace(/_EXALLC$/, '')]) {
+		name = annotations[code.replace(/_EX[A-Z]+/, '')].name + ' (other cancers excluded from controls)'
+	    }
             annotations[fields[i]] = {
-                code: fields[i],
-                name: fields[i],
+                code: code,
+                name: name,
                 nCases: 0,
                 nCtrls: 0
             }
@@ -53,35 +78,53 @@ lines.slice(1).forEach(line => {
     })
 })
 
+// give names, categories and n cases/controls to phenotypes in phenolist
 phenolist = phenolist.map(pheno => {
     const m = pheno.phenocode.match(/([A-Z0-9]+)_(.*)/)
-    var cat
     if (!m) {
-	console.error(`No-category phenocode in phenolist file: ${pheno.phenocode}, using 'Other' category`)
-	cat = 'Other'
+	logger.info(`No-category phenocode: ${pheno.phenocode}, using 'Other'`)
 	pheno.category = 'Other'
     } else {
-	cat = categories[m[1]]
+	var cat = categories[m[1]]
 	if (!cat) {
-	    console.error(`Unexpected category: ${m[1]}, using 'Other'`)
+	    logger.info(`Unexpected 'category': ${m[1]}, using 'Other'`)
 	    pheno.category = 'Other'
-	    // console.error(`Unexpected category: ${m[1]}, skipping phenocode ${pheno.phenocode}`)
-	    // return null
 	} else {
 	    pheno.category = cat.name
 	}
     }
-	
     const ann = annotations[pheno.phenocode]
     if (!ann) {
-	console.error(`No name for phenocode: ${pheno.phenocode}, skipping`)
-	return null
+	logger.error(`Phenocode ${pheno.phenocode} in phenolist doesnt appear in annotation file or data file, quitting!`)
+	console.error(`Phenocode ${pheno.phenocode} in phenolist doesnt appear in annotation file or data file, quitting!`)
+	process.exit(1)
     }
     pheno.phenostring = ann.name
-    if (ann.nCases) pheno.num_cases = ann.nCases
-    if (ann.nCtrls) pheno.num_controls = ann.nCtrls
+    pheno.num_cases = ann.nCases
+    pheno.num_controls = ann.nCtrls
     return pheno
     
-}).filter(pheno => !!pheno)
+})
+
+phenolist.forEach(pheno => {
+    if (!pheno.phenostring) {
+	logger.warn(`Check: no name for ${pheno.phenocode}, using phenocode`)
+	pheno.phenostring = pheno.phenocode
+    }
+    pheno.phenostring = pheno.phenostring.replace(/^"/, '').replace(/"$/, '')
+})
+
+// add num gw significant hits and lambdas
+phenolist.forEach(pheno => {
+    qq = JSON.parse(fs.readFileSync(path.dirname(config.phenolist) + '/generated-by-pheweb/qq/' + pheno.phenocode + '.json', 'utf8'))
+    manhattan = JSON.parse(fs.readFileSync(path.dirname(config.phenolist) + '/generated-by-pheweb/manhattan/' + pheno.phenocode + '.json', 'utf8'))
+    pheno.num_gw_significant = manhattan.unbinned_variants.filter(v => v.peak && v.pval < 5e-8).length
+    pheno.gc_lambda = qq.overall.gc_lambda
+})
+
+// add pheno descriptions from html pages
+if (config.html) {
+    phenolist = parse_endpoints(phenolist, config)
+}
 
 console.log(JSON.stringify(phenolist, null, 4))

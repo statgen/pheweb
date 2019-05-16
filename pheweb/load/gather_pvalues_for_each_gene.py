@@ -132,7 +132,7 @@ def ret_lines(dataPath):
             phenocode = pDict['phenocode']
             for key in phenoDict[phenocode]:
                 pDict[key] = phenoDict[phenocode][key]
-                resDict[gene] = resList
+        resDict[gene] = resList
 
     print('done.')
 

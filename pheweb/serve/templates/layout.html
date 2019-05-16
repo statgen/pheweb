@@ -19,6 +19,10 @@
 <link href="{{ url_for('static', filename='common.css') }}" rel="stylesheet" type="text/css">
 <script src="{{ url_for('static', filename='common.js') }}" type="text/javascript"></script>
 
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='react-tabs.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='react-table.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='react-style.css') }}">
+
 {% if config.SENTRY_DSN %}
   <script src="https://cdn.ravenjs.com/3.21.0/raven.min.js" crossorigin="anonymous"></script>
   <script type="text/javascript">
@@ -71,6 +75,8 @@
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="/random" style="color: #333; font-weight: bold;">Random</a></li>
                 <li><a href="/top_hits" style="color: #333; font-weight: bold;">Top Hits</a></li>
+                <li><a href="/coding" style="color: #333; font-weight: bold;">Coding Variants</a></li>
+                <li><a href="/static/FINNGEN_ENDPOINTS_DF3_V1.zip" style="color: #333; font-weight: bold;">Download Endpoint Definitions</a></li>
                 <li><a href="/about" style="color: #333; font-weight: bold;">About</a></li>
                 {% if current_user and current_user.is_authenticated %}
                 <li><a href="{{ url_for('logout') }}" style="color: #333; font-weight: bold;">Logout ({{ current_user.email }})</a></li>
