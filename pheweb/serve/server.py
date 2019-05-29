@@ -155,6 +155,7 @@ def pheno_page(phenocode):
         die("Sorry, I couldn't find the pheno code {!r}".format(phenocode))
     return render_template('pheno.html',
                            show_correlations=conf.show_correlations,
+                           pheno_correlations_pvalue_threshold=conf.pheno_correlations_pvalue_threshold,
                            phenocode=phenocode,
                            pheno=pheno,
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,

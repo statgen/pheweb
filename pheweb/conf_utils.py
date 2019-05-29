@@ -133,6 +133,7 @@ def _ensure_conf():
 
     # Whether to show a table of correlated phenotypes in the app
     conf.set_default_value('show_correlations', False)
+    conf.set_default_value('pheno_correlations_pvalue_threshold', 0.05)
 
     conf.set_default_value('allow_variant_json_cors', False)
     conf.set_default_value('urlprefix', '')

@@ -623,7 +623,7 @@ $(document).ready(function () {
             layout: 'fitColumns',
             pagination: 'local',
             paginationSize: 10,
-            initialFilter: [ { field: 'pvalue', type: '<', value: 0.05 } ],
+            initialFilter: [ { field: 'pvalue', type: '<', value: window.model.pheno_correlations_pvalue_threshold} ],
             initialSort: [ { column: 'pvalue', dir: 'asc' } ],
             columns: [
                 {

@@ -15,6 +15,7 @@
   window.pheno = {{ phenocode|tojson|safe }};
   window.model.show_correlations = {{ show_correlations | tojson }};
   window.model.correlations_url = {{ url_for('.api_pheno_correlations', phenocode=pheno['phenocode'] ) | tojson }};
+  window.model.pheno_correlations_pvalue_threshold = {{ pheno_correlations_pvalue_threshold | tojson }};
 
   $.getJSON(window.model.urlprefix + "/api/manhattan/pheno/" + window.pheno + ".json")
   .done(function(data) {
