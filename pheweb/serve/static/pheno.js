@@ -628,7 +628,10 @@ $(document).ready(function () {
             columns: [
                 {
                     title: 'Trait', field: 'trait', formatter: 'link',
-                    formatterParams: {labelField: 'trait', urlPrefix: '/pheno/' }
+                    formatterParams: {
+                        label: function(x) { return x._cell.row.data.trait + ': ' + x._cell.row.data.label; },
+                        urlPrefix: window.model.urlprefix + '/pheno/'
+                    }
                 },
                 { title: 'r<sub>g</sub>', field: 'rg', sorter: 'number' },
                 { title: 'SE', field: 'SE' },
