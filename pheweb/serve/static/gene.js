@@ -223,13 +223,19 @@ $(function () {
                     "maf_case","maf_control","OR","pval"].join(colDelim) + rowDelim
 
       sTableData.forEach( function(variant) {
-	  if (variant.significant_phenos.length === 0) {
-	      csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe,
-		      variant.var.gnomad.AF_fin, variant.var.gnomad.AF_nfe,
+      	var af_fin ="NA"
+		var af_nfe="NA"
+		if( _.has(variant.var,'gnomad') ) {
+			af_fin=variant.var.gnomad.AF_fin
+			af_nfe=variant.var.gnomad.AF_nfe
+		} 
+	  	if (variant.significant_phenos.length === 0) {
+	    	csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe,
+		      af_fin, af_nfe,
 		      '', '', '', '', '', '', '', ''].join( colDelim ) + rowDelim
-	  } else {
-              variant.significant_phenos.forEach( function(assoc, idx) {
-		  csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe, variant.var.gnomad.AF_fin, variant.var.gnomad.AF_nfe,
+	  	} else {
+			variant.significant_phenos.forEach( function(assoc, idx) {
+		  csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe, af_fin, af_nfe,
 			  assoc.phenostring, assoc.n_case, assoc.n_control, assoc.maf_case,
 			  assoc.maf_control,  Math.exp( assoc.beta ), assoc.pval.toExponential()].join( colDelim ) + rowDelim
               } )
