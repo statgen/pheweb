@@ -15,8 +15,7 @@ class Report(object) :
         (re.compile(r'<'), r'\\textless'),
         (re.compile(r'>'), r'\\textgreater'),
         (re.compile(r'&gt;'), r'\\textgreater'),
-        (re.compile(r'&lt;'), r'\\textless'),
-        (re.compile(r'[&]'),r'and')
+        (re.compile(r'&lt;'), r'\\textless')
     )
 
     def escape_tex(self, value):
