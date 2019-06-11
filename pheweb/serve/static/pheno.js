@@ -112,7 +112,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         var plot_margin = {
             'left': 70,
             'right': 30,
-            'top': 10,
+            'top': 20,
             'bottom': 50,
         };
         var plot_width = svg_width - plot_margin.left - plot_margin.right;
@@ -257,6 +257,32 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
                        Math.max(0, variant.pos - 200*1000),
                        variant.pos + 200*1000);
         }
+
+        // TODO: if the label touches any circles or labels, skip it?
+        var variants_to_label = _.sortBy(_.where(unbinned_variants, {peak: true}), _.property('pval'))
+            .filter(function(d) { return d.pval < 5e-8; })
+            .slice(0,7);
+        var genenames = gwas_plot.append('g')
+            .attr('class', 'genenames')
+            .selectAll('text.genenames')
+            .data(variants_to_label)
+            .enter()
+            .append('text')
+            .attr('class', 'genename_text')
+            .style('font-style', 'italic')
+            .attr('text-anchor', 'middle')
+            .attr('transform', function(d) {
+                return fmt('translate({0},{1})',
+                           x_scale(get_genomic_position(d)),
+                           y_scale(-Math.log10(d.pval))-5);
+            })
+            .text(function(d) {
+                if (d.nearest_genes.split(',').length <= 2) {
+                    return d.nearest_genes;
+                } else {
+                    return d.nearest_genes.split(',').slice(0,2).join(',')+',...';
+                }
+            });
 
         function pp1() {
         gwas_plot.append('g')
