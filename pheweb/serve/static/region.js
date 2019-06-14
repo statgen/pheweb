@@ -231,7 +231,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 "type": "ldrefsource_selector",
                 "position": "right"
             }]
-    },
+        },
         panels: [
             function() {
                 var l = LocusZoom.Layouts.get("panel", "annotation_catalog", {
@@ -252,121 +252,125 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                 l.data_layers[0].hit_area_width = 50;
                 return l;
             }(),
-            LocusZoom.Layouts.get("panel", "association_catalog", {
-                unnamespaced: true,
-                height: 200, min_height: 200,
-                margin: { top: 10 },
-                dashboard: {
-                    components: [
-                        {
-                            type: "toggle_legend",
-                            position: "right",
-                            color: "green"
-                        },
-                        {
-                            type: "display_options",
-                            position: "right",
-                            color: "blue",
-                            // Below: special config specific to this widget
-                            button_html: "Display options...",
-                            button_title: "Control how plot items are displayed",
+            function() {
+                var l = LocusZoom.Layouts.get("panel", "association_catalog", {
+                    unnamespaced: true,
+                    height: 200, min_height: 200,
+                    margin: { top: 10 },
+                    dashboard: {
+                        components: [
+                            {
+                                type: "toggle_legend",
+                                position: "right",
+                                color: "green"
+                            },
+                            {
+                                type: "display_options",
+                                position: "right",
+                                color: "blue",
+                                // Below: special config specific to this widget
+                                button_html: "Display options...",
+                                button_title: "Control how plot items are displayed",
 
-                            layer_name: "associationpvaluescatalog",
-                            default_config_display_name: "No catalog labels (default)", // display name for the default plot color option (allow user to revert to plot defaults)
+                                layer_name: "associationpvaluescatalog",
+                                default_config_display_name: "No catalog labels (default)", // display name for the default plot color option (allow user to revert to plot defaults)
 
-                            options: [
-                                {
-                                    // First dropdown menu item
-                                    display_name: "Label catalog traits",  // Human readable representation of field name
-                                    display: {  // Specify layout directives that control display of the plot for this option
-                                        label: {
-                                            text: "{{{{namespace[catalog]}}trait}}",
-                                            spacing: 6,
-                                            lines: {
+                                options: [
+                                    {
+                                        // First dropdown menu item
+                                        display_name: "Label catalog traits",  // Human readable representation of field name
+                                        display: {  // Specify layout directives that control display of the plot for this option
+                                            label: {
+                                                text: "{{{{namespace[catalog]}}trait}}",
+                                                spacing: 6,
+                                                lines: {
+                                                    style: {
+                                                        "stroke-width": "2px",
+                                                        "stroke": "#333333",
+                                                        "stroke-dasharray": "2px 2px"
+                                                    }
+                                                },
+                                                filters: [
+                                                    // Only label points if they are significant for some trait in the catalog, AND in high LD
+                                                    //  with the top hit of interest
+                                                    {
+                                                        field: "{{namespace[catalog]}}trait",
+                                                        operator: "!=",
+                                                        value: null
+                                                    },
+                                                    {
+                                                        field: "{{namespace[catalog]}}log_pvalue",
+                                                        operator: ">",
+                                                        value: 7.301
+                                                    },
+                                                    {
+                                                        field: "{{namespace[ld]}}state",
+                                                        operator: ">",
+                                                        value: 0.4
+                                                    },
+                                                ],
                                                 style: {
-                                                    "stroke-width": "2px",
-                                                    "stroke": "#333333",
-                                                    "stroke-dasharray": "2px 2px"
+                                                    "font-size": "10px",
+                                                    "font-weight": "bold",
+                                                    "fill": "#333333"
                                                 }
-                                            },
-                                            filters: [
-                                                // Only label points if they are significant for some trait in the catalog, AND in high LD
-                                                //  with the top hit of interest
-                                                {
-                                                    field: "{{namespace[catalog]}}trait",
-                                                    operator: "!=",
-                                                    value: null
-                                                },
-                                                {
-                                                    field: "{{namespace[catalog]}}log_pvalue",
-                                                    operator: ">",
-                                                    value: 7.301
-                                                },
-                                                {
-                                                    field: "{{namespace[ld]}}state",
-                                                    operator: ">",
-                                                    value: 0.4
-                                                },
-                                            ],
-                                            style: {
-                                                "font-size": "10px",
-                                                "font-weight": "bold",
-                                                "fill": "#333333"
                                             }
                                         }
                                     }
-                                }
-                            ]
-                        }
-                    ]
-                },
-                data_layers: [
-                    LocusZoom.Layouts.get("data_layer", "significance", { unnamespaced: true }),
-                    LocusZoom.Layouts.get("data_layer", "recomb_rate", { unnamespaced: true }),
-                    function() {
-                        var l = LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog", {
-                            unnamespaced: true,
-                            fields: [
-                                "{{namespace[assoc]}}all", // special mock value for the custom source
-                                "{{namespace[assoc]}}id",
-                                "{{namespace[assoc]}}position",
-                                "{{namespace[assoc]}}pvalue|neglog10_or_100",
-                                "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar",
-                                "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
-                            ],
-                            id_field: "{{namespace[assoc]}}id",
-                            tooltip: {
-                                closable: true,
-                                show: {
-                                    "or": ["highlighted", "selected"]
-                                },
-                                hide: {
-                                    "and": ["unhighlighted", "unselected"]
-                                },
-                                html: "<strong>{{{{namespace[assoc]}}id}}</strong><br><br>" +
-                                    window.model.tooltip_lztemplate.replace(/{{/g, "{{assoc:").replace(/{{assoc:#if /g, "{{#if assoc:").replace(/{{assoc:\/if}}/g, "{{/if}}") +
-                                    "<br>" +
-                                    "<a href=\"" + window.model.urlprefix+ "/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}\"" + ">Go to PheWAS</a>" +
-                                    "{{#if {{namespace[catalog]}}rsid}}<br><a href=\"https://www.ebi.ac.uk/gwas/search?query={{{{namespace[catalog]}}rsid}}\" target=\"_new\">See hits in GWAS catalog</a>{{/if}}" +
-                                    "<br><a href=\"javascript:void(0);\" onclick=\"LocusZoom.getToolTipDataLayer(this).makeLDReference(LocusZoom.getToolTipData(this));\">Make LD Reference</a>"
-                            },
-                            x_axis: { field: "{{namespace[assoc]}}position" },
-                            y_axis: {
-                                axis: 1,
-                                field: "{{namespace[assoc]}}pvalue|neglog10_or_100",
-                                floor: 0,
-                                upper_buffer: 0.1,
-                                min_extent: [0, 10]
+                                ]
                             }
-                        });
-                        l.behaviors.onctrlclick = [{
-                            action: "link",
-                            href: window.model.urlprefix+"/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}"
-                        }];
-                        return l;
-                    }()
-                ],
-            }),
+                        ]
+                    },
+                    data_layers: [
+                        LocusZoom.Layouts.get("data_layer", "significance", { unnamespaced: true }),
+                        LocusZoom.Layouts.get("data_layer", "recomb_rate", { unnamespaced: true }),
+                        function() {
+                            var l = LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog", {
+                                unnamespaced: true,
+                                fields: [
+                                    "{{namespace[assoc]}}all", // special mock value for the custom source
+                                    "{{namespace[assoc]}}id",
+                                    "{{namespace[assoc]}}position",
+                                    "{{namespace[assoc]}}pvalue|neglog10_or_100",
+                                    "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar",
+                                    "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
+                                ],
+                                id_field: "{{namespace[assoc]}}id",
+                                tooltip: {
+                                    closable: true,
+                                    show: {
+                                        "or": ["highlighted", "selected"]
+                                    },
+                                    hide: {
+                                        "and": ["unhighlighted", "unselected"]
+                                    },
+                                    html: "<strong>{{{{namespace[assoc]}}id}}</strong><br><br>" +
+                                        window.model.tooltip_lztemplate.replace(/{{/g, "{{assoc:").replace(/{{assoc:#if /g, "{{#if assoc:").replace(/{{assoc:\/if}}/g, "{{/if}}") +
+                                        "<br>" +
+                                        "<a href=\"" + window.model.urlprefix+ "/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}\"" + ">Go to PheWAS</a>" +
+                                        "{{#if {{namespace[catalog]}}rsid}}<br><a href=\"https://www.ebi.ac.uk/gwas/search?query={{{{namespace[catalog]}}rsid}}\" target=\"_new\">See hits in GWAS catalog</a>{{/if}}" +
+                                        "<br><a href=\"javascript:void(0);\" onclick=\"LocusZoom.getToolTipDataLayer(this).makeLDReference(LocusZoom.getToolTipData(this));\">Make LD Reference</a>"
+                                },
+                                x_axis: { field: "{{namespace[assoc]}}position" },
+                                y_axis: {
+                                    axis: 1,
+                                    field: "{{namespace[assoc]}}pvalue|neglog10_or_100",
+                                    floor: 0,
+                                    upper_buffer: 0.1,
+                                    min_extent: [0, 10]
+                                }
+                            });
+                            l.behaviors.onctrlclick = [{
+                                action: "link",
+                                href: window.model.urlprefix+"/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}"
+                            }];
+                            return l;
+                        }()
+                    ],
+                });
+                l.legend.origin.y = 15;
+                return l;
+            }(),
             LocusZoom.Layouts.get("panel", "genes", {
                 unnamespaced: true,
                 // proportional_height: 0.5,
