@@ -34,6 +34,7 @@ if 'SENTRY_DSN' in conf and not os.environ.get('PHEWEB_NO_SENTRY',''):
 app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['LZJS_VERSION'] = conf['lzjs_version']  # TODO: True asset mgmt / build system in future
 app.config['URLPREFIX'] = conf.urlprefix.rstrip('/')
+app.config['USE_WHITELIST'] = 'login' in conf and 'whitelist' in conf.login
 if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
@@ -56,7 +57,8 @@ def check_auth(func):
             session['original_destination'] = request.path
             return redirect(url_for('.get_authorized'))
         print('{} visited {!r}'.format(current_user.email, request.path))
-        assert current_user.email.lower() in conf.login['whitelist'], current_user
+        if 'whitelist' in conf.login:
+            assert current_user.email.lower() in conf.login['whitelist'], current_user
         return func(*args, **kwargs)
     return decorated_view
 
@@ -373,9 +375,9 @@ if 'login' in conf:
 
     @lm.user_loader
     def load_user(id):
-        if id in conf.login['whitelist']:
-            return User(email=id)
-        return None
+        if 'whitelist' in conf.login and id not in conf.login['whitelist']:
+            return None
+        return User(email=id)
 
 
     @bp.route('/logout')
@@ -420,7 +422,7 @@ if 'login' in conf:
             flash('Authentication failed by failing to get an email address.  Please email pjvh@umich.edu')
             return redirect(url_for('.homepage'))
 
-        if email.lower() not in conf.login['whitelist']:
+        if 'whitelist' in conf.login and email.lower() not in conf.login['whitelist']:
             flash('Your email, {!r}, is not in the list of allowed emails.'.format(email))
             return redirect(url_for('.homepage'))
 

@@ -23,11 +23,13 @@ $(function() { $('.typeahead').focus(); }); // autofocus attribute doesn't work 
       <p>Please log in to view this data.</p>
       <br>
       <p><a class="btn-lg btn-primary" role="button" href="{{ url_for('.login_with_google') }}">Click here to login with Google</a></p>
+      {% if config['USE_WHITELIST'] %}
       <br>
       <p style="margin-bottom:0">
         If your email address is on the whitelist but is not connected to a Google account, please
         <a href="https://accounts.google.com/SignUpWithoutGmail">create a Google account for it</a>.
       </p>
+      {% endif %}
     </div>
   </div>
 </div>
