@@ -45,6 +45,7 @@ for submodule in '''
  add_genes
  make_tries
  augment_phenos
+ pheno_correlation
  manhattan
  qq
  matrix

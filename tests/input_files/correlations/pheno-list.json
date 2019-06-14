@@ -1,0 +1,26 @@
+[
+  {
+    "category": "infectious diseases",
+    "phenocode": "008.5",
+    "phenostring": "Bacterial enteritis"
+  },
+  {
+    "category": "infectious diseases",
+    "phenocode": "038",
+    "phenostring": "Septicemia"
+  },
+  {
+    "category": "infectious diseases",
+    "phenocode": "041.4"
+  },
+  {
+    "category": "digestive",
+    "phenocode": "559",
+    "phenostring": "Ileostomy status"
+  },
+  {
+    "category": "digestive",
+    "phenocode": "562.1",
+    "phenostring": "Diverticulosis"
+  }
+]

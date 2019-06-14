@@ -25,13 +25,20 @@ The data used for unit tests can also provide the basis for a persistent local d
 
 First, generate a working *pheno-list.json* file:
 
+```bash
+$ pheweb phenolist glob --simple-phenocode 'tests/input_files/assoc-files/*'
+$ pheweb phenolist unique-phenocode
+$ pheweb phenolist read-info-from-association-files
+$ pheweb phenolist import-phenolist -f pheno-list-categories.json tests/input_files/categories.csv
+$ pheweb phenolist merge-in-info pheno-list-categories.json
+$ pheweb phenolist verify --required-columns category
 ```
-pheweb phenolist glob --simple-phenocode 'tests/input_files/assoc-files/*'
-pheweb phenolist unique-phenocode
-pheweb phenolist read-info-from-association-files
-pheweb phenolist import-phenolist -f pheno-list-categories.json tests/input_files/categories.csv
-pheweb phenolist merge-in-info pheno-list-categories.json
-pheweb phenolist verify --required-columns category
+
+To activate an optional "correlated phenotypes" feature, you will need to copy some pre-made test data to the same 
+folder as your `pheno-list.json`:
+
+```bash
+$ cp tests/input_files/correlations/pheno-correlations.txt .
 ```
 
 Then process the data. The first iteration will typically take much longer than future iterations, due to the 
@@ -42,6 +49,9 @@ one-time need to download an updated copy of dbSNP.
 Finally, the processed data can be served in a web browser, using the local development server:
 
 `pheweb serve`
+
+If you would like the manhattan plot page to also show the table of correlated phenotypes, you may need to set 
+`show_correlations = True` in your config.py file. This is an optional feature, and hidden by default.
 
 #### Alternative process
 An alternative way to run this process would be to run the static unit tests once, then run the script 

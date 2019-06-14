@@ -6,6 +6,7 @@ from .server_utils import get_variant, get_random_page, get_pheno_region
 from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
+from ..import weetabix
 
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for, Blueprint
 from flask_compress import Compress
@@ -153,6 +154,8 @@ def pheno_page(phenocode):
     except KeyError:
         die("Sorry, I couldn't find the pheno code {!r}".format(phenocode))
     return render_template('pheno.html',
+                           show_correlations=conf.show_correlations,
+                           pheno_correlations_pvalue_threshold=conf.pheno_correlations_pvalue_threshold,
                            phenocode=phenocode,
                            pheno=pheno,
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
@@ -182,6 +185,32 @@ def api_region(phenocode):
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
     rv = get_pheno_region(phenocode, chrom, pos_start, pos_end)
     return jsonify(rv)
+
+
+@bp.route('/api/pheno/<phenocode>/correlations/')
+@check_auth
+def api_pheno_correlations(phenocode):
+    """Send information about phenotype correlations. This is an optional feature controlled by configuration."""
+    if not conf.show_correlations:
+        return jsonify({'error': 'This PheWeb instance does not support the requested endpoint.'}), 400
+
+    annotated_correl_fn = common_filepaths['correlations']
+    rows = weetabix.get_indexed_rows(annotated_correl_fn, phenocode, strict=False)
+    # TODO: Decouple so that the route doesn't contain assumptions about file format
+    # TODO: Check w/Daniel for "edge case" type assumptions- eg underflow on pvalues, weird field values?
+    payload = []
+    for row in rows:
+        _, t2, rg, se, z, p, method, desc = row.split('\t')
+        payload.append({
+            'trait': t2,
+            'label': desc,
+            'rg': float(rg),
+            'SE': float(se),
+            'Z': float(z),
+            'pvalue': float(p),
+            'method': method
+        })
+    return jsonify({'data': payload})
 
 
 @functools.lru_cache(None)
