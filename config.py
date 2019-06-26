@@ -2,7 +2,7 @@
 authentication=False
 authentication_file = "/mnt/r2/google.prod.conf"
 
-data_dir="/mnt/r2"
+data_dir="/mnt/r3_1"
 
 database_conf = ({ "annotation":
                     #{"ElasticAnnotationDao": { "host":"35.187.119.225","port":9200, "variant_index":"finngen_r1_variant_annotation"}  }
@@ -17,7 +17,10 @@ database_conf = ({ "annotation":
                    { "ElasticLofDao": { "host":"35.240.29.13","port":9200, "gene_index":"finngen_r1_hc_lof" }}
                  },
                  {"externalresultmatrix": { "ExternalMatrixResultDao": {"matrix":"/mnt/r2/ukbb/matrix.tsv.gz", "metadatafile":"/mnt/r2/ukbb/ukbb_r1_match_pheno_dup_correct_simple_meta.tsv"}}},
-                 {"externalresult": { "ExternalFileResultDao": {"manifest":"/mnt/r2/ukbb/ukbb_r1_match_pheno_dup_correct_ssd.tsv"}}}
+                 {"externalresult": { "ExternalFileResultDao": {"manifest":"/mnt/r2/ukbb/ukbb_r1_match_pheno_dup_correct_ssd.tsv"}}},
+                 {"tsv": 
+                    {"TSVDao": {"coding":"/mnt/r3/tsv/coding_web.txt"} }
+                 }
                 )
 
 n_query_threads=4
