@@ -133,7 +133,7 @@ def variant_page(query):
         q=query.split("-")
         if len(q)!=4:
             die("Malformed variant query. Use chr-pos-ref-alt")
-        v = Variant(q[0],q[1],q[2], q[3])
+        v = Variant(q[0].replace('X', '23'),q[1],q[2], q[3])
         variantdat = jeeves.get_single_variant_data(v)
         if variantdat is None:
             die("Sorry, I couldn't find the variant {}".format(query))
