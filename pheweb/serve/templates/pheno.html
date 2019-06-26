@@ -74,11 +74,12 @@
 {% block contained %}
 <div class="row">
     <div class="col-xs-12">
-        <h1 style="margin-top:0">{% include "pheno/h1.html" %}</h1>
+        <h1 style="margin-top:0">{{ pheno.phenostring }}</h1>
     </div>
 </div>
 <div class="row">
-    <div class="pheno-info col-xs-12">
+  <div class="pheno-info col-xs-12">
+    <p><a href="https://risteys.finngen.fi/phenocode/{{ pheno.phenocode.replace('_EXALLC', '').replace('_EXMORE', '') }}" target="_blank">RISTEYS</a></p>
         {% if pheno.category %}
           <p>Category: {{ pheno.category}}</p>
         {% endif %}
