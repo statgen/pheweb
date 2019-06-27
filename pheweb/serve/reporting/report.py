@@ -13,7 +13,9 @@ class Report(object) :
         (re.compile(r'"'), r"''"),
         (re.compile(r'\.\.\.+'), r'\\ldots'),
         (re.compile(r'<'), r'\\textless'),
-        (re.compile(r'>'), r'\\textgreater')
+        (re.compile(r'>'), r'\\textgreater'),
+        (re.compile(r'&gt;'), r'\\textgreater'),
+        (re.compile(r'&lt;'), r'\\textless')
     )
 
     def escape_tex(self, value):
@@ -32,7 +34,6 @@ class Report(object) :
         self.texenv.comment_start_string = '((='
         self.texenv.comment_end_string = '=))'
         self.texenv.filters['escape_tex'] = self.escape_tex
-
 
     def render_template(self, template, **params):
         '''

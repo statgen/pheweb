@@ -322,7 +322,7 @@
     <td><%= d.drug.molecule_type %></td>
     <td><%= d.evidence.target2drug.action_type %></td>
     <td><%= d.disease.efo_info.label %></td>
-    <td><%= d.evidence.drug2clinic ? d.evidence.drug2clinic.max_phase_for_disease.label : '' %></td>
+    <td><%= d.evidence.drug2clinic ? d.evidence.drug2clinic.clinical_trial_phase.label : '' %></td>
     <td><a href=<%= d.drug.id %>>ChEMBL</a></td>
   </tr>
 </script>

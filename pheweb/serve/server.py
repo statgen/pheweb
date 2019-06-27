@@ -354,6 +354,13 @@ def gene_report(genename):
 
     for var in func_vars:
         i = 0
+        if len(var["significant_phenos"])==0:
+            funcvar.append( { 'rsid': var['var'].get_annotation('rsids'), 'variant':var['var'].id.replace(':', ' '), 'gnomad':var['var'].get_annotation('gnomad'),
+                              "consequence": var['var'].get_annotation("annot")["most_severe"].replace('_', ' ').replace(' variant', ''),
+                             'nSigPhenos':len(var["significant_phenos"]), "maf": var["var"].get_annotation('annot')["AF"], "info": var["var"].get_annotation("annot")["INFO"] ,
+                              "sigPhenos": "NONE" })
+            continue
+
         while i < len(var["significant_phenos"]):
             phenos = var["significant_phenos"][i:min(i+chunk_size,len(var["significant_phenos"]))]
             sigphenos = "\\newline \\medskip ".join( list(map(lambda x: (x.phenostring if x.phenostring!="" else x.phenocode if x.phenocode!="" else "NA") + " \\newline (OR:" + "{:.2f}".format( math.exp(x.beta)) + ",p:"  + "{:.2e}".format(x.pval) + ")" +  matching_ukbb(x) + " " , phenos)))

@@ -35,7 +35,7 @@
 Variant & rsid & Consequence & MAF & MAF FIN & MAF NFE & N phenos p\textless((( "{:.0e}".format(func_var_assoc_threshold) ))) & top phenos \\
 \hline
 ((* for var in functionalVars *))
-    ((( var.variant | escape_tex))) & ((( var.rsid ))) & (((  var.consequence | escape_tex))) & ((( "{:.2e}".format(var.maf) ))) & ((( "{:.2e}".format(var.gnomad.AF_fin) if "gnomad" in var else "N/A" ))) & ((( "{:.2e}".format(var.gnomad.AF_nfe) if "gnomad" in var else "N/A" ))) & ((( var.nSigPhenos ))) & (((var.sigPhenos| escape_tex)))  \\
+    ((( var.variant | escape_tex))) & ((( var.rsid ))) & (((  var.consequence | escape_tex))) & ((( "{:.2e}".format(var.maf) ))) & ((( "{:.2e}".format(var.gnomad.AF_fin) if "gnomad" in var and var.gnomad != none else "N/A" ))) & ((( "{:.2e}".format(var.gnomad.AF_nfe) if "gnomad" in var and var.gnomad is not none else "N/A" ))) & ((( var.nSigPhenos ))) & (((var.sigPhenos| escape_tex)))  \\
 ((* endfor *))
 
 \end{longtable}
@@ -62,7 +62,7 @@ Variant & rsid & Consequence & MAF & MAF FIN & MAF NFE & N phenos p\textless((( 
 Variant & pheno & effective allele & EAF & beta/or & -10 log p-value & reference \\
 \hline
 ((* for var in knownhits *))
-((( var.variant.replace(":"," ") | escape_tex))) \newline ((( var.rsid ))) & ((( var.trait | escape_tex))) & ((( var.risk_allele ))) & ((( var.risk_frq ))) & ((( var.or_beta ))) & ((( var.log_pvalue ))) & (((var.study))) \\
+((( var.variant.replace(":"," ") | escape_tex))) \newline ((( var.rsid ))) & ((( var.trait | escape_tex))) & ((( var.risk_allele ))) & ((( var.risk_frq ))) & ((( var.or_beta ))) & ((( var.log_pvalue ))) & (((var.study | escape_tex))) \\
 ((* endfor *))
 \end{longtable}
 
@@ -76,7 +76,7 @@ Variant & pheno & effective allele & EAF & beta/or & -10 log p-value & reference
 Molecule & type & action & disease & phase \\
 \hline
 ((* for d in drugs *))
-((( d.drug.molecule_name | escape_tex))) & ((( d.drug.molecule_type | escape_tex))) & ((( d.evidence.target2drug.action_type |escape_tex ))) & ((( d.disease.efo_info.label | escape_tex ))) & ((( d.evidence.drug2clinic.max_phase_for_disease.label | escape_tex ))) \\
+((( d.drug.molecule_name | escape_tex))) & ((( d.drug.molecule_type | escape_tex))) & ((( d.evidence.target2drug.action_type |escape_tex ))) & ((( d.disease.efo_info.label | escape_tex ))) & ((( d.evidence.drug2clinic.clinical_trial_phase.label if  d.evidence.drug2clinic != none else 'NA' | escape_tex ))) \\
 ((* endfor *))
 \end{longtable}
 \endgroup

@@ -330,6 +330,7 @@ class DrugDao(DrugDB):
                       'target.target_class',
                       'evidence.target2drug.action_type',
                       'evidence.drug2clinic.max_phase_for_disease.label',
+                    'evidence.drug2clinic.clinical_trial_phase.label',
                       'disease.efo_info.label',
                       'drug']
         payload = {'target':[ensg], 'datatype':['known_drug'], 'fields':drugfields}
