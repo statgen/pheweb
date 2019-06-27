@@ -113,6 +113,7 @@
           <thead>
             <tr>
               <th style="cursor: pointer;" data-sort="phenostring:asc">phenotype</th>
+              <th style="cursor: pointer;" data-sort="phenostring:asc">Risteys</th>
               <th style="cursor: pointer;" data-sort="category:asc">category</th>
               <th style="cursor: pointer;" data-sort="num_cases:desc:number">number of cases</th>
               <th style="cursor: pointer;" data-sort="num_controls:desc:number">number of controls</th>
@@ -150,6 +151,7 @@
 <script type="text/template" id="phenolist-streamtable-template">
     <tr>
         <td style="width:45%;"><a style="color:black" href="/pheno/<%= p.phenocode %>"><%= p.phenostring %></a></td>
+        <td style="width:6%;"><a style="color:black" href="https://risteys.finngen.fi/phenocode/<%= p.phenocode.replace('_EXALLC', '').replace('_EXMORE', '') %>">link</a></td>
         <td style="width:25%;"><%= p.category %></td>
         <td style="width:6%; text-align: right;"><%= p.num_cases %></td>
         <td style="width:6%; text-align: right;"><%= p.num_controls %></td>

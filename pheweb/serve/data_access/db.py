@@ -918,11 +918,13 @@ class TabixAnnotationDao(AnnotationDB):
     def get_variant_annotations(self, variants:List[Variant]):
         annotations = []
         t = time.time()
-       
+        
         for variant in variants:
             tabix_iter = self.tabix_files[threading.get_ident()].fetch( variant.chr, variant.pos-1, variant.pos, parser=None)
-            row = next(tabix_iter)
-            if row is not None:
+            while True:
+                row = next(tabix_iter)
+                if row is None:
+                    break
                 split = row.split('\t')
                 v = split[0].split(":")
                 v = Variant(v[0],v[1],v[2],v[3])
@@ -932,6 +934,7 @@ class TabixAnnotationDao(AnnotationDB):
                         v.add_annotation(k,anno)
                     v.add_annotation("annot",{self.headers[i]: self.dconv[self.headers[i]](split[i]) for i in range(0,len(split)) } )
                     annotations.append(v)
+                    break
 
         print('TABIX get_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
         return annotations

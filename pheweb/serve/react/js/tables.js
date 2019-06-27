@@ -81,6 +81,7 @@ const mainTableCols = [{
     Header: () => (<span title="gene symbol" style={{textDecoration: 'underline'}}>gene</span>),
     accessor: 'gene_most_severe',
     width: Math.min(120, 120/maxTableWidth*window.innerWidth),
+    filterMethod: (filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase()),
     Cell: props => (
 	    <a href={"/gene/" + props.value} target="_blank">{props.value}</a>
     )
