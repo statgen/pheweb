@@ -3,12 +3,6 @@
 This script takes a file with the columns [chrom, pos, ...] (but no headers) and adds the field `gene`.
 '''
 
-'''
-TODO: should we only look at the distance to the start of the gene?
-    - I've heard that it's common to only look at variants within 50kb of TSS, because that's where TFBS are concentrated.
-TODO: are these gene ranges the whole transcript, including UTRs?
-'''
-
 from ..utils import get_gene_tuples
 from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths
 
