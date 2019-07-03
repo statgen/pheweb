@@ -393,7 +393,11 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                             hide: {
                                 and: ["unhighlighted", "unselected"]
                             },
-                            html: "<h4><strong><i>{{gene_name}}</i></strong></h4><div>Gene ID: <strong>{{gene_id}}</strong></div><div>Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
+                            html: ("<h4><strong><i>{{gene_name}}</i></strong></h4>" +
+                                   "<div>Gene ID: <strong>{{gene_id}}</strong></div>" +
+                                   "<div>Transcript ID: <strong>{{transcript_id}}</strong></div>" +
+                                   "<div style=\"clear: both;\"></div>" +
+                                   "<table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a> and <a href=\"http://bravo.sph.umich.edu/freeze5/hg38/gene/{{gene_id}}\" target=\"_new\">Bravo</a></td></tr></table>")
                         },
                         label_exon_spacing: 3,
                         exon_height: 8,
