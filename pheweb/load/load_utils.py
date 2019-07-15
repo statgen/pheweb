@@ -170,13 +170,13 @@ class MaxPriorityQueue:
         self._q = [] # a heap-property-satisfying list like [(priority, ComparesFalse(), item), ...]
     def add(self, item, priority):
         heapq.heappush(self._q, (-priority, MaxPriorityQueue.ComparesFalse(), item))
-    def add_and_keep_size(self, item, priority, size, popped_callback):
+    def add_and_keep_size(self, item, priority, size, popped_callback=None):
         if len(self._q) < size:
             self.add(item, priority)
         else:
             if -priority > self._q[0][0]: # if the new priority isn't as big as the biggest priority in the heap, switch them
                 _, _, item = heapq.heapreplace(self._q, (-priority, MaxPriorityQueue.ComparesFalse(), item))
-            popped_callback(item)
+            if popped_callback: popped_callback(item)
     def pop(self):
         _, _, item = heapq.heappop(self._q)
         return item
