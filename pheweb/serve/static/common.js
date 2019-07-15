@@ -75,3 +75,5 @@ function fmt(format) {
         return (typeof args[number] != 'undefined') ? args[number] : match;
     });
 }
+
+function two_digit_format(x) { return (x>=.1)? x.toFixed(2) : (x>=.01)? x.toFixed(3) : x.toExponential(1); }
