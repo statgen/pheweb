@@ -381,6 +381,7 @@ if 'login' in conf:
 
 
     @bp.route('/logout')
+    @check_auth
     def logout():
         print(current_user.email, 'logged out')
         logout_user()
