@@ -10,6 +10,25 @@ const variantSorter = (a, b) => {
     return v1[1] > v2[1] ? 1 : -1
 }
 
+const regionTableCols = [{
+    Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
+    accessor: 'phenocode',
+    Cell: props => (<a href={"/pheno/" + props.value} target="_blank">{props.value}</a>),
+    width: Math.min(270, 270/maxTableWidth*window.innerWidth),
+}, {
+    Header: () => (<span title="region" style={{textDecoration: 'underline'}}>region</span>),
+    accessor: 'start',
+    Cell: props => (<a href={"/region/" + props.original.phenocode + "/" + props.original.chr + ":" + props.original.start + "-" + props.original.end} target="_blank">{props.original.chr + ':' + props.original.start + '-' + props.original.end}</a>),
+    width: Math.min(270, 270/maxTableWidth*window.innerWidth),
+    Filter: ({ filter, onChange }) =>
+	null,
+}, {
+    Header: () => (<span title="does the variant belong to a credible set" style={{textDecoration: 'underline'}}>variant in a credible set?</span>),
+    accessor: 'credible',
+    Cell: props => {props.value},
+    width: Math.min(270, 270/maxTableWidth*window.innerWidth)
+}]
+
 const mainTableCols = [{
     Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>top pheno</span>),
     accessor: 'phenoname',
@@ -154,4 +173,4 @@ const mainTableCols = [{
 }]
 
 
-export { mainTableCols }
+export { mainTableCols, regionTableCols }

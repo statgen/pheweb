@@ -196,9 +196,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     }
     phewas_panel.axes.y1.ticks = ticks
 
-    phewas_panel.axes.y1.label = window.vis_conf.loglog_threshold == 10 ?
-	'-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value))':
-	'-log\u2081\u2080(p-value) or ' + window.vis_conf.loglog_threshold + ' \u2022 log\u2081\u2080(-log\u2081\u2080(p-value)) / log\u2081\u2080(' + window.vis_conf.loglog_threshold + ')'
+    phewas_panel.axes.y1.label = '-log\u2081\u2080p-value'
 
     // add a little x-padding so that no points intersect the edge
     pval_data_layer.x_axis.min_extent = [-1, window.results.length];
@@ -246,19 +244,36 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (num_phenos_with_maf === mafs.length) {
         var range = d3.extent(mafs);
         $(function() {
-            $('#maf-range').html('<p>AF ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + '</p>');
+            $('#maf-range').html('<p style="text-decoration: underline;" title="' + _.template($('#af-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF ' + (window.variant.annot && window.variant.annot.AF && window.variant.annot.AF.toExponential(1)) + ' (ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ' across all phenotypes)</p>');
             $('#maf-range p').css('margin-bottom', '0');
         });
     } else if (num_phenos_with_maf > 0) {
         var range = d3.extent(mafs);
         $(function() {
-            $('#maf-range').html('<p>AF ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ' for phenotypes where it is defined</p>');
+            $('#maf-range').html('<p style="text-decoration: underline;" title="' + _.template($('#af-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF ' + (window.variant.annot && window.variant.annot.AF && window.variant.annot.AF.toExponential(1)) + ' (ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ') for phenotypes where it is defined</p>');
             $('#maf-range p').css('margin-bottom', '0');
         });
     }
 })();
 
-
+(function() {
+    if (window.variant.gnomad) {
+	$(function() {
+	    if (!variant.gnomad) {
+		variant.gnomad = {fin_enrichment: 'No data in Gnomad'}
+	    } else if (variant.gnomad.AF_fin === 0) {
+		variant.gnomad.fin_enrichment = 'No FIN in Gnomad'
+	    } else if (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu'] == 0) {
+		variant.gnomad.fin_enrichment = 'No NFEE in Gnomad'
+	    } else {
+		variant.gnomad.fin_enrichment = +variant.gnomad['AC_fin'] / +variant.gnomad['AN_fin'] /
+		    ( (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu']) / (+variant.gnomad['AN_nfe_nwe'] + +variant.gnomad['AN_nfe_onf'] + +variant.gnomad['AN_nfe_seu']) )
+	    }
+	    $('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + (window.variant.gnomad.AF_fin && window.variant.gnomad.AF_fin.toExponential(1)) + ', POPMAX ' + window.variant.gnomad.AF_popmax.toExponential(1) + ', FIN enrichment vs. NFEE: ' + window.variant.gnomad.fin_enrichment.toFixed(3) + '</p>')
+            $('#gnomad p').css('margin-bottom', '0');
+	})
+    }
+})();
 
 (function() {
     var isnum = function(d) { return typeof d == "number"; };
@@ -269,22 +284,16 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     });
     var range = d3.extent(infos);
     $(function() {
-        $('#info-range').html('<p>INFO ranges from ' + range[0].toFixed(3) + ' to ' + range[1].toFixed(3) + '</p>');
+            $('#info-range').html('<p style="text-decoration: underline;" title="' + _.template($('#info-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">INFO ' + (window.variant.annot && window.variant.annot.INFO && window.variant.annot.INFO.toFixed(3)) + ' (ranges in genotyping batches from ' + range[0].toFixed(3) + ' to ' + range[1].toFixed(3) + ')</p>');
         $('#info-range p').css('margin-bottom', '0');
     });
     
 })();
 
 (function() {
-    if (window.variant.annot && window.variant.annot.INFO) {
-	$(function() {
-	    $('#info_score').html('<p>INFO score: ' + window.variant.annot.INFO.toFixed(3) + '<p>')
-            $('#info_score p').css('margin-bottom', '0');
-	})
-    }
     if (window.variant.annot && window.variant.annot.most_severe) {
 	$(function() {
-	    $('#most_severe').html('<p>Most severe consequence: ' + window.variant.annot.most_severe.replace('_', ' ') + '<p>')
+	    $('#most_severe').html('<p>Most severe consequence: ' + window.variant.annot.most_severe.replace(/_/g, ' ') + '<p>')
             $('#most_severe p').css('margin-bottom', '0');
 	})
     }
@@ -421,3 +430,12 @@ $(function () {
 	$("#loglog-note").css("display", "inline-block");
     }
 })
+
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip({
+        html: true,
+        animation: false,
+        container: 'body',
+        placement: 'bottom'
+    })
+});
