@@ -10,3 +10,4 @@ pheweb/load/cffi/_x*
 **/node_modules
 generated-by-pheweb
 .DS_Store
+**/mysql.conf
