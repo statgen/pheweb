@@ -86,6 +86,7 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
 
     # put most-significant variants into the priorityqueue and bin the rest
     hla_variant_pq =MaxPriorityQueue()
+    gw_sig_pq = MaxPriorityQueue()
     for variant in variant_iterator:
         if variant['chrom']=="6" and variant['pos'] > conf.hla_begin and variant['pos'] < conf.hla_end:
             hla_variant_pq.add(variant, variant['pval'])
@@ -97,7 +98,10 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
             unbinned_variant_pq.add(variant, variant['pval'])
             if len(unbinned_variant_pq) > conf.manhattan_num_unbinned:
                 old = unbinned_variant_pq.pop()
-                bin_variant(old)
+                    if old['pval'] < conf.manhattan_unbin_anyway_pval:
+                    unbinned_variant_pq.add(old, old['pval'])
+                else:
+                    bin_variant(old)
 
     max_p = unbinned_variant_pq.peek()
     add_hla = list(hla_variant_pq.pop_all())
