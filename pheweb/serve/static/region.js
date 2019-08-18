@@ -1,23 +1,28 @@
 'use strict';
 
-// DEPENDENCIES: This js depends on custom_locuszoom.js, which need to be included first in html files. We are moving to webpack to take care of the dependencies and this documentation is
+// DEPENDENCIES: This js depends on custom_locuszoom.js and region_layouts.js which need to be included first in html files. We are moving to webpack to take care of the dependencies and this documentation is
 // an interim reminder
 
 (function() {
     // Define LocusZoom Data Sources object
     var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";
+    var localCondBase = "/api/conditional_region/" + window.pheno.phenocode + "/lz-";
+    var localFMBase = "/api/finemapped_region/" + window.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
 
-    data_sources.add("base", ["AssociationLZ", localBase]);
+    data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
+    data_sources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
+    data_sources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
     data_sources.add("gene", ["GeneLZ", {url:remoteBase + "annotation/genes/", params:{source:1}}])
     data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
     // clinvar needs to be added after gene because genes within locuszoom data chain are used for fetching
     data_sources.add("gwas_cat", new LocusZoom.Data.GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
     data_sources.add("clinvar", new LocusZoom.Data.ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
-    data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/", params: { id:[1,4] ,pvalue_field: "pvalue", "var_id_field":"rsid" }}));
+    data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/", params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:rsid" }}));
+    data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 16} }]); // source id 16 is build 38, 15 is 37
 
-
+    var scatters = ['association', 'conditional', 'finemapping', 'gwas_cat']
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
@@ -29,6 +34,13 @@
         return x
     });
 
+    LocusZoom.TransformationFunctions.set("logneglog", function(x) {
+	var pScaled = -Math.log10(x)
+	if (pScaled > window.vis_conf.loglog_threshold) {
+	    pScaled = window.vis_conf.loglog_threshold * Math.log10(pScaled) / Math.log10(window.vis_conf.loglog_threshold)
+	}
+	return pScaled
+    })
 
     // dashboard components
     LocusZoom.Dashboard.Components.add("region", function(layout){
@@ -83,640 +95,147 @@
             });
         }
     });
-
-    // TODO: copying the whole layout was a bad choice.
-    //       I should just have copied the standard and adjusted it like in variant.js
-    //       That makes it more clear when I've changed things from the default.
-    //       It means that I often have to change my code when the default changes,
-    //       But I already usually have to make changes when the default changes, and they'd be easier.
-    var layout = {
-        width: 800,
-        height: 400,
-        "min_width": 800,
-        "min_height": 400,
-        responsive_resize: true,
-        "resizable": "responsive",
-        // aspect_ratio: 2, // do I want this?
-        "min_region_scale": 2e4,
-        "max_region_scale": 5e5,
-        "panel_boundaries": true,
-        mouse_guide: true,
-
-        "dashboard": {
-            "components": [{
-                type: 'link',
-                title: 'Go to Manhattan Plot',
-                text:' Manhattan Plot',
-                url: '/pheno/' + window.pheno.phenocode
-            },{
-                type: 'move',
-                text: '<<',
-                title: 'Shift view 1/4 to the left',
-                direction: -0.75,
-                group_position: "start",
-            },{
-                type: 'move',
-                text: '<',
-                title: 'Shift view 1/4 to the left',
-                direction: -0.25,
-                group_position: "middle",
-            },{
-                type: 'zoom_region',
-                button_html: 'z+',
-                title: 'zoom in 2x',
-                step: -0.5,
-                group_position: "middle",
-            },{
-                type: 'zoom_region',
-                button_html: 'z-',
-                title: 'zoom out 2x',
-                step: 1,
-                group_position: "middle",
-            },{
-                type: 'move',
-                text: '>',
-                title: 'Shift view 1/4 to the right',
-                direction: 0.25,
-                group_position: "middle",
-            },{
-                type: 'move',
-                text: '>>',
-                title: 'Shift view 3/4 to the right',
-                direction: 0.75,
-                group_position: "end",
-            },{
-                "type": "download",
-                "position": "right",
-            }]
-        },
-        "panels": [{
-            "id": "association",
-            "title": { "text":"FINNGEN", "x":55, "y":30 } ,
-            "proportional_height": 0.3,
-            "min_width": 400,
-            "min_height": 100,
-            "y_index": 0,
-            "margin": {
-                "top": 10,
-                "right": 50,
-                "bottom": 40,
-                "left": 50
-            },
-            "inner_border": "rgb(210, 210, 210)",
-            "dashboard": {
-                "components": [{
-                    "type": "toggle_legend",
-                    "position": "right",
-                    "color": "green"
-                }]
-            },
-            "axes": {
-                "x": {
-                    "label_function": "chromosome",
-                    "label_offset": 32,
-                    "tick_format": "region",
-                    "extent": "state",
-                    "render": true,
-                    "label": "Chromosome {{chr}} (Mb)"
-                },
-                "y1": {
-                    "label": "-log10 p-value",
-                    "label_offset": 28,
-                    "render": true,
-                    "label_function": null
-                }
-            },
-            "legend": {
-                "orientation": "vertical",
-                "origin": {
-                    "x": 55,
-                    "y": 40
-                },
-                "hidden": true,
-                "width": 91.66200256347656,
-                "height": 138,
-                "padding": 5,
-                "label_size": 12
-            },
-            "interaction": {
-                "drag_background_to_pan": true,
-                "drag_x_ticks_to_scale": true,
-                "drag_y1_ticks_to_scale": true,
-                "drag_y2_ticks_to_scale": true,
-                "scroll_to_zoom": true,
-                "x_linked": true,
-                "y1_linked": false,
-                "y2_linked": false
-            },
-            "data_layers": [{
-                "id": "significance",
-                type: "orthogonal_line",
-                orientation: "horizontal",
-                offset: -Math.log10(5e-8),
-            }, {
-                "namespace": {
-                    "default": "",
-                    "ld": "ld"
-                },
-                "id": "associationpvalues",
-                "type": "scatter",
-                "point_shape": {
-                    "scale_function": "if",
-                    "field": "ld:isrefvar",
-                    "parameters": {
-                        "field_value": 1,
-                        "then": "diamond",
-                        "else": "circle"
-                    }
-                },
-                "point_size": {
-                    "scale_function": "if",
-                    "field": "ld:isrefvar",
-                    "parameters": {
-                        "field_value": 1,
-                        "then": 80,
-                        "else": 40
-                    }
-                },
-                "color": [{
-                    "scale_function": "if",
-                    "field": "ld:isrefvar",
-                    "parameters": {
-                        "field_value": 1,
-                        "then": "#9632b8"
-                    }
-                }, {
-                    "scale_function": "numerical_bin",
-                    "field": "ld:state",
-                    "parameters": {
-                        "breaks": [0, 0.2, 0.4, 0.6, 0.8],
-                        "values": ["#357ebd", "#46b8da", "#5cb85c", "#eea236", "#d43f3a"]
-                    }
-                }, "#B8B8B8"],
-                fill_opacity: 0.7,
-                "legend": [{
-                    "shape": "diamond",
-                    "color": "#9632b8",
-                    "size": 40,
-                    "label": "LD Ref Var",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#d43f3a",
-                    "size": 40,
-                    "label": "1.0 > r² ≥ 0.8",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#eea236",
-                    "size": 40,
-                    "label": "0.8 > r² ≥ 0.6",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#5cb85c",
-                    "size": 40,
-                    "label": "0.6 > r² ≥ 0.4",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#46b8da",
-                    "size": 40,
-                    "label": "0.4 > r² ≥ 0.2",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#357ebd",
-                    "size": 40,
-                    "label": "0.2 > r² ≥ 0.0",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "circle",
-                    "color": "#B8B8B8",
-                    "size": 40,
-                    "label": "no r² data",
-                    "class": "lz-data_layer-scatter"
-                }],
-
-                fields: ["id", "chr", "position", "ref", "alt", "pvalue", "pvalue|neglog10_or_100", "ld:state", "ld:isrefvar"],
-                // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
-                id_field: "id",
-                behaviors: {
-                    onmouseover: [{action: "set", status:"selected"}],
-                    onmouseout: [{action: "unset", status:"selected"}],
-                    onclick: [{action: "link", href:"/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}"}],
-                },
-                tooltip: {
-                    closable: false,
-                    "show": {
-                        "or": ["highlighted", "selected"]
-                    },
-                    "hide": {
-                        "and": ["unhighlighted", "unselected"]
-                    },
-                    html: '<strong>{{id}}</strong><br>\n\n' + window.model.tooltip_lztemplate
-                },
-
-                "x_axis": {
-                    "field": "position",
-                    "axis": 1
-                },
-                "y_axis": {
-                    "axis": 1,
-                    "field": "pvalue|neglog10_or_100",
-                    "floor": 0,
-                    "upper_buffer": 0.1,
-                    "min_extent": [0, 10]
-                },
-                "transition": false,
-            }],
-            "description": null,
-            "origin": {
-                "x": 0,
-                "y": 0
-            },
-            "proportional_origin": {
-                "x": 0,
-                "y": 0
-            },
-            "background_click": "clear_selections",
-        },
-        {
-            "id": "gwas_catalog",
-            "title": { "text":"GWAS catalog + UKBB", "x":55, "y":30 },
-            "y_index": 1,
-            "proportional_height": 0.2,
-            "min_width": 400,
-            "min_height": 100,
-            "margin": {
-                "top": 10,
-                "right": 50,
-                "bottom": 20,
-                "left": 50
-            },
-            "inner_border": "rgb(210, 210, 210)",
-            "dashboard": {
-                "components": [{
-                    "type": "toggle_legend",
-                    "position": "right",
-                    "color": "green"
-                }]
-            },
-            "axes": {
-                "x": {
-                    "label_function": "chromosome",
-                    "label_offset": 32,
-                    "tick_format": "region",
-                    "extent": "state",
-                    "render": true,
-                    "label": "Chromosome {{chr}} (Mb)"
-                },
-                "y1": {
-                    "label": "-log10 p-value",
-                    "label_offset": 28,
-                    "render": true,
-                    "label_function": null
-                }
-            },
-            "legend": {
-                "orientation": "vertical",
-                "origin": {
-                    "x": 55,
-                    "y": 40
-                },
-                "hidden": true,
-                "width": 91.66200256347656,
-                "height": 138,
-                "padding": 5,
-                "label_size": 12
-            },
-            "interaction": {
-                "drag_background_to_pan": true,
-                "drag_x_ticks_to_scale": true,
-                "drag_y1_ticks_to_scale": true,
-                "drag_y2_ticks_to_scale": true,
-                "scroll_to_zoom": true,
-                "x_linked": true,
-                "y1_linked": false,
-                "y2_linked": false
-            },
-            "data_layers": [ {
-                "namespace": {
-                    "gwas_cat":"gwas_cat"
-                },
-                "id": "gwas_cat:id",
-                "type": "scatter",
-                "point_shape": {
-                    "scale_function": "if",
-                    "field": "gwas_cat:study",
-                    "parameters": {
-                        "field_value": "UKBB",
-                        "then": "circle",
-                        "else":"diamond"
-                    }
-                },
-                "color": {
-                    "scale_function": "if",
-                    "field": "gwas_cat:study",
-                    "parameters": {
-                        "field_value": "UKBB",
-                        "then": "#9632b8",
-                        "else":"#d43f3a"
-                    }
-                },
-                fill_opacity: 0.7,
-                "legend": [{
-                    "shape": "circle",
-                    "color": "#9632b8",
-                    "size": 40,
-                    "label": "UKBB",
-                    "class": "lz-data_layer-scatter"
-                }, {
-                    "shape": "diamond",
-                    "color": "#d43f3a",
-                    "size": 40,
-                    "label": "GWAS catalog",
-                    "class": "lz-data_layer-scatter"
-                },],
-
-                fields: ["gwas_cat:id", "gwas_cat:or_beta","gwas_cat:pmid","gwas_cat:variant","gwas_cat:chrom", "gwas_cat:risk_allele", "gwas_cat:risk_frq","gwas_cat:pos", "gwas_cat:ref", "gwas_cat:alt","gwas_cat:trait","gwas_cat:study", "gwas_cat:log_pvalue"],
-
-                id_field: "gwas_cat:variant",
-                behaviors: {
-                    onmouseover: [{action: "set", status:"selected"}],
-                    onmouseout: [{action: "unset", status:"selected"}],
-                    onclick: [{action: "link", href:"https://www.ncbi.nlm.nih.gov/pubmed/{{gwas_cat:pmid}}",target: "_blank"}],
-
-                },
-                tooltip: {
-                    closable: false,
-                    "show": {
-                        "or": ["highlighted", "selected"]
-                    },
-                    "hide": {
-                        "and": ["unhighlighted", "unselected"]
-                    },
-                    html: 'Variant:<strong>{{gwas_cat:variant}}</strong><br>\n\nTrait:<strong>{{gwas_cat:trait}}</strong><br>\n\neffect size:<strong>{{gwas_cat:or_beta}}</strong><br>\n\nLog-pval:<strong>{{gwas_cat:log_pvalue}}</strong><br>\n\nRisk allele:<strong>{{gwas_cat:risk_allele}}</strong><br>\n\nRisk allele frq:<strong>{{gwas_cat:risk_frq}}</strong><br>\n\nStudy:<strong>{{gwas_cat:study}}</strong><br>'
-                },
-
-                "x_axis": {
-                    "field": "gwas_cat:pos",
-                    "axis": 1
-                },
-                "y_axis": {
-                    "axis": 1,
-                    "field": "gwas_cat:log_pvalue",
-                    "floor": 0,
-                    "upper_buffer": 0.1,
-                    "min_extent": [0, 10]
-                },
-                "transition": false,
-            }],
-            "description": null,
-            "origin": {
-                "x": 0,
-                "y": 0
-            },
-            "proportional_origin": {
-                "x": 0,
-                "y": 0
-            },
-            "background_click": "clear_selections",
-        }
-        ,
-        {
-            "id": "genes",
-            "proportional_height": 0.5,
-            "min_width": 400,
-            "y_index": 3,
-            "min_height": 100,
-            "margin": {
-                "top": 0,
-                "right": 50,
-                "bottom": 0,
-                "left": 50
-            },
-            "axes": {
-                "x": {"render": false},
-                "y1": {"render": false},
-                "y2": {"render": false}
-            },
-            "interaction": {
-                "drag_background_to_pan": true,
-                "scroll_to_zoom": true,
-                "x_linked": true,
-                "drag_x_ticks_to_scale": false,
-                "drag_y1_ticks_to_scale": false,
-                "drag_y2_ticks_to_scale": false,
-                "y1_linked": false,
-                "y2_linked": false
-            },
-            "dashboard": {
-                "components": [{
-                    "type": "resize_to_data",
-                    "position": "right",
-                    "color": "blue"
-                }]
-            },
-            "data_layers": [{
-                "namespace": {
-                    "gene": "gene",
-                    // "constraint": "constraint"
-                },
-                "id": "genes",
-                "type": "genes",
-                "fields": ["gene:gene"],
-                "id_field": "gene_id",
-                "highlighted": {
-                    "onmouseover": "on",
-                    "onmouseout": "off"
-                },
-                "selected": {
-                    "onclick": "toggle_exclusive",
-                    "onshiftclick": "toggle"
-                },
-                "transition": false,
-                behaviors: {
-                    onclick: [{action: "toggle", status: "selected", exclusive: true}],
-                    onmouseover: [{action: "set", status: "highlighted"}],
-                    onmouseout: [{action: "unset", status: "highlighted"}],
-                },
-                "tooltip": {
-                    "closable": true,
-                    "show": {
-                        "or": ["highlighted", "selected"]
-                    },
-                    "hide": {
-                        "and": ["unhighlighted", "unselected"]
-                    },
-                    "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div>Gene ID: <strong>{{gene_id}}</strong></div><div>Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
-                    // "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div style=\"float: left;\">Gene ID: <strong>{{gene_id}}</strong></div><div style=\"float: right;\">Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table><tr><th>Constraint</th><th>Expected variants</th><th>Observed variants</th><th>Const. Metric</th></tr><tr><td>Synonymous</td><td>{{exp_syn}}</td><td>{{n_syn}}</td><td>z = {{syn_z}}</td></tr><tr><td>Missense</td><td>{{exp_mis}}</td><td>{{n_mis}}</td><td>z = {{mis_z}}</td></tr><tr><td>LoF</td><td>{{exp_lof}}</td><td>{{n_lof}}</td><td>pLI = {{pLI}}</td></tr></table><table width=\"100%\"><tr><td><button onclick=\"LocusZoom.getToolTipPlot(this).panel_ids_by_y_index.forEach(function(panel){ if(panel == 'genes'){ return; } var filters = (panel.indexOf('intervals') != -1 ? [['intervals:start','>=','{{start}}'],['intervals:end','<=','{{end}}']] : [['position','>','{{start}}'],['position','<','{{end}}']]); LocusZoom.getToolTipPlot(this).panels[panel].undimElementsByFilters(filters, true); }.bind(this)); LocusZoom.getToolTipPanel(this).data_layers.genes.unselectAllElements();\">Identify data in region</button></td><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
-                },
-                "label_font_size": 12,
-                "label_exon_spacing": 3,
-                "exon_height": 8,
-                "bounding_box_padding": 5,
-                "track_vertical_spacing": 5,
-                "hover_element": "bounding_box",
-                "x_axis": {
-                    "axis": 1
-                },
-                "y_axis": {
-                    "axis": 1
-                },
-
-            }
-          ],
-            "title": null,
-            "description": null,
-            "origin": {
-                "x": 0,
-                "y": 225
-            },
-            "proportional_origin": {
-                "x": 0,
-                "y": 0.5
-            },
-            "background_click": "clear_selections",
-            "legend": null
-        }
-
-
-      ]
-    }
-
-    var clinvar_panel = {
-        "id": "clinvar",
-        "title": { "text":"", "x":55, "y":35, "style":{ "font-size":6} },
-        "y_index": 2,
-        "min_width": 400,
-        "min_height": 45,
-        "proportional_height": 0.05,
-        "margin": {
-            "top": 0,
-            "right": 50,
-            "bottom": 0,
-            "left": 50
-        },
-        "axes": {
-            "x": {
-                "label_function": "chromosome",
-                "label_offset": 32,
-                "tick_format": "region",
-                "extent": "state",
-                "render": false,
-                "label": "Chromosome {{chr}} (Mb)"
-            },
-            "y1": {
-                "label": "Clinvar",
-                "label_offset": 28,
-                "render": true,
-                "ticks": [],
-                "label_function": null
-            }
-        },
-        "legend": {
-            "orientation": "vertical",
-            "origin": {
-                "x": 55,
-                "y": 40
-            },
-            "hidden": true,
-            "width": 91.66200256347656,
-            "height": 138,
-            "padding": 5,
-            "label_size": 12
-        },
-        "interaction": {
-            "drag_background_to_pan": true,
-            "drag_x_ticks_to_scale": true,
-            "drag_y1_ticks_to_scale": true,
-            "drag_y2_ticks_to_scale": true,
-            "scroll_to_zoom": true,
-            "x_linked": true,
-            "y1_linked": false,
-            "y2_linked": false
-        },
-        "data_layers": [ {
-            "namespace": {
-                "clinvar":"clinvar"
-            },
-            "id": "clinvar:var",
-            "type": "scatter",
-            "point_shape": "diamond",
-            "point_size": {
-                "scale_function": "if",
-                "field": "ld:isrefvar",
-                "parameters": {
-                    "field_value": 1,
-                    "then": 80,
-                    "else": 40
-                }
-            },
-
-            "color": "#FF0000" ,
-            fill_opacity: 0.7,
-
-            fields: ["clinvar:id","clinvar:trait","clinvar:clinical_sig","clinvar:varName","clinvar:chr",
-                    "clinvar:ref","clinvar:alt","clinvar:start","clinvar:stop","clinvar:y"],
-            id_field: "id",
-            behaviors: {
-                onmouseover: [{action: "set", status:"selected"}],
-                onmouseout: [{action: "unset", status:"selected"}],
-                onclick: [{action: "link", href:"https://www.ncbi.nlm.nih.gov/clinvar/variation/{{id}}",target: "_blank"}],
-
-            },
-            tooltip: {
-                closable: false,
-                "show": {
-                    "or": ["highlighted", "selected"]
-                },
-                "hide": {
-                    "and": ["unhighlighted", "unselected"]
-                },
-                html: "<h4><strong><i>{{clinvar:trait}}</i></strong></h4><div>variant: <strong>{{varName}}</strong></div><div>Significance: <strong>{{clinical_sig}}</strong></div>"
-            },
-
-            "x_axis": {
-                "field": "clinvar:start",
-                "axis": 1
-            },
-            "y_axis": {
-                "axis": 1,
-                "field": "clinvar:y",
-                "floor": 0,
-                "upper_buffer": 0.1,
-                "min_extent": [0, 10]
-            },
-            "transition": false,
-        }],
-        "description": null,
-        "origin": {
-            "x": 0,
-            "y": 0
-        },
-        "proportional_origin": {
-            "x": 0,
-            "y": 0
-        },
-        "background_click": "clear_selections",
-    }
-
+        
     window.debug.data_sources = data_sources;
-    window.debug.layout = layout;
-    window.debug.assoc_data_layer = layout.panels[0].data_layers[2];
+    //window.debug.layout = layout;
+    //window.debug.assoc_data_layer = layout.panels[0].data_layers[2];
 
-    layout.panels.push(clinvar_panel)
+    window.show_conditional = function(index) {
+	var params = data_sources.sources.conditional.params
+	params.dataIndex = index
+	var panel = window.plot.panels.conditional
+	panel.setTitle('conditioned on ' + params.allData[index].conditioned_on)
+	panel.data_layers.associationpvalues.data = data_sources.sources.conditional.parseArraysToObjects(params.allData[index].data, params.fields, params.outnames, params.trans)
+	panel.data_layers.associationpvalues.render()
+	$('#cond_options label').each((i, tag) => {
+	    if (i === index) {
+		tag.classList.add('active')
+	    } else {
+		tag.classList.remove('active')
+	    }
+	});
+	update_mouseover('conditional')
+	$('#cond_options label')[index].classList.add('active')
+    }
 
+    window.show_finemapping = function(method) {
+ 	var params = data_sources.sources.finemapping.params
+	params.dataIndex = params.allData.reduce((acc, cur, i) => cur.type == method ? i : acc, -1)
+	var panel = window.plot.panels.finemapping
+	panel.setTitle(method + ' credible sets')
+	panel.data_layers.associationpvalues.data = data_sources.sources.finemapping.parseArraysToObjects(params.allData[params.dataIndex].data, params.fields, params.outnames, params.trans)
+	panel.data_layers.associationpvalues.render()
+	$('#finemapping_options label').each((i, tag) => {
+	    if (i === params.dataIndex) {
+		tag.classList.add('active')
+	    } else {
+		tag.classList.remove('active')
+	    }
+	});
+	update_mouseover('finemapping')
+	$('#finemapping_options label')[params.dataIndex].classList.add('active')
+    }
+
+    window.update_mouseover = function(key) {
+	var params = data_sources.sources[key].params
+	params.lookup = {}
+	var dots = d3.selectAll("[id='lz-1." + key + ".associationpvalues.data_layer'] path")
+	dots.each((d, i) => {
+	    params.lookup[d[key + ':id']] = i
+	});
+	var scatters_in = scatters.filter(key2 => key2 != key && window.plot.panels[key2])
+	dots.on('mouseover', (d, i) => {
+	    scatters_in.forEach(key2 => {
+		var idx = data_sources.sources[key2].params.lookup &&
+		    data_sources.sources[key2].params.lookup[d[key + ':id']]
+		if (idx !== undefined) {
+		    d3.selectAll("[id='lz-1." + key2 + ".associationpvalues.data_layer'] path").filter((d, j) => j == idx).classed('lz-highlight', true)
+		}
+	    })
+	})
+	dots.on('mouseout', (d, i) => {
+	    scatters_in.forEach(key2 => {
+		d3.selectAll("[id='lz-1." + key2 + ".associationpvalues.data_layer'] path").classed('lz-highlight', false)
+	    })
+	})
+    }
+    
     $(function() {
-        // Populate the div with a LocusZoom plot using the default layout
-        window.plot = LocusZoom.populate("#lz-1", data_sources, layout);
-        var gene_panel = window.plot.panels.genes
 
-        window.plot.panels.genes.on("data_rendered", function(){
-            // gene panel takes extra space. After data is rendered scale the height to data
-            this.scaleHeightToData()
-            gene_panel.scaleHeightToData()
-        });
+        // Populate the div with a LocusZoom plot using the default layout
+        window.plot = LocusZoom.populate("#lz-1", data_sources, window.region_layout);
+	window.plot.addPanel(window.panel_layouts.association)
+	window.plot.addPanel(window.panel_layouts.clinvar)
+	window.plot.addPanel(window.panel_layouts.gwas_cat)
+	window.plot.addPanel(window.panel_layouts.genes)
+	window.cond_fm_regions.forEach(region => {
+	    if (region.type == 'susie' || region.type == 'finemap') {
+		if (!window.plot.panels['finemapping']) {
+		    window.plot.addPanel(window.panel_layouts['finemapping'])
+		}
+	    } else {
+		window.plot.addPanel(window.panel_layouts[region.type])
+	    }
+	})
+
+	window.plot.panels['clinvar'].on('data_rendered', function() {
+	    update_mouseover('clinvar')
+	})
+	
+	scatters.filter(key => window.plot.panels[key]).forEach(key => {
+	    window.plot.panels[key].on("data_rendered", function() {
+		console.log(key + ' rendered')
+		update_mouseover(key)
+		if (key == 'conditional') {
+		    var params = data_sources.sources[key].params
+		    this.setTitle('conditioned on ' + params.allData[params.dataIndex].conditioned_on)
+		}
+		if (key == 'finemapping') {
+		    var params = data_sources.sources[key].params
+		    this.setTitle(params.allData[params.dataIndex].type + ' credible sets')
+		}
+		this.setDimensions(this.layout.width, 200);
+		this.parent.setDimensions();
+		this.parent.panel_ids_by_y_index.forEach(function(id) {
+		    if (id == 'clinvar') {// || id == 'genes') {
+			this.parent.panels[id].layout.proportional_height = 0.02
+		    } else if (id != 'genes') {
+			this.parent.panels[id].layout.proportional_height = 0.1
+		    }
+		}.bind(this));
+		// after all have been rendered, scale gene panel to height
+		// have not found another way to keep panels heights somewhat ok
+		// this now assumes that other panels have been rendered before the last assoc/cond/finemap panel
+		this.rendered = true
+		var nRendered = scatters.reduce((acc, cur) => acc + (window.plot.panels[cur] && window.plot.panels[cur].rendered === true ? 1 : 0), 0)
+		if (nRendered == scatters.length) {
+		    console.log('scaling gene panel')
+		    window.plot.panels.genes.scaleHeightToData()
+		}
+		this.parent.positionPanels();
+	    })
+	})
+
+	if (window.cond_fm_regions && window.cond_fm_regions.length > 0) {
+	    var summary_html = window.cond_fm_regions.map(region =>
+							  region.type == 'finemap' ?
+							  '<span>' + region.n_signals + ' ' + region.type + ' signals (prob. ' + region.n_signals_prob.toFixed(3) + ')</span><br/>' :
+							  '<span>' + region.n_signals + ' ' + region.type + ' signals</span><br/>'
+							 ).join('') + '<span>Conditional analysis results are approximations from summary stats.</span><br/>'
+	    $('#region_summary').html(summary_html)
+	    if (window.cond_fm_regions.filter(region => region.type == 'conditional')[0].n_signals > 1) {
+		var opt_html = window.cond_fm_regions.filter(region => region.type == 'conditional')[0].paths.map((path, i) => 
+	          '<label onClick="show_conditional(' + i + ')" data-cond-i="' + i + '" class="btn btn-primary' + (i === 0 ? ' active' : '') + '"><span>' + (i+1) + '</span></label>'
+                ).join('\n')
+		$('#cond_options').html('<p>Show conditioned on ' + opt_html + ' variants<span></p>')
+	    }
+	    if (window.cond_fm_regions.filter(region => region.type == 'susie' || region.type == 'finemap').length > 1) {
+		var opt_html = window.cond_fm_regions.filter(region => region.type == 'susie' || region.type == 'finemap').map((region, i) => 
+	          '<label onClick="show_finemapping(\'' + region.type + '\')' + '" class="btn btn-primary' + (i === 0 ? ' active' : '') + '"><span>' + region.type + '</span></label>'
+                ).join('\n')
+		$('#finemapping_options').html('<p>Show fine-mapping from ' + opt_html + '<span></p>')
+	    }
+	}
     });
+
 })();
