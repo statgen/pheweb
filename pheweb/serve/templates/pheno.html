@@ -206,16 +206,18 @@
 </script>
 
 <script type="text/template" id="info-tooltip-template">
-  <table>
+  <div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
     <%= Object.keys(v.annotation)
     .filter(function(key) {
       return key.indexOf('INFO_') === 0
-    }).map(function(key) {
-      return '<tr><td style=\'text-align: right; padding-right: 10px;\'>' + v.annotation[key].toPrecision(3) + '</td>' +
-        '<td nowrap style=\'text-align: left;\'>' + key.replace(/info_|_r1/g, '') + '</td></tr>'
+	}).map(function(key) {
+	var val = v.annotation[key].toFixed(3)
+	var color = val < window.vis_conf.info_tooltip_threshold ? '#FF8C00' : '#ffffff'
+      return '<div style=\'color: ' + color + '\'><span style=\'text-align: left; float: left; padding-right: 10px;\'>' + val + '</span>' +
+        '<span style=\'text-align: left; float: left;\'>' + key.replace(/INFO_|\.calls|_Drem|_R[1-9]/g, '') + '</span></div>'
     }).join('')
     %>
-  </table>
+  </div>
 </script>
 
 <script type="text/template" id="enrichment-tooltip-template">
