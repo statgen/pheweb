@@ -17,7 +17,7 @@ database_conf = (
         }
     }, {
         "lof": {
-            "ElasticLofDao": { "host":"35.240.29.13","port":9200, "gene_index":"finngen_r2_lof" }
+            "ElasticLofDao": { "host":"35.240.29.13","port":9200, "gene_index":"finngen_r3_lof" }
         }
     }, {
         "externalresultmatrix": {
@@ -31,8 +31,14 @@ database_conf = (
         "tsv": {
             "TSVDao": {"coding":"/mnt/r3_1/tsv/coding_web.txt"}
         }
+    }, {
+        "finemapping" : {
+            "FineMappingMySQLDao": { "authentication_file": "/mnt/r3_1/mysql.conf", "base_paths": {"conditional": "/mnt/r3_1/finemapping/conditional", "susie": "/mnt/r3_1/finemapping/susie/snp", "finemap": "/mnt/r3_1/finemapping/finemap/cred"} }
+        }
     }
 )
 
 n_query_threads=4
 report_conf = {"func_var_assoc_threshold":0.0001, "gene_top_assoc_threshold":0.0001}
+
+locuszoom_conf = {"p_threshold": 0.05, "prob_threshold": 0.0001}
