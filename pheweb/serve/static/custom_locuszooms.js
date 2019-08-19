@@ -76,6 +76,13 @@ LocusZoom.Data.ClinvarDataSource.prototype.fetchRequest = function(state, chain,
 
 LocusZoom.Data.ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
 
+    if (resp == '') {
+        // locuszoom does not show even axis titles if there are no data visible.
+        // make a mock element with id-1 which is set to invisible in the layout
+        var dat = fields.reduce(  function(acc, curr, i) { acc[curr]=-1; return acc }, {} )
+        return {header: chain.header, body:[dat] };
+    }
+    
     var data = JSON.parse(resp)
     
     if( data.noresults != null) {

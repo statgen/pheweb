@@ -205,6 +205,8 @@ class ServerJeeves(object):
     def add_annotations(self, chr, start, end, datalist):
         if chr == 'X':
             chr = 23
+        if start == 0:
+            start = 1
         annotations = self.annotation_dao.get_variant_annotations_range(chr, start, end)
         annot_hash = { anno.varid: anno.get_annotations() for anno in annotations }
         gnomad = self.gnomad_dao.get_variant_annotations_range(chr, start, end)
