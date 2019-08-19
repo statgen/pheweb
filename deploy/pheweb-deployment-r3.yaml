@@ -7,7 +7,7 @@ metadata:
     tier: frontend
 spec:
   serviceName: pheweb-front
-  replicas: 1
+  replicas: 4
   template:
     metadata:
       labels:
