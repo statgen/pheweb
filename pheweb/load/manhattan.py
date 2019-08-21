@@ -98,7 +98,7 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
             unbinned_variant_pq.add(variant, variant['pval'])
             if len(unbinned_variant_pq) > conf.manhattan_num_unbinned:
                 old = unbinned_variant_pq.pop()
-                    if old['pval'] < conf.manhattan_unbin_anyway_pval:
+                if old['pval'] < conf.manhattan_unbin_anyway_pval:
                     unbinned_variant_pq.add(old, old['pval'])
                 else:
                     bin_variant(old)

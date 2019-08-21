@@ -9,6 +9,8 @@ task annotation {
             echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
             mv ${phenofile} pheweb/generated-by-pheweb/parsed/ && \
             cd pheweb && \
+            if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi && \
+            sed -i 's/#chrom/chrom/' generated-by-pheweb/parsed/* && \
             pheweb phenolist glob generated-by-pheweb/parsed/* && \
             pheweb phenolist extract-phenocode-from-filepath --simple && \
             pheweb sites && \
@@ -80,9 +82,9 @@ task pheno {
     runtime {
         docker: "${docker}"
     	cpu: 1
-    	memory: "3 GB"
+    	memory: "3.75 GB"
         disks: "local-disk 20 SSD"
-        preemptible: 2
+        preemptible: 1
     }
 }
 
@@ -113,7 +115,6 @@ task matrix {
             pheweb phenolist glob generated-by-pheweb/pheno_gz/* && \
             pheweb phenolist extract-phenocode-from-filepath --simple
 
-        echo -n > pheno_config.txt
         for file in generated-by-pheweb/pheno_gz/*; do
             pheno=`basename ${dollar}file | sed 's/.gz//g' | sed 's/.pheweb//g'`
             printf "${dollar}pheno\t${dollar}pheno\t0\t0\t${dollar}file\n" >> pheno_config.txt
