@@ -138,7 +138,10 @@ def variant_page(query):
         variantdat = jeeves.get_single_variant_data(v)
         if variantdat is None:
             die("Sorry, I couldn't find the variant {}".format(query))
-        regions = jeeves.get_finemapped_regions(v)
+        if finemapping_dao is not None:
+            regions = finemapping_dao.get_regions(variant)
+        else:
+            regions = []
         return render_template('variant.html',
                                variant=variantdat[0],
                                results=variantdat[1],
@@ -261,8 +264,11 @@ def region_page(phenocode, region):
         die("Sorry, I couldn't find the phewas code {!r}".format(phenocode))
     chr_se = region.split(':')
     chrom = chr_se[0]
-    start_end = jeeves.get_max_finemapped_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
-    cond_fm_regions = finemapping_dao.get_regions_for_pheno('all', phenocode, chrom, start_end['start'], start_end['end'])
+    if finemapping_dao is not None:
+        start_end = jeeves.get_max_finemapped_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
+        cond_fm_regions = finemapping_dao.get_regions_for_pheno('all', phenocode, chrom, start_end['start'], start_end['end'])
+    else:
+        cond_fm_regions = []
     pheno['phenocode'] = phenocode
     return render_template('region.html',
                            pheno=pheno,

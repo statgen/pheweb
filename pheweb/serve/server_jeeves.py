@@ -257,37 +257,53 @@ class ServerJeeves(object):
             p_threshold = self.conf.locuszoom_conf['p_threshold']
         regions = self.finemapping_dao.get_regions_for_pheno('conditional', phenocode, chr, start, end)
         ret = []
+        t = time.time()
+        min_start = 1e30
+        max_end = -1
         for region in regions:
+            if region['start'] < min_start:
+                min_start = region['start']
+            if region['end'] > max_end:
+                max_end = region['end']
             data = []
-            for path in region['paths']:
+            for i,path in enumerate(region['paths']):
                 try:
-                    data.append(pd.read_csv(path, sep=' '))
+                    with open(path) as f:
+                        d = {'id': [], 'varid': [], 'chr': [], 'position': [], 'end': [], 'ref': [], 'alt': [], 'maf': [], 'pvalue': [], 'beta': [], 'sebeta': []}
+                        h = {h:i for i,h in enumerate(f.readline().strip().split(' '))}
+                        for line in f:
+                            fields = line.strip().split(' ')
+                            if float(fields[h['p.value_cond']]) < p_threshold:
+                                d['id'].append(fields[h['SNPID']].replace('chr', '').replace('_', ':', 1)[::-1].replace('_', '/', 1)[::-1])
+                                d['varid'].append(fields[h['rsid']].replace('chr', '').replace('_', ':'))
+                                d['chr'].append(fields[h['CHR']].replace('chr', ''))
+                                d['position'].append(int(fields[h['POS']]))
+                                d['end'].append(int(fields[h['POS']]))
+                                d['ref'].append(fields[h['Allele1']])
+                                d['alt'].append(fields[h['Allele2']])
+                                d['maf'].append(float(fields[h['AF_Allele2']]))
+                                d['pvalue'].append(float(fields[h['p.value_cond']]))
+                                d['beta'].append(round(float(fields[h['BETA_cond']]), 3))
+                                d['sebeta'].append(round(float(fields[h['SE_cond']]), 3))
+                        ret.append({'type': 'conditional', 'data': d, 'conditioned_on': region['conditioned_on'][i], 'lastpage': None})
+                    # data.append(pd.read_csv(path, sep=' '))
                 except FileNotFoundError:
                     print('file ' + path + ' not found')
-            ## TODO parse files to this format up front
-            for i,d in enumerate(data):
-                d.rename(columns={'SNPID': 'id', 'rsid': 'varid', 'CHR': 'chr', 'POS': 'position', 'Allele1': 'ref', 'Allele2': 'alt', 'AF_Allele2': 'maf', 'p.value_cond': 'pvalue', 'BETA_cond': 'beta', 'SE_cond': 'sebeta'}, inplace=True)
-                d['end'] = d['position']
-                d['chr'] = d['chr'].str.replace('chr', '')
-                d['id'] = d['id'].str.replace('chr', '')
-                d['id'] = d['id'].str.replace('_', ':', n=1)
-                d['id'] = d['id'].apply(lambda x: x[::-1]).str.replace('_', '/', n=1).apply(lambda x: x[::-1])
-                d['varid'] = d['varid'].str.replace('chr', '')
-                d['varid'] = d['varid'].str.replace('_', ':')
-                d = d[d.pvalue < p_threshold]
-                data[i] = d[['id', 'varid', 'chr', 'position', 'end', 'ref', 'alt', 'maf', 'pvalue', 'beta', 'sebeta']]
-                data[i] = data[i].dropna()
-                data[i].beta = data[i].beta.round(3)
-                data[i].sebeta = data[i].sebeta.round(3)
-                ret.append({'type': 'conditional', 'data': data[i].reset_index().to_dict(orient='list'), 'conditioned_on': region['conditioned_on'][i], 'lastpage': None})
-            self.add_annotations(chr, region['start'], region['end'], ret)
+        if len(ret) > 0:
+            self.add_annotations(chr, min_start, max_end, ret)
+        print("reading conditional files took {} seconds".format(time.time()-t ) )
         return ret
 
     def get_finemapped_regions_for_pheno(self, phenocode, chr, start, end, prob_threshold=-1):
         regions = self.finemapping_dao.get_regions_for_pheno('finemapping', phenocode, chr, start, end)
-        print(regions)
         ret = []
+        min_start = 1e30
+        max_end = -1
         for region in regions:
+            if region['start'] < min_start:
+                min_start = region['start']
+            if region['end'] > max_end:
+                max_end = region['end']
             if region['type'] == 'susie':
                 data = pd.read_csv(region['path'], sep='\t', compression='gzip')
                 data.rename(columns={'chromosome': 'chr', 'allele1': 'ref', 'allele2': 'alt'}, inplace=True)
@@ -320,7 +336,7 @@ class ServerJeeves(object):
                 ret.append({'type': region['type'], 'data': data, 'lastpage': None})
             else:
                 print('UNSUPPORTED REGION TYPE: ' + region['type'])
-        self.add_annotations(chr, region['start'], region['end'], ret)
+        self.add_annotations(chr, min_start, max_end, ret)
         return ret
 
     @functools.lru_cache(None)

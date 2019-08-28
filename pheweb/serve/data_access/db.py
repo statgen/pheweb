@@ -625,10 +625,12 @@ class TabixResultDao(ResultDB):
         except ValueError:
             print("No variants in the given range. {}:{}-{}".format(chrom, start-1,end) )
             return []
-        #print("WE HAVE {} TABIX FILES OPEN".format(  len(list(self.tabix_files.keys()) )))
+        print("WE HAVE {} TABIX FILES OPEN".format(  len(list(self.tabix_files.keys()) )))
         top = defaultdict( lambda: defaultdict(dict))
 
+        n_vars = 0
         for variant_row in tabix_iter:
+            n_vars = n_vars + 1
             split = variant_row.split('\t')
             for pheno in self.phenos:
                 pval = split[pheno[1]]
@@ -642,7 +644,8 @@ class TabixResultDao(ResultDB):
                     if split[4]!='':  v.add_annotation("rsids",split[4])
                     v.add_annotation('nearest_gene', split[5])
                     top[pheno[0]] = (v,pr)
-                     
+
+        print(str(n_vars) + " variants iterated")
         top = [ PhenoResults(pheno=self.pheno_map[pheno], assoc=dat, variant=v ) for pheno,(v,dat) in top.items()]
         top.sort(key=lambda pheno: pheno.assoc.pval)
 
@@ -1251,7 +1254,7 @@ class DataFactory(object):
         return self.dao_impl["tsv"]
 
     def get_finemapping_dao(self):
-        return self.dao_impl["finemapping"]
+        return self.dao_impl["finemapping"] if "finemapping" in self.dao_impl else None
 
     def get_UKBB_dao(self, singlematrix=False):
         if singlematrix and "externalresultmatrix" in self.dao_impl:
