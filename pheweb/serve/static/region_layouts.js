@@ -575,8 +575,8 @@ window.panel_layouts.finemapping = {
 	    "field": "finemapping:cs",
 	    "parameters": {
 		"breaks": [0, 1.1, 2.1, 3.1, 4.1],
-		"values": ["#66165d", "#d86b33", "#4eab48", "#357ebd", "#B8B8B8"],
-		"null_value": "#B8B8B8"
+		"values": ["#66165d", "#d86b33", "#4eab48", "#357ebd", "#ff0000"],
+		"null_value": "#ff0000"
 	    }
         }, "#B8B8B8"],
         fill_opacity: 0.7,
@@ -606,7 +606,7 @@ window.panel_layouts.finemapping = {
 	    "class": "lz-data_layer-scatter"
         }, {
 	    "shape": "circle",
-	    "color": "#B8B8B8",
+	    "color": "#ff0000",
 	    "size": 40,
 	    "label": "credible set > 4",
 	    "class": "lz-data_layer-scatter"
