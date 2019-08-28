@@ -193,7 +193,7 @@ function variant_id_to_pheweb_format(variant) {
 
 
 $(function () {
-  $("#export").click( function (event) {
+    $("#export").click( function (event) {
     exportTableToCSV.apply(this, [$('#stream_table'),window.gene_symbol + "_top_associations.tsv",window.gene_pheno_export_fields])
   });
 })
@@ -388,7 +388,7 @@ $(function() {
 		data.forEach(function(datum) {
 		    datum.variants = datum.variants.split(',').map(function (variant) {
 			    return variant.replace('chr', '').replace('_', ':').replace(/_/g, '-')
-		    })
+		    }).join(',')
 		    datum.ref_alt_cases = datum.ref_count_cases + '/' + datum.alt_count_cases
 		    datum.ref_alt_ctrls = datum.ref_count_ctrls + '/' + datum.alt_count_ctrls
 		})
