@@ -32,6 +32,7 @@ def run_gunicorn(app, args):
         'workers': args.num_workers,
         'accesslog': args.accesslog,
         'access_log_format': '%(t)s | %(s)s | %(L)ss | %(m)s %(U)s | resp_len:%(B)s | referrer:"%(f)s" | ip:%(h)s | agent:%(a)s',
+        'timeout': 120,
         # docs @ <http://docs.gunicorn.org/en/stable/settings.html#access-log-format>
         'worker_class': 'gevent',
     }
