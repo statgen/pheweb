@@ -269,7 +269,18 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 		variant.gnomad.fin_enrichment = +variant.gnomad['AC_fin'] / +variant.gnomad['AN_fin'] /
 		    ( (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu']) / (+variant.gnomad['AN_nfe_nwe'] + +variant.gnomad['AN_nfe_onf'] + +variant.gnomad['AN_nfe_seu']) )
 	    }
-	    $('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + (window.variant.gnomad.AF_fin && window.variant.gnomad.AF_fin.toExponential(1)) + ', POPMAX ' + window.variant.gnomad.AF_popmax.toExponential(1) + ', FIN enrichment vs. NFEE: ' + window.variant.gnomad.fin_enrichment.toFixed(3) + '</p>')
+	    if (!isNaN(parseFloat(variant.gnomad.fin_enrichment)) && isFinite(variant.gnomad.fin_enrichment)) {
+		variant.gnomad.fin_enrichment = variant.gnomad.fin_enrichment.toFixed(3)
+	    }
+	    var af_fin = window.variant.gnomad.AF_fin
+	    if (af_fin && !isNaN(parseFloat(af_fin)) && isFinite(af_fin)) {
+		af_fin = af_fin.toExponential(1)
+	    }
+	    var af_popmax = window.variant.gnomad.AF_popmax
+	    if (af_popmax && !isNaN(parseFloat(af_popmax)) && isFinite(af_popmax)) {
+		af_popmax = af_popmax.toExponential(1)
+	    }
+	    $('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' + window.variant.gnomad.fin_enrichment + '</p>')
             $('#gnomad p').css('margin-bottom', '0');
 	})
     }
