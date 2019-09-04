@@ -8,7 +8,9 @@ python3 -m pip install pheweb
 
 *(Note: In most cases this is equivalent to `pip3 install pheweb`, but if you have a bad version of `pip3` on your `$PATH`, using `python3 -m pip` will avoid it.)*
 
-If that command fails, then use one of the approaches below.
+If you get the error `Segmentation fault (core dumped)`, try running `python3 -m pip install --no-binary :all: cffi` beforehand.
+
+If that command fails in a different way, then use one of the approaches below.
 
 
 ### Installing on Linux with `sudo`:
