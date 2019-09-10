@@ -12,6 +12,7 @@ const fs = require('fs')
 const path = require('path')
 const winston = require('winston')
 const config = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
+const readline = require('readline')
 const parse_endpoints = require('./parse_endpoints.js')
 
 if (fs.existsSync('pheno-list.log')) fs.unlinkSync('pheno-list.log')
@@ -51,80 +52,91 @@ const categories = fs.readFileSync(config.category, 'utf8').trim().split(/\r?\n|
 
 logger.info(`${phenolist.length} phenotypes, ${Object.keys(annotations).length} phenotypes\' annotations and ${Object.keys(categories).length} categories read`)
 
-// read numbers of cases and controls from data file
-const lines = fs.readFileSync(config.pheno, 'utf8').trim().split(/\r?\n|\r/)
-const fields = lines[0].split(/\t/)
-lines.slice(1).forEach(line => {
-    const split = line.split(/\t/)
-    split.forEach((value, i) => {
-        if (!annotations[fields[i]]) {
-	    var code = fields[i]
-	    var name = ''
-	    if (annotations[code.replace(/_EXMORE$/, '')]) {
-		name = annotations[code.replace(/_EX[A-Z]+/, '')].name + ' (more controls excluded)'
-	    }
-	    if (annotations[code.replace(/_EXALLC$/, '')]) {
-		name = annotations[code.replace(/_EX[A-Z]+/, '')].name + ' (other cancers excluded from controls)'
-	    }
-            annotations[fields[i]] = {
-                code: code,
-                name: name,
-                nCases: 0,
-                nCtrls: 0
-            }
-        }
-	if (value == '0') annotations[fields[i]].nCtrls++
-	if (value == '1') annotations[fields[i]].nCases++
-    })
+var lineN = 0
+var fields = null
+
+rl = readline.createInterface({
+    input: fs.createReadStream(config.pheno)
 })
 
-// give names, categories and n cases/controls to phenotypes in phenolist
-phenolist = phenolist.map(pheno => {
-    const m = pheno.phenocode.match(/([A-Z0-9]+)_(.*)/)
-    if (!m) {
-	logger.info(`No-category phenocode: ${pheno.phenocode}, using 'Other'`)
-	pheno.category = 'Other'
+rl.on('line', line => {
+    if (lineN++ == 0) {
+	fields = line.split(/\t/)
     } else {
-	var cat = categories[m[1]]
-	if (!cat) {
-	    logger.info(`Unexpected 'category': ${m[1]}, using 'Other'`)
+	const split = line.split(/\t/)
+	split.forEach((value, i) => {
+            if (!annotations[fields[i]]) {
+		var code = fields[i]
+		var name = ''
+		if (annotations[code.replace(/_EXMORE$/, '')]) {
+		    name = annotations[code.replace(/_EX[A-Z]+/, '')].name + ' (more controls excluded)'
+		}
+		if (annotations[code.replace(/_EXALLC$/, '')]) {
+		    name = annotations[code.replace(/_EX[A-Z]+/, '')].name + ' (other cancers excluded from controls)'
+		}
+		annotations[fields[i]] = {
+                    code: code,
+                    name: name,
+                    nCases: 0,
+                    nCtrls: 0
+		}
+            }
+	    if (value == '0') annotations[fields[i]].nCtrls++
+	    if (value == '1') annotations[fields[i]].nCases++
+	})
+    }
+})
+
+rl.on('close', () => {
+
+    // give names, categories and n cases/controls to phenotypes in phenolist
+    phenolist = phenolist.map(pheno => {
+	const m = pheno.phenocode.match(/([A-Z0-9]+)_(.*)/)
+	if (!m) {
+	    logger.info(`No-category phenocode: ${pheno.phenocode}, using 'Other'`)
 	    pheno.category = 'Other'
 	} else {
-	    pheno.category = cat.name
+	    var cat = categories[m[1]]
+	    if (!cat) {
+		logger.info(`Unexpected 'category': ${m[1]}, using 'Other'`)
+		pheno.category = 'Other'
+	    } else {
+		pheno.category = cat.name
+	    }
 	}
+	const ann = annotations[pheno.phenocode]
+	if (!ann) {
+	    logger.error(`Phenocode ${pheno.phenocode} in phenolist doesnt appear in annotation file or data file, quitting!`)
+	    console.error(`Phenocode ${pheno.phenocode} in phenolist doesnt appear in annotation file or data file, quitting!`)
+	    process.exit(1)
+	}
+	pheno.phenostring = ann.name
+	pheno.num_cases = ann.nCases
+	pheno.num_controls = ann.nCtrls
+	return pheno
+	
+    })
+
+    phenolist.forEach(pheno => {
+	if (!pheno.phenostring) {
+	    logger.warn(`Check: no name for ${pheno.phenocode}, using phenocode`)
+	    pheno.phenostring = pheno.phenocode
+	}
+	pheno.phenostring = pheno.phenostring.replace(/^"/, '').replace(/"$/, '')
+    })
+
+    // add num gw significant hits and lambdas
+    phenolist.forEach(pheno => {
+	qq = JSON.parse(fs.readFileSync(path.dirname(config.phenolist) + '/generated-by-pheweb/qq/' + pheno.phenocode + '.json', 'utf8'))
+	manhattan = JSON.parse(fs.readFileSync(path.dirname(config.phenolist) + '/generated-by-pheweb/manhattan/' + pheno.phenocode + '.json', 'utf8'))
+	pheno.num_gw_significant = manhattan.unbinned_variants.filter(v => v.peak && v.pval < 5e-8).length
+	pheno.gc_lambda = qq.overall.gc_lambda
+    })
+
+    // add pheno descriptions from html pages
+    if (config.html) {
+	phenolist = parse_endpoints(phenolist, config)
     }
-    const ann = annotations[pheno.phenocode]
-    if (!ann) {
-	logger.error(`Phenocode ${pheno.phenocode} in phenolist doesnt appear in annotation file or data file, quitting!`)
-	console.error(`Phenocode ${pheno.phenocode} in phenolist doesnt appear in annotation file or data file, quitting!`)
-	process.exit(1)
-    }
-    pheno.phenostring = ann.name
-    pheno.num_cases = ann.nCases
-    pheno.num_controls = ann.nCtrls
-    return pheno
-    
+
+    console.log(JSON.stringify(phenolist, null, 4))
 })
-
-phenolist.forEach(pheno => {
-    if (!pheno.phenostring) {
-	logger.warn(`Check: no name for ${pheno.phenocode}, using phenocode`)
-	pheno.phenostring = pheno.phenocode
-    }
-    pheno.phenostring = pheno.phenostring.replace(/^"/, '').replace(/"$/, '')
-})
-
-// add num gw significant hits and lambdas
-phenolist.forEach(pheno => {
-    qq = JSON.parse(fs.readFileSync(path.dirname(config.phenolist) + '/generated-by-pheweb/qq/' + pheno.phenocode + '.json', 'utf8'))
-    manhattan = JSON.parse(fs.readFileSync(path.dirname(config.phenolist) + '/generated-by-pheweb/manhattan/' + pheno.phenocode + '.json', 'utf8'))
-    pheno.num_gw_significant = manhattan.unbinned_variants.filter(v => v.peak && v.pval < 5e-8).length
-    pheno.gc_lambda = qq.overall.gc_lambda
-})
-
-// add pheno descriptions from html pages
-if (config.html) {
-    phenolist = parse_endpoints(phenolist, config)
-}
-
-console.log(JSON.stringify(phenolist, null, 4))
