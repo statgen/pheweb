@@ -139,7 +139,7 @@ def variant_page(query):
         if variantdat is None:
             die("Sorry, I couldn't find the variant {}".format(query))
         if finemapping_dao is not None:
-            regions = finemapping_dao.get_regions(variant)
+            regions = finemapping_dao.get_regions(v)
         else:
             regions = []
         return render_template('variant.html',
