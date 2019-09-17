@@ -7,20 +7,33 @@ metadata:
     tier: frontend
 spec:
   serviceName: pheweb-front
-  replicas: 4
+  selector:
+    matchLabels:
+      app: pheweb
+  replicas: 1
   template:
     metadata:
       labels:
         app: pheweb
         tier: frontend
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - pheweb
+            topologyKey: kubernetes.io/hostname
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:r3_v3_cond.3
+        image: gcr.io/phewas-development/pheweb_meta:0.3
         ports:
         - containerPort: 8080
         volumeMounts:
-        - mountPath: /mnt/r3
+        - mountPath: /mnt/meta
           name: pheweb-pv
   volumeClaimTemplates:
   - metadata:
@@ -30,4 +43,4 @@ spec:
       accessModes: [ ReadWriteOnce ]
       resources:
         requests:
-          storage: 1800Gi
+          storage: 200Gi

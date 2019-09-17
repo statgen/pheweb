@@ -17,4 +17,4 @@ RUN wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/loca
 RUN apt-get install --no-install-recommends texlive --yes
 
 EXPOSE 8080
-CMD cloud_sql_proxy -instances=phewas-development:europe-west1:pheweb=tcp:3306 -credential_file=/mnt/r3/phewas.sql.credentials.json & cd /mnt/r3 && pheweb serve --port 8080
+CMD cloud_sql_proxy -instances=phewas-development:europe-west1:pheweb=tcp:3306 -credential_file=/mnt/pheweb/phewas.sql.credentials.json & cd /mnt/pheweb && pheweb serve --port 8080
