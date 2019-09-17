@@ -84,7 +84,7 @@ task pheno {
     	cpu: 1
     	memory: "3.75 GB"
         disks: "local-disk 20 SSD"
-        preemptible: 0
+        preemptible: 1
     }
 }
 
