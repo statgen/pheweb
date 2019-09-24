@@ -27,16 +27,22 @@ def run(argv):
         print('tries are up-to-date!')
 
     else:
+        # Note: two identical VariantFileReaders are made in order to allow streaming to reduce memory usage.
+        #       a different trie library might allow feeding both tries while reading from a file, but marisa_trie doesn't.
         with VariantFileReader(sites_filepath) as reader:
-            cpras_and_rsids = [('{chrom}-{pos}-{ref}-{alt}'.format(**v), v['rsids'].encode('ascii')) for v in reader]
-        print('done loading.')
-
-        cpra_to_rsids_trie = marisa_trie.BytesTrie(cpras_and_rsids, order=marisa_trie.LABEL_ORDER)
+            cpras_and_rsids = (('{chrom}-{pos}-{ref}-{alt}'.format(**v), v['rsids'].encode('ascii')) for v in reader)
+            cpra_to_rsids_trie = marisa_trie.BytesTrie(cpras_and_rsids, order=marisa_trie.LABEL_ORDER)
         cpra_to_rsids_trie.save(cpra_to_rsids_trie_filepath)
         print('done with cpra->rsids trie at ' + cpra_to_rsids_trie_filepath)
 
-        # TODO: What if several different chrom-pos-ref-alts have the same rsid?  Do we only get the first? Or the last?
-        rsids_and_cpras = ((rsid, cpra.encode('ascii')) for (cpra, rsids) in cpras_and_rsids for rsid in rsids.decode('ascii').split(',') if rsid)
-        rsid_to_cpra_trie = marisa_trie.BytesTrie(rsids_and_cpras, order=marisa_trie.LABEL_ORDER)
+        # Note: if several different chrom-pos-ref-alts have the same rsid, then `trie[rsid]` = `[cpra1, cpra2, ...]`.
+        with VariantFileReader(sites_filepath) as reader:
+            def get_rsids_and_cpras():
+                for v in reader:
+                    if v['rsids']:
+                        cpra = '{chrom}-{pos}-{ref}-{alt}'.format(**v).encode('ascii')
+                        for rsid in v['rsids'].split(','):
+                            yield (rsid, cpra)
+            rsid_to_cpra_trie = marisa_trie.BytesTrie(get_rsids_and_cpras(), order=marisa_trie.LABEL_ORDER)
         rsid_to_cpra_trie.save(rsid_to_cpra_trie_filepath)
         print('done with rsid->cpra trie at ' + rsid_to_cpra_trie_filepath)
