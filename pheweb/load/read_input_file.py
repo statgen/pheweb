@@ -218,7 +218,10 @@ class AssocFileReader:
                 "Their accepted aliases are:\n" +
                 ''.join("- {}: {!r}\n".format(field, possible_fields[field]['aliases'])
                         for field in missing_required_fields) +
-                "Here are all the columns that WERE present: {!r}\n".format(colnames))
+                "Here are all the column names from that file: {!r}\n".format(colnames) +
+                "Here are the fields that successfully mapped to columns of the file:\n" +
+                ''.join("- {}: {} (column #{})\n".format(field, colnames[colidx], colidx) for field,colidx in colidx_for_field.items())
+            )
 
     @staticmethod
     def parse_marker_id(marker_id):
