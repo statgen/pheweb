@@ -225,9 +225,13 @@ hg38 22:18,271,078 N
 $ detect-ref get-base hg19 22 18271078
 hg19 22:18,271,078 G
 
-$ detect-ref a.vcf.gz
+$ detect-ref vcf a.vcf.gz
 hg18[a1:26% a2:24% either:50%] hg19[a1:all a2:0% either:all] hg38[a1:26% a2:23% either:49%] for 53,988 variants
 
+$ zcat a.vcf.gz | grep -v '^#' | cut -f1-2,4-5 | head -3
+chr1       869334  G       A
+chr1       5470084 A       G
+chr1       5489669 C       G
 $ zcat a.vcf.gz | grep -v '^#' | cut -f1-2,4-5 | detect-ref chr-pos-a1-a2
 hg18[a1:26% a2:24% either:50%] hg19[a1:all a2:0% either:all] hg38[a1:26% a2:23% either:49%] for 53,988 variants
 ''')
