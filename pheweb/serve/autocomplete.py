@@ -89,6 +89,7 @@ class Autocompleter(object):
 
             rsids = self._cpra_to_rsids_trie.get(key)
             if rsids is not None:
+                if len(rsids) != 1: print('Warning: query {} matched {} rsids in cpra_to_rsids_trie: {}'.format(query, len(rsids), rsids))
                 yield from f(key, rsids[0])
 
             for cpra, rsids in self._cpra_to_rsids_trie.iteritems(key):
@@ -117,9 +118,10 @@ class Autocompleter(object):
 
             rsids_to_check = [key] + ["{}{}".format(key, i) for i in range(10)]
             for rsid in rsids_to_check:
-                cpra = self._rsid_to_cpra_trie.get(rsid)
-                if cpra is not None:
-                    yield from f(rsid, cpra[0])
+                cpras = self._rsid_to_cpra_trie.get(rsid)
+                if cpras is not None:
+                    for cpra in cpras:
+                        yield from f(rsid, cpra)
 
             for rsid, cpra in self._rsid_to_cpra_trie.iteritems(key):
                 if rsid not in rsids_to_check: # don't repeat rsids we already yeld.
