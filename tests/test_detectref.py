@@ -2,7 +2,7 @@
 def test_detect_ref():
     import pheweb.load.detect_ref, os
     default_builds = pheweb.load.detect_ref.get_default_builds()
-    filepath = os.path.join(os.path.dirname(__file__), 'input_files/', 'assoc-files', 'has-fields-ac-af-maf.txt')
+    filepath = os.path.join(os.path.dirname(__file__), 'input_files/', 'assoc-files', 'has-fields-ac-af-maf.txt') # has only chr10
     variant_iterator = pheweb.load.detect_ref.make_variant_iterator(filepath, num_header_lines=1)
     build_scores = pheweb.load.detect_ref.get_build_scores(variant_iterator)
     for build, score in build_scores.items():
