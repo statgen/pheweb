@@ -45,7 +45,7 @@ def test_new_column_contains_trait2_descriptions(annotated_sample):
         next(f)
         labels = [line.strip().split('\t')[-1] for line in f]
 
-    expected = ['Septicemia', '041.4', 'Ileostomy status', 'Diverticulosis', 'Bacterial enteritis']
+    expected = ['Septicemia', '041.4', 'Bacterial enteritis', 'Bacterial enteritis', 'Ileostomy status', 'Diverticulosis', 'Bacterial enteritis', 'Septicemia', 'Septicemia']
     assert expected == labels, "Labels correspond to trait 2: phenostring if possible, else phenocode"
 
 
@@ -60,4 +60,8 @@ def test_unknown_phenocodes_get_dropped_from_annotated_file(sample_data, annotat
         c1 = raw.readlines()
         c2 = proc.readlines()
 
-    assert (len(c1) - 1) == len(c2), 'Annotated file has one less line, due to omitted phenotype'
+    c1_trait2_column = [line.split('\t')[1] for line in c1 if not line.startswith('Trait1')]
+    assert '031' in c1_trait2_column, 'Input file contains phenocode 031'
+
+    c2_trait2_column = [line.split('\t')[1] for line in c2 if not line.startswith('Trait1')]
+    assert '031' not in c2_trait2_column, 'Annotated file omits phenocode 031 which is missing in pheno-list.json'

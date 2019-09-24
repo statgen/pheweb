@@ -54,18 +54,24 @@ def make_symmetric(in_filepath, out_filepath):
     but it omits the line
         traitB traitA 0.4 0.1 2 1e-3 ldsc
     so this function adds that second line for the symmetric position in the correlation matrix.
+    If the file already has both directions for some or all pairs of traits, that's okay.
     '''
-    # TODO: first check if the file already contains lines going both directions
     expected_colnames = ['Trait1','Trait2','rg','SE','Z','P-value','Method']
+    trait_pairs_seen = set()
     with open(in_filepath) as in_f:
         header = next(in_f)
-        assert header.rstrip().split() == expected_colnames
+        assert header.rstrip().split('\t') == expected_colnames
         correlations = []
         for line in in_f:
-            corr = line.split(maxsplit=2)
-            correlations.append(corr)
-            correlations.append([corr[1], corr[0], corr[2]])
-        correlations.sort()
+            trait1, trait2, rest_of_line = line.split('\t', maxsplit=2)
+            trait_pairs_seen.add((trait1, trait2))
+            correlations.append((trait1, trait2, rest_of_line))
+
+    for trait1, trait2, rest_of_line in correlations:
+        if (trait2, trait1) not in trait_pairs_seen:
+            correlations.append((trait2, trait1, rest_of_line))
+
+    correlations.sort()
 
     with AtomicSaver(out_filepath, text_mode=True, part_file=get_tmp_path(out_filepath), overwrite_part=True) as out_f:
         out_f.write(header)
