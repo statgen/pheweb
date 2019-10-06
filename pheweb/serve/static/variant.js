@@ -310,7 +310,14 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     }
 })();
 
-
+(function() {
+    if (window.variant.annot) {
+	$(function() {
+	    $('#hom').html('<p>Number of alt homozygotes: ' + +(window.variant.annot.AC_Hom)/2 + '<p>')
+            $('#hom p').css('margin-bottom', '0');
+	})
+    }
+})();
 
 // Check Clinvar and render link.
 (function() {

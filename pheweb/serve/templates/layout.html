@@ -2,7 +2,7 @@
 <head>
 <title>{% include 'title.html' %}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex">
+<!-- <meta name="robots" content="noindex"> -->
 
 <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/vnd.microsoft.icon" />
 
@@ -60,7 +60,7 @@
 	    <a href="/">
 	      <img src="{{ url_for('static', filename='images/finngen-blue.svg') }}" style="float: left;" />
 	      <!-- <img src="{{ url_for('static', filename='images/finngen_loop1.gif') }}" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px" /> -->
-	      <span class="logo-header">FREEZE 4 PRELIMINARY</span>
+	      <span class="logo-header">FREEZE 4</span>
 	    </a>
             <!-- <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a> -->
             <div class="navbar-left" id="navbar_form_container">
@@ -77,7 +77,7 @@
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="/random" style="color: #333; font-weight: bold;">Random</a></li>
                 <li><a href="/top_hits" style="color: #333; font-weight: bold;">Top Hits</a></li>
-                <!-- <li><a href="/coding" style="color: #333; font-weight: bold;">Coding Variants</a></li> -->
+                <li><a href="/coding" style="color: #333; font-weight: bold;">Coding Variants</a></li>
                 <li><a href="/static/FINNGEN_ENDPOINTS_DF4_V2.zip" style="color: #333; font-weight: bold;">Download Endpoint Definitions</a></li>
                 <li><a href="/about" style="color: #333; font-weight: bold;">About</a></li>
                 {% if current_user and current_user.is_authenticated %}

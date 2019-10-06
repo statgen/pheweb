@@ -18,12 +18,12 @@ def run(argv):
         print('get info for genes')
         exit(0)
 
-    out_filepath = conf.data_dir +'/'
-    ret_lines(out_filepath)
+    filepath = conf.data_dir +'/'
+    ret_lines(filepath, argv[0] if argv else None)
 
 
 
-def ret_lines(dataPath):
+def ret_lines(dataPath, matrixFile):
     '''
     Produces the json file with the best pvals for each gene
     '''
@@ -31,7 +31,7 @@ def ret_lines(dataPath):
     #dictionary that contains for each chromosome a searchable tree so that each position returns the list of genes that the position belongs to
     treeDict = create_gene_tree()
 
-    reader = line_iterator(dataPath)
+    reader = line_iterator(dataPath, matrixFile)
 
     # gene/index mapping.
     geneList = np.loadtxt(common_filepaths['genes'],dtype = str,usecols = (3,))
@@ -65,14 +65,14 @@ def ret_lines(dataPath):
 
     #ALL THE PRE-PROCESSING HAS BEEN DONE. NOW WE CAN LOOP THROUGH THE VARIANTS
 
-    print('Reading lines...')
+    print('Reading lines from ' + matrixFile if matrixFile is not None else (dataPath + 'generated-by-pheweb/matrix.tsv.gz'))
     currChrom = '1'
     geneChromDict = dd(lambda : dd(lambda : dd(lambda  : np.inf)))
 
     for line in reader:
 
-        #reads the meta data of the variant
-        chrom,pos,ref,alt,rsids,nearest_genes = line[:lenMeta]
+        chrom,pos,ref,alt = line[0:4]
+        rsids = line[4] if lenMeta > 4 else None
 
         # in case of new chromosomes, update results and create new geneChromDict
         if chrom != currChrom:
@@ -116,7 +116,10 @@ def ret_lines(dataPath):
 
                     geneChromDict[gene][pheno]['chrom'] = chrom
                     geneChromDict[gene][pheno]['pos'] = pos
-                    geneChromDict[gene][pheno]['rsids'] = rsids
+                    geneChromDict[gene][pheno]['ref'] = ref
+                    geneChromDict[gene][pheno]['alt'] = alt
+                    if rsids is not None:
+                        geneChromDict[gene][pheno]['rsids'] = rsids
                     geneChromDict[gene][pheno]['phenocode'] = pheno
         except IndexError as e:
             print('unexpected line, n fields: ' + str(len(line)))
@@ -140,7 +143,8 @@ def ret_lines(dataPath):
 
 
     print('Saving results in .json format...')
-    with open(dataPath + 'generated-by-pheweb/best-phenos-by-gene.json','w') as o:
+    outFile = dataPath + 'generated-by-pheweb/best-phenos-by-gene.json' if matrixFile is None else matrixFile + '_best-phenos-by-gene.json'
+    with open(outFile,'w') as o:
         json.dump(resDict,o)
     print('done.')
     return
@@ -281,9 +285,13 @@ def line_map(dataPath):
         line = line.decode()
         yield line[:-1].split('\t')
 
-def line_iterator(dataPath):
+def line_iterator(dataPath, matrixFile):
 
-
-    with gzip.open(dataPath + 'generated-by-pheweb/matrix.tsv.gz','rt' ) as f:
-        for line in f:
-            yield line[:-1].split('\t')
+    if matrixFile is None:
+        with gzip.open(dataPath + 'generated-by-pheweb/matrix.tsv.gz','rt' ) as f:
+            for line in f:
+                yield line[:-1].split('\t')
+    else:
+        with open(matrixFile) as f:
+            for line in f:
+                yield line[:-1].split('\t')

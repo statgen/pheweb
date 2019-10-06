@@ -53,6 +53,7 @@
         <span id="maf-range"></span>
         <span id="gnomad"></span>
         <span id="info-range"></span>
+	<span id="hom"></span>
 {#        {% if variant.annot.AC %}<p>AC: {{ variant.annot.AC }}</p>{% endif %} #}
         <p>View on
           <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chr }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chr }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>
