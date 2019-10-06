@@ -23,9 +23,8 @@ class Home extends React.Component {
 		{label: 'af', key: 'AF'},
 		{label: 'FIN enr', key: 'enrichment_nfsee'},
 		{label: 'INFO', key: 'INFO'},
-		{label: 'n Affy', key: 'n_chip'},
-		{label: 'pval R3', key: 'pval'},
-		{label: 'beta R3', key: 'beta'}
+		{label: 'pval', key: 'pval'},
+		{label: 'beta', key: 'beta'}
 	    ]
         }
         this.loadData = this.loadData.bind(this)
@@ -67,16 +66,16 @@ class Home extends React.Component {
 		<div style={{padding: '0'}}>
 		<h2>Coding variants</h2>
 		<p>
-		This table contains the top association for each coding variant in FinnGen data freeze 3 (1,801 endpoints). The following gnomAD annotation categories are included:
+		This table contains p &lt; 1e-4 associations for each coding variant in FinnGen data freeze 4 (2,264 endpoints). The following gnomAD annotation categories are included:
 	    predicted loss-of-function (pLoF), low-confidence loss-of-function (LC), inframe indel, missense, start lost, stop lost.
-		Variants have been filtered to FIN AF in gnomAD &gt; 0.0005 and imputation INFO score &gt; 0.6. There are 72,336 variants in the table.
+		Variants have been filtered to imputation INFO score &gt; 0.6.
 		</p>
 		<p style={{paddingBottom: '10px'}}>
-		Finnish enrichment (FIN enr) is calculated as FIN AF / NFSEE AF in gnomAD, where NFSEE is non-Finnish-non-Swedish-non-Estonian European. The n Affy column indicates in how many FinnGen1 array batches the variant has been called (there are 20 batches in R3). p-values &lt; 5e-8 and Finnish enrichment &gt; 5 are in green. As the consequence and category columns are based on different genome builds (38 and 37 respectively), they differ for some variants. Hover over the column names to see their explanations, click on the column names to sort by them, and type values in the boxes below the column names to filter. Click on a variant, phenotype, or gene to get to its PheWeb page.
+		Finnish enrichment (FIN enr) is calculated as FIN AF / NFSEE AF in gnomAD, where NFSEE is non-Finnish-non-Swedish-non-Estonian European. p-values &lt; 5e-8 and Finnish enrichment &gt; 5 are in green. As the consequence and category columns are based on different genome builds (38 and 37 respectively), they differ for some variants. Hover over the column names to see their explanations, click on the column names to sort by them, and type values in the boxes below the column names to filter. Click on a variant, phenotype, or gene to get to its page.
 		</p>
 		{!this.state.data ?
 		 <div>.. . loading . ..</div> :
-		 <div style={{width: 'fit-content'}}>
+		 <div style={{width: '100%'}}>
 		 <ReactTable
 		 ref={(r) => this.reactTable = r}
 		 data={this.state.data}
