@@ -1,11 +1,10 @@
 {
-    "pheweb_import.summaryfiles":"gs://r4_data/pheno/R4_DEMO_ETC_ENDPOINTS_summary_files.txt",
+    "pheweb_import.summaryfiles":"gs://r4_data_west1/pheno/R4_DONT_ANALYZE_PHENOS_URI.txt",
     "pheweb_import.docker": "gcr.io/finngen-refinery-dev/pheweb-import:r4_3",
 
-    "pheweb_import.annotation.phenofile": "gs://r4_data/saige/summary_stats_for_pheweb/I9_CHD.pheweb.gz",
+    "pheweb_import.annotation.phenofile": "gs://r4_data_west1/saige/summary_stats/pheweb/I9_CVD.pheweb.gz",
 
-    "pheweb_import.matrix.n_phenobatch": 1,
     "pheweb_import.matrix.cpu": 64,
     "pheweb_import.matrix.mem": 3,
-    "pheweb_import.matrix.disk": 1000
+    "pheweb_import.matrix.disk": 7000
 }

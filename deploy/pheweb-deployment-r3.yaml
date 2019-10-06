@@ -7,6 +7,9 @@ metadata:
     tier: frontend
 spec:
   serviceName: pheweb-front
+  selector:
+    matchLabels:
+      app: pheweb
   replicas: 4
   template:
     metadata:
@@ -14,6 +17,16 @@ spec:
         app: pheweb
         tier: frontend
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - pheweb
+            topologyKey: kubernetes.io/hostname
       containers:
       - name: pheweb-container
         image: gcr.io/phewas-development/pheweb:r3_v3_cond.3
