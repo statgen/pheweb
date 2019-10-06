@@ -24,7 +24,6 @@ const naSorter = (a, b) => {
     return a - b
 }
 
-
 const regionTableCols = [{
     Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
     accessor: 'phenocode',
@@ -48,30 +47,22 @@ const mainTableCols = [{
     Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>pheno</span>),
     accessor: 'phenoname',
     filterMethod: (filter, row) => {
-	if (row._index == 1) {
-	    console.log(filter)
-	}
-	if (!filter.value) return true
 	var v = filter.value.split('|')
-	if (v[0] == 'top') {
-	    return !!row._original.is_top && row[filter.id].toLowerCase().indexOf(v[1]) > -1
-	} else {
-	    return row[filter.id].toLowerCase().indexOf(v[1]) > -1
-	}
-	return true
+	return (v[0] == 'top' ? !!row._original.is_top : true) && row[filter.id].toLowerCase().indexOf(v[1]) > -1
     },
-    Filter: ({ filter, onChange }) =>
-	<div>
+    Filter: ({ filter, onChange }) => {
+	return (<div>
 	<select
-    onChange={event => { return onChange(event.target.value + filter && filter.value && filter.value.split('|')[1] || '')}}
-    style={{ width: "100%" }}
-    value={filter ? filter.value : "all|"}
+	onChange={event => { return onChange(event.target.value + (filter && filter.value.split('|')[1] || ''))}}
+	style={{ width: "100%" }}
+	value={filter ? filter.value.split('|')[0] + '|' : "all|"}
         >
 	<option value="all|">all phenos</option>
 	<option value="top|">only top pheno per variant</option>
         </select><br/>
-	<input style={{float: 'left'}} type="text" onChange={event => onChange(filter && filter.value && (filter.value.split('|')[0] + '|' + event.target.value))}/>
-	</div>
+	<input style={{float: 'left'}} type="text" onChange={event => onChange((filter && filter.value.split('|')[0] || 'all')  + '|' + event.target.value)}/>
+	 </div>)
+    }
     ,
     Cell: props => (<a href={"/pheno/" + props.original.pheno} target="_blank">{props.value == 'NA' ? props.original.pheno : props.value}</a>),
     width: Math.min(330, 330/maxTableWidth*window.innerWidth),
@@ -211,15 +202,15 @@ const mainTableCols = [{
     Cell: props => props.value
 }, {
     Header: () => (<span title="links to other sites" style={{textDecoration: 'underline'}}>links</span>),
-    accessor: 'variant',
+    accessor: 'grch37_locus',
     width: Math.min(110, 110/maxTableWidth*window.innerWidth),
     filterMethod: null,
     Cell: props => {
-	const grch37 = props.original.grch37_locus.replace(/:/g, '-') + '-' + props.value.split(':').slice(2).join('-')
+	const grch37 = props.value.replace(/:/g, '-') + '-' + props.original.variant.split(':').slice(2).join('-')
 	return (
 	    <div>
-	    <span style={{paddingRight: '5px'}}><a href={"http://r3.finngen.fi/variant/" + props.value.replace(/:/g, '-')} target="_blank">R3</a></span>
-	    <span style={{paddingRight: '5px'}}><a href={"http://r2.finngen.fi/variant/" + props.value.replace(/:/g, '-')} target="_blank">R2</a></span>
+	    <span style={{paddingRight: '5px'}}><a href={"http://r3.finngen.fi/variant/" + props.original.variant.replace(/:/g, '-')} target="_blank">R3</a></span>
+	    <span style={{paddingRight: '5px'}}><a href={"http://r2.finngen.fi/variant/" + props.original.variant.replace(/:/g, '-')} target="_blank">R2</a></span>
 	    <span><a href={"https://gnomad.broadinstitute.org/variant/" + grch37} target="_blank">gnomAD</a></span>
 	    </div>
 	)
