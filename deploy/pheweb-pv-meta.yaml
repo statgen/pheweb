@@ -11,7 +11,7 @@ spec:
   storageClassName: ""
   gcePersistentDisk:
     fsType: ext4
-    pdName: finngen-meta-results-1-0
+    pdName: finngen-meta-results-0
   mountOptions:
     - noatime
     - nodiratime
