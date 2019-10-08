@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pheweb-pv-0
+spec:
+  capacity:
+      storage: 2100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  gcePersistentDisk:
+    fsType: ext4
+    pdName: finngen-r4-results-full-0
+  mountOptions:
+    - noatime
+    - nodiratime
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pheweb-pv-pheweb-front-0
+spec:
+  storageClassName: ""
+  volumeName: pheweb-pv-0
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2100Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pheweb-pv-1
+spec:
+  capacity:
+      storage: 2100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  gcePersistentDisk:
+    fsType: ext4
+    pdName: finngen-r4-results-full-1
+  mountOptions:
+    - noatime
+    - nodiratime
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pheweb-pv-pheweb-front-1
+spec:
+  storageClassName: ""
+  volumeName: pheweb-pv-1
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2100Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pheweb-pv-2
+spec:
+  capacity:
+      storage: 2100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  gcePersistentDisk:
+    fsType: ext4
+    pdName: finngen-r4-results-full-2
+  mountOptions:
+    - noatime
+    - nodiratime
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pheweb-pv-pheweb-front-2
+spec:
+  storageClassName: ""
+  volumeName: pheweb-pv-2
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2100Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pheweb-pv-3
+spec:
+  capacity:
+      storage: 2100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  gcePersistentDisk:
+    fsType: ext4
+    pdName: finngen-r4-results-full-3
+  mountOptions:
+    - noatime
+    - nodiratime
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pheweb-pv-pheweb-front-3
+spec:
+  storageClassName: ""
+  volumeName: pheweb-pv-3
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2100Gi
