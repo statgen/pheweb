@@ -24,6 +24,20 @@ const naSorter = (a, b) => {
     return a - b
 }
 
+const naSmallSorter = (a, b) => {
+    a=+a; b=+b
+    if (isNaN(a)) {
+	if (isNaN(b)) {
+	    return 0
+	}
+	return -1
+    }
+    if (isNaN(b)) {
+	return 1
+    }
+    return a - b
+}
+
 const regionTableCols = [{
     Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
     accessor: 'phenocode',
@@ -89,7 +103,7 @@ const mainTableCols = [{
     Cell: props => (
 	    <a href={"/variant/" + props.value.replace(/:/g, '-')} target="_blank">{props.value}</a>
     ),
-    width: Math.min(170, 170/maxTableWidth*window.innerWidth),
+    width: Math.min(150, 150/maxTableWidth*window.innerWidth),
 }, {
     Header: () => (<span title="rsid" style={{textDecoration: 'underline'}}>rsid</span>),
     accessor: 'rsid',
@@ -127,7 +141,7 @@ const mainTableCols = [{
 	<option value="stop_lost">stop lost</option>
         </select>,
     Cell: props => props.value.replace(/_/g, ' ').replace(' variant', ''),
-    width: Math.min(170, 170/maxTableWidth*window.innerWidth),
+    width: Math.min(140, 140/maxTableWidth*window.innerWidth),
 }, {
     Header: () => (<span title="gene symbol" style={{textDecoration: 'underline'}}>gene</span>),
     accessor: 'gene_most_severe',
@@ -179,6 +193,16 @@ const mainTableCols = [{
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
     Cell: props => {
         return isNaN(+props.value) ? '' :
+        props.value.toPrecision(3)
+    }
+}, {
+    Header: () => (<span title="posterior inclusion probability in FinnGen R4" style={{textDecoration: 'underline'}}>PIP R4</span>),
+    accessor: 'pip',
+    width: Math.min(70, 70/maxTableWidth*window.innerWidth),
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
+    sortMethod: naSmallSorter,
+    Cell: props => {
+        return isNaN(+props.value) ? 'NA' :
         props.value.toPrecision(3)
     }
 }, {
