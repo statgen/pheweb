@@ -351,7 +351,8 @@ def _ensure_conf():
                                                     conf.parse.per_pheno_fields.items()))
     assert len(conf.parse.fields) == len(conf.parse.per_variant_fields) + len(conf.parse.per_assoc_fields) + len(conf.parse.per_pheno_fields) # no overlaps!
 
-    if 'aliases' in conf:
+    if 'aliases' in conf: conf['field_aliases'] = conf['aliases']
+    if 'field_aliases' in conf:
         for alias, field in conf.aliases.items():
             conf.parse.fields[field].setdefault('aliases', []).append(alias)
 
