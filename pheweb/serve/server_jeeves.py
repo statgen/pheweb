@@ -245,7 +245,7 @@ class ServerJeeves(object):
         return datalist
         
     def coding(self):
-        return self.tsv_dao.get_coding()
+        return self.tsv_dao.get_coding() if self.tsv_dao is not None else None
 
     def get_region_summary(self, phenocode, chr, start, end):
         return self.finemapping_dao.get_summary(phenocode, chr, start, end)

@@ -719,65 +719,66 @@ function effectDirection(d) {
     return 0;
 }
 
-$(function () {
-    $.getJSON("/api/manhattan/pheno/" + window.pheno)
-        .done(function(data) {
-            $('#manhattanloader').css('display', 'none')
-            $('#variant_table').css('display', 'block')
-            window.debug.manhattan = data;
-            window.data = data;
-            // add consequence so that stream table can be filtered on it
-            data.unbinned_variants.filter(function(variant) { return !!variant.annotation } ).forEach(function(variant) {
-                variant.annotation.most_severe = variant.annotation.most_severe ? variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '') : ''
-                variant.info = variant.annotation.INFO
-            })
-            data.unbinned_variants.forEach(function(variant) {
-		if (!variant.gnomad) {
-		    variant.fin_enrichment = 'No data in Gnomad'
-		} else if (variant.gnomad.AF_fin === 0) {
-		    variant.fin_enrichment = 'No FIN in Gnomad'
-		} else if (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu'] == 0) {
-		    variant.fin_enrichment = 'No NFEE in Gnomad'
-		} else {
-		    variant.fin_enrichment = +variant.gnomad['AC_fin'] / +variant.gnomad['AN_fin'] /
-			( (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu']) / (+variant.gnomad['AN_nfe_nwe'] + +variant.gnomad['AN_nfe_onf'] + +variant.gnomad['AN_nfe_seu']) )
-		}
-            })
-            create_gwas_plot(data.variant_bins, data.unbinned_variants);
-            populate_streamtable(data.unbinned_variants);
-            //TODO filtering with streamtable
-            //create_consequence_dropdown(data.unbinned_variants);
-            mod_streamtable();
-            $(".selectpicker").on("changed.bs.select",
-                                  function(e, clickedIndex, newValue, oldValue) {
-                                      var st = $('#stream_table').data('st');
-                                      st.search($('#search')[0].value);
-                                  }
-                                 );
-        if (data.unbinned_variants[data.unbinned_variants.length - 1].pScaled >= window.vis_conf.loglog_threshold) {
-            $("#loglog-note").append("<span>p-values smaller than 1e-" + window.vis_conf.loglog_threshold + " are shown on a log-log scale</span>");
-            $("#loglog-note").css("display", "inline-block");
-        }
-        })
-        .fail(function(error) {
-            $('#manhattanloader').css("display", "none")
-        $("#manhattan-note").append("<span>Could not fetch results. Please try again!</span>");
-        $("#manhattan-note").css("display", "inline-block");
-    })
-    $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
-        .done(function(data) {
-            window.debug.qq = data;
-            var text = '';
-            _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
-                text += '<tr><td>GC lambda ' + d[0] + '</td><td style="padding-left: 10px;">' + d[1].toFixed(3) + '</td></tr>';
-            });
-            $('.gc-control').append('<table><tbody>' + text + '</tbody></table>');
-            if (data.by_maf)
-                create_qq_plot(data.by_maf);
-            else
-                create_qq_plot([{maf_range:[0,1],qq:data.overall.qq, count:data.overall.count}]);
-        })
-    $("#export").click( function (event) {
-        exportTableToCSV.apply(this, [$('#stream_table'), window.pheno + "_variant_assoc.tsv", window.var_export_fields])
-    });
-})
+// $(function () {
+//     return
+//     $.getJSON("/api/manhattan/pheno/" + window.pheno)
+//         .done(function(data) {
+//             $('#manhattanloader').css('display', 'none')
+//             $('#variant_table').css('display', 'block')
+//             window.debug.manhattan = data;
+//             window.data = data;
+//             // add consequence so that stream table can be filtered on it
+//             data.unbinned_variants.filter(function(variant) { return !!variant.annotation } ).forEach(function(variant) {
+//                 variant.annotation.most_severe = variant.annotation.most_severe ? variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '') : ''
+//                 variant.info = variant.annotation.INFO
+//             })
+//             data.unbinned_variants.forEach(function(variant) {
+// 		if (!variant.gnomad) {
+// 		    variant.fin_enrichment = 'No data in Gnomad'
+// 		} else if (variant.gnomad.AF_fin === 0) {
+// 		    variant.fin_enrichment = 'No FIN in Gnomad'
+// 		} else if (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu'] == 0) {
+// 		    variant.fin_enrichment = 'No NFEE in Gnomad'
+// 		} else {
+// 		    variant.fin_enrichment = +variant.gnomad['AC_fin'] / +variant.gnomad['AN_fin'] /
+// 			( (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu']) / (+variant.gnomad['AN_nfe_nwe'] + +variant.gnomad['AN_nfe_onf'] + +variant.gnomad['AN_nfe_seu']) )
+// 		}
+//             })
+//             create_gwas_plot(data.variant_bins, data.unbinned_variants);
+//             populate_streamtable(data.unbinned_variants);
+//             //TODO filtering with streamtable
+//             //create_consequence_dropdown(data.unbinned_variants);
+//             mod_streamtable();
+//             $(".selectpicker").on("changed.bs.select",
+//                                   function(e, clickedIndex, newValue, oldValue) {
+//                                       var st = $('#stream_table').data('st');
+//                                       st.search($('#search')[0].value);
+//                                   }
+//                                  );
+//         if (data.unbinned_variants[data.unbinned_variants.length - 1].pScaled >= window.vis_conf.loglog_threshold) {
+//             $("#loglog-note").append("<span>p-values smaller than 1e-" + window.vis_conf.loglog_threshold + " are shown on a log-log scale</span>");
+//             $("#loglog-note").css("display", "inline-block");
+//         }
+//         })
+//         .fail(function(error) {
+//             $('#manhattanloader').css("display", "none")
+//         $("#manhattan-note").append("<span>Could not fetch results. Please try again!</span>");
+//         $("#manhattan-note").css("display", "inline-block");
+//     })
+//     $.getJSON("/api/qq/pheno/" + window.pheno + ".json")
+//         .done(function(data) {
+//             window.debug.qq = data;
+//             var text = '';
+//             _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
+//                 text += '<tr><td>GC lambda ' + d[0] + '</td><td style="padding-left: 10px;">' + d[1].toFixed(3) + '</td></tr>';
+//             });
+//             $('.gc-control').append('<table><tbody>' + text + '</tbody></table>');
+//             if (data.by_maf)
+//                 create_qq_plot(data.by_maf);
+//             else
+//                 create_qq_plot([{maf_range:[0,1],qq:data.overall.qq, count:data.overall.count}]);
+//         })
+//     $("#export").click( function (event) {
+//         exportTableToCSV.apply(this, [$('#stream_table'), window.pheno + "_variant_assoc.tsv", window.var_export_fields])
+//     });
+// })

@@ -38,6 +38,99 @@ const naSmallSorter = (a, b) => {
     return a - b
 }
 
+const phenoTableCols = {'FINNGEN_UKB':[{
+    Header: () => (<span title="chromosome" style={{textDecoration: 'underline'}}>chr</span>),
+    accessor: 'chrom',
+    Cell: props => <span style={{float: 'right', paddingRight: '10px'}}>{props.value}</span>,
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    minWidth: 40
+}, {
+    Header: () => (<span title="position in build 38" style={{textDecoration: 'underline'}}>pos</span>),
+    accessor: 'pos',
+    Cell: props => props.value,
+    filterMethod: (filter, row) => {
+	//const s = row[filter.id].split('-')
+	const s = filter.value.split('-').map(val => +val)
+	if (s.length == 1) return row[filter.id] == filter.value
+	else if (s.length == 2) return row[filter.id] > s[0] && row[filter.id] < s[1]
+    },
+    minWidth: 100,
+}, {
+    Header: () => (<span title="reference allele" style={{textDecoration: 'underline'}}>ref</span>),
+    accessor: 'ref',
+    Cell: props => props.value,
+    minWidth: 50
+}, {
+    Header: () => (<span title="alternative allele" style={{textDecoration: 'underline'}}>alt</span>),
+    accessor: 'alt',
+    Cell: props => props.value,
+    minWidth: 50
+}, {
+    Header: () => (<span title="rsid(s)" style={{textDecoration: 'underline'}}>rsid</span>),
+    accessor: 'rsids',
+    Cell: props => props.value,
+    minWidth: 110
+}, {
+    Header: () => (<span title="nearest gene(s)" style={{textDecoration: 'underline'}}>nearest gene</span>),
+    accessor: 'nearest_genes',
+    Cell: props => props.value,
+    minWidth: 110
+}, {
+    Header: () => (<span title="VEP consequence" style={{textDecoration: 'underline'}}>consequence</span>),
+    accessor: 'most_severe',
+    Cell: props => props.value,
+    minWidth: 180
+}, {
+    Header: () => (<span title="INFO score in FinnGen" style={{textDecoration: 'underline'}}>INFO FG</span>),
+    accessor: 'info',
+    filterMethod: (filter, row) => row[filter.id] >= +filter.value,
+    Cell: props => isNaN(+props.value) ? 'NA' : props.value.toPrecision(3),
+    minWidth: 80
+}, {
+    Header: () => (<span title="AF enrichment FIN / Non-Finnish-non-Estonian European" style={{textDecoration: 'underline'}}>FIN enrichment</span>),
+    accessor: 'fin_enrichment',
+    filterMethod: (filter, row) => row[filter.id] > +filter.value,
+    Cell: props => {
+	return isNaN(+props.value) ? '' :
+	    <div style={{color: +props.value > 5 ? 'rgb(25,128,5,1)'
+ 			 : 'inherit'}}>
+	    {props.value == 1e6 ? 'inf' : props.value == -1 ? 'NA' : Number(props.value).toPrecision(3)}
+	</div>
+    },
+    minWidth: 120
+}, {
+    Header: () => (<span title="allele frequency in UKBB" style={{textDecoration: 'underline'}}>af UKBB</span>),
+    accessor: 'maf',
+    filterMethod: (filter, row) => row[filter.id] < +filter.value,
+    Cell: props => props.value.toPrecision(3),
+    minWidth: 110
+}, {
+    Header: () => (<span title="allele frequency in FinnGen cases" style={{textDecoration: 'underline'}}>af cases FG</span>),
+    accessor: 'maf_cases',
+    filterMethod: (filter, row) => row[filter.id] < +filter.value,
+    Cell: props => props.value.toPrecision(3),
+    minWidth: 110
+}, {
+    Header: () => (<span title="allele frequency in FinnGen controls" style={{textDecoration: 'underline'}}>af controls FG</span>),
+    accessor: 'maf_controls',
+    filterMethod: (filter, row) => row[filter.id] < +filter.value,
+    Cell: props => props.value.toPrecision(3),
+    minWidth: 110
+}, {
+    Header: () => (<span title="odds ratio" style={{textDecoration: 'underline'}}>OR</span>),
+    accessor: 'beta',
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+    Cell: props => Math.exp(props.value).toFixed(2),
+    minWidth: 80
+}, {
+    Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
+    accessor: 'pval',
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+    Cell: props => props.value.toExponential(1),
+    minWidth: 80
+}]}
+
+
 const regionTableCols = [{
     Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
     accessor: 'phenocode',
@@ -268,4 +361,4 @@ const mainTableCols = [{
 }]
 
 
-export { mainTableCols, regionTableCols }
+export { mainTableCols, regionTableCols, phenoTableCols }

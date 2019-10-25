@@ -53,10 +53,25 @@ if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
 if 'SENTRY_DSN' in conf:
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
 app.config['PHEWEB_VERSION'] = pheweb_version
+app.config['browser'] = conf['browser']
+app.config['title'] = conf['title']
+if 'endpoint_def' in conf:
+    app.config['endpoint_def'] = conf['endpoint_def']
+app.config['lof'] = 'lof' in [list(c.keys())[0] for c in conf.database_conf]
+app.config['coding'] = False
+app.config['ukbb'] = False
+for c in conf.database_conf:
+    if 'tsv' in c and 'CodingDao' in c['tsv']:
+        app.config['coding'] = True
+    if 'externalresult' in c and 'ExternalFileResultDao' in c['externalresult']:
+        app.config['ukbb'] = True
+        
 app.json_encoder = FGJSONEncoder
+print('3')
 
 if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
+print('2')
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
@@ -69,6 +84,7 @@ finemapping_dao = dbs_fact.get_finemapping_dao()
 ukbb_dao = dbs_fact.get_UKBB_dao()
 ukbb_matrixdao =dbs_fact.get_UKBB_dao(True)
 threadpool = ThreadPoolExecutor(max_workers=4)
+print('4')
 
 jeeves = ServerJeeves( conf )
 
@@ -94,6 +110,18 @@ def check_auth(func):
             assert current_user.email.lower().endswith('@finngen.fi'), current_user
         return func(*args, **kwargs)
     return decorated_view
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def homepage(path):
+    return render_template('index_react.html',
+                           tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
+                           vis_conf=conf.vis_conf)
+
+@app.route('/api/pheno/<phenocode>')
+@check_auth
+def pheno(phenocode):
+    return jsonify(phenos[phenocode])
 
 @app.route('/api/phenos')
 @check_auth
@@ -178,6 +206,8 @@ def api_gene_functional_variants(gene):
 @app.route('/api/lof')
 @check_auth
 def api_lof():
+    if lof_dao is None:
+        die("LoF not available")
     lofs = lof_dao.get_all_lofs(conf.lof_threshold)
     for i in range( len(lofs)-1,-1,-1):
         ## lof data is retrieved externally so it can be out of sync with phenotypes that we want to show
@@ -238,7 +268,7 @@ def random_page():
         die("Sorry, it looks like no hits in this pheweb reached the significance threshold.")
     return redirect(url)
 
-@app.route('/pheno/<phenocode>')
+@app.route('/pheno_/<phenocode>')
 @check_auth
 def pheno_page(phenocode):
     try:
@@ -437,10 +467,6 @@ def drugs(genename):
     except Exception as exc:
         die("Could not fetch drugs for gene {!r}".format(genename), exception=exc)
 
-@app.route('/')
-def homepage():
-    return render_template('index.html')
-
 @app.route('/about')
 def about_page():
     return render_template('about.html')
@@ -499,7 +525,9 @@ if 'login' in conf:
     @lm.user_loader
     def load_user(id):
         if 'whitelist' in conf.login.keys():
-            if id.endswith('@finngen.fi') or id in conf.login['whitelist']:
+            if 'whitelist_only' in conf.login.keys() and conf.login['whitelist_only'] == True and id in conf.login['whitelist']:
+                return User(email=id)
+            elif id.endswith('@finngen.fi') or id in conf.login['whitelist']:
                 return User(email=id)
         else:
             if id.endswith('@finngen.fi'):
@@ -549,6 +577,9 @@ if 'login' in conf:
             return redirect(url_for('homepage'))
 
         if 'whitelist' in conf.login.keys():
+            if 'whitelist_only' in conf.login.keys() and conf.login['whitelist_only'] == True and email.lower() not in conf.login['whitelist']:
+                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
+                return redirect(url_for('homepage'))
             if not email.lower().endswith('@finngen.fi') and email.lower() not in conf.login['whitelist']:
                 flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
                 return redirect(url_for('homepage'))

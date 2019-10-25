@@ -2,7 +2,11 @@
 
 {% block contained %}
 
+{% if config.coding %}
 <div id="reactEntry" style="height: 100%;"></div>
 <script type="text/javascript" src="{{ url_for('static', filename='bundle.js') }}"></script>
+{% else %}
+<div><p>Coding variants table not currently available.</p></div>
+{% endif %}
 
 {% endblock %}

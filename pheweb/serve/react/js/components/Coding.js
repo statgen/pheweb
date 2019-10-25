@@ -4,7 +4,7 @@ import ReactTable from 'react-table'
 import { CSVLink } from 'react-csv'
 import { mainTableCols } from '../tables.js'
 
-class Home extends React.Component {
+class Coding extends React.Component {
 
     constructor(props) {
         super(props)
@@ -111,4 +111,4 @@ class Home extends React.Component {
     }
 }
 
-export default Home
+export default Coding

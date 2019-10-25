@@ -1157,7 +1157,7 @@ class ElasticLofDao(LofDB):
                   "gene_data": r["_source"] }
                  for r in result['hits']['hits'] ]
 
-class TSVDao(TSVDB):
+class CodingDao(TSVDB):
      def __init__(self, coding):
           df = pd.read_csv(coding, encoding='utf8', sep='\t').fillna('NA')
           top_i = df.groupby('variant')['pval'].idxmin
@@ -1213,6 +1213,7 @@ class FineMappingMySQLDao(FineMappingDB):
                else:
                     raise ValueError('unsupported type "' + type + '"')
                result = cursori.fetchall()
+          result = [res for res in result if res['type'] in self.base_paths]
           for res in result:
                res['path'] = self.base_paths[res['type']] + '/' + res['path']
                if res['type'] == 'conditional':
@@ -1272,7 +1273,7 @@ class DataFactory(object):
         return self.dao_impl["gnomad"]
 
     def get_lof_dao(self):
-        return self.dao_impl["lof"]
+        return self.dao_impl["lof"] if "lof" in self.dao_impl else None
 
     def get_result_dao(self):
         return self.dao_impl["result"]
@@ -1287,7 +1288,7 @@ class DataFactory(object):
         return self.dao_impl["drug"]
 
     def get_tsv_dao(self):
-        return self.dao_impl["tsv"]
+        return self.dao_impl["tsv"] if "tsv" in self.dao_impl else None
 
     def get_finemapping_dao(self):
         return self.dao_impl["finemapping"] if "finemapping" in self.dao_impl else None
