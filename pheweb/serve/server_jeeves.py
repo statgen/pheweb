@@ -207,11 +207,15 @@ class ServerJeeves(object):
             chr = 23
         if start == 0:
             start = 1
+        t = time.time()
+        # TODO tabix fetch takes forever, combine FG and gnomAD annotations and use relevant columns only, or get annotations on the fly for individual variants
         annotations = self.annotation_dao.get_variant_annotations_range(chr, start, end)
         annot_hash = { anno.varid: anno.get_annotations() for anno in annotations }
         gnomad = self.gnomad_dao.get_variant_annotations_range(chr, start, end)
         gnomad_hash = { anno.varid: anno.get_annotations() for anno in gnomad }
+        print("getting annotations for {} bp took {} seconds".format(end-start+1, time.time()-t ) )
         for d in datalist:
+            print('n variants ' + str(len(d['data']['id'])))
             d['data']['varid'] = []
             d['data']['fin_enrichment'] = []
             d['data']['most_severe'] = []
@@ -267,6 +271,7 @@ class ServerJeeves(object):
                 max_end = region['end']
             data = []
             for i,path in enumerate(region['paths']):
+                print(path)
                 try:
                     with open(path) as f:
                         d = {'id': [], 'varid': [], 'chr': [], 'position': [], 'end': [], 'ref': [], 'alt': [], 'maf': [], 'pvalue': [], 'beta': [], 'sebeta': []}
@@ -289,9 +294,11 @@ class ServerJeeves(object):
                     # data.append(pd.read_csv(path, sep=' '))
                 except FileNotFoundError:
                     print('file ' + path + ' not found')
+        print("reading conditional files took {} seconds".format(time.time()-t ) )
+        t = time.time()
         if len(ret) > 0:
             self.add_annotations(chr, min_start, max_end, ret)
-        print("reading conditional files took {} seconds".format(time.time()-t ) )
+            print("adding annotations to {} conditional results took {} seconds".format(len(ret), time.time()-t ) )
         return ret
 
     def get_finemapped_regions_for_pheno(self, phenocode, chr, start, end, prob_threshold=-1):

@@ -76,29 +76,31 @@ const mainTableCols = [{
         </select><br/>
 	<input style={{float: 'left'}} type="text" onChange={event => onChange((filter && filter.value.split('|')[0] || 'all')  + '|' + event.target.value)}/>
 	 </div>)
-    }
-    ,
+    },
     Cell: props => (<a href={"/pheno/" + props.original.pheno} target="_blank">{props.value == 'NA' ? props.original.pheno : props.value}</a>),
     width: Math.min(330, 330/maxTableWidth*window.innerWidth),
 }, {
     Header: () => (<span title="chr:pos:ref:alt build 38" style={{textDecoration: 'underline'}}>variant</span>),
     accessor: 'variant',
     filterMethod: (filter, row) => {
-	if (filter.value == "no HLA/APOE") {
-	    const s = row[filter.id].split(':')
-	    return !(+s[0] == 6 && +s[1] > 23000000 && +s[1] < 38000000) && !(+s[0] == 19 && +s[1] > 43000000 && +s[1] < 46000000)
-	}
-	return true
+	const s = row[filter.id].split(':')
+	var v = filter.value.split('|')
+	v[1] = v[1].replace('chr', '').replace('X', '23').replace(/_|-/g, ':')
+	return (v[0] == 'no HLA/APOE' ? !(+s[0] == 6 && +s[1] > 23000000 && +s[1] < 38000000) && !(+s[0] == 19 && +s[1] > 43000000 && +s[1] < 46000000) : true) && row[filter.id].toLowerCase().indexOf(v[1]) > -1
     },
-    Filter: ({ filter, onChange }) =>
+    Filter: ({ filter, onChange }) => {
+	return (<div>
 	<select
-    onChange={event => onChange(event.target.value)}
-    style={{ width: "100%" }}
-    value={filter ? filter.value : "all variants"}
+	onChange={event => { return onChange(event.target.value + (filter && filter.value.split('|')[1] || ''))}}
+	style={{ width: "100%" }}
+	value={filter ? filter.value.split('|')[0] + '|' : "all variants|"}
         >
-	<option value="all variants">all</option>
-	<option value="no HLA/APOE">no HLA/APOE</option>
-        </select>,
+	<option value="all variants|">all variants</option>
+	<option value="no HLA/APOE|">no HLA/APOE</option>
+        </select><br/>
+		<input style={{float: 'left', width: '140px'}} type="text" onChange={event => onChange((filter && filter.value.split('|')[0] || 'all')  + '|' + event.target.value)}/>
+	 </div>)
+    },
     sortMethod: variantSorter,
     Cell: props => (
 	    <a href={"/variant/" + props.value.replace(/:/g, '-')} target="_blank">{props.value}</a>
@@ -107,7 +109,7 @@ const mainTableCols = [{
 }, {
     Header: () => (<span title="rsid" style={{textDecoration: 'underline'}}>rsid</span>),
     accessor: 'rsid',
-    width: Math.min(120, 120/maxTableWidth*window.innerWidth),
+    width: Math.min(110, 110/maxTableWidth*window.innerWidth),
     Cell: props => (
 	    <a href={"/variant/" + props.original.variant.replace(/:/g, '-')} target="_blank">{props.value}</a>
     )
@@ -141,11 +143,11 @@ const mainTableCols = [{
 	<option value="stop_lost">stop lost</option>
         </select>,
     Cell: props => props.value.replace(/_/g, ' ').replace(' variant', ''),
-    width: Math.min(140, 140/maxTableWidth*window.innerWidth),
+    width: Math.min(120, 120/maxTableWidth*window.innerWidth),
 }, {
     Header: () => (<span title="gene symbol" style={{textDecoration: 'underline'}}>gene</span>),
     accessor: 'gene_most_severe',
-    width: Math.min(120, 120/maxTableWidth*window.innerWidth),
+    width: Math.min(80, 80/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase()),
     Cell: props => (
 	    <a href={"/gene/" + props.value} target="_blank">{props.value}</a>
@@ -175,7 +177,7 @@ const mainTableCols = [{
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     Cell: props => props.value.toPrecision(3)
 }, {
-    Header: () => (<span title="p-value in FinnGen R4" style={{textDecoration: 'underline'}}>pval R4</span>),
+    Header: () => (<span title="p-value in FinnGen R4" style={{textDecoration: 'underline'}}>pval</span>),
     accessor: 'pval',
     width: Math.min(70, 70/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
@@ -187,18 +189,18 @@ const mainTableCols = [{
 	</div>
     }
 }, {
-    Header: () => (<span title="effect size beta in FinnGen R4" style={{textDecoration: 'underline'}}>beta R4</span>),
+    Header: () => (<span title="effect size beta in FinnGen R4" style={{textDecoration: 'underline'}}>beta</span>),
     accessor: 'beta',
-    width: Math.min(70, 70/maxTableWidth*window.innerWidth),
+    width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
     Cell: props => {
         return isNaN(+props.value) ? '' :
         props.value.toPrecision(3)
     }
 }, {
-    Header: () => (<span title="posterior inclusion probability in FinnGen R4" style={{textDecoration: 'underline'}}>PIP R4</span>),
+    Header: () => (<span title="posterior inclusion probability in FinnGen R4" style={{textDecoration: 'underline'}}>PIP</span>),
     accessor: 'pip',
-    width: Math.min(70, 70/maxTableWidth*window.innerWidth),
+    width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
     sortMethod: naSmallSorter,
     Cell: props => {
@@ -206,7 +208,7 @@ const mainTableCols = [{
         props.value.toPrecision(3)
     }
 }, {
-    Header: () => (<span title="recessive p-value in FinnGen R4" style={{textDecoration: 'underline'}}>rec pval</span>),
+    Header: () => (<span title="recessive p-value in FinnGen R4" style={{textDecoration: 'underline'}}>rec p</span>),
     accessor: 'pval_recessive',
     width: Math.min(70, 70/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
@@ -219,7 +221,30 @@ const mainTableCols = [{
 	</div>
     }
 }, {
-    Header: () => (<span title="number of alt homozygotes in FinnGen R4" style={{textDecoration: 'underline'}}>ac hom</span>),
+    Header: () => (<span title="dominant p-value in FinnGen R4" style={{textDecoration: 'underline'}}>dom p</span>),
+    accessor: 'pval_dominant',
+    width: Math.min(70, 70/maxTableWidth*window.innerWidth),
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    sortMethod: naSorter,
+    Cell: props => {
+	return isNaN(+props.value) ? 'NA' :
+	    <div style={{color: +props.original['pval_dominant'] < 5e-8 ? 'rgb(25,128,5,1)'
+ 			 : 'inherit'}}>
+	    {props.value.toExponential(1)}
+	</div>
+    }
+}, {
+    Header: () => (<span title="log10(p_rec/p_dom) in FinnGen R4" style={{textDecoration: 'underline'}}>rec/dom</span>),
+    accessor: 'rec_dom_log_ratio',
+    width: Math.min(70, 70/maxTableWidth*window.innerWidth),
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    sortMethod: naSorter,
+    Cell: props => {
+	return isNaN(+props.value) ? 'NA' :
+	    props.value.toPrecision(3)
+    }
+}, {
+    Header: () => (<span title="allele count of alt homozygotes in FinnGen R4" style={{textDecoration: 'underline'}}>ac hom</span>),
     accessor: 'AC_Hom',
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
@@ -227,7 +252,7 @@ const mainTableCols = [{
 }, {
     Header: () => (<span title="links to other sites" style={{textDecoration: 'underline'}}>links</span>),
     accessor: 'grch37_locus',
-    width: Math.min(110, 110/maxTableWidth*window.innerWidth),
+    width: Math.min(80, 80/maxTableWidth*window.innerWidth),
     filterMethod: null,
     Cell: props => {
 	const grch37 = props.value.replace(/:/g, '-') + '-' + props.original.variant.split(':').slice(2).join('-')
@@ -235,7 +260,7 @@ const mainTableCols = [{
 	    <div>
 	    <span style={{paddingRight: '5px'}}><a href={"http://r3.finngen.fi/variant/" + props.original.variant.replace(/:/g, '-')} target="_blank">R3</a></span>
 	    <span style={{paddingRight: '5px'}}><a href={"http://r2.finngen.fi/variant/" + props.original.variant.replace(/:/g, '-')} target="_blank">R2</a></span>
-	    <span><a href={"https://gnomad.broadinstitute.org/variant/" + grch37} target="_blank">gnomAD</a></span>
+	    <span><a href={"https://gnomad.broadinstitute.org/variant/" + grch37} target="_blank">gn</a></span>
 	    </div>
 	)
     }

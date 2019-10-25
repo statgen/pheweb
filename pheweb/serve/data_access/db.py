@@ -5,6 +5,7 @@ from collections import defaultdict
 from elasticsearch import Elasticsearch
 import pysam
 import re
+import math
 import threading
 import pandas as pd
 import pymysql
@@ -1063,6 +1064,36 @@ class TabixAnnotationDao(AnnotationDB):
         #print('TABIX get_gene_functional_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
         return annotations
 
+class LofMySQLDao(LofDB):
+     def __init__(self, authentication_file):
+          self.authentication_file = authentication_file
+          auth_module = imp.load_source('mysql_auth', self.authentication_file)
+          self.user = getattr(auth_module, 'mysql')['user']
+          self.password = getattr(auth_module, 'mysql')['password']
+          self.host = getattr(auth_module, 'mysql')['host']
+          self.db = getattr(auth_module, 'mysql')['db']
+          self.release = getattr(auth_module, 'mysql')['release']
+     def get_connection(self):
+          return pymysql.connect(host=self.host, user=self.user, password=self.password, db=self.db)
+     def get_all_lofs(self, p_threshold):
+          conn = self.get_connection()
+          with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+               sql = "SELECT * FROM lof WHERE rel=%s AND p_value < %s"
+               cursori.execute(sql, [self.release, p_threshold])
+               result = [{'gene_data': data} for data in cursori.fetchall()]
+               cursori.close()
+          conn.close()
+          return result
+     def get_lofs(self, gene):
+          conn = self.get_connection()
+          with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+               sql = "SELECT * FROM lof WHERE rel=%s AND gene=%s"
+               cursori.execute(sql, [self.release, gene])
+               result = [{'gene_data': data} for data in cursori.fetchall()]
+               cursori.close()
+          conn.close()
+          return result
+
 class ElasticLofDao(LofDB):
 
     def __init__(self, host, port, gene_index):
@@ -1189,7 +1220,8 @@ class FineMappingMySQLDao(FineMappingDB):
                     res['conditioned_on'] = []
                     vars = res['variants'].split(',')
                     for i in range(0,len(vars)):
-                         res['paths'].append(res['path'] + '-'.join(vars[0:i+1]) + '.conditional')
+                         #R3 res['paths'].append(res['path'] + '-'.join(vars[0:i+1]) + '.conditional')
+                         res['paths'].append(res['path'] + vars[0] + '_' + str((i+1)) + '.conditional')
                          res['conditioned_on'].append(','.join(vars[0:i+1]))
           conn.close()
           if get_most_probable_finemap_n:
