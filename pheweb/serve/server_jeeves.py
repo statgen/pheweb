@@ -247,15 +247,6 @@ class ServerJeeves(object):
     def coding(self):
         return self.tsv_dao.get_coding()
 
-    def get_region_summary(self, phenocode, chr, start, end):
-        return self.finemapping_dao.get_summary(phenocode, chr, start, end)
-    
-    def get_finemapped_regions(self, variant: Variant):
-        return self.finemapping_dao.get_regions(variant)
-
-    def get_max_finemapped_region(self, phenocode, chr, start, end):
-        return self.finemapping_dao.get_max_region(phenocode, chr, start, end)
-    
     def get_conditional_regions_for_pheno(self, phenocode, chr, start, end, p_threshold=None):
         if p_threshold is None:
             p_threshold = self.conf.locuszoom_conf['p_threshold']
