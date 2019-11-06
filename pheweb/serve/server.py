@@ -111,6 +111,10 @@ def check_auth(func):
         return func(*args, **kwargs)
     return decorated_view
 
+@app.route('/index')
+def homepage_():
+    return render_template('index.html')
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def homepage(path):
@@ -118,9 +122,16 @@ def homepage(path):
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
                            vis_conf=conf.vis_conf)
 
+@app.route('/api/autoreport/<phenocode>')
+@check_auth
+def autoreport(phenocode):
+    return jsonify(jeeves.get_autoreport(phenocode))
+
 @app.route('/api/pheno/<phenocode>')
 @check_auth
 def pheno(phenocode):
+    if phenocode not in phenos:
+        abort(404)
     return jsonify(phenos[phenocode])
 
 @app.route('/api/phenos')

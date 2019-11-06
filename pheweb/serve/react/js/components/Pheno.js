@@ -2,62 +2,75 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import ReactTable from 'react-table'
 import { CSVLink } from 'react-csv'
-import { phenoTableCols } from '../tables.js'
+import { phenoTableCols, csTableCols } from '../tables.js'
+import { create_gwas_plot, create_qq_plot } from '../pheno.js'
 
 class Pheno extends React.Component {
 
     constructor(props) {
+
 	if (!phenoTableCols[window.browser]) {
 	    alert('no table columns for ' + window.browser)
 	}
         super(props)
         this.state = {
-	    columns: phenoTableCols[window.browser]
+	    columns: phenoTableCols[window.browser],
+	    csColumns: csTableCols[window.browser]
 	}
+	this.resp_json = this.resp_json.bind(this)
+	this.error_state = this.error_state.bind(this)
+	this.error_alert = this.error_alert.bind(this)
 	this.getPheno = this.getPheno.bind(this)
-	this.getPheno(props.match.params.pheno)
+	this.getCredibleSets = this.getCredibleSets.bind(this)
 	this.getManhattan = this.getManhattan.bind(this)
-	this.getManhattan(props.match.params.pheno)
 	this.getQQ = this.getQQ.bind(this)
-	this.getQQ(props.match.params.pheno)
+	this.getPheno(props.match.params.pheno)
     }
 
-    //TODO create module
-    componentDidMount() {
-	const script = document.createElement('script')
-	script.src = '/static/pheno.js'
-	script.async = false
-	document.body.appendChild(script)
+    resp_json(response) {
+        if (!response.ok) throw response
+	return response.json()
+    }
+
+    error_state(error) {
+	this.setState({
+	    error: error
+	})
     }
     
-    componentWillReceiveProps(nextProps) {
-	console.log('new props:')
-	console.log(nextProps)
+    error_alert(error) {
+	alert(`${phenocode}: ${error.statusText || error}`)
     }
-
+    
     getPheno(phenocode) {
 	fetch('/api/pheno/' + phenocode)
-	    .then(response => {
-		if (!response.ok) throw response
-		return response.json()
-	    })
+	    .then(this.resp_json)
 	    .then(response => {
 		this.setState({
 		    pheno: response
 		})
+		this.getCredibleSets(phenocode)
+		this.getManhattan(phenocode)
+		this.getQQ(phenocode)
 	    })
-	    .catch(error => {
-		alert(`${phenocode}: ${error.statusText || error}`)
+	    .catch(this.error_state)
+    }
+
+    getCredibleSets(phenocode) {
+	fetch('/api/autoreport/' + phenocode)
+	    .then(this.resp_json)
+	    .then(response => {
+		this.setState({
+		    credibleSets: response
+		})
 	    })
+	    .catch(this.error_alert)
     }
 
     getManhattan(phenocode) {
 	fetch(`/api/manhattan/pheno/${phenocode}`)
-            .then(response => {
-		if (!response.ok) throw response
-		return response.json()
-	    }).then(data => {
-		console.log(data)
+            .then(this.resp_json)
+	    .then(data => {
 		//TODO all variants must have annotation
 		data.unbinned_variants.filter(variant => !!variant.annotation).forEach(variant => {
                     variant.most_severe = variant.annotation.most_severe ? variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '') : ''
@@ -65,6 +78,7 @@ class Pheno extends React.Component {
 		})
 		//TODO server side
 		data.unbinned_variants.forEach(variant => {
+		    variant.phenocode = phenocode
 		    if (!variant.gnomad) {
 			variant.fin_enrichment = -1
 		    } else if (variant.gnomad.AF_fin === 0) {
@@ -77,49 +91,66 @@ class Pheno extends React.Component {
 		    }
 		})
 		this.setState({data: data})
-		create_gwas_plot(data.variant_bins, data.unbinned_variants);
+		create_gwas_plot(phenocode, data.variant_bins, data.unbinned_variants);
             })
-	    .catch(error => {
-		alert(`${phenocode}: ${error.statusText || error}`)
-	    })
-		}
+	    .catch(this.error_alert)
+    }
 
     getQQ(phenocode) {
 	fetch(`/api/qq/pheno/${phenocode}.json`)
-            .then(response => {
-                if (!response.ok) throw response
-		return response.json()
-	    }).then(data => {
+            .then(this.resp_json)
+	    .then(data => {
 		this.setState({qq: data})
 		if (data.by_maf)
                     create_qq_plot(data.by_maf)
 		else
                     create_qq_plot([{maf_range:[0,1],qq:data.overall.qq, count:data.overall.count}])
             })
-	    .catch(error => {
-		alert(`${phenocode}: ${error.statusText || error}`)
-	    })
-		}
-    
-    shouldComponentUpdate(nextProps, nextState) {
-	return true
+	    .catch(this.error_alert)
     }
-    
+
     render() {
+
+	if (this.state.error) {
+	    return <div>{this.state.error.statusText || this.state.error}</div>
+	}
 
 	if (!this.state.pheno) {
 	    return <div>loading</div>
 	}
 
 	const pheno = this.state.pheno
-	const n_cc = pheno.cohorts ? pheno.cohorts.map(cohort => <tr key={cohort.cohort}><td>{cohort.cohort}</td><td><b>{cohort.num_cases}</b> cases</td><td><b>{cohort.num_controls}</b> controls</td></tr>) : <tr>{pheno.num_cases}</tr>
+	const n_cc = pheno.cohorts ?
+	      <tbody>{pheno.cohorts.map(cohort => <tr key={cohort.cohort}><td>{cohort.cohort}</td><td><b>{cohort.num_cases}</b> cases</td><td><b>{cohort.num_controls}</b> controls</td></tr>)}</tbody> :
+	      pheno.num_cases ?
+	      <tbody><tr><td><b>{pheno.num_cases}</b> cases</td></tr><tr><td><b>{pheno.num_controls}</b> controls</td></tr></tbody> :
+	      pheno.num_samples ?
+	      <tbody><tr><td><b>{pheno.num_samples}</b> samples</td></tr></tbody> :
+ 	      null
+	    const cs_table = this.state.credibleSets ?
+	      <div>
+	    <ReactTable
+	    ref={(r) => this.reactTable = r}
+	data={this.state.credibleSets}
+	filterable
+	defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())}
+	columns={this.state.csColumns}
+	defaultSorted={[{
+	    id: "lead_pval",
+	    desc: false
+	}]}
+	defaultPageSize={10}
+	className="-striped -highlight"
+	    />
+	    </div> :
+	<div>loading</div>
 	const var_table = this.state.data ?
 	      <div>
 	    <ReactTable
 	    ref={(r) => this.reactTable = r}
-	data={this.state.data.unbinned_variants}//.filter(v => !!v.peak)}
+	data={this.state.data.unbinned_variants.filter(v => !!v.peak)}
 	filterable
-	defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase())}
+	defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())}
 	columns={this.state.columns}
 	defaultSorted={[{
 	    id: "pval",
@@ -147,9 +178,7 @@ class Pheno extends React.Component {
 		<p style={{marginBottom: '10px'}}><a style={{fontSize:'1.25rem', padding: '.25rem .5rem', backgroundColor: '#2779bd', color: '#fff', borderRadius: '.25rem', fontWeight: 700, boxShadow: '0 0 5px rgba(0,0,0,.5)'}}
 	    href="https://risteys.finngen.fi/phenocode/{{ this.state.pheno.phenocode.replace('_EXALLC', '').replace('_EXMORE', '') }}" target="_blank">RISTEYS</a></p>
 		<table className='column_spacing'>
-		<tbody>
 		{n_cc}
-	    </tbody>
 		</table>
 		<div id='manhattan_plot_container' />
 		<h3>Lead variants</h3>

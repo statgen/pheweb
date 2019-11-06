@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import ReactTable from 'react-table'
 import { CSVLink } from 'react-csv'
-import { mainTableCols } from '../tables.js'
+import { codingTableCols } from '../tables.js'
 
 class Coding extends React.Component {
 
@@ -10,7 +10,7 @@ class Coding extends React.Component {
         super(props)
         this.state = {
 	    data: null,
-	    columns: mainTableCols,
+	    columns: codingTableCols,
 	    dataToDownload: [],
 	    filtered: [],
 	    headers: [

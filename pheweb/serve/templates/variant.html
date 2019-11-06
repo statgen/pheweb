@@ -220,8 +220,8 @@ OR: <%= d.or.toExponential(1) %><br>
     <td style="width: 6%"><%= d.pval ? d.pval.toExponential(1) : "" %></td>
     <td style="width: 6%"><% if (d.n_case) { %>
       <%= d.n_case %> / <%= d.n_control %>
-      <% } else if (d.num_samples) { %>
-      <%= d.num_samples %>
+      <% } else if (d.n_sample) { %>
+      <%= d.n_sample %>
       <% } %>
     </td>
 

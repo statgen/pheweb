@@ -1041,3 +1041,7 @@ window.panel_layouts.genes = {
     "background_click": "clear_selections",
     "legend": null
 }
+
+if (window.browser == 'FINNGEN_QUANT') {
+    window.panel_layouts.association.data_layers[2].fields = ["association:id", "association:chr", "association:position", "association:ref", "association:alt", "association:pvalue", "association:pvalue|neglog10_or_100", "association:beta", "association:sebeta", "association:rsid", "association:maf", "association:most_severe", "association:fin_enrichment", "association:INFO", "ld:state", "ld:isrefvar"]
+}

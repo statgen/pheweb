@@ -9,6 +9,7 @@ import time
 from ..file_utils import common_filepaths
 import json
 import pandas as pd
+import glob
 
 from typing import List, Tuple
 
@@ -349,3 +350,11 @@ class ServerJeeves(object):
     @functools.lru_cache(None)
     def get_gene_region_mapping(self):
         return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
+
+    def get_autoreport(self, phenocode):
+        files = glob.glob('/mnt/nfs/autoreporting/r4/group_reports/finngen_R4_' + phenocode + '.gz.top.out')
+        if len(files) == 1:
+            data = pd.read_csv(files[0], sep='\t').fillna('NA')
+            return data.reset_index().to_dict('records')
+        return None
+        

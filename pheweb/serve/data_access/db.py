@@ -98,17 +98,22 @@ class Variant(JSONifiable):
         
 class PhenoResult(JSONifiable):
 
-    def __init__(self, phenocode,phenostring, category_name,pval,beta, maf_case,maf_control, n_case,n_control):
+    def __init__(self, phenocode,phenostring, category_name,pval,beta, maf, maf_case,maf_control, n_case, n_control, n_sample=None):
         self.phenocode = phenocode
         self.phenostring = phenostring
         self.pval = float(pval) if pval is not None and pval!='NA' else None
         self.beta = float(beta) if beta is not None and beta!='NA' else None
+        self.maf = float(maf) if maf is not None and maf!='NA' else None
         self.maf_case = float(maf_case) if maf_case is not None and maf_case!='NA' else None
         self.maf_control = float(maf_control) if maf_control is not None and maf_control!='NA' else None
         self.matching_results = {}
         self.category_name = category_name
         self.n_case = n_case
         self.n_control = n_control
+        if n_sample is None:
+             self.n_sample = n_case + n_control
+        else:
+             self.n_sample = n_sample
 
     def add_matching_result(self, resultname, result):
         self.matching_results[resultname] = result
@@ -117,8 +122,8 @@ class PhenoResult(JSONifiable):
         return self.matching_results[resultname] if resultname in self.matching_results else None
     
     def json_rep(self):
-        return {'phenocode':self.phenocode,'phenostring':self.phenostring, 'pval':self.pval, 'beta':self.beta, "maf_case":self.maf_case,
-                "maf_control":self.maf_control, 'matching_results':self.matching_results, 'category':self.category_name, "n_case":self.n_case, "n_control":self.n_control}
+        return {'phenocode':self.phenocode,'phenostring':self.phenostring, 'pval':self.pval, 'beta':self.beta, "maf":self.maf, "maf_case":self.maf_case,
+                "maf_control":self.maf_control, 'matching_results':self.matching_results, 'category':self.category_name, "n_case":self.n_case, "n_control":self.n_control, "n_sample":self.n_sample}
 
 @attr.s
 class PhenoResults( JSONifiable):
@@ -566,11 +571,19 @@ class TabixResultDao(ResultDB):
         self.matrix_path = matrix_path
         self.pheno_map = phenos(0)
         self.tabix_file = pysam.TabixFile(self.matrix_path, parser=None)
-        self.headers=self.tabix_file.header[0].split('\t')
         self.phenos = [ (header.split('@')[1], p_col_idx)
-                for p_col_idx, header in enumerate(self.headers) if header.startswith('pval')
+                for p_col_idx, header in enumerate(self.tabix_file.header[0].split('\t')) if header.startswith('pval')
         ]
-
+        self.header_offset = {}
+        i = 0
+        for header in self.tabix_file.header[0].split('\t'):
+             s = header.split('@')
+             if '@' in header:
+                  if p is not None and s[1] != p:
+                       break
+                  self.header_offset[s[0]] = i
+                  i = i+1
+             p = s[1] if len(s) > 1 else None
         self.tabix_files = defaultdict( lambda: pysam.TabixFile(self.matrix_path, parser=None))
         self.tabix_files[threading.get_ident()]=self.tabix_file
 
@@ -592,11 +605,12 @@ class TabixResultDao(ResultDB):
             phenores = []
             for pheno in self.phenos:
                 pval = split[pheno[1]]
-                beta = split[pheno[1]+1]
-                maf_case = split[pheno[1]+4]
-                maf_control = split[pheno[1]+5]
-                pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'],pval , beta, maf_case, maf_control, 
-                        self.pheno_map[pheno[0]]['num_cases'],  self.pheno_map[pheno[0]]['num_controls'] )
+                beta = split[pheno[1]+self.header_offset['beta']]
+                maf = split[pheno[1]+self.header_offset['maf']] if 'maf' in self.header_offset else None
+                maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
+                maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
+                pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'], pval, beta, maf, maf_case, maf_control,
+                                 self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else self.pheno_map[pheno[0]]['num_cases'] + self.pheno_map[pheno[0]]['num_controls'])
                 phenores.append(pr)
             result.append((v,phenores))
         return result
@@ -635,12 +649,13 @@ class TabixResultDao(ResultDB):
             split = variant_row.split('\t')
             for pheno in self.phenos:
                 pval = split[pheno[1]]
-                beta = split[pheno[1]+1]
-                maf_case = split[pheno[1]+4]
-                maf_control = split[pheno[1]+5]
+                beta = split[pheno[1]+self.header_offset['beta']]
+                maf = split[pheno[1]+self.header_offset['maf']] if 'maf' in self.header_offset else None
+                maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
+                maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
                 if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):            
-                    pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'],pval , beta, maf_case, maf_control,
-                            self.pheno_map[pheno[0]]['num_cases'],  self.pheno_map[pheno[0]]['num_controls'] )
+                    pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'],pval , beta, maf, maf_case, maf_control,
+                                     self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else self.pheno_map[pheno[0]]['num_cases'] + self.pheno_map[pheno[0]]['num_controls'])
                     v=  Variant( split[0].replace('X', '23'), split[1], split[2], split[3])
                     if split[4]!='':  v.add_annotation("rsids",split[4])
                     v.add_annotation('nearest_gene', split[5])
