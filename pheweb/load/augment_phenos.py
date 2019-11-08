@@ -12,7 +12,7 @@ def run(argv):
         exit(1)
 
     parallelize_per_pheno(
-        get_input_filepaths = lambda pheno: [common_filepaths['parsed'](pheno['phenocode']), sites_filepath],
+        get_input_filepaths = lambda pheno: common_filepaths['parsed'](pheno['phenocode']),
         get_output_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
         convert = convert,
         cmd = 'augment-pheno',
@@ -41,10 +41,11 @@ def convert(pheno):
                 try: sites_variant = next(sites_variants)
                 except StopIteration: break
             elif cmp == 2:
-                raise PheWebError('The file {} contained variant {} which was missing from {}'.format(
-                    common_filepaths['parsed'](pheno['phenocode']),
-                    pheno_variant,
-                    sites_filepath))
+                raise PheWebError(("The file {} contained variant {} which was missing from {}."
+                                   "To avoid needless reloading, PheWeb doesn't check the modification timestamp on sites.tsv, so you might need to rebuild it manually using `pheweb sites && pheweb add-rsids && pheweb add-genes").format(
+                                       common_filepaths['parsed'](pheno['phenocode']),
+                                       pheno_variant,
+                                       sites_filepath))
             else: # equal
                 write_variant(sites_variant, pheno_variant)
                 try:
