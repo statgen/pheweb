@@ -1,11 +1,10 @@
 {
-    "pheweb_import.summaryfiles":"gs://r2_data/pheweb_r2_phenos_update.txt",
-    "pheweb_import.docker": "gcr.io/finngen-refinery-dev/pheweb-import:r2_5",
+    "pheweb_import.summaryfiles":"gs://r4_data_west1/pheno/R4_DONT_ANALYZE_PHENOS_URI.txt",
+    "pheweb_import.docker": "gcr.io/finngen-refinery-dev/pheweb-import:r4_3",
 
-    "pheweb_import.annotation.phenofile": "gs://finngen-cromwell-refinery/postscript/8bdd3fa7-1797-4e82-9c9e-4b24681abd7d/call-postscript_plot/shard-802/finngen-production-library-green/R2/summary_stats/I9_CVD.gz.pheweb",
+    "pheweb_import.annotation.phenofile": "gs://r4_data_west1/saige/summary_stats/pheweb/I9_CVD.pheweb.gz",
 
-    "pheweb_import.matrix.n_phenobatch": 20,
     "pheweb_import.matrix.cpu": 64,
     "pheweb_import.matrix.mem": 3,
-    "pheweb_import.matrix.disk": 4000
+    "pheweb_import.matrix.disk": 7000
 }

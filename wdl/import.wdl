@@ -9,6 +9,8 @@ task annotation {
             echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
             mv ${phenofile} pheweb/generated-by-pheweb/parsed/ && \
             cd pheweb && \
+            if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi && \
+            sed -i 's/#chrom/chrom/' generated-by-pheweb/parsed/* && \
             pheweb phenolist glob generated-by-pheweb/parsed/* && \
             pheweb phenolist extract-phenocode-from-filepath --simple && \
             pheweb sites && \
@@ -31,8 +33,8 @@ task annotation {
 
     runtime {
         docker: "${docker}"
-    	cpu: 2
-    	memory: "7 GB"
+    	  cpu: 2
+    	  memory: "7 GB"
         disks: "local-disk 50 SSD"
         preemptible: 0
     }
@@ -79,8 +81,8 @@ task pheno {
 
     runtime {
         docker: "${docker}"
-    	cpu: 1
-    	memory: "3 GB"
+    	  cpu: 1
+        memory: "3.75 GB"
         disks: "local-disk 20 SSD"
         preemptible: 2
     }
@@ -92,7 +94,6 @@ task matrix {
     File bed
     Array[File] pheno_gz
     Array[File] manhattan
-    Int n_phenobatch
     String docker
     Int cpu
     Int mem
@@ -113,15 +114,16 @@ task matrix {
             pheweb phenolist glob generated-by-pheweb/pheno_gz/* && \
             pheweb phenolist extract-phenocode-from-filepath --simple
 
-        echo -n > pheno_config.txt
         for file in generated-by-pheweb/pheno_gz/*; do
             pheno=`basename ${dollar}file | sed 's/.gz//g' | sed 's/.pheweb//g'`
             printf "${dollar}pheno\t${dollar}pheno\t0\t0\t${dollar}file\n" >> pheno_config.txt
         done
-        split -l ${n_phenobatch} --additional-suffix pheno_piece pheno_config.txt
+        n_pheno=${dollar}(wc -l pheno_config.txt | cut -d' ' -f1)
+        n_batch=${dollar}((n_pheno/${cpu}+1))
+        split -l ${dollar}n_batch --additional-suffix pheno_piece pheno_config.txt
 
         tail -n+2 ${sites} > ${sites}.noheader
-        python3 <<KARMES
+        python3 <<EOF
         import os
         import glob
         import subprocess
@@ -132,19 +134,46 @@ task matrix {
         for p in processes:
             if p.poll() is None:
                 p.wait()
-        KARMES
+        EOF
 
         cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
         for file in *pheno_piece.matrix.tsv; do
             cmd="${dollar}cmd <(cut -f5- ${dollar}file) "
         done
-        echo ${dollar}cmd | bash > generated-by-pheweb/matrix.tsv
+        echo ${dollar}cmd | bash | bgzip -@ ${dollar}((${cpu}-1)) > generated-by-pheweb/matrix.tsv.gz
 
-        bgzip -@ ${dollar}((${cpu}-1)) generated-by-pheweb/matrix.tsv
         tabix -S 1 -b 2 -e 2 -s 1 generated-by-pheweb/matrix.tsv.gz
 
         pheweb top-hits
-        pheweb gather-pvalues-for-each-gene
+
+        python3 <<EOF
+        import glob
+        import subprocess
+        import json
+        # get gene-to-pheno json per piece
+        processes = set()
+        for file in glob.glob("*pheno_piece.matrix.tsv"):
+            processes.add(subprocess.Popen(["pheweb", "gather-pvalues-for-each-gene", file]))
+        for p in processes:
+            if p.poll() is None:
+                p.wait()
+        # collect jsons
+        gene2phenos = {}
+        for file in glob.glob("*pheno_piece.matrix.tsv_best-phenos-by-gene.json"):
+            with open(file) as f:
+                j = json.load(f)
+                for gene in j:
+                    if gene not in gene2phenos:
+                        gene2phenos[gene] = []
+                    gene2phenos[gene].extend(j[gene])
+        for gene in gene2phenos:
+            phenos = sorted(gene2phenos[gene], key=lambda x: x['pval'])
+            n_sig = len([p for p in phenos if p['pval'] < 5e-8])
+            gene2phenos[gene] = phenos[:max(4,n_sig)]
+        with open('generated-by-pheweb/best-phenos-by-gene.json', 'w') as f:
+            json.dump(gene2phenos, f)
+        EOF
+
     >>>
 
     output {
@@ -160,8 +189,8 @@ task matrix {
 
     runtime {
         docker: "${docker}"
-    	cpu: "${cpu}"
-    	memory: "${mem} GB"
+    	  cpu: "${cpu}"
+    	  memory: "${mem} GB"
         disks: "local-disk ${disk} SSD"
         preemptible: 0
     }

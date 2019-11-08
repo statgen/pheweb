@@ -5,8 +5,11 @@ from collections import defaultdict
 from elasticsearch import Elasticsearch
 import pysam
 import re
+import math
 import threading
 import pandas as pd
+import pymysql
+import imp
 from typing import List, Tuple, Dict
 from ...file_utils import MatrixReader, common_filepaths
 from ...utils import get_phenolist, get_gene_tuples
@@ -180,7 +183,14 @@ class AnnotationDB(object):
             Returns a list of Variant objects with new annotations with id 'annot' and with all annotations that existed in the search Variant
         """
         return
-
+    
+    @abc.abstractmethod
+    def get_variant_annotations_range(self, chrom, start, end):
+        """ Retrieve variant annotations given a range.
+            Returns a list of Variant objects with new annotations with id 'annot'
+        """
+        return
+    
     @abc.abstractmethod
     def get_single_variant_annotations(self, variant:Variant) -> Variant:
         """
@@ -207,6 +217,13 @@ class GnomadDB(object):
         """
         return
 
+    @abc.abstractmethod
+    def get_variant_annotations_range(self, chrom, start, end):
+        """ Retrieve variant annotations given a range.
+            Returns a list of Variant objects with new annotations with id 'gnomad'
+        """
+        return
+   
 class LofDB(object):
     @abc.abstractmethod
     def get_all_lofs(self, p_threshold):
@@ -273,6 +290,27 @@ class TSVDB(object):
     def get_coding(self):
         """ Retrieve coding variant data
             Returns: coding variant results and annotation
+        """
+        return
+
+class FineMappingDB(object):
+    @abc.abstractmethod
+    def get_regions(self, variant: Variant):
+        """ Retrieve conditional/fine-mapped regions based on variant position
+            Returns: (empty) list of regions
+        """
+        return
+    @abc.abstractmethod
+    def get_max_region(self, phenocode, chr, start, end):
+        """ Retrieve the maximum conditional/fine-mapped region overlapping the given range
+            Returns: a {'start': pos, 'end': pos} dict
+        """
+        return
+    @abc.abstractmethod
+    def get_regions_for_pheno(self, type, phenocode, chr, start, end, get_most_probable_finemap_n=True):
+        """ Retrieve conditional/fine-mapped regions for a phenotype overlapping the given range
+            type can be 'all', 'conditional' or 'finemapping'
+            Returns: list of regions
         """
         return
 
@@ -503,6 +541,24 @@ class TabixGnomadDao(GnomadDB):
         print('TABIX GNOMAD get_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
         return annotations
 
+    def get_variant_annotations_range(self, chrom, start, end):
+        try:
+            tabix_iter = self.tabix_handles[threading.get_ident()].fetch(chrom, start-1, end)
+        except ValueError:
+            print("No variants in the given range. {}:{}-{}".format(chrom, start-1,end) )
+            return []
+
+        annotations = []
+        for row in tabix_iter:
+
+            split = row.split('\t')
+            split[0] = split[0].replace('X', '23')
+            v = Variant(split[0],split[1],split[3],split[4])
+            v.add_annotation("gnomad",{self.headers[i]: split[i] for i in range(0,len(split)) } )
+            annotations.append(v)
+
+        return annotations
+
 class TabixResultDao(ResultDB):
 
     def __init__(self, phenos, matrix_path):
@@ -570,10 +626,12 @@ class TabixResultDao(ResultDB):
         except ValueError:
             print("No variants in the given range. {}:{}-{}".format(chrom, start-1,end) )
             return []
-        #print("WE HAVE {} TABIX FILES OPEN".format(  len(list(self.tabix_files.keys()) )))
+        print("WE HAVE {} TABIX FILES OPEN".format(  len(list(self.tabix_files.keys()) )))
         top = defaultdict( lambda: defaultdict(dict))
 
+        n_vars = 0
         for variant_row in tabix_iter:
+            n_vars = n_vars + 1
             split = variant_row.split('\t')
             for pheno in self.phenos:
                 pval = split[pheno[1]]
@@ -587,7 +645,8 @@ class TabixResultDao(ResultDB):
                     if split[4]!='':  v.add_annotation("rsids",split[4])
                     v.add_annotation('nearest_gene', split[5])
                     top[pheno[0]] = (v,pr)
-                     
+
+        print(str(n_vars) + " variants iterated")
         top = [ PhenoResults(pheno=self.pheno_map[pheno], assoc=dat, variant=v ) for pheno,(v,dat) in top.items()]
         top.sort(key=lambda pheno: pheno.assoc.pval)
 
@@ -939,6 +998,24 @@ class TabixAnnotationDao(AnnotationDB):
         print('TABIX get_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
         return annotations
     
+    def get_variant_annotations_range(self, chrom, start, end):
+        try:
+            tabix_iter = self.tabix_files[threading.get_ident()].fetch(chrom, start-1, end)
+        except ValueError:
+            print("No variants in the given range. {}:{}-{}".format(chrom, start-1,end) )
+            return []
+
+        annotations = []
+        for row in tabix_iter:
+
+            split = row.split('\t')
+            v = split[0].split(":")
+            v = Variant(v[0],v[1],v[2],v[3])
+            v.add_annotation("annot",{self.headers[i]: self.dconv[self.headers[i]](split[i]) for i in range(0,len(split)) } )
+            annotations.append(v)
+
+        return annotations
+
     def _get_tabix_data(self, chr, start, stop):
         cmd = "tabix {} {}:{}-{}".format(self.matrix, chr, start, end)
         try:
@@ -986,6 +1063,38 @@ class TabixAnnotationDao(AnnotationDB):
             self.last_time=time.time()
         #print('TABIX get_gene_functional_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
         return annotations
+
+class LofMySQLDao(LofDB):
+     def __init__(self, authentication_file):
+          self.authentication_file = authentication_file
+          auth_module = imp.load_source('mysql_auth', self.authentication_file)
+          self.user = getattr(auth_module, 'mysql')['user']
+          self.password = getattr(auth_module, 'mysql')['password']
+          self.host = getattr(auth_module, 'mysql')['host']
+          self.db = getattr(auth_module, 'mysql')['db']
+          self.release = getattr(auth_module, 'mysql')['release']
+     def get_connection(self):
+          return pymysql.connect(host=self.host, user=self.user, password=self.password, db=self.db)
+     def get_all_lofs(self, p_threshold):
+          conn = self.get_connection()
+          try:
+               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                    sql = "SELECT * FROM lof WHERE rel=%s AND p_value < %s"
+                    cursori.execute(sql, [self.release, p_threshold])
+                    result = [{'gene_data': data} for data in cursori.fetchall()]
+          finally:
+               conn.close()
+          return result
+     def get_lofs(self, gene):
+          conn = self.get_connection()
+          try:
+               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                    sql = "SELECT * FROM lof WHERE rel=%s AND gene=%s"
+                    cursori.execute(sql, [self.release, gene])
+                    result = [{'gene_data': data} for data in cursori.fetchall()]
+          finally:
+               conn.close()
+          return result
 
 class ElasticLofDao(LofDB):
 
@@ -1052,9 +1161,85 @@ class ElasticLofDao(LofDB):
 
 class TSVDao(TSVDB):
      def __init__(self, coding):
-          self.coding_data = pd.read_csv(coding, encoding='utf8', sep='\t').fillna('NA').to_dict(orient='records')
+          df = pd.read_csv(coding, encoding='utf8', sep='\t').fillna('NA')
+          top_i = df.groupby('variant')['pval'].idxmin
+          df['is_top'] = 0
+          df.loc[top_i, 'is_top'] = 1
+          self.coding_data = df.to_dict(orient='records')
      def get_coding(self):
           return self.coding_data
+
+class FineMappingMySQLDao(FineMappingDB):
+     def __init__(self, authentication_file, base_paths):
+          self.authentication_file = authentication_file
+          self.base_paths = base_paths
+          auth_module = imp.load_source('mysql_auth', self.authentication_file)
+          self.user = getattr(auth_module, 'mysql')['user']
+          self.password = getattr(auth_module, 'mysql')['password']
+          self.host = getattr(auth_module, 'mysql')['host']
+          self.db = getattr(auth_module, 'mysql')['db']
+          self.release = getattr(auth_module, 'mysql')['release']
+     def get_connection(self):
+          return pymysql.connect(host=self.host, user=self.user, password=self.password, db=self.db)
+     def get_max_region(self, phenocode, chr, start, end):
+          conn = self.get_connection()
+          try:
+               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                    sql = "SELECT min(start) as start, max(end) AS end FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                    cursori.execute(sql, [self.release, phenocode, chr, end, start])
+                    result = cursori.fetchone()
+          finally:
+               conn.close()
+          return result
+     def get_regions(self, variant: Variant):
+          conn = self.get_connection()
+          try:
+               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                    sql = "SELECT type, phenocode, chr, start, end, path FROM finemapped_regions WHERE rel=%s AND chr=%s AND start <= %s AND end >= %s"
+                    cursori.execute(sql, [self.release, variant.chr, variant.pos, variant.pos])
+                    result = cursori.fetchall()
+                    for res in result:
+                         res['path'] = self.base_paths[res['type']] + '/' + res['path']
+          finally:
+               conn.close()
+          return result
+     def get_regions_for_pheno(self, type, phenocode, chr, start, end, get_most_probable_finemap_n=True):
+          conn = self.get_connection()
+          try:
+               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                    if type == 'all':
+                         sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, variants, path FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                         cursori.execute(sql, [self.release, phenocode, chr, end, start])
+                    elif type == 'conditional':
+                         sql = "SELECT type, chr, start, end, n_signals, variants, path FROM finemapped_regions WHERE rel=%s AND type=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                         cursori.execute(sql, [self.release, 'conditional', phenocode, chr, end, start])
+                    elif type == 'finemapping':
+                         sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, path FROM finemapped_regions WHERE rel=%s AND (type=%s OR type=%s) AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                         cursori.execute(sql, [self.release, 'susie', 'finemap', phenocode, chr, end, start])
+                    else:
+                         raise ValueError('unsupported type "' + type + '"')
+               result = cursori.fetchall()
+          finally:
+               conn.close()          
+          for res in result:
+               res['path'] = self.base_paths[res['type']] + '/' + res['path']
+               if res['type'] == 'conditional':
+                    res['paths'] = []
+                    res['conditioned_on'] = []
+                    vars = res['variants'].split(',')
+                    for i in range(0,len(vars)):
+                         #R3 res['paths'].append(res['path'] + '-'.join(vars[0:i+1]) + '.conditional')
+                         res['paths'].append(res['path'] + vars[0] + '_' + str((i+1)) + '.conditional')
+                         res['conditioned_on'].append(','.join(vars[0:i+1]))
+          if get_most_probable_finemap_n:
+               most_probable_finemap = -1
+               prob = 0
+               for i, res in enumerate(result):
+                    if res['type'] == 'finemap' and res['n_signals_prob'] > prob:
+                         most_probable_finemap = i
+                         prob = res['n_signals_prob']
+               result = [res for i, res in enumerate(result) if res['type'] != 'finemap' or i == most_probable_finemap]
+          return result
    
 class DataFactory(object):
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
@@ -1110,6 +1295,9 @@ class DataFactory(object):
 
     def get_tsv_dao(self):
         return self.dao_impl["tsv"]
+
+    def get_finemapping_dao(self):
+        return self.dao_impl["finemapping"] if "finemapping" in self.dao_impl else None
 
     def get_UKBB_dao(self, singlematrix=False):
         if singlematrix and "externalresultmatrix" in self.dao_impl:

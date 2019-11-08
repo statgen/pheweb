@@ -79,7 +79,7 @@
 </div>
 <div class="row">
   <div class="pheno-info col-xs-12">
-    <p><a href="https://risteys.finngen.fi/phenocode/{{ pheno.phenocode.replace('_EXALLC', '').replace('_EXMORE', '') }}" target="_blank">RISTEYS</a></p>
+    <p style="margin-bottom: 10px;"><a style="font-size:1.25rem;padding:.25rem .5rem;background-color:#2779bd;color:#fff;border-radius:.25rem;font-weight:700;box-shadow:0 0 5px rgba(0,0,0,.5)" href="https://risteys.finngen.fi/phenocode/{{ pheno.phenocode.replace('_EXALLC', '').replace('_EXMORE', '') }}" target="_blank">RISTEYS</a></p>
         {% if pheno.category %}
           <p>Category: {{ pheno.category}}</p>
         {% endif %}
@@ -206,16 +206,18 @@
 </script>
 
 <script type="text/template" id="info-tooltip-template">
-  <table>
+  <div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
     <%= Object.keys(v.annotation)
     .filter(function(key) {
       return key.indexOf('INFO_') === 0
-    }).map(function(key) {
-      return '<tr><td style=\'text-align: right; padding-right: 10px;\'>' + v.annotation[key].toPrecision(3) + '</td>' +
-        '<td nowrap style=\'text-align: left;\'>' + key.replace(/info_|_r1/g, '') + '</td></tr>'
+	}).map(function(key) {
+	var val = v.annotation[key].toFixed(3)
+	var color = val < window.vis_conf.info_tooltip_threshold ? '#FF8C00' : '#ffffff'
+      return '<div style=\'color: ' + color + '\'><span style=\'text-align: left; float: left; padding-right: 10px;\'>' + val + '</span>' +
+        '<span style=\'text-align: left; float: left;\'>' + key.replace(/INFO_|\.calls|_Drem|_R[1-9]/g, '') + '</span></div>'
     }).join('')
     %>
-  </table>
+  </div>
 </script>
 
 <script type="text/template" id="enrichment-tooltip-template">

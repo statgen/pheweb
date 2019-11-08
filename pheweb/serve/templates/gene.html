@@ -321,7 +321,7 @@
     <td><%= d.drug.molecule_name %></td>
     <td><%= d.drug.molecule_type %></td>
     <td><%= d.evidence.target2drug.action_type %></td>
-    <td><%= d.disease.efo_info.label %></td>
+    <td><%= (d.disease && d.disease.efo_info && d.disease.efo_info.label) || '' %></td>
     <td><%= d.evidence.drug2clinic ? d.evidence.drug2clinic.clinical_trial_phase.label : '' %></td>
     <td><a href=<%= d.drug.id %>>ChEMBL</a></td>
   </tr>
@@ -331,7 +331,7 @@
   <tr>
     <td><a style="color:black" href="/pheno/<%= r.pheno %>"><%= r.phenostring %></a></td>
     <td>
-	<%= r.variants.map(function(variant) {
+	<%= r.variants.split(',').map(function(variant) {
 	    return '<a style="color:black" href="/variant/' + variant + '?pheno=' + r.phenostring + '">' + variant + '</a>'
 	    }).join(', ') %>
     </td>

@@ -8,6 +8,7 @@ import traceback
 import time
 from ..file_utils import common_filepaths
 import json
+import pandas as pd
 
 from typing import List, Tuple
 
@@ -28,6 +29,7 @@ class ServerJeeves(object):
         self.ukbb_dao = self.dbs_fact.get_UKBB_dao()
         self.ukbb_matrixdao =self.dbs_fact.get_UKBB_dao(True)
         self.tsv_dao = self.dbs_fact.get_tsv_dao()
+        self.finemapping_dao = self.dbs_fact.get_finemapping_dao()
         
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
@@ -185,6 +187,10 @@ class ServerJeeves(object):
                 var = r[0]
             else:
                 var = v_annot
+            gnomad = self.gnomad_dao.get_variant_annotations([var])
+            if len(gnomad) == 1:
+                var.add_annotation('gnomad', gnomad[0]['var_data'])
+            
             phenos = [ p.phenocode for p in r[1]]
             ukb = self.ukbb_matrixdao.get_multiphenoresults( {variant:phenos} )
             if var in ukb:
@@ -196,9 +202,141 @@ class ServerJeeves(object):
         else:
             return None
 
+    def add_annotations(self, chr, start, end, datalist):
+        if chr == 'X':
+            chr = 23
+        if start == 0:
+            start = 1
+        t = time.time()
+        # TODO tabix fetch takes forever, combine FG and gnomAD annotations and use relevant columns only, or get annotations on the fly for individual variants
+        annotations = self.annotation_dao.get_variant_annotations_range(chr, start, end)
+        annot_hash = { anno.varid: anno.get_annotations() for anno in annotations }
+        gnomad = self.gnomad_dao.get_variant_annotations_range(chr, start, end)
+        gnomad_hash = { anno.varid: anno.get_annotations() for anno in gnomad }
+        print("getting annotations for {} bp took {} seconds".format(end-start+1, time.time()-t ) )
+        for d in datalist:
+            print('n variants ' + str(len(d['data']['id'])))
+            d['data']['varid'] = []
+            d['data']['fin_enrichment'] = []
+            d['data']['most_severe'] = []
+            d['data']['AF'] = []
+            d['data']['INFO'] = []
+            for i,r in enumerate(d['data']['id']):
+                varid = r.replace('X', '23').replace('_', ':').replace('/', ':')
+                d['data']['varid'].append(varid)
+                try:
+                    a = annot_hash[varid]['annot']
+                    d['data']['most_severe'].append(a['most_severe'].replace('_', ' '))
+                    d['data']['AF'].append(a['AF'])
+                    d['data']['INFO'].append(a['INFO'])
+                    if varid not in gnomad_hash:
+                        d['data']['fin_enrichment'].append('No gnomAD data')
+                    else:
+                        g = gnomad_hash[varid]['gnomad']
+                        if g['AF_fin'] == '.' or float(g['AF_fin']) == 0:
+                            d['data']['fin_enrichment'].append('No FIN in gnomAD')
+                        elif float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu']) == 0:
+                            d['data']['fin_enrichment'].append('No NFEE in gnomAD')
+                        else:
+                            d['data']['fin_enrichment'].append(round(float(g['AF_fin']) / ((float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu'])) / (float(g['AN_nfe_nwe']) + float(g['AN_nfe_onf']) + float(g['AN_nfe_seu']))), 3))
+                except KeyError:
+                    print('no annotation for ' + varid + ', is annotation file out of sync or is the variant correctly id\'d?')
+                    pass
+        return datalist
+        
     def coding(self):
         return self.tsv_dao.get_coding()
-        
+
+    def get_conditional_regions_for_pheno(self, phenocode, chr, start, end, p_threshold=None):
+        if p_threshold is None:
+            p_threshold = self.conf.locuszoom_conf['p_threshold']
+        regions = self.finemapping_dao.get_regions_for_pheno('conditional', phenocode, chr, start, end)
+        ret = []
+        t = time.time()
+        min_start = 1e30
+        max_end = -1
+        for region in regions:
+            if region['start'] < min_start:
+                min_start = region['start']
+            if region['end'] > max_end:
+                max_end = region['end']
+            data = []
+            for i,path in enumerate(region['paths']):
+                print(path)
+                try:
+                    with open(path) as f:
+                        d = {'id': [], 'varid': [], 'chr': [], 'position': [], 'end': [], 'ref': [], 'alt': [], 'maf': [], 'pvalue': [], 'beta': [], 'sebeta': []}
+                        h = {h:i for i,h in enumerate(f.readline().strip().split(' '))}
+                        for line in f:
+                            fields = line.strip().split(' ')
+                            if float(fields[h['p.value_cond']]) < p_threshold:
+                                d['id'].append(fields[h['SNPID']].replace('chr', '').replace('_', ':', 1)[::-1].replace('_', '/', 1)[::-1])
+                                d['varid'].append(fields[h['rsid']].replace('chr', '').replace('_', ':'))
+                                d['chr'].append(fields[h['CHR']].replace('chr', ''))
+                                d['position'].append(int(fields[h['POS']]))
+                                d['end'].append(int(fields[h['POS']]))
+                                d['ref'].append(fields[h['Allele1']])
+                                d['alt'].append(fields[h['Allele2']])
+                                d['maf'].append(float(fields[h['AF_Allele2']]))
+                                d['pvalue'].append(float(fields[h['p.value_cond']]))
+                                d['beta'].append(round(float(fields[h['BETA_cond']]), 3))
+                                d['sebeta'].append(round(float(fields[h['SE_cond']]), 3))
+                        ret.append({'type': 'conditional', 'data': d, 'conditioned_on': region['conditioned_on'][i], 'lastpage': None})
+                    # data.append(pd.read_csv(path, sep=' '))
+                except FileNotFoundError:
+                    print('file ' + path + ' not found')
+        print("reading conditional files took {} seconds".format(time.time()-t ) )
+        t = time.time()
+        if len(ret) > 0:
+            self.add_annotations(chr, min_start, max_end, ret)
+            print("adding annotations to {} conditional results took {} seconds".format(len(ret), time.time()-t ) )
+        return ret
+
+    def get_finemapped_regions_for_pheno(self, phenocode, chr, start, end, prob_threshold=-1):
+        regions = self.finemapping_dao.get_regions_for_pheno('finemapping', phenocode, chr, start, end)
+        ret = []
+        min_start = 1e30
+        max_end = -1
+        for region in regions:
+            if region['start'] < min_start:
+                min_start = region['start']
+            if region['end'] > max_end:
+                max_end = region['end']
+            if region['type'] == 'susie':
+                data = pd.read_csv(region['path'], sep='\t', compression='gzip')
+                data.rename(columns={'chromosome': 'chr', 'allele1': 'ref', 'allele2': 'alt'}, inplace=True)
+                data = data[(data.region == 'chr' + str(region['chr']) + ':' + str(region['start']) + '-' + str(region['end'])) & (data.cs > -1) & (data.prob > prob_threshold)]
+                data['chr'] = data['chr'].str.replace('chr', '')
+                data['id'] = data['rsid'].str.replace('chr', '')
+                data['id'] = data['id'].str.replace('_', ':', n=1)
+                data['id'] = data['id'].apply(lambda x: x[::-1]).str.replace('_', '/', n=1).apply(lambda x: x[::-1])
+                data.prob = data.prob.round(3)
+                data = data[['id', 'rsid', 'chr', 'position', 'ref', 'alt', 'maf', 'prob', 'cs']]
+                ret.append({'type': region['type'], 'data': data.reset_index().to_dict(orient='list'), 'lastpage': None})
+            elif region['type'] == 'finemap':
+                data = {'id': [], 'chr': [], 'position': [], 'ref': [], 'alt': [], 'prob': [], 'cs': []}
+                with open(region['path']) as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith('#') or line.startswith('index'):
+                            continue
+                        fields = line.split(' ')
+                        for i in range(0,int((len(fields)-1)/2)):
+                            if fields[i*2+1] != 'NA':
+                                cpra = fields[i*2+1].split('_')
+                                data['id'].append(cpra[0].replace('chr', '') + ':' + cpra[1] + '_' + cpra[2] + '/' + cpra[3])
+                                data['chr'].append(cpra[0].replace('chr', ''))
+                                data['position'].append(cpra[1])
+                                data['ref'].append(cpra[2])
+                                data['alt'].append(cpra[3])
+                                data['prob'].append(round(float(fields[i*2+2]), 3))
+                                data['cs'].append(i+1)
+                ret.append({'type': region['type'], 'data': data, 'lastpage': None})
+            else:
+                print('UNSUPPORTED REGION TYPE: ' + region['type'])
+        self.add_annotations(chr, min_start, max_end, ret)
+        return ret
+
     @functools.lru_cache(None)
     def get_gene_region_mapping(self):
         return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}

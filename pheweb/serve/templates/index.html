@@ -23,8 +23,8 @@
   datum.variants = datum.variants.split(',').map(function (variant) {
       return variant.replace('chr', '').replace('_', ':').replace(/_/g, '-')
   })
-  datum.ref_alt_cases = datum.ref_count_cases + '/' + datum.alt_count_cases
-  datum.ref_alt_ctrls = datum.ref_count_ctrls + '/' + datum.alt_count_ctrls
+  datum.ref_alt_cases = datum.ref_count_cases.toFixed(1) + '/' + datum.alt_count_cases.toFixed(1)
+  datum.ref_alt_ctrls = datum.ref_count_ctrls.toFixed(1) + '/' + datum.alt_count_ctrls.toFixed(1)
   })
       populate_lof_streamtable(data);
   })
@@ -80,10 +80,9 @@
           <li class="nav-item">
               <a class="nav-link" id="phenotypes-tab" data-toggle="tab" href="#phenotypes" role="tab" aria-controls="phenotypes" aria-selected="false">Phenotype list</a>
           </li>
-<!--          <li class="nav-item">
-            <a class="nav-link" id="lof-tab" data-toggle="tab" href="#lof" role="tab" aria-controls="lof" aria-selected="false">LoF burden</a>
-          </li>
--->
+         <!-- <li class="nav-item"> -->
+         <!--    <a class="nav-link" id="lof-tab" data-toggle="tab" href="#lof" role="tab" aria-controls="lof" aria-selected="false">LoF burden</a> -->
+         <!--  </li> -->
         </ul>
     <div class="tab-content">
       <div class="tab-pane active" id="search-general" role="tabpanel" style="padding-top: 20px;">
@@ -116,8 +115,10 @@
               <th style="cursor: pointer;" data-sort="phenostring:asc">Risteys</th>
               <th style="cursor: pointer;" data-sort="category:asc">category</th>
               <th style="cursor: pointer;" data-sort="num_cases:desc:number">number of cases</th>
+              <th>number of cases R3</th>
               <th style="cursor: pointer;" data-sort="num_controls:desc:number">number of controls</th>
-              <th style="cursor: pointer;" data-sort="num_gw_significant:desc:number">genome-wide significant loci</th>
+              <th style="cursor: pointer;" data-sort="num_gw_significant:desc:number">genome-wide sig loci</th>
+              <th>genome-wide sig loci R3</th>
               <th style="cursor: pointer;" data-sort="lambda:desc:number">genomic control lambda</th>
             </tr>
 	  </thead>
@@ -151,11 +152,13 @@
 <script type="text/template" id="phenolist-streamtable-template">
     <tr>
         <td style="width:45%;"><a style="color:black" href="/pheno/<%= p.phenocode %>"><%= p.phenostring %></a></td>
-        <td style="width:6%;"><a style="color:black" href="https://risteys.finngen.fi/phenocode/<%= p.phenocode.replace('_EXALLC', '').replace('_EXMORE', '') %>">link</a></td>
+        <td style="width:6%;"><a style="font-size:1.25rem;padding:.25rem .5rem;background-color:#2779bd;color:#fff;border-radius:.25rem;font-weight:700;box-shadow:0 0 5px rgba(0,0,0,.5)" href="https://risteys.finngen.fi/phenocode/<%= p.phenocode.replace('_EXALLC', '').replace('_EXMORE', '') %>">RISTEYS</a></td>
         <td style="width:25%;"><%= p.category %></td>
         <td style="width:6%; text-align: right;"><%= p.num_cases %></td>
+        <td style="width:6%; text-align: right;"><%= p.num_cases_prev %></td>
         <td style="width:6%; text-align: right;"><%= p.num_controls %></td>
         <td style="width:6%; text-align: right;"><%= p.num_gw_significant %></td>
+        <td style="width:6%; text-align: right;"><%= p.num_gw_significant_prev %></td>
         <td style="width:6%; text-align: right;"><%= p.lambda %></td>
     </tr>
 </script>
@@ -170,7 +173,7 @@
 	      }).join(', ') %>
         </td>
         <td style="width:8%; text-align: right;"><%= r.p_value == 0 ? 'N/A' : r.p_value.toExponential(1) %></td>
-        <td style="width:6%; text-align: right;"><%= r.beta %></td>
+        <td style="width:6%; text-align: right;"><%= (+r.beta).toFixed(3) %></td>
         <td style="width:6%; text-align: right;"><%= r.ref_alt_cases %></td>
         <td style="width:6%; text-align: right;"><%= r.ref_alt_ctrls %></td>
     </tr>

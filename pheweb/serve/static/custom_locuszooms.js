@@ -27,7 +27,8 @@ LocusZoom.Data.GWASCatSource.prototype.parseResponse = function(resp, chain, fie
         var dat = outnames.reduce(  function(acc, curr, i) { acc[curr]="0:0_a/t"; return acc }, {} )
         return {header: chain.header, body:[dat] };
     } else {
-        return LocusZoom.Data.Source.prototype.parseResponse.call(this,resp, chain, fields, outnames, trans);
+	res.data.forEach(d => { d.id = d.variant })
+        return LocusZoom.Data.Source.prototype.parseResponse.call(this, res, chain, fields, outnames, trans);
     }
 }
 
@@ -75,8 +76,15 @@ LocusZoom.Data.ClinvarDataSource.prototype.fetchRequest = function(state, chain,
 
 LocusZoom.Data.ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
 
+    if (resp == '') {
+        // locuszoom does not show even axis titles if there are no data visible.
+        // make a mock element with id-1 which is set to invisible in the layout
+        var dat = fields.reduce(  function(acc, curr, i) { acc[curr]=-1; return acc }, {} )
+        return {header: chain.header, body:[dat] };
+    }
+    
     var data = JSON.parse(resp)
-
+    
     if( data.noresults != null) {
         // locuszoom does not show even axis titles if there are no data visible.
         // make a mock element with id-1 which is set to invisible in the layout
@@ -104,11 +112,13 @@ LocusZoom.Data.ClinvarDataSource.prototype.parseResponse = function(resp, chain,
             object.trait = val.trait_set.map( function(x) { return x.trait_name } ).join(":")
             object.y= 5
             object.id = val.uid;
+	    object['clinvar:id'] = object.chr + ':' + object.start + '_' + object.ref + '/' + object.alt
 
             respData.push( object )
         }
 
     });
+
     return {header: chain.header, body: respData};
 };
 
@@ -131,47 +141,33 @@ LocusZoom.Data.GeneConstraintSource.prototype.fetchRequest = function(state, cha
 
 };
 
-LocusZoom.Data.AssociationSource.prototype.parseArraysToObjects = function(x, fields, outnames, trans) {
-    // This overrides the default to keep all fields in `x` (the response)
-    // If <https://github.com/statgen/locuszoom/pull/102> gets accepted, it won't be necessary.
+LocusZoom.Data.Source.prototype.getData = function(state, fields, outnames, trans) {
 
-    //intended for an object of arrays
-    //{"id":[1,2], "val":[5,10]}
-    if (Object.keys(x).length === 0) {
-        throw "The association source sent back no data for this region.";
+    if (this.preGetData) {
+	var pre = this.preGetData(state, fields, outnames, trans);
+	if(this.pre) {
+	    state = pre.state || state;
+	    fields = pre.fields || fields;
+	    outnames = pre.outnames || outnames;
+	    trans = pre.trans || trans;
+	}
     }
-    var records = [];
-    fields.forEach(function(f, i) {
-          if (!(f in x)) {throw "field " + f + " not found in response for " + outnames[i];}
-    });
-    var x_keys = Object.keys(x);
-    var N = x[x_keys[0]].length; // NOTE: this was [1] before, why?
-    x_keys.forEach(function(key) {
-        if (x[key].length !== N) {
-            throw "the response column " + key + " had " + x[key].length.toString() +
-                " elements but " + x_keys[0] + " had " + N.toString();
-        }
-    });
-    var nonfield_keys = x_keys.filter(function(key) {
-        return fields.indexOf(key) === -1;
-    });
-    for(var i = 0; i < N; i++) {
-        var record = {};
-        for(var j=0; j<fields.length; j++) {
-            var val = x[fields[j]][i];
-            if (trans && trans[j]) {
-                val = trans[j](val);
-            }
-            record[outnames[j]] = val;
-        }
-        for(var j=0; j<nonfield_keys.length; j++) {
-            record[nonfield_keys[j]] = x[nonfield_keys[j]][i];
-        }
-        records.push(record);
-    }
-    return records;
+
+    var self = this;
+    return function (chain) {
+	if (self.dependentSource && chain && chain.body && !chain.body.length) {
+	    // A "dependent" source should not attempt to fire a request if there is no data for it to act on.
+	    // Therefore, it should simply return the previous data chain.
+	    return Q.when(chain);
+	}
+
+	self.getRequest(state, chain, fields)
+	
+	return self.getRequest(state, chain, fields).then(function(resp) {
+	    return self.parseResponse(resp, chain, fields, outnames, trans);
+	});
+    };
 };
-
 
 LocusZoom.Data.FG_LDDataSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
@@ -200,7 +196,7 @@ LocusZoom.Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields)
     chain.header.ldrefvar = topvar
     var windowSize= 500
     var population="1000GENOMES:phase_3:FIN"
-    return refvar ? this.url + refvar + "/" + population + "?window_size=" + windowSize : null
+    return refvar ? this.url + refvar + "/" + population + "?window_size=" + windowSize : this.url + 'couldntgetrefvar'
 
 };
 
@@ -220,9 +216,8 @@ LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, f
 
     for (var i = 0; i < chain.body.length; i++) {
 
-        var d = lookup[chain.body[i].rsid ]
-
-        var isref = chain.header.ldrefvar.rsid == chain.body[i].rsid? 1:0
+        var d = lookup[chain.body[i][this.params.var_id_field]]
+        var isref = chain.header.ldrefvar[this.params.var_id_field] == chain.body[i][this.params.var_id_field]? 1:0
 
         if( d != null ) {
             chain.body[i][ld_field] = d.r2;
@@ -234,8 +229,8 @@ LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, f
             chain.body[i][reffield] = isref
         }
     };
+
     return { header: chain.header, body:chain.body}
-    //return {header: chain.header, body: respData};
 
 }
 
@@ -244,12 +239,76 @@ LocusZoom.Data.FG_LDDataSource.prototype.fetchRequest = function(state, chain, f
     var headers = {
         "Content-Type": "application/json"
     };
-
+    
     return url ? LocusZoom.createCORSPromise("GET", url, {}, headers) : Q.defer()
 
 };
 
+LocusZoom.Data.ConditionalSource = LocusZoom.Data.Source.extend(function(init) {
+    this.parseInit(init);
+}, "ConditionalLZ");
 
+LocusZoom.Data.ConditionalSource.prototype.preGetData = function(state, fields, outnames, trans) {
+    var id_field = this.params.id_field || "id";
+    [id_field, "position"].forEach(function(x) {
+        if (fields.indexOf(x)==-1) {
+            fields.unshift(x);
+            outnames.unshift(x);
+            trans.unshift(null);
+        }
+    });
+    return {fields: fields, outnames:outnames, trans:trans};
+};
+
+LocusZoom.Data.ConditionalSource.prototype.getURL = function(state, chain, fields) {
+    var analysis = state.analysis || chain.header.analysis || this.params.analysis || 3;
+    return this.url + "results/?filter=analysis in " + analysis  +
+        " and chromosome in  '" + state.chr + "'" +
+        " and position ge " + state.start +
+        " and position le " + state.end;
+};
+
+
+LocusZoom.Data.ConditionalSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+
+    this.params.allData = JSON.parse(resp)
+    this.params.dataIndex = this.params.dataIndex || 0
+    this.params.fields = fields
+    this.params.outnames = outnames
+    this.params.trans = trans
+
+    var res = this.params.allData
+    var lookup = {}
+    for (var i = 0; i < chain.body.length; i++) {
+	lookup[chain.body[i]['id']] = i
+    }
+    for (var f = 0; f < this.params.trait_fields.length; f++) {
+	var field = this.params.trait_fields[f]
+	for (var r = 0; r < res.length; r++) {
+	    res[r].data[field] = []
+	    for (var i = 0; i < res[r].data.id.length; i++) {
+		idx = lookup[res[r].data.id[i]]
+		if (idx !== undefined) {
+		    res[r].data[field].push(chain.body[idx][field])
+		} else {
+		    res[r].data[field].push('n/a')
+		}
+	    }
+	}
+	fields.push(field)
+	outnames.push(field)
+    }
+    
+    return LocusZoom.Data.Source.prototype.parseResponse.call(this, this.params.allData[this.params.dataIndex], chain, fields, outnames, trans);
+}
+
+LocusZoom.Data.FineMappingSource = LocusZoom.Data.Source.extend(function(init) {
+    this.parseInit(init);
+}, "FineMappingLZ");
+
+LocusZoom.Data.FineMappingSource.prototype.preGetData = LocusZoom.Data.ConditionalSource.prototype.preGetData
+LocusZoom.Data.FineMappingSource.prototype.getURL = LocusZoom.Data.ConditionalSource.prototype.getURL
+LocusZoom.Data.FineMappingSource.prototype.parseResponse = LocusZoom.Data.ConditionalSource.prototype.parseResponse
 
 LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (x === 1) { return "100%"; }

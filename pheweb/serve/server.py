@@ -65,6 +65,7 @@ annotation_dao = dbs_fact.get_annotation_dao()
 gnomad_dao = dbs_fact.get_gnomad_dao()
 lof_dao = dbs_fact.get_lof_dao()
 result_dao = dbs_fact.get_result_dao()
+finemapping_dao = dbs_fact.get_finemapping_dao()
 ukbb_dao = dbs_fact.get_UKBB_dao()
 ukbb_matrixdao =dbs_fact.get_UKBB_dao(True)
 threadpool = ThreadPoolExecutor(max_workers=4)
@@ -137,9 +138,14 @@ def variant_page(query):
         variantdat = jeeves.get_single_variant_data(v)
         if variantdat is None:
             die("Sorry, I couldn't find the variant {}".format(query))
+        if finemapping_dao is not None:
+            regions = finemapping_dao.get_regions(v)
+        else:
+            regions = []
         return render_template('variant.html',
                                variant=variantdat[0],
                                results=variantdat[1],
+                               regions=regions,
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
                                var_top_pheno_export_fields=conf.var_top_pheno_export_fields,
                                vis_conf=conf.vis_conf
@@ -256,11 +262,21 @@ def region_page(phenocode, region):
         pheno = phenos[phenocode]
     except KeyError:
         die("Sorry, I couldn't find the phewas code {!r}".format(phenocode))
+    chr_se = region.split(':')
+    chrom = chr_se[0]
+    if finemapping_dao is not None:
+        start_end = finemapping_dao.get_max_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
+        cond_fm_regions = finemapping_dao.get_regions_for_pheno('all', phenocode, chrom, start_end['start'], start_end['end'])
+    else:
+        cond_fm_regions = []
     pheno['phenocode'] = phenocode
     return render_template('region.html',
                            pheno=pheno,
                            region=region,
+                           cond_fm_regions=cond_fm_regions,
+                           lz_p_threshold=conf.locuszoom_conf['p_threshold'],
                            tooltip_lztemplate=conf.parse.tooltip_lztemplate,
+                           vis_conf=conf.vis_conf
     )
 
 @app.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
@@ -269,9 +285,27 @@ def api_region(phenocode):
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
-    rv = get_pheno_region(phenocode, chrom, pos_start, pos_end)
+    rv = get_pheno_region(phenocode, chrom, pos_start, pos_end, conf.locuszoom_conf['p_threshold'])
+    jeeves.add_annotations(chrom, pos_start, pos_end, [rv])
     return jsonify(rv)
 
+@app.route('/api/conditional_region/<phenocode>/lz-results/')
+@check_auth
+def api_conditional_region(phenocode):
+    filter_param = request.args.get('filter')
+    groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
+    chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
+    rv = jeeves.get_conditional_regions_for_pheno(phenocode, chrom, pos_start, pos_end)
+    return jsonify(rv)
+
+@app.route('/api/finemapped_region/<phenocode>/lz-results/')
+@check_auth
+def api_finemapped_region(phenocode):
+    filter_param = request.args.get('filter')
+    groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
+    chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
+    rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, conf.locuszoom_conf['prob_threshold'])
+    return jsonify(rv)
 
 @functools.lru_cache(None)
 def get_gene_region_mapping():

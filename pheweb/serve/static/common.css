@@ -228,7 +228,11 @@ border {}
     pointer-events: none;
 }
 
-
 .st_per_page {
   display: none;
+}
+
+.tooltip-inner {
+    max-width: initial;
+    width: 600px;
 }

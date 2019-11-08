@@ -1,8 +1,0 @@
-{
-    "phenolist": "/mnt/r3/pheno-list.json.orig",
-    "pheno": "/mnt/r3/phenolist/R3_COV_PHENO_V1.txt",
-    "phenoname": "/mnt/r3/phenolist/Endpoint_definitions_FINNGEN_ENDPOINTS_DF3_V1.tsv",
-    "category": "/mnt/r3/phenolist/FG_class_definitions.txt",
-    "nomesco": "",
-    "html": ""
-}

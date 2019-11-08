@@ -1,0 +1,10 @@
+{
+    "pheweb_import.summaryfiles":"gs://r4_data_west1/ukb_meta/meta_pheweb_files_31phenos.txt",
+    "pheweb_import.docker": "gcr.io/finngen-refinery-dev/pheweb-import:r4_3",
+
+    "pheweb_import.annotation.phenofile": "gs://r4_data_west1/ukb_meta/summary_stats_meta/T2D_meta.gz",
+
+    "pheweb_import.matrix.cpu": 32,
+    "pheweb_import.matrix.mem": 3,
+    "pheweb_import.matrix.disk": 1000
+}

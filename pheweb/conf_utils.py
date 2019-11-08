@@ -139,14 +139,12 @@ def _ensure_conf():
     conf.set_default_value('within_pheno_mask_around_peak', int(500e3))
     conf.set_default_value('between_pheno_mask_around_peak', int(1e6))
     conf.set_default_value('manhattan_num_unbinned', 2000)
+    conf.set_default_value('manhattan_unbin_anyway_pval', 5e-8)
     conf.set_default_value('manhattan_hla_num_unbinned', 200)
     conf.set_default_value('hla_begin', 26000000)
     conf.set_default_value('hla_end', 36000000)
     conf.set_default_value("n_query_threads",4)
     conf.set_default_value('peak_pval_cutoff', 1e-6)
-    conf.set_default_value('elastic_host', 'localhost')
-    conf.set_default_value('elastic_port', 9200)
-    conf.set_default_value('elastic_index','finngen_r1_variant_annotation')
 
     if 'minimum_maf' in conf:
         raise utils.PheWebError("minimum_maf has been deprecated.  Please remove it and use assoc_min_maf and/or variant_inclusion_maf instead")
@@ -251,7 +249,7 @@ def _ensure_conf():
 
     default_per_assoc_fields = OrderedDict([
         ('pheno', {
-            'tooltip_lztemplate': 'phenotype: <strong>{{pheno}}</strong><br>',
+            'tooltip_lztemplate': 'phenotype: <strong>{{trait:pheno}}</strong><br>',
         }),
         ('pval', {
             'aliases': ['PVALUE'],
@@ -263,8 +261,8 @@ def _ensure_conf():
             'tooltip_underscoretemplate': 'p-value: <%= pValueToReadable(d.pval) %><br>',
             'tooltip_lztemplate': {
                 'condition': False,
-                'template': ('{{#if pvalue}}p-value: <strong>{{pvalue|scinotation}}</strong><br>{{/if}}\n' +
-                             '{{#if pval}}p-value: <strong>{{pval|scinotation}}</strong><br>{{/if}}'),
+                'template': ('{{#if trait:pvalue}}p-value: <strong>{{trait:pvalue|scinotation}}</strong><br>{{/if}}\n' +
+                             '{{#if trait:pval}}p-value: <strong>{{trait:pval|scinotation}}</strong><br>{{/if}}'),
             },
             'display': 'P-value',
         }),
@@ -273,7 +271,7 @@ def _ensure_conf():
             'nullable': True,
             'sigfigs': 2,
             'tooltip_underscoretemplate': 'beta: <%= d.beta.toFixed(2) %><% if(_.has(d, "sebeta")){ %> (<%= d.sebeta.toFixed(2) %>)<% } %><br>',
-            'tooltip_lztemplate': 'beta: <strong>{{beta}}</strong>{{#if sebeta}} ({{sebeta}}){{/if}}<br>',
+            'tooltip_lztemplate': 'beta: <strong>{{trait:beta}}</strong>{{#if trait:sebeta}} ({{trait:sebeta}}){{/if}}<br>',
             'display': 'Beta',
         }),
         ('sebeta', {
@@ -519,10 +517,10 @@ def _ensure_conf():
     conf.set_default_value("var_top_pheno_export_fields", ["beta","category",
     "maf","maf_cases","maf_controls","num_cases","num_controls","phenocode","phenostring","pval","sebeta","phewas_code",
     "phewas_string","category_name"]  )
-    conf.set_default_value("gene_pheno_export_fields", ["assoc.variant.id", "assoc.pval","assoc.beta","assoc.variant.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring"])
-    conf.set_default_value("drug_export_fields", ["drug.molecule_name", "drug.molecule_type", "evidence.target2drug.action_type", "disease.efo_info.label", "evidence.drug2clinic.max_phase_for_disease.label", "drug.id"])
+    conf.set_default_value("gene_pheno_export_fields", ["variant.id", "assoc.pval","assoc.beta","assoc.variant.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring", "variant.gnomad.AF_fin", "variant.gnomad.AF_nfe"])
+    conf.set_default_value("drug_export_fields", ["drug.molecule_name", "drug.molecule_type", "evidence.target2drug.action_type", "disease.efo_info.label", "evidence.drug2clinic.clinical_trial_phase.label", "drug.id"])
     conf.set_default_value("lof_export_fields", ["pheno", "variants", "p_value", "beta", "ref_alt_cases", "ref_alt_ctrls"])
 
     conf.set_default_value("report_conf", {"func_var_assoc_threshold":0.0001}  )
-    conf.set_default_value("vis_conf", {"loglog_threshold": 10})
+    conf.set_default_value("vis_conf", {"loglog_threshold": 10, "info_tooltip_threshold": 0.8})
     conf.set_default_value("lof_threshold", 1e-3)
