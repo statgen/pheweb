@@ -51,11 +51,9 @@ def pad_gene(start, end):
     # We'd like to get 100kb on each side of the gene.
     # But max-region-length is 500kb, so let's try not to exceed that.
     # Maybe this should only go down to 1 instead of 0. That's confusing, let's just hope this works.
-    if start < 1e5:
-        if end > 5e5: return (0, end)
-        if end > 4e5: return (0, 5e5)
-        return (0, end + 1e5)
-    padding = boltons.mathutils.clamp(5e5 - (end - start), 0, 2e5)
+    padding = boltons.mathutils.clamp(500e3 - (end - start), 0, 200e3)
+    start = int(max(0, start - padding/2))
+    end = int(end + padding//2)
     return (int(start - padding//2), int(end + padding//2))
 assert pad_gene(1000,     2345) == (0,      102345)
 assert pad_gene(1000,   400000) == (0,      500000)
