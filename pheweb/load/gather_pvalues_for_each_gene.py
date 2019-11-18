@@ -56,10 +56,10 @@ def get_gene_info(gene, matrix_reader):
     for phenocode, assoc in best_assoc_for_pheno.items():
         assoc['phenocode'] = phenocode
     phenos_in_gene = sorted(best_assoc_for_pheno.values(), key=lambda a:a['pval'])
-    # decide how many phenotypes to include:
-    #  - include all significant phenotypes.
-    #  - always include at least three phenotypes.
-    #  - include some of the first ten phenotypes based on pval heuristics.
+    # Decide how many phenotypes to show.
+    #  - Always show all significant phenotypes (with pvalue < 5e-8).
+    #  - Always show the three strongest phenotypes (even if none are significant).
+    #  - Look at the p-values of the 4th to 10th strongest phenotypes to decide how many of them to show.
     biggest_idx_to_include = 2
     for idx in range(biggest_idx_to_include, len(phenos_in_gene)):
         if phenos_in_gene[idx]['pval'] < 5e-8:

@@ -92,4 +92,3 @@ def get_indexed_rows(filename: str, key,
         # TODO: Improve this to support for big file ranges
         f.seek(start, 0)
         return f.read(end - start).splitlines()
-

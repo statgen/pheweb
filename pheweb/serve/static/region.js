@@ -181,7 +181,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         width: 800,
         // height: 550,
         responsive_resize: 'width_only',
-        max_region_scale: 5e5,
+        max_region_scale: 500e3,
         dashboard: {
             components: [{
                 type: 'link',
