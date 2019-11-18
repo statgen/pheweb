@@ -48,21 +48,22 @@ def get_phenolist(filepath=None):
 
 
 def pad_gene(start, end):
-    # We'd like to get 100kb on each side of the gene.
-    # But max-region-length is 500kb, so let's try not to exceed that.
-    # Maybe this should only go down to 1 instead of 0. That's confusing, let's just hope this works.
-    padding = boltons.mathutils.clamp(500e3 - (end - start), 0, 200e3)
-    start = int(max(0, start - padding/2))
-    end = int(end + padding//2)
-    return (int(start - padding//2), int(end + padding//2))
-assert pad_gene(1000,     2345) == (0,      102345)
-assert pad_gene(1000,   400000) == (0,      500000)
-assert pad_gene(200000, 400000) == (100000, 500000)
-assert pad_gene(200000, 500000) == (100000, 600000)
-assert pad_gene(200000, 500001) == (100001, 600000)
-assert pad_gene(200000, 600000) == (150000, 650000)
-assert pad_gene(200000, 700000) == (200000, 700000)
-assert pad_gene(200000, 800000) == (200000, 800000)
+    '''
+    Calculates a range to show in LocusZoom region views for a gene.
+    Adds 100kb on each side, but never go below 0 or pad longer than 500kb (LocusZoom's max_region_scale).
+    '''
+    total_padding = boltons.mathutils.clamp(int(500e3) - (end - start), 0, int(200e3))
+    padding_on_left = min(total_padding//2, start)  # if start < padding//2, use `start` to avoid going below 0.
+    padding_on_right = min(int(100e3), total_padding - padding_on_left)  # put the remaining padding on the right, but not more than 100kb.
+    return (start - padding_on_left, end + padding_on_right)
+assert pad_gene(1000,     2345) == (0,      102345), pad_gene(1000,     2345)
+assert pad_gene(1000,   400000) == (0,      500000), pad_gene(1000,   400000)
+assert pad_gene(200000, 400000) == (100000, 500000), pad_gene(200000, 400000)
+assert pad_gene(200000, 500000) == (100000, 600000), pad_gene(200000, 500000)
+assert pad_gene(200000, 500001) == (100001, 600001), pad_gene(200000, 500001)
+assert pad_gene(200000, 600000) == (150000, 650000), pad_gene(200000, 600000)
+assert pad_gene(200000, 700000) == (200000, 700000), pad_gene(200000, 700000)
+assert pad_gene(200000, 800000) == (200000, 800000), pad_gene(200000, 800000)
 
 
 chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
