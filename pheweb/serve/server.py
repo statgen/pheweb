@@ -1,8 +1,9 @@
 
+from ..load.load_utils import get_maf
 from ..utils import get_phenolist, get_gene_tuples, pad_gene, PheWebError
 from .. import conf
 from .. import parse_utils
-from ..file_utils import get_filepath
+from ..file_utils import get_filepath, get_pheno_filepath, VariantFileReader
 from .server_utils import get_variant, get_random_page, get_pheno_region
 from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
@@ -120,6 +121,40 @@ def variant_page(query:str):
 def api_pheno(phenocode:str):
     return send_from_directory(get_filepath('manhattan'), '{}.json'.format(phenocode))
 
+@bp.route('/api/manhattan-filtered/pheno/<phenocode>.json')
+@check_auth
+def api_pheno_filtered(phenocode):
+    pheno = phenos[phenocode]
+    indel = request.args.get('indel', '')
+    # TODO: replace these exceptions with abort(404)
+    if indel: assert indel in ['true', 'false'], indel
+    min_maf = float(request.args['min_maf']) if request.args.get('min_maf','') else None
+    max_maf = float(request.args['max_maf']) if request.args.get('max_maf','') else None
+    filtered_variants = []  # TODO: stream straight from VariantFileReader() -> Binner() without this intermediate list
+    weakest_pval_seen = 0
+    num_variants = 0
+    filepath = get_pheno_filepath('best_of_pheno', phenocode)
+    with VariantFileReader(filepath) as vfr:
+        for v in vfr:
+            num_variants += 1
+            if v['pval'] > weakest_pval_seen: weakest_pval_seen = v['pval']
+            if indel == 'true' and len(v['ref']) == 1 and len(v['alt']) == 1: continue
+            if indel == 'false' and (len(v['ref']) != 1 or len(v['alt']) != 1): continue
+            if min_maf is not None or max_maf is not None:
+                v_maf = get_maf(v, pheno)
+                if min_maf is not None and v_maf < min_maf: continue
+                if max_maf is not None and v_maf > max_maf: continue
+            filtered_variants.append(v)
+    from pheweb.load.manhattan import Binner
+    binner = Binner()
+    for variant in filtered_variants:
+        binner.process_variant(variant)
+    manhattan_data = binner.get_result()
+    manhattan_data['weakest_pval'] = weakest_pval_seen
+    #print(f'indel={indel} maf={min_maf}-{max_maf} #filtered={len(filtered_variants)} #bins={len(manhattan_data["variant_bins"])} #unbinned={len(manhattan_data["unbinned_variants"])} weakest_pval={weakest_pval_seen}')
+    return jsonify(manhattan_data)
+
+
 @bp.route('/top_hits')
 @check_auth
 def top_hits_page():
@@ -170,6 +205,20 @@ def pheno_page(phenocode:str):
     return render_template('pheno.html',
                            show_correlations=conf.should_show_correlations(),
                            pheno_correlations_pvalue_threshold=conf.get_pheno_correlations_pvalue_threshold(),
+                           show_manhattan_filter_button=conf.should_show_manhattan_filter_button(),
+                           phenocode=phenocode,
+                           pheno=pheno,
+                           tooltip_underscoretemplate=parse_utils.tooltip_underscoretemplate,
+    )
+
+@bp.route('/pheno-filter/<phenocode>')
+@check_auth
+def pheno_filter_page(phenocode):
+    try:
+        pheno = phenos[phenocode]
+    except KeyError:
+        die("Sorry, I couldn't find the pheno code {!r}".format(phenocode))
+    return render_template('pheno-filter.html',
                            phenocode=phenocode,
                            pheno=pheno,
                            tooltip_underscoretemplate=parse_utils.tooltip_underscoretemplate,

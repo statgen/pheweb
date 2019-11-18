@@ -188,3 +188,4 @@ def get_secret_key() -> str: return _get_config_str('SECRET_KEY', 'nonsecret key
 def is_secret_download_pheno_sumstats() -> bool: return _get_config_bool('secret_download_pheno_sumstats', False)
 def get_google_analytics_id() -> Optional[str]: return _get_config_optional_str('GOOGLE_ANALYTICS_TRACKING_ID')
 def get_sentry_id() -> Optional[str]: return _get_config_optional_str('SENTRY_DSN')
+def should_show_manhattan_filter_button() -> bool: return _get_config_bool('show_manhattan_filter_button', False)

@@ -6,19 +6,11 @@
 <script src="https://unpkg.com/locuszoom@{{ config.LZJS_VERSION }}/dist/locuszoom.vendor.min.js" type="text/javascript"></script>
 <script src="https://unpkg.com/d3-tip@0.6.7/index.js"></script>
 <script src="{{ url_for('.static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('.static', filename='pheno.js') }}" type="text/javascript"></script>
-{% if show_correlations %}
-  {#  TODO: Better dependency management #}
-  <link href="https://unpkg.com/tabulator-tables@4.2.2/dist/css/bootstrap/tabulator_bootstrap.min.css" rel="stylesheet">
-  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.2.2/dist/js/tabulator.min.js"></script>
-{% endif %}
+<script src="{{ url_for('.static', filename='pheno-filter.js') }}" type="text/javascript"></script>
 
 <script type="text/javascript">
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }};
   window.pheno = {{ phenocode|tojson|safe }};
-  window.model.show_correlations = {{ show_correlations | tojson }};
-  window.model.correlations_url = {{ url_for('.api_pheno_correlations', phenocode=pheno['phenocode'] ) | tojson }};
-  window.model.pheno_correlations_pvalue_threshold = {{ pheno_correlations_pvalue_threshold | tojson }};
 
   $.getJSON(window.model.urlprefix + "/api/manhattan/pheno/" + window.pheno + ".json")
   .done(function(data) {
@@ -27,24 +19,7 @@
       populate_streamtable(data.unbinned_variants);
   })
   .fail(function() {
-    console.log("Manhattan XHR failed");
-  });
-  $.getJSON(window.model.urlprefix + "/api/qq/pheno/" + window.pheno + ".json")
-  .done(function(data) {
-    window.debug.qq = data;
-    _.sortBy(_.pairs(data.overall.gc_lambda), function(d) {return -d[0];}).forEach(function(d, i) {
-      var text = 'GC lambda ' + d[0] + ': ' + d[1].toFixed(3);
-      if (i === 0) { text = '<b>' + text + '</b>'; }
-      text = '<br>' + text;
-      $('.gc-control').append(text);
-    });
-  if (data.by_maf)
-    create_qq_plot(data.by_maf, data.ci);
-  else
-    create_qq_plot([{maf_range:[0,0.5], qq:data.overall.qq, count:data.overall.count}], data.ci);
-  })
-  .fail(function() {
-    console.log("QQ XHR failed");
+    console.log("Manh XHR failed");
   });
 </script>
 <style type="text/css">
@@ -85,15 +60,6 @@
 }
 #manhattan_plot_container .axis g.tick line {
   stroke: #666;
-}
-
-#qq_plot_container .axis path.domain {
-  stroke: black;
-  fill: none;
-}
-#qq_plot_container .axis g.tick line {
-  stroke: #666;
-  opacity: 0.3;
 }
 
 .pheno-info > p {
@@ -139,33 +105,52 @@
         {% if pheno.category %}
           <p>Category: <b>{{ pheno.category}}</b></p>
         {% endif %}
-        {% include "pheno/info.html" %}
-    </div>
-    <div class="pheno-info col-xs-12 col-sm-4">
-      {% if config.DOWNLOAD_PHENO_SUMSTATS_BUTTON %}
-      <span class="pull-right">
-        <a class="btn btn-default" href="{{ url_for('.download_pheno', phenocode=phenocode) }}">Download summary statistics</a>
-      </span>
-      {% endif %}
-      {% if show_manhattan_filter_button %}
-      <span class="pull-right" style="margin-left:1em">
-        <a class="btn btn-default" href="{{ url_for('.pheno_filter_page', phenocode=phenocode) }}">Filter Variants</a>
-      </span>
-      {% endif %}
     </div>
 </div>
 <div class="row">
-  <div class="col-xs-12">
-    <ul>
-      <li class="section-link"><a href="#manhattan">Manhattan</a></li>
-      <li class="section-link"><a href="#qq">QQ</a></li>
-      {% if show_correlations %}<li class="section-link"><a href="#correlations">Correlated phenotypes</a></li>{% endif %}
-    </ul>
-  </div>
+    <div class="col">
+      <div style="text-align: center">
+        Minor Allele Freq Range:
+        <input id=min_maf_input type=text value=0 style="width:4em"> -
+        <input id=max_maf_input type=text value=0.5 style="width:4em">
+        <div id=snp_indel class="btn-group btn-group-toggle" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="radio" name="options" id="option1" autocomplete="off"> SNP
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="options" id="option2" autocomplete="off"> Indel
+          </label>
+          <label class="btn btn-primary active">
+            <input type="radio" name="options" id="option3" autocomplete="off" checked> Both
+          </label>
+        </div>
+
+        <button id=filter_button type=button class="btn btn-primary">Filter</button>
+      </div>
+    </div>
 </div>
+
 <div class="row">
     <div class="col-xs-12" id="manhattan">
         <div id="manhattan_plot_container">
+          <svg id="gwas_svg">
+            <defs>
+              <pattern id="pattern-stripe" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="2" height="4" transform="translate(0,0)" fill="white"></rect>
+              </pattern>
+              <mask id="mask-stripe"><rect x="0" y="0" width="100%" height="100%" fill="url(#pattern-stripe)" /></mask>
+            </defs>
+            <g id="gwas_plot">
+              <g id="genenames"></g>
+              <g id="variant_hover_rings"></g>
+              <g id="variant_points"></g>
+              <g id="variant_bins"></g>
+              <rect id="unchecked_variants_mask" style="fill:gray; mask:url(#mask-stripe)" transform="translate(-3,0)"/>
+              <g id="filtered_variant_hover_rings"></g>
+              <g id="filtered_variant_points"></g>
+              <g id="filtered_variant_bins"></g>
+            </g>
+          </svg>
         </div>
     </div>
 </div>
@@ -199,28 +184,6 @@
     </table>
   </div>
 </div>
-
-<div class="row">
-    <div class="pheno-info col-xs-12 col-sm-4 col-md-3 col-lg-3">
-      <h3 id="qq">QQ plot:</h3>
-      <div id="qq_plot_container"></div>
-      <p class="gc-control"></p>
-      <i>(Genomic Control lambda calculated based on the 50th percentile (median), 10th percentile, 1st percentile, and 1/10th of a percentile)</i>
-      <br><br><br>
-    </div>
-</div>
-
-{% if show_correlations %}
-  <div class="row" id="correlations">
-    <div class="col-md-12">
-      <h2>Correlated phenotypes for {% include "pheno/h1.html" %}</h2>
-      <p>
-        Genetically correlated traits are calculated using genome-wide association summary statistics via LD Score regression (<a href="https://doi.org/10.1038/ng.3211">LDSC</a>).
-      </p>
-      <div id="correlations-table" class="table-striped table-bordered"></div>
-    </div>
-  </div>
-{% endif %}
 
 
 <script type="text/template" id="streamtable-template">
