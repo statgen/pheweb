@@ -24,7 +24,7 @@
       populate_streamtable(data.unbinned_variants);
   })
   .fail(function() {
-    console.log("QQ XHR failed");
+    console.log("Manhattan XHR failed");
   });
   $.getJSON(window.model.urlprefix + "/api/qq/pheno/" + window.pheno + ".json")
   .done(function(data) {

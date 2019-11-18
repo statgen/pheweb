@@ -64,6 +64,8 @@ class Binner:
         self._unbinned_variant_pq = MaxPriorityQueue()
         self._bins = {} # like {<chrom>: {<pos // bin_length>: [{chrom, startpos, qvals}]}}
         self._qval_bin_size = 0.05 # this makes 200 bins for the minimum-allowed y-axis covering 0-10
+        self._num_significant_in_current_peak = 0  # num variants stronger than manhattan_peak_variant_counting_pval_threshold
+        assert conf.manhattan_peak_variant_counting_pval_threshold < conf.manhattan_peak_pval_threshold # counting must be stricter than peak-extending
 
     def process_variant(self, variant):
         '''
@@ -89,7 +91,9 @@ class Binner:
             if self._peak_best_variant is None: # open a new peak
                 self._peak_best_variant = variant
                 self._peak_last_chrpos = (variant['chrom'], variant['pos'])
+                self._num_significant_in_current_peak = 1 if variant['pval'] < conf.manhattan_peak_variant_counting_pval_threshold else 0
             elif self._peak_last_chrpos[0] == variant['chrom'] and self._peak_last_chrpos[1] + conf.manhattan_peak_sprawl_dist > variant['pos']: # extend current peak
+                if variant['pval'] < conf.manhattan_peak_variant_counting_pval_threshold: self._num_significant_in_current_peak += 1
                 self._peak_last_chrpos = (variant['chrom'], variant['pos'])
                 if variant['pval'] >= self._peak_best_variant['pval']:
                     self._maybe_bin_variant(variant)
@@ -97,6 +101,8 @@ class Binner:
                     self._maybe_bin_variant(self._peak_best_variant)
                     self._peak_best_variant = variant
             else: # close old peak and open new peak
+                self._peak_best_variant['num_significant_in_peak'] = self._num_significant_in_current_peak
+                self._num_significant_in_current_peak = 1 if variant['pval'] < conf.manhattan_peak_variant_counting_pval_threshold else 0
                 self._maybe_peak_variant(self._peak_best_variant)
                 self._peak_best_variant = variant
                 self._peak_last_chrpos = (variant['chrom'], variant['pos'])
@@ -124,6 +130,7 @@ class Binner:
         self.get_result = None # this can only be called once
 
         if self._peak_best_variant:
+            self._peak_best_variant['num_significant_in_peak'] = self._num_significant_in_current_peak
             self._maybe_peak_variant(self._peak_best_variant)
 
         peaks = list(self._peak_pq.pop_all())
