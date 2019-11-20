@@ -28,8 +28,8 @@ function populate_streamtable(phenotypes) {
             callbacks: callbacks,
             pagination: {
                 span: 5,
-                next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
-                prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
+                next_text: 'Next',
+                prev_text: 'Previous',
                 per_page_select: false,
                 per_page_opts: [100], // this is the best way I've found to control the number of rows
             }

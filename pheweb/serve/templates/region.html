@@ -26,12 +26,12 @@
  {% endif %}
 {% endfor %}
 <div class="row">
-  <div class="col-xs-12">
+  <div class="col-12">
     <h1 style="margin-top:0">{% include "region/h1.html" %}</h1>
   </div>
 </div>
 <div class="row">
-    <div class="pheno-info col-xs-12">
+    <div class="pheno-info col-12">
         {% if 'num_cases' in pheno %}
           <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
         {% elif 'num_samples' in pheno %}
@@ -44,7 +44,7 @@
 </div>
 <br>
 <div class="row">
-  <div class="col-xs-12">
+  <div class="col-12">
     <div id="lz-1" class="lz-container-responsive" data-region={{ region }}></div>
   </div>
 </div>

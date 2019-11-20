@@ -122,12 +122,12 @@
  {% endif %}
 {% endfor %}
 <div class="row">
-    <div class="col-xs-12">
+    <div class="col-12">
         <h1 style="margin-top:0">{% include "pheno/h1.html" %}</h1>
     </div>
 </div>
 <div class="row">
-    <div class="pheno-info col-xs-12 col-sm-8">
+    <div class="pheno-info col-12 col-sm-8">
         {% if 'num_cases' in pheno %}
           <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
         {% elif 'num_samples' in pheno %}
@@ -137,7 +137,7 @@
           <p>Category: <b>{{ pheno.category}}</b></p>
         {% endif %}
     </div>
-    <div class="pheno-info col-xs-12 col-sm-4">
+    <div class="pheno-info col-12 col-sm-4">
       {% if config.DOWNLOAD_PHENO_SUMSTATS_BUTTON %}
       <span class="pull-right">
         <a class="btn btn-default" href="{{ url_for('.download_pheno', phenocode=phenocode) }}">Download summary statistics</a>
@@ -146,7 +146,7 @@
     </div>
 </div>
 <div class="row">
-  <div class="col-xs-12">
+  <div class="col-12">
     <ul>
       <li class="section-link"><a href="#manhattan">Manhattan</a></li>
       <li class="section-link"><a href="#qq">QQ</a></li>
@@ -155,27 +155,27 @@
   </div>
 </div>
 <div class="row">
-    <div class="col-xs-12" id="manhattan">
+    <div class="col-12" id="manhattan">
         <div id="manhattan_plot_container">
         </div>
     </div>
 </div>
 
 <div class="row">
-  <div class="col-xs-12 col-md-8">
+  <div class="col-12 col-md-8">
     <h3>Top Loci:</h3>
   </div>
 </div>
 <div class="row">
-  <div class="col-xs-12 col-sm-8 col-md-6">
+  <div class="col-12 col-sm-8 col-md-6">
     <input type="text" class="form-control" id="search" placeholder="Search... &quot;TCF7L2&quot;, &quot;rs1861867&quot;, etc.">
   </div>
-  <div class="col-xs-12 col-sm-4 col-sm-6">
+  <div class="col-12 col-sm-4 col-sm-6">
     <h5 class="pull-right"><div id="streamtable-found" class="label label-primary"></div></h5>
   </div>
 </div>
 <div class="row stream_table_row">
-  <div class="col-xs-12">
+  <div class="col-12">
     <table id="stream_table" class="table table-striped table-bordered">
       <thead>
         <tr>
@@ -192,7 +192,7 @@
 </div>
 
 <div class="row">
-    <div class="pheno-info col-xs-12 col-sm-4 col-md-3 col-lg-3">
+    <div class="pheno-info col-12 col-sm-4 col-md-3 col-lg-3">
       <h3 id="qq">QQ plot:</h3>
       <div id="qq_plot_container"></div>
       <p class="gc-control"></p>

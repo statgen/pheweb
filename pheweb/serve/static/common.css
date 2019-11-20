@@ -1,6 +1,9 @@
-/* Reconcile bootstrap3 to typeahead.js (the real Typeahead, not bootstrap-typeahead) */
+/* Reconcile bootstrap4 to typeahead.js (the real Typeahead, not bootstrap-typeahead) */
 .twitter-typeahead {
-  width: 100%;
+    flex-grow: 1;
+}
+.tt-input {
+    width: 100% !important;
 }
 .tt-menu {
   margin-top: 2px;

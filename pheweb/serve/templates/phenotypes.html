@@ -16,7 +16,7 @@
   padding: 4px;
   padding-left: 6px;
   padding-bottom: 3px;
-  font-size: 90%;
+  font-size: 13px;
 }
 .nearest_genes_col {
   max-width: 15em;
@@ -27,22 +27,22 @@
 
 {% block contained %}
 <div class="row">
-    <div class="col-xs-12">
+    <div class="col-12">
         <h1 style="margin-top:0">All Phenotypes</h1>
     </div>
 </div>
 <br>
 
 <div class="row" style="margin-bottom: 0.5em">
-  <div class="col-xs-12 col-sm-8 col-md-6">
+  <div class="col-12 col-sm-8 col-md-6">
         <input type="text" class="form-control" id="search" placeholder="Search... &quot;TCF7L2&quot;, &quot;rs1861867&quot;, etc.">
   </div>
-  <div class="col-xs-12 col-sm-4 col-md-6">
-    <h5 class="pull-right"><div id="streamtable-found" class="label label-primary"></div></h5>
+  <div class="col-12 col-sm-4 col-md-6">
+    <h5 class="float-right"><div id="streamtable-found" class="badge badge-primary"></div></h5>
   </div>
 </div>
 <div class="row stream_table_row">
-  <div class="col-xs-12">
+  <div class="col-12">
     <table id="stream_table" class="table table-striped table-bordered">
       <thead>
         <tr>

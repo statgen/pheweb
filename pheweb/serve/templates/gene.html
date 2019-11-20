@@ -21,17 +21,17 @@
 
 {% block contained %}
 <div class="row">
-  <div class="col-xs-12">
+  <div class="col-12">
     <h1 style="margin-top:0">{{ gene_symbol }}</h1>
   </div>
 </div>
 {% if significant_phenos %}
 <div class="row">
-  <div class="col-md-10 col-xs-12">
+  <div class="col-md-10 col-12">
     <p>Phenotypes with the most-significant associations for this locus:</p>
 
       <div class="row stream_table_row">
-        <div class="col-xs-12">
+        <div class="col-12">
           <table id="stream_table" class="table table-striped table-bordered">
             <thead>
               <tr>
@@ -59,7 +59,7 @@
  {% endif %}
 {% endfor %}
 <div class="row">
-    <div class="pheno-info col-xs-12">
+    <div class="pheno-info col-12">
         {% if 'num_cases' in pheno %}
           <p><b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls.</p>
         {% elif 'num_samples' in pheno %}
@@ -73,7 +73,7 @@
 <br>
 
 <div class="row">
-  <div class="col-xs-12">
+  <div class="col-12">
     <div id="lz-1" class="lz-container-responsive" data-region={{ region }}></div>
   </div>
 </div>

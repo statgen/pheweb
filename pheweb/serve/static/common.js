@@ -46,7 +46,7 @@ if (!String.prototype.includes) {
     });
 
     $(function() {
-        $('.typeahead').typeahead({
+        $('#mainsearch').typeahead({
             hint: false,
             highlight: true,
             minLength: 1,
@@ -61,7 +61,7 @@ if (!String.prototype.includes) {
             }
         });
 
-        $('.typeahead').bind('typeahead:select', function(ev, suggestion) {
+        $('#mainsearch').bind('typeahead:select', function(ev, suggestion) {
             window.location.href = suggestion.url;
         });
     });
