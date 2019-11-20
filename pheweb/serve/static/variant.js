@@ -50,80 +50,44 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
     return null;
 });
 
+// sort phenotypes
 (function() {
-    // sort phenotypes
     if (_.any(window.variant.phenos.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
         window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return d.phenocode; });
     } else {
         window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return parseFloat(d.phenocode); });
     }
 
-    window.first_of_each_category = (function() {
-        var categories_seen = {};
-        return window.variant.phenos.filter(function(pheno) {
-            if (categories_seen.hasOwnProperty(pheno.category)) {
-                return false;
-            } else {
-                categories_seen[pheno.category] = 1;
-                return true;
+    var category_order = {};
+    (function() {
+        window.variant.phenos.forEach(function(pheno) {
+            if (!category_order.hasOwnProperty(pheno.category)) {
+                category_order[pheno.category] = Object.keys(category_order).length;
             }
         });
     })();
-    var category_order = (function() {
-        var rv = {};
-        first_of_each_category.forEach(function(pheno, i) {
-            rv[pheno.category] = i;
-        });
-        return rv;
-    })();
+
     // _.sortBy is a stable sort, so we just sort by category_order and we're good.
-    window.variant.phenos = _.sortBy(window.variant.phenos, function(d) {
-        return category_order[d.category];
-    });
-    window.unique_categories = d3.set(window.variant.phenos.map(_.property('category'))).values();
-    window.color_by_category = ((unique_categories.length>10) ? d3.scale.category20() : d3.scale.category10())
-        .domain(unique_categories);
-
-    window.variant.phenos.forEach(function(d, i) {
-        d.phewas_code = d.phenocode;
-        d.phewas_string = (d.phenostring || d.phenocode);
-        d.category_name = d.category;
-        d.color = color_by_category(d.category);
-        d.idx = i;
-    });
+    window.variant.phenos = _.sortBy(window.variant.phenos, function(d) { return category_order[d.category]; });
+    window.variant.phenos.forEach(function(d, i) { d.x = i; });
 })();
-
 
 (function() { // Create PheWAS plot.
 
+    // make log_pvalue, trait_group, trait_label
     var best_neglog10_pval = d3.max(window.variant.phenos.map(function(x) { return LocusZoom.TransformationFunctions.get('neglog10')(x.pval); }));
     var neglog10_handle0 = function(x) {
         if (x === 0) return best_neglog10_pval * 1.1;
         return -Math.log(x) / Math.LN10;
     };
-    LocusZoom.TransformationFunctions.set("neglog10_handle0", neglog10_handle0);
+    window.variant.phenos.forEach(function(d) {
+        d.log_pvalue = neglog10_handle0(d.pval);
+        d.trait_group = d.category;
+        d.trait_label = d.phenostring || d.phenocode;
+    });
 
-    // Define data sources object
-    LocusZoom.Data.PheWASSource.prototype.getData = function(state, fields, outnames, trans) {
-        // Override all parsing, namespacing, and field extraction mechanisms, and load data embedded within the page
-        trans = trans || [];
-
-        var data = deepcopy(window.variant.phenos); //otherwise LZ adds attributes I don't want to the original data.
-        data.forEach(function(d, i) {
-            data[i].x = i;
-            data[i].id = i.toString();
-            trans.forEach(function(transformation, t){
-                if (typeof transformation === "function"){
-                    data[i][outnames[t]] = transformation(data[i][fields[t]]);
-                }
-            });
-        });
-        return function(chain) {
-            return {header: chain.header || {}, body: data};
-        }.bind(this);
-    };
     var data_sources = new LocusZoom.DataSources()
-      .add("phewas", ["PheWASLZ", {url: '/this/is/not/used'}]);
+      .add("phewas", ["PheWASLZ", {url: '/this/is/not/used', params:{build:'GRCh37'}}]);
 
     var neglog10_significance_threshold = -Math.log10(0.05 / window.variant.phenos.length);
 
@@ -147,15 +111,6 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
                 }),
                 custom_LocusZoom_Layouts_get('data_layer', 'phewas_pvalues', {
                     unnamespaced: true,
-                    id_field: 'idx',
-                    color: {
-                        field: "category_name",
-                        scale_function: "categorical_bin",
-                        parameters: {
-                            categories: window.unique_categories,
-                            values: window.unique_categories.map(function(cat) { return window.color_by_category(cat); }),
-                        },
-                    },
                     point_shape: [
                         {
                             scale_function: 'effect_direction',
@@ -166,11 +121,9 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
                         },
                         'circle'
                     ],
-                    "y_axis.field": 'pval|neglog10_handle0',  // handles pval=0 a little better
-                    "y_axis.upper_buffer": 0.1,
                     "y_axis.min_extent": [0, neglog10_significance_threshold*1.05], // always show sig line
 
-                    "x_axis.min_extent": [-1, window.variant.phenos.length], // a little x-padding so that no points intersect the edge
+//                    "x_axis.min_extent": [-1, window.variant.phenos.length], // a little x-padding so that no points intersect the edge
 
                     "tooltip.closable": false,
                     "tooltip.html": ("<div><strong>{{phewas_string}}</strong></div>\n" +
@@ -178,11 +131,10 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
                                      window.model.tooltip_lztemplate),
 
                     // Show labels that are: in the top 10, and (by neglog10) >=75% of sig threshold, and >=25% of best
-                    "label.text": "{{phewas_string}}",
                     "label.filters": (function() {
                         var ret = [
-                            {field:"pval|neglog10_handle0", operator:">", value:neglog10_significance_threshold * 3/4},
-                            {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 4}
+                            {field:"log_pvalue", operator:">", value:neglog10_significance_threshold * 3/4},
+                            {field:"log_pvalue", operator:">", value:best_neglog10_pval / 4}
                         ];
                         if (window.variant.phenos.length > 10) {
                             ret.push({field:"pval", operator:"<", value:_.sortBy(window.variant.phenos.map(_.property('pval')))[10]});
@@ -190,21 +142,11 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
                         return ret;
                     })(),
 
-                    "behaviors.onclick": [{action:"link", href:window.model.urlprefix+"/pheno/{{phewas_code}}"}],
+                    "behaviors.onclick": [{action:"link", href:window.model.urlprefix+"/pheno/{{phenocode}}"}],
                 }),
             ],
 
-            // Use categories as x ticks.
-            "axes.x.ticks": window.first_of_each_category.map(function(pheno) {
-                return {
-                    style: {fill: pheno.color, "font-size":"11px", "font-weight":"bold", "text-anchor":"start"},
-                    transform: "translate(15, 0) rotate(50)",
-                    text: pheno.category,
-                    x: pheno.idx
-                };
-            }),
-
-            "axes.y1.label": "-log\u2081\u2080(p-value)",
+//            "axes.y1.label": "-log\u2081\u2080(p-value)",
         })]
     };
 
