@@ -4,13 +4,18 @@ First, try:
 
 ```bash
 python3 -m pip install pheweb
+pheweb --help
 ```
 
 *(Note: In most cases this is equivalent to `pip3 install pheweb`, but if you have a bad version of `pip3` on your `$PATH`, using `python3 -m pip` will avoid it.)*
 
-If you get the error `Segmentation fault (core dumped)`, try running `python3 -m pip install --no-binary=cffi,cryptography,pyopenssl pheweb` instead. ([more info](https://github.com/pypa/pip/issues/5366))
+- If you get the error `Segmentation fault (core dumped)`, try running `python3 -m pip install --no-binary=cffi,cryptography,pyopenssl pheweb` instead. ([more info](https://github.com/pypa/pip/issues/5366))
 
-If that command fails in a different way, then use one of the approaches below.
+- If you get an error related to pysam, run `python3 -m pip install -U cython; python3 -m pip install https://github.com/pysam-developers/pysam/archive/master.zip` and try again.
+
+- If installation was successful but the command `pheweb --help` is not found, run `echo 'PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`, start a new terminal, and try `pheweb --help` again.  If you're on macOS, you might need `echo 'source "$HOME/.bashrc" >> ~/.bash_profile`.
+
+- If that command fails in a different way, then use one of the approaches below.
 
 
 ### Installing on Linux with `sudo`:
