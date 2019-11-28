@@ -220,6 +220,11 @@ class VariantListMerger:
         # key is like (chrom_idx, pos, ref, alt)
 
     def insert(self, variant, reader_id):
+        # Delete extra keys that would cause two of the same variant to not look like a pair.
+        # This is useful if the user has replaced parsed files with symlinks to annotated files in order to save space.
+        # Require that variants match exactly, because if "chrM:1234:A:T" equals "chrMT:1234:A:T" then the merged file won't match the original files.
+        for key in [key for key in variant.keys() if key not in ('chrom', 'pos', 'ref', 'alt')]:
+            del variant[key]
         key = self._key_from_variant(variant)
         idx = bisect.bisect_left(self._q, (key,)) # note: (a,) < (a,b)
         if idx == len(self._q) or self._q[idx][0] != key:
