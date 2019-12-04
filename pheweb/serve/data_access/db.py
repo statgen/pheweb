@@ -365,6 +365,7 @@ class DrugDao(DrugDB):
 
     def get_drugs(self, gene):
         r = requests.get("http://rest.ensembl.org/xrefs/symbol/human/" + gene + "?content-type=application/json")
+        print(r)
         dat = r.json()
         if len(dat)==0:
             return []

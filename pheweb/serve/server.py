@@ -67,11 +67,9 @@ for c in conf.database_conf:
         app.config['ukbb'] = True
         
 app.json_encoder = FGJSONEncoder
-print('3')
 
 if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
-print('2')
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
@@ -84,7 +82,6 @@ finemapping_dao = dbs_fact.get_finemapping_dao()
 ukbb_dao = dbs_fact.get_UKBB_dao()
 ukbb_matrixdao =dbs_fact.get_UKBB_dao(True)
 threadpool = ThreadPoolExecutor(max_workers=4)
-print('4')
 
 jeeves = ServerJeeves( conf )
 
@@ -126,6 +123,16 @@ def homepage(path):
 @check_auth
 def autoreport(phenocode):
     return jsonify(jeeves.get_autoreport(phenocode))
+
+@app.route('/api/ld')
+@check_auth
+def ld():
+    url = conf.ld_server + '/api/ld?'
+    url_parts = list(urlparse.urlparse(url))
+    query = {param: request.args.get(param) for param in request.args}
+    url_parts[3] = urlencode(query)
+    print(urlparse.urlunparse(url_parts).replace(';', '?'))
+    return urllib.request.urlopen(urlparse.urlunparse(url_parts).replace(';', '?')).read()
 
 @app.route('/api/pheno/<phenocode>')
 @check_auth
@@ -279,6 +286,11 @@ def random_page():
         die("Sorry, it looks like no hits in this pheweb reached the significance threshold.")
     return redirect(url)
 
+@app.route('/api/ukbb_n/<phenocode>')
+@check_auth
+def ukbb_ns(phenocode):
+    return jsonify(ukbb_dao.getNs(phenocode))
+
 @app.route('/pheno_/<phenocode>')
 @check_auth
 def pheno_page(phenocode):
@@ -311,11 +323,12 @@ def region_page(phenocode, region):
     else:
         cond_fm_regions = []
     pheno['phenocode'] = phenocode
+    print(conf.locuszoom_conf)
     return render_template('region.html',
                            pheno=pheno,
                            region=region,
                            cond_fm_regions=cond_fm_regions,
-                           lz_p_threshold=conf.locuszoom_conf['p_threshold'],
+                           lz_conf=conf.locuszoom_conf,
                            tooltip_lztemplate=conf.parse.tooltip_lztemplate,
                            vis_conf=conf.vis_conf
     )
@@ -390,6 +403,7 @@ def gene_phenocode_page(phenocode, genename):
                                gene_symbol=genename,
                                region='{}:{}-{}'.format(chrom, start, end),
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
+                               lz_conf=conf.locuszoom_conf,
                                gene_pheno_export_fields=conf.gene_pheno_export_fields,
                                drug_export_fields=conf.drug_export_fields,
                                lof_export_fields=conf.lof_export_fields,

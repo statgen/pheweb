@@ -19,7 +19,11 @@
     // clinvar needs to be added after gene because genes within locuszoom data chain are used for fetching
     data_sources.add("gwas_cat", new LocusZoom.Data.GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
     data_sources.add("clinvar", new LocusZoom.Data.ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
-    data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/", params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:rsid" }}));
+    if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
+	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "/api/ld", params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:id" }}));
+    } else {
+	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/", params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:rsid" }}));
+    }	
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 16} }]); // source id 16 is build 38, 15 is 37
 
     var scatters = ['association', 'conditional', 'finemapping', 'gwas_cat']
@@ -225,7 +229,7 @@
 							  region.type == 'finemap' ?
 							  '<span>' + region.n_signals + ' ' + region.type + ' signals (prob. ' + region.n_signals_prob.toFixed(3) + ')</span><br/>' :
 							  '<span>' + region.n_signals + ' ' + region.type + ' signals</span><br/>'
-							 ).join('') + '<span>Conditional analysis results are approximations from summary stats.</span><br/>'
+							 ).join('') + '<span>Conditional analysis results are approximations from summary stats. Conditioning is repeated until no signal p < 1e-6 is left.</span><br/>'
 	    $('#region_summary').html(summary_html)
 	    if (window.cond_fm_regions.filter(region => region.type == 'conditional')[0].n_signals > 1) {
 		var opt_html = window.cond_fm_regions.filter(region => region.type == 'conditional')[0].paths.map((path, i) => 

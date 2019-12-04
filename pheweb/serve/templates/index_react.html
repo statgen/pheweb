@@ -44,6 +44,61 @@
   window.vis_conf = {{vis_conf|tojson|safe}}
 </script>
 
+<style type="text/css">
+.d3-tip {
+  line-height: 1.4;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 4px;
+  pointer-events: none;
+}
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  pointer-events: none;
+}
+/* Northward tooltips */
+.d3-tip.n:after {
+  content: "\25BC";
+  margin: -3px 0 0 0;
+  top: 100%;
+  left: 0;
+  text-align: center;
+}
+
+#manhattan_plot_container {
+  min-width: 700px;
+}
+#manhattan_plot_container .axis > path.domain {
+  stroke-width: 2px;
+  stroke: #666;
+  fill: none;
+}
+#manhattan_plot_container .axis g.tick line {
+  stroke: #666;
+}
+
+#qq_plot_container .axis path.domain {
+  stroke: black;
+  fill: none;
+}
+#qq_plot_container .axis g.tick line {
+  stroke: #666;
+  opacity: 0.3;
+}
+
+.icd9-info > p, .pheno-info > p {
+  margin-bottom: 0;
+}
+
+</style>
+
 <body>
 <nav class="navbar navbar-default" style="background: white;">
     <div class="container-fluid">

@@ -8,13 +8,17 @@
     var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
+    data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     data_sources.add("gwas_cat", new LocusZoom.Data.GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
-    data_sources.add("base", ["AssociationLZ", localBase]);
     data_sources.add("gene", ["GeneLZ", {url:remoteBase + "annotation/genes/", params:{source:1}}])
     data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
     // clinvar needs to be added after gene because genes within locuszoom data chain are used for fetching
     data_sources.add("clinvar", new LocusZoom.Data.ClinvarDataSource({url: "/api/ncbi/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
-    data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/", params: { id:[1,4] ,pvalue_field: "pvalue", "var_id_field":"rsid" }}));
+    if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
+	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "/api/ld", params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:id" }}));
+    } else {
+	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/", params: { id:[1,4] ,pvalue_field: "pvalue", "var_id_field":"rsid" }}));
+    }	
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
@@ -90,7 +94,7 @@
         height: 400,
         "min_width": 800,
         "min_height": 400,
-        responsive_resize: true,
+        responsive_resize: 'both',
         "resizable": "responsive",
         // aspect_ratio: 2, // do I want this?
         "min_region_scale": 2e4,
@@ -294,9 +298,9 @@
                     "class": "lz-data_layer-scatter"
                 }],
 
-                fields: ["id", "chr","rsid","position", "ref", "alt", "pvalue", "pvalue|neglog10_or_100", "ld:state", "ld:isrefvar"],
+                fields: ["association:id", "association:chr","association:rsid","association:position", "association:ref", "association:alt", "association:pvalue", "association:pvalue|neglog10_or_100", "association:beta", "association:sebeta", "association:maf", "association:maf_cases", "association:maf_controls", "association:most_severe", "association:fin_enrichment", "association:INFO",  "ld:state", "ld:isrefvar"],
                 // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
-                id_field: "id",
+                id_field: "association:id",
                 behaviors: {
                     onmouseover: [{action: "set", status:"selected"}],
                     onmouseout: [{action: "unset", status:"selected"}],
@@ -310,16 +314,16 @@
                     "hide": {
                         "and": ["unhighlighted", "unselected"]
                     },
-                    html: '<strong>{{id}}</strong><br>\n\n' + window.model.tooltip_lztemplate
+		    html: '<strong>{{association:id}}</strong><br><strong>{{association:rsid}}</strong><br><strong>{{association:most_severe}}</strong><br><table><tbody><tr><td>phenotype</td><td><strong>' + (window.pheno.phenostring || window.pheno.phenocode) + '</strong></td></tr><tr><td>p-value</td><td><strong>{{association:pvalue|scinotation}}</strong></td></tr><tr><td>beta</td><td><strong>{{association:beta}}</strong> ({{association:sebeta}})</td></tr><tr><td>MAF</td><td><strong>{{association:maf|percent}}</strong></td></tr><tr><td>MAF controls</td><td><strong>{{association:maf_controls|percent}}</strong></td></tr><tr><td>MAF cases</td><td><strong>{{association:maf_cases|percent}}</strong><br></td></tr><tr><td>FIN enrichment</td><td><strong>{{association:fin_enrichment}}</strong></td></tr><tr><td>INFO</td><td><strong>{{association:INFO}}</strong></td></tr></tbody></table>'
                 },
 
                 "x_axis": {
-                    "field": "position",
+                    "field": "association:position",
                     "axis": 1
                 },
                 "y_axis": {
                     "axis": 1,
-                    "field": "pvalue|neglog10_or_100",
+                    "field": "association:pvalue|neglog10_or_100",
                     "floor": 0,
                     "upper_buffer": 0.1,
                     "min_extent": [0, 10]
@@ -706,9 +710,9 @@
     layout.panels.push(clinvar_panel)
 
     $(function() {
+
         // Populate the div with a LocusZoom plot using the default layout
         window.plot = LocusZoom.populate("#lz-1", data_sources, layout);
-
 
         Object.values(window.plot.panels).forEach( function(panel, index) {
             panel.on("data_rendered", function(){

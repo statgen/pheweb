@@ -241,8 +241,11 @@ class ServerJeeves(object):
                         else:
                             d['data']['fin_enrichment'].append(round(float(g['AF_fin']) / ((float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu'])) / (float(g['AN_nfe_nwe']) + float(g['AN_nfe_onf']) + float(g['AN_nfe_seu']))), 3))
                 except KeyError:
-                    print('no annotation for ' + varid + ', is annotation file out of sync or is the variant correctly id\'d?')
-                    pass
+                    #print('no annotation for ' + varid + ', is annotation file out of sync or is the variant correctly id\'d?')
+                    d['data']['most_severe'].append('unknown')
+                    d['data']['AF'].append('NA')
+                    d['data']['INFO'].append('NA')
+                    d['data']['fin_enrichment'].append('Unknown')
         return datalist
         
     def coding(self):
@@ -298,7 +301,8 @@ class ServerJeeves(object):
         print("reading conditional files took {} seconds".format(time.time()-t ) )
         t = time.time()
         if len(ret) > 0:
-            self.add_annotations(chr, min_start, max_end, ret)
+            #self.add_annotations(chr, min_start, max_end, ret)
+            self.add_annotations(chr, start, end, ret)
             print("adding annotations to {} conditional results took {} seconds".format(len(ret), time.time()-t ) )
         return ret
 
@@ -344,7 +348,8 @@ class ServerJeeves(object):
                 ret.append({'type': region['type'], 'data': data, 'lastpage': None})
             else:
                 print('UNSUPPORTED REGION TYPE: ' + region['type'])
-        self.add_annotations(chr, min_start, max_end, ret)
+        #self.add_annotations(chr, min_start, max_end, ret)
+        self.add_annotations(chr, start, end, ret)
         return ret
 
     @functools.lru_cache(None)

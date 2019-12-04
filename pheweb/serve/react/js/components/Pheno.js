@@ -20,10 +20,12 @@ class Pheno extends React.Component {
 	this.resp_json = this.resp_json.bind(this)
 	this.error_state = this.error_state.bind(this)
 	this.error_alert = this.error_alert.bind(this)
+	this.getUKBBN = this.getUKBBN.bind(this)
 	this.getPheno = this.getPheno.bind(this)
 	this.getCredibleSets = this.getCredibleSets.bind(this)
 	this.getManhattan = this.getManhattan.bind(this)
 	this.getQQ = this.getQQ.bind(this)
+	this.getUKBBN(props.match.params.pheno)
 	this.getPheno(props.match.params.pheno)
     }
 
@@ -40,6 +42,17 @@ class Pheno extends React.Component {
     
     error_alert(error) {
 	alert(`${phenocode}: ${error.statusText || error}`)
+    }
+
+    getUKBBN(phenocode) {
+	fetch('/api/ukbb_n/' + phenocode)
+	    .then(this.resp_json)
+	    .then(response => {
+		this.setState({
+		    ukbb_n: response
+		})
+	    })
+	    .catch(this.error_state)
     }
     
     getPheno(phenocode) {
@@ -119,7 +132,12 @@ class Pheno extends React.Component {
 	    return <div>loading</div>
 	}
 
+	console.log(this.state)
+	
 	const pheno = this.state.pheno
+	const ukbb = this.state.ukbb_n ?
+	      <div>UKBB: <strong>{this.state.ukbb_n[0]}</strong> cases, <strong>{this.state.ukbb_n[1]}</strong> controls</div> :
+		    <div>Phenotype not found in UKBB results</div>
 	const n_cc = pheno.cohorts ?
 	      <tbody>{pheno.cohorts.map(cohort => <tr key={cohort.cohort}><td>{cohort.cohort}</td><td><b>{cohort.num_cases}</b> cases</td><td><b>{cohort.num_controls}</b> controls</td></tr>)}</tbody> :
 	      pheno.num_cases ?
@@ -180,6 +198,7 @@ class Pheno extends React.Component {
 		<table className='column_spacing'>
 		{n_cc}
 		</table>
+                {ukbb}
 		<div id='manhattan_plot_container' />
 		<h3>Lead variants</h3>
 		{var_table}

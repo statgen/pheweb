@@ -7,10 +7,27 @@ import { phenolistTableCols } from '../tables.js'
 class Index extends React.Component {
 
     constructor(props) {
+	if (!phenolistTableCols[window.browser]) {
+	    alert('no table columns for ' + window.browser)
+	}
         super(props)
         this.state = {
-	    phenolistColumns: phenolistTableCols[window.browser]
+	    phenolistColumns: phenolistTableCols[window.browser],
+	    filtered: [],
+	    dataToDownload: [],
+	    headers: [
+		{label: 'phenotype', key: 'phenostring'},
+		{label: 'phenocode', key: 'phenocode'},
+		{label: 'category', key: 'category'},
+		{label: 'number of cases', key: 'num_cases'},
+		{label: 'number of cases R3', key: 'num_cases_prev'},
+		{label: 'number of controls', key: 'num_controls'},
+		{label: 'genome-wide sig loci', key: 'num_gw_significant'},
+		{label: 'genome-wide sig loci R3', key: 'num_gw_significant_prev'},
+		{label: 'genomic control lambda', key: 'lambda'}
+	    ]
 	}
+	this.download = this.download.bind(this)
 	this.getPhenos = this.getPhenos.bind(this)
 	this.getPhenos()
     }
@@ -34,14 +51,20 @@ class Index extends React.Component {
 	    })
 		}
 
+    download() {
+	this.setState({
+	    dataToDownload: this.reactTable.getResolvedState().sortedData
+	}, () => {
+	    this.csvLink.link.click()
+	})
+    }
+
     render() {
 
 	if (!this.state.phenos) {
 	    return <div>loading</div>
 	}
 
-	console.log(this.state)
-	
 	const phenoTable =
 	      <div>
 	      <h3>Phenotype list</h3>
@@ -58,6 +81,20 @@ class Index extends React.Component {
 	defaultPageSize={10}
 	className="-striped -highlight"
 	    />
+	    <div className="row">
+	    <div className="col-xs-12">
+	    <div className="btn btn-primary" onClick={this.download}>Download {this.state.filtered.filter(f => !(f.id == 'variant_category' && f.value == 'all') && !(f.id == 'variant' && f.value == 'all')).length > 0 ? 'filtered' : ''} table</div>
+	    </div>
+	    </div>
+            <CSVLink
+	headers={this.state.headers}
+	data={this.state.dataToDownload}
+	separator={'\t'}
+	enclosingCharacter={''}
+	filename="finngen_endpoints.tsv"
+	className="hidden"
+	ref={(r) => this.csvLink = r}
+	target="_blank" />
 	    </div>
 	
         return (

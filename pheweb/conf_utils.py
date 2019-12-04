@@ -523,4 +523,5 @@ def _ensure_conf():
 
     conf.set_default_value("report_conf", {"func_var_assoc_threshold":0.0001}  )
     conf.set_default_value("vis_conf", {"loglog_threshold": 10, "info_tooltip_threshold": 0.8})
+    conf.set_default_value("locuszoom_conf", {"p_threshold": 0.05, "prob_threshold": 0.0001, "ld_service": "finngen", "ld_max_window": 5000000})
     conf.set_default_value("lof_threshold", 1e-3)

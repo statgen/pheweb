@@ -33,9 +33,14 @@ def run():
 
     for pheno in phenolist:
         atc = pheno['phenocode'].replace('ATC_', '').replace('_IRN', '')
-        pheno['phenostring'] = atc2name[atc]
-        pheno['atc'] = atc
-        pheno['category'] = 'ATC'
+        if atc in atc2name:
+            pheno['phenostring'] = atc2name[atc]
+            pheno['atc'] = atc
+            pheno['category'] = 'ATC'
+        else:
+            pheno['phenostring'] = pheno['phenocode']
+            pheno['atc'] = 'none'
+            pheno['category'] = 'Age of onset'
         with open(sys.argv[4] + '/qq/' + pheno['phenocode'] + '.json') as f:
             qq = json.load(f)
             pheno['gc_lambda'] = qq['overall']['gc_lambda']

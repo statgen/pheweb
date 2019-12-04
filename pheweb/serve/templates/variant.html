@@ -7,6 +7,7 @@
   window.variant = {{ variant |tojson(separators=(',',':'))|safe }};
   console.log(variant)
   window.results =  {{ results |tojson(separators=(',',':'))|safe }};
+  console.log(results)
   window.regions = {{ regions |tojson(separators=(',',':'))|safe }};
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
   window.var_top_pheno_export_fields = {{ var_top_pheno_export_fields|tojson }};

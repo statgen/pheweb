@@ -179,8 +179,8 @@ window.panel_layouts.association = {
 			    "scale_function": "numerical_bin",
 			    "field": "ld:state",
 			    "parameters": {
-				"breaks": [0, 0.2, 0.4, 0.6, 0.8],
-				"values": ["#357ebd", "#46b8da", "#5cb85c", "#eea236", "#d43f3a"]
+				"breaks": [0, 0.05, 0.2, 0.4, 0.6, 0.8, 0.9],
+				"values": ["#555555", "#357ebd", "#46b8da", "#5cb85c", "#f3ca54", "#eea236", "#d43f3a"]
 			    }
 			}, "#B8B8B8"],
 			fill_opacity: 0.7,
@@ -218,11 +218,17 @@ window.panel_layouts.association = {
 			    "shape": "circle",
 			    "color": "#d43f3a",
 			    "size": 40,
-			    "label": "1.0 > r² ≥ 0.8",
+			    "label": "1.0 > r² ≥ 0.9",
 			    "class": "lz-data_layer-scatter"
 			}, {
 			    "shape": "circle",
 			    "color": "#eea236",
+			    "size": 40,
+			    "label": "0.9 > r² ≥ 0.8",
+			    "class": "lz-data_layer-scatter"
+			}, {
+			    "shape": "circle",
+			    "color": "#f3ca54",
 			    "size": 40,
 			    "label": "0.8 > r² ≥ 0.6",
 			    "class": "lz-data_layer-scatter"
@@ -242,7 +248,13 @@ window.panel_layouts.association = {
 			    "shape": "circle",
 			    "color": "#357ebd",
 			    "size": 40,
-			    "label": "0.2 > r² ≥ 0.0",
+			    "label": "0.2 > r² ≥ 0.05",
+			    "class": "lz-data_layer-scatter"
+			}, {
+			    "shape": "circle",
+			    "color": "#555555",
+			    "size": 40,
+			    "label": "0.05 > r² ≥ 0.0",
 			    "class": "lz-data_layer-scatter"
 			}, {
 			    "shape": "circle",

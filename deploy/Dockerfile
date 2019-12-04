@@ -5,7 +5,6 @@ ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
 ADD . /pheweb
-ADD dot_pheweb /root/.pheweb
 
 RUN apt-get update && \
     apt-get install python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev wget --yes && \
