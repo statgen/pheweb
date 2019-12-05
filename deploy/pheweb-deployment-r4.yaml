@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       app: pheweb
-  replicas: 4
+  replicas: 2
   template:
     metadata:
       labels:
@@ -29,18 +29,14 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:r4_2
+        image: gcr.io/phewas-development/pheweb:r4_10
         ports:
         - containerPort: 8080
         volumeMounts:
-        - mountPath: /mnt/pheweb
-          name: pheweb-pv
-  volumeClaimTemplates:
-  - metadata:
-      name: pheweb-pv
-    spec:
-      storageClassName: ""
-      accessModes: [ ReadWriteOnce ]
-      resources:
-        requests:
-          storage: 2100Gi
+        - mountPath: /mnt/nfs
+          name: pheweb-nfs
+      volumes:
+      - name: pheweb-nfs
+        persistentVolumeClaim:
+          claimName: nfs-claim
+          readOnly: false

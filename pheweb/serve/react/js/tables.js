@@ -46,7 +46,7 @@ const phenolistTableCols = {'FINNGEN': [{
 }, {
     Header: () => (<span title="Risteys link" style={{textDecoration: 'underline'}}>Risteys</span>),
     accessor: 'phenocode',
-    Cell: props => (<a style={{fontSize:'1.25rem', padding: '.25rem .5rem', backgroundColor: '#2779bd', color: '#fff', borderRadius: '.25rem', fontWeight: '700', boxShadow: '0 0 5px rgba(0,0,0,.5)'}} href={'https://risteys.finngen.fi/phenocode/' + props.value.replace('_EXALLC', '').replace('_EXMORE', '')}>Risteys</a>),
+    Cell: props => (<a style={{fontSize:'1.25rem', padding: '.25rem .5rem', backgroundColor: '#2779bd', color: '#fff', borderRadius: '.25rem', fontWeight: '700', boxShadow: '0 0 5px rgba(0,0,0,.5)'}} href={'https://risteys.finngen.fi/phenocode/' + props.value.replace('_EXALLC', '').replace('_EXMORE', '')}>RISTEYS</a>),
     Filter: ({ filter, onChange }) => null,
     minWidth: 50
 }, {
