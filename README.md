@@ -171,3 +171,4 @@ If it doesn't, follow the directions for [hosting a PheWeb and accessing it from
 To use Apache2 or Nginx (for performance), see instructions [here](etc/detailed-webserver-instructions.md#using-apache2-or-nginx).
 To require login via OAuth, see instructions [here](etc/detailed-webserver-instructions.md#using-oauth).
 To track page views with Google Analytics, see instructions [here](etc/detailed-webserver-instructions.md#using-google-analytics).
+To reduce storage use, see instructions [here](etc/detailed-webserver-instructions.md#reducing-storage-use).

@@ -81,3 +81,28 @@ GOOGLE_ANALYTICS_TRACKING_ID = 'UA-xxxxxxxx-x'
 and kill and restart `pheweb serve`.
 
 If you visit your site, you should see the activity at [the Google Analytics web console](https://analytics.google.com/analytics/web).
+
+
+## Reducing storage use
+To make PheWeb use less space, you can delete many of the files created during the loading process.
+Inside of `generated-by-pheweb/`, `parsed/` is only needed for re-buiding the site with more GWAS, and `pheno/` is only needed if you have enabled summary stat downloads.
+
+Alternatively, you can replace those files with symlinks to the files in `pheno_gz/`.
+Internally, pheweb always checks if a file is gzipped before reading it, so that won't be a problem (though reading gzipped files takes time when re-loading data).
+Just replace all the files in `parsed/` and `pheno/` with symlinks to their corresponding files in `pheno_gz/`.
+This should work:
+
+```bash
+cd generated-by-pheweb/pheno/
+for f in *; do
+  ln -sf ../pheno_gz/$f.gz $f
+done
+
+cd ../parsed/
+for f in *; do
+  ln -sf ../pheno_gz/$f.gz $f
+done
+
+cd ..
+rm tmp/*
+```
