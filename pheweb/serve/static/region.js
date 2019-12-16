@@ -34,40 +34,6 @@ LocusZoom.KnownDataSources.extend("AssociationLZ", "AssociationPheWeb", {
     }
 });
 
-// Modified LD source that handles `NaN` in response.
-LocusZoom.KnownDataSources.extend("LDLZ", "LDPheweb", {
-    parseResponse: function (resp, chain, fields, outnames, trans) {
-        var json;
-        try {
-            json = JSON.parse(resp);
-        } catch (exc) {
-            if (exc instanceof SyntaxError) {
-                resp = resp.replace(/\bNaN\b/g, 'null');
-                var junk = JSON.parse(resp);
-                json = { data:{} };
-                Object.keys(junk).forEach(function(key) {
-                    if (key !== 'data') { json[key] = junk[key]; }
-                });
-                var json_data_keys = Object.keys(junk.data);
-                json_data_keys.forEach(function(key) {
-                    json.data[key] = [];
-                });
-                for (var i=0; i<junk.data.rsquare.length; i++) {
-                    if (junk.data.rsquare[i] !== null) {
-                        json_data_keys.forEach(function(key) {
-                            json.data[key].push(junk.data[key][i]);
-                        });
-                    }
-                }
-            } else {
-                console.error('Unhandled exception when processing LD source', exc);
-                throw exc;
-            }
-        }
-        return LocusZoom.Data.LDSource.prototype.parseResponse.call(this, json, chain, fields, outnames);
-    }
-});
-
 LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (x === 1) { return "100%"; }
     x = (x * 100).toPrecision(2);
@@ -83,7 +49,9 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var data_sources = new LocusZoom.DataSources()
         .add("assoc", ["AssociationPheWeb", localBase])
         .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { source: 2, build: "GRCh37" }}])
-        .add("ld", ["LDPheweb", {url: remoteBase + "pair/LD/", params: { pvalue_field: "assoc:pvalue|neglog10_or_100" }}])
+        .add("ld", ["LDLZ2", { url: "https://portaldev.sph.umich.edu/ld/",
+            params: { source: '1000G', build: 'GRCh37', population: 'ALL' }
+        }])
         .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }])
         .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }]);
 
@@ -108,35 +76,6 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             }
             if (layout.class){ this.selector.attr("class", layout.class); }
             if (layout.style){ this.selector.style(layout.style); }
-            return this;
-        };
-    });
-
-    LocusZoom.Dashboard.Components.add("ldrefsource_selector", function(layout){
-        LocusZoom.Dashboard.Component.apply(this, arguments);
-        this.initialize = function(){
-            this.parent_plot.state.ldrefsource = 1;
-        };
-
-        this.update = function() {
-            if (this.button){ return this; }
-
-            this.button = new LocusZoom.Dashboard.Component.Button(this);
-            this.button
-                .setHtml("LD source: 1000G ALL")
-                .setTitle("click to switch to next LD source")
-                .setOnclick(function(){
-                    if (this.parent_plot.state.ldrefsource === 1) {
-                        this.parent_plot.state.ldrefsource = 2;
-                        this.button.setHtml('LD source: 1000G EUR');
-                    } else {
-                        this.parent_plot.state.ldrefsource = 1;
-                        this.button.setHtml('LD source: 1000G ALL');
-                    }
-                    this.button.show();
-                    this.parent_plot.applyState({});
-                }.bind(this));
-            this.button.show();
             return this;
         };
     });
@@ -227,10 +166,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
             },{
                 "type": "download",
                 "position": "right"
-            },{
-                "type": "ldrefsource_selector",
-                "position": "right"
-            }]
+            }, LocusZoom.Layouts.get('dashboard_components', 'ldlz2_pop_selector')]
         },
         panels: [
             function() {
