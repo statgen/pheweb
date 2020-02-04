@@ -376,31 +376,48 @@ const csTableCols = [{
     minWidth: 110,
 }]
 
-const csInsideTableCols = [{Header: () => (<span title="variant with highest PIP in the credible set" style={{textDecoration: 'underline'}}>top PIP variant</span>),
-accessor: 'locus_id',
+const csInsideTableCols = [
+//{Header: () => (<span title="Group ID" style={{textDecoration: 'underline'}}>Group ID</span>),
+//accessor: 'locus_id',
+//Cell: props => props.value,
+//minWidth: 60,
+//}, 
+{Header: () => (<span title="Variant ID" style={{textDecoration: 'underline'}}>Variant ID</span>),
+accessor: 'variant_id',
 Cell: props => props.value,
 minWidth: 60,
 }, {
-Header: () => (<span title="chromosome" style={{textDecoration: 'underline'}}>chromosome</span>),
-accessor: 'chr',
-Cell: props => props.value,
-minWidth: 40,
-}, {
 Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
-accessor: 'lead_pval',
+accessor: 'pval',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value.toExponential(1),
 minWidth: 50,
 }, {
-Header: () => (<span title="number of coding variants in the credible set" style={{textDecoration: 'underline'}}># coding in cs</span>),
-accessor: 'functional_variants',
-Cell: props => props.value.split(";").filter(x=>x!=="NA").length,
+Header: () => (<span title="effect size" style={{textDecoration: 'underline'}}>effect size</span>),
+accessor: 'beta',
+filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+Cell: props => props.value,
+minWidth: 50,
+}, {
+Header: () => (<span title="Credible set PIP" style={{textDecoration: 'underline'}}>CS PIP</span>),
+accessor: 'cs_prob',
+Cell: props => props.value,
 minWidth: 40
 }, {
-Header: () => (<span title="Credible set variants" style={{textDecoration: 'underline'}}>credible variants</span>),
-accessor: 'credible_set_variants',
+Header: () => (<span title="Functional Category" style={{textDecoration: 'underline'}}>Functional variant</span>),
+accessor: 'functional_category',
 Cell: props => props.value,
-minWidth: 110,
+minWidth: 40
+}, {
+Header: () => (<span title="Matching trait" style={{textDecoration: 'underline'}}>Matching trait</span>),
+accessor: 'trait_name',
+Cell: props => props.value,
+minWidth: 40
+}, {
+Header: () => (<span title="R^2 to lead variant" style={{textDecoration: 'underline'}}>R^2 to lead variant</span>),
+accessor: 'r2_to_lead',
+Cell: props => props.value,
+minWidth: 40
 }]
 
 const regionTableCols = [{
