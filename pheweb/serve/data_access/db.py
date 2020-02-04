@@ -244,6 +244,15 @@ class LofDB(object):
         """
         return
 
+class AutorepVariantDB(object):
+
+    @abc.abstractmethod
+    def get_group_variants(self, phenotype, locus_id):
+        """ Retrieve a given locuses variants for a given phenotype
+            Returns: A list of dictionaries. WIP
+        """
+        return
+
 class KnownHitsDB(object):
     @abc.abstractmethod
     def get_hits_by_loc(self, chr, start, stop):
@@ -1299,6 +1308,30 @@ class FineMappingMySQLDao(FineMappingDB):
             result = [res for i, res in enumerate(result) if res['type'] != 'finemap' or i == most_probable_finemap]
         return result
 
+class AutoreportingSQLDao(AutorepVariantDB):
+    def __init__(self, authentication_file):
+        self.authentication_file = authentication_file
+        auth_module = imp.load_source('mysql_auth', self.authentication_file)
+        self.user = getattr(auth_module, 'mysql')['user']
+        self.password = getattr(auth_module, 'mysql')['password']
+        self.host = getattr(auth_module, 'mysql')['host']
+        self.db = getattr(auth_module, 'mysql')['db']
+        self.release = getattr(auth_module, 'mysql')['release']
+
+    def get_connection(self):
+        return pymysql.connect(host=self.host, user=self.user, password=self.password, db=self.db)
+
+    def get_group_variants(self, phenotype, locus_id):
+        try:
+            conn=self.get_connection()
+            with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                sql =  ("SELECT variant_id,pval,beta,maf,locus_id,GENOME_FI_enrichment_nfe,GENOME_FI_enrichment_nfe_est,cs_id,cs_prob,functional_category,r2_to_lead,trait,trait_name FROM autoreporting_variants WHERE phenotype=%s AND locus_id=%s")
+                cursori.execute(sql,[phenotype,locus_id])
+                result=cursori.fetchall()
+            return result
+        finally:
+            conn.close()
+
 class DataFactory(object):
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
                        "MATRIX_PATH": common_filepaths['matrix'],
@@ -1359,6 +1392,9 @@ class DataFactory(object):
 
     def get_finemapping_dao(self):
         return self.dao_impl["finemapping"] if "finemapping" in self.dao_impl else None
+
+    def get_autoreporting_dao(self):
+        return self.dao_impl["autoreporting"] if "autoreporting" in self.dao_impl else None
 
     def get_UKBB_dao(self, singlematrix=False):
         if singlematrix and "externalresultmatrix" in self.dao_impl:

@@ -143,6 +143,11 @@ def homepage(path):
 def autoreport(phenocode):
     return jsonify(jeeves.get_autoreport(phenocode))
 
+@app.route('/api/autoreport_variants/<phenocode>/<locus_id>')
+@check_auth
+def autoreport_variants(phenocode,locus_id):
+    return jsonify(jeeves.get_autoreport_variants(phenocode,locus_id))
+
 @app.route('/api/ld')
 @check_auth
 def ld():

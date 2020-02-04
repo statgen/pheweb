@@ -33,6 +33,8 @@ class ServerJeeves(object):
         self.chip_dao = self.dbs_fact.get_chip_dao()
         self.finemapping_dao = self.dbs_fact.get_finemapping_dao()
         self.knownhits_dao = self.dbs_fact.get_knownhits_dao()
+        self.autoreporting_dao = self.dbs_fact.get_autoreporting_dao()
+        
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
@@ -398,4 +400,6 @@ class ServerJeeves(object):
             data = pd.read_csv(files[0], sep='\t').fillna('NA')
             return data.reset_index().to_dict('records')
         return None
-        
+    
+    def get_autoreport_variants(self, phenocode, locus_id):
+        return self.autoreporting_dao.get_group_variants(phenocode, locus_id)
