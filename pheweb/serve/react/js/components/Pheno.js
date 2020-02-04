@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import ReactTable from 'react-table'
 import { CSVLink } from 'react-csv'
-import { phenoTableCols, csTableCols } from '../tables.js'
+import { phenoTableCols, csTableCols, csInsideTableCols } from '../tables.js'
 import { create_gwas_plot, create_qq_plot } from '../pheno.js'
 
 class Pheno extends React.Component {
@@ -15,7 +15,9 @@ class Pheno extends React.Component {
         super(props)
         this.state = {
 	    columns: phenoTableCols[window.browser],
-	    csColumns: csTableCols[window.browser]
+		csColumns: csTableCols,
+		InsideColumns: csInsideTableCols,
+		dataToDownload: []
 	}
 	this.resp_json = this.resp_json.bind(this)
 	this.error_state = this.error_state.bind(this)
@@ -25,6 +27,7 @@ class Pheno extends React.Component {
 	this.getCredibleSets = this.getCredibleSets.bind(this)
 	this.getManhattan = this.getManhattan.bind(this)
 	this.getQQ = this.getQQ.bind(this)
+	this.download = this.download.bind(this)
 	this.getUKBBN(props.match.params.pheno)
 	this.getPheno(props.match.params.pheno)
     }
@@ -38,7 +41,7 @@ class Pheno extends React.Component {
 	this.setState({
 	    error: error
 	})
-    }
+	}
     
     error_alert(error) {
 	alert(`${phenocode}: ${error.statusText || error}`)
@@ -120,10 +123,17 @@ class Pheno extends React.Component {
                     create_qq_plot([{maf_range:[0,1],qq:data.overall.qq, count:data.overall.count}])
             })
 	    .catch(this.error_alert)
-    }
+	}
+	
+	download() {
+		this.setState({
+			dataToDownload: this.reactTable.getResolvedState().sortedData
+		}, () => {
+			this.csvLink.link.click()
+		})
+		}
 
     render() {
-
 	if (this.state.error) {
 	    return <div>{this.state.error.statusText || this.state.error}</div>
 	}
@@ -133,7 +143,6 @@ class Pheno extends React.Component {
 	}
 	
 	console.log(this.state)
-	
 	const pheno = this.state.pheno
 	const ukbb = window.show_ukbb ? (this.state.ukbb_n ?
 	      <div>UKBB: <strong>{this.state.ukbb_n[0]}</strong> cases, <strong>{this.state.ukbb_n[1]}</strong> controls</div> :
@@ -165,9 +174,33 @@ class Pheno extends React.Component {
 	}]}
 	defaultPageSize={10}
 	className="-striped -highlight"
+	SubComponent={row =>
+		<ReactTable 
+		data={this.state.credibleSets}
+		columns={this.state.InsideColumns}
+		defaultPageSize={10}
+		showPagination={true}
+		showPageSizeOptions={ true}
+		/>
+	}
 	    />
+		<div className="row">
+	    <div className="col-xs-12">
+	    <div className="btn btn-primary" onClick={this.download}>Download table</div>
+	    </div>
+	    </div>
+            <CSVLink
+	headers={this.state.headers}
+	data={this.state.dataToDownload}
+	separator={'\t'}
+	enclosingCharacter={''}
+	filename="finngen_endpoints.tsv"
+	className="hidden"
+	ref={(r) => this.csvLink = r}
+	target="_blank" />
 	    </div> :
 	<div>loading</div>
+	
 	const var_table = this.state.data ?
 	      <div>
 	    <ReactTable
@@ -209,7 +242,7 @@ class Pheno extends React.Component {
                 {ukbb}
 		<div id='manhattan_plot_container' />
 		<h3>Lead variants</h3>
-		{var_table}
+		{cs_table}
 		<div style={{float:'left'}}>
 		<h3>QQ plot</h3>
 		<div id='qq_plot_container' style={{width:'400px'}} />

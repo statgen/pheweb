@@ -352,18 +352,55 @@ const csTableCols = [{
     Header: () => (<span title="variant with highest PIP in the credible set" style={{textDecoration: 'underline'}}>top PIP variant</span>),
     accessor: 'locus_id',
     Cell: props => props.value,
-    minWidth: 110,
+    minWidth: 60,
+}, {
+    Header: () => (<span title="chromosome" style={{textDecoration: 'underline'}}>chromosome</span>),
+    accessor: 'chr',
+    Cell: props => props.value,
+    minWidth: 40,
 }, {
     Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
     accessor: 'lead_pval',
     filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
     Cell: props => props.value.toExponential(1),
-    minWidth: 80
+    minWidth: 50,
 }, {
     Header: () => (<span title="number of coding variants in the credible set" style={{textDecoration: 'underline'}}># coding in cs</span>),
     accessor: 'functional_variants',
-    Cell: props => {props.value},
-    minWidth: 130
+    Cell: props => props.value.split(";").filter(x=>x!=="NA").length,
+    minWidth: 40
+}, {
+    Header: () => (<span title="Credible set variants" style={{textDecoration: 'underline'}}>credible variants</span>),
+    accessor: 'credible_set_variants',
+    Cell: props => props.value,
+    minWidth: 110,
+}]
+
+const csInsideTableCols = [{Header: () => (<span title="variant with highest PIP in the credible set" style={{textDecoration: 'underline'}}>top PIP variant</span>),
+accessor: 'locus_id',
+Cell: props => props.value,
+minWidth: 60,
+}, {
+Header: () => (<span title="chromosome" style={{textDecoration: 'underline'}}>chromosome</span>),
+accessor: 'chr',
+Cell: props => props.value,
+minWidth: 40,
+}, {
+Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
+accessor: 'lead_pval',
+filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+Cell: props => props.value.toExponential(1),
+minWidth: 50,
+}, {
+Header: () => (<span title="number of coding variants in the credible set" style={{textDecoration: 'underline'}}># coding in cs</span>),
+accessor: 'functional_variants',
+Cell: props => props.value.split(";").filter(x=>x!=="NA").length,
+minWidth: 40
+}, {
+Header: () => (<span title="Credible set variants" style={{textDecoration: 'underline'}}>credible variants</span>),
+accessor: 'credible_set_variants',
+Cell: props => props.value,
+minWidth: 110,
 }]
 
 const regionTableCols = [{
@@ -837,4 +874,4 @@ const codingTableCols = [{
     }
 }]
 
-export { phenolistTableCols, lofTableCols, chipTableCols, codingTableCols, regionTableCols, phenoTableCols, csTableCols }
+export { phenolistTableCols, lofTableCols, chipTableCols, codingTableCols, regionTableCols, phenoTableCols, csTableCols, csInsideTableCols }
