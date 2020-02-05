@@ -114,6 +114,10 @@ def check_auth(func):
 def homepage_():
     return render_template('index.html')
 
+@app.route('/health')
+def health():
+    return jsonify({'health': 'ok'})
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 @check_auth

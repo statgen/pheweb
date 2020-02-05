@@ -1,4 +1,4 @@
-FROM debian:latest
+FROM debian:9
 
 LABEL maintainer="jkarjala@broadinstitute.org"
 

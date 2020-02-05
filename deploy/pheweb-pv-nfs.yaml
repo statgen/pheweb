@@ -4,7 +4,7 @@ metadata:
   name: nfs
 spec:
   capacity:
-      storage: 4.2T
+      storage: 5T
   accessModes:
     - ReadWriteMany
   nfs:
@@ -21,4 +21,4 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 4.2T
+      storage: 5T
