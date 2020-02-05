@@ -8,6 +8,7 @@ import re
 import math
 import threading
 import pandas as pd
+import numpy as np
 import pymysql
 import imp
 from typing import List, Tuple, Dict
@@ -1179,6 +1180,7 @@ class CodingDao(TSVDB):
           top_i = df.groupby('variant')['pval'].idxmin
           df['is_top'] = 0
           df.loc[top_i, 'is_top'] = 1
+          df['phenoname'] = np.where(df['phenoname'] == 'NA', df['pheno'], df['phenoname'])
           self.coding_data = df.to_dict(orient='records')
      def get_coding(self):
           return self.coding_data

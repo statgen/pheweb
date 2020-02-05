@@ -46,14 +46,14 @@ const phenolistTableCols = {'FINNGEN': [{
 }, {
     Header: () => (<span title="Risteys link" style={{textDecoration: 'underline'}}>Risteys</span>),
     accessor: 'phenocode',
-    Cell: props => (<a style={{fontSize:'1.25rem', padding: '.25rem .5rem', backgroundColor: '#2779bd', color: '#fff', borderRadius: '.25rem', fontWeight: '700', boxShadow: '0 0 5px rgba(0,0,0,.5)'}} href={'https://risteys.finngen.fi/phenocode/' + props.value.replace('_EXALLC', '').replace('_EXMORE', '')}>Risteys</a>),
+    Cell: props => (<a style={{fontSize:'1.25rem', padding: '.25rem .5rem', backgroundColor: '#2779bd', color: '#fff', borderRadius: '.25rem', fontWeight: '700', boxShadow: '0 0 5px rgba(0,0,0,.5)'}} href={'https://risteys.finngen.fi/phenocode/' + props.value.replace('_EXALLC', '').replace('_EXMORE', '')}>RISTEYS</a>),
     Filter: ({ filter, onChange }) => null,
     minWidth: 50
-}, {
-    Header: () => (<span title="phenotype category" style={{textDecoration: 'underline'}}>category</span>),
-    accessor: 'category',
-    Cell: props => props.value,
-    minWidth: 200
+// }, {
+//     Header: () => (<span title="phenotype category" style={{textDecoration: 'underline'}}>category</span>),
+//     accessor: 'category',
+//     Cell: props => props.value,
+//     minWidth: 200
 },{
     Header: () => (<span title="number of cases" style={{textDecoration: 'underline'}}>number of cases</span>),
     accessor: 'num_cases',
@@ -61,7 +61,7 @@ const phenolistTableCols = {'FINNGEN': [{
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
     minWidth: 50,
 },{
-    Header: () => (<span title="number of cases R3" style={{textDecoration: 'underline'}}>number of cases R3</span>),
+    Header: () => (<span title={`number of cases ${window.release_prev}`} style={{textDecoration: 'underline'}}>{`number of cases ${window.release_prev}`}</span>),
     accessor: 'num_cases_prev',
     Cell: props => props.value,
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
@@ -79,7 +79,7 @@ const phenolistTableCols = {'FINNGEN': [{
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
     minWidth: 50,
 },{
-    Header: () => (<span title="number of genome-wide significant hits R3" style={{textDecoration: 'underline'}}>genome-wide sig loci R3</span>),
+    Header: () => (<span title={`number of genome-wide significant hits ${window.release_prev}`} style={{textDecoration: 'underline'}}>{`genome-wide sig loci ${window.release_prev}`}</span>),
     accessor: 'num_gw_significant_prev',
     Cell: props => props.value,
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
@@ -423,7 +423,7 @@ const codingTableCols = [{
 	    <a href={"/gene/" + props.value} target="_blank">{props.value}</a>
     )
 }, {
-    Header: () => (<span title="allele frequency in FinnGen R4" style={{textDecoration: 'underline'}}>af</span>),
+    Header: () => (<span title="allele frequency in FinnGen" style={{textDecoration: 'underline'}}>af</span>),
     accessor: 'AF',
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
@@ -441,13 +441,13 @@ const codingTableCols = [{
 	</div>
     }
 }, {
-    Header: () => (<span title="imputation INFO score in FinnGen R4" style={{textDecoration: 'underline'}}>INFO</span>),
+    Header: () => (<span title="imputation INFO score in FinnGen" style={{textDecoration: 'underline'}}>INFO</span>),
     accessor: 'INFO',
     filterMethod: (filter, row) => row[filter.id] >= filter.value,
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     Cell: props => props.value.toPrecision(3)
 }, {
-    Header: () => (<span title="p-value in FinnGen R4" style={{textDecoration: 'underline'}}>pval</span>),
+    Header: () => (<span title="p-value in FinnGen" style={{textDecoration: 'underline'}}>pval</span>),
     accessor: 'pval',
     width: Math.min(70, 70/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
@@ -459,7 +459,7 @@ const codingTableCols = [{
 	</div>
     }
 }, {
-    Header: () => (<span title="effect size beta in FinnGen R4" style={{textDecoration: 'underline'}}>beta</span>),
+    Header: () => (<span title="effect size beta in FinnGen" style={{textDecoration: 'underline'}}>beta</span>),
     accessor: 'beta',
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
@@ -468,7 +468,7 @@ const codingTableCols = [{
         props.value.toPrecision(3)
     }
 }, {
-    Header: () => (<span title="posterior inclusion probability in FinnGen R4" style={{textDecoration: 'underline'}}>PIP</span>),
+    Header: () => (<span title="posterior inclusion probability in FinnGen" style={{textDecoration: 'underline'}}>PIP</span>),
     accessor: 'pip',
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
@@ -478,7 +478,7 @@ const codingTableCols = [{
         props.value.toPrecision(3)
     }
 }, {
-    Header: () => (<span title="recessive p-value in FinnGen R4" style={{textDecoration: 'underline'}}>rec p</span>),
+    Header: () => (<span title="recessive p-value in FinnGen" style={{textDecoration: 'underline'}}>rec p</span>),
     accessor: 'pval_recessive',
     width: Math.min(70, 70/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
@@ -491,7 +491,7 @@ const codingTableCols = [{
 	</div>
     }
 }, {
-    Header: () => (<span title="dominant p-value in FinnGen R4" style={{textDecoration: 'underline'}}>dom p</span>),
+    Header: () => (<span title="dominant p-value in FinnGen" style={{textDecoration: 'underline'}}>dom p</span>),
     accessor: 'pval_dominant',
     width: Math.min(70, 70/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
@@ -504,7 +504,7 @@ const codingTableCols = [{
 	</div>
     }
 }, {
-    Header: () => (<span title="log10(p_rec/p_dom) in FinnGen R4" style={{textDecoration: 'underline'}}>rec/dom</span>),
+    Header: () => (<span title="log10(p_rec/p_dom) in FinnGen" style={{textDecoration: 'underline'}}>rec/dom</span>),
     accessor: 'rec_dom_log_ratio',
     width: Math.min(70, 70/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
@@ -514,7 +514,7 @@ const codingTableCols = [{
 	    props.value.toPrecision(3)
     }
 }, {
-    Header: () => (<span title="number of alt homozygotes in FinnGen R4" style={{textDecoration: 'underline'}}>n hom</span>),
+    Header: () => (<span title="number of alt homozygotes in FinnGen" style={{textDecoration: 'underline'}}>n hom</span>),
     accessor: 'AC_Hom',
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
@@ -528,8 +528,8 @@ const codingTableCols = [{
 	const grch37 = props.value.replace(/:/g, '-') + '-' + props.original.variant.split(':').slice(2).join('-')
 	return (
 	    <div>
-	    <span style={{paddingRight: '5px'}}><a href={"http://r3.finngen.fi/variant/" + props.original.variant.replace(/:/g, '-')} target="_blank">R3</a></span>
-	    <span style={{paddingRight: '5px'}}><a href={"http://r2.finngen.fi/variant/" + props.original.variant.replace(/:/g, '-')} target="_blank">R2</a></span>
+	    <span style={{paddingRight: '5px'}}><a href={`http://${window.release.toLowerCase()}.finngen.fi/variant/${props.original.variant.replace(/:/g, '-')}`} target="_blank">{window.release}</a></span>
+	    <span style={{paddingRight: '5px'}}><a href={`http://${window.release_prev.toLowerCase()}.finngen.fi/variant/${props.original.variant.replace(/:/g, '-')}`} target="_blank">{window.release_prev}</a></span>
 	    <span><a href={"https://gnomad.broadinstitute.org/variant/" + grch37} target="_blank">gn</a></span>
 	    </div>
 	)

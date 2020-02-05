@@ -38,7 +38,7 @@ class Coding extends React.Component {
             if (!response.ok) throw response
             return response.json()
         })
-        .then(result => {
+            .then(result => {
             this.setState({
                 data: result
             })

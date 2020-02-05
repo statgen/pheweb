@@ -452,7 +452,7 @@ window.panel_layouts.conditional = {
         behaviors: {
 	    onmouseover: [{action: "set", status:"selected"}],
 	    onmouseout: [{action: "unset", status:"selected"}],
-	    onclick: [{action: "link", href:"/variant/{{association:chr}}-{{association:position}}-{{association:ref}}-{{association:alt}}"}],
+	    onclick: [{action: "link", href:"/variant/{{conditional:chr}}-{{conditional:position}}-{{conditional:ref}}-{{conditional:alt}}"}],
         },
         tooltip: {
 	    closable: false,
@@ -658,7 +658,7 @@ window.panel_layouts.finemapping = {
         behaviors: {
 	    onmouseover: [{action: "set", status:"selected"}],
 	    onmouseout: [{action: "unset", status:"selected"}],
-	    onclick: [{action: "link", href:"/variant/{{association:chr}}-{{association:position}}-{{association:ref}}-{{association:alt}}"}],
+	    onclick: [{action: "link", href:"/variant/{{finemapping:chr}}-{{finemapping:position}}-{{finemapping:ref}}-{{finemapping:alt}}"}],
         },
         tooltip: {
 	    closable: false,

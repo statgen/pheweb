@@ -1,10 +1,12 @@
 authentication=True
-authentication_file = "/mnt/pheweb/google.dev.conf"
+authentication_file = "/mnt/nfs/pheweb/google.dev.conf"
 
 data_dir="/mnt/nfs/pheweb/r4/"
 cache="/mnt/nfs/pheweb/r4/cache/"
 
 browser="FINNGEN"
+release="R4"
+release_prev="R3"
 title="FREEZE 4"
 
 ld_server = 'http://api.finngen.fi'

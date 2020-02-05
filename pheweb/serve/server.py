@@ -54,6 +54,8 @@ if 'SENTRY_DSN' in conf:
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
 app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['browser'] = conf['browser']
+app.config['release'] = conf['release']
+app.config['release_prev'] = conf['release_prev']
 app.config['title'] = conf['title']
 if 'endpoint_def' in conf:
     app.config['endpoint_def'] = conf['endpoint_def']
@@ -114,6 +116,7 @@ def homepage_():
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
+@check_auth
 def homepage(path):
     return render_template('index_react.html',
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
@@ -267,11 +270,6 @@ def api_pheno_qq(phenocode):
 @check_auth
 def top_hits_page():
     return render_template('top_hits.html')
-
-@app.route('/coding')
-@check_auth
-def coding_page():
-    return render_template('coding.html')
 
 @app.route('/api/coding_data')
 @check_auth

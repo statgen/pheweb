@@ -36,9 +36,9 @@
 </head>
 
 <script type="text/javascript">
-  //TODO react global variables
-  
   window.browser = {{config['browser']|tojson|safe}}
+  window.release = {{config['release']|tojson|safe}}
+  window.release_prev = {{config['release_prev']|tojson|safe}}
   window.model = window.model || {}
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }}
   window.vis_conf = {{vis_conf|tojson|safe}}
@@ -110,8 +110,8 @@
                 <span class="icon-bar"></span>
             </button>
 	    <a href="/">
-	      <img src="{{ url_for('static', filename='images/finngen-blue.svg') }}" style="float: left;" />
-	      <!-- <img src="{{ url_for('static', filename='images/finngen_loop1.gif') }}" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px" /> -->
+	      <!-- <img src="{{ url_for('static', filename='images/finngen-blue.svg') }}" style="float: left;" /> -->
+	      <img src="{{ url_for('static', filename='images/finngen_loop1.gif') }}" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px" />
 	      <span class="logo-header">{{ config['title'] }}</span>
 	    </a>
             <!-- <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a> -->
