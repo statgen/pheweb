@@ -190,7 +190,7 @@ def _ensure_conf():
             return x
         def read(self, value):
             '''read from internal file'''
-            if self._d['nullable'] and value == '':
+            if self._d['nullable'] and (value == '' or value == 'NA'):
                 return ''
             x = self._d['type'](value)
             if 'range' in self._d:
@@ -244,7 +244,7 @@ def _ensure_conf():
             'from_assoc_files': False,
             'tooltip_underscoretemplate': 'nearest gene<%= _.contains(d.nearest_genes, ",")? "s":"" %>: <%= d.nearest_genes %><br>',
             'tooltip_lztemplate': False,
-        }),
+        })
     ])
 
     default_per_assoc_fields = OrderedDict([
@@ -291,6 +291,7 @@ def _ensure_conf():
         }),
         ('maf', {
             'type': float,
+            'nullable': True,
             'range': [0, 1],
             'sigfigs': 2,
             'tooltip_underscoretemplate': 'MAF: <%= d.maf.toFixed(4) %><br>',
@@ -356,6 +357,9 @@ def _ensure_conf():
             'nullable': True,
             'display': 'Tstat',
         }),
+        ('n_cohorts', {
+            'type': int
+        })
     ])
 
     default_per_pheno_fields = OrderedDict([
