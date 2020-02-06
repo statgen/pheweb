@@ -46,6 +46,10 @@ const stringToCountSorter = (a,b) => {
     return d - c
 }
 
+const truncateString = (s,l) => {
+    return s.split(";").length > l ? s.split(";").slice(0,l).join(";")+"...": s
+}
+
 const phenolistTableCols = {'FINNGEN': [{
     Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
     accessor: 'phenostring',
@@ -385,7 +389,7 @@ const csTableCols = [{
     minWidth: 50,
 }, {
     Header: () => (<span title="number of coding variants in the credible set" style={{textDecoration: 'underline'}}># coding in cs</span>),
-    accessor: 'functional_variants',
+    accessor: 'functional_variants_strict',
     sortMethod: stringToCountSorter,
     Cell: props => props.value.split(";").filter(x=>x!=="NA").length,
     minWidth: 40
@@ -393,7 +397,13 @@ const csTableCols = [{
     Header: () => (<span title="# Credible set variants" style={{textDecoration: 'underline'}}># credible variants</span>),
     accessor: 'credible_set_variants',
     sortMethod: stringToCountSorter,
-    Cell: props => props.value.split(";").filter(x=>x!=="NA").length,
+    Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
+    minWidth: 110,
+}, {
+    Header: () => (<span title="# Matching Traits" style={{textDecoration: 'underline'}}># matching traits</span>),
+    accessor: 'all_traits_strict',
+    sortMethod: stringToCountSorter,
+    Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
     minWidth: 110,
 }]
 
@@ -432,7 +442,7 @@ minWidth: 40
 }, {
 Header: () => (<span title="Matching trait" style={{textDecoration: 'underline'}}>Matching trait</span>),
 accessor: 'trait_name',
-Cell: props => props.value,
+Cell: props => <div><span title={props.value}>{truncateString(props.value,2)}</span></div>,
 minWidth: 40
 }, {
 Header: () => (<span title="R^2 to lead variant" style={{textDecoration: 'underline'}}>R^2 to lead variant</span>),

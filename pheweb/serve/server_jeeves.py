@@ -398,8 +398,30 @@ class ServerJeeves(object):
         files = glob.glob('/mnt/nfs/autoreporting/r4/group_reports/finngen_R4_' + phenocode + '.gz.top.out')
         if len(files) == 1:
             data = pd.read_csv(files[0], sep='\t').fillna('NA')
+            if "specific_efo_trait_associations_strict" in data.columns:
+                data['all_traits_strict']=data[['specific_efo_trait_associations_strict','found_associations_strict']].apply(
+                    lambda x: merge_traits(*x),axis=1
+                )
+            else:
+                data['all_traits_strict']=data['found_associations_strict']
             return data.reset_index().to_dict('records')
         return None
     
     def get_autoreport_variants(self, phenocode, locus_id):
-        return self.autoreporting_dao.get_group_variants(phenocode, locus_id)
+        data=self.autoreporting_dao.get_group_variants(phenocode, locus_id)
+        df=pd.DataFrame(data)
+        agg_dict = dict.fromkeys(df,"first")
+        agg_dict["trait"]=";".join
+        agg_dict["trait_name"]=";".join
+        df=df.groupby('variant_id').agg(agg_dict).reset_index(drop=True)
+        return df.to_dict('records')
+
+def merge_traits(a,b):
+    if a != "NA" and b != "NA":
+        return "{};{}".format(a,b)
+    elif a == "NA" and b != "NA":
+        return b
+    elif a != "NA" and b == "NA":
+        return a
+    else:
+        return "NA"
