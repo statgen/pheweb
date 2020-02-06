@@ -195,6 +195,18 @@ class Pheno extends React.Component {
 		<ReactTable 
 		data={this.state.locus_groups.hasOwnProperty(row["original"]["locus_id"]) ? this.state.locus_groups[row["original"]["locus_id"]] : (this.getGroup(this.state.phenocode, row["original"]["locus_id"]),this.state.locus_groups[row["original"]["locus_id"]]) }
 		columns={this.state.InsideColumns}
+		defaultSorted={[{
+			id: "cs_prob",
+			desc: true
+		},
+		{
+			id: "functional_category",
+			desc: true
+		},
+		{
+			id: "trait_name",
+			desc: true
+		}]}
 		defaultPageSize={10}
 		showPagination={true}
 		showPageSizeOptions={ true}

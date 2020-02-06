@@ -38,6 +38,14 @@ const naSmallSorter = (a, b) => {
     return a - b
 }
 
+const stringToCountSorter = (a,b) => {
+    const c  =a.split(";").filter(x=> x != 'NA').length
+    const d = b.split(";").filter(x=> x != 'NA').length
+    console.log(a,c)
+    console.log(b,d)
+    return d - c
+}
+
 const phenolistTableCols = {'FINNGEN': [{
     Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
     accessor: 'phenostring',
@@ -365,14 +373,27 @@ const csTableCols = [{
     Cell: props => props.value.toExponential(1),
     minWidth: 50,
 }, {
+    Header: () => (<span title="effect size (beta)" style={{textDecoration: 'underline'}}>effect size (beta)</span>),
+    accessor: 'lead_beta',
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+    Cell: props => props.value,
+    minWidth: 50,
+}, {
+    Header: () => (<span title="Lead Variant Gene" style={{textDecoration: 'underline'}}>Lead Variant Gene</span>),
+    accessor: 'most_severe_gene',
+    Cell: props => props.value,
+    minWidth: 50,
+}, {
     Header: () => (<span title="number of coding variants in the credible set" style={{textDecoration: 'underline'}}># coding in cs</span>),
     accessor: 'functional_variants',
+    sortMethod: stringToCountSorter,
     Cell: props => props.value.split(";").filter(x=>x!=="NA").length,
     minWidth: 40
 }, {
-    Header: () => (<span title="Credible set variants" style={{textDecoration: 'underline'}}>credible variants</span>),
+    Header: () => (<span title="# Credible set variants" style={{textDecoration: 'underline'}}># credible variants</span>),
     accessor: 'credible_set_variants',
-    Cell: props => props.value,
+    sortMethod: stringToCountSorter,
+    Cell: props => props.value.split(";").filter(x=>x!=="NA").length,
     minWidth: 110,
 }]
 
