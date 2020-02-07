@@ -41,9 +41,11 @@ const naSmallSorter = (a, b) => {
 const stringToCountSorter = (a,b) => {
     const c  =a.split(";").filter(x=> x != 'NA').length
     const d = b.split(";").filter(x=> x != 'NA').length
-    console.log(a,c)
-    console.log(b,d)
     return d - c
+}
+
+const tofixed = (v,n) => {
+    return typeof(v) == typeof(0) ? v.toFixed(n) : v
 }
 
 const truncateString = (s,l) => {
@@ -369,7 +371,7 @@ const csTableCols = [{
     Header: () => (<span title="chromosome" style={{textDecoration: 'underline'}}>chromosome</span>),
     accessor: 'chr',
     Cell: props => props.value,
-    minWidth: 40,
+    minWidth: 50,
 }, {
     Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
     accessor: 'lead_pval',
@@ -380,9 +382,15 @@ const csTableCols = [{
     Header: () => (<span title="effect size (beta)" style={{textDecoration: 'underline'}}>effect size (beta)</span>),
     accessor: 'lead_beta',
     filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
-    Cell: props => props.value,
+    Cell: props => tofixed(props.value,3),
     minWidth: 50,
 }, {
+    Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish Enrichment</span>),
+    accessor: 'enrichment',
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+    Cell: props => tofixed(props.value,3),
+    minWidth: 50,
+},{
     Header: () => (<span title="Lead Variant Gene" style={{textDecoration: 'underline'}}>Lead Variant Gene</span>),
     accessor: 'most_severe_gene',
     Cell: props => props.value,
@@ -391,20 +399,20 @@ const csTableCols = [{
     Header: () => (<span title="number of coding variants in the credible set" style={{textDecoration: 'underline'}}># coding in cs</span>),
     accessor: 'functional_variants_strict',
     sortMethod: stringToCountSorter,
-    Cell: props => props.value.split(";").filter(x=>x!=="NA").length,
+    Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
     minWidth: 40
 }, {
     Header: () => (<span title="# Credible set variants" style={{textDecoration: 'underline'}}># credible variants</span>),
     accessor: 'credible_set_variants',
     sortMethod: stringToCountSorter,
     Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
-    minWidth: 110,
+    minWidth: 50,
 }, {
     Header: () => (<span title="# Matching Traits" style={{textDecoration: 'underline'}}># matching traits</span>),
     accessor: 'all_traits_strict',
     sortMethod: stringToCountSorter,
     Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
-    minWidth: 110,
+    minWidth: 50,
 }]
 
 const csInsideTableCols = [
@@ -430,6 +438,12 @@ filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
 minWidth: 50,
 }, {
+Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish enrichment</span>),
+accessor: 'GENOME_FI_enrichment_nfe_est',
+filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+Cell: props => props.value,
+minWidth: 50,
+}, {
 Header: () => (<span title="Credible set PIP" style={{textDecoration: 'underline'}}>CS PIP</span>),
 accessor: 'cs_prob',
 Cell: props => props.value,
@@ -442,6 +456,7 @@ minWidth: 40
 }, {
 Header: () => (<span title="Matching trait" style={{textDecoration: 'underline'}}>Matching trait</span>),
 accessor: 'trait_name',
+sortMethod: stringToCountSorter,
 Cell: props => <div><span title={props.value}>{truncateString(props.value,2)}</span></div>,
 minWidth: 40
 }, {

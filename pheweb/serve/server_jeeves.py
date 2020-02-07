@@ -405,7 +405,7 @@ class ServerJeeves(object):
             else:
                 data['all_traits_strict']=data['found_associations_strict']
             return data.reset_index().to_dict('records')
-        return None
+        return []
     
     def get_autoreport_variants(self, phenocode, locus_id):
         data=self.autoreporting_dao.get_group_variants(phenocode, locus_id)

@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import ReactTable from 'react-table'
 import { CSVLink } from 'react-csv'
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import { phenoTableCols, csTableCols, csInsideTableCols } from '../tables.js'
 import { create_gwas_plot, create_qq_plot } from '../pheno.js'
 
@@ -19,7 +20,8 @@ class Pheno extends React.Component {
 		csColumns: csTableCols,
 		InsideColumns: csInsideTableCols,
 		dataToDownload: [],
-		locus_groups: {}
+		locus_groups: {},
+		selectedTab: 0
 	}
 	this.resp_json = this.resp_json.bind(this)
 	this.error_state = this.error_state.bind(this)
@@ -31,6 +33,7 @@ class Pheno extends React.Component {
 	this.getQQ = this.getQQ.bind(this)
 	this.download = this.download.bind(this)
 	this.getGroup = this.getGroup.bind(this)
+	this.onTabSelect = this.onTabSelect.bind(this)
 	this.getUKBBN(props.match.params.pheno)
 	this.getPheno(props.match.params.pheno)
     }
@@ -149,7 +152,13 @@ class Pheno extends React.Component {
 			this.csvLink.link.click()
 		})
 		}
-
+	
+	onTabSelect(index){
+		this.setState({
+			selectedTab:index
+		})
+	}
+	
     render() {
 	if (this.state.error) {
 	    return <div>{this.state.error.statusText || this.state.error}</div>
@@ -201,11 +210,11 @@ class Pheno extends React.Component {
 		},
 		{
 			id: "functional_category",
-			desc: true
+			desc: false
 		},
 		{
 			id: "trait_name",
-			desc: true
+			desc: false
 		}]}
 		defaultPageSize={10}
 		showPagination={true}
@@ -257,6 +266,12 @@ class Pheno extends React.Component {
 	    </div> :
 	<div>loading</div>
 
+	const is_cs = this.state.credibleSets == null ?
+		"" :
+		this.state.credibleSets.length == 0 ? 
+		". No credible sets for this phenotype." : 
+		""	
+
 	const risteys = window.browser == 'FINNGEN' ?
 	    <p style={{marginBottom: '10px'}}><a style={{fontSize:'1.25rem', padding: '.25rem .5rem', backgroundColor: '#2779bd', color: '#fff', borderRadius: '.25rem', fontWeight: 700, boxShadow: '0 0 5px rgba(0,0,0,.5)'}}
 	href={'https://risteys.finngen.fi/phenocode/' + this.state.pheno.phenocode.replace('_EXALLC', '').replace('_EXMORE', '')} target="_blank">RISTEYS</a></p> : null
@@ -271,7 +286,22 @@ class Pheno extends React.Component {
                 {ukbb}
 		<div id='manhattan_plot_container' />
 		<h3>Lead variants</h3>
-		{cs_table}
+		<Tabs forceRenderTabPanel={true} defaultIndex={0} onSelect={this.onTabSelect} style={{height: '100%', width: '100%'}}>
+		<TabList>
+		<Tab>Credible Sets</Tab>
+		<Tab>Traditional</Tab>
+		</TabList>
+		<TabPanel style={{height: '100%', display: this.state.selectedTab == 0 ? 'block' : 'none'}}>
+			<div id="network" style={{height: '100%', width: '100%'}}>
+				{cs_table}
+			</div>
+		</TabPanel>
+		<TabPanel style={{height: '100%', display: this.state.selectedTab == 1 ? 'block' : 'none'}}>
+			<div id="network" style={{height: '100%', width: '100%'}}>
+				{var_table}
+			</div>
+		</TabPanel>
+		</Tabs>
 		<div style={{float:'left'}}>
 		<h3>QQ plot</h3>
 		<div id='qq_plot_container' style={{width:'400px'}} />
