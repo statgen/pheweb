@@ -408,11 +408,17 @@ const csTableCols = [{
     Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
     minWidth: 50,
 }, {
-    Header: () => (<span title="# Matching Traits" style={{textDecoration: 'underline'}}># matching traits</span>),
+    Header: () => (<span title="CS matching Traits" style={{textDecoration: 'underline'}}>CS matching Traits</span>),
     accessor: 'all_traits_strict',
     sortMethod: stringToCountSorter,
     Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
-    minWidth: 50,
+    minWidth: 100,
+}, {
+    Header: () => (<span title="LD Partner matching Traits" style={{textDecoration: 'underline'}}>LD Partner Traits</span>),
+    accessor: 'all_traits_relaxed',
+    sortMethod: stringToCountSorter,
+    Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
+    minWidth: 100,
 }]
 
 const csInsideTableCols = [

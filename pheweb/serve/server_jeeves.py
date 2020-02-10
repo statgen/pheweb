@@ -402,8 +402,12 @@ class ServerJeeves(object):
                 data['all_traits_strict']=data[['specific_efo_trait_associations_strict','found_associations_strict']].apply(
                     lambda x: merge_traits(*x),axis=1
                 )
+                data['all_traits_relaxed']=data[['specific_efo_trait_associations_relaxed','found_associations_relaxed']].apply(
+                    lambda x: merge_traits(*x),axis=1
+                )
             else:
                 data['all_traits_strict']=data['found_associations_strict']
+                data['all_traits_relaxed']=data['found_associations_relaxed']
             return data.reset_index().to_dict('records')
         return []
     
