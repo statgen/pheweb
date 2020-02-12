@@ -406,11 +406,15 @@ class ServerJeeves(object):
                 vars.append(Variant(v[0],v[1],v[2],v[3]))
             ukbbvars = self.ukbb_dao.get_matching_results(phenocode, vars)
             v_pvals={}
+            v_betas={}
             for var in ukbbvars.keys():
                 v_pvals["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["pval"]#TODO: If locus_id spec changes, this has to change
+                v_betas["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["beta"]
             data["ukbb_pval"]="NA"
-            for key in v_pvals:
+            data["ukbb_beta"]="NA"
+            for key in v_pvals:#same key as in betas
                 data.loc[data["locus_id"]==key,"ukbb_pval"] = float(v_pvals[key])
+                data.loc[data["locus_id"]==key,"ukbb_beta"] = float(v_betas[key])
             if "specific_efo_trait_associations_strict" in data.columns:
                 data['all_traits_strict']=data[['specific_efo_trait_associations_strict','found_associations_strict']].apply(
                     lambda x: merge_traits(*x),axis=1

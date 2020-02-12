@@ -400,9 +400,15 @@ const csTableCols = [{
     Cell: props => tofixed(props.value,3),
     minWidth: 50,
 },{
+    Header: () => (<span title="Minor allele frequency" style={{textDecoration: 'underline'}}>MAF</span>),
+    accessor: 'lead_AF',
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+    Cell: props => tofixed(props.value,3),
+    minWidth: 50,
+},{
     Header: () => (<span title="Lead Variant Gene" style={{textDecoration: 'underline'}}>Lead Variant Gene</span>),
     accessor: 'most_severe_gene',
-    Cell: props => (<a href={"/gene/" + props.value} target="_blank">{props.value}</a>),
+    Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value} target="_blank">{props.value}</a>):"NA",
     minWidth: 50,
 }, {
     Header: () => (<span title="number of coding variants in the credible set" style={{textDecoration: 'underline'}}># coding in cs</span>),
@@ -432,7 +438,9 @@ const csTableCols = [{
     Header: () => (<span title="UKBB Neale lab result" style={{textDecoration: 'underline'}}>UKBB</span>),
     accessor: 'ukbb_pval',
     sortMethod: naSorter,
-    Cell: props => props.value != "NA" ? props.value.toExponential(1):props.value,
+    Cell: props => props.value != "NA" ? <div>{(Number(props.original.ukbb_beta) >= 0) ? <span style={{color: 'green', float: 'left', paddingRight: '5px'}} className="glyphicon glyphicon-triangle-top" aria-hidden="true"></span> :
+					       (Number(props.original.ukbb_beta) < 0) ? <span style={{color: 'red', float: 'left', paddingRight: '5px'}} className="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span> :
+					       <span></span>} {Number(props.value).toExponential(1)}</div> : props.value,
     minWidth: 100,
 }
 
