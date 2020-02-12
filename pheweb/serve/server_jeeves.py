@@ -398,6 +398,19 @@ class ServerJeeves(object):
         files = glob.glob('/mnt/nfs/autoreporting/r4/group_reports/finngen_R4_' + phenocode + '.gz.top.out')
         if len(files) == 1:
             data = pd.read_csv(files[0], sep='\t').fillna('NA')
+            data["phenocode"]=phenocode
+            #add ukbb data
+            vars=[]
+            for t in data.itertuples():
+                v=t.locus_id.replace("chr","").split("_")
+                vars.append(Variant(v[0],v[1],v[2],v[3]))
+            ukbbvars = self.ukbb_dao.get_matching_results(phenocode, vars)
+            v_pvals={}
+            for var in ukbbvars.keys():
+                v_pvals["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["pval"]#TODO: If locus_id spec changes, this has to change
+            data["ukbb_pval"]="NA"
+            for key in v_pvals:
+                data.loc[data["locus_id"]==key,"ukbb_pval"] = float(v_pvals[key])
             if "specific_efo_trait_associations_strict" in data.columns:
                 data['all_traits_strict']=data[['specific_efo_trait_associations_strict','found_associations_strict']].apply(
                     lambda x: merge_traits(*x),axis=1

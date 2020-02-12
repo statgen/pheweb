@@ -52,6 +52,14 @@ const truncateString = (s,l) => {
     return s.split(";").length > l ? s.split(";").slice(0,l).join(";")+"...": s
 }
 
+const regionBuilder = (s,r) => {
+    const tmp = s.replace("chr23","chrX").replace("chr","").split("_")
+    const chr=tmp[0]
+    const pos_min=Math.max( parseInt( tmp[1] ) - r,0 )
+    const pos_max=parseInt( tmp[1] ) + r
+    return `${chr}:${pos_min}-${pos_max}`
+}
+
 const phenolistTableCols = {'FINNGEN': [{
     Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
     accessor: 'phenostring',
@@ -365,7 +373,8 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
 const csTableCols = [{
     Header: () => (<span title="variant with highest PIP in the credible set" style={{textDecoration: 'underline'}}>top PIP variant</span>),
     accessor: 'locus_id',
-    Cell: props => props.value,
+    Cell: props => (<a href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank">{props.value.replace("chr23","chrX").replace("chr","").replace(/_/g,":")}</a>),
+    //width: Math.min(270, 270/maxTableWidth*window.innerWidth),
     minWidth: 60,
 }, {
     Header: () => (<span title="chromosome" style={{textDecoration: 'underline'}}>chromosome</span>),
@@ -393,7 +402,7 @@ const csTableCols = [{
 },{
     Header: () => (<span title="Lead Variant Gene" style={{textDecoration: 'underline'}}>Lead Variant Gene</span>),
     accessor: 'most_severe_gene',
-    Cell: props => props.value,
+    Cell: props => (<a href={"/gene/" + props.value} target="_blank">{props.value}</a>),
     minWidth: 50,
 }, {
     Header: () => (<span title="number of coding variants in the credible set" style={{textDecoration: 'underline'}}># coding in cs</span>),
@@ -419,7 +428,15 @@ const csTableCols = [{
     sortMethod: stringToCountSorter,
     Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
     minWidth: 100,
-}]
+}, {
+    Header: () => (<span title="UKBB Neale lab result" style={{textDecoration: 'underline'}}>UKBB</span>),
+    accessor: 'ukbb_pval',
+    sortMethod: naSorter,
+    Cell: props => props.value != "NA" ? props.value.toExponential(1):props.value,
+    minWidth: 100,
+}
+
+]
 
 const csInsideTableCols = [
 //{Header: () => (<span title="Group ID" style={{textDecoration: 'underline'}}>Group ID</span>),
@@ -429,7 +446,7 @@ const csInsideTableCols = [
 //}, 
 {Header: () => (<span title="Variant ID" style={{textDecoration: 'underline'}}>Variant ID</span>),
 accessor: 'variant_id',
-Cell: props => props.value,
+Cell: props => (<a href={"/variant/" +props.value.replace("chr23","chrX").replace("chr","").replace(/_/g,"-")} target="_blank">{props.value}</a>),
 minWidth: 60,
 }, {
 Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
@@ -440,6 +457,24 @@ minWidth: 50,
 }, {
 Header: () => (<span title="effect size" style={{textDecoration: 'underline'}}>effect size</span>),
 accessor: 'beta',
+filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+Cell: props => props.value,
+minWidth: 50,
+}, {
+Header: () => (<span title="minimum allele frequency" style={{textDecoration: 'underline'}}>MAF</span>),
+accessor: 'maf',
+filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+Cell: props => props.value,
+minWidth: 50,
+}, {
+Header: () => (<span title="MAF (cases)" style={{textDecoration: 'underline'}}>MAF (cases)</span>),
+accessor: 'maf_cases',
+filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+Cell: props => props.value,
+minWidth: 50,
+}, {
+Header: () => (<span title="MAF (controls)" style={{textDecoration: 'underline'}}>MAF (controls)</span>),
+accessor: 'maf_controls',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
 minWidth: 50,
