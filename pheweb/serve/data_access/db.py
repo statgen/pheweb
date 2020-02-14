@@ -1094,21 +1094,23 @@ class LofMySQLDao(LofDB):
           return pymysql.connect(host=self.host, user=self.user, password=self.password, db=self.db)
      def get_all_lofs(self, p_threshold):
           conn = self.get_connection()
-          with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-               sql = "SELECT * FROM lof WHERE rel=%s AND p_value < %s"
-               cursori.execute(sql, [self.release, p_threshold])
-               result = [{'gene_data': data} for data in cursori.fetchall()]
-               cursori.close()
-          conn.close()
+          try:
+               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                    sql = "SELECT * FROM lof WHERE rel=%s AND p_value < %s"
+                    cursori.execute(sql, [self.release, p_threshold])
+                    result = [{'gene_data': data} for data in cursori.fetchall()]
+          finally:
+               conn.close()
           return result
      def get_lofs(self, gene):
           conn = self.get_connection()
-          with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-               sql = "SELECT * FROM lof WHERE rel=%s AND gene=%s"
-               cursori.execute(sql, [self.release, gene])
-               result = [{'gene_data': data} for data in cursori.fetchall()]
-               cursori.close()
-          conn.close()
+          try:
+               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                    sql = "SELECT * FROM lof WHERE rel=%s AND gene=%s"
+                    cursori.execute(sql, [self.release, gene])
+                    result = [{'gene_data': data} for data in cursori.fetchall()]
+          finally:
+               conn.close()
           return result
 
 class ElasticLofDao(LofDB):
@@ -1199,39 +1201,45 @@ class FineMappingMySQLDao(FineMappingDB):
           return pymysql.connect(host=self.host, user=self.user, password=self.password, db=self.db)
      def get_max_region(self, phenocode, chr, start, end):
           conn = self.get_connection()
-          with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-               sql = "SELECT min(start) as start, max(end) AS end FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
-               cursori.execute(sql, [self.release, phenocode, chr, end, start])
-               result = cursori.fetchone()
-               cursori.close()
-          conn.close()
+          try:
+               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                    sql = "SELECT min(start) as start, max(end) AS end FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                    cursori.execute(sql, [self.release, phenocode, chr, end, start])
+                    result = cursori.fetchone()
+          finally:
+               conn.close()
           return result
      def get_regions(self, variant: Variant):
           conn = self.get_connection()
-          with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-               sql = "SELECT type, phenocode, chr, start, end, path FROM finemapped_regions WHERE rel=%s AND chr=%s AND start <= %s AND end >= %s"
-               cursori.execute(sql, [self.release, variant.chr, variant.pos, variant.pos])
-               result = cursori.fetchall()
-               for res in result:
-                    res['path'] = self.base_paths[res['type']] + '/' + res['path']
-          conn.close()
+          try:
+               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                    sql = "SELECT type, phenocode, chr, start, end, path FROM finemapped_regions WHERE rel=%s AND chr=%s AND start <= %s AND end >= %s"
+                    cursori.execute(sql, [self.release, variant.chr, variant.pos, variant.pos])
+                    result = cursori.fetchall()
+                    for res in result:
+                         res['path'] = self.base_paths[res['type']] + '/' + res['path']
+          finally:
+               conn.close()
           return result
      def get_regions_for_pheno(self, type, phenocode, chr, start, end, get_most_probable_finemap_n=True):
           conn = self.get_connection()
-          with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-               if type == 'all':
-                    sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, variants, path FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
-                    cursori.execute(sql, [self.release, phenocode, chr, end, start])
-               elif type == 'conditional':
-                    sql = "SELECT type, chr, start, end, n_signals, variants, path FROM finemapped_regions WHERE rel=%s AND type=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
-                    cursori.execute(sql, [self.release, 'conditional', phenocode, chr, end, start])
-               elif type == 'finemapping':
-                    sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, path FROM finemapped_regions WHERE rel=%s AND (type=%s OR type=%s) AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
-                    cursori.execute(sql, [self.release, 'susie', 'finemap', phenocode, chr, end, start])
-               else:
-                    raise ValueError('unsupported type "' + type + '"')
+          try:
+               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                    if type == 'all':
+                         sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, variants, path FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                         cursori.execute(sql, [self.release, phenocode, chr, end, start])
+                    elif type == 'conditional':
+                         sql = "SELECT type, chr, start, end, n_signals, variants, path FROM finemapped_regions WHERE rel=%s AND type=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                         cursori.execute(sql, [self.release, 'conditional', phenocode, chr, end, start])
+                    elif type == 'finemapping':
+                         sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, path FROM finemapped_regions WHERE rel=%s AND (type=%s OR type=%s) AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                         cursori.execute(sql, [self.release, 'susie', 'finemap', phenocode, chr, end, start])
+                    else:
+                         raise ValueError('unsupported type "' + type + '"')
                result = cursori.fetchall()
-          result = [res for res in result if res['type'] in self.base_paths]
+               result = [res for res in result if res['type'] in self.base_paths]
+          finally:
+               conn.close()          
           for res in result:
                res['path'] = self.base_paths[res['type']] + '/' + res['path']
                if res['type'] == 'conditional':
@@ -1242,7 +1250,6 @@ class FineMappingMySQLDao(FineMappingDB):
                          #R3 res['paths'].append(res['path'] + '-'.join(vars[0:i+1]) + '.conditional')
                          res['paths'].append(res['path'] + vars[0] + '_' + str((i+1)) + '.conditional')
                          res['conditioned_on'].append(','.join(vars[0:i+1]))
-          conn.close()
           if get_most_probable_finemap_n:
                most_probable_finemap = -1
                prob = 0

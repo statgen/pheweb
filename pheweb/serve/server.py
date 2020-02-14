@@ -320,7 +320,7 @@ def region_page(phenocode, region):
     chr_se = region.split(':')
     chrom = chr_se[0]
     if finemapping_dao is not None:
-        start_end = jeeves.get_max_finemapped_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
+        start_end = finemapping_dao.get_max_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
         cond_fm_regions = finemapping_dao.get_regions_for_pheno('all', phenocode, chrom, start_end['start'], start_end['end'])
     else:
         cond_fm_regions = []

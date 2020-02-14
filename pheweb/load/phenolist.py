@@ -1,6 +1,8 @@
 #!/usr/bin/env/python3
 
-#phenolist.py pheno-list.json.orig ../r3_1/pheno-list.json TAGLIST_DF4.txt finngen_R4_endpoint_definition.txt R4_COV_PHENO_V1.txt.gz ./generated-by-pheweb | python -m json.tool > pheno-list.json
+# use this to add metadata to the pheno-list.json file: endpoint names, categories, case/control n, gc lambda, num gw sig hits
+# TODO make part of the import wdl, not using the cov_pheno file but precalculating Ns so can be done without red data
+# phenolist.py pheno-list.json.orig ../r3_1/pheno-list.json TAGLIST_DF4.txt finngen_R4_endpoint_definition.txt R4_COV_PHENO_V1.txt.gz ./generated-by-pheweb | python -m json.tool > pheno-list.json
 
 import sys
 import json

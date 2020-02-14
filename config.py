@@ -1,15 +1,19 @@
 authentication=True
+
 authentication_file = "/mnt/nfs/pheweb/google.dev.conf"
+
 
 data_dir="/mnt/nfs/pheweb/r4/"
 cache="/mnt/nfs/pheweb/r4/cache/"
 
 browser="FINNGEN"
+
 release="R4"
 release_prev="R3"
 title="FREEZE 4"
 
 ld_server = 'http://api.finngen.fi'
+
 
 database_conf = (
     {
@@ -38,7 +42,9 @@ database_conf = (
         }
     }, {
         "tsv": {
+
             "CodingDao": {"coding":"/mnt/nfs/coding/r4/coding_web.txt"}
+
         }
     }, {
         "finemapping" : {
