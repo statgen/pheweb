@@ -31,6 +31,10 @@ a {
     color: #4B1DD9;
 }
 
+table.column_spacing td {
+    padding-right: 10px;
+}
+
 .loader {
     border: 16px solid #f3f3f3; /* Light grey */
     border-top: 16px solid #3498db; /* Blue */

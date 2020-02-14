@@ -194,9 +194,14 @@ LocusZoom.Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields)
     var topvar = chain.body[extremeIdx]
     var refvar=topvar[this.params.var_id_field]
     chain.header.ldrefvar = topvar
-    var windowSize= 500
-    var population="1000GENOMES:phase_3:FIN"
-    return refvar ? this.url + refvar + "/" + population + "?window_size=" + windowSize : this.url + 'couldntgetrefvar'
+    if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
+	var windowSize = Math.min(state.end - state.start + 10000, window.lz_conf.ld_max_window)
+	return refvar ? this.url + "?variant=" + topvar['association:chr'] + ':' + topvar['association:position'] + ':' + topvar['association:ref'] + ':' + topvar['association:alt'] + "&window=" + windowSize + "&panel=sisu3" : this.url + 'couldntgetrefvar'
+    } else {
+	var windowSize = 500
+	var population="1000GENOMES:phase_3:FIN"
+	return refvar ? this.url + refvar + "/" + population + "?window_size=" + windowSize : this.url + 'couldntgetrefvar'
+    }
 
 };
 
@@ -204,8 +209,13 @@ LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, f
 
     // if ld was not fetched, return the previous chain skipping this data source
     if (!resp) return chain
-    
-    var res = JSON.parse(resp)
+
+    var res
+    if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
+	res = JSON.parse(resp)['ld']
+    } else {
+	res = JSON.parse(resp)
+    }
     var lookup = {}
     for (var i = 0; i < res.length; i++) {
         lookup[ res[i].variation2 ] = res[i];
@@ -216,9 +226,16 @@ LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, f
 
     for (var i = 0; i < chain.body.length; i++) {
 
-        var d = lookup[chain.body[i][this.params.var_id_field]]
-        var isref = chain.header.ldrefvar[this.params.var_id_field] == chain.body[i][this.params.var_id_field]? 1:0
-
+	var d, isref
+	if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
+            d = lookup[chain.body[i][this.params.var_id_field].replace('_', ':').replace('/', ':')]
+            //isref = chain.header.ldrefvar[this.params.var_id_field].split('_')[0] == chain.body[i][this.params.var_id_field].split('_')[0] ? 1:0
+	    isref = chain.header.ldrefvar[this.params.var_id_field] == chain.body[i][this.params.var_id_field] ? 1:0
+	} else {
+	    d = lookup[chain.body[i][this.params.var_id_field]]
+	    isref = chain.header.ldrefvar[this.params.var_id_field] == chain.body[i][this.params.var_id_field]? 1:0
+	}
+	
         if( d != null ) {
             chain.body[i][ld_field] = d.r2;
             chain.body[i][reffield] = isref

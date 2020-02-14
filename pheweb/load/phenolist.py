@@ -35,11 +35,15 @@ def run():
         for line in f:
             s = [s.strip() for s in line.strip().split('\t')]
             code = s[h['NAME']].strip()
-            if code in code2pheno:
+            if code not in code2pheno and code + '_EXMORE' in code2pheno:
+                code = code + '_EXMORE'
+            if code not in code2pheno and code + '_EXALLC' in code2pheno:
+                code = code + '_EXALLC'
+            if code in code2pheno:# or code + '_EXMORE' in code2pheno or code + '_EXALLC' in code2pheno:
                 code2pheno[code]['phenostring'] = s[h['LONGNAME']].strip()
                 code2pheno[code]['num_cases'] = 0
                 code2pheno[code]['num_controls'] = 0
-                tags_this = [t.strip() for t in s[h['TAGS']].split(',')]
+                tags_this = [t.strip().replace('"', '') for t in s[h['TAGS']].split(',')]
                 min = 1000
                 min_tag = None
                 for tag in tags_this:
@@ -85,6 +89,10 @@ def run():
             pheno['num_gw_significant_prev'] = code2pheno_prev[pheno['phenocode']]['num_gw_significant']
         else:
             pheno['num_gw_significant_prev'] = 'NA'
+        if pheno['phenocode'] in code2pheno_prev:
+            pheno['num_cases_prev'] = code2pheno_prev[pheno['phenocode']]['num_cases']
+        else:
+            pheno['num_cases_prev'] = 'NA'
     
     print(json.dumps(phenolist))
 

@@ -190,7 +190,7 @@ def _ensure_conf():
             return x
         def read(self, value):
             '''read from internal file'''
-            if self._d['nullable'] and value == '':
+            if self._d['nullable'] and (value == '' or value == 'NA'):
                 return ''
             x = self._d['type'](value)
             if 'range' in self._d:
@@ -244,7 +244,7 @@ def _ensure_conf():
             'from_assoc_files': False,
             'tooltip_underscoretemplate': 'nearest gene<%= _.contains(d.nearest_genes, ",")? "s":"" %>: <%= d.nearest_genes %><br>',
             'tooltip_lztemplate': False,
-        }),
+        })
     ])
 
     default_per_assoc_fields = OrderedDict([
@@ -291,6 +291,7 @@ def _ensure_conf():
         }),
         ('maf', {
             'type': float,
+            'nullable': True,
             'range': [0, 1],
             'sigfigs': 2,
             'tooltip_underscoretemplate': 'MAF: <%= d.maf.toFixed(4) %><br>',
@@ -356,6 +357,9 @@ def _ensure_conf():
             'nullable': True,
             'display': 'Tstat',
         }),
+        ('n_cohorts', {
+            'type': int
+        })
     ])
 
     default_per_pheno_fields = OrderedDict([
@@ -523,4 +527,5 @@ def _ensure_conf():
 
     conf.set_default_value("report_conf", {"func_var_assoc_threshold":0.0001}  )
     conf.set_default_value("vis_conf", {"loglog_threshold": 10, "info_tooltip_threshold": 0.8})
+    conf.set_default_value("locuszoom_conf", {"p_threshold": 0.05, "prob_threshold": 0.0001, "ld_service": "finngen", "ld_max_window": 5000000})
     conf.set_default_value("lof_threshold", 1e-3)

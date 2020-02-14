@@ -2,15 +2,15 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import ReactTable from 'react-table'
 import { CSVLink } from 'react-csv'
-import { mainTableCols } from '../tables.js'
+import { codingTableCols } from '../tables.js'
 
-class Home extends React.Component {
+class Coding extends React.Component {
 
     constructor(props) {
         super(props)
         this.state = {
 	    data: null,
-	    columns: mainTableCols,
+	    columns: codingTableCols,
 	    dataToDownload: [],
 	    filtered: [],
 	    headers: [
@@ -38,7 +38,7 @@ class Home extends React.Component {
             if (!response.ok) throw response
             return response.json()
         })
-        .then(result => {
+            .then(result => {
             this.setState({
                 data: result
             })
@@ -111,4 +111,4 @@ class Home extends React.Component {
     }
 }
 
-export default Home
+export default Coding

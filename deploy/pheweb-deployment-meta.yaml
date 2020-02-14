@@ -33,14 +33,10 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
-        - mountPath: /mnt/meta
-          name: pheweb-pv
-  volumeClaimTemplates:
-  - metadata:
-      name: pheweb-pv
-    spec:
-      storageClassName: ""
-      accessModes: [ ReadWriteOnce ]
-      resources:
-        requests:
-          storage: 200Gi
+        - mountPath: /mnt/nfs
+          name: pheweb-nfs
+      volumes:
+      - name: pheweb-nfs
+        persistentVolumeClaim:
+          claimName: nfs-claim
+          readOnly: false

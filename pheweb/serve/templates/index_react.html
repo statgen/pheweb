@@ -1,6 +1,8 @@
 <!doctype html>
+<html itemscope="" itemtype="http://schema.org/WebPage" lang="en">
+
 <head>
-<title>{% include 'title.html' %}</title>
+<title>FinnGen results</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- <meta name="robots" content="noindex"> -->
 
@@ -10,28 +12,16 @@
 <script src="{{ url_for('static', filename='vendor/underscore-1.8.3.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/typeahead-0.11.1.bundle.min.js') }}" type="text/javascript"></script>
 
-<link  href="{{ url_for('static', filename='vendor/bootstrap-3.3.6.min.css') }}" rel="stylesheet" type="text/css" crossorigin="anonymous">
-<script src="{{ url_for('static', filename='vendor/popper.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='vendor/bootstrap-3.3.6.min.js') }}" type="text/javascript" crossorigin="anonymous"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/locuszoom@0.9.1/dist/locuszoom.vendor.min.js" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-tip@0.6.7/index.min.js"></script>
 
+<link  href="{{ url_for('static', filename='vendor/bootstrap-3.3.6.min.css') }}" rel="stylesheet" type="text/css" crossorigin="anonymous">
 <link href="{{ url_for('static', filename='common.css') }}" rel="stylesheet" type="text/css">
 <script src="{{ url_for('static', filename='common.js') }}" type="text/javascript"></script>
 
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='react-tabs.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='react-table.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='react-style.css') }}">
-
-{% if config.SENTRY_DSN %}
-  <script src="https://cdn.ravenjs.com/3.21.0/raven.min.js" crossorigin="anonymous"></script>
-  <script type="text/javascript">
-  Raven.config({{ config.SENTRY_DSN|tojson|safe }},
-    {release: {{ config.PHEWEB_VERSION|tojson|safe }} }
-  ).install()
-  </script>
-{% endif %}
 
 {% if config['GOOGLE_ANALYTICS_TRACKING_ID'] %}
   <script type="text/javascript">
@@ -43,8 +33,71 @@
     ga('send', 'pageview');
   </script>
 {% endif %}
-{% block in_head %}{% endblock %}
 </head>
+
+<script type="text/javascript">
+  window.browser = {{config['browser']|tojson|safe}}
+  window.release = {{config['release']|tojson|safe}}
+  window.release_prev = {{config['release_prev']|tojson|safe}}
+  window.model = window.model || {}
+  window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }}
+  window.vis_conf = {{vis_conf|tojson|safe}}
+</script>
+
+<style type="text/css">
+.d3-tip {
+  line-height: 1.4;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 4px;
+  pointer-events: none;
+}
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  pointer-events: none;
+}
+/* Northward tooltips */
+.d3-tip.n:after {
+  content: "\25BC";
+  margin: -3px 0 0 0;
+  top: 100%;
+  left: 0;
+  text-align: center;
+}
+
+#manhattan_plot_container {
+  min-width: 700px;
+}
+#manhattan_plot_container .axis > path.domain {
+  stroke-width: 2px;
+  stroke: #666;
+  fill: none;
+}
+#manhattan_plot_container .axis g.tick line {
+  stroke: #666;
+}
+
+#qq_plot_container .axis path.domain {
+  stroke: black;
+  fill: none;
+}
+#qq_plot_container .axis g.tick line {
+  stroke: #666;
+  opacity: 0.3;
+}
+
+.icd9-info > p, .pheno-info > p {
+  margin-bottom: 0;
+}
+
+</style>
 
 <body>
 <nav class="navbar navbar-default" style="background: white;">
@@ -56,10 +109,9 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            {% block navbar_left %}
 	    <a href="/">
-	      <img src="{{ url_for('static', filename='images/finngen-blue.svg') }}" style="float: left;" />
-	      <!-- <img src="{{ url_for('static', filename='images/finngen_loop1.gif') }}" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px" /> -->
+	      <!-- <img src="{{ url_for('static', filename='images/finngen-blue.svg') }}" style="float: left;" /> -->
+	      <img src="{{ url_for('static', filename='images/finngen_loop1.gif') }}" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px" />
 	      <span class="logo-header">{{ config['title'] }}</span>
 	    </a>
             <!-- <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a> -->
@@ -70,15 +122,18 @@
                     </div>
                 </form>
             </div>
-            {% endblock %}
         </div>
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="navbar-collapse">
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="/random" style="color: #333; font-weight: bold;">Random</a></li>
                 <li><a href="/top_hits" style="color: #333; font-weight: bold;">Top Hits</a></li>
+		{% if config.coding %}
                 <li><a href="/coding" style="color: #333; font-weight: bold;">Coding Variants</a></li>
-                <li><a href="/static/FINNGEN_ENDPOINTS_DF4_V2.zip" style="color: #333; font-weight: bold;">Download Endpoint Definitions</a></li>
+		{% endif %}
+		{% if config.endpoint_def %}
+                <li><a href="" style="color: #333; font-weight: bold;">Download Endpoint Definitions</a></li>
+		{% endif %}
                 <li><a href="/about" style="color: #333; font-weight: bold;">About</a></li>
                 {% if current_user and current_user.is_authenticated %}
                 <li><a href="{{ url_for('logout') }}" style="color: #333; font-weight: bold;">Logout ({{ current_user.email }})</a></li>
@@ -88,18 +143,8 @@
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
 </nav>
-{% block body %}
-<div class="container-fluid">
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <br><br> {# Don't get stuck behind the navbar #}
-        {% for message in messages %}
-          <div class="alert alert-danger" role="alert"><b>Error:</b> {{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    {% block contained %}
-    {% endblock %}
-</div>
-{% endblock %}
+
+<div id="reactEntry"></div>
+<script type="text/javascript" src="{{ url_for('static', filename='bundle.js') }}"></script>
+
 </body>

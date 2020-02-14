@@ -7,6 +7,7 @@
   window.variant = {{ variant |tojson(separators=(',',':'))|safe }};
   console.log(variant)
   window.results =  {{ results |tojson(separators=(',',':'))|safe }};
+  console.log(results)
   window.regions = {{ regions |tojson(separators=(',',':'))|safe }};
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
   window.var_top_pheno_export_fields = {{ var_top_pheno_export_fields|tojson }};
@@ -220,8 +221,8 @@ OR: <%= d.or.toExponential(1) %><br>
     <td style="width: 6%"><%= d.pval ? d.pval.toExponential(1) : "" %></td>
     <td style="width: 6%"><% if (d.n_case) { %>
       <%= d.n_case %> / <%= d.n_control %>
-      <% } else if (d.num_samples) { %>
-      <%= d.num_samples %>
+      <% } else if (d.n_sample) { %>
+      <%= d.n_sample %>
       <% } %>
     </td>
 

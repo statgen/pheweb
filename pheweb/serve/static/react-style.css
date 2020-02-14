@@ -14,7 +14,12 @@
     text-align: left;
 }
 
+.ReactTable .rt-th {
+    white-space: normal;
+}
+
 .ReactTable .rt-td {
+    white-space: normal;
     padding: 6px 3px;
 }
 

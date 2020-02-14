@@ -70,8 +70,11 @@
 </style>
 {% endblock %}
 
-
 {% block contained %}
+
+<div id="reactEntry"></div>
+<script type="text/javascript" src="{{ url_for('static', filename='bundle.js') }}"></script>
+
 <div class="row">
     <div class="col-xs-12">
         <h1 style="margin-top:0">{{ pheno.phenostring }}</h1>
@@ -91,6 +94,11 @@
         <p><a href={{pheno.desc_url}} target="_blank">Detailed info on endpoint definition</a></p>
       {% endif %}
     </br>
+    {% if pheno.cohorts %}
+    {% for cohort in pheno.cohorts %}
+    <p>{{cohort['cohort']}}: <b>{{cohort['num_cases']}}</b> cases, <b>{{cohort['num_controls']}}</b> controls</p>
+    {% endfor %}
+    {% endif %}
         {% if 'num_cases' in pheno %}
           <p>FINNGEN:<b>{{ pheno.num_cases }}</b> cases, <b>{{ pheno.num_controls }}</b> controls</p>
         {% elif 'num_samples' in pheno %}
@@ -98,12 +106,9 @@
         {% endif %}
         {% if ukbb_ns is not none %}
             <p>UKBB: <b>{{ ukbb_ns[0] }}</b> cases, <b>{{ ukbb_ns[1] }}</b> controls</p>
-        {% else %}
+        {% elif config.ukbb %}
             <p> Phenotype not found in UKBB results </p>
         {% endif %}
-
-
-
 	<div id="loglog-note" style="display: none;">
 	</div>
 	<div id="manhattan-note" class="alert alert-danger" role="alert" style="display: none;">
@@ -156,8 +161,6 @@
           <th style="user-select: none;">nearest gene</th>
           <th style="user-select: none;" id="consequence-header">
 	    consequence
-            <!-- <select class="selectpicker" multiple title="consequence"> -->
-            <!-- </select> -->
           </th>
           <th style="cursor: pointer; user-select: none;" data-sort="info:desc:number">info score</th>
           <th style="cursor: pointer; user-select: none;" data-sort="fin_enrichment:desc:mixed">FIN enrichment vs. NFEE</th>
@@ -166,7 +169,9 @@
           <th style="cursor: pointer; user-select: none;" data-sort="maf_controls:desc:number">af controls</th>
           <th style="cursor: pointer; user-select: none;" data-sort="beta:desc:number">OR</th>
           <th style="cursor: pointer; user-select: none;" data-sort="pval:asc:number">p-value</th>
+	  {% if config.ukbb %}
           <th style="cursor: pointer; user-select: none;" data-sort="ukbb.pvalue:asc:number">UKBB</th>
+	  {% endif %}
         </tr>
       </thead>
       <tbody>
@@ -298,8 +303,9 @@
   <%= (v.beta && v.sebeta)? _.template($('#beta-template').html())({v: v}) : '' %>
   </td>
   <td style="width: 5%;"><%= v.pval.toExponential(1) %></td>
- <!-- <td style="width: 6%;"><%= (v.ukbb)? Object.keys(v.ukbb):"NA" %></td> -->
-  <td style="width: 7%;"><%= (v.ukbb?_.template($('#beta-template-dir').html())({assoc: v.ukbb}):"NA") %></td>
+ {% if config.ukbb %}
+<td style="width: 7%;"><%= (v.ukbb?_.template($('#beta-template-dir').html())({assoc: v.ukbb}):"NA") %></td>
+{% endif %}
 
 
 

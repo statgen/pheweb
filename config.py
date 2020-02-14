@@ -1,11 +1,19 @@
 authentication=True
-authentication_file = "/mnt/pheweb/google.dev.conf"
+
+authentication_file = "/mnt/nfs/pheweb/google.dev.conf"
+
 
 data_dir="/mnt/nfs/pheweb/r4/"
 cache="/mnt/nfs/pheweb/r4/cache/"
 
 browser="FINNGEN"
+
+release="R4"
+release_prev="R3"
 title="FREEZE 4"
+
+ld_server = 'http://api.finngen.fi'
+
 
 database_conf = (
     {
@@ -34,7 +42,9 @@ database_conf = (
         }
     }, {
         "tsv": {
-            "TSVDao": {"coding":"/mnt/nfs/coding/r4/coding_web.txt"}
+
+            "CodingDao": {"coding":"/mnt/nfs/coding/r4/coding_web.txt"}
+
         }
     }, {
         "finemapping" : {
@@ -46,4 +56,4 @@ database_conf = (
 n_query_threads=4
 report_conf = {"func_var_assoc_threshold":0.0001, "gene_top_assoc_threshold":0.0001}
 
-locuszoom_conf = {"p_threshold": 0.05, "prob_threshold": 0.0001}
+locuszoom_conf = {"p_threshold": 0.05, "prob_threshold": 0.0001, "ld_service": "finngen", "ld_max_window": 5000000}

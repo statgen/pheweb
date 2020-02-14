@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       app: pheweb
-  replicas: 3
+  replicas: 2
   template:
     metadata:
       labels:
@@ -29,9 +29,23 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:r2_terminal
+        image: gcr.io/phewas-development/pheweb:react_2
+        env:
+        - name: PHEWEB_DIR
+          value: "/mnt/nfs/pheweb/r5_demo"
         ports:
         - containerPort: 8080
+        readinessProbe:
+          initialDelaySeconds: 30
+          httpGet:
+            path: /health
+            port: 8080
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          httpGet:
+            path: /health
+            port: 8080
         volumeMounts:
         - mountPath: /mnt/nfs
           name: pheweb-nfs

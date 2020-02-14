@@ -94,6 +94,7 @@ def compute_qq(neglog10_pvals):
 
 
 def make_qq_stratified(variants):
+    variants = [v for v in variants if v.maf != 'NA' and v.maf != '']
     variants = sorted(variants, key=lambda v: v.maf)
 
     def make_strata(idx):
