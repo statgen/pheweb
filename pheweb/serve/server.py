@@ -30,6 +30,9 @@ from .server_jeeves  import ServerJeeves
 
 from collections import defaultdict
 from .encoder import FGJSONEncoder
+from .group_based_auth  import verify_membership
+
+
 app = Flask(__name__)
 
 ## allows debug statements in jinja
@@ -98,15 +101,24 @@ def check_auth(func):
     # inspired by <https://flask-login.readthedocs.org/en/latest/_modules/flask_login.html#login_required>
     @functools.wraps(func)
     def decorated_view(*args, **kwargs):
+        
         if current_user.is_anonymous:
             print('unauthorized user visited {!r}'.format(request.path))
             session['original_destination'] = request.path
             return redirect(url_for('get_authorized'))
+        
         print('{} visited {!r}'.format(current_user.email, request.path))
+       
+        # check if user belongs to google-group
+        verify_membership_result = verify_membership(current_user.email)         
+
+        # if whitelist is in use
         if 'whitelist' in conf.login.keys():
-            assert current_user.email.lower().endswith('@finngen.fi') or current_user.email.lower() in conf.login['whitelist'], current_user
+            assert current_user.email.lower() in conf.login['whitelist'] or verify_membership_result, current_user
         else:
-            assert current_user.email.lower().endswith('@finngen.fi'), current_user
+            assert verify_membership_result, current_user
+
+
         return func(*args, **kwargs)
     return decorated_view
 
