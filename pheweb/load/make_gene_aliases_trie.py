@@ -37,7 +37,7 @@ def run(argv):
             aliases = set(aliases_for_ensg[ensg][1])
             aliases.add(row['Approved symbol'])
             aliases.update(filter(None, row['Previous symbols'].split(', ')))
-            aliases.update(filter(None, row['Synonyms'].split(', ')))
+            aliases.update(filter(None, row['Alias symbols'].split(', ')))
             aliases = set(s.upper() for s in aliases if all(l.isalnum() or l in '-._' for l in s))
             aliases = set(s for s in aliases if s not in canonical_symbols)
             aliases_for_ensg[ensg] = (aliases_for_ensg[ensg][0], aliases)
