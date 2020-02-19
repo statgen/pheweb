@@ -53,7 +53,7 @@ def verify_membership(username):
         #print('\n\n' + username + ' is a member of ' + group_name + ' with status = ' + status)  # user is an ACTIVE member
         return True
     else:
-        #print('\n\n' + username + ' is a member of ' + group_name + ' with status = ' + status)  # user is an ACTIVE member
+        #print('\n\n' + username + ' is a member of ' + group_name + ' with status = ' + status)  # user is a SUSPENDED member
         return False
 
 
