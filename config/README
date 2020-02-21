@@ -1,59 +1,75 @@
-authentication=True
+This directory is for example pheweb config files
 
+# authentication has to always be used when the service is exposed
+# authentication needs a domain name e.g. dev.finngen.fi which has been directed to a VM's IP address
+# alternatively to run without authentication on a VM, run on a non-exposed port and create a socks proxy to the VM
+authentication=True
+# Credentials can be checked and created at
+# https://console.cloud.google.com/apis/credentials?project=phewas-development
 authentication_file = "/mnt/nfs/pheweb/google.dev.conf"
 
-
+# path to pheweb data and cache
 data_dir="/mnt/nfs/pheweb/r4/"
 cache="/mnt/nfs/pheweb/r4/cache/"
 
+# browser is used in code to e.g. display different columns in tables depending on the type of browser, see
+# pheweb/serve/react/js/tables.js
 browser="FINNGEN"
-
+# releases and title are used as labels in frontend
 release="R4"
 release_prev="R3"
 title="FREEZE 4"
 
 ld_server = 'http://api.finngen.fi'
 
-
 database_conf = (
     {
+	# variant annotation (af, info, consequence etc.) tsv
         "annotation": {
             "TabixAnnotationDao": { "matrix_path": "/mnt/nfs/annotations/r4/annotated_variants.gz" }
         }
     }, {
+        # pheweb-created matrix.tsv.gz
         "result": {
             "TabixResultDao": { 'const_arguments': [("phenos","PHEWEB_PHENOS"), ("matrix_path","MATRIX_PATH")] }
         }
     }, {
+        # gnomad variant annotation (af in different populations)
         "gnomad": {
             "TabixGnomadDao": { "matrix_path": "/mnt/nfs/annotations/gnomad21/gnomad.genomes.r2.1.sites.liftover.b38.finngen.r2pos.af.ac.an.tsv.gz" }
         }
     }, {
+        # loss-of-function burden, optional
         "lof": {
             "LofMySQLDao": { "authentication_file": "/mnt/nfs/pheweb/r4/mysql.conf" }
         }
     }, {
+        # ukb results, optional
         "externalresultmatrix": {
             "ExternalMatrixResultDao": {"matrix":"/mnt/nfs/ukbb_neale/matrix.tsv.gz", "metadatafile":"/mnt/nfs/ukbb_neale/ukbb_r1_match_pheno_dup_correct_simple_meta.tsv"}
         }
     }, {
+        # ukb results, optional    
         "externalresult": {
             "ExternalFileResultDao": {"manifest":"/mnt/nfs/ukbb_neale/ukbb_r1_match_pheno_dup_correct_ssd.tsv"}
         }
     }, {
+        # coding variant result/annotation table, optional
         "tsv": {
-
             "CodingDao": {"coding":"/mnt/nfs/coding/r4/coding_web.txt"}
-
         }
     }, {
+        # fine-mapping/conditional results, optional
         "finemapping" : {
             "FineMappingMySQLDao": { "authentication_file": "/mnt/nfs/pheweb/r4/mysql.conf", "base_paths": {"conditional": "/mnt/nfs/finemapping/r4/conditional", "susie": "/mnt/nfs/finemapping/r4/susie/snp", "finemap": "/mnt/nfs/finemapping/r4/finemap/cred"} }
         }
     }
 )
 
+# number of workers for pheweb/serve/server_jeeves.py
 n_query_threads=4
+# gene report p-val thresholds
 report_conf = {"func_var_assoc_threshold":0.0001, "gene_top_assoc_threshold":0.0001}
 
+# region (locuszoom) page config
 locuszoom_conf = {"p_threshold": 0.05, "prob_threshold": 0.0001, "ld_service": "finngen", "ld_max_window": 5000000}
