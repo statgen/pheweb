@@ -12,7 +12,7 @@
 <script src="{{ url_for('static', filename='vendor/underscore-1.8.3.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/typeahead-0.11.1.bundle.min.js') }}" type="text/javascript"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/locuszoom@0.9.1/dist/locuszoom.vendor.min.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/locuszoom@0.10.2/dist/locuszoom.vendor.min.js" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-tip@0.6.7/index.min.js"></script>
 
 <link  href="{{ url_for('static', filename='vendor/bootstrap-3.3.6.min.css') }}" rel="stylesheet" type="text/css" crossorigin="anonymous">
@@ -132,7 +132,7 @@
                 <li><a href="/coding" style="color: #333; font-weight: bold;">Coding Variants</a></li>
 		{% endif %}
 		{% if config.endpoint_def %}
-                <li><a href="" style="color: #333; font-weight: bold;">Download Endpoint Definitions</a></li>
+                <li><a href="{{ url_for('static', filename=config.endpoint_def) }}" style="color: #333; font-weight: bold;">Download Endpoint Definitions</a></li>
 		{% endif %}
                 <li><a href="/about" style="color: #333; font-weight: bold;">About</a></li>
                 {% if current_user and current_user.is_authenticated %}

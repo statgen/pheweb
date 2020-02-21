@@ -213,11 +213,14 @@ LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, f
     var res
     if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	res = JSON.parse(resp)['ld']
+	console.log(res)
     } else {
 	res = JSON.parse(resp)
     }
     var lookup = {}
     for (var i = 0; i < res.length; i++) {
+	res[i].variation1 = res[i].variation1.replace(/^23:/, 'X:')
+	res[i].variation2 = res[i].variation2.replace(/^23:/, 'X:')
         lookup[ res[i].variation2 ] = res[i];
     }
 
