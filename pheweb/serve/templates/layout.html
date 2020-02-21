@@ -14,7 +14,7 @@
 <script src="{{ url_for('static', filename='vendor/popper.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/bootstrap-3.3.6.min.js') }}" type="text/javascript" crossorigin="anonymous"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/locuszoom@0.9.1/dist/locuszoom.vendor.min.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/locuszoom@0.10.2/dist/locuszoom.vendor.min.js" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-tip@0.6.7/index.min.js"></script>
 
 <link href="{{ url_for('static', filename='common.css') }}" rel="stylesheet" type="text/css">
@@ -58,8 +58,8 @@
             </button>
             {% block navbar_left %}
 	    <a href="/">
-	      <img src="{{ url_for('static', filename='images/finngen-blue.svg') }}" style="float: left;" />
-	      <!-- <img src="{{ url_for('static', filename='images/finngen_loop1.gif') }}" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px" /> -->
+	      <!-- <img src="{{ url_for('static', filename='images/finngen-blue.svg') }}" style="float: left;" /> -->
+	      <img src="{{ url_for('static', filename='images/finngen_loop1.gif') }}" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px" />
 	      <span class="logo-header">{{ config['title'] }}</span>
 	    </a>
             <!-- <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a> -->

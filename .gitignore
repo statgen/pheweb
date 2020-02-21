@@ -11,3 +11,4 @@ pheweb/load/cffi/_x*
 generated-by-pheweb
 .DS_Store
 **/mysql.conf
+config.py
