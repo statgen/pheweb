@@ -110,14 +110,14 @@ rm tmp/*
 ## Customizing page contents
 To modify the contents of the About page and others, create a directory named `custom_templates` next to `generated-by-pheweb`.
 
-Here are some fields that are intended to be modified:
+Here are some templates that are intended to be modified:
 
-- `custom_templates/about/content.html`: contents on the About page
+- `custom_templates/about/content.html`: contents of the about page
 - `custom_templates/index/h1.html`: large title above the search bar on the homepage
 -  `custom_templates/index/below-h1.html`: subtext above the search bar on the homepage
 - `custom_templates/index/below-query.html`: beneath the search bar on the homepage
-- `custom_templates/title.html`: the title of the window, usually shown in the tab bar
 - `custom_templates/pheno/h1.html`: the large text at the top of the phenotype (Manhattan Plot) page
 - `custom_templates/region/h1.html`: the large text at the top of the region (LocusZoom Region Plot) page
+- `custom_templates/title.html`: the title of the window, usually shown in the tab bar
 
 You can also override any template found in [pheweb/serve/templates](https://github.com/statgen/pheweb/tree/master/pheweb/serve/templates).  It'll work best if you copy the original version and modify it.  If you update Pheweb after overriding entire pages like this, those pages might be broken.
