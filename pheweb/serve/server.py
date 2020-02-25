@@ -33,6 +33,7 @@ if 'SENTRY_DSN' in conf and not os.environ.get('PHEWEB_NO_SENTRY',''):
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
 app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['LZJS_VERSION'] = conf['lzjs_version']  # TODO: True asset mgmt / build system in future
+app.config['LZJS_VERSION_PHEWAS'] = conf['lzjs_version_phewas']
 app.config['URLPREFIX'] = conf.urlprefix.rstrip('/')
 app.config['USE_WHITELIST'] = 'login' in conf and 'whitelist' in conf.login
 if os.path.isdir(conf.custom_templates):
