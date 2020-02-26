@@ -139,10 +139,7 @@ def ret_lines(dataPath, matrixFile):
 
     print('done.')
 
-
-
-
-    print('Saving results in .json format...')
+    print('Saving results in .json format... to ' + (dataPath + 'generated-by-pheweb/best-phenos-by-gene.json' if matrixFile is None else matrixFile + '_best-phenos-by-gene.json'))
     outFile = dataPath + 'generated-by-pheweb/best-phenos-by-gene.json' if matrixFile is None else matrixFile + '_best-phenos-by-gene.json'
     with open(outFile,'w') as o:
         json.dump(resDict,o)

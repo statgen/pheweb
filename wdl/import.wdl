@@ -132,8 +132,7 @@ task matrix {
         for file in glob.glob("*pheno_piece"):
             processes.add(subprocess.Popen(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "pval,beta,sebeta,maf,maf_cases,maf_controls", "--no_require_match", "--no_tabix"], stdout=FNULL))
         for p in processes:
-            if p.poll() is None:
-                p.wait()
+            p.wait()
         EOF
 
         cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
