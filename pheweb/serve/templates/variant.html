@@ -10,6 +10,7 @@
 
 {# Includes for LocusZoom.js (from CDN) #}
 <link href="https://unpkg.com/locuszoom@{{ config.LZJS_VERSION_PHEWAS }}/dist/locuszoom.css" rel="stylesheet" type="text/css">
+<script src="https://unpkg.com/locuszoom@{{ config.LZJS_VERSION_PHEWAS }}/dist/locuszoom.vendor.min.js" type="text/javascript"></script>
 <script src="https://unpkg.com/locuszoom@{{ config.LZJS_VERSION_PHEWAS }}/dist/locuszoom.app.min.js" type="text/javascript"></script>
 
 <script src="{{ url_for('.static', filename='variant.js') }}" type="text/javascript"></script>
