@@ -131,7 +131,7 @@ task matrix {
         FNULL = open(os.devnull, 'w')
         processes = set()
         for file in glob.glob("*pheno_piece"):
-            processes.add(subprocess.Popen(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "pval,beta,maf,maf_cases,maf_controls", "--no_require_match", "--no_tabix"], stdout=FNULL))
+            processes.add(subprocess.Popen(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "pval,beta,sebeta,maf,maf_cases,maf_controls", "--no_require_match", "--no_tabix"], stdout=FNULL))
         for p in processes:
             if p.poll() is None:
                 p.wait()
@@ -156,8 +156,7 @@ task matrix {
         for file in glob.glob("*pheno_piece.matrix.tsv"):
             processes.add(subprocess.Popen(["pheweb", "gather-pvalues-for-each-gene", file]))
         for p in processes:
-            if p.poll() is None:
-                p.wait()
+	    p.wait()
         # collect jsons
         gene2phenos = {}
         for file in glob.glob("*pheno_piece.matrix.tsv_best-phenos-by-gene.json"):

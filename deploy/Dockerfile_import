@@ -8,6 +8,8 @@ RUN apt-get update && \
     tar -xvjf htslib-1.9.tar.bz2 && cd htslib-1.9 && \
     ./configure && make && make install && cd .. && rm -rf htslib-1.9*
 
+RUN pip3 install cython
+
 ADD pheweb /pheweb
 ADD pheweb/pheweb/load/external_matrix.py /usr/local/bin/
 

@@ -33,8 +33,8 @@ task annotation {
 
     runtime {
         docker: "${docker}"
-    	  cpu: 2
-    	  memory: "7 GB"
+    	cpu: 2
+    	memory: "7 GB"
         disks: "local-disk 50 SSD"
         preemptible: 0
     }
@@ -81,7 +81,7 @@ task pheno {
 
     runtime {
         docker: "${docker}"
-    	  cpu: 1
+    	cpu: 1
         memory: "3.75 GB"
         disks: "local-disk 20 SSD"
         preemptible: 2
@@ -94,6 +94,7 @@ task matrix {
     File bed
     Array[File] pheno_gz
     Array[File] manhattan
+    String cols
     String docker
     Int cpu
     Int mem
@@ -130,10 +131,9 @@ task matrix {
         FNULL = open(os.devnull, 'w')
         processes = set()
         for file in glob.glob("*pheno_piece"):
-            processes.add(subprocess.Popen(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "pval,beta,sebeta,maf,maf_cases,maf_controls", "--no_require_match", "--no_tabix"], stdout=FNULL))
+            processes.add(subprocess.Popen(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "${cols}", "--no_require_match", "--no_tabix"], stdout=FNULL))
         for p in processes:
-            if p.poll() is None:
-                p.wait()
+            p.wait()
         EOF
 
         cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
@@ -155,8 +155,7 @@ task matrix {
         for file in glob.glob("*pheno_piece.matrix.tsv"):
             processes.add(subprocess.Popen(["pheweb", "gather-pvalues-for-each-gene", file]))
         for p in processes:
-            if p.poll() is None:
-                p.wait()
+            p.wait()
         # collect jsons
         gene2phenos = {}
         for file in glob.glob("*pheno_piece.matrix.tsv_best-phenos-by-gene.json"):
@@ -189,8 +188,8 @@ task matrix {
 
     runtime {
         docker: "${docker}"
-    	  cpu: "${cpu}"
-    	  memory: "${mem} GB"
+    	cpu: "${cpu}"
+    	memory: "${mem} GB"
         disks: "local-disk ${disk} SSD"
         preemptible: 0
     }
