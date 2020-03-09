@@ -101,8 +101,14 @@ const phenolistTableCols = {'FINNGEN': [{
     Cell: props => (<a href={"https://www.whocc.no/atc_ddd_index/?code=" + props.value} target="_blank">{props.value}</a>),
     minWidth: 200
 },{
-    Header: () => (<span title="number of samples" style={{textDecoration: 'underline'}}>number of samples</span>),
+    Header: () => (<span title="number of samples" style={{textDecoration: 'underline'}}>number of individuals with >0 purchases</span>),
     accessor: 'num_samples',
+    Cell: props => props.value,
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+    minWidth: 100,
+},{
+    Header: () => (<span title="number of purchases" style={{textDecoration: 'underline'}}>number of purchases</span>),
+    accessor: 'num_events',
     Cell: props => props.value,
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
     minWidth: 100,
@@ -248,7 +254,11 @@ const phenoTableCols = {'FINNGEN': [...phenoTableCommonCols[0],{
 }, {
     Header: () => (<span title="allele frequency" style={{textDecoration: 'underline'}}>af</span>),
     accessor: 'maf',
-    filterMethod: (filter, row) => row[filter.id] < +filter.value,
+    filterMethod: (filter, row) => {
+	return filter.value.startsWith('>') ?
+	    row[filter.id] > +(filter.value.substring(1)) :
+	    row[filter.id] < +(filter.value.replace('<', ''))
+    },
     Cell: props => props.value.toPrecision(3),
     minWidth: 110
 }, ...phenoTableCommonCols[1]],			
