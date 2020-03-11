@@ -104,7 +104,7 @@ class PhenoResult(JSONifiable):
         self.phenostring = phenostring
         self.pval = float(pval) if pval is not None and pval!='NA' else None
         self.beta = float(beta) if beta is not None and beta!='NA' else None
-        self.maf = float(maf) if maf is not None and maf!='NA' else None
+        self.maf = float(maf) if maf is not None and maf!='NA' and maf != '' else None
         self.maf_case = float(maf_case) if maf_case is not None and maf_case!='NA' else None
         self.maf_control = float(maf_control) if maf_control is not None and maf_control!='NA' else None
         self.matching_results = {}
@@ -998,12 +998,19 @@ class TabixAnnotationDao(AnnotationDB):
         for variant in variants:
             tabix_iter = self.tabix_files[threading.get_ident()].fetch( variant.chr, variant.pos-1, variant.pos, parser=None)
             while True:
-                row = next(tabix_iter)
+                try:
+                     row = next(tabix_iter)
+                except Exception as e:
+                     print('no annotation found {}:{}'.format(variant.chr, variant.pos))
+                     break
                 if row is None:
                     break
                 split = row.split('\t')
                 v = split[0].split(":")
-                v = Variant(v[0],v[1],v[2],v[3])
+                if len(v) < 4:
+                     v = Variant(split[0],split[1],split[3],split[4])
+                else:
+                     v = Variant(v[0],v[1],v[2],v[3])
                 if variant == v:
                     ## keeps all old annotations in the returned variant.
                     for k,anno in  variant.get_annotations().items():
@@ -1027,7 +1034,10 @@ class TabixAnnotationDao(AnnotationDB):
 
             split = row.split('\t')
             v = split[0].split(":")
-            v = Variant(v[0],v[1],v[2],v[3])
+            if len(v) < 4:
+                 v = Variant(split[0],split[1],split[3],split[4])
+            else:
+                 v = Variant(v[0],v[1],v[2],v[3])
             v.add_annotation("annot",{self.headers[i]: self.dconv[self.headers[i]](split[i]) for i in range(0,len(split)) } )
             annotations.append(v)
 

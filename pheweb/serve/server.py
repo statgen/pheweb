@@ -54,9 +54,19 @@ if 'SENTRY_DSN' in conf:
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
 app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['browser'] = conf['browser']
+app.config['about_content'] = conf['about_content']
+if 'noindex' in conf:
+    app.config['noindex'] = conf['noindex']
 app.config['release'] = conf['release']
+app.config['logo'] = conf['logo']
+if 'genome_build' in conf:
+    app.config['genome_build'] = conf['genome_build']
+else:
+    app.config['genome_build'] = 38
+    
 app.config['release_prev'] = conf['release_prev']
 app.config['title'] = conf['title']
+app.config['page_title'] = conf['page_title']
 if 'endpoint_def' in conf:
     app.config['endpoint_def'] = conf['endpoint_def']
 app.config['lof'] = 'lof' in [list(c.keys())[0] for c in conf.database_conf]

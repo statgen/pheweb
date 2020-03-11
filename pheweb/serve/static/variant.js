@@ -280,13 +280,18 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 	    if (af_popmax && !isNaN(parseFloat(af_popmax)) && isFinite(af_popmax)) {
 		af_popmax = af_popmax.toExponential(1)
 	    }
-	    $('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' + window.variant.gnomad.fin_enrichment + '</p>')
+	    if (window.browser == 'FINNGEN') {
+		$('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' + window.variant.gnomad.fin_enrichment + '</p>')
+	    } else {
+		$('#gnomad').html('<p>Frequency in gnomAD genomes 2.1.1: ' + Object.keys(window.variant.gnomad).filter(g => g.startsWith('AF')).map(g => g + ': ' + window.variant.gnomad[g]).join(', ') + '</p>')
+	    }
             $('#gnomad p').css('margin-bottom', '0');
 	})
     }
 })();
 
 (function() {
+    if (window.browser != 'FINNGEN') return
     var isnum = function(d) { return typeof d == "number"; };
     var infos = Object.keys(window.variant.annot).filter(function(key) { 
          return key.indexOf('INFO_') === 0
@@ -295,7 +300,13 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     });
     var range = d3.extent(infos);
     $(function() {
-            $('#info-range').html('<p style="text-decoration: underline;" title="' + _.template($('#info-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">INFO ' + (window.variant.annot && window.variant.annot.INFO && window.variant.annot.INFO.toFixed(3)) + ' (ranges in genotyping batches from ' + range[0].toFixed(3) + ' to ' + range[1].toFixed(3) + ')</p>');
+	var info_html = '<p style="text-decoration: underline;" title="' + _.template($('#info-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">INFO ' + (window.variant.annot && window.variant.annot.INFO && window.variant.annot.INFO.toFixed(3)) || 'NA'
+	if (range[1] !== undefined) {
+	    info_html += ' (ranges in genotyping batches from ' + range[0].toFixed(3) + ' to ' + range[1].toFixed(3) + ')</p>'
+	} else {
+	    info_html += '</p>'
+	}
+	$('#info-range').html(info_html)
         $('#info-range p').css('margin-bottom', '0');
     });
     
@@ -311,7 +322,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 })();
 
 (function() {
-    if (window.variant.annot) {
+    if (window.variant.annot && window.variant.annot.AC_Hom != undefined) {
 	$(function() {
 	    $('#hom').html('<p>Number of alt homozygotes: ' + +(window.variant.annot.AC_Hom)/2 + '<p>')
             $('#hom p').css('margin-bottom', '0');

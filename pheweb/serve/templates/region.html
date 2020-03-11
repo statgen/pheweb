@@ -10,6 +10,7 @@
   window.vis_conf = {{ vis_conf|tojson|safe }}
   window.lz_conf = {{ lz_conf|tojson|safe}}
   window.browser = {{ config.browser|tojson|safe }}
+  window.genome_build = {{ config.genome_build|tojson|safe }}
 </script>
 <link href="https://cdn.jsdelivr.net/npm/locuszoom@0.10.2/dist/locuszoom.css" rel="stylesheet" type="text/css">
 <script src="https://cdn.jsdelivr.net/npm/locuszoom@0.10.2/dist/locuszoom.app.min.js" type="text/javascript"></script>
@@ -33,7 +34,9 @@
 <div class="row">
   <div class="col-xs-12">
     <h1 style="margin-top:0">{% include "region/h1.html" %}</h1>
+    {% if config.browser=='FINNGEN' %}
     <p><a href="https://risteys.finngen.fi/phenocode/{{ pheno.phenocode.replace('_EXALLC', '').replace('_EXMORE', '') }}" target="_blank">RISTEYS</a></p>
+    {% endif %}
   </div>
 </div>
 <div class="row">
@@ -59,7 +62,7 @@
 </div>
 <div class="row">
   <div class="col-xs-12">
-    <p>Variants with a p-value smaller than {{ lz_p_threshold }} are shown</p>
+    <p>Variants with a p-value smaller than {{ lz_conf['p_threshold'] }} are shown</p>
   </div>
 </div>
 <div class="row">

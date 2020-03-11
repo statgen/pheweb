@@ -12,9 +12,11 @@
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
   window.var_top_pheno_export_fields = {{ var_top_pheno_export_fields|tojson }};
   window.vis_conf = {{ vis_conf|tojson|safe }};
+  if (window.browser == 'FINNGEN') {
    $('#annotation').html('<span><strong>{MS}</strong>, info: {INFO}</span>'
-                           .replace('{MS}',variant.annot.most_severe.replace(/_/g, ' '))
-                           .replace('{INFO}', variant.annot.INFO.toPrecision(3)))
+  .replace('{MS}', (variant.annot && variant.annot.most_severe && variant.annot.most_severe.replace(/_/g, ' ')) || 'NA')
+  .replace('{INFO}', (variant.annot && variant.annot.INFO && variant.annot.INFO.toPrecision(3)) || 'NA'))
+  }
 
 </script>
 <script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
@@ -55,7 +57,6 @@
         <span id="gnomad"></span>
         <span id="info-range"></span>
 	<span id="hom"></span>
-{#        {% if variant.annot.AC %}<p>AC: {{ variant.annot.AC }}</p>{% endif %} #}
         <p>View on
           <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr{{ variant.chr }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chr }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>
           {% with rsids = (variant.get_annotation("rsids").split(',') if (variant.get_annotation("rsids")) else []) %}
@@ -105,8 +106,10 @@
           <th>beta (se)</th>
           <th>p-value</th>
           <th>number of samples</th>
+	  {% if config.browser == 'FINNGEN' %}
           <th>UKBB</th>
           <th>UKBB N samples</th>
+	  {% endif %}
         </tr>
       </thead>
       <tbody>
@@ -225,10 +228,10 @@ OR: <%= d.or.toExponential(1) %><br>
       <%= d.n_sample %>
       <% } %>
     </td>
-
+    {% if config.browser == 'FINNGEN' %}
     <td style="width: 6%"> <%= (d.matching_results.ukbb?_.template($('#beta-template-dir').html())({assoc: d.matching_results.ukbb}):"NA") %> </td>
     <td style="width: 6%"> <%= (d.matching_results.ukbb? d.matching_results.ukbb.n_cases + " / " + d.matching_results.ukbb.n_controls :"NA") %> </td>
-
+    {% endif %}
   </tr>
 </script>
 

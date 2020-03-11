@@ -112,7 +112,7 @@ def ret_lines(dataPath, matrixFile):
                     pheno = phenoTypes[phenoIx]
                     #get the data of the phenotype
                     for i in phenoMetaRange:
-                        geneChromDict[gene][pheno][phenoMeta[i]] = float(line[lenMeta + lenPheno*phenoIx + i])
+                        geneChromDict[gene][pheno][phenoMeta[i]] = float(line[lenMeta + lenPheno*phenoIx + i]) if line[lenMeta + lenPheno*phenoIx + i] != '' else ''
 
                     geneChromDict[gene][pheno]['chrom'] = chrom
                     geneChromDict[gene][pheno]['pos'] = pos

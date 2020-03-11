@@ -1057,3 +1057,10 @@ window.panel_layouts.genes = {
 if (window.browser == 'FINNGEN_QUANT') {
     window.panel_layouts.association.data_layers[2].fields = ["association:id", "association:chr", "association:position", "association:ref", "association:alt", "association:pvalue", "association:pvalue|neglog10_or_100", "association:beta", "association:sebeta", "association:rsid", "association:maf", "association:most_severe", "association:fin_enrichment", "association:INFO", "ld:state", "ld:isrefvar"]
 }
+
+if (window.browser == 'GBMA') {
+    window.panel_layouts.association.title.text = 'META-ANALYSIS'
+    window.panel_layouts.association.data_layers[2].fields = ["association:id", "association:chr", "association:position", "association:ref", "association:alt", "association:pvalue", "association:pvalue|neglog10_or_100", "association:beta", "association:sebeta", "association:rsid", "association:maf", "association:most_severe", "ld:state", "ld:isrefvar"]
+    window.panel_layouts.association.data_layers[2].tooltip.html = '<strong>{{association:id}}</strong><br><strong>{{association:rsid}}</strong><br><strong>{{association:most_severe}}</strong><br><table><tbody><tr><td>phenotype</td><td><strong>' + (window.pheno.phenostring || window.pheno.phenocode) + '</strong></td></tr><tr><td>p-value</td><td><strong>{{association:pvalue|scinotation}}</strong></td></tr><tr><td>beta</td><td><strong>{{association:beta}}</strong> ({{association:sebeta}})</td></tr><tr><td>MAF</td><td><strong>{{association:maf|percent}}</strong></td></tr></tbody></table>'
+}
+

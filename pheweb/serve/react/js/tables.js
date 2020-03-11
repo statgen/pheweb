@@ -124,6 +124,41 @@ const phenolistTableCols = {'FINNGEN': [{
     Cell: props => props.value,
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
     minWidth: 100,
+}], 'GBMA': [{
+    Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
+    accessor: 'phenostring',
+    Cell: props => (<a href={"/pheno/" + props.original.phenocode} target="_blank">{props.value}</a>),
+    minWidth: 300
+},{
+    Header: () => (<span title="number of cases" style={{textDecoration: 'underline'}}>number of cases</span>),
+    accessor: 'num_cases',
+    Cell: props => props.value,
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+    minWidth: 50,
+},{
+    Header: () => (<span title="number of controls" style={{textDecoration: 'underline'}}>number of controls</span>),
+    accessor: 'num_controls',
+    Cell: props => props.value,
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+    minWidth: 50,
+},{
+    Header: () => (<span title="number of genome-wide significant hits" style={{textDecoration: 'underline'}}>genome-wide sig loci</span>),
+    accessor: 'num_gw_significant',
+    Cell: props => props.value,
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+    minWidth: 50,
+},{
+    Header: () => (<span title="genomic control lambda 0.5" style={{textDecoration: 'underline'}}>genomic control lambda</span>),
+    accessor: 'lambda',
+    Cell: props => props.value,
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+    minWidth: 50
+},{
+    Header: () => (<span title="number of cohorts" style={{textDecoration: 'underline'}}>n cohorts</span>),
+    accessor: 'cohorts',
+    Cell: props => +props.value.length,
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+    minWidth: 50
 }]}
 
 const phenoTableCommonCols = [[{
@@ -187,7 +222,20 @@ const phenoTableCommonCols = [[{
     minWidth: 80
 }]]
 
-const phenoTableCols = {'FINNGEN': [...phenoTableCommonCols[0],{
+const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommonCols[1], {
+    Header: () => (<span title="allele frequency in UKBB" style={{textDecoration: 'underline'}}>af ukbb</span>),
+    accessor: 'maf',
+    filterMethod: (filter, row) => row[filter.id] < +filter.value,
+    Cell: props => (props.value == 'NA' || props.value == '') ? 'NA' : props.value.toPrecision(3),
+    minWidth: 110
+}, {
+    Header: () => (<span title="number of cohorts" style={{textDecoration: 'underline'}}>n cohorts</span>),
+    accessor: 'n_cohorts',
+    filterMethod: (filter, row) => row[filter.id] >= +filter.value,
+    Cell: props => +props.value,
+    minWidth: 80
+}],
+			'FINNGEN': [...phenoTableCommonCols[0],{
     Header: () => (<span title="INFO score" style={{textDecoration: 'underline'}}>INFO</span>),
     accessor: 'info',
     filterMethod: (filter, row) => row[filter.id] >= +filter.value,

@@ -184,8 +184,9 @@ class ServerJeeves(object):
         if r is not None:
             if v_annot is None:
                 ## no annotations found even results were found. Should not happen except if the results and annotation files are not in sync
-                print("Error! Variant results for {} found but no basic annotation!")
+                print("Warning! Variant results for " + str(r[0]) + " found but no basic annotation!")
                 var = r[0]
+                var.add_annotation("annot", {})
             else:
                 var = v_annot
             gnomad = self.gnomad_dao.get_variant_annotations([var])
@@ -227,22 +228,37 @@ class ServerJeeves(object):
                 d['data']['varid'].append(varid)
                 try:
                     a = annot_hash[varid]['annot']
-                    d['data']['most_severe'].append(a['most_severe'].replace('_', ' '))
-                    d['data']['AF'].append(a['AF'])
-                    d['data']['INFO'].append(a['INFO'])
+                    if 'most_severe' in a:
+                        d['data']['most_severe'].append(a['most_severe'].replace('_', ' '))
+                    elif 'consequence'in a:
+                        d['data']['most_severe'].append(a['consequence'].replace('_', ' '))
+                    else:
+                        d['data']['most_severe'].append('unknown')
+                    if 'AF' in a:
+                        d['data']['AF'].append(a['AF'])
+                    else:
+                        d['data']['AF'].append('NA')
+                    if 'INFO' in a:
+                        d['data']['INFO'].append(a['INFO'])
+                    else:
+                        d['data']['INFO'].append('NA')
                     if varid not in gnomad_hash:
                         d['data']['fin_enrichment'].append('No gnomAD data')
                     else:
                         g = gnomad_hash[varid]['gnomad']
-                        if g['AF_fin'] == '.' or float(g['AF_fin']) == 0:
-                            d['data']['fin_enrichment'].append('No FIN in gnomAD')
-                        elif float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu']) == 0:
-                            d['data']['fin_enrichment'].append('No NFEE in gnomAD')
+                        if 'AF_fin' in g and 'AC_nfe_nwe' in g and 'AC_nfe_onf' in g and 'AC_nfe_seu' in g:
+                            if g['AF_fin'] == '.' or float(g['AF_fin']) == 0:
+                                d['data']['fin_enrichment'].append('No FIN in gnomAD')
+                            elif float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu']) == 0:
+                                d['data']['fin_enrichment'].append('No NFEE in gnomAD')
+                            else:
+                                d['data']['fin_enrichment'].append(round(float(g['AF_fin']) / ((float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu'])) / (float(g['AN_nfe_nwe']) + float(g['AN_nfe_onf']) + float(g['AN_nfe_seu']))), 3))
                         else:
-                            d['data']['fin_enrichment'].append(round(float(g['AF_fin']) / ((float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu'])) / (float(g['AN_nfe_nwe']) + float(g['AN_nfe_onf']) + float(g['AN_nfe_seu']))), 3))
+                            d['data']['fin_enrichment'].append('Unknown')
+
                 except KeyError:
                     #print('no annotation for ' + varid + ', is annotation file out of sync or is the variant correctly id\'d?')
-                    d['data']['most_severe'].append('unknown')
+                    d['data']['most_severe'].append('NA')
                     d['data']['AF'].append('NA')
                     d['data']['INFO'].append('NA')
                     d['data']['fin_enrichment'].append('Unknown')

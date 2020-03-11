@@ -1,11 +1,11 @@
 
-from ..file_utils import get_generated_path, make_basedir, get_tmp_path, dbsnp_version, common_filepaths
+from ..file_utils import get_generated_path, make_basedir, get_tmp_path, dbsnp_version, common_filepaths, genome_build
 from .load_utils import run_script
 
 import os
 import wget
 
-raw_filepath = get_generated_path('sites/dbSNP/dbsnp-b{}-GRCh37.gz'.format(dbsnp_version))
+raw_filepath = get_generated_path('sites/dbSNP/dbsnp-b{}-GRCh{}.gz'.format(dbsnp_version, genome_build))
 clean_filepath = common_filepaths['rsids']
 
 def run(argv):
@@ -15,7 +15,10 @@ def run(argv):
 
             # dbSNP downloads are described at <https://www.ncbi.nlm.nih.gov/variation/docs/human_variation_vcf/>
             # This file includes chr-pos-ref-alt-rsid and 4X a bunch of useless columns:
-            dbsnp_url = 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b150_GRCh38p7/VCF/00-All.vcf.gz'
+            if genome_build == '37':
+                dbsnp_url = 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b{}_GRCh37p13/VCF/00-All.vcf.gz'.format(dbsnp_version)
+            else:
+                dbsnp_url = 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b{}_GRCh38p7/VCF/00-All.vcf.gz'.format(dbsnp_version)
 
             print('Downloading dbsnp!')
             make_basedir(raw_filepath)
