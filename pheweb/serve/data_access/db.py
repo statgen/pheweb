@@ -99,7 +99,7 @@ class Variant(JSONifiable):
         
 class PhenoResult(JSONifiable):
 
-    def __init__(self, phenocode,phenostring, category_name,pval,beta, maf, maf_case,maf_control, n_case, n_control, n_sample=None):
+    def __init__(self, phenocode,phenostring, category_name, category_index, pval,beta, maf, maf_case,maf_control, n_case, n_control, n_sample=None):
         self.phenocode = phenocode
         self.phenostring = phenostring
         self.pval = float(pval) if pval is not None and pval!='NA' else None
@@ -109,6 +109,7 @@ class PhenoResult(JSONifiable):
         self.maf_control = float(maf_control) if maf_control is not None and maf_control!='NA' else None
         self.matching_results = {}
         self.category_name = category_name
+        self.category_index = category_index
         self.n_case = n_case
         self.n_control = n_control
         if n_sample is None:
@@ -124,7 +125,8 @@ class PhenoResult(JSONifiable):
     
     def json_rep(self):
         return {'phenocode':self.phenocode,'phenostring':self.phenostring, 'pval':self.pval, 'beta':self.beta, "maf":self.maf, "maf_case":self.maf_case,
-                "maf_control":self.maf_control, 'matching_results':self.matching_results, 'category':self.category_name, "n_case":self.n_case, "n_control":self.n_control, "n_sample":self.n_sample}
+                "maf_control":self.maf_control, 'matching_results':self.matching_results, 'category':self.category_name, 'category_index': self.category_index,
+                "n_case":self.n_case, "n_control":self.n_control, "n_sample":self.n_sample}
 
 @attr.s
 class PhenoResults( JSONifiable):
@@ -291,11 +293,19 @@ class DrugDB(object):
         """
         return
 
-class TSVDB(object):
+class CodingDB(object):
     @abc.abstractmethod
     def get_coding(self):
         """ Retrieve coding variant data
             Returns: coding variant results and annotation
+        """
+        return
+
+class ChipDB(object):
+    @abc.abstractmethod
+    def get_chip(self):
+        """ Retrieve chip GWAS results
+            Returns: chip GWAS results and annotation
         """
         return
 
@@ -611,7 +621,8 @@ class TabixResultDao(ResultDB):
                 maf = split[pheno[1]+self.header_offset['maf']] if 'maf' in self.header_offset else None
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
-                pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'], pval, beta, maf, maf_case, maf_control,
+                pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'],self.pheno_map[pheno[0]]['category_index'] if 'category_index' in self.pheno_map[pheno[0]] else None,
+                                 pval, beta, maf, maf_case, maf_control,
                                  self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
                 phenores.append(pr)
             result.append((v,phenores))
@@ -656,8 +667,9 @@ class TabixResultDao(ResultDB):
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
                 if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):            
-                    pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'],pval , beta, maf, maf_case, maf_control,
-                                     self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else self.pheno_map[pheno[0]]['num_cases'] + self.pheno_map[pheno[0]]['num_controls'])
+                    pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'],self.pheno_map[pheno[0]]['category_index'] if 'category_index' in self.pheno_map[pheno[0]] else None,
+                                     pval , beta, maf, maf_case, maf_control,
+                                     self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
                     v=  Variant( split[0].replace('X', '23'), split[1], split[2], split[3])
                     if split[4]!='':  v.add_annotation("rsids",split[4])
                     v.add_annotation('nearest_gene', split[5])
@@ -1186,9 +1198,9 @@ class ElasticLofDao(LofDB):
                   "gene_data": r["_source"] }
                  for r in result['hits']['hits'] ]
 
-class CodingDao(TSVDB):
-     def __init__(self, coding):
-          df = pd.read_csv(coding, encoding='utf8', sep='\t').fillna('NA')
+class TSVCodingDao(CodingDB):
+     def __init__(self, data):
+          df = pd.read_csv(data, encoding='utf8', sep='\t').fillna('NA')
           top_i = df.groupby('variant')['pval'].idxmin
           df['is_top'] = 0
           df.loc[top_i, 'is_top'] = 1
@@ -1196,6 +1208,16 @@ class CodingDao(TSVDB):
           self.coding_data = df.to_dict(orient='records')
      def get_coding(self):
           return self.coding_data
+
+class TSVChipDao(ChipDB):
+     def __init__(self, data):
+          df = pd.read_csv(data, encoding='utf8', sep='\t').fillna('NA')
+          top_i = df.groupby('variant')['pval'].idxmin
+          df['is_top'] = 0
+          df.loc[top_i, 'is_top'] = 1
+          self.chip_data = df.to_dict(orient='records')
+     def get_chip(self):
+          return self.chip_data
 
 class FineMappingMySQLDao(FineMappingDB):
      def __init__(self, authentication_file, base_paths):
@@ -1290,6 +1312,7 @@ class DataFactory(object):
                                 raise Exception(b + " is an unknown argument")
                             db[db_type][db_source][a] = self.arg_definitions[b]
                         db[db_type][db_source].pop('const_arguments', None)
+                    print(db_type, db_source)
                     self.dao_impl[db_type] = daoclass( ** db[db_type][db_source] )
 
         self.dao_impl["geneinfo"] = NCBIGeneInfoDao()
@@ -1322,8 +1345,11 @@ class DataFactory(object):
     def get_drug_dao(self):
         return self.dao_impl["drug"]
 
-    def get_tsv_dao(self):
-        return self.dao_impl["tsv"] if "tsv" in self.dao_impl else None
+    def get_coding_dao(self):
+        return self.dao_impl["coding"] if "coding" in self.dao_impl else None
+
+    def get_chip_dao(self):
+        return self.dao_impl["chip"] if "chip" in self.dao_impl else None
 
     def get_finemapping_dao(self):
         return self.dao_impl["finemapping"] if "finemapping" in self.dao_impl else None

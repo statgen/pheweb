@@ -71,10 +71,13 @@ if 'endpoint_def' in conf:
     app.config['endpoint_def'] = conf['endpoint_def']
 app.config['lof'] = 'lof' in [list(c.keys())[0] for c in conf.database_conf]
 app.config['coding'] = False
+app.config['chip'] = False
 app.config['ukbb'] = False
 for c in conf.database_conf:
-    if 'tsv' in c and 'CodingDao' in c['tsv']:
+    if 'coding' in c:
         app.config['coding'] = True
+    if 'chip' in c:
+        app.config['chip'] = True
     if 'externalresult' in c and 'ExternalFileResultDao' in c['externalresult']:
         app.config['ukbb'] = True
         
@@ -289,6 +292,11 @@ def top_hits_page():
 @check_auth
 def coding_data():
     return jsonify(jeeves.coding())
+
+@app.route('/api/chip_data')
+@check_auth
+def chip_data():
+    return jsonify(jeeves.chip())
 
 @app.route('/random')
 @check_auth

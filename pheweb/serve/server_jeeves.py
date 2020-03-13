@@ -29,7 +29,8 @@ class ServerJeeves(object):
         self.result_dao = self.dbs_fact.get_result_dao()
         self.ukbb_dao = self.dbs_fact.get_UKBB_dao()
         self.ukbb_matrixdao =self.dbs_fact.get_UKBB_dao(True)
-        self.tsv_dao = self.dbs_fact.get_tsv_dao()
+        self.coding_dao = self.dbs_fact.get_coding_dao()
+        self.chip_dao = self.dbs_fact.get_chip_dao()
         self.finemapping_dao = self.dbs_fact.get_finemapping_dao()
         
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
@@ -265,7 +266,10 @@ class ServerJeeves(object):
         return datalist
         
     def coding(self):
-        return self.tsv_dao.get_coding() if self.tsv_dao is not None else None
+        return self.coding_dao.get_coding() if self.coding_dao is not None else None
+
+    def chip(self):
+        return self.chip_dao.get_chip() if self.chip_dao is not None else None
 
     def get_conditional_regions_for_pheno(self, phenocode, chr, start, end, p_threshold=None):
         if p_threshold is None:
