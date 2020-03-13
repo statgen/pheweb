@@ -14,8 +14,10 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 
 (function() {
     // sort phenotypes
-    // 
-    if (_.any(window.results.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
+
+    if (_.all(window.results.map(function(d) { return d.category_index !== undefined }))) {
+        window.results = _.sortBy(window.results, function(d) { return d.category_index });
+    } else if (_.any(window.results.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
         window.results = _.sortBy(window.results, function(d) { return d.phenocode; });
     } else {
         window.results = _.sortBy(window.results, function(d) { return parseFloat(d.phenocode); });

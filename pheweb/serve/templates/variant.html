@@ -5,13 +5,12 @@
 <script type="text/javascript">
   window.model = window.model || {};
   window.variant = {{ variant |tojson(separators=(',',':'))|safe }};
-  console.log(variant)
   window.results =  {{ results |tojson(separators=(',',':'))|safe }};
-  console.log(results)
   window.regions = {{ regions |tojson(separators=(',',':'))|safe }};
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
   window.var_top_pheno_export_fields = {{ var_top_pheno_export_fields|tojson }};
   window.vis_conf = {{ vis_conf|tojson|safe }};
+  window.browser = {{ config.browser|tojson|safe }}
   if (window.browser == 'FINNGEN') {
    $('#annotation').html('<span><strong>{MS}</strong>, info: {INFO}</span>'
   .replace('{MS}', (variant.annot && variant.annot.most_severe && variant.annot.most_severe.replace(/_/g, ' ')) || 'NA')

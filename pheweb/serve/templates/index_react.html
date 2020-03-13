@@ -130,8 +130,14 @@
         <div class="collapse navbar-collapse" id="navbar-collapse">
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="/random" style="color: #333; font-weight: bold;">Random</a></li>
+		{% if config.lof %}
+                <li><a href="/lof" style="color: #333; font-weight: bold;">LoF</a></li>
+		{% endif %}
 		{% if config.coding %}
-                <li><a href="/coding" style="color: #333; font-weight: bold;">Coding Variants</a></li>
+                <li><a href="/coding" style="color: #333; font-weight: bold;">Coding</a></li>
+		{% endif %}
+		{% if config.chip %}
+                <li><a href="/chip" style="color: #333; font-weight: bold;">Chip</a></li>
 		{% endif %}
 		{% if config.endpoint_def %}
                 <li><a href="{{ url_for('static', filename=config.endpoint_def) }}" style="color: #333; font-weight: bold;">Download Endpoint Definitions</a></li>
