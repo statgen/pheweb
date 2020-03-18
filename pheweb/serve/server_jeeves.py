@@ -32,7 +32,7 @@ class ServerJeeves(object):
         self.coding_dao = self.dbs_fact.get_coding_dao()
         self.chip_dao = self.dbs_fact.get_chip_dao()
         self.finemapping_dao = self.dbs_fact.get_finemapping_dao()
-        
+        self.knownhits_dao = self.dbs_fact.get_knownhits_dao()
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
@@ -125,15 +125,36 @@ class ServerJeeves(object):
 
         return results
 
-    def get_gene_lofs(self, gene):
-        lofs = self.lof_dao.get_lofs(gene)
-        for lof in lofs:
-            if lof['gene_data']['pheno'] in self.phenos and 'phenostring' in self.phenos[lof['gene_data']['pheno']]:
-                lof['gene_data']['phenostring'] = self.phenos[lof['gene_data']['pheno']]['phenostring']
+    def get_all_lofs(self):
+        if self.lof_dao is None:
+            return None
+        lofs = self.lof_dao.get_all_lofs(conf.lof_threshold)
+        for i in range( len(lofs)-1,-1,-1):
+            ## lof data is retrieved externally so it can be out of sync with phenotypes that we want to show
+            # TODO: alerting mechanism + test cases for installation to detect accidental out of sync issues.
+            lof = lofs[i]
+            if lof['gene_data']['pheno'] not in self.phenos:
+                del lofs[i]
             else:
-                lof['gene_data']['phenostring'] = ""
+                lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
+        return lofs
+    
+    def get_gene_lofs(self, gene):
+        try:
+            lofs = self.lof_dao.get_lofs(gene)
+        except Exception as exc:
+            print("Could not fetch LoFs for gene {!r}. Error: {}".format(gene,traceback.extract_tb(exc.__traceback__).format() ))
+            raise
         return lofs
 
+    def get_gene_data(self, gene):
+        try:
+            gene_data = dbs_fact.get_geneinfo_dao().get_gene_info(gene)
+        except Exception as exc:
+            print("Could not fetch data for gene {!r}. Error: {}".format(gene,traceback.extract_tb(exc.__traceback__).format() ))
+            raise
+        return gene_data
+        
     def get_gene_drugs(self, gene):
         try:
             drugs = self.dbs_fact.get_drug_dao().get_drugs(gene)
@@ -265,12 +286,6 @@ class ServerJeeves(object):
                     d['data']['fin_enrichment'].append('Unknown')
         return datalist
         
-    def coding(self):
-        return self.coding_dao.get_coding() if self.coding_dao is not None else None
-
-    def chip(self):
-        return self.chip_dao.get_chip() if self.chip_dao is not None else None
-
     def get_conditional_regions_for_pheno(self, phenocode, chr, start, end, p_threshold=None):
         if p_threshold is None:
             p_threshold = self.conf.locuszoom_conf['p_threshold']
@@ -317,6 +332,9 @@ class ServerJeeves(object):
             print("adding annotations to {} conditional results took {} seconds".format(len(ret), time.time()-t ) )
         return ret
 
+    def get_finemapped_region_boundaries_for_pheno(self, fm_type, phenocode, chrom, start, end):
+        return self.finemapping_dao.get_regions_for_pheno(fm_type, phenocode, chrom, start, end) if self.finemapping_dao is not None else None
+    
     def get_finemapped_regions_for_pheno(self, phenocode, chr, start, end, prob_threshold=-1):
         regions = self.finemapping_dao.get_regions_for_pheno('finemapping', phenocode, chr, start, end)
         ret = []
@@ -362,6 +380,24 @@ class ServerJeeves(object):
         #self.add_annotations(chr, min_start, max_end, ret)
         self.add_annotations(chr, start, end, ret)
         return ret
+
+    def get_max_finemapped_region(self, phenocode, chrom, start, end):
+        return self.finemapping_dao.get_max_region(phenocode, chrom, start, end) if self.finemapping_dao is not None else []
+
+    def get_finemapped_regions(self, variant: Variant):
+        return self.finemapping_dao.get_regions(variant) if self.finemapping_dao is not None else []
+
+    def get_UKBB_n(self, phenocode):
+        return self.ukbb_dao.getNs(phenocode) if self.ukbb_dao is not None else None
+
+    def get_known_hits_by_loc(self, chrom, start, end):
+        return self.knownhits_dao.get_hits_by_loc(chrom,start,end)
+    
+    def coding(self):
+        return self.coding_dao.get_coding() if self.coding_dao is not None else None
+
+    def chip(self):
+        return self.chip_dao.get_chip() if self.chip_dao is not None else None
 
     @functools.lru_cache(None)
     def get_gene_region_mapping(self):
