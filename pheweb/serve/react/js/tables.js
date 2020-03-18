@@ -463,25 +463,6 @@ const chipTableCols = [{
 }, {
     Header: () => (<span title="chr:pos:ref:alt build 38" style={{textDecoration: 'underline'}}>variant</span>),
     accessor: 'variant',
-    filterMethod: (filter, row) => {
-	const s = row[filter.id].split(':')
-	var v = filter.value.split('|')
-	v[1] = v[1].replace('chr', '').replace('X', '23').replace(/_|-/g, ':')
-	return (v[0] == 'no HLA/APOE' ? !(+s[0] == 6 && +s[1] > 23000000 && +s[1] < 38000000) && !(+s[0] == 19 && +s[1] > 43000000 && +s[1] < 46000000) : true) && row[filter.id].toLowerCase().indexOf(v[1]) > -1
-    },
-    Filter: ({ filter, onChange }) => {
-	return (<div>
-	<select
-	onChange={event => { return onChange(event.target.value + (filter && filter.value.split('|')[1] || ''))}}
-	style={{ width: "100%" }}
-	value={filter ? filter.value.split('|')[0] + '|' : "all variants|"}
-        >
-	<option value="all variants|">all variants</option>
-	<option value="no HLA/APOE|">no HLA/APOE</option>
-        </select><br/>
-		<input style={{float: 'left', width: '140px'}} type="text" onChange={event => onChange((filter && filter.value.split('|')[0] || 'all')  + '|' + event.target.value)}/>
-	 </div>)
-    },
     sortMethod: variantSorter,
     Cell: props => (
 	    <a href={"/variant/" + props.value.replace(/:/g, '-')} target="_blank">{props.value}</a>
@@ -529,7 +510,7 @@ const chipTableCols = [{
     width: Math.min(80, 80/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase()),
     Cell: props => (
-	    <a href={"/gene/" + props.value} target="_blank">{props.value}</a>
+	props.value == 'NA' ? props.value : <a href={"/gene/" + props.value} target="_blank">{props.value}</a>
     )
 }, {
     Header: () => (<span title="allele frequency" style={{textDecoration: 'underline'}}>af</span>),
@@ -618,7 +599,7 @@ const chipTableCols = [{
     accessor: 'missing_proportion',
     width: Math.min(80, 80/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: props => props.value.toPrecision(2)
+    Cell: props => <div style={{color: props.value > 0.2 ? 'rgb(224,108,117)' : 'inherit'}}>{props.value.toPrecision(2)}</div>
 }, {
     Header: () => (<span title="is the variant in imputed data" style={{textDecoration: 'underline'}}>in imputed set</span>),
     accessor: 'imputed',

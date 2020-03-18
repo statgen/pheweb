@@ -37,7 +37,6 @@ class Chip extends React.Component {
             return response.json()
         })
             .then(result => {
-		console.log(result)
             this.setState({
                 data: result
             })
@@ -61,14 +60,15 @@ class Chip extends React.Component {
 
     render() {
 
-        return (
+	//You can also type e.g. "&lt; 5e-8" in the pval box to see genome-wide significant variants and "&gt; 5e-8" to see the opposite.
+            return (
 		<div style={{padding: '0'}}>
 		<h2>FinnGen1 chip GWAS results</h2>
-		<p>
-		This table contains p &lt; 1e-4 associations (additive or recessive) from FinnGen1 chip data GWAS at freeze 5 (150,831 samples on the chip, 2,925 endpoints).
+		    <p>This table contains p &lt; 1e-4 associations (additive or recessive) from FinnGen1 chip data GWAS at freeze 5 (150,831 samples on the chip, 2,925 endpoints). GWAS was run similarly as in the core GWAS for the same endpoints. Dosage in recessive analysis is alternative homozygote genotype probability. Variants with MAF &lt; 0.1 are included in the analysis. Variants with missingness &gt; 0.5 have been filtered out. HLA and APOE regions have also been filtered out for usability.
 		</p>
-		<p style={{paddingBottom: '10px'}}>
-		... description ...
+		<p style={{paddingBottom: '10px'}}>Consequence annotations are most severe consequences from VEP and annotation categories come from the gnomAD annotation pipeline. Finnish enrichment (FIN enr) is calculated as FIN AF / NFSEE AF in gnomAD 2.1, where NFSEE is non-Finnish-non-Swedish-non-Estonian European. The enrichment is calculated from gnomAD exomes if the variant is in that data, otherwise it is calculated from gnomAD genomes when available. p-values &lt; 5e-8 and Finnish enrichment &gt; 5 are in green. HW p-values &lt; 1e-12 are in red as well as missingness &gt; 0.2.
+		</p>
+		<p>Hover over the column names to see their explanations, click on the column names to sort by them, and type values in the boxes below the column names to filter. Click on a variant, phenotype, or gene to get to its page.
 		</p>
 		{!this.state.data ?
 		 <div>.. . loading . ..</div> :

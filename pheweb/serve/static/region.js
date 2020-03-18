@@ -229,13 +229,15 @@
 	})
 
 	if (window.cond_fm_regions && window.cond_fm_regions.length > 0) {
+	    var cond_regions = window.cond_fm_regions.filter(region => region.type == 'conditional')
+	    var n_cond_signals = cond_regions.length > 0 ? cond_regions[0].n_signals : 0
 	    var summary_html = window.cond_fm_regions.map(region =>
 							  region.type == 'finemap' ?
 							  '<span>' + region.n_signals + ' ' + region.type + ' signals (prob. ' + region.n_signals_prob.toFixed(3) + ')</span><br/>' :
 							  '<span>' + region.n_signals + ' ' + region.type + ' signals</span><br/>'
-							 ).join('') + '<span>Conditional analysis results are approximations from summary stats. Conditioning is repeated until no signal p < 1e-6 is left.</span><br/>'
+							 ).join('') + n_cond_signals > 0 ? '<span>Conditional analysis results are approximations from summary stats. Conditioning is repeated until no signal p < 1e-6 is left.</span><br/>' : ''
 	    $('#region_summary').html(summary_html)
-	    if (window.cond_fm_regions.filter(region => region.type == 'conditional')[0].n_signals > 1) {
+	    if (n_cond_signals > 1) {
 		var opt_html = window.cond_fm_regions.filter(region => region.type == 'conditional')[0].paths.map((path, i) => 
 	          '<label onClick="show_conditional(' + i + ')" data-cond-i="' + i + '" class="btn btn-primary' + (i === 0 ? ' active' : '') + '"><span>' + (i+1) + '</span></label>'
                 ).join('\n')
