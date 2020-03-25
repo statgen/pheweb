@@ -320,7 +320,7 @@ def region_page(phenocode, region):
     chrom = chr_se[0]
     start_end = jeeves.get_max_finemapped_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
     if start_end is not None:
-        cond_fm_regions = jeeves.get_finemapped_region_boundaries_for_pheno('all', phenocode, chrom, start_end['start'], start_end['end'])
+        cond_fm_regions = jeeves.get_finemapped_region_boundaries_for_pheno('all', phenocode, chrom, int(chr_se[1].split('-')[0]), int(chr_se[1].split('-')[1]))
     else:
         cond_fm_regions = []
     pheno['phenocode'] = phenocode

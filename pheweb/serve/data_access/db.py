@@ -1258,13 +1258,13 @@ class FineMappingMySQLDao(FineMappingDB):
           try:
                with conn.cursor(pymysql.cursors.DictCursor) as cursori:
                     if type == 'all':
-                         sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, variants, path FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                         sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, variants, path FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s ORDER BY type DESC"
                          cursori.execute(sql, [self.release, phenocode, chr, end, start])
                     elif type == 'conditional':
                          sql = "SELECT type, chr, start, end, n_signals, variants, path FROM finemapped_regions WHERE rel=%s AND type=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
                          cursori.execute(sql, [self.release, 'conditional', phenocode, chr, end, start])
                     elif type == 'finemapping':
-                         sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, path FROM finemapped_regions WHERE rel=%s AND (type=%s OR type=%s) AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                         sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, path FROM finemapped_regions WHERE rel=%s AND (type=%s OR type=%s) AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s ORDER BY type DESC"
                          cursori.execute(sql, [self.release, 'susie', 'finemap', phenocode, chr, end, start])
                     else:
                          raise ValueError('unsupported type "' + type + '"')
