@@ -14,15 +14,23 @@ class Chip extends React.Component {
 	    dataToDownload: [],
 	    filtered: [],
 	    headers: [
-		{label: 'pheno', key: 'phenostring'},
+		{label: 'pheno', key: 'LONGNAME'},
+		{label: 'variant', key: 'variant'},
+		{label: 'rsid', key: 'rsid'},
+		{label: 'consequence', key: 'most_severe'},
+		{label: 'category', key: 'annotation'},
 		{label: 'gene', key: 'gene'},
-		{label: 'variants', key: 'variants'},
-		{label: 'p-value', key: 'p_value'},
-		{label: 'beta', key: 'beta'},
-		{label: 'ref_cases', key: 'ref_count_cases'},
-		{label: 'alt_cases', key: 'alt_count_cases'},
-		{label: 'ref_controls', key: 'ref_count_ctrls'},
-		{label: 'alt_controls', key: 'alt_count_ctrls'}
+		{label: 'af', key: 'maf'},
+		{label: 'FIN enr', key: 'enrichment_nfsee'},
+		{label: 'pval', key: 'pval'},
+		{label: 'recessive pval', key: 'pval_recessive'},
+		{label: 'n hom alt cases', key: 'n_hom_cases'},
+		{label: 'n het cases', key: 'n_het_cases'},
+		{label: 'n hom alt controls', key: 'n_hom_controls'},
+		{label: 'n het controls', key: 'n_het_controls'},
+		{label: 'HW pval', key: 'HW_exact_p_value'},
+		{label: 'missing', key: 'missing_proportion'},
+		{label: 'in imputed set', key: 'imputed'},
 	    ]
         }
         this.loadData = this.loadData.bind(this)
@@ -98,7 +106,7 @@ class Chip extends React.Component {
 		 data={this.state.dataToDownload}
 		 separator={'\t'}
 		 enclosingCharacter={''}
-		 filename={`finngen_lof_burden_${window.release}.tsv`}
+		 filename={`finngen_chip_gwas_${window.release}.tsv`}
 		 className="hidden"
 		 ref={(r) => this.csvLink = r}
 		 target="_blank" />

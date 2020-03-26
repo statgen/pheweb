@@ -14,7 +14,7 @@ class Coding extends React.Component {
 	    dataToDownload: [],
 	    filtered: [],
 	    headers: [
-		{label: 'top pheno', key: 'phenoname'},
+		{label: 'pheno', key: 'phenoname'},
 		{label: 'variant', key: 'variant'},
 		{label: 'rsid', key: 'rsid'},
 		{label: 'consequence', key: 'most_severe'},
@@ -24,7 +24,12 @@ class Coding extends React.Component {
 		{label: 'FIN enr', key: 'enrichment_nfsee'},
 		{label: 'INFO', key: 'INFO'},
 		{label: 'pval', key: 'pval'},
-		{label: 'beta', key: 'beta'}
+		{label: 'beta', key: 'beta'},
+		{label: 'PIP', key: 'pip'},
+		{label: 'recessive pval', key: 'pval_recessive'},
+		{label: 'dominant pval', key: 'pval_dominant'},
+		{label: 'rec/dom log ratio', key: 'rec_dom_log_ratio'},
+		{label: 'n alt hom cases', key: 'n_hom_cases'}
 	    ]
         }
         this.loadData = this.loadData.bind(this)
