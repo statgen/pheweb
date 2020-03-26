@@ -611,7 +611,6 @@ const chipTableCols = [{
     accessor: 'grch37_locus',
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: null,
-    //7:103604414:G:A
     Cell: props => {
 	const grch37 = props.value && props.value != 'NA' ? (<a href={"https://gnomad.broadinstitute.org/variant/" + props.value.replace(/:/g, '-') + '-' + props.original.variant.split(':').slice(2).join('-')} target="_blank">gn2</a>) : null
 	const grch38 = props.original.gnomad3 == 1 ? (<a style={{float: 'right'}} href={"https://gnomad.broadinstitute.org/variant/" + props.original.variant.split(':').join('-') + '?dataset=gnomad_r3'} target="_blank">gn3</a>) : null
@@ -722,7 +721,7 @@ const codingTableCols = [{
     accessor: 'AF',
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: props => (props.value).toExponential(1)
+    Cell: props => isNaN(+props.value) ? 'NA' : props.value.toExponential(1)
 }, {
     Header: () => (<span title="af_fin/af_nfsee in gnomAD exomes (-2 when fin.AC == nfsee.AC == 0, -1 when fin.AC == fin.AN == 0)" style={{textDecoration: 'underline'}}>FIN enr</span>),
     accessor: 'enrichment_nfsee',
@@ -740,7 +739,7 @@ const codingTableCols = [{
     accessor: 'INFO',
     filterMethod: (filter, row) => row[filter.id] >= filter.value,
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
-    Cell: props => props.value.toPrecision(3)
+    Cell: props => isNaN(+props.value) ? 'NA' : props.value.toPrecision(3)
 }, {
     Header: () => (<span title="p-value in FinnGen" style={{textDecoration: 'underline'}}>pval</span>),
     accessor: 'pval',
@@ -808,22 +807,29 @@ const codingTableCols = [{
 	return isNaN(+props.value) ? 'NA' :
 	    props.value.toPrecision(3)
     }
-}, {
+}, window.release == 'R4' ?
+			 {
     Header: () => (<span title="number of alt homozygotes in FinnGen" style={{textDecoration: 'underline'}}>n hom</span>),
     accessor: 'AC_Hom',
     width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
     Cell: props => props.value/2
+			 } :
+			 {
+    Header: () => (<span title="number of alt homozygotes in cases" style={{textDecoration: 'underline'}}>n hom cases</span>),
+    accessor: 'n_hom_cases',
+    width: Math.min(80, 80/maxTableWidth*window.innerWidth),
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: props => props.value
 }, {
     Header: () => (<span title="links to other sites" style={{textDecoration: 'underline'}}>links</span>),
     accessor: 'grch37_locus',
-    width: Math.min(80, 80/maxTableWidth*window.innerWidth),
+    width: Math.min(60, 60/maxTableWidth*window.innerWidth),
     filterMethod: null,
     Cell: props => {
 	const grch37 = props.value.replace(/:/g, '-') + '-' + props.original.variant.split(':').slice(2).join('-')
 	return (
 	    <div>
-	    <span style={{paddingRight: '5px'}}><a href={`http://${window.release.toLowerCase()}.finngen.fi/variant/${props.original.variant.replace(/:/g, '-')}`} target="_blank">{window.release}</a></span>
 	    <span style={{paddingRight: '5px'}}><a href={`http://${window.release_prev.toLowerCase()}.finngen.fi/variant/${props.original.variant.replace(/:/g, '-')}`} target="_blank">{window.release_prev}</a></span>
 	    <span><a href={"https://gnomad.broadinstitute.org/variant/" + grch37} target="_blank">gn</a></span>
 	    </div>

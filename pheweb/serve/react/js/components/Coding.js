@@ -65,14 +65,8 @@ class Coding extends React.Component {
         return (
 		<div style={{padding: '0'}}>
 		<h2>Coding variants</h2>
-		<p>
-		This table contains p &lt; 1e-4 associations for each coding variant in FinnGen data freeze 4 (2,264 endpoints). The following gnomAD annotation categories are included:
-	    predicted loss-of-function (pLoF), low-confidence loss-of-function (LC), inframe indel, missense, start lost, stop lost.
-		Variants have been filtered to imputation INFO score &gt; 0.6.
-		</p>
-		<p style={{paddingBottom: '10px'}}>
-		Finnish enrichment (FIN enr) is calculated as FIN AF / NFSEE AF in gnomAD, where NFSEE is non-Finnish-non-Swedish-non-Estonian European. p-values &lt; 5e-8 and Finnish enrichment &gt; 5 are in green. As the consequence and category columns are based on different genome builds (38 and 37 respectively), they differ for some variants. Hover over the column names to see their explanations, click on the column names to sort by them, and type values in the boxes below the column names to filter. Click on a variant, phenotype, or gene to get to its page.
-		</p>
+		<div dangerouslySetInnerHTML={{__html: window.coding_content}}>
+		</div>
 		{!this.state.data ?
 		 <div>.. . loading . ..</div> :
 		 <div style={{width: '100%'}}>

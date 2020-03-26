@@ -55,6 +55,7 @@ if 'SENTRY_DSN' in conf:
 app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['browser'] = conf['browser']
 app.config['about_content'] = conf['about_content']
+app.config['coding_content'] = conf['coding_content']
 if 'noindex' in conf:
     app.config['noindex'] = conf['noindex']
 app.config['release'] = conf['release']

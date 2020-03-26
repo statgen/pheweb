@@ -1200,7 +1200,7 @@ class ElasticLofDao(LofDB):
 
 class TSVCodingDao(CodingDB):
      def __init__(self, data):
-          df = pd.read_csv(data, encoding='utf8', sep='\t').fillna('NA')
+          df = pd.read_csv(data, encoding='utf8', sep='\t').fillna('NA').replace([np.inf], 1e6)
           top_i = df.groupby('variant')['pval'].idxmin
           df['is_top'] = 0
           df.loc[top_i, 'is_top'] = 1
