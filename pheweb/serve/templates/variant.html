@@ -104,6 +104,8 @@
           <th>phenotype</th>
           <th>beta (se)</th>
           <th>p-value</th>
+          <th>af cases</th>
+          <th>af controls</th>
           <th>number of samples</th>
 	  {% if config.browser == 'FINNGEN' %}
           <th>UKBB</th>
@@ -134,8 +136,8 @@
 	}).map(function(key) {
 	var val = v.annot[key].toFixed(3)
 	var color = val < window.vis_conf.info_tooltip_threshold ? '#FF8C00' : '#ffffff'
-      return '<div style=\'color: ' + color + '\'><span style=\'text-align: left; float: left; padding-right: 10px;\'>' + val + '</span>' +
-        '<span style=\'text-align: left; float: left;\'>' + key.replace(/INFO_|\.calls|_Drem|_R[1-9]/g, '') + '</span></div>'
+      return '<div style=\'padding-right: 5px; color: ' + color + '\'><span style=\'text-align: left; float: left; padding-right: 10px;\'>' + val + '</span>' +
+        '<span style=\'text-align: left; float: left;\'>' + key.replace(/INFO_|\.calls|_Drem|_R[1-9]/g, '').replace(/_V2(P2)?/, '') + '</span></div>'
     }).join('')
     %>
   </div>
@@ -221,6 +223,8 @@ OR: <%= d.or.toExponential(1) %><br>
     <td style="width:15%"><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
     <td style="width: 6%"><%= d.beta ? (d.beta.toPrecision(2) + (d.sebeta ? " (" + d.sebeta.toPrecision(2) + ")" : "")) : "" %></td>
     <td style="width: 6%"><%= d.pval ? d.pval.toExponential(1) : "" %></td>
+    <td style="width: 6%"><%= d.maf_case ? d.maf_case.toExponential(1) : "" %></td>
+    <td style="width: 6%"><%= d.maf_control ? d.maf_control.toExponential(1) : "" %></td>
     <td style="width: 6%"><% if (d.n_case) { %>
       <%= d.n_case %> / <%= d.n_control %>
       <% } else if (d.n_sample) { %>
