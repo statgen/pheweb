@@ -64,12 +64,8 @@ class LoF extends React.Component {
         return (
 		<div style={{padding: '0'}}>
 		<h2>LoF burden results</h2>
-		<p>
-		This table contains p &lt; 1e-3 associations from protein-truncating variant loss-of-function burden tests in FinnGen data freeze 5 (2,925 endpoints).
-		</p>
-		<p style={{paddingBottom: '10px'}}>
-		... description ...
-		</p>
+		<div dangerouslySetInnerHTML={{__html: window.lof_content}}>
+		</div>
 		{!this.state.data ?
 		 <div>.. . loading . ..</div> :
 		 <div style={{width: '100%'}}>

@@ -125,10 +125,10 @@ class ServerJeeves(object):
 
         return results
 
-    def get_all_lofs(self):
+    def get_all_lofs(self, threshold):
         if self.lof_dao is None:
             return None
-        lofs = self.lof_dao.get_all_lofs(conf.lof_threshold)
+        lofs = self.lof_dao.get_all_lofs(threshold)
         for i in range( len(lofs)-1,-1,-1):
             ## lof data is retrieved externally so it can be out of sync with phenotypes that we want to show
             # TODO: alerting mechanism + test cases for installation to detect accidental out of sync issues.
@@ -136,7 +136,7 @@ class ServerJeeves(object):
             if lof['gene_data']['pheno'] not in self.phenos:
                 del lofs[i]
             else:
-                lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
+                lof['gene_data']['phenostring'] = self.phenos[lof['gene_data']['pheno']]['phenostring']
         return lofs
     
     def get_gene_lofs(self, gene):

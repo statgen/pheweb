@@ -398,7 +398,7 @@ const lofTableCols = [{
 }, {
     Header: () => (<span title="variants" style={{textDecoration: 'underline'}}>variants</span>),
     accessor: 'variants',
-    Cell: props => props.value,
+    Cell: props => props.value.split(',').map(v => v.trim().replace(/^chr/, '').replace(/_/g, ':')).join(', '),
     minWidth: 200
 }, {
     Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),

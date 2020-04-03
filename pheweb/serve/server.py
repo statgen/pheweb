@@ -55,7 +55,10 @@ if 'SENTRY_DSN' in conf:
 app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['browser'] = conf['browser']
 app.config['about_content'] = conf['about_content']
-app.config['coding_content'] = conf['coding_content']
+if 'coding_content' in conf:
+    app.config['coding_content'] = conf['coding_content']
+if 'lof_content' in conf:
+    app.config['lof_content'] = conf['lof_content']
 if 'noindex' in conf:
     app.config['noindex'] = conf['noindex']
 app.config['release'] = conf['release']
@@ -234,7 +237,7 @@ def api_gene_functional_variants(gene):
 @app.route('/api/lof')
 @check_auth
 def api_lof():
-    lofs = jeeves.get_all_lofs()
+    lofs = jeeves.get_all_lofs(conf.lof_threshold)
     if lofs is None:
         die("LoF data not available")
     return jsonify(sorted(lofs,  key=lambda lof: lof['gene_data']['p_value']))
