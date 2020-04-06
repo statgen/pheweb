@@ -145,7 +145,6 @@ class ServerJeeves(object):
         except Exception as exc:
             print("Could not fetch LoFs for gene {!r}. Error: {}".format(gene,traceback.extract_tb(exc.__traceback__).format() ))
             raise
-        print(lofs)
         return lofs
 
     def get_gene_data(self, gene):
