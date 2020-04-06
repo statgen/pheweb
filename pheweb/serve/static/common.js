@@ -84,48 +84,61 @@ function pValueToReadable(p) {
 }
 
 
-function exportTableToCSV($table, filename, export_cols=null) {
+function exportTableToCSV($table, filename, export_cols=null, prefix_cols=null) {
     var sTableData = $table.data('st').getData()
     var colDelim = '\t'
     var rowDelim = '\r\n'
     
-    function get_data(row, export_cols) { 
-        return export_cols.map(col => {
+    function get_data(row, export_cols, prefix_cols) {
+	var ret = []
+	if (prefix_cols != null) {
+	    ret = Object.keys(prefix_cols).sort().map(key => prefix_cols[key])
+	}
+        return ret.concat(export_cols.map(col => {
             var s = col.split('.')
             var val = row
             s.forEach( s =>  {
                 val = val[s] || 'NA'
             })
             return val
-        })
+        }))
     }
 
     function get_fields(object, values=true, gather_name=[]) {
-      var result=[]
-      Object.keys(object).sort().forEach( function(prop)   {
-        var element = object[prop]
-        if( element !== Object(element)) {
-            var fqName = gather_name.length>0 ? gather_name.join(".") + "." + prop: prop
-            prop = values ? prop: fqName
-            if( values) { result.push( element) } else { result.push( prop) }
-        }
-        else {
-            gather_name.push(prop)
-            result = result.concat(get_fields( element, values, gather_name))
-            gather_name.pop()
-        }
-      })
-      return result
+	var result=[]
+	Object.keys(object).sort().forEach( function(prop)   {
+            var element = object[prop]
+            if( element !== Object(element)) {
+		var fqName = gather_name.length>0 ? gather_name.join(".") + "." + prop: prop
+		prop = values ? prop: fqName
+		if( values) { result.push( element) } else { result.push( prop) }
+            }
+            else {
+		gather_name.push(prop)
+		result = result.concat(get_fields( element, values, gather_name))
+		gather_name.pop()
+            }
+	})
+	return result
     }
     
-    var header = get_fields( sTableData[0], false)
-    var acceptInd =  export_cols!=null ? export_cols.map( function(elem) { return header.indexOf(elem) } ).filter( function(ind) { return ind>=0} ): null
-    var existing_headers = acceptInd.map( function (elem){ return header[elem] })
-    
-    var csv = existing_headers.join(colDelim)
-    csv+=rowDelim
-    csv+=sTableData.map( function( row ) { return get_data( row, existing_headers ).join(colDelim) }).join(rowDelim)
+    var headers = export_cols
+    console.log(get_fields( sTableData[0], false))
+    if (export_cols==null) {
+	var header = get_fields( sTableData[0], false)
+	var acceptInd =  export_cols!=null ? export_cols.map( function(elem) { return header.indexOf(elem) } ).filter( function(ind) { return ind>=0} ): null
+	headers = acceptInd.map( function (elem){ return header[elem] })
+    }
 
+    var csv
+    if (prefix_cols != null) {
+	csv = Object.keys(prefix_cols).sort().concat(headers).join(colDelim)
+    } else {
+	csv = headers.join(colDelim)
+    }
+    csv+=rowDelim
+    csv+=sTableData.map( function( row ) { return get_data( row, headers, prefix_cols ).join(colDelim) }).join(rowDelim)
+    
     var createObjectURL = (window.URL || window.webkitURL || {}).createObjectURL || function(){}
     var csvFile = new Blob([csv], {type: "text/csv"});
     var csvData = createObjectURL(csvFile)

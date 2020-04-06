@@ -530,14 +530,18 @@ def _ensure_conf():
                                         'annotation.an',"annotation.info","annotation.hc_lof"]  )
 
     ## these fields will be exported in this order when exporting variants to TSV.
-    conf.set_default_value("var_top_pheno_export_fields", ["beta","category",
-    "maf","maf_cases","maf_controls","num_cases","num_controls","phenocode","phenostring","pval","sebeta","phewas_code",
-    "phewas_string","category_name"]  )
-    conf.set_default_value("gene_pheno_export_fields", ["variant.id", "assoc.pval","assoc.beta","assoc.variant.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring", "variant.gnomad.AF_fin", "variant.gnomad.AF_nfe"])
+    conf.set_default_value("var_top_pheno_export_fields", ["phenocode","phenostring","category","pval","beta",
+    "maf","maf_case","maf_control","n_case","n_control"])
+    conf.set_default_value("gene_pheno_export_fields", ["variant.varid", "assoc.pval","assoc.beta","assoc.variant.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring", "variant.annotation.gnomad.AF_fin", "variant.annotation.gnomad.AF_nfe"])
     conf.set_default_value("drug_export_fields", ["drug.molecule_name", "drug.molecule_type", "evidence.target2drug.action_type", "disease.efo_info.label", "evidence.drug2clinic.clinical_trial_phase.label", "drug.id"])
     conf.set_default_value("lof_export_fields", ["pheno", "variants", "p_value", "beta", "ref_alt_cases", "ref_alt_ctrls"])
 
     conf.set_default_value("report_conf", {"func_var_assoc_threshold":0.0001}  )
     conf.set_default_value("vis_conf", {"loglog_threshold": 10, "info_tooltip_threshold": 0.8, "manhattan_colors": ['rgb(53,0,212)', 'rgb(40, 40, 40)']})
     conf.set_default_value("locuszoom_conf", {"p_threshold": 0.05, "prob_threshold": 0.0001, "ld_service": "finngen", "ld_max_window": 5000000})
+    conf.set_default_value("lof_threshold", 1e-3)
+    conf.set_default_value("noindex", True)
+    conf.set_default_value("anno_cpra", True)
+    conf.set_default_value("show_ukbb", False)
+    conf.set_default_value("show_risteys", False)
     conf.set_default_value("lof_threshold", 1e-3)

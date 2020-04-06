@@ -54,11 +54,14 @@ if 'SENTRY_DSN' in conf:
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
 app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['browser'] = conf['browser']
-app.config['about_content'] = conf['about_content']
-if 'coding_content' in conf:
-    app.config['coding_content'] = conf['coding_content']
-if 'lof_content' in conf:
-    app.config['lof_content'] = conf['lof_content']
+app.config['show_ukbb'] = conf['show_ukbb']
+app.config['show_risteys'] = conf['show_risteys']
+for cont in ['about', 'coding', 'chip', 'lof']:
+    if cont + '_content' in conf:
+        with open(conf[cont + '_content'], 'r') as f:
+            app.config[cont + '_content'] = f.read().strip().replace('\n', '')
+    else:
+        app.config[cont + '_content'] = ''
 if 'noindex' in conf:
     app.config['noindex'] = conf['noindex']
 app.config['release'] = conf['release']

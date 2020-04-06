@@ -64,6 +64,7 @@
 <div class="row">
   <div class="col-md-10 col-lg-10 col-sm-10 col-xs-10">
     <h3>FinnGen association results</h3>
+    <p>This table contains for each phenotype the top associated variant in the gene +- 100 kb.</p>
   </div>
 </div>
 <div class="row">
@@ -238,10 +239,9 @@
 <script type="text/template" id="streamtable-template">
   <% if (p.pheno.phenocode === pheno.phenocode) { %>
   <tr style="background-color:rgb(247,245,230)">
-    <td><a style="color:black" href="/variant/<%=  variant_id_to_pheweb_format(p.variant.id) %>">
-  	<%= p.variant.rsids ? p.variant.rsids : (p.variant.id.length > 20) ? p.variant.id.substring(0, 17) + '...' : p.variant.id %>
+    <td><a style="color:black" href="/variant/<%=  variant_id_to_pheweb_format(p.variant.varid) %>">
+  	<%= p.variant.annotation.rsids ? p.variant.annotation.rsids : (p.variant.varid.length > 20) ? p.variant.varid.substring(0, 17) + '...' : p.variant.varid %>
     </a></td>
-    {{ mdebug("any text or variable") }}    
     <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: p.variant}) %>" data-toggle="tooltip">
       <%= $.isNumeric(p.variant.fin_enrichment) ? p.variant.fin_enrichment.toPrecision(3) : p.variant.fin_enrichment %>
     </td>
@@ -255,8 +255,8 @@
   </tr>
   <% } else { %>
   <tr>
-    <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(p.variant.id) %>">
-    	<%= p.variant.rsids ? p.variant.rsids: (p.variant.id.length > 20) ? p.variant.id.substring(0, 17) + '...' : p.variant.id %>
+    <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(p.variant.varid) %>">
+    	<%= p.variant.annotation.rsids ? p.variant.annotation.rsids: (p.variant.varid.length > 20) ? p.variant.varid.substring(0, 17) + '...' : p.variant.varid %>
     </a></td>
     <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: p.variant}) %>" data-toggle="tooltip">
       <%= $.isNumeric(p.variant.fin_enrichment) ? p.variant.fin_enrichment.toPrecision(3) : p.variant.fin_enrichment %>
@@ -288,15 +288,15 @@
 
 <script type="text/template" id="streamtable-functional-variants-template">
   <tr>
-    <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(v.var.id) %>">
-	<%= v.var.rsids || v.var.id %>
+    <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(v.var.varid) %>">
+	<%= v.var.annotation.rsids || v.var.varid %>
     </a></td>
     <td><%= v.most_severe.replace(/_/g, ' ').replace(' variant', '') %></td>
-    <td><%= Number(v.var.annot.INFO).toPrecision(3) %></td>
+    <td><%= Number(v.var.annotation.annot.INFO).toPrecision(3) %></td>
     <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: v.var}) %>" data-toggle="tooltip">
       <%= $.isNumeric(v.var.fin_enrichment) ? v.var.fin_enrichment.toPrecision(3) : v.var.fin_enrichment %>
     </td>
-    <td><%= v.var.annot.AF < 0.01 ?  v.var.annot.AF.toExponential(1) :  v.var.annot.AF.toPrecision(2) %></td>
+    <td><%= v.var.annotation.annot.AF < 0.01 ?  v.var.annotation.annot.AF.toExponential(1) :  v.var.annotation.annot.AF.toPrecision(2) %></td>
     <td><table> <%= v.significant_phenos
 	    .sort(function(pheno1, pheno2) { return pheno1.pval - pheno2.pval })
 	    .map(function(pheno) {

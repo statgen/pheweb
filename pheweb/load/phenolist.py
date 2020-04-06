@@ -1,4 +1,4 @@
-#!/usr/bin/env/python3
+#!/usr/bin/env python3
 
 # use this to add metadata to the pheno-list.json file: endpoint names, categories, case/control n, gc lambda, num gw sig hits
 # TODO make part of the import wdl, not using the cov_pheno file but precalculating Ns so can be done without red data

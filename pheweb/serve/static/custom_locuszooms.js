@@ -198,12 +198,7 @@ LocusZoom.Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields)
 	var windowSize = Math.min(state.end - state.start + 10000, window.lz_conf.ld_max_window)
 	return this.url + "?variant=" + topvar['association:chr'] + ':' + topvar['association:position'] + ':' + topvar['association:ref'] + ':' + topvar['association:alt'] + "&window=" + windowSize + "&panel=sisu3"
     } else {
-	var windowSize = 500
-	var population="1000GENOMES:phase_3:ALL"
-	if (window.browser == 'FINNGEN') {
-	    var population="1000GENOMES:phase_3:FIN"
-	}
-	return refvar ? this.url + refvar + "/" + population + "?window_size=" + windowSize : this.url + ' lead variant has no rsid, could not get LD'
+	return refvar ? this.url + refvar + "/" + window.lz_conf.ld_ens_pop + "?window_size=" + window.lz_conf.ld_ens_window : this.url + ' lead variant has no rsid, could not get LD'
     }
 
 };
@@ -216,7 +211,6 @@ LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, f
     var res
     if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	res = JSON.parse(resp)['ld']
-	console.log(res)
     } else {
 	res = JSON.parse(resp)
     }

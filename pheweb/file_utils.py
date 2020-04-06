@@ -23,6 +23,8 @@ def get_cacheable_file_location(default_relative_dir, basename):
     return get_generated_path(default_relative_dir, basename)
 
 genome_build = '38'
+if genome_build not in ['37', '38']:
+    raise('genome build needs to be 37 or 38')
 dbsnp_version = '151'
 genes_version = 'v25'
 

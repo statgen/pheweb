@@ -1,4 +1,7 @@
-#!/usr/bin/env/python3
+#!/usr/bin/env python3
+
+# use this to add metadata to the pheno-list.json file: endpoint names, categories, cohorts, case/control n, gc lambda, num gw sig hits
+# python3 phenolist_gbma.py pheno-list.json > ...
 
 import sys
 import json

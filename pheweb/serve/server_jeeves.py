@@ -114,12 +114,12 @@ class ServerJeeves(object):
         print("gnomad variant annos took {} seconds".format(time.time()-starttime))
         gd = { g['variant']:g['var_data'] for g in gnomad}
         starttime = time.time()
+
         ukbbs = self.ukbb_matrixdao.get_multiphenoresults(varpheno, known_range=(chrom,start,end))
         print("UKB fetching for {} variants took {}".format( len( list(varpheno.keys()) ),time.time()-starttime) )
         for pheno in results:
             if pheno.variant in ukbbs and pheno.assoc.phenocode in ukbbs[pheno.variant]:
                 pheno.assoc.add_matching_result('ukbb', ukbbs[pheno.variant][pheno.assoc.phenocode])
-
             if pheno.variant in gd:
                 pheno.variant.add_annotation('gnomad', gd[pheno.variant])
 
@@ -141,10 +141,11 @@ class ServerJeeves(object):
     
     def get_gene_lofs(self, gene):
         try:
-            lofs = self.lof_dao.get_lofs(gene)
+            lofs = self.lof_dao.get_lofs(gene) if self.lof_dao is not None else []
         except Exception as exc:
             print("Could not fetch LoFs for gene {!r}. Error: {}".format(gene,traceback.extract_tb(exc.__traceback__).format() ))
             raise
+        print(lofs)
         return lofs
 
     def get_gene_data(self, gene):
@@ -169,7 +170,7 @@ class ServerJeeves(object):
 
         vars = [ Variant( d['chrom'].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25"), d['pos'], d['ref'], d['alt'] ) for d in variants['unbinned_variants'] if 'peak' in d ]
 
-        f_annotations = self.threadpool.submit( self.annotation_dao.get_variant_annotations, vars)
+        f_annotations = self.threadpool.submit( self.annotation_dao.get_variant_annotations, vars, self.conf.anno_cpra)
         f_gnomad = self.threadpool.submit( self.gnomad_dao.get_variant_annotations, vars)
         annotations = f_annotations.result()
         gnomad = f_gnomad.result()
@@ -201,7 +202,7 @@ class ServerJeeves(object):
         ## TODO.... would be better to just return the results but currently rsid and nearest genes are stored alongside the result
         ## chaining variants like thise retains all the existing annotations.
         r = self.result_dao.get_single_variant_results(variant)
-        v_annot = self.annotation_dao.get_single_variant_annotations(r[0])
+        v_annot = self.annotation_dao.get_single_variant_annotations(r[0], self.conf.anno_cpra)
 
         if r is not None:
             if v_annot is None:
@@ -233,7 +234,7 @@ class ServerJeeves(object):
             start = 1
         t = time.time()
         # TODO tabix fetch takes forever, combine FG and gnomAD annotations and use relevant columns only, or get annotations on the fly for individual variants
-        annotations = self.annotation_dao.get_variant_annotations_range(chr, start, end)
+        annotations = self.annotation_dao.get_variant_annotations_range(chr, start, end, self.conf.anno_cpra)
         annot_hash = { anno.varid: anno.get_annotations() for anno in annotations }
         gnomad = self.gnomad_dao.get_variant_annotations_range(chr, start, end)
         gnomad_hash = { anno.varid: anno.get_annotations() for anno in gnomad }
@@ -250,20 +251,9 @@ class ServerJeeves(object):
                 d['data']['varid'].append(varid)
                 try:
                     a = annot_hash[varid]['annot']
-                    if 'most_severe' in a:
-                        d['data']['most_severe'].append(a['most_severe'].replace('_', ' '))
-                    elif 'consequence'in a:
-                        d['data']['most_severe'].append(a['consequence'].replace('_', ' '))
-                    else:
-                        d['data']['most_severe'].append('unknown')
-                    if 'AF' in a:
-                        d['data']['AF'].append(a['AF'])
-                    else:
-                        d['data']['AF'].append('NA')
-                    if 'INFO' in a:
-                        d['data']['INFO'].append(a['INFO'])
-                    else:
-                        d['data']['INFO'].append('NA')
+                    d['data']['most_severe'].append((a['most_severe'] if 'most_severe' in a else (a['consequence'] if 'consequence' in a else 'unknown')).replace('_', ' '))
+                    d['data']['AF'].append(a['AF'] if 'AF' in a else 'NA')
+                    d['data']['INFO'].append(a['INFO'] if 'INFO' in a else 'NA')
                     if varid not in gnomad_hash:
                         d['data']['fin_enrichment'].append('No gnomAD data')
                     else:
