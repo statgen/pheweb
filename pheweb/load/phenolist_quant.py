@@ -22,25 +22,30 @@ def run():
                 atc2name[s[0]] = s[1]
     
     with gzip.open(sys.argv[3], 'rt') as f:
-        header_index = [(i, h) for i,h in enumerate(f.readline().strip().split('\t')) if h in code2pheno]
+        headers = f.readline().strip().split('\t')
+        header_index = [(i, h) for i,h in enumerate(headers) if h in code2pheno]
+        header_index_raw = [(i, h) for i,h in enumerate(headers) if (h + '_IRN') in code2pheno]
         for line in f:
             s = line.strip().split('\t')
-            for i_h in header_index:
-                if s[i_h[0]] != 'NA':
-                    if 'num_samples' not in code2pheno[i_h[1]]:
-                        code2pheno[i_h[1]]['num_samples'] = 0
-                    code2pheno[i_h[1]]['num_samples'] = code2pheno[i_h[1]]['num_samples'] + 1
+            for i_h in header_index_raw:
+                irn = i_h[1] + '_IRN'
+                if s[i_h[0]] != '0.5':
+                    if 'num_samples' not in code2pheno[irn]:
+                        code2pheno[irn]['num_samples'] = 0
+                        code2pheno[irn]['num_events'] = 0
+                    code2pheno[irn]['num_samples'] = code2pheno[irn]['num_samples'] + 1
+                    code2pheno[irn]['num_events'] = code2pheno[irn]['num_events'] + int(s[i_h[0]])
 
     for pheno in phenolist:
         atc = pheno['phenocode'].replace('ATC_', '').replace('_IRN', '')
+        pheno['category'] = 'ATC'
         if atc in atc2name:
             pheno['phenostring'] = atc2name[atc]
             pheno['atc'] = atc
-            pheno['category'] = 'ATC'
         else:
             pheno['phenostring'] = pheno['phenocode']
             pheno['atc'] = 'none'
-            pheno['category'] = 'Age of onset'
+            #pheno['category'] = 'Age of onset'
         with open(sys.argv[4] + '/qq/' + pheno['phenocode'] + '.json') as f:
             qq = json.load(f)
             pheno['gc_lambda'] = qq['overall']['gc_lambda']

@@ -359,6 +359,18 @@ def _ensure_conf():
         }),
         ('n_cohorts', {
             'type': int
+        }),
+        ('n_hom_cases', {
+            'type': float
+        }),
+        ('n_het_cases', {
+            'type': float
+        }),
+        ('n_hom_controls', {
+            'type': float
+        }),
+        ('n_het_controls', {
+            'type': float
         })
     ])
 

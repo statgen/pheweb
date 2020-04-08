@@ -29,7 +29,21 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:r4_10
+        image: gcr.io/phewas-development/pheweb:prod_4fd92fd
+        env:
+        - name: PHEWEB_DIR
+          value: "/mnt/nfs/pheweb/r4"
+        readinessProbe:
+          initialDelaySeconds: 30
+          httpGet:
+            path: /health
+            port: 8080
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          httpGet:
+            path: /health
+            port: 8080
         ports:
         - containerPort: 8080
         volumeMounts:
