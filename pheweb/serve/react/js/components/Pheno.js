@@ -286,13 +286,8 @@ class Pheno extends React.Component {
 		</table>
                 {ukbb}
 		<div id='manhattan_plot_container' />
-<<<<<<< HEAD
-		<h3>Lead variants</h3>
-		<Tabs forceRenderTabPanel={true} defaultIndex={0} onSelect={this.onTabSelect} style={{height: '100%', width: '100%'}}>
-=======
 		<h3>Lead variants{is_cs}</h3>
-		<Tabs forceRenderTabPanel={true} defaultIndex={0} onSelect={this.onTabSelect} style={{ width: '100%'}}>
->>>>>>> remove 100% height from tabs, causing a big space in page
+		<Tabs forceRenderTabPanel={true} defaultIndex={0} onSelect={this.onTabSelect} style={{height: '100%', width: '100%'}}>
 		<TabList>
 		<Tab>Credible Sets</Tab>
 		<Tab>Traditional</Tab>
