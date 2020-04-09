@@ -373,7 +373,7 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
 const csTableCols = [{
     Header: () => (<span title="variant with highest PIP in the credible set" style={{textDecoration: 'underline'}}>top PIP variant</span>),
     accessor: 'locus_id',
-    Cell: props => (<a href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank">{props.value.replace("chr23","chrX").replace("chr","").replace(/_/g,":")}</a>),
+    Cell: props => (<a href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
     //width: Math.min(270, 270/maxTableWidth*window.innerWidth),
     minWidth: 60,
 }, {
@@ -454,7 +454,7 @@ const csInsideTableCols = [
 //}, 
 {Header: () => (<span title="Variant ID" style={{textDecoration: 'underline'}}>Variant ID</span>),
 accessor: 'variant_id',
-Cell: props => (<a href={"/variant/" +props.value.replace("chr23","chrX").replace("chr","").replace(/_/g,"-")} target="_blank">{props.value}</a>),
+Cell: props => (<a href={"/variant/" +props.value.replace("chr","").replace(/_/g,"-")} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
 minWidth: 60,
 }, {
 Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
@@ -469,23 +469,39 @@ filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
 minWidth: 50,
 }, {
+Header: () => (<span title="Gene" style={{textDecoration: 'underline'}}>Gene</span>),
+accessor: 'most_severe_gene',
+Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value} target="_blank">{props.value}</a>):"NA",
+minWidth: 50,
+}, {
+Header: () => (<span title="Consequence" style={{textDecoration: 'underline'}}>Consequence</span>),
+accessor: 'most_severe_consequence',
+Cell: props => props.value ,
+minWidth: 50,
+}, {
 Header: () => (<span title="minimum allele frequency" style={{textDecoration: 'underline'}}>MAF</span>),
 accessor: 'maf',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
-minWidth: 50,
+minWidth: 40,
 }, {
 Header: () => (<span title="MAF (cases)" style={{textDecoration: 'underline'}}>MAF (cases)</span>),
 accessor: 'maf_cases',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
-minWidth: 50,
+minWidth: 40,
 }, {
 Header: () => (<span title="MAF (controls)" style={{textDecoration: 'underline'}}>MAF (controls)</span>),
 accessor: 'maf_controls',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
-minWidth: 50,
+minWidth: 40,
+}, {
+Header: () => (<span title="INFO" style={{textDecoration: 'underline'}}>INFO</span>),
+accessor: 'FG_INFO',
+filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+Cell: props => props.value,
+minWidth: 40,
 }, {
 Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish enrichment</span>),
 accessor: 'GENOME_FI_enrichment_nfe_est',

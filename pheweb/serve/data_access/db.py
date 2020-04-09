@@ -1325,7 +1325,7 @@ class AutoreportingSQLDao(AutorepVariantDB):
         try:
             conn=self.get_connection()
             with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-                sql =  ("SELECT variant_id,pval,beta,maf,maf_cases,maf_controls,locus_id,GENOME_FI_enrichment_nfe,GENOME_FI_enrichment_nfe_est,cs_id,cs_prob,functional_category,r2_to_lead,trait,trait_name FROM autoreporting_variants WHERE phenotype=%s AND locus_id=%s")
+                sql =  ("SELECT * FROM autoreporting_variants WHERE phenotype=%s AND locus_id=%s")
                 cursori.execute(sql,[phenotype,locus_id])
                 result=cursori.fetchall()
             return result
