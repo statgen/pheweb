@@ -395,7 +395,7 @@ class ServerJeeves(object):
         return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
 
     def get_autoreport(self, phenocode):
-        files = glob.glob('/mnt/nfs/autoreporting/r4/group_reports/finngen_R4_' + phenocode + '.gz.top.out')
+        files = glob.glob('/mnt/nfs/autoreporting/r5/group_reports/' + phenocode + '.top.out')
         if len(files) == 1:
             data = pd.read_csv(files[0], sep='\t').fillna('NA')
             data["phenocode"]=phenocode
@@ -434,7 +434,7 @@ class ServerJeeves(object):
         agg_dict = dict.fromkeys(df,"first")
         agg_dict["trait"]=";".join
         agg_dict["trait_name"]=";".join
-        df=df.groupby('variant_id').agg(agg_dict).reset_index(drop=True)
+        df=df.groupby('variant').agg(agg_dict).reset_index(drop=True)
         return df.to_dict('records')
 
 def merge_traits(a,b):

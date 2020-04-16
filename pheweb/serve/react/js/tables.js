@@ -453,7 +453,7 @@ const csInsideTableCols = [
 //minWidth: 60,
 //}, 
 {Header: () => (<span title="Variant ID" style={{textDecoration: 'underline'}}>Variant ID</span>),
-accessor: 'variant_id',
+accessor: 'variant',
 Cell: props => (<a href={"/variant/" +props.value.replace("chr","").replace(/_/g,"-")} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
 minWidth: 60,
 }, {
