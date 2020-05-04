@@ -48,6 +48,19 @@ def get_phenolist():
         pheno['phenocode'] = urllib.parse.quote_plus(pheno['phenocode'])
     return phenolist
 
+def get_use_phenos():
+    from .file_utils import common_filepaths
+    filepath = common_filepaths['use_phenos']
+    try:
+        with open(os.path.join(filepath), encoding='utf-8') as f:
+            phenolist = [pheno.strip() for pheno in f.readlines() if pheno != '']
+            print('using ' + str(len(phenolist)) + ' phenos from ' + filepath)
+    except FileNotFoundError:
+        print(filepath + ' not found, using all phenotypes')
+        phenolist = [pheno['phenocode'] for pheno in get_phenolist()]
+    except PermissionError:
+        raise PheWebError(filepath + ' could not be read')
+    return phenolist
 
 def pad_gene(start, end):
     # We'd like to get 100kb on each side of the gene.
