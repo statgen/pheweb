@@ -2,34 +2,35 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import ReactTable from 'react-table'
 import { CSVLink } from 'react-csv'
-import { codingTableCols } from '../tables.js'
+import { chipTableCols } from '../tables.js'
 
-class Coding extends React.Component {
+class Chip extends React.Component {
 
     constructor(props) {
         super(props)
         this.state = {
 	    data: null,
-	    columns: codingTableCols,
+	    columns: chipTableCols,
 	    dataToDownload: [],
 	    filtered: [],
 	    headers: [
-		{label: 'pheno', key: 'phenoname'},
+		{label: 'pheno', key: 'LONGNAME'},
 		{label: 'variant', key: 'variant'},
 		{label: 'rsid', key: 'rsid'},
 		{label: 'consequence', key: 'most_severe'},
-		{label: 'category', key: 'variant_category'},
-		{label: 'gene', key: 'gene_most_severe'},
-		{label: 'af', key: 'AF'},
+		{label: 'category', key: 'annotation'},
+		{label: 'gene', key: 'gene'},
+		{label: 'af', key: 'maf'},
 		{label: 'FIN enr', key: 'enrichment_nfsee'},
-		{label: 'INFO', key: 'INFO'},
 		{label: 'pval', key: 'pval'},
-		{label: 'beta', key: 'beta'},
-		{label: 'PIP', key: 'pip'},
 		{label: 'recessive pval', key: 'pval_recessive'},
-		{label: 'dominant pval', key: 'pval_dominant'},
-		{label: 'rec/dom log ratio', key: 'rec_dom_log_ratio'},
-		{label: 'n alt hom cases', key: 'n_hom_cases'}
+		{label: 'n hom alt cases', key: 'n_hom_cases'},
+		{label: 'n het cases', key: 'n_het_cases'},
+		{label: 'n hom alt controls', key: 'n_hom_controls'},
+		{label: 'n het controls', key: 'n_het_controls'},
+		{label: 'HW pval', key: 'HW_exact_p_value'},
+		{label: 'missing', key: 'missing_proportion'},
+		{label: 'in imputed set', key: 'imputed'},
 	    ]
         }
         this.loadData = this.loadData.bind(this)
@@ -38,7 +39,7 @@ class Coding extends React.Component {
     }
 
     loadData() {
-        fetch('/api/coding_data')
+        fetch('/api/chip_data')
         .then(response => {
             if (!response.ok) throw response
             return response.json()
@@ -67,11 +68,12 @@ class Coding extends React.Component {
 
     render() {
 
-        return (
+	//You can also type e.g. "&lt; 5e-8" in the pval box to see genome-wide significant variants and "&gt; 5e-8" to see the opposite.
+            return (
 		<div style={{padding: '0'}}>
-		<h2>Coding variants</h2>
-		<div dangerouslySetInnerHTML={{__html: window.coding_content}}>
-		</div>
+		<h2>FinnGen1 chip GWAS results</h2>
+		    <div dangerouslySetInnerHTML={{__html: window.chip_content}}>
+		    </div>
 		{!this.state.data ?
 		 <div>.. . loading . ..</div> :
 		 <div style={{width: '100%'}}>
@@ -100,7 +102,7 @@ class Coding extends React.Component {
 		 data={this.state.dataToDownload}
 		 separator={'\t'}
 		 enclosingCharacter={''}
-		 filename="finngen_coding_variants.tsv"
+		 filename={`finngen_chip_gwas_${window.release}.tsv`}
 		 className="hidden"
 		 ref={(r) => this.csvLink = r}
 		 target="_blank" />
@@ -110,4 +112,4 @@ class Coding extends React.Component {
     }
 }
 
-export default Coding
+export default Chip

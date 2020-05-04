@@ -133,7 +133,7 @@ function populate_streamtable(data) {
 	    item.pheno.phenocode,
 	    item.pheno.phenostring,
 	    item.pheno.category,
-	    item.variant.rsids
+	    item.variant.annotation.rsids
 	].join(' ')
     }
     var callbacks = {
@@ -194,8 +194,8 @@ function variant_id_to_pheweb_format(variant) {
 
 $(function () {
     $("#export").click( function (event) {
-    exportTableToCSV.apply(this, [$('#stream_table'),window.gene_symbol + "_top_associations.tsv",window.gene_pheno_export_fields])
-  });
+	exportTableToCSV.apply(this, [$('#stream_table'),window.gene_symbol + "_top_associations.tsv", window.gene_pheno_export_fields, {gene: window.gene_symbol}])
+    });
 })
 
 $(function () {
@@ -218,24 +218,24 @@ $(function () {
       var colDelim = '\t'
       var rowDelim = '\r\n'
 
-      var csv = ["var","rsid","var.annot.INFO","consequence","gnomad.AF_fin","gnomad.AF_nfe",
+      var csv = ["var","rsid","INFO","consequence","gnomad.AF_fin","gnomad.AF_nfe",
                  "pheno","num_cases","num_controls",
                     "maf_case","maf_control","OR","pval"].join(colDelim) + rowDelim
 
       sTableData.forEach( function(variant) {
       	var af_fin ="NA"
 		var af_nfe="NA"
-		if( _.has(variant.var,'gnomad') ) {
-			af_fin=variant.var.gnomad.AF_fin
-			af_nfe=variant.var.gnomad.AF_nfe
+                if( _.has(variant.var.annotation,'gnomad')) {
+			af_fin=variant.var.annotation.gnomad.AF_fin
+			af_nfe=variant.var.annotation.gnomad.AF_nfe
 		} 
 	  	if (variant.significant_phenos.length === 0) {
-	    	csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe,
+	    	csv += [variant.var.varid, variant.var.annotation.rsids, variant.var.annotation.annot.INFO, variant.var.annotation.annot.most_severe,
 		      af_fin, af_nfe,
 		      '', '', '', '', '', '', '', ''].join( colDelim ) + rowDelim
 	  	} else {
 			variant.significant_phenos.forEach( function(assoc, idx) {
-		  csv += [variant.var.id, variant.var.rsids, variant.var.annot.INFO, variant.var.annot.most_severe, af_fin, af_nfe,
+		  csv += [variant.var.varid, variant.var.annotation.rsids, variant.var.annotation.annot.INFO, variant.var.annotation.annot.most_severe, af_fin, af_nfe,
 			  assoc.phenostring, assoc.n_case, assoc.n_control, assoc.maf_case,
 			  assoc.maf_control,  Math.exp( assoc.beta ), assoc.pval.toExponential()].join( colDelim ) + rowDelim
               } )
@@ -317,7 +317,7 @@ $(function () {
 $(function() {
 
     function gnomadize(variant) {
-	var obj = variant.gnomad ? variant : variant.assoc ? variant.assoc : {}
+	var obj = variant.annotation.gnomad ? variant.annotation : variant.assoc ? variant.assoc : {}
 	if (!obj.gnomad) {
             variant.fin_enrichment = 'No data in Gnomad'
 	} else if (+obj.gnomad.AF_fin === 0) {
@@ -382,28 +382,28 @@ $(function() {
 	    }
 	})
     $.getJSON("/api/lof/" + window.gene_symbol)
-	.done(function(data) {
-	    if (data.length > 0) {
-		data = data.map(function(r) { return r.gene_data })
-		data.forEach(function(datum) {
-		    datum.variants = datum.variants.split(',').map(function (variant) {
-			    return variant.replace('chr', '').replace('_', ':').replace(/_/g, '-')
-		    }).join(',')
-		    datum.ref_alt_cases = datum.ref_count_cases + '/' + datum.alt_count_cases
-		    datum.ref_alt_ctrls = datum.ref_count_ctrls + '/' + datum.alt_count_ctrls
-		})
-		populate_lof_streamtable(data)
-	    } else {
-		$('#lof-container').html('<span>No loss of function variants for ' + window.gene_symbol + '</span>')
-		$('#lof-container').css('display', 'block')
-	    }
-	})
+    	.done(function(data) {
+    	    if (data.length > 0) {
+    		data = data.map(function(r) { return r.gene_data })
+    		data.forEach(function(datum) {
+    		    datum.variants = datum.variants.split(',').map(function (variant) {
+    			    return variant.replace('chr', '').replace('_', ':').replace(/_/g, '-')
+    		    }).join(',')
+    		    datum.ref_alt_cases = datum.ref_count_cases + '/' + datum.alt_count_cases
+    		    datum.ref_alt_ctrls = datum.ref_count_ctrls + '/' + datum.alt_count_ctrls
+    		})
+    		populate_lof_streamtable(data)
+    	    } else {
+    		$('#lof-container').html('<span>No loss of function variants for ' + window.gene_symbol + '</span>')
+    		$('#lof-container').css('display', 'block')
+    	    }
+    	})
     $.getJSON("/api/gene_functional_variants/" + window.gene_symbol + "?p=" + window.func_var_report_p_threshold )
 	.done(function(data) {
 	    data.forEach(function(variant){
-		variant.most_severe = variant.var.annot.most_severe.replace(/_/g, ' ').replace(' variant', '')
-		variant.info = variant.var.annot.INFO
-		variant.maf = variant.var.annot.AF < 0.5 ? variant.var.annot.af : 1 - variant.var.annot.AF
+		variant.most_severe = variant.var.annotation.annot.most_severe.replace(/_/g, ' ').replace(' variant', '')
+		variant.info = variant.var.annotation.annot.INFO
+		variant.maf = variant.var.annotation.annot.AF < 0.5 ? variant.var.annotation.annot.af : 1 - variant.var.annotation.annot.AF
 		gnomadize(variant.var)
 	    })
 	    populate_variant_streamtable(data)

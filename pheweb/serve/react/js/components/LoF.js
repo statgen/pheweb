@@ -2,34 +2,27 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import ReactTable from 'react-table'
 import { CSVLink } from 'react-csv'
-import { codingTableCols } from '../tables.js'
+import { lofTableCols } from '../tables.js'
 
-class Coding extends React.Component {
+class LoF extends React.Component {
 
     constructor(props) {
         super(props)
         this.state = {
 	    data: null,
-	    columns: codingTableCols,
+	    columns: lofTableCols,
 	    dataToDownload: [],
 	    filtered: [],
 	    headers: [
-		{label: 'pheno', key: 'phenoname'},
-		{label: 'variant', key: 'variant'},
-		{label: 'rsid', key: 'rsid'},
-		{label: 'consequence', key: 'most_severe'},
-		{label: 'category', key: 'variant_category'},
-		{label: 'gene', key: 'gene_most_severe'},
-		{label: 'af', key: 'AF'},
-		{label: 'FIN enr', key: 'enrichment_nfsee'},
-		{label: 'INFO', key: 'INFO'},
-		{label: 'pval', key: 'pval'},
+		{label: 'pheno', key: 'phenostring'},
+		{label: 'gene', key: 'gene'},
+		{label: 'variants', key: 'variants'},
+		{label: 'p-value', key: 'p_value'},
 		{label: 'beta', key: 'beta'},
-		{label: 'PIP', key: 'pip'},
-		{label: 'recessive pval', key: 'pval_recessive'},
-		{label: 'dominant pval', key: 'pval_dominant'},
-		{label: 'rec/dom log ratio', key: 'rec_dom_log_ratio'},
-		{label: 'n alt hom cases', key: 'n_hom_cases'}
+		{label: 'ref_cases', key: 'ref_count_cases'},
+		{label: 'alt_cases', key: 'alt_count_cases'},
+		{label: 'ref_controls', key: 'ref_count_ctrls'},
+		{label: 'alt_controls', key: 'alt_count_ctrls'}
 	    ]
         }
         this.loadData = this.loadData.bind(this)
@@ -38,14 +31,15 @@ class Coding extends React.Component {
     }
 
     loadData() {
-        fetch('/api/coding_data')
+        fetch('/api/lof')
         .then(response => {
             if (!response.ok) throw response
             return response.json()
         })
             .then(result => {
+		console.log(result)
             this.setState({
-                data: result
+                data: result.map(r => r.gene_data)
             })
         })
         .catch(error => {
@@ -69,8 +63,8 @@ class Coding extends React.Component {
 
         return (
 		<div style={{padding: '0'}}>
-		<h2>Coding variants</h2>
-		<div dangerouslySetInnerHTML={{__html: window.coding_content}}>
+		<h2>LoF burden results</h2>
+		<div dangerouslySetInnerHTML={{__html: window.lof_content}}>
 		</div>
 		{!this.state.data ?
 		 <div>.. . loading . ..</div> :
@@ -83,7 +77,7 @@ class Coding extends React.Component {
 		 onFilteredChange={filtered => { this.setState({filtered: filtered})}}
 		 columns={this.state.columns}
 		 defaultSorted={[{
-		     id: "pval",
+		     id: "p_value",
 		     desc: false
 		 }]}
 		 defaultPageSize={10}
@@ -100,7 +94,7 @@ class Coding extends React.Component {
 		 data={this.state.dataToDownload}
 		 separator={'\t'}
 		 enclosingCharacter={''}
-		 filename="finngen_coding_variants.tsv"
+		 filename={`finngen_lof_burden_${window.release}.tsv`}
 		 className="hidden"
 		 ref={(r) => this.csvLink = r}
 		 target="_blank" />
@@ -110,4 +104,4 @@ class Coding extends React.Component {
     }
 }
 
-export default Coding
+export default LoF

@@ -131,23 +131,29 @@ class Pheno extends React.Component {
 	if (!this.state.pheno) {
 	    return <div>loading</div>
 	}
-
+	
 	console.log(this.state)
 	
 	const pheno = this.state.pheno
-	const ukbb = this.state.ukbb_n ?
+	const ukbb = window.show_ukbb ? (this.state.ukbb_n ?
 	      <div>UKBB: <strong>{this.state.ukbb_n[0]}</strong> cases, <strong>{this.state.ukbb_n[1]}</strong> controls</div> :
-		    <div>Phenotype not found in UKBB results</div>
-	const n_cc = pheno.cohorts ?
-	      <tbody>{pheno.cohorts.map(cohort => <tr key={cohort.cohort}><td>{cohort.cohort}</td><td><b>{cohort.num_cases}</b> cases</td><td><b>{cohort.num_controls}</b> controls</td></tr>)}</tbody> :
-	      pheno.num_cases ?
-	      <tbody><tr><td><b>{pheno.num_cases}</b> cases</td></tr><tr><td><b>{pheno.num_controls}</b> controls</td></tr></tbody> :
-	      pheno.num_samples ?
-	      <tbody><tr><td><b>{pheno.num_samples}</b> samples</td></tr></tbody> :
- 	      null
-	    const cs_table = this.state.credibleSets ?
+						    <div>Phenotype not found in UKBB results</div>) : null
+	const n_cc1 = pheno.cohorts ?
+	      <tbody><tr><td><b>{pheno.cohorts.reduce((acc, cur) => acc+cur.num_cases, 0)}</b> cases</td></tr><tr><td><b>{pheno.cohorts.reduce((acc, cur) => acc+cur.num_controls, 0)}</b> controls</td></tr></tbody> :
+	      (pheno.num_cases ?
+	       <tbody><tr><td><b>{pheno.num_cases}</b> cases</td></tr><tr><td><b>{pheno.num_controls}</b> controls</td></tr></tbody> :
+	       pheno.num_samples ?
+	       <tbody><tr><td><b>{pheno.num_samples}</b> samples</td></tr></tbody> :
+ 	       null)
+
+	const n_cc2 = pheno.cohorts ?
 	      <div>
-	    <ReactTable
+	      <h3>{this.state.pheno.cohorts.length} cohorts in meta-analysis</h3>
+	      <table className='column_spacing'>
+<tbody>{pheno.cohorts.sort((c1, c2) => (c1.cohort.localeCompare(c2.cohort))).map(cohort => <tr key={cohort.cohort}><td>{cohort.cohort}</td><td><b>{cohort.num_cases}</b> cases</td><td><b>{cohort.num_controls}</b> controls</td></tr>)}</tbody></table></div> : null
+	const cs_table = this.state.credibleSets ?
+	      <div>
+	      <ReactTable
 	    ref={(r) => this.reactTable = r}
 	data={this.state.credibleSets}
 	filterable
@@ -189,23 +195,29 @@ class Pheno extends React.Component {
 	    </div> :
 	<div>loading</div>
 
-	const risteys = 'https://risteys.finngen.fi/phenocode/' + this.state.pheno.phenocode.replace('_EXALLC', '').replace('_EXMORE', '')
+	const risteys = window.browser == 'FINNGEN' ?
+	    <p style={{marginBottom: '10px'}}><a style={{fontSize:'1.25rem', padding: '.25rem .5rem', backgroundColor: '#2779bd', color: '#fff', borderRadius: '.25rem', fontWeight: 700, boxShadow: '0 0 5px rgba(0,0,0,.5)'}}
+	href={'https://risteys.finngen.fi/phenocode/' + this.state.pheno.phenocode.replace('_EXALLC', '').replace('_EXMORE', '')} target="_blank">RISTEYS</a></p> : null
         return (
 		<div style={{width: '100%', padding: '0'}}>
 		<h2 style={{marginTop: 0}}>{this.state.pheno.phenostring}</h2>
 		<p>{this.state.pheno.category}</p>
-		<p style={{marginBottom: '10px'}}><a style={{fontSize:'1.25rem', padding: '.25rem .5rem', backgroundColor: '#2779bd', color: '#fff', borderRadius: '.25rem', fontWeight: 700, boxShadow: '0 0 5px rgba(0,0,0,.5)'}}
-	    href={risteys} target="_blank">RISTEYS</a></p>
+		{risteys}
 		<table className='column_spacing'>
-		{n_cc}
+		{n_cc1}
 		</table>
                 {ukbb}
 		<div id='manhattan_plot_container' />
 		<h3>Lead variants</h3>
 		{var_table}
+		<div style={{float:'left'}}>
 		<h3>QQ plot</h3>
 		<div id='qq_plot_container' style={{width:'400px'}} />
 		{qq_table}
+		</div>
+		<div>
+		{n_cc2}
+		</div>
 		</div>
         )
     }

@@ -1,6 +1,6 @@
 
 from ..utils import chrom_order, chrom_aliases
-from ..file_utils import get_generated_path, make_basedir, genes_version, common_filepaths, read_gzip
+from ..file_utils import get_generated_path, make_basedir, genes_version, common_filepaths, read_gzip, genome_build
 
 import os
 import re
@@ -123,11 +123,17 @@ def run(argv):
         print('genes-{}.bed will be stored at {!r}'.format(genes_version, genes_filepath))
         if not os.path.exists(gencode_filepath):
             make_basedir(gencode_filepath)
-            wget.download(
-                url="ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz",
-                out=gencode_filepath
-            )
-            print('')
+            if genome_build == '37':
+                wget.download(
+                    url="ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz",
+                    out=gencode_filepath
+                )
+            else:
+                wget.download(
+                    url="ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz",
+                    out=gencode_filepath
+                )
+            print('gencode annotations downloaded')
         genes = get_all_genes(gencode_filepath)
         genes = dedup_ensg(genes)
         genes = dedup_symbol(genes)

@@ -29,9 +29,10 @@ class ServerJeeves(object):
         self.result_dao = self.dbs_fact.get_result_dao()
         self.ukbb_dao = self.dbs_fact.get_UKBB_dao()
         self.ukbb_matrixdao =self.dbs_fact.get_UKBB_dao(True)
-        self.tsv_dao = self.dbs_fact.get_tsv_dao()
+        self.coding_dao = self.dbs_fact.get_coding_dao()
+        self.chip_dao = self.dbs_fact.get_chip_dao()
         self.finemapping_dao = self.dbs_fact.get_finemapping_dao()
-        
+        self.knownhits_dao = self.dbs_fact.get_knownhits_dao()
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
@@ -113,26 +114,47 @@ class ServerJeeves(object):
         print("gnomad variant annos took {} seconds".format(time.time()-starttime))
         gd = { g['variant']:g['var_data'] for g in gnomad}
         starttime = time.time()
+
         ukbbs = self.ukbb_matrixdao.get_multiphenoresults(varpheno, known_range=(chrom,start,end))
         print("UKB fetching for {} variants took {}".format( len( list(varpheno.keys()) ),time.time()-starttime) )
         for pheno in results:
             if pheno.variant in ukbbs and pheno.assoc.phenocode in ukbbs[pheno.variant]:
                 pheno.assoc.add_matching_result('ukbb', ukbbs[pheno.variant][pheno.assoc.phenocode])
-
             if pheno.variant in gd:
                 pheno.variant.add_annotation('gnomad', gd[pheno.variant])
 
         return results
 
-    def get_gene_lofs(self, gene):
-        lofs = self.lof_dao.get_lofs(gene)
-        for lof in lofs:
-            if lof['gene_data']['pheno'] in self.phenos and 'phenostring' in self.phenos[lof['gene_data']['pheno']]:
-                lof['gene_data']['phenostring'] = self.phenos[lof['gene_data']['pheno']]['phenostring']
+    def get_all_lofs(self, threshold):
+        if self.lof_dao is None:
+            return None
+        lofs = self.lof_dao.get_all_lofs(threshold)
+        for i in range( len(lofs)-1,-1,-1):
+            ## lof data is retrieved externally so it can be out of sync with phenotypes that we want to show
+            # TODO: alerting mechanism + test cases for installation to detect accidental out of sync issues.
+            lof = lofs[i]
+            if lof['gene_data']['pheno'] not in self.phenos:
+                del lofs[i]
             else:
-                lof['gene_data']['phenostring'] = ""
+                lof['gene_data']['phenostring'] = self.phenos[lof['gene_data']['pheno']]['phenostring']
+        return lofs
+    
+    def get_gene_lofs(self, gene):
+        try:
+            lofs = self.lof_dao.get_lofs(gene) if self.lof_dao is not None else []
+        except Exception as exc:
+            print("Could not fetch LoFs for gene {!r}. Error: {}".format(gene,traceback.extract_tb(exc.__traceback__).format() ))
+            raise
         return lofs
 
+    def get_gene_data(self, gene):
+        try:
+            gene_data = dbs_fact.get_geneinfo_dao().get_gene_info(gene)
+        except Exception as exc:
+            print("Could not fetch data for gene {!r}. Error: {}".format(gene,traceback.extract_tb(exc.__traceback__).format() ))
+            raise
+        return gene_data
+        
     def get_gene_drugs(self, gene):
         try:
             drugs = self.dbs_fact.get_drug_dao().get_drugs(gene)
@@ -147,7 +169,7 @@ class ServerJeeves(object):
 
         vars = [ Variant( d['chrom'].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25"), d['pos'], d['ref'], d['alt'] ) for d in variants['unbinned_variants'] if 'peak' in d ]
 
-        f_annotations = self.threadpool.submit( self.annotation_dao.get_variant_annotations, vars)
+        f_annotations = self.threadpool.submit( self.annotation_dao.get_variant_annotations, vars, self.conf.anno_cpra)
         f_gnomad = self.threadpool.submit( self.gnomad_dao.get_variant_annotations, vars)
         annotations = f_annotations.result()
         gnomad = f_gnomad.result()
@@ -179,13 +201,14 @@ class ServerJeeves(object):
         ## TODO.... would be better to just return the results but currently rsid and nearest genes are stored alongside the result
         ## chaining variants like thise retains all the existing annotations.
         r = self.result_dao.get_single_variant_results(variant)
-        v_annot = self.annotation_dao.get_single_variant_annotations(r[0])
+        v_annot = self.annotation_dao.get_single_variant_annotations(r[0], self.conf.anno_cpra)
 
         if r is not None:
             if v_annot is None:
                 ## no annotations found even results were found. Should not happen except if the results and annotation files are not in sync
-                print("Error! Variant results for {} found but no basic annotation!")
+                print("Warning! Variant results for " + str(r[0]) + " found but no basic annotation!")
                 var = r[0]
+                var.add_annotation("annot", {})
             else:
                 var = v_annot
             gnomad = self.gnomad_dao.get_variant_annotations([var])
@@ -210,7 +233,7 @@ class ServerJeeves(object):
             start = 1
         t = time.time()
         # TODO tabix fetch takes forever, combine FG and gnomAD annotations and use relevant columns only, or get annotations on the fly for individual variants
-        annotations = self.annotation_dao.get_variant_annotations_range(chr, start, end)
+        annotations = self.annotation_dao.get_variant_annotations_range(chr, start, end, self.conf.anno_cpra)
         annot_hash = { anno.varid: anno.get_annotations() for anno in annotations }
         gnomad = self.gnomad_dao.get_variant_annotations_range(chr, start, end)
         gnomad_hash = { anno.varid: anno.get_annotations() for anno in gnomad }
@@ -227,30 +250,31 @@ class ServerJeeves(object):
                 d['data']['varid'].append(varid)
                 try:
                     a = annot_hash[varid]['annot']
-                    d['data']['most_severe'].append(a['most_severe'].replace('_', ' '))
-                    d['data']['AF'].append(a['AF'])
-                    d['data']['INFO'].append(a['INFO'])
+                    d['data']['most_severe'].append((a['most_severe'] if 'most_severe' in a else (a['consequence'] if 'consequence' in a else 'unknown')).replace('_', ' '))
+                    d['data']['AF'].append(a['AF'] if 'AF' in a else 'NA')
+                    d['data']['INFO'].append(a['INFO'] if 'INFO' in a else 'NA')
                     if varid not in gnomad_hash:
                         d['data']['fin_enrichment'].append('No gnomAD data')
                     else:
                         g = gnomad_hash[varid]['gnomad']
-                        if g['AF_fin'] == '.' or float(g['AF_fin']) == 0:
-                            d['data']['fin_enrichment'].append('No FIN in gnomAD')
-                        elif float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu']) == 0:
-                            d['data']['fin_enrichment'].append('No NFEE in gnomAD')
+                        if 'AF_fin' in g and 'AC_nfe_nwe' in g and 'AC_nfe_onf' in g and 'AC_nfe_seu' in g:
+                            if g['AF_fin'] == '.' or float(g['AF_fin']) == 0:
+                                d['data']['fin_enrichment'].append('No FIN in gnomAD')
+                            elif float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu']) == 0:
+                                d['data']['fin_enrichment'].append('No NFEE in gnomAD')
+                            else:
+                                d['data']['fin_enrichment'].append(round(float(g['AF_fin']) / ((float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu'])) / (float(g['AN_nfe_nwe']) + float(g['AN_nfe_onf']) + float(g['AN_nfe_seu']))), 3))
                         else:
-                            d['data']['fin_enrichment'].append(round(float(g['AF_fin']) / ((float(g['AC_nfe_nwe']) + float(g['AC_nfe_onf']) + float(g['AC_nfe_seu'])) / (float(g['AN_nfe_nwe']) + float(g['AN_nfe_onf']) + float(g['AN_nfe_seu']))), 3))
+                            d['data']['fin_enrichment'].append('Unknown')
+
                 except KeyError:
                     #print('no annotation for ' + varid + ', is annotation file out of sync or is the variant correctly id\'d?')
-                    d['data']['most_severe'].append('unknown')
+                    d['data']['most_severe'].append('NA')
                     d['data']['AF'].append('NA')
                     d['data']['INFO'].append('NA')
                     d['data']['fin_enrichment'].append('Unknown')
         return datalist
         
-    def coding(self):
-        return self.tsv_dao.get_coding() if self.tsv_dao is not None else None
-
     def get_conditional_regions_for_pheno(self, phenocode, chr, start, end, p_threshold=None):
         if p_threshold is None:
             p_threshold = self.conf.locuszoom_conf['p_threshold']
@@ -297,6 +321,9 @@ class ServerJeeves(object):
             print("adding annotations to {} conditional results took {} seconds".format(len(ret), time.time()-t ) )
         return ret
 
+    def get_finemapped_region_boundaries_for_pheno(self, fm_type, phenocode, chrom, start, end):
+        return self.finemapping_dao.get_regions_for_pheno(fm_type, phenocode, chrom, start, end) if self.finemapping_dao is not None else None
+    
     def get_finemapped_regions_for_pheno(self, phenocode, chr, start, end, prob_threshold=-1):
         regions = self.finemapping_dao.get_regions_for_pheno('finemapping', phenocode, chr, start, end)
         ret = []
@@ -342,6 +369,24 @@ class ServerJeeves(object):
         #self.add_annotations(chr, min_start, max_end, ret)
         self.add_annotations(chr, start, end, ret)
         return ret
+
+    def get_max_finemapped_region(self, phenocode, chrom, start, end):
+        return self.finemapping_dao.get_max_region(phenocode, chrom, start, end) if self.finemapping_dao is not None else []
+
+    def get_finemapped_regions(self, variant: Variant):
+        return self.finemapping_dao.get_regions(variant) if self.finemapping_dao is not None else []
+
+    def get_UKBB_n(self, phenocode):
+        return self.ukbb_dao.getNs(phenocode) if self.ukbb_dao is not None else None
+
+    def get_known_hits_by_loc(self, chrom, start, end):
+        return self.knownhits_dao.get_hits_by_loc(chrom,start,end)
+    
+    def coding(self):
+        return self.coding_dao.get_coding() if self.coding_dao is not None else None
+
+    def chip(self):
+        return self.chip_dao.get_chip() if self.chip_dao is not None else None
 
     @functools.lru_cache(None)
     def get_gene_region_mapping(self):

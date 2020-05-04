@@ -14,8 +14,10 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 
 (function() {
     // sort phenotypes
-    // 
-    if (_.any(window.results.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
+
+    if (_.all(window.results.map(function(d) { return d.category_index !== undefined }))) {
+        window.results = _.sortBy(window.results, function(d) { return d.category_index });
+    } else if (_.any(window.results.map(function(d) { return d.phenocode; }).map(parseFloat).map(isNaN))) {
         window.results = _.sortBy(window.results, function(d) { return d.phenocode; });
     } else {
         window.results = _.sortBy(window.results, function(d) { return parseFloat(d.phenocode); });
@@ -244,13 +246,16 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (num_phenos_with_maf === mafs.length) {
         var range = d3.extent(mafs);
         $(function() {
-            $('#maf-range').html('<p style="text-decoration: underline;" title="' + _.template($('#af-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF ' + (window.variant.annot && window.variant.annot.AF && window.variant.annot.AF.toExponential(1)) + ' (ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ' across all phenotypes)</p>');
+            $('#maf-range').html('<p style="text-decoration: underline;" title="' +
+				 _.template($('#af-tooltip-template').html())({v:window.variant}) +
+				 '" data-toggle="tooltip">AF ' + (window.variant.annotation.annot.AF && window.variant.annotation.annot.AF.toExponential(1)) +
+				 ' (ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ' across all phenotypes)</p>');
             $('#maf-range p').css('margin-bottom', '0');
         });
     } else if (num_phenos_with_maf > 0) {
         var range = d3.extent(mafs);
         $(function() {
-            $('#maf-range').html('<p style="text-decoration: underline;" title="' + _.template($('#af-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF ' + (window.variant.annot && window.variant.annot.AF && window.variant.annot.AF.toExponential(1)) + ' (ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ') for phenotypes where it is defined</p>');
+            $('#maf-range').html('<p style="text-decoration: underline;" title="' + _.template($('#af-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF ' + (window.variant.annotation.annot && window.variant.annotation.annot.AF && window.variant.annotation.annot.AF.toExponential(1)) + ' (ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ') for phenotypes where it is defined</p>');
             $('#maf-range p').css('margin-bottom', '0');
         });
     }
@@ -280,40 +285,51 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 	    if (af_popmax && !isNaN(parseFloat(af_popmax)) && isFinite(af_popmax)) {
 		af_popmax = af_popmax.toExponential(1)
 	    }
-	    $('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' + window.variant.gnomad.fin_enrichment + '</p>')
+	    if (window.browser == 'FINNGEN') {
+		$('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' + window.variant.gnomad.fin_enrichment + '</p>')
+	    } else {
+		$('#gnomad').html('<p>Frequency in gnomAD genomes 2.1.1: ' + Object.keys(window.variant.gnomad).filter(g => g.startsWith('AF')).map(g => g + ': ' + window.variant.gnomad[g]).join(', ') + '</p>')
+	    }
             $('#gnomad p').css('margin-bottom', '0');
 	})
     }
 })();
 
 (function() {
+    if (!(window.variant.annotation.annot && window.variant.annotation.annot.INFO)) return
     var isnum = function(d) { return typeof d == "number"; };
-    var infos = Object.keys(window.variant.annot).filter(function(key) { 
+    var infos = Object.keys(window.variant.annotation.annot).filter(function(key) { 
          return key.indexOf('INFO_') === 0
     }).map(function(k) {
-        return window.variant.annot[k]  
+        return window.variant.annotation.annot[k]  
     });
     var range = d3.extent(infos);
     $(function() {
-            $('#info-range').html('<p style="text-decoration: underline;" title="' + _.template($('#info-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">INFO ' + (window.variant.annot && window.variant.annot.INFO && window.variant.annot.INFO.toFixed(3)) + ' (ranges in genotyping batches from ' + range[0].toFixed(3) + ' to ' + range[1].toFixed(3) + ')</p>');
+	var info_html = '<p style="text-decoration: underline;" title="' + _.template($('#info-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">INFO ' + (window.variant.annotation.annot && window.variant.annotation.annot.INFO && window.variant.annotation.annot.INFO.toFixed(3)) || 'NA'
+	if (range[1] !== undefined) {
+	    info_html += ' (ranges in genotyping batches from ' + range[0].toFixed(3) + ' to ' + range[1].toFixed(3) + ')</p>'
+	} else {
+	    info_html += '</p>'
+	}
+	$('#info-range').html(info_html)
         $('#info-range p').css('margin-bottom', '0');
     });
     
 })();
 
 (function() {
-    if (window.variant.annot && window.variant.annot.most_severe) {
+    if (window.variant.annotation.annot && window.variant.annotation.annot.most_severe) {
 	$(function() {
-	    $('#most_severe').html('<p>Most severe consequence: ' + window.variant.annot.most_severe.replace(/_/g, ' ') + '<p>')
+	    $('#most_severe').html('<p>Most severe consequence: ' + window.variant.annotation.annot.most_severe.replace(/_/g, ' ') + '<p>')
             $('#most_severe p').css('margin-bottom', '0');
 	})
     }
 })();
 
 (function() {
-    if (window.variant.annot) {
+    if (window.variant.annotation.annot && window.variant.annotation.annot.AC_Hom != undefined) {
 	$(function() {
-	    $('#hom').html('<p>Number of alt homozygotes: ' + +(window.variant.annot.AC_Hom)/2 + '<p>')
+	    $('#hom').html('<p>Number of alt homozygotes: ' + +(window.variant.annotation.annot.AC_Hom)/2 + '<p>')
             $('#hom p').css('margin-bottom', '0');
 	})
     }
@@ -336,8 +352,8 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 })();
 
 (function() {
-    if (!window.variant.annot.rsids) return
-    var rsid = window.variant.annot.rsids.split(',')[0]
+    if (!window.variant.annotation.annot.rsids) return
+    var rsid = window.variant.annotation.annot.rsids.split(',')[0]
     $.getJSON('http://grch37.rest.ensembl.org/variation/human/' + rsid + '?content-type=application/json')
         .done(function(result) {
             if (result.mappings && result.mappings[0]) {
@@ -352,11 +368,11 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 })();
 
 // Check PubMed for each rsid and render link.
-if (typeof window.variant.annot.rsids !== "undefined") {
+if (typeof window.variant.annotation.annot.rsids !== "undefined") {
     (function() {
         var pubmed_api_template = _.template('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&retmode=xml&term=<%= rsid %>');
         var pubmed_link_template = _.template('https://www.ncbi.nlm.nih.gov/pubmed/?term=<%= rsid %>');
-        var rsids = window.variant.annotation.rsids.split(','); // There's usually just one rsid.
+        var rsids = window.variant.annotation.annot.rsids.split(','); // There's usually just one rsid.
         rsids.forEach(function(rsid) {
             var pubmed_api_url = pubmed_api_template({rsid: rsid});
             var pubmed_link_url = pubmed_link_template({rsid: rsid});
@@ -437,7 +453,7 @@ $(function() {
 
 $(function () {
     $("#export").click( function (event) {
-    exportTableToCSV.apply(this, [$('#stream_table'),window.variant.id.replace(/ |,|/g,"") + "_phenotype_associations.tsv",window.var_top_pheno_export_fields])
+    exportTableToCSV.apply(this, [$('#stream_table'),window.variant.varid.replace(/ |,|/g,"") + "_phenotype_associations.tsv",window.var_top_pheno_export_fields])
   });
 })
 

@@ -11,20 +11,24 @@
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
 
+    var gene_source = window.genome_build == 37 ? 2 : 1
+    var recomb_source = window.genome_build == 37 ? 15 : 16
+    var gwascat_source = window.genome_build == 37 ? [2,3] : [1,4]
+    
     data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     data_sources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
     data_sources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
-    data_sources.add("gene", ["GeneLZ", {url:remoteBase + "annotation/genes/", params:{source:1}}])
+    data_sources.add("gene", ["GeneLZ", {url:remoteBase + "annotation/genes/", params:{source:gene_source}}])
     data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
     // clinvar needs to be added after gene because genes within locuszoom data chain are used for fetching
-    data_sources.add("gwas_cat", new LocusZoom.Data.GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
+    data_sources.add("gwas_cat", new LocusZoom.Data.GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:gwascat_source ,pvalue_field: "log_pvalue" }}));
     data_sources.add("clinvar", new LocusZoom.Data.ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
     if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "/api/ld", params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:id" }}));
     } else {
 	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/", params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:rsid" }}));
     }	
-    data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 16} }]); // source id 16 is build 38, 15 is 37
+    data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: recomb_source} }]);
 
     var scatters = ['association', 'conditional', 'finemapping', 'gwas_cat']
 
@@ -225,13 +229,15 @@
 	})
 
 	if (window.cond_fm_regions && window.cond_fm_regions.length > 0) {
+	    var cond_regions = window.cond_fm_regions.filter(region => region.type == 'conditional')
+	    var n_cond_signals = cond_regions.length > 0 ? cond_regions[0].n_signals : 0
 	    var summary_html = window.cond_fm_regions.map(region =>
 							  region.type == 'finemap' ?
 							  '<span>' + region.n_signals + ' ' + region.type + ' signals (prob. ' + region.n_signals_prob.toFixed(3) + ')</span><br/>' :
 							  '<span>' + region.n_signals + ' ' + region.type + ' signals</span><br/>'
-							 ).join('') + '<span>Conditional analysis results are approximations from summary stats. Conditioning is repeated until no signal p < 1e-6 is left.</span><br/>'
+							 ).join('') + n_cond_signals > 0 ? '<span>Conditional analysis results are approximations from summary stats. Conditioning is repeated until no signal p < 1e-6 is left.</span><br/>' : ''
 	    $('#region_summary').html(summary_html)
-	    if (window.cond_fm_regions.filter(region => region.type == 'conditional')[0].n_signals > 1) {
+	    if (n_cond_signals > 1) {
 		var opt_html = window.cond_fm_regions.filter(region => region.type == 'conditional')[0].paths.map((path, i) => 
 	          '<label onClick="show_conditional(' + i + ')" data-cond-i="' + i + '" class="btn btn-primary' + (i === 0 ? ' active' : '') + '"><span>' + (i+1) + '</span></label>'
                 ).join('\n')

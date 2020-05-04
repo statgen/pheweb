@@ -54,20 +54,40 @@ if 'SENTRY_DSN' in conf:
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
 app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['browser'] = conf['browser']
+app.config['show_ukbb'] = conf['show_ukbb']
+app.config['show_risteys'] = conf['show_risteys']
+for cont in ['about', 'coding', 'chip', 'lof']:
+    if cont + '_content' in conf:
+        with open(conf[cont + '_content'], 'r') as f:
+            app.config[cont + '_content'] = f.read().strip().replace('\n', '')
+    else:
+        app.config[cont + '_content'] = ''
+if 'noindex' in conf:
+    app.config['noindex'] = conf['noindex']
 app.config['release'] = conf['release']
+app.config['logo'] = conf['logo']
+if 'genome_build' in conf:
+    app.config['genome_build'] = conf['genome_build']
+else:
+    app.config['genome_build'] = 38
+    
 app.config['release_prev'] = conf['release_prev']
 app.config['title'] = conf['title']
+app.config['page_title'] = conf['page_title']
 if 'endpoint_def' in conf:
     app.config['endpoint_def'] = conf['endpoint_def']
 app.config['lof'] = 'lof' in [list(c.keys())[0] for c in conf.database_conf]
 app.config['coding'] = False
+app.config['chip'] = False
 app.config['ukbb'] = False
 for c in conf.database_conf:
-    if 'tsv' in c and 'CodingDao' in c['tsv']:
+    if 'coding' in c:
         app.config['coding'] = True
+    if 'chip' in c:
+        app.config['chip'] = True
     if 'externalresult' in c and 'ExternalFileResultDao' in c['externalresult']:
         app.config['ukbb'] = True
-        
+
 app.json_encoder = FGJSONEncoder
 
 if os.path.isdir(conf.custom_templates):
@@ -75,14 +95,6 @@ if os.path.isdir(conf.custom_templates):
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
-dbs_fact = DataFactory( conf.database_conf  )
-annotation_dao = dbs_fact.get_annotation_dao()
-gnomad_dao = dbs_fact.get_gnomad_dao()
-lof_dao = dbs_fact.get_lof_dao()
-result_dao = dbs_fact.get_result_dao()
-finemapping_dao = dbs_fact.get_finemapping_dao()
-ukbb_dao = dbs_fact.get_UKBB_dao()
-ukbb_matrixdao =dbs_fact.get_UKBB_dao(True)
 threadpool = ThreadPoolExecutor(max_workers=4)
 
 jeeves = ServerJeeves( conf )
@@ -191,10 +203,7 @@ def variant_page(query):
         variantdat = jeeves.get_single_variant_data(v)
         if variantdat is None:
             die("Sorry, I couldn't find the variant {}".format(query))
-        if finemapping_dao is not None:
-            regions = finemapping_dao.get_regions(v)
-        else:
-            regions = []
+        regions = jeeves.get_finemapped_regions(v)
         return render_template('variant.html',
                                variant=variantdat[0],
                                results=variantdat[1],
@@ -231,23 +240,15 @@ def api_gene_functional_variants(gene):
 @app.route('/api/lof')
 @check_auth
 def api_lof():
-    if lof_dao is None:
-        die("LoF not available")
-    lofs = lof_dao.get_all_lofs(conf.lof_threshold)
-    for i in range( len(lofs)-1,-1,-1):
-        ## lof data is retrieved externally so it can be out of sync with phenotypes that we want to show
-        # TODO: alerting mechanism + test cases for installation to detect accidental out of sync issues.
-        lof = lofs[i]
-        if lof['gene_data']['pheno'] not in phenos:
-            del lofs[i]
-        else:
-            lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
+    lofs = jeeves.get_all_lofs(conf.lof_threshold)
+    if lofs is None:
+        die("LoF data not available")
     return jsonify(sorted(lofs,  key=lambda lof: lof['gene_data']['p_value']))
 
 @app.route('/api/lof/<gene>')
 @check_auth
 def api_lof_gene(gene):
-    lofs = lof_dao.get_lofs(gene)
+    lofs = jeeves.get_gene_lofs(gene)
     lofs_use = []
     for lof in lofs:
         if lof['gene_data']['pheno'] in phenos.keys():
@@ -280,6 +281,11 @@ def top_hits_page():
 def coding_data():
     return jsonify(jeeves.coding())
 
+@app.route('/api/chip_data')
+@check_auth
+def chip_data():
+    return jsonify(jeeves.chip())
+
 @app.route('/random')
 @check_auth
 def random_page():
@@ -291,7 +297,7 @@ def random_page():
 @app.route('/api/ukbb_n/<phenocode>')
 @check_auth
 def ukbb_ns(phenocode):
-    return jsonify(ukbb_dao.getNs(phenocode))
+    return jsonify(jeeves.get_UKBB_n(phenocode))
 
 @app.route('/pheno_/<phenocode>')
 @check_auth
@@ -303,7 +309,7 @@ def pheno_page(phenocode):
     return render_template('pheno.html',
                            phenocode=phenocode,
                            pheno=pheno,
-                           ukbb_ns= ukbb_dao.getNs(phenocode),
+                           ukbb_ns= jeeves.get_UKBB_n(phenocode),
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
                            var_export_fields=conf.var_export_fields,
                            vis_conf=conf.vis_conf,
@@ -319,9 +325,9 @@ def region_page(phenocode, region):
         die("Sorry, I couldn't find the phewas code {!r}".format(phenocode))
     chr_se = region.split(':')
     chrom = chr_se[0]
-    if finemapping_dao is not None:
-        start_end = finemapping_dao.get_max_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
-        cond_fm_regions = finemapping_dao.get_regions_for_pheno('all', phenocode, chrom, start_end['start'], start_end['end'])
+    start_end = jeeves.get_max_finemapped_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
+    if start_end is not None:
+        cond_fm_regions = jeeves.get_finemapped_region_boundaries_for_pheno('all', phenocode, chrom, int(chr_se[1].split('-')[0]), int(chr_se[1].split('-')[1]))
     else:
         cond_fm_regions = []
     pheno['phenocode'] = phenocode
@@ -360,7 +366,7 @@ def api_finemapped_region(phenocode):
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
-    rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, conf.locuszoom_conf['prob_threshold'])
+    rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, prob_threshold=conf.locuszoom_conf['prob_threshold'])
     return jsonify(rv)
 
 @functools.lru_cache(None)
@@ -467,13 +473,12 @@ def gene_report(genename):
     ukbb_match=[]
     for assoc in top_assoc:
         ukbb_match.append(matching_ukbb(assoc.assoc))
-    gi_dao = dbs_fact.get_geneinfo_dao()
-    genedata = gi_dao.get_gene_info(genename)
+    genedata = jeeves.get_gene_data()
     gene_region_mapping = get_gene_region_mapping()
     chrom, start, end = gene_region_mapping[genename]
 
-    knownhits = dbs_fact.get_knownhits_dao().get_hits_by_loc(chrom,start,end)
-    drugs = dbs_fact.get_drug_dao().get_drugs(genename)
+    knownhits = jeeves.get_known_hits_by_loc(chrom,start,end)
+    drugs = jeeves.get_gene_drugs(genename)
 
     ta = list(zip(top_assoc,ukbb_match))
     print(ta[1:4])
@@ -489,7 +494,7 @@ def gene_report(genename):
 @check_auth
 def drugs(genename):
     try:
-        drugs = dbs_fact.get_drug_dao().get_drugs(genename)
+        drugs = jeeves.get_gene_drugs(genename)
         return jsonify(drugs)
     except Exception as exc:
         die("Could not fetch drugs for gene {!r}".format(genename), exception=exc)

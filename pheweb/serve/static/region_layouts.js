@@ -71,7 +71,7 @@ window.panel_layouts = {}
 
 window.panel_layouts.association = {
     "id": "association",
-    "title": { "text":"FINNGEN", "x":55, "y":30 } ,
+    "title": { "text":window.browser, "x":55, "y":30 } ,
     "proportional_height": 0.2,
     "min_width": 400,
     "min_height": 150,
@@ -263,7 +263,7 @@ window.panel_layouts.association = {
 			    "label": "no r² data",
 			    "class": "lz-data_layer-scatter"
 			}],
-			fields: ["association:id", "association:chr", "association:position", "association:ref", "association:alt", "association:pvalue", "association:pvalue|neglog10_or_100", "association:beta", "association:sebeta", "association:rsid", "association:maf", "association:maf_cases", "association:maf_controls", "association:most_severe", "association:fin_enrichment", "association:INFO", "ld:state", "ld:isrefvar"],
+			fields: window.lz_conf.assoc_fields,
 			// ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
 			id_field: "association:id",
 			behaviors: {
@@ -279,7 +279,7 @@ window.panel_layouts.association = {
 			    "hide": {
 				"and": ["unhighlighted", "unselected"]
 			    },
-			    html: '<strong>{{association:id}}</strong><br><strong>{{association:rsid}}</strong><br><strong>{{association:most_severe}}</strong><br><table><tbody><tr><td>phenotype</td><td><strong>' + (window.pheno.phenostring || window.pheno.phenocode) + '</strong></td></tr><tr><td>p-value</td><td><strong>{{association:pvalue|scinotation}}</strong></td></tr><tr><td>beta</td><td><strong>{{association:beta}}</strong> ({{association:sebeta}})</td></tr><tr><td>MAF</td><td><strong>{{association:maf|percent}}</strong></td></tr><tr><td>MAF controls</td><td><strong>{{association:maf_controls|percent}}</strong></td></tr><tr><td>MAF cases</td><td><strong>{{association:maf_cases|percent}}</strong><br></td></tr><tr><td>FIN enrichment</td><td><strong>{{association:fin_enrichment}}</strong></td></tr><tr><td>INFO</td><td><strong>{{association:INFO}}</strong></td></tr></tbody></table>'
+			    html: window.lz_conf.tooltip_html.replace(pheno, window.pheno.phenostring || window.pheno.phenocode)
 			},
 
 			"x_axis": {
@@ -1052,8 +1052,4 @@ window.panel_layouts.genes = {
     },
     "background_click": "clear_selections",
     "legend": null
-}
-
-if (window.browser == 'FINNGEN_QUANT') {
-    window.panel_layouts.association.data_layers[2].fields = ["association:id", "association:chr", "association:position", "association:ref", "association:alt", "association:pvalue", "association:pvalue|neglog10_or_100", "association:beta", "association:sebeta", "association:rsid", "association:maf", "association:most_severe", "association:fin_enrichment", "association:INFO", "ld:state", "ld:isrefvar"]
 }

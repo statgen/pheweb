@@ -29,11 +29,11 @@ from pathlib import Path
 
 
 class JSONifiable(object):
-     @abc.abstractmethod
-     def json_rep(self):
-         """
-            Return an object that can be jsonencoded.
-         """
+    @abc.abstractmethod
+    def json_rep(self):
+        """
+           Return an object that can be jsonencoded.
+        """
 
 class Variant(JSONifiable):
     def __init__(self, chr, pos,ref,alt):
@@ -41,13 +41,13 @@ class Variant(JSONifiable):
             self.chr=int(chr)
         except:
             raise Exception("Chromosome can be only numeric! Use x=23, y=24 and MT=25")
-        
+
         self.pos=int(pos)
         self.ref=ref
         self.alt=alt
         self.varid = "{}:{}:{}:{}".format(self.chr,self.pos,self.ref,self.alt)
         self.annotation = {}
-        
+
 
     def add_annotation(self, name, value):
         self.annotation[name]=value
@@ -62,7 +62,7 @@ class Variant(JSONifiable):
             return self.annotation["rsids"]
         else:
             return None
-    
+
     @rsids.setter
     def rsids(self, value):
         self.annotation['rsids'] = value
@@ -73,13 +73,13 @@ class Variant(JSONifiable):
             return self.annotation[name]
         else:
             return None
-    
+
     def get_annotations(self):
         return self.annotation
 
     def merge_annot(self, other, overwrite=True):
         """
-            Merges annotations from another Variant object. overwrite determines if annotation with the same name is overwritten or kept 
+            Merges annotations from another Variant object. overwrite determines if annotation with the same name is overwritten or kept
         """
         for k,v in other.get_annotations():
             if k not in self.annotation or overwrite:
@@ -87,28 +87,28 @@ class Variant(JSONifiable):
 
     def __eq__(self, other):
         return self.chr == other.chr and self.pos==other.pos and self.ref==other.ref and self.alt==other.alt
-    
+
     def __hash__(self):
         return hash(self.varid)
     def __repr__(self):
         return self.varid
 
     def json_rep(self):
-        return {'chr':self.chr,'pos':self.pos,'ref':self.ref, 'alt':self.alt, "id":self.varid, **self.annotation }
-    
-        
+        return self.__dict__
+
 class PhenoResult(JSONifiable):
 
-    def __init__(self, phenocode,phenostring, category_name,pval,beta, maf, maf_case,maf_control, n_case, n_control, n_sample=None):
+    def __init__(self, phenocode,phenostring, category_name, category_index, pval,beta, maf, maf_case,maf_control, n_case, n_control, n_sample=None):
         self.phenocode = phenocode
         self.phenostring = phenostring
         self.pval = float(pval) if pval is not None and pval!='NA' else None
         self.beta = float(beta) if beta is not None and beta!='NA' else None
-        self.maf = float(maf) if maf is not None and maf!='NA' else None
+        self.maf = float(maf) if maf is not None and maf!='NA' and maf != '' else None
         self.maf_case = float(maf_case) if maf_case is not None and maf_case!='NA' else None
         self.maf_control = float(maf_control) if maf_control is not None and maf_control!='NA' else None
         self.matching_results = {}
-        self.category_name = category_name
+        self.category = category_name
+        self.category_index = category_index
         self.n_case = n_case
         self.n_control = n_control
         if n_sample is None:
@@ -121,10 +121,9 @@ class PhenoResult(JSONifiable):
 
     def get_matching_result(self, resultname):
         return self.matching_results[resultname] if resultname in self.matching_results else None
-    
+
     def json_rep(self):
-        return {'phenocode':self.phenocode,'phenostring':self.phenostring, 'pval':self.pval, 'beta':self.beta, "maf":self.maf, "maf_case":self.maf_case,
-                "maf_control":self.maf_control, 'matching_results':self.matching_results, 'category':self.category_name, "n_case":self.n_case, "n_control":self.n_control, "n_sample":self.n_sample}
+        return self.__dict__
 
 @attr.s
 class PhenoResults( JSONifiable):
@@ -132,7 +131,7 @@ class PhenoResults( JSONifiable):
     assoc = attr.ib( attr.validators.instance_of( PhenoResult ) )
     variant= attr.ib( attr.validators.instance_of( List )  )
     def json_rep(self):
-        return {'pheno':self.pheno, "assoc":self.assoc, "variant":self.variant}
+        return self.__dict__
 
 class GeneInfoDB(object):
 
@@ -176,7 +175,7 @@ class ExternalResultDB(object):
     def get_multiphenoresults(self, varphenodict:Dict[Variant,List[str]], known_range=None) -> Dict[Variant,Dict[str,Dict]]:
         """ Given a dictionary with Variant as keys  and list of phenocodes as values returns corresponding geno pheno results.
             This interface allows implementations to optimize queries if multiple phenotype results for same variant are co-located
-            known_range: tuple of 3 elements (chr,start,end) giving contiguous region in chromosome to restrict the search to e.g. improve performance by reading one contiguous region. 
+            known_range: tuple of 3 elements (chr,start,end) giving contiguous region in chromosome to restrict the search to e.g. improve performance by reading one contiguous region.
             Implementations are free to ignore this parameter
 
             returns dictionary of dictionaries first keyed by variant and then by phenocode
@@ -184,21 +183,21 @@ class ExternalResultDB(object):
 class AnnotationDB(object):
 
     @abc.abstractmethod
-    def get_variant_annotations(self, variants:List[Variant] ) -> List[Variant]:
+    def get_variant_annotations(self, variants:List[Variant], cpra) -> List[Variant]:
         """ Retrieve variant annotations given a list of Variants.
             Returns a list of Variant objects with new annotations with id 'annot' and with all annotations that existed in the search Variant
         """
         return
-    
+
     @abc.abstractmethod
     def get_variant_annotations_range(self, chrom, start, end):
         """ Retrieve variant annotations given a range.
             Returns a list of Variant objects with new annotations with id 'annot'
         """
         return
-    
+
     @abc.abstractmethod
-    def get_single_variant_annotations(self, variant:Variant) -> Variant:
+    def get_single_variant_annotations(self, variant:Variant, cpra) -> Variant:
         """
             Retrieve variant annotations for a single variant. Returns a variant with annotations in id 'annot'  and including all old annotations
         """
@@ -229,7 +228,7 @@ class GnomadDB(object):
             Returns a list of Variant objects with new annotations with id 'gnomad'
         """
         return
-   
+
 class LofDB(object):
     @abc.abstractmethod
     def get_all_lofs(self, p_threshold):
@@ -277,10 +276,10 @@ class ResultDB(object):
 
     def get_single_variant_results(self, variant: Variant ) -> Tuple[Variant, List[PhenoResult]]:
         """
-            Returns all results and annotations for given variant. Returns tuple of Variant (including updated annotations if any) and phenotype results. 
+            Returns all results and annotations for given variant. Returns tuple of Variant (including updated annotations if any) and phenotype results.
             Returns None if variant does not exist.
         """
-    
+
 
 class DrugDB(object):
     @abc.abstractmethod
@@ -291,11 +290,19 @@ class DrugDB(object):
         """
         return
 
-class TSVDB(object):
+class CodingDB(object):
     @abc.abstractmethod
     def get_coding(self):
         """ Retrieve coding variant data
             Returns: coding variant results and annotation
+        """
+        return
+
+class ChipDB(object):
+    @abc.abstractmethod
+    def get_chip(self):
+        """ Retrieve chip GWAS results
+            Returns: chip GWAS results and annotation
         """
         return
 
@@ -611,20 +618,26 @@ class TabixResultDao(ResultDB):
                 maf = split[pheno[1]+self.header_offset['maf']] if 'maf' in self.header_offset else None
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
-                pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'], pval, beta, maf, maf_case, maf_control,
-                                 self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
+                pr = PhenoResult(pheno[0],
+                                 self.pheno_map[pheno[0]]['phenostring'],
+                                 self.pheno_map[pheno[0]]['category'],
+                                 self.pheno_map[pheno[0]]['category_index'] if 'category_index' in self.pheno_map[pheno[0]] else None,
+                                 pval, beta, maf, maf_case, maf_control,
+                                 self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0,
+                                 self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0,
+                                 self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
                 phenores.append(pr)
             result.append((v,phenores))
         return result
-   
+
     def get_single_variant_results(self, variant: Variant ) -> Tuple[Variant, PhenoResult]:
-        
+
         res = self.get_variants_results([variant])
         for r in res:
             if r[0]==variant:
                 return r
-        return None 
-        
+        return None
+
     def get_variants_results(self, variants: List[Variant]) -> List[ Tuple[Variant, PhenoResult] ]:
         if type(variants) is not list:
             variants = [variants]
@@ -655,10 +668,16 @@ class TabixResultDao(ResultDB):
                 maf = split[pheno[1]+self.header_offset['maf']] if 'maf' in self.header_offset else None
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
-                if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):            
-                    pr = PhenoResult(pheno[0], self.pheno_map[pheno[0]]['phenostring'],self.pheno_map[pheno[0]]['category'],pval , beta, maf, maf_case, maf_control,
-                                     self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0, self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else self.pheno_map[pheno[0]]['num_cases'] + self.pheno_map[pheno[0]]['num_controls'])
-                    v=  Variant( split[0].replace('X', '23'), split[1], split[2], split[3])
+                if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):
+                    pr = PhenoResult(pheno[0],
+                                     self.pheno_map[pheno[0]]['phenostring'],
+                                     self.pheno_map[pheno[0]]['category'],
+                                     self.pheno_map[pheno[0]]['category_index'] if 'category_index' in self.pheno_map[pheno[0]] else None,
+                                     pval , beta, maf, maf_case, maf_control,
+                                     self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0,
+                                     self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0,
+                                     self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
+                    v = Variant( split[0].replace('X', '23'), split[1], split[2], split[3])
                     if split[4]!='':  v.add_annotation("rsids",split[4])
                     v.add_annotation('nearest_gene', split[5])
                     top[pheno[0]] = (v,pr)
@@ -756,9 +775,9 @@ class ExternalMatrixResultDao(ExternalResultDB):
 
         res = defaultdict(lambda: defaultdict( lambda: dict()))
         t = time.time()
-        
+
         if known_range is not None:
-             iter = self.tabixfiles[ threading.get_ident() ].fetch("chr" +known_range[0], known_range[1]-1, known_range[2]) 
+             iter = self.tabixfiles[ threading.get_ident() ].fetch("chr" +known_range[0], known_range[1]-1, known_range[2])
              for ext_var in iter:
                  ext_var = ext_var.split("\t")
                  ## TODO remove all chr from annotation files and remove this replace so that error will be thrown if wrong chr type is attemptent
@@ -808,7 +827,7 @@ class ExternalFileResultDao(ExternalResultDB):
 
         self.manifest = manifest
         self.results = {}
-     
+
         if manifest is None:
             ## initialize with none and never returns any results
             return
@@ -894,7 +913,7 @@ class ExternalFileResultDao(ExternalResultDB):
             for var in var_list:
                 ## here we are running tabix for multiple files and storing all Tabix objects would consume too much memory.
                 ## Running external tabix commands is way too slow!
-                
+
                 ### TODO: remove the chr once the datafiles have been regenerated
                 fetch_chr =("chr"+ str(var.chr)).replace("23","X").replace("24","Y").replace("25","MT")
                 iterator= tabf.fetch( fetch_chr, var.pos-1, var.pos)
@@ -910,7 +929,7 @@ class ExternalFileResultDao(ExternalResultDB):
             tabf.close()
         return res
 
-    def get_multiphenoresults(self, varphenodict):
+    def get_multiphenoresults(self, varphenodict, known_range=None): # known_range not used but defined in abstract
         res = defaultdict(lambda: defaultdict( lambda: dict()))
         for var, phenolist in varphenodict.items():
             for p in phenolist:
@@ -934,8 +953,8 @@ class ConfigurationException(Exception):
 class TabixAnnotationDao(AnnotationDB):
 
     ACCEPT_MISSING = {"nan":1,"none":1,"":1,"na":1}
-  
-    
+
+
     # float gets special treatment to nan so it automatically works in json/javascript. Nobody knows my sorrow...
     DATA_CONVS = {"uint32":lambda x: None if x.lower() in TabixAnnotationDao.ACCEPT_MISSING else int(x),
             "float": lambda x: float("nan") if x.lower() in TabixAnnotationDao.ACCEPT_MISSING else float(x),
@@ -945,7 +964,7 @@ class TabixAnnotationDao(AnnotationDB):
     def __init__(self, matrix_path):
         self.matrix_path = matrix_path
         self.gene_region_mapping = {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
-        self.tabix_file = pysam.TabixFile(self.matrix_path, parser=None) 
+        self.tabix_file = pysam.TabixFile(self.matrix_path, parser=None)
         self.headers = [ s for s in self.tabix_file.header[0].split('\t')]
 
         self.header_i = {header: i for i, header in enumerate(self.headers)}
@@ -961,9 +980,9 @@ class TabixAnnotationDao(AnnotationDB):
                                     "stop_lost",
                                     "TFBS_ablation",
                                     "protein_altering_variant"])
-        
+
         datatypesf = Path(self.matrix_path + ".datatypes")
-        
+
         def f(x):
             return x
 
@@ -984,26 +1003,33 @@ class TabixAnnotationDao(AnnotationDB):
                     self.dconv[col]=TabixAnnotationDao.DATA_CONVS[dtype]
         else:
             print("No annotation datatype configuration found. Data will be stored as is.")
-    def get_single_variant_annotations(self, variant:Variant) -> Variant:
-        res = self.get_variant_annotations([variant])
+    def get_single_variant_annotations(self, variant:Variant, cpra) -> Variant:
+        res = self.get_variant_annotations([variant], cpra)
         for r in res:
             if r==variant:
                 return r
         return None
 
-    def get_variant_annotations(self, variants:List[Variant]):
+    def get_variant_annotations(self, variants:List[Variant], cpra):
         annotations = []
         t = time.time()
-        
+
         for variant in variants:
             tabix_iter = self.tabix_files[threading.get_ident()].fetch( variant.chr, variant.pos-1, variant.pos, parser=None)
             while True:
-                row = next(tabix_iter)
+                try:
+                     row = next(tabix_iter)
+                except Exception as e:
+                     print('no annotation found {}:{}'.format(variant.chr, variant.pos))
+                     break
                 if row is None:
                     break
                 split = row.split('\t')
-                v = split[0].split(":")
-                v = Variant(v[0],v[1],v[2],v[3])
+                if cpra:
+                     v = split[0].split(":")
+                     v = Variant(v[0],v[1],v[2],v[3])
+                else:
+                     v = Variant(split[0],split[1],split[3],split[4])
                 if variant == v:
                     ## keeps all old annotations in the returned variant.
                     for k,anno in  variant.get_annotations().items():
@@ -1014,8 +1040,8 @@ class TabixAnnotationDao(AnnotationDB):
 
         print('TABIX get_variant_annotations ' + str(round(10 *(time.time() - t)) / 10))
         return annotations
-    
-    def get_variant_annotations_range(self, chrom, start, end):
+
+    def get_variant_annotations_range(self, chrom, start, end, cpra):
         try:
             tabix_iter = self.tabix_files[threading.get_ident()].fetch(chrom, start-1, end)
         except ValueError:
@@ -1026,8 +1052,11 @@ class TabixAnnotationDao(AnnotationDB):
         for row in tabix_iter:
 
             split = row.split('\t')
-            v = split[0].split(":")
-            v = Variant(v[0],v[1],v[2],v[3])
+            if cpra:
+                 v = split[0].split(":")
+                 v = Variant(v[0],v[1],v[2],v[3])
+            else:
+                 v = Variant(split[0],split[1],split[3],split[4])
             v.add_annotation("annot",{self.headers[i]: self.dconv[self.headers[i]](split[i]) for i in range(0,len(split)) } )
             annotations.append(v)
 
@@ -1048,7 +1077,7 @@ class TabixAnnotationDao(AnnotationDB):
             for var in res:
                 ext_var = var.rstrip("\n").split("\t")
                 yield ext_var
-        
+
 
     def get_gene_functional_variant_annotations(self, gene):
         if gene not in self.gene_region_mapping:
@@ -1176,90 +1205,100 @@ class ElasticLofDao(LofDB):
                   "gene_data": r["_source"] }
                  for r in result['hits']['hits'] ]
 
-class CodingDao(TSVDB):
-     def __init__(self, coding):
-          df = pd.read_csv(coding, encoding='utf8', sep='\t').fillna('NA')
-          top_i = df.groupby('variant')['pval'].idxmin
-          df['is_top'] = 0
-          df.loc[top_i, 'is_top'] = 1
-          df['phenoname'] = np.where(df['phenoname'] == 'NA', df['pheno'], df['phenoname'])
-          self.coding_data = df.to_dict(orient='records')
-     def get_coding(self):
-          return self.coding_data
+class TSVCodingDao(CodingDB):
+    def __init__(self, data):
+        df = pd.read_csv(data, encoding='utf8', sep='\t').fillna('NA').replace([np.inf], 1e6)
+        top_i = df.groupby('variant')['pval'].idxmin
+        df['is_top'] = 0
+        df.loc[top_i, 'is_top'] = 1
+        df['phenoname'] = np.where(df['phenoname'] == 'NA', df['pheno'], df['phenoname'])
+        self.coding_data = df.to_dict(orient='records')
+    def get_coding(self):
+        return self.coding_data
+
+class TSVChipDao(ChipDB):
+    def __init__(self, data):
+        df = pd.read_csv(data, encoding='utf8', sep='\t').fillna('NA')
+        top_i = df.groupby('variant')['pval'].idxmin
+        df['is_top'] = 0
+        df.loc[top_i, 'is_top'] = 1
+        self.chip_data = df.to_dict(orient='records')
+    def get_chip(self):
+        return self.chip_data
 
 class FineMappingMySQLDao(FineMappingDB):
-     def __init__(self, authentication_file, base_paths):
-          self.authentication_file = authentication_file
-          self.base_paths = base_paths
-          auth_module = imp.load_source('mysql_auth', self.authentication_file)
-          self.user = getattr(auth_module, 'mysql')['user']
-          self.password = getattr(auth_module, 'mysql')['password']
-          self.host = getattr(auth_module, 'mysql')['host']
-          self.db = getattr(auth_module, 'mysql')['db']
-          self.release = getattr(auth_module, 'mysql')['release']
-     def get_connection(self):
-          return pymysql.connect(host=self.host, user=self.user, password=self.password, db=self.db)
-     def get_max_region(self, phenocode, chr, start, end):
-          conn = self.get_connection()
-          try:
-               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-                    sql = "SELECT min(start) as start, max(end) AS end FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+    def __init__(self, authentication_file, base_paths):
+        self.authentication_file = authentication_file
+        self.base_paths = base_paths
+        auth_module = imp.load_source('mysql_auth', self.authentication_file)
+        self.user = getattr(auth_module, 'mysql')['user']
+        self.password = getattr(auth_module, 'mysql')['password']
+        self.host = getattr(auth_module, 'mysql')['host']
+        self.db = getattr(auth_module, 'mysql')['db']
+        self.release = getattr(auth_module, 'mysql')['release']
+    def get_connection(self):
+        return pymysql.connect(host=self.host, user=self.user, password=self.password, db=self.db)
+    def get_max_region(self, phenocode, chr, start, end):
+        conn = self.get_connection()
+        try:
+            with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                sql = "SELECT min(start) as start, max(end) AS end FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                cursori.execute(sql, [self.release, phenocode, chr, end, start])
+                result = cursori.fetchone()
+        finally:
+            conn.close()
+        return result
+    def get_regions(self, variant: Variant):
+        conn = self.get_connection()
+        try:
+            with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                sql = "SELECT type, phenocode, chr, start, end, path FROM finemapped_regions WHERE rel=%s AND chr=%s AND start <= %s AND end >= %s"
+                cursori.execute(sql, [self.release, variant.chr, variant.pos, variant.pos])
+                result = cursori.fetchall()
+                for res in result:
+                    res['path'] = self.base_paths[res['type']] + '/' + res['path']
+        finally:
+            conn.close()
+        return result
+    def get_regions_for_pheno(self, type, phenocode, chr, start, end, get_most_probable_finemap_n=True):
+        conn = self.get_connection()
+        try:
+            with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                if type == 'all':
+                    sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, variants, path FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s ORDER BY type DESC"
                     cursori.execute(sql, [self.release, phenocode, chr, end, start])
-                    result = cursori.fetchone()
-          finally:
-               conn.close()
-          return result
-     def get_regions(self, variant: Variant):
-          conn = self.get_connection()
-          try:
-               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-                    sql = "SELECT type, phenocode, chr, start, end, path FROM finemapped_regions WHERE rel=%s AND chr=%s AND start <= %s AND end >= %s"
-                    cursori.execute(sql, [self.release, variant.chr, variant.pos, variant.pos])
-                    result = cursori.fetchall()
-                    for res in result:
-                         res['path'] = self.base_paths[res['type']] + '/' + res['path']
-          finally:
-               conn.close()
-          return result
-     def get_regions_for_pheno(self, type, phenocode, chr, start, end, get_most_probable_finemap_n=True):
-          conn = self.get_connection()
-          try:
-               with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-                    if type == 'all':
-                         sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, variants, path FROM finemapped_regions WHERE rel=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
-                         cursori.execute(sql, [self.release, phenocode, chr, end, start])
-                    elif type == 'conditional':
-                         sql = "SELECT type, chr, start, end, n_signals, variants, path FROM finemapped_regions WHERE rel=%s AND type=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
-                         cursori.execute(sql, [self.release, 'conditional', phenocode, chr, end, start])
-                    elif type == 'finemapping':
-                         sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, path FROM finemapped_regions WHERE rel=%s AND (type=%s OR type=%s) AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
-                         cursori.execute(sql, [self.release, 'susie', 'finemap', phenocode, chr, end, start])
-                    else:
-                         raise ValueError('unsupported type "' + type + '"')
-               result = cursori.fetchall()
-               result = [res for res in result if res['type'] in self.base_paths]
-          finally:
-               conn.close()          
-          for res in result:
-               res['path'] = self.base_paths[res['type']] + '/' + res['path']
-               if res['type'] == 'conditional':
-                    res['paths'] = []
-                    res['conditioned_on'] = []
-                    vars = res['variants'].split(',')
-                    for i in range(0,len(vars)):
-                         #R3 res['paths'].append(res['path'] + '-'.join(vars[0:i+1]) + '.conditional')
-                         res['paths'].append(res['path'] + vars[0] + '_' + str((i+1)) + '.conditional')
-                         res['conditioned_on'].append(','.join(vars[0:i+1]))
-          if get_most_probable_finemap_n:
-               most_probable_finemap = -1
-               prob = 0
-               for i, res in enumerate(result):
-                    if res['type'] == 'finemap' and res['n_signals_prob'] > prob:
-                         most_probable_finemap = i
-                         prob = res['n_signals_prob']
-               result = [res for i, res in enumerate(result) if res['type'] != 'finemap' or i == most_probable_finemap]
-          return result
-   
+                elif type == 'conditional':
+                    sql = "SELECT type, chr, start, end, n_signals, variants, path FROM finemapped_regions WHERE rel=%s AND type=%s AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s"
+                    cursori.execute(sql, [self.release, 'conditional', phenocode, chr, end, start])
+                elif type == 'finemapping':
+                    sql = "SELECT type, chr, start, end, n_signals, n_signals_prob, path FROM finemapped_regions WHERE rel=%s AND (type=%s OR type=%s) AND phenocode=%s AND chr=%s AND start <= %s AND end >= %s ORDER BY type DESC"
+                    cursori.execute(sql, [self.release, 'susie', 'finemap', phenocode, chr, end, start])
+                else:
+                    raise ValueError('unsupported type "' + type + '"')
+            result = cursori.fetchall()
+            result = [res for res in result if res['type'] in self.base_paths]
+        finally:
+            conn.close()
+        for res in result:
+            res['path'] = self.base_paths[res['type']] + '/' + res['path']
+            if res['type'] == 'conditional':
+                res['paths'] = []
+                res['conditioned_on'] = []
+                vars = res['variants'].split(',')
+                for i in range(0,len(vars)):
+                    #R3 res['paths'].append(res['path'] + '-'.join(vars[0:i+1]) + '.conditional')
+                    res['paths'].append(res['path'] + vars[0] + '_' + str((i+1)) + '.conditional')
+                    res['conditioned_on'].append(','.join(vars[0:i+1]))
+        if get_most_probable_finemap_n:
+            most_probable_finemap = -1
+            prob = 0
+            for i, res in enumerate(result):
+                if res['type'] == 'finemap' and res['n_signals_prob'] > prob:
+                    most_probable_finemap = i
+                    prob = res['n_signals_prob']
+            result = [res for i, res in enumerate(result) if res['type'] != 'finemap' or i == most_probable_finemap]
+        return result
+
 class DataFactory(object):
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
                        "MATRIX_PATH": common_filepaths['matrix'],
@@ -1280,6 +1319,7 @@ class DataFactory(object):
                                 raise Exception(b + " is an unknown argument")
                             db[db_type][db_source][a] = self.arg_definitions[b]
                         db[db_type][db_source].pop('const_arguments', None)
+                    print(db_type, db_source)
                     self.dao_impl[db_type] = daoclass( ** db[db_type][db_source] )
 
         self.dao_impl["geneinfo"] = NCBIGeneInfoDao()
@@ -1289,7 +1329,6 @@ class DataFactory(object):
         if "externalresult" not in self.dao_impl:
             ## if external results not configured initialize dao always returning empty results
             self.dao_impl["externalresult"] = ExternalFileResultDao(None)
-
 
     def get_annotation_dao(self):
         return self.dao_impl["annotation"]
@@ -1312,8 +1351,11 @@ class DataFactory(object):
     def get_drug_dao(self):
         return self.dao_impl["drug"]
 
-    def get_tsv_dao(self):
-        return self.dao_impl["tsv"] if "tsv" in self.dao_impl else None
+    def get_coding_dao(self):
+        return self.dao_impl["coding"] if "coding" in self.dao_impl else None
+
+    def get_chip_dao(self):
+        return self.dao_impl["chip"] if "chip" in self.dao_impl else None
 
     def get_finemapping_dao(self):
         return self.dao_impl["finemapping"] if "finemapping" in self.dao_impl else None

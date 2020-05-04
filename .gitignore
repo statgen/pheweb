@@ -13,3 +13,4 @@ generated-by-pheweb
 **/mysql.conf
 pheweb/serve/static/bundle.js
 config.py
+pheweb/serve/static/bundle.js
