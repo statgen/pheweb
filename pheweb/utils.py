@@ -53,7 +53,7 @@ def get_use_phenos():
     filepath = common_filepaths['use_phenos']
     try:
         with open(os.path.join(filepath), encoding='utf-8') as f:
-            phenolist = [pheno.strip() for pheno in f.readlines() if pheno != '']
+            phenolist = [pheno.strip() for pheno in f.readlines() if pheno != '' and not pheno.startswith('#')]
             print('using ' + str(len(phenolist)) + ' phenos from ' + filepath)
     except FileNotFoundError:
         print(filepath + ' not found, using all phenotypes')

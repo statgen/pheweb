@@ -372,20 +372,11 @@ def api_finemapped_region(phenocode):
     rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, prob_threshold=conf.locuszoom_conf['prob_threshold'])
     return jsonify(rv)
 
-@functools.lru_cache(None)
-def get_gene_region_mapping():
-    return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
-
-@functools.lru_cache(None)
-def get_best_phenos_by_gene():
-    with open(common_filepaths['best-phenos-by-gene']) as f:
-        return json.load(f)
-
 @app.route('/region/<phenocode>/gene/<genename>')
 @check_auth
 def gene_phenocode_page(phenocode, genename):
     try:
-        gene_region_mapping = get_gene_region_mapping()
+        gene_region_mapping = jeeves.get_gene_region_mapping()
         chrom, start, end = gene_region_mapping[genename]
 
         include_string = request.args.get('include', '')
@@ -402,7 +393,7 @@ def gene_phenocode_page(phenocode, genename):
         pheno = phenos[phenocode]
 
         phenos_in_gene = []
-        for pheno_in_gene in get_best_phenos_by_gene().get(genename, []):
+        for pheno_in_gene in jeeves.get_best_phenos_by_gene().get(genename, []):
             if pheno_in_gene['phenocode'] in use_phenos:
                 phenos_in_gene.append({
                     'pheno': {k:v for k,v in phenos[pheno_in_gene['phenocode']].items() if k not in ['assoc_files', 'colnum']},
@@ -428,7 +419,7 @@ def gene_phenocode_page(phenocode, genename):
 @app.route('/gene/<genename>')
 @check_auth
 def gene_page(genename):
-    phenos_in_gene = [pheno for pheno in get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
+    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
@@ -437,7 +428,7 @@ def gene_page(genename):
 @app.route('/genereport/<genename>')
 @check_auth
 def gene_report(genename):
-    phenos_in_gene = [pheno for pheno in get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
+    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     func_vars = jeeves.gene_functional_variants( genename,  conf.report_conf["func_var_assoc_threshold"])
@@ -480,7 +471,7 @@ def gene_report(genename):
     for assoc in top_assoc:
         ukbb_match.append(matching_ukbb(assoc.assoc))
     genedata = jeeves.get_gene_data(gene)
-    gene_region_mapping = get_gene_region_mapping()
+    gene_region_mapping = jeeves.get_gene_region_mapping()
     chrom, start, end = gene_region_mapping[genename]
 
     knownhits = jeeves.get_known_hits_by_loc(chrom,start,end)
