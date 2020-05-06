@@ -29,10 +29,10 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:react_2
+        image: gcr.io/phewas-development/pheweb:autotest910985
         env:
         - name: PHEWEB_DIR
-          value: "/mnt/nfs/pheweb/r5_demo"
+          value: "/mnt/nfs/pheweb/r5"
         ports:
         - containerPort: 8080
         readinessProbe:
