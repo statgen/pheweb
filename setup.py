@@ -49,6 +49,11 @@ setup(
         'Flask>=0.12',
         'Flask-Compress~=1.4',
         'Flask-Login~=0.4',
+        'pyasn1~=0.4.6',
+        'google-api-python-client~=1.7.11',
+        'google-auth~=1.11.2',
+        'google-auth-httplib2~=0.0.3',
+        'google-compute-engine~=2.8.13',
         'rauth~=0.7',
         'pysam~=0.14',
         'marisa-trie~=0.7',
@@ -70,11 +75,7 @@ setup(
         'latex~=0.7.0',
         'attrs',
         'pandas~=0.24.2',
-        'pymysql~=0.9.3',
-        'google-api-python-client~=1.7.11',
-        'google-auth~=1.11.2',
-        'google-auth-httplib2~=0.0.3',
-        'google-compute-engine~=2.8.13'
+        'pymysql~=0.9.3'
     ],
     tests_require=[
         'pytest~=3.4',
