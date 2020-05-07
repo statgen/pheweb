@@ -70,7 +70,11 @@ setup(
         'latex~=0.7.0',
         'attrs',
         'pandas~=0.24.2',
-        'pymysql~=0.9.3'
+        'pymysql~=0.9.3',
+        'google-api-python-client~=1.7.11',
+        'google-auth~=1.11.2',
+        'google-auth-httplib2~=0.0.3',
+        'google-compute-engine~=2.8.13'
     ],
     tests_require=[
         'pytest~=3.4',

@@ -1,4 +1,6 @@
 import sys
+import threading
+from collections import defaultdict
 sys.path.append('/mnt/nfs/pheweb/')
 
 from google_group_auth import group_auth
@@ -18,12 +20,11 @@ service_account_scopes = [
 # set credentials
 creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=service_account_scopes)
 delegated_creds = creds.with_subject(delegated_account)
-service = build('admin', 'directory_v1', credentials=delegated_creds)
+services = defaultdict( lambda: build('admin', 'directory_v1', credentials=delegated_creds) )
 
 def get_all_members(group_name):
-    all = service.members().list(groupKey=group_name).execute()
+    all = services[threading.get_ident()].members().list(groupKey=group_name).execute()
     allmembers = all['members']
-    #print(allmembers)
     return allmembers
 
 
@@ -40,7 +41,7 @@ def get_member_status(username):
 
 
 def verify_membership(username):
-    r = service.members().hasMember(groupKey=group_name, memberKey=username).execute()
+    r = services[threading.get_ident()].members().hasMember(groupKey=group_name, memberKey=username).execute()
 
     if not r['isMember']:
         #print('\n\n' + username + ' is NOT a member of ' + group_name)  # user is not a member
@@ -55,9 +56,3 @@ def verify_membership(username):
     else:
         #print('\n\n' + username + ' is a member of ' + group_name + ' with status = ' + status)  # user is a SUSPENDED member
         return False
-
-
-
-if __name__ == '__main__':
-    result = verify_membership(username)
-    print(result)
