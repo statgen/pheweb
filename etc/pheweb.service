@@ -21,3 +21,4 @@ Group=www-data
 # this WorkingDirectory contains pheno-list.json and generated-by-pheweb
 WorkingDirectory=/data/pheweb/my_data_set/
 ExecStart=/data/pheweb/venv/bin/pheweb serve --host localhost --port 8879 --num-workers=4
+# consider addding `Restart=always` or `Restart=on-failure`, though that might make debugging harder
