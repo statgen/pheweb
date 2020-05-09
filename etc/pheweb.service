@@ -1,0 +1,23 @@
+# This file belongs at /etc/systemd/system/pheweb.service
+
+# Sample commands to use:
+#   sudo systemctl daemon-reload  # makes systemd notice changes to this file
+#   sudo systemctl enable pheweb.service  # run once (re-running is fine) so that systemd knows to run this when the system starts
+#   sudo systemctl start pheweb.service
+#   sudo systemctl restart pheweb.service
+#   sudo systemctl status -n30 pheweb.service
+
+[Unit]
+Description=Gunicorn instance to serve pheweb
+After=network.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+# you can also use User=nobody Group=nogroup, which is arguably less secure but works for most people
+User=www-data
+Group=www-data
+# this WorkingDirectory contains pheno-list.json and generated-by-pheweb
+WorkingDirectory=/data/pheweb/my_data_set/
+ExecStart=/data/pheweb/venv/bin/pheweb serve --host localhost --port 8879 --num-workers=4
