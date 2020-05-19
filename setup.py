@@ -12,6 +12,10 @@ import os.path
 import sys
 
 
+if sys.platform.startswith('win'):
+    raise Exception("PheWeb doesn't support Windows, because pysam doesn't support windows.")
+
+
 version = imp.load_source('pheweb.version', os.path.join('pheweb', 'version.py')).version
 
 
