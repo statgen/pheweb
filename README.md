@@ -4,6 +4,11 @@ If you have questions or comments, check out our [Google Group](https://groups.g
 
 ![screenshot of PheWAS plot](https://cloud.githubusercontent.com/assets/862089/25474725/3edbe256-2b02-11e7-8abb-0ca26d406b11.png)
 
+# How to Cite PheWeb
+If you use the PheWeb code base for your work, please cite our paper:
+
+Gagliano Taliun, S.A., VandeHaar, P. et al. Exploring and visualizing large-scale genetic associations by using PheWeb. *Nat Genet* 52, 550–552 (2020).
+
 # How to Build a PheWeb for your Data
 
 If any of these steps is incorrect, please open an issue here or email me at <pjvh@umich.edu> and I'll see what I can do to improve things.
