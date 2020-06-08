@@ -293,12 +293,12 @@ class Pheno extends React.Component {
 		<Tab>Traditional</Tab>
 		</TabList>
 		<TabPanel style={{ display: this.state.selectedTab == 0 ? 'block' : 'none'}}>
-			<div id="network" style={{height: '100%', width: '100%'}}>
+			<div id="cs table" style={{height: '100%', width: '100%'}}>
 				{cs_table}
 			</div>
 		</TabPanel>
 		<TabPanel style={{ display: this.state.selectedTab == 1 ? 'block' : 'none'}}>
-			<div id="network" style={{height: '100%', width: '100%'}}>
+			<div id="traditional table" style={{height: '100%', width: '100%'}}>
 				{var_table}
 			</div>
 		</TabPanel>

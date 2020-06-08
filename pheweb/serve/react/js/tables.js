@@ -55,7 +55,7 @@ const truncateString = (s,l) => {
 const regionBuilder = (s,r) => {
     const tmp = s.replace("chr23","chrX").replace("chr","").split("_")
     const chr=tmp[0]
-    const pos_min=Math.max( parseInt( tmp[1] ) - r,0 )
+    const pos_min=Math.max( parseInt( tmp[1] ) - r,1 ) //pos starts from 1
     const pos_max=parseInt( tmp[1] ) + r
     return `${chr}:${pos_min}-${pos_max}`
 }
