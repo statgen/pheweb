@@ -279,7 +279,7 @@ window.panel_layouts.association = {
 			    "hide": {
 				"and": ["unhighlighted", "unselected"]
 			    },
-			    html: window.lz_conf.tooltip_html.replace(pheno, window.pheno.phenostring || window.pheno.phenocode)
+			    html: window.lz_conf.tooltip_html.replace('PHENO', window.pheno.phenostring || window.pheno.phenocode)
 			},
 
 			"x_axis": {
