@@ -30,6 +30,9 @@ from .server_jeeves  import ServerJeeves
 
 from collections import defaultdict
 from .encoder import FGJSONEncoder
+from .group_based_auth  import verify_membership
+
+
 app = Flask(__name__)
 
 ## allows debug statements in jinja
@@ -112,20 +115,20 @@ def check_auth(func):
     @functools.wraps(func)
     def decorated_view(*args, **kwargs):
         if current_user.is_anonymous:
-            print('unauthorized user visited {!r}'.format(request.path))
+            print('anonymous user visited {!r}'.format(request.path))
+            session['original_destination'] = request.path
+            return redirect(url_for('get_authorized'))
+        if not verify_membership(current_user.email):
+            print('{} is unauthorized and visited {!r}'.format(current_user.email, request.path))
             session['original_destination'] = request.path
             return redirect(url_for('get_authorized'))
         print('{} visited {!r}'.format(current_user.email, request.path))
-        if 'whitelist' in conf.login.keys():
-            assert current_user.email.lower().endswith('@finngen.fi') or current_user.email.lower() in conf.login['whitelist'], current_user
-        else:
-            assert current_user.email.lower().endswith('@finngen.fi'), current_user
         return func(*args, **kwargs)
     return decorated_view
 
-@app.route('/index')
-def homepage_():
-    return render_template('index.html')
+@app.route('/auth')
+def auth():
+    return render_template('auth.html')
 
 @app.route('/health')
 def health():
@@ -553,14 +556,8 @@ if 'login' in conf:
 
     @lm.user_loader
     def load_user(id):
-        if 'whitelist' in conf.login.keys():
-            if 'whitelist_only' in conf.login.keys() and conf.login['whitelist_only'] == True and id in conf.login['whitelist']:
-                return User(email=id)
-            elif id.endswith('@finngen.fi') or id in conf.login['whitelist']:
-                return User(email=id)
-        else:
-            if id.endswith('@finngen.fi'):
-                return User(email=id)
+        if id.endswith('@finngen.fi') or id in (conf.login['whitelist'] if 'whitelist' in conf.login.keys() else []):
+            return User(email=id)
         return None
 
     @app.route('/logout')
@@ -578,7 +575,7 @@ if 'login' in conf:
     @app.route('/get_authorized')
     def get_authorized():
         "This route tries to be clever and handle lots of situations."
-        if current_user.is_anonymous:
+        if current_user.is_anonymous or not verify_membership(current_user.email):
             return google_sign_in.authorize()
         else:
             if 'original_destination' in session:
@@ -590,7 +587,7 @@ if 'login' in conf:
 
     @app.route('/callback/google')
     def oauth_callback_google():
-        if not current_user.is_anonymous:
+        if not current_user.is_anonymous and verify_membership(current_user.email):
             return redirect(url_for('homepage'))
         try:
             username, email = google_sign_in.callback() # oauth.callback reads request.args.
@@ -599,23 +596,15 @@ if 'login' in conf:
             print(exc)
             print(traceback.format_exc())
             flash('Something is wrong with authentication. Please contact humgen-servicedesk@helsinki.fi')
-            return redirect(url_for('homepage'))
+            return redirect(url_for('auth'))
         if email is None:
             # I need a valid email address for my user identification
             flash('Authentication failed by failing to get an email address.')
-            return redirect(url_for('homepage'))
+            return redirect(url_for('auth'))
 
-        if 'whitelist' in conf.login.keys():
-            if 'whitelist_only' in conf.login.keys() and conf.login['whitelist_only'] == True and email.lower() not in conf.login['whitelist']:
-                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
-                return redirect(url_for('homepage'))
-            if not email.lower().endswith('@finngen.fi') and email.lower() not in conf.login['whitelist']:
-                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
-                return redirect(url_for('homepage'))
-        else:
-            if not email.lower().endswith('@finngen.fi'):
-                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
-                return redirect(url_for('homepage'))
+        if not verify_membership(email):
+            flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
+            return redirect(url_for('auth'))
 
         # Log in the user, by default remembering them for their next visit.
         user = User(username, email)
