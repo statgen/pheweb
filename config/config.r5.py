@@ -60,7 +60,7 @@ database_conf = (
         }
     }
 )
-
+autorep_group_report_path="/mnt/nfs/autoreporting/r5/group_reports/"
 n_query_threads=4
 report_conf = {"func_var_assoc_threshold":0.0001, "gene_top_assoc_threshold":0.0001}
 

@@ -395,7 +395,8 @@ class ServerJeeves(object):
         return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
 
     def get_autoreport(self, phenocode):
-        files = glob.glob('/mnt/nfs/autoreporting/r5/group_reports/' + phenocode + '.top.out')
+        fpath = self.conf.autorep_group_report_path
+        files = glob.glob(fpath + "/" + phenocode + '.top.out')
         if len(files) == 1:
             data = pd.read_csv(files[0], sep='\t').fillna('NA')
             data["phenocode"]=phenocode
