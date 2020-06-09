@@ -24,6 +24,7 @@ import time
 import io
 import os
 import subprocess
+import glob
 
 from pathlib import Path
 
@@ -252,6 +253,12 @@ class AutorepVariantDB(object):
             Returns: A list of dictionaries. WIP
         """
         return
+
+    @abc.abstractmethod
+    def get_group_report(self, phenotype):
+        """ Retrieve a given phenotype's group report
+            Returns: A list of dictionaries, with the group report columns as dictionary keys and every dictionary representing a row.
+        """
 
 class KnownHitsDB(object):
     @abc.abstractmethod
@@ -1308,9 +1315,10 @@ class FineMappingMySQLDao(FineMappingDB):
             result = [res for i, res in enumerate(result) if res['type'] != 'finemap' or i == most_probable_finemap]
         return result
 
-class AutoreportingSQLDao(AutorepVariantDB):
-    def __init__(self, authentication_file):
+class AutoreportingDao(AutorepVariantDB):
+    def __init__(self, authentication_file, group_report_path):
         self.authentication_file = authentication_file
+        self.group_report_path = group_report_path
         auth_module = imp.load_source('mysql_auth', self.authentication_file)
         self.user = getattr(auth_module, 'mysql')['user']
         self.password = getattr(auth_module, 'mysql')['password']
@@ -1331,6 +1339,35 @@ class AutoreportingSQLDao(AutorepVariantDB):
             return result
         finally:
             conn.close()
+
+    def _merge_traits(self, a,b):
+        if a != "NA" and b != "NA":
+            return "{};{}".format(a,b)
+        elif a == "NA" and b != "NA":
+            return b
+        elif a != "NA" and b == "NA":
+            return a
+        else:
+            return "NA"
+
+    def get_group_report(self, phenotype):
+        fpath = self.group_report_path
+        files = glob.glob(fpath + "/" + phenotype + '.top.out')
+        if len(files) == 1:
+            data = pd.read_csv(files[0], sep='\t').fillna('NA')
+            data["phenocode"]=phenotype
+            if "specific_efo_trait_associations_strict" in data.columns:
+                data['all_traits_strict']=data[['specific_efo_trait_associations_strict','found_associations_strict']].apply(
+                    lambda x: self._merge_traits(*x),axis=1
+                )
+                data['all_traits_relaxed']=data[['specific_efo_trait_associations_relaxed','found_associations_relaxed']].apply(
+                    lambda x: self._merge_traits(*x),axis=1
+                )
+            else:
+                data['all_traits_strict']=data['found_associations_strict']
+                data['all_traits_relaxed']=data['found_associations_relaxed']
+            return data.reset_index(drop=True)
+        return []
 
 class DataFactory(object):
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},

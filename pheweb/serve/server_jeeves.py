@@ -395,41 +395,31 @@ class ServerJeeves(object):
         return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
 
     def get_autoreport(self, phenocode):
-        fpath = self.conf.autorep_group_report_path
-        files = glob.glob(fpath + "/" + phenocode + '.top.out')
-        if len(files) == 1:
-            data = pd.read_csv(files[0], sep='\t').fillna('NA')
-            data["phenocode"]=phenocode
-            #add ukbb data
-            vars=[]
-            for t in data.itertuples():
-                v=t.locus_id.replace("chr","").split("_")
-                vars.append(Variant(v[0],v[1],v[2],v[3]))
-            ukbbvars = self.ukbb_dao.get_matching_results(phenocode, vars)
-            v_pvals={}
-            v_betas={}
-            for var in ukbbvars.keys():
-                v_pvals["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["pval"]#TODO: If locus_id spec changes, this has to change
-                v_betas["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["beta"]
-            data["ukbb_pval"]="NA"
-            data["ukbb_beta"]="NA"
-            for key in v_pvals:#same key as in betas
-                data.loc[data["locus_id"]==key,"ukbb_pval"] = float(v_pvals[key])
-                data.loc[data["locus_id"]==key,"ukbb_beta"] = float(v_betas[key])
-            if "specific_efo_trait_associations_strict" in data.columns:
-                data['all_traits_strict']=data[['specific_efo_trait_associations_strict','found_associations_strict']].apply(
-                    lambda x: merge_traits(*x),axis=1
-                )
-                data['all_traits_relaxed']=data[['specific_efo_trait_associations_relaxed','found_associations_relaxed']].apply(
-                    lambda x: merge_traits(*x),axis=1
-                )
-            else:
-                data['all_traits_strict']=data['found_associations_strict']
-                data['all_traits_relaxed']=data['found_associations_relaxed']
-            return data.reset_index().to_dict('records')
-        return []
+        if self.autoreporting_dao == None:
+            return None
+        data = self.autoreporting_dao.get_group_report(phenocode)
+        #add ukbb data
+        vars=[]
+        for t in data.itertuples():
+            v=t.locus_id.replace("chr","").split("_")
+            vars.append(Variant(v[0],v[1],v[2],v[3]))
+        ukbbvars = self.ukbb_dao.get_matching_results(phenocode, vars)
+        v_pvals={}
+        v_betas={}
+        for var in ukbbvars.keys():
+            v_pvals["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["pval"]#TODO: If locus_id spec changes, this has to change
+            v_betas["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["beta"]
+        data["ukbb_pval"]="NA"
+        data["ukbb_beta"]="NA"
+        for key in v_pvals:#same key as in betas
+            data.loc[data["locus_id"]==key,"ukbb_pval"] = float(v_pvals[key])
+            data.loc[data["locus_id"]==key,"ukbb_beta"] = float(v_betas[key])
+        return data.to_dict("records")
+        
     
     def get_autoreport_variants(self, phenocode, locus_id):
+        if self.autoreporting_dao is None:
+            return None
         data=self.autoreporting_dao.get_group_variants(phenocode, locus_id)
         df=pd.DataFrame(data)
         agg_dict = dict.fromkeys(df,"first")
@@ -437,13 +427,3 @@ class ServerJeeves(object):
         agg_dict["trait_name"]=";".join
         df=df.groupby('variant').agg(agg_dict).reset_index(drop=True)
         return df.to_dict('records')
-
-def merge_traits(a,b):
-    if a != "NA" and b != "NA":
-        return "{};{}".format(a,b)
-    elif a == "NA" and b != "NA":
-        return b
-    elif a != "NA" and b == "NA":
-        return a
-    else:
-        return "NA"
