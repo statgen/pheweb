@@ -397,24 +397,26 @@ class ServerJeeves(object):
     def get_autoreport(self, phenocode):
         if self.autoreporting_dao == None:
             return None
-        data = self.autoreporting_dao.get_group_report(phenocode)
-        #add ukbb data
-        vars=[]
-        for t in data.itertuples():
-            v=t.locus_id.replace("chr","").split("_")
-            vars.append(Variant(v[0],v[1],v[2],v[3]))
-        ukbbvars = self.ukbb_dao.get_matching_results(phenocode, vars)
-        v_pvals={}
-        v_betas={}
-        for var in ukbbvars.keys():
-            v_pvals["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["pval"]#TODO: If locus_id spec changes, this has to change
-            v_betas["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["beta"]
-        data["ukbb_pval"]="NA"
-        data["ukbb_beta"]="NA"
-        for key in v_pvals:#same key as in betas
-            data.loc[data["locus_id"]==key,"ukbb_pval"] = float(v_pvals[key])
-            data.loc[data["locus_id"]==key,"ukbb_beta"] = float(v_betas[key])
-        return data.to_dict("records")
+        data = pd.DataFrame(self.autoreporting_dao.get_group_report(phenocode))
+        if not data.empty:
+            #add ukbb data
+            vars=[]
+            for t in data.itertuples():
+                v=t.locus_id.replace("chr","").split("_")
+                vars.append(Variant(v[0],v[1],v[2],v[3]))
+            ukbbvars = self.ukbb_dao.get_matching_results(phenocode, vars)
+            v_pvals={}
+            v_betas={}
+            for var in ukbbvars.keys():
+                v_pvals["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["pval"]#TODO: If locus_id spec changes, this has to change
+                v_betas["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["beta"]
+            data["ukbb_pval"]="NA"
+            data["ukbb_beta"]="NA"
+            for key in v_pvals:#same key as in betas
+                data.loc[data["locus_id"]==key,"ukbb_pval"] = float(v_pvals[key])
+                data.loc[data["locus_id"]==key,"ukbb_beta"] = float(v_betas[key])
+            return data.to_dict("records")
+        return []
         
     
     def get_autoreport_variants(self, phenocode, locus_id):

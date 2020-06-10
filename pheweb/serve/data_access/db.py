@@ -1366,7 +1366,7 @@ class AutoreportingDao(AutorepVariantDB):
             else:
                 data['all_traits_strict']=data['found_associations_strict']
                 data['all_traits_relaxed']=data['found_associations_relaxed']
-            return data.reset_index(drop=True)
+            return data.reset_index(drop=True).to_dict("records")
         return []
 
 class DataFactory(object):
