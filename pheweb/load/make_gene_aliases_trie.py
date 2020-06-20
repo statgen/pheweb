@@ -9,8 +9,9 @@ import marisa_trie
 def get_genenamesorg_ensg_aliases_map(ensgs_to_consider):
     ensgs_to_consider = set(ensgs_to_consider)
     r = urllib.request.urlopen('ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/non_alt_loci_set.json')
+    data = r.read().decode('utf-8')
     ensg_to_aliases = {}
-    for row in json.load(r)['response']['docs']:
+    for row in json.loads(data)['response']['docs']:
         try:
             if not row.get('ensembl_gene_id',None) or row['ensembl_gene_id'] not in ensgs_to_consider: continue
             assert re.match(r'^ENSG[R0-9\.]+$', row['ensembl_gene_id']), row
