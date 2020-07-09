@@ -115,11 +115,11 @@ setup(
         'marisa-trie~=0.7',
         'intervaltree~=3.0',
         'tqdm~=4.31',
-        'openpyxl~=2.6',
+        'openpyxl~=3.0.3',
         'scipy~=1.2',
         'numpy~=1.16',
         'requests[security]~=2.21',
-        'gunicorn~=19.9',
+        'gunicorn~=20.0.4',
         'boltons~=19.1',
         'blist~=1.3',
         'cffi~=1.12', # in both `setup_requires` and `install_requires` as per <https://github.com/pypa/setuptools/issues/391>
