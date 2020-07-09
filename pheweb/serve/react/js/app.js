@@ -13,6 +13,9 @@ import Coding from './components/Coding'
 import Variant from './components/Variant'
 import Pheno from './components/Pheno'
 
+var element =  document.getElementById('reactEntry');
+if (typeof(element) != 'undefined' && element != null)
+{
 ReactDOM.render(
     <BrowserRouter>
     <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
@@ -26,4 +29,19 @@ ReactDOM.render(
     </div>
     </div>
     </BrowserRouter>
-    , document.getElementById('reactEntry'))
+	, document.getElementById('reactEntry'))
+}
+
+import ColocalizationList from './components/colocalization/colocalization'
+import ColocalizationProvider from './contexts/colocalization/ColocalizationContext'
+
+$( document ).ready(function() {
+    const target =  document.getElementById('colocalization_div');
+    if (typeof(target) != 'undefined' && target != null){    
+	function Colocalization(props) { return <div><h1>Hello World</h1></div>; }
+	const element = <ColocalizationProvider>
+	      <ColocalizationList />
+	</ColocalizationProvider>;
+	ReactDOM.render(element, target);
+    }
+});
