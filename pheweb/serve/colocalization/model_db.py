@@ -161,7 +161,7 @@ class ColocalizationDAO(ColocalizationDB):
                                              flags={**{"phenotype1": phenotype,
                                                        "locus_id1_chromosome": chromosome_range.chromosome,
                                                        "locus_id1_position.gte": chromosome_range.start,
-                                                       "locus_id1_position.lte": chromosome_range.stop}},
+                                                       "locus_id1_position.lte": chromosome_range.stop},**flags},
                                              f=lambda x: x.to_colocalization())
         return SearchResults(colocalizations=matches,
                              count=len(matches))
@@ -182,7 +182,7 @@ class ColocalizationDAO(ColocalizationDB):
         flags = {**{"phenotype1": phenotype,
                     "locus_id1_chromosome": chromosome_range.chromosome,
                     "locus_id1_position.gte": chromosome_range.start,
-                    "locus_id1_position.lte": chromosome_range.stop}}
+                    "locus_id1_position.lte": chromosome_range.stop},**flags}
         _, count = self.support.create_filter(session.query(self.support.clazz), flags=flags)
         count = count.count()
         unique_phenotype2 = session.query(func.count(func.distinct(getattr(self.support.clazz, "phenotype2"))))

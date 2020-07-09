@@ -32,16 +32,23 @@ ReactDOM.render(
 	, document.getElementById('reactEntry'))
 }
 
-import ColocalizationList from './components/colocalization/colocalization'
+import List from './components/colocalization/list'
+import Summary from './components/colocalization/summary'
 import ColocalizationProvider from './contexts/colocalization/ColocalizationContext'
 
 $( document ).ready(function() {
-    const target =  document.getElementById('colocalization_div');
-    if (typeof(target) != 'undefined' && target != null){    
-	function Colocalization(props) { return <div><h1>Hello World</h1></div>; }
+    const list_target =  document.getElementById('colocalization_list_div');
+    if (typeof(list_target) != 'undefined' && list_target != null){    
 	const element = <ColocalizationProvider>
-	      <ColocalizationList />
+	      <List />
 	</ColocalizationProvider>;
-	ReactDOM.render(element, target);
+	ReactDOM.render(element, list_target);
+    }
+    const summary_target =  document.getElementById('colocalization_summary_div');
+    if (typeof(summary_target) != 'undefined' && summary_target != null){    
+	const element = <ColocalizationProvider>
+	      <Summary />
+	</ColocalizationProvider>;
+	ReactDOM.render(element, summary_target);
     }
 });
