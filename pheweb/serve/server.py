@@ -31,7 +31,7 @@ from .server_jeeves  import ServerJeeves
 from collections import defaultdict
 from .encoder import FGJSONEncoder
 from .group_based_auth  import verify_membership
-
+from .colocalization.view import colocalization
 
 app = Flask(__name__)
 
@@ -125,6 +125,11 @@ def check_auth(func):
         print('{} visited {!r}'.format(current_user.email, request.path))
         return func(*args, **kwargs)
     return decorated_view
+# protect from other cli tools
+with app.app_context():
+    app.jeeves = jeeves
+
+app.register_blueprint(colocalization)
 
 @app.route('/auth')
 def auth():
