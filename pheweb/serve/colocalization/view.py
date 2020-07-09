@@ -1,20 +1,24 @@
 import json
 from flask import Blueprint, current_app as app, g, request
-from colocalization.model import nvl, Colocalization, SearchSummary, SearchResults, ChromosomeRange, ChromosomePosition
+from .model import nvl, Colocalization, SearchSummary, SearchResults, ChromosomeRange, ChromosomePosition
 colocalization = Blueprint('colocalization', __name__)
 development = Blueprint('development', __name__)
 
 
 @colocalization.route('/api/colocalization', methods=["GET"])
 def get_phenotype():
-    return json.dumps(app.dao.get_phenotype(flags={}).json_rep())
+    print(app.jeeves)
+    print(dir(app.jeeves))
+    app_dao = app.jeeves.colocalization
+    return json.dumps(app_dao.get_phenotype(flags={}).json_rep())
 
 @colocalization.route('/api/colocalization/<string:phenotype>/<string:chromosome>:<int:start>-<int:stop>', methods=["GET"])
 def do_list_colocalization(phenotype: str,
                            chromosome: str,
                            start: int,
                            stop: int):
-    return json.dumps(app.dao.get_phenotype_range(phenotype=phenotype,
+    app_dao = app.jeeves.colocalization
+    return json.dumps(app_dao.get_phenotype_range(phenotype=phenotype,
                                                   chromosome_range=ChromosomeRange(chromosome,
                                                                                    start,
                                                                                    stop),
@@ -26,7 +30,8 @@ def do_summary_colocalization(phenotype: str,
                               chromosome: str,
                               start: int,
                               stop: int):
-    return json.dumps(app.dao.get_phenotype_range_summary(phenotype=phenotype,
+    app_dao = app.jeeves.colocalization
+    return json.dumps(app_dao.get_phenotype_range_summary(phenotype=phenotype,
                                                           chromosome_range=ChromosomeRange(chromosome,
                                                                                            start,
                                                                                            stop),
@@ -39,7 +44,7 @@ def do_locus_colocalization(phenotype: str,
                             position: int,
                             reference: str,
                             alternate: str):
-    return json.dumps(app.dao.get_locus(phenotype=phenotype,
+    return json.dumps(app_dao.get_locus(phenotype=phenotype,
                                         locus=ChromosomePosition(chromosome,
                                                                  position,
                                                                  reference,
@@ -53,4 +58,4 @@ def post_phenotype1():
     path = secure_filename(f.filename)
     path = os.path.join(upload_dir, path)
     f.save(path)
-    return json.dumps(app.dao.load_data(path))
+    return json.dumps(app_dao.load_data(path))

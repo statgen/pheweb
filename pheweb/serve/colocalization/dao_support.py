@@ -1,6 +1,6 @@
 import typing
 from sqlalchemy import func, distinct, select
-from data_access.db import JSONifiable
+#from ..data_access.db import *
 import attr
 from attr.validators import instance_of
 
