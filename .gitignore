@@ -1,3 +1,5 @@
+.envrc
+*~
 *.pyc
 tests/input_files/fake-cache/*
 !tests/input_files/fake-cache/rsids-147.vcf.gz

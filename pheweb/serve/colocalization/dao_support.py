@@ -50,6 +50,11 @@ class DAOSupport:
                         int_value = int(v)
                     except ValueError:
                         int_value = None
+                        
+                    try:
+                        int_value = float(v) if int_value is None else int_value
+                    except ValueError:
+                        int_value = None
                 else:
                     int_value = v
 
@@ -58,13 +63,13 @@ class DAOSupport:
                 elif suffix == "limit" and int_value is not None:
                     limit = int_value
                 elif suffix == "lt" and column is not None and int_value is not None:
-                    filters.append(column < int(v))
+                    filters.append(column < int_value)
                 elif suffix == "gt" and column is not None and int_value is not None:
-                    filters.append(column > int(v))
+                    filters.append(column > int_value)
                 elif suffix == "lte" and column is not None and int_value is not None:
-                    filters.append(column <= int(v))
+                    filters.append(column <= int_value)
                 elif suffix == "gte" and column is not None and int_value is not None:
-                    filters.append(column >= int(v))
+                    filters.append(column >= int_value)
                 elif suffix == "like" and column is not None:
                     filters.append(column.like(v))
                 elif suffix == "order" and v == "asc" and column is not None:
@@ -72,8 +77,13 @@ class DAOSupport:
                 elif suffix == "order" and v == "desc" and column is not None:
                     order_by.append(column.desc())
                 else:
-                    warnings.append("could not process '{k}' with value '{v}'".format(k=k,
-                                                                                      v=v))
+                    msg  = "could not process : "
+                    msg += "key: '{k}' , value: '{v}' column: '{c}' "
+                    msg += "int_value: '{i}' "
+                    warnings.append(msg.format(k=k,
+                                               v=v,
+                                               c=column,
+                                               i=int_value))
             else:
                 column = getattr(self.clazz, k, None)
                 if column is None:
@@ -86,6 +96,7 @@ class DAOSupport:
             query = query.limit(limit)
         if offset is not None:
             query = query.offset(limit)
+        print(query)
         return warnings, query
 
     def create_aggregates(self, fields: typing.List[str]):
@@ -118,7 +129,6 @@ class DAOSupport:
         return warnings, projections
 
     def query_summary(self, session, flags: typing.Dict[str, typing.Any], fields: typing.List[str]):
-        print()
         if not fields:
             return ["no columns provided"], []
         elif fields == [".count"]:
@@ -127,7 +137,9 @@ class DAOSupport:
         else:
             warnings1, projections = self.create_aggregates(fields)
             warnings2, query = self.create_filter(session.query(*projections), flags)
-            return (warnings1 + warnings2), [x for x in query.first()]
+            warnings = (warnings1 + warnings2)
+            print(warnings)
+            return warnings, [x for x in query.first()]
 
     X = typing.TypeVar('X')
     Y = typing.TypeVar('Y')
@@ -137,4 +149,5 @@ class DAOSupport:
                       flags: typing.Dict[str, typing.Any] = dict(),
                       f: typing.Callable[[X], Y] = lambda x: x) -> typing.List[Y]:
         warnings, query = self.create_filter(session.query(self.clazz), flags)
+        print(warnings)
         return [f(r) for r in query.all()]

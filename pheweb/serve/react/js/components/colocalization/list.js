@@ -4,18 +4,18 @@ import { ColocalizationContext } from '../../contexts/colocalization/Colocalizat
 import axios from 'axios'
 import { CSVLink } from 'react-csv'
 
-const ColocalizationList = (props) => {
+const List = (props) => {
     const { position } = useContext(ColocalizationContext);
     useEffect( () => {
-        getColocalizationList();
+        getList();
     }, [position]); /* only update on when position is updated */
 
-    const [colocalizationList, setColocalizationList] = useState(null); /* set up hooks for colocalization */
+    const [colocalizationList, setList] = useState(null); /* set up hooks for colocalization */
 
-    const getColocalizationList = () => {
+    const getList = () => {
         if(position !== null){
-	    const url = `/api/colocalization/${position.phenotype}/${position.chromosome}:${position.start}-${position.stop}`;
-            axios.get(url).then((d) => { setColocalizationList(d.data.colocalizations); console.log(d.data); } ).catch(function(error){ alert(error);});
+	    const url = `/api/colocalization/${position.phenotype}/${position.chromosome}:${position.start}-${position.stop}?clpa.gte=0.1&clpa.order=desc`;
+            axios.get(url).then((d) => { setList(d.data.colocalizations); console.log(d.data); } ).catch(function(error){ alert(error);});
         }
     }
 
@@ -64,7 +64,7 @@ const ColocalizationList = (props) => {
 		               data={ colocalizationList }
 		               separator={'\t'}
 		               enclosingCharacter={''}
-		               filename={`colocatoin.tsv`}
+		               filename={`colocalization.tsv`}
 		               className="btn btn-primary"
 		               target="_blank">Download Table
 		      </CSVLink>
@@ -75,4 +75,5 @@ const ColocalizationList = (props) => {
     } else { return (<div>Loading ... </div>); }
 }
 
-export default ColocalizationList
+
+export default List
