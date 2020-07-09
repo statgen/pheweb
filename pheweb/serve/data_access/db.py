@@ -24,7 +24,7 @@ import time
 import io
 import os
 import subprocess
-
+from ..colocalization.model_db import ColocalizationDAO
 from pathlib import Path
 
 
@@ -1332,6 +1332,9 @@ class DataFactory(object):
 
     def get_annotation_dao(self):
         return self.dao_impl["annotation"]
+
+    def get_colocalization_dao(self):
+        return self.dao_impl["colocalization"]
 
     def get_gnomad_dao(self):
         return self.dao_impl["gnomad"]
