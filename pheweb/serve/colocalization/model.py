@@ -1,9 +1,24 @@
 import abc
+import attr
 import typing
 import attr
 from attr.validators import instance_of
-from data_access.db import JSONifiable, Kwargs
+#from ..data_access.db import JSONifiable
 import re
+
+class JSONifiable(object):
+    @abc.abstractmethod
+    def json_rep(self):
+        """
+           Return an object that can be jsonencoded.
+        """
+class Kwargs(object):
+    @abc.abstractmethod
+    def kwargs_rep(self) -> typing.Dict[str, typing.Any]:
+        None
+        """
+           Return an object that can be jsonencoded.
+        """
 
 X = typing.TypeVar('X')
 
@@ -273,7 +288,7 @@ class PhenotypeList(JSONifiable):
         return self.__dict__
 
 
-class ColocalizationDAO:
+class ColocalizationDB:
 
 
     @abc.abstractmethod

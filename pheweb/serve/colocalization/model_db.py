@@ -1,13 +1,13 @@
 import typing
 from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import sessionmaker
-from colocalization.model import Colocalization, ColocalizationDAO, SearchSummary, ChromosomeRange, SearchResults, PhenotypeList
-from colocalization.model import ChromosomePosition
+from .model import Colocalization, ColocalizationDB, SearchSummary, ChromosomeRange, SearchResults, PhenotypeList
+from .model import ChromosomePosition
 import csv
 import gzip
 from sqlalchemy.orm import mapper, composite
 import attr
-from colocalization.dao_support import DAOSupport
+from .dao_support import DAOSupport
 from sqlalchemy import func, distinct
 
 metadata = MetaData()
@@ -91,9 +91,10 @@ def create_filter(clazz, flags: typing.Dict[str, typing.Any]):
     #
     None
 
-class ColocalizationDB(ColocalizationDAO):
+class ColocalizationDAO(ColocalizationDB):
 
     def __init__(self, db_url: str, parameters={}):
+        print("ColocalizationDAO : {}".format(db_url))
         self.engine = create_engine(db_url, **parameters)
         metadata.bind = self.engine
         self.Session = sessionmaker(bind=self.engine)
