@@ -16,6 +16,7 @@
 <script src="https://cdn.jsdelivr.net/npm/locuszoom@0.10.2/dist/locuszoom.app.min.js" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='custom_locuszooms.js') }}"></script>
 <script src="{{ url_for('static', filename='region.js') }}"></script>
+<script src="{{ url_for('static', filename='bundle.js') }}"></script>
 <script src="{{ url_for('static', filename='region_layouts.js') }}"></script>
 <link  href="{{ url_for('static', filename='region.css') }}" rel="stylesheet" type="text/css">
 {% endblock %}
@@ -70,4 +71,10 @@
     <div id="lz-1" class="lz-locuszoom-container lz-container-responsive" data-region={{ region }}></div>
   </div>
 </div>
+<div class="row">
+  <div class="col-xs-12" id="colocalization_div">
+  </div>
+</div>
+
+
 {% endblock %}
