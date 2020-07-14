@@ -12,6 +12,7 @@ import Chip from './components/Chip'
 import Coding from './components/Coding'
 import Variant from './components/Variant'
 import Pheno from './components/Pheno'
+import Region from './components/Region'
 
 var element =  document.getElementById('reactEntry');
 if (typeof(element) != 'undefined' && element != null)
@@ -26,6 +27,7 @@ ReactDOM.render(
     <Route exact path='/coding' component={Coding}/>
     <Route path='/variant/:variant' component={Variant}/>
     <Route path='/pheno/:pheno' component={Pheno}/>
+    <Route path='/region.1/:region' component={Region}/>
     </div>
     </div>
     </BrowserRouter>

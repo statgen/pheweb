@@ -1,18 +1,32 @@
 import typing
 import click
 import os
-from colocalization.model_db import ColocalizationDB
+import typing
+from colocalization.model_db import ColocalizationDAO
 from flask.cli import AppGroup, with_appcontext
+import imp
 
 data_cli = AppGroup('data')
 
-@data_cli.command("init")
-@with_appcontext
-def init() -> None:
-    db_url = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:////tmp/tmp.db')
-    colocalization_db = ColocalizationDB(db_url=db_url)
-    colocalization_db.create_schema()
+def wrap(path,f):
+    dao = ColocalizationDAO(db_url=path, parameters={})
+    try:
+        f(dao)
+    finally:
+        del dao
+    
 
+@data_cli.command("init")
+@click.argument("path", required=True, type=str)
+@with_appcontext
+def init(path) -> None:
+    wrap(path,lambda dao: dao.create_schema())
+
+@data_cli.command("delete")
+@click.argument("path", required=True, type=str)
+@with_appcontext
+def init(path) -> None:
+    wrap(path,lambda dao: dao.delete_all())
 
 @data_cli.command("harness")
 @with_appcontext
@@ -21,9 +35,10 @@ def harness() -> None:
 
 
 @data_cli.command("load")
-@click.argument("path")
+@click.argument("path", required=True, type=str)
+@click.argument("data", required=True, type=str)
+@click.option('--header/--no-header', default=True)
 @with_appcontext
-def cli_load(path: str) -> None:
-    db_url = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:////tmp/tmp.db')
-    colocalization_db = ColocalizationDB(db_url=db_url)
-    colocalization_db.load_data(path)
+def cli_load(path: str, data: str, header: bool) -> None:
+    wrap(path,lambda dao: dao.load_data(data, header = header))
+    

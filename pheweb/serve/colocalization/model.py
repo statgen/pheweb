@@ -22,7 +22,12 @@ class Kwargs(object):
 
 X = typing.TypeVar('X')
 
-
+def nvl_float(value:str) -> typing.Optional[float]:
+    if value == 'NA' or value == 'na':
+        return None
+    else:
+        return float(value)
+    
 def nvl(value: str, f: typing.Callable[[str], X]) -> typing.Optional[X]:
     """
     Wrapper to convert strings to a given type, where the
@@ -40,6 +45,7 @@ def nvl(value: str, f: typing.Callable[[str], X]) -> typing.Optional[X]:
         result = f(value)
     return result
 
+# Variant
 @attr.s
 class ChromosomePosition(Kwargs, JSONifiable):
     """
@@ -56,7 +62,8 @@ class ChromosomePosition(Kwargs, JSONifiable):
     @staticmethod
     def from_str(text: str) -> typing.Optional["ChromosomePosition"]:
         # TODO what are the valid letters that go here
-        fragments = re.match(r'chr(?P<chromosome>[A-Za-z0-9]+)_(?P<position>\d+)_(?P<reference>[A-Za-z]+)_(?P<alternate>[A-Za-z]+)', text)
+        #fragments = re.match(r'chr(?P<chromosome>[A-Za-z0-9]+)_(?P<position>\d+)_(?P<reference>[A-Za-z]+)_(?P<alternate>[A-Za-z]+)', text)
+        fragments = re.match(r'^chr(?P<chromosome>[A-Za-z0-9]+)_(?P<position>\d+)_(?P<reference>[A-Za-z]+)_(?P<alternate>.+)$', text)
         if fragments is None:
             None
         else:
@@ -86,7 +93,7 @@ class ChromosomePosition(Kwargs, JSONifiable):
         """
         return self.chromosome, self.position, self.reference, self.alternate
 
-
+# Locus
 @attr.s
 class ChromosomeRange(JSONifiable, Kwargs):
     """

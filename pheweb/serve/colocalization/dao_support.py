@@ -150,4 +150,5 @@ class DAOSupport:
                       f: typing.Callable[[X], Y] = lambda x: x) -> typing.List[Y]:
         warnings, query = self.create_filter(session.query(self.clazz), flags)
         print(warnings)
+        print(query)
         return [f(r) for r in query.all()]

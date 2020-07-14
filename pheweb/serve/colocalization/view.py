@@ -9,6 +9,7 @@ development = Blueprint('development', __name__)
 
 @colocalization.route('/api/colocalization', methods=["GET"])
 def get_phenotype():
+    print(dir(app))
     app_dao = app.jeeves.colocalization
     return json.dumps(app_dao.get_phenotype(flags={}).json_rep())
 

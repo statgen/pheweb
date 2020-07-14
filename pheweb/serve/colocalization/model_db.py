@@ -1,5 +1,5 @@
 import typing
-from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float
+from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float, Text
 from sqlalchemy.orm import sessionmaker
 from .model import Colocalization, ColocalizationDB, SearchSummary, ChromosomeRange, SearchResults, PhenotypeList
 from .model import ChromosomePosition
@@ -9,30 +9,38 @@ from sqlalchemy.orm import mapper, composite
 import attr
 from .dao_support import DAOSupport
 from sqlalchemy import func, distinct
+import os
+import imp
+import sys
+
+# TODO remove
+csv.field_size_limit(sys.maxsize)
 
 metadata = MetaData()
 colocalization_table = Table('colocalization',
                              metadata,
-                             Column('source1', String(80), unique=False, nullable=False, primary_key=True),
-                             Column('source2', String(80), unique=False, nullable=False, primary_key=True),
-                             Column('phenotype1', String(80), unique=False, nullable=False, primary_key=True),
+                             Column('id', Integer, primary_key=True, autoincrement=True),
+                             Column('source1', String(80), unique=False, nullable=False), #primary_key=True),
+                             Column('source2', String(80), unique=False, nullable=False), #primary_key=True),
+                             Column('phenotype1', String(80), unique=False, nullable=False), #primary_key=True),
                              Column('phenotype1_description', String(80), unique=False, nullable=False),
-                             Column('phenotype2', String(80), unique=False, nullable=False, primary_key=True),
-                             Column('phenotype2_description', String(80), unique=False, nullable=False),
-                             Column('tissue1', String(80), unique=False, nullable=True, primary_key=True),
-                             Column('tissue2', String(80), unique=False, nullable=False, primary_key=True),
+                             Column('phenotype2', String(80), unique=False, nullable=False), #primary_key=True),
+                             #Column('phenotype2_description', String(80), unique=False, nullable=False),
+                             Column('phenotype2_description', Text(), unique=False, nullable=False),
+                             Column('tissue1', String(80), unique=False, nullable=True), #primary_key=True),
+                             Column('tissue2', String(80), unique=False, nullable=False), #primary_key=True),
 
                              # locus_id1
-                             Column('locus_id1_chromosome', String(2), unique=False, nullable=False, primary_key=True),
-                             Column('locus_id1_position', Integer, unique=False, nullable=False, primary_key=True),
-                             Column('locus_id1_ref', String(1), unique=False, nullable=False, primary_key=True),
-                             Column('locus_id1_alt', String(1), unique=False, nullable=False, primary_key=True),
+                             Column('locus_id1_chromosome', String(2), unique=False, nullable=False), #primary_key=True),
+                             Column('locus_id1_position', Integer, unique=False, nullable=False), #primary_key=True),
+                             Column('locus_id1_ref', String(100), unique=False, nullable=False), #primary_key=True),
+                             Column('locus_id1_alt', String(100), unique=False, nullable=False), #primary_key=True),
 
                              # locus_id2
-                             Column('locus_id2_chromosome', String(2), unique=False, nullable=False, primary_key=True),
-                             Column('locus_id2_position', Integer, unique=False, nullable=False, primary_key=True),
-                             Column('locus_id2_ref', String(1), unique=False, nullable=False, primary_key=True),
-                             Column('locus_id2_alt', String(1), unique=False, nullable=False, primary_key=True),
+                             Column('locus_id2_chromosome', String(2), unique=False, nullable=False), #primary_key=True),
+                             Column('locus_id2_position', Integer, unique=False, nullable=False), #primary_key=True),
+                             Column('locus_id2_ref', String(100), unique=False, nullable=False), #primary_key=True),
+                             Column('locus_id2_alt', String(100), unique=False, nullable=False), #primary_key=True),
 
                              Column('chromosome',  String(2), unique=False, nullable=False),
                              Column('start', Integer, unique=False, nullable=False),
@@ -43,11 +51,11 @@ colocalization_table = Table('colocalization',
                              Column('beta_id1', Float, unique=False, nullable=False),
                              Column('beta_id2', Float, unique=False, nullable=False),
 
-                             Column('variation', String(80), unique=False, nullable=False),
-                             Column('vars_pip1', String(80), unique=False, nullable=False),
-                             Column('vars_pip2', String(80), unique=False, nullable=False),
-                             Column('vars_beta1', String(80), unique=False, nullable=False),
-                             Column('vars_beta2', String(80), unique=False, nullable=False),
+                             Column('variation', Text(), unique=False, nullable=False),
+                             Column('vars_pip1', Text(), unique=False, nullable=False),
+                             Column('vars_pip2', Text(), unique=False, nullable=False),
+                             Column('vars_beta1', Text(), unique=False, nullable=False),
+                             Column('vars_beta2', Text(), unique=False, nullable=False),
                              Column('len_cs1', Integer, unique=False, nullable=False),
                              Column('len_cs2', Integer, unique=False, nullable=False),
                              Column('len_inter', Integer, unique=False, nullable=False))
@@ -85,52 +93,76 @@ cluster_coordinate_mapper = mapper(ColocalizationDTO,
                                    )
 
 
-def create_filter(clazz, flags: typing.Dict[str, typing.Any]):
-    # .limit
-    # field.order_by
-    #
-    None
-
 class ColocalizationDAO(ColocalizationDB):
+    @staticmethod
+    def mysql_config(path : str) -> typing.Optional[str] :
+        if os.path.exists(path):
+            auth_module = imp.load_source('mysql_auth', path)
+            user = getattr(auth_module, 'mysql')['user']
+            password = getattr(auth_module, 'mysql')['password']
+            host = getattr(auth_module, 'mysql')['host']
+            db = getattr(auth_module, 'mysql')['db']
+            return 'mysql://{}:{}@{}/{}'.format(user,password,host,db)
+        else:
+            return path
+    
+    
 
-    def __init__(self, db_url: str, parameters={}):
+    
+    def __init__(self, db_url: str, parameters=dict()):
+        db_url=ColocalizationDAO.mysql_config(db_url)
         print("ColocalizationDAO : {}".format(db_url))
-        self.engine = create_engine(db_url, **parameters)
+        self.engine = create_engine(db_url,
+                                    pool_pre_ping=True,
+                                    *parameters)
         metadata.bind = self.engine
         self.Session = sessionmaker(bind=self.engine)
         self.support = DAOSupport(ColocalizationDTO)
-
+    
     def __del__(self):
-        self.engine.dispose()
-
+        if hasattr(self, 'engine') and self.engine:
+            self.engine.dispose()
+    
     def create_schema(self):
-        metadata.create_all(self.engine)
+        return metadata.create_all(self.engine)
 
-    def load_data(self, path: str) -> typing.Optional[int]:
-        with gzip.open(path, "rt") if path.endswith("gz") else open(path, 'r') as csv_file:
-            reader = csv.reader(csv_file, delimiter='\t', )
-            # The names in the header are abbreviated,
-            # and do not match the attribute names in
-            # colocalization.  So they must be specified.
-            #
-            # expected_header = Colocalization.column_names()
-            expected_header = ['source1', 'source2', 'pheno1', 'pheno1_description', 'pheno2', 'pheno2_description',
-                               'tissue1', 'tissue2', 'locus_id1', 'locus_id2', 'chrom', 'start', 'stop', 'clpp',
-                               'clpa', 'beta_id1', 'beta_id2', 'vars', 'vars_pip1', 'vars_pip2', 'vars_beta1',
-                               'vars_beta2', 'len_cs1', 'len_cs2', 'len_inter']
+    def delete_all(self):
+        self.engine.execute(colocalization_table.delete())
+        metadata.drop_all(self.engine) 
+    
+    def load_data(self, path: str, header : bool=True) -> typing.Optional[int]:
+        count = 0
+        def generate_colocalization():
+            with gzip.open(path, "rt") if path.endswith("gz") else open(path, 'r') as csv_file:
+                reader = csv.reader(csv_file, delimiter='\t', )
+                expected_header = Colocalization.column_names()
+                expected_header = ['source1', 'source2', 'pheno1', 'pheno1_description', 'pheno2', 'pheno2_description',
+                                   'tissue1', 'tissue2', 'locus_id1', 'locus_id2', 'chrom', 'start', 'stop', 'clpp',
+                                   'clpa', 'beta_id1', 'beta_id2', 'vars', 'vars_pip1', 'vars_pip2', 'vars_beta1',
+                                   'vars_beta2', 'len_cs1', 'len_cs2', 'len_inter']
 
-            actual_header = next(reader)
-            count = 0
-            assert expected_header == actual_header, \
-                "header expected '{expected_header}' got '{actual_header}'".format(expected_header=expected_header,
-                                                                                   actual_header=actual_header)
-            session = self.Session()
-            for line in reader:
-                count = count + 1
-                dto = ColocalizationDTO(**Colocalization.from_list(line).kwargs_rep())
-                session.add(dto)
-            session.commit()
-            return count
+
+                if header:
+                    actual_header = next(reader)
+                    assert expected_header == actual_header, \
+                        "header expected '{expected_header}' got '{actual_header}'".format(expected_header=expected_header,
+                                                                                           actual_header=actual_header)
+                
+                for line in reader:
+                    #count = count + 1
+                    try:
+                        dto = ColocalizationDTO(**Colocalization.from_list(line).kwargs_rep())
+                        yield dto
+                    except:
+                        print("file:{}".format(path), file=sys.stderr, flush=True)
+                        print("line:{}".format(count), file=sys.stderr, flush=True)
+                        print(zip(expected_header,line))
+                        print(line, file=sys.stderr, flush=True)
+
+        session = self.Session()
+        session.bulk_save_objects(generate_colocalization())
+        session.commit()
+        return count
 
 
     def get_phenotype(self,

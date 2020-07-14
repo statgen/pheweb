@@ -107,7 +107,7 @@ threadpool = ThreadPoolExecutor(max_workers=4)
 
 jeeves = ServerJeeves( conf )
 
-
+app.jeeves = jeeves
 app.register_blueprint(colocalization)
 
 @app.route('/auth')
