@@ -12,7 +12,7 @@ import Chip from './components/Chip'
 import Coding from './components/Coding'
 import Variant from './components/Variant'
 import Pheno from './components/Pheno'
-import Region from './components/Region'
+import Region from './components/region/index'
 
 var element =  document.getElementById('reactEntry');
 if (typeof(element) != 'undefined' && element != null)

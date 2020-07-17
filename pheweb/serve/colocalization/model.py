@@ -22,12 +22,13 @@ class Kwargs(object):
 
 X = typing.TypeVar('X')
 
-def nvl_float(value:str) -> typing.Optional[float]:
-    if value == 'NA' or value == 'na':
-        return None
-    else:
-        return float(value)
+def na(f):
+    return lambda value : None if value == 'NA' or value == 'na' else f(value)
     
+def ascii(value: str) -> str:
+    return value
+#    return "".join(char for char in value if ord(char) < 128)
+
 def nvl(value: str, f: typing.Callable[[str], X]) -> typing.Optional[X]:
     """
     Wrapper to convert strings to a given type, where the
@@ -45,7 +46,8 @@ def nvl(value: str, f: typing.Callable[[str], X]) -> typing.Optional[X]:
         result = f(value)
     return result
 
-# Variant
+
+
 @attr.s
 class ChromosomePosition(Kwargs, JSONifiable):
     """
@@ -173,8 +175,8 @@ class Colocalization(Kwargs, JSONifiable):
     stop = attr.ib(validator=instance_of(int))
     clpp = attr.ib(validator=instance_of(float))
     clpa = attr.ib(validator=instance_of(float))
-    beta_id1 = attr.ib(validator=instance_of(float))
-    beta_id2 = attr.ib(validator=instance_of(float))
+    beta_id1 = attr.ib(validator=attr.validators.optional(instance_of(float)))
+    beta_id2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
     variation = attr.ib(validator=instance_of(str))
     vars_pip1 = attr.ib(validator=instance_of(str))
     vars_pip2 = attr.ib(validator=instance_of(str))
@@ -216,10 +218,10 @@ class Colocalization(Kwargs, JSONifiable):
         colocalization = Colocalization(source1=nvl(line[0], str),
                                         source2=nvl(line[1], str),
 
-                                        phenotype1=nvl(line[2], str),
-                                        phenotype1_description=nvl(line[3], str),
-                                        phenotype2=nvl(line[4], str),
-                                        phenotype2_description=nvl(line[5], str),
+                                        phenotype1=nvl(line[2], ascii),
+                                        phenotype1_description=nvl(line[3], ascii),
+                                        phenotype2=nvl(line[4], ascii),
+                                        phenotype2_description=nvl(line[5], ascii),
 
                                         tissue1=nvl(line[6], str),
                                         tissue2=nvl(line[7], str),
@@ -227,22 +229,22 @@ class Colocalization(Kwargs, JSONifiable):
                                         locus_id2=nvl(line[9], ChromosomePosition.from_str),
 
                                         chromosome=nvl(line[10], str),
-                                        start=nvl(line[11], int),
-                                        stop=nvl(line[12], int),
+                                        start=nvl(line[11], na(int)),
+                                        stop=nvl(line[12], na(int)),
 
                                         clpp=nvl(line[13], float),
                                         clpa=nvl(line[14], float),
-                                        beta_id1=nvl(line[15], float),
-                                        beta_id2=nvl(line[16], float),
+                                        beta_id1=nvl(line[15], na(float)),
+                                        beta_id2=nvl(line[16], na(float)),
 
                                         variation=nvl(line[17], str),
                                         vars_pip1=nvl(line[18], str),
                                         vars_pip2=nvl(line[19], str),
                                         vars_beta1=nvl(line[20], str),
                                         vars_beta2=nvl(line[21], str),
-                                        len_cs1=nvl(line[22], int),
-                                        len_cs2=nvl(line[23], int),
-                                        len_inter=nvl(line[24], int))
+                                        len_cs1=nvl(line[22], na(int)),
+                                        len_cs2=nvl(line[23], na(int)),
+                                        len_inter=nvl(line[24], na(int)))
         return colocalization
 
 

@@ -1,0 +1,10 @@
+{ "compilerOptions": {
+    "module": "commonjs",
+    "jsx": "react",
+    "esModuleInterop": true ,
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true },
+  "include": [ "js/**/*" ],
+  "exclude": [ "node_modules", "**/*.spec.ts" ] }

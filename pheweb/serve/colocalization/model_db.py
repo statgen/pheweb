@@ -13,6 +13,7 @@ import os
 import imp
 import sys
 
+from sqlalchemy.dialects.mysql import LONGTEXT
 # TODO remove
 csv.field_size_limit(sys.maxsize)
 
@@ -22,11 +23,10 @@ colocalization_table = Table('colocalization',
                              Column('id', Integer, primary_key=True, autoincrement=True),
                              Column('source1', String(80), unique=False, nullable=False), #primary_key=True),
                              Column('source2', String(80), unique=False, nullable=False), #primary_key=True),
-                             Column('phenotype1', String(80), unique=False, nullable=False), #primary_key=True),
-                             Column('phenotype1_description', String(80), unique=False, nullable=False),
-                             Column('phenotype2', String(80), unique=False, nullable=False), #primary_key=True),
-                             #Column('phenotype2_description', String(80), unique=False, nullable=False),
-                             Column('phenotype2_description', Text(), unique=False, nullable=False),
+                             Column('phenotype1', LONGTEXT(), unique=False, nullable=False), #primary_key=True),
+                             Column('phenotype1_description', LONGTEXT(), unique=False, nullable=False),
+                             Column('phenotype2', LONGTEXT(), unique=False, nullable=False), #primary_key=True),
+                             Column('phenotype2_description', LONGTEXT(), unique=False, nullable=False),
                              Column('tissue1', String(80), unique=False, nullable=True), #primary_key=True),
                              Column('tissue2', String(80), unique=False, nullable=False), #primary_key=True),
 
@@ -48,14 +48,14 @@ colocalization_table = Table('colocalization',
 
                              Column('clpp', Float, unique=False, nullable=False),
                              Column('clpa', Float, unique=False, nullable=False),
-                             Column('beta_id1', Float, unique=False, nullable=False),
-                             Column('beta_id2', Float, unique=False, nullable=False),
+                             Column('beta_id1', Float, unique=False, nullable=True),
+                             Column('beta_id2', Float, unique=False, nullable=True),
 
-                             Column('variation', Text(), unique=False, nullable=False),
-                             Column('vars_pip1', Text(), unique=False, nullable=False),
-                             Column('vars_pip2', Text(), unique=False, nullable=False),
-                             Column('vars_beta1', Text(), unique=False, nullable=False),
-                             Column('vars_beta2', Text(), unique=False, nullable=False),
+                             Column('variation', LONGTEXT(), unique=False, nullable=False),
+                             Column('vars_pip1', LONGTEXT(), unique=False, nullable=False),
+                             Column('vars_pip2', LONGTEXT(), unique=False, nullable=False),
+                             Column('vars_beta1', LONGTEXT(), unique=False, nullable=False),
+                             Column('vars_beta2', LONGTEXT(), unique=False, nullable=False),
                              Column('len_cs1', Integer, unique=False, nullable=False),
                              Column('len_cs2', Integer, unique=False, nullable=False),
                              Column('len_inter', Integer, unique=False, nullable=False))
@@ -153,12 +153,15 @@ class ColocalizationDAO(ColocalizationDB):
                     try:
                         dto = ColocalizationDTO(**Colocalization.from_list(line).kwargs_rep())
                         yield dto
-                    except:
+                    except Exception as e:
+                        print(e)
+                        print(dto)
                         print("file:{}".format(path), file=sys.stderr, flush=True)
                         print("line:{}".format(count), file=sys.stderr, flush=True)
-                        print(zip(expected_header,line))
+                        #print(zip(expected_header,line))
                         print(line, file=sys.stderr, flush=True)
-
+                        raise
+                    
         session = self.Session()
         session.bulk_save_objects(generate_colocalization())
         session.commit()
