@@ -318,14 +318,16 @@ def api_region_page(phenocode, region):
     pheno['phenocode'] = phenocode
     
     data = { 'pheno' : pheno ,
-             # 'region' : region,
-             # 'cond_fm_regions' : cond_fm_regions ,
-             # 'tooltip_lztemplate' : conf.parse.tooltip_lztemplate,
-             # 'vis_conf' : conf.vis_conf,
+             'region' : region,
+             'cond_fm_regions' : cond_fm_regions ,
+             'tooltip_lztemplate' : conf.parse.tooltip_lztemplate,
+             'lz_conf' : conf.locuszoom_conf,
+             'vis_conf' : conf.vis_conf,
+             'genome_build' : config.genome_build
             }
     return jsonify(data)
 
-@app.route('/region/<phenocode>/<region>')
+@app.route('/region.1/<phenocode>/<region>')
 @check_auth
 def region_page(phenocode, region):
     if phenocode not in use_phenos:

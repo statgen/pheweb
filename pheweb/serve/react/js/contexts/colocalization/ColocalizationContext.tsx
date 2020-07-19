@@ -1,6 +1,19 @@
 import React, { createContext,  useState } from 'react';
 
-export const ColocalizationContext = createContext();
+export interface Locus {
+    chromosome : string,
+    start : number,
+    stop : number
+}
+
+type Phenotype = string;
+
+export interface ColocalizationParameter {
+    locus : Locus,
+    phenotype : Phenotype
+}
+
+export const ColocalizationContext = createContext<Partial<ColocalizationParameter>>();
 
 const ColocalizationContextProvider = (props) => {
     const inital_position = (() => {
@@ -8,12 +21,10 @@ const ColocalizationContextProvider = (props) => {
 	const match = href.match("\/region\/([^\/]+)\/([A-Za-z0-9]+):([0-9]+)-([0-9]+)$")
 	if(match){
 	    const [ignore, phenotype, chromosome, start , stop ] = match;
-	    return { phenotype, chromosome, start , stop }
+	    return { phenotype, { chromosome, start , stop } }
 	} else {
-	    return { phenotype : null,
-		     chromosome : null,
-		     start : null,
-		     stop : null };
+	    return { locus : null,
+		     phenotype : null };
 	}
     })();
     const [position, setPosition ] = useState(inital_position);
@@ -26,11 +37,11 @@ const ColocalizationContextProvider = (props) => {
         setPosition({ ...position, chromosome });
     }
 
-    const updateStart = (start) => {
+    const updateStart = (start : number) => {
         setPosition({ ...position, start });
     }
 
-    const updateStop = (stop) => {
+    const updateStop = (stop : number) => {
         setPosition({ ...position, stop });
     }
     return (<ColocalizationContext.Provider value={{position ,

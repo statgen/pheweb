@@ -27,30 +27,11 @@ ReactDOM.render(
     <Route exact path='/coding' component={Coding}/>
     <Route path='/variant/:variant' component={Variant}/>
     <Route path='/pheno/:pheno' component={Pheno}/>
-    <Route path='/region.1/:region' component={Region}/>
+    <Route path='/region/:region' component={Region}/>
     </div>
     </div>
     </BrowserRouter>
 	, document.getElementById('reactEntry'))
 }
 
-import List from './components/colocalization/list'
-import Summary from './components/colocalization/summary'
-import ColocalizationProvider from './contexts/colocalization/ColocalizationContext'
 
-$( document ).ready(function() {
-    const list_target =  document.getElementById('colocalization_list_div');
-    if (typeof(list_target) != 'undefined' && list_target != null){    
-	const element = <ColocalizationProvider>
-	      <List />
-	</ColocalizationProvider>;
-	ReactDOM.render(element, list_target);
-    }
-    const summary_target =  document.getElementById('colocalization_summary_div');
-    if (typeof(summary_target) != 'undefined' && summary_target != null){    
-	const element = <ColocalizationProvider>
-	      <Summary />
-	</ColocalizationProvider>;
-	ReactDOM.render(element, summary_target);
-    }
-});

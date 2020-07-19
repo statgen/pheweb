@@ -15,6 +15,8 @@
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
     "babel-loader": "^8.0.5",
+    "dts-gen": "^0.6.0",
+    "locuszoom": "^0.11.0",
     "match-sorter": "^1.8.1",
     "npm-install-all": "^1.1.21",
     "react": "^16.8.3",

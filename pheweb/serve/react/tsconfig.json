@@ -3,8 +3,9 @@
     "jsx": "react",
     "esModuleInterop": true ,
     "noImplicitAny": true,
-    "removeComments": true,
+    /* "removeComments": true, */
     "preserveConstEnums": true,
     "sourceMap": true },
+  "typeRoots": [ "./types", "./node_modules/@types"],
   "include": [ "js/**/*" ],
-  "exclude": [ "node_modules", "**/*.spec.ts" ] }
+  "exclude": [ "typings", "node_modules", "**/*.spec.ts" ] }
