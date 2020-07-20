@@ -6,6 +6,6 @@
     /* "removeComments": true, */
     "preserveConstEnums": true,
     "sourceMap": true },
-  "typeRoots": [ "./types", "./node_modules/@types"],
-  "include": [ "js/**/*" ],
+  /*"typeRoots": [ "./types", "./node_modules/@types"], */
+  "include": [ "js/**/*" , "types/**/*" ],
   "exclude": [ "typings", "node_modules", "**/*.spec.ts" ] }

@@ -1,13 +1,14 @@
 import React, { useState, useEffect , useContext } from 'react';
-import { ColocalizationContext } from '../../contexts/colocalization/ColocalizationContext';
-import axios from 'axios'
+import { ColocalizationContext, ColocalizationState } from '../../contexts/colocalization/ColocalizationContext';
 
+interface Props {}
 
-const Summary = (props) => {
-    const { position } = useContext(ColocalizationContext);
+const Summary = (props : Props) => {
+
+    const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
     useEffect( () => {
         getColocalizationSummary();
-    }, [position]); /* only update on when position is updated */
+    }, [parameter]); /* only update on when position is updated */
 
     const [ summary, setSummary] = useState({
 	data : null,
@@ -15,13 +16,13 @@ const Summary = (props) => {
     }); /* set up summary state */
 
     const getColocalizationSummary = () => {
-	if(position !== null){
-	    const url = `/api/colocalization/${position.phenotype}/${position.chromosome}:${position.start}-${position.stop}/summary?clpa.gte=0.1`;
-	    axios.get(url).then((d) => { setSummary({  data: d.data, loading: false, }); console.log(d.data); } ).catch(function(error){ alert(error);});
+	if(parameter !== null){
+	    const url = `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}/summary?clpa.gte=0.1`;
+	    fetch(url).then(response => response.json()).then((d) => { setSummary({  data: d.data, loading: false, }); console.log(d.data); } ).catch(function(error){ alert(error);});
 	}
     }
 
-    if(position == null) {
+    if(parameter == null) {
         return (<p></p>);
     } else if(summary.data == null){
 	return (<div>Loading ... </div>);
@@ -32,5 +33,5 @@ const Summary = (props) => {
 		</p>)
     }
 }
-export default Summary
 
+export default Summary

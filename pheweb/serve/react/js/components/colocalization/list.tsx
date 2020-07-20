@@ -1,25 +1,26 @@
 import React, { useState, useEffect , useContext } from 'react';
-import ReactTable from 'react-table';
-import { ColocalizationContext } from '../../contexts/colocalization/ColocalizationContext';
-import axios from 'axios'
+import ReactTable, { Cell } from 'react-table';
+import { ColocalizationContext, ColocalizationState } from '../../contexts/colocalization/ColocalizationContext';
 import { CSVLink } from 'react-csv'
 
-const List = (props) => {
-    const { position } = useContext(ColocalizationContext);
-    useEffect( () => {
+interface Props {}
+
+const List = (props : Props) => {
+  const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
+  useEffect( () => {
         getList();
-    }, [position]); /* only update on when position is updated */
+    }, [parameter]); /* only update on when position is updated */
 
     const [colocalizationList, setList] = useState(null); /* set up hooks for colocalization */
 
     const getList = () => {
-        if(position !== null){
-	    const url = `/api/colocalization/${position.phenotype}/${position.chromosome}:${position.start}-${position.stop}?clpa.gte=0.1&clpa.order=desc`;
-            axios.get(url).then((d) => { setList(d.data.colocalizations); console.log(d.data); } ).catch(function(error){ alert(error);});
+        if(parameter !== null){
+	    const url = `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}?clpa.gte=0.1&clpa.order=desc`;
+            fetch(url).then(response => response.json()).then((d) => { setList(d.data.colocalizations); console.log(d.data); } ).catch(function(error){ alert(error);});
         }
     }
 
-    if(position == null) {
+    if(parameter == null) {
         return  (<div />);
     } else if(colocalizationList != null){
 	const metadata = [ { title: "source" ,
@@ -36,15 +37,15 @@ const List = (props) => {
 			     label: "QTL" },
                            { title: "tissue",
                              accessor: "tissue2",
-                             Cell: props => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.replace(/_/g,' '),
+                             Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.replace(/_/g,' '),
 			     label: "Tissue" },
                            { title: "clpp",
                              accessor: "clpp",
-                             Cell: props => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
+                             Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
 			     label: "CLPP" },
                            { title: "clpa",
                              accessor: "clpa" ,
-                             Cell: props => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
+                             Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
                              label: "CLPA" }];
 
         const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
