@@ -23,8 +23,8 @@ def run(argv):
         print('Generate phenotype correlations data for use in pheweb plots')
         exit(1)
 
-    raw_correl_filepath = common_filepaths['correlations-raw']
-    annotated_correl_filepath = common_filepaths['correlations']
+    raw_correl_filepath = common_filepaths['correlations-raw']()
+    annotated_correl_filepath = common_filepaths['correlations']()
 
     if not os.path.isfile(raw_correl_filepath):
         logger.info('No "pheno-correlations.txt" file was found; processing step cannot be completed.')

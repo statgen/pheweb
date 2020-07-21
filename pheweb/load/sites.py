@@ -17,7 +17,7 @@ MAX_NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #file
 MIN_NUM_FILES_TO_MERGE_AT_ONCE = 4 # Try to avoid ever merging fewer than this many files at a time.
 
 def run(argv):
-    out_filepath = common_filepaths['unanno']
+    out_filepath = common_filepaths['unanno']()
 
     force = False
     if argv == ['-f']:

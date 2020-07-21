@@ -32,7 +32,7 @@ assert not approx_equal(42, 42.01)
 def get_phenolist(filepath=None):
     # TODO: should this be memoized?
     from .file_utils import common_filepaths
-    filepath = filepath or common_filepaths['phenolist']  # Allow override for unit testing
+    filepath = filepath or common_filepaths['phenolist']()  # Allow override for unit testing
     try:
         with open(os.path.join(filepath)) as f:
             phenolist = json.load(f)
@@ -73,7 +73,7 @@ chrom_aliases = {'23': 'X', '24': 'Y', '25': 'MT', 'M': 'MT'}
 
 def get_gene_tuples(include_ensg=False):
     from .file_utils import common_filepaths
-    with open(common_filepaths['genes']) as f:
+    with open(common_filepaths['genes']()) as f:
         for row in csv.reader(f, delimiter='\t'):
             assert row[0] in chrom_order, row[0]
             if include_ensg:

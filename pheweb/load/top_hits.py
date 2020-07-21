@@ -36,9 +36,9 @@ def stringify_assocs(assocs):
 
 
 def run(argv):
-    out_filepath_json = common_filepaths['top-hits']
-    out_filepath_1k_json = common_filepaths['top-hits-1k']
-    out_filepath_tsv = common_filepaths['top-hits-tsv']
+    out_filepath_json = common_filepaths['top-hits']()
+    out_filepath_1k_json = common_filepaths['top-hits-1k']()
+    out_filepath_tsv = common_filepaths['top-hits-tsv']()
 
     if argv and argv[0] == '-h':
         print('''

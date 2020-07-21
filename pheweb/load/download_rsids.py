@@ -6,7 +6,7 @@ import os
 import wget
 
 raw_filepath = get_generated_path('sites/dbSNP/dbsnp-b{}-GRCh37.gz'.format(dbsnp_version))
-clean_filepath = common_filepaths['rsids']
+clean_filepath = common_filepaths['rsids']()
 
 def run(argv):
     if not os.path.exists(clean_filepath):

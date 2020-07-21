@@ -11,8 +11,8 @@ def run(argv):
         print('get info for genes')
         exit(0)
 
-    out_filepath = common_filepaths['best-phenos-by-gene']
-    matrix_filepath = common_filepaths['matrix']
+    out_filepath = common_filepaths['best-phenos-by-gene']()
+    matrix_filepath = common_filepaths['matrix']()
     if os.path.exists(out_filepath) and mtime(matrix_filepath) < mtime(out_filepath):
         print('{} is up-to-date!'.format(out_filepath))
         return

@@ -31,7 +31,7 @@ def run(argv):
         print('Make a file summarizing information about each phenotype (for use in the phenotypes table)')
         exit(1)
 
-    out_filepath = common_filepaths['phenotypes_summary']
+    out_filepath = common_filepaths['phenotypes_summary']()
     data = sorted(get_phenotypes_including_top_variants(), key=lambda p: p['pval'])
     data.sort(key=lambda p: p['pval'])
     write_json(filepath=out_filepath, data=data)

@@ -120,11 +120,11 @@ def top_hits_page():
 @bp.route('/api/top_hits.json')
 @check_auth
 def api_top_hits():
-    return send_file(common_filepaths['top-hits-1k'])
+    return send_file(common_filepaths['top-hits-1k']())
 @bp.route('/download/top_hits.tsv')
 @check_auth
 def download_top_hits():
-    return send_file(common_filepaths['top-hits-tsv'])
+    return send_file(common_filepaths['top-hits-tsv']())
 
 @bp.route('/phenotypes')
 @check_auth
@@ -133,7 +133,7 @@ def phenotypes_page():
 @bp.route('/api/phenotypes.json')
 @check_auth
 def api_phenotypes():
-    return send_file(common_filepaths['phenotypes_summary'])
+    return send_file(common_filepaths['phenotypes_summary']())
 
 @bp.route('/api/qq/pheno/<phenocode>')
 @check_auth
@@ -197,7 +197,7 @@ def api_pheno_correlations(phenocode):
     if not conf.show_correlations:
         return jsonify({'error': 'This PheWeb instance does not support the requested endpoint.'}), 400
 
-    annotated_correl_fn = common_filepaths['correlations']
+    annotated_correl_fn = common_filepaths['correlations']()
     rows = weetabix.get_indexed_rows(annotated_correl_fn, phenocode, strict=False)
     # TODO: Decouple so that the route doesn't contain assumptions about file format
     # TODO: Check w/Daniel for "edge case" type assumptions- eg underflow on pvalues, weird field values?
@@ -222,7 +222,7 @@ def get_gene_region_mapping():
 
 @functools.lru_cache(None)
 def get_best_phenos_by_gene():
-    with open(common_filepaths['best-phenos-by-gene']) as f:
+    with open(common_filepaths['best-phenos-by-gene']()) as f:
         return json.load(f)
 
 @bp.route('/region/<phenocode>/gene/<genename>')

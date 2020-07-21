@@ -59,12 +59,12 @@ def run(argv):
         exit(1)
 
 
-    if not os.path.exists(common_filepaths['genes']):
+    if not os.path.exists(common_filepaths['genes']()):
         print('Downloading genes')
         from . import download_genes
         download_genes.run([])
 
-    aliases_filepath = common_filepaths['gene-aliases-trie']
+    aliases_filepath = common_filepaths['gene-aliases-trie']()
     if not os.path.exists(aliases_filepath):
         print('gene aliases will be stored at {!r}'.format(aliases_filepath))
         mapping = get_gene_aliases()

@@ -457,7 +457,7 @@ def write_phenolist_to_file(phenolist, f):
     phenolist = sorted(phenolist, key=lambda pheno: pheno.get('phenocode', ''))
     json.dump(phenolist, f, sort_keys=True, indent=1)
 
-default_phenolist_filepath = common_filepaths['phenolist']
+default_phenolist_filepath = common_filepaths['phenolist']()
 
 def run(argv):
     # TODO: replace -f with -p .  That's more clear for import-phenolist.

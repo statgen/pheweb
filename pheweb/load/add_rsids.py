@@ -25,9 +25,9 @@ from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths,
 import os
 import itertools
 
-in_filepath = common_filepaths['unanno']
-out_filepath = common_filepaths['sites-rsids']
-rsids_filepath = common_filepaths['rsids']
+in_filepath = common_filepaths['unanno']()
+out_filepath = common_filepaths['sites-rsids']()
+rsids_filepath = common_filepaths['rsids']()
 
 def mod_time(filepath): return os.stat(filepath).st_mtime
 

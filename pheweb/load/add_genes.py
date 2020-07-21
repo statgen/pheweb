@@ -86,9 +86,9 @@ def run(argv):
         print('Annotate the sites file with nearest genes.  Download the relevant version of Gencode if not already present.')
         exit(1)
 
-    input_filepath = common_filepaths['sites-rsids']
-    genes_filepath = common_filepaths['genes']
-    out_filepath = common_filepaths['sites']
+    input_filepath = common_filepaths['sites-rsids']()
+    genes_filepath = common_filepaths['genes']()
+    out_filepath = common_filepaths['sites']()
 
     if not os.path.exists(genes_filepath):
         print('Downloading genes from GENCODE')

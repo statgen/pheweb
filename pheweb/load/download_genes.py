@@ -154,7 +154,7 @@ def dedup_symbol(genes):
 
 def run(argv):
     gencode_filepath = get_generated_path('sites/genes/gencode-{}.gtf.gz'.format(genes_version))
-    genes_filepath = common_filepaths['genes']
+    genes_filepath = common_filepaths['genes']()
 
     if not os.path.exists(genes_filepath):
         print('genes-{}.bed will be stored at {!r}'.format(genes_version, genes_filepath))

@@ -4,7 +4,7 @@ from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths,
 from .load_utils import parallelize_per_pheno
 
 
-sites_filepath = common_filepaths['sites']
+sites_filepath = common_filepaths['sites']()
 
 def run(argv):
     if '-h' in argv or '--help' in argv:

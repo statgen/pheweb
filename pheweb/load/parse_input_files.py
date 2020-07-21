@@ -52,7 +52,7 @@ def run(argv):
                 'A new pheno-list.json with only the {} phenotypes that succeeded (out of {} total) has been written to {!r}.\n'.format(
                     len(succeeded_phenos), len(phenos), succeeded_filepath) +
                 'To continue with only these phenotypes, run:\n'
-                'cp {!r} {!r}\n'.format(succeeded_filepath, common_filepaths['phenolist']) +
+                'cp {!r} {!r}\n'.format(succeeded_filepath, common_filepaths['phenolist']()) +
                 'Information about the phenotypes that failed is in {!r}\n'.format(failed_filepath)
             )
 

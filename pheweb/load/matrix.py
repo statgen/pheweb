@@ -7,8 +7,8 @@ import os
 import glob
 import pysam
 
-sites_filepath = common_filepaths['sites']
-matrix_gz_filepath = common_filepaths['matrix']
+sites_filepath = common_filepaths['sites']()
+matrix_gz_filepath = common_filepaths['matrix']()
 matrix_gz_tmp_filepath = get_tmp_path(matrix_gz_filepath)
 
 def should_run():

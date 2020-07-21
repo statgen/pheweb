@@ -20,8 +20,8 @@ def get_loci():
 
 
 def run(argv):
-    out_filepath_json = common_filepaths['top-loci']
-    out_filepath_tsv = common_filepaths['top-loci-tsv']
+    out_filepath_json = common_filepaths['top-loci']()
+    out_filepath_tsv = common_filepaths['top-loci-tsv']()
 
     if argv and argv[0] == '-h':
         print('''

@@ -11,9 +11,9 @@ def parse_line(line):
     return ('{}-{}-{}-{}'.format(chrom, pos, ref, alt), rsid.encode())
 
 
-sites_filepath = common_filepaths['sites']
-cpra_to_rsids_trie_filepath = common_filepaths['cpra-to-rsids-trie']
-rsid_to_cpra_trie_filepath  = common_filepaths['rsid-to-cpra-trie']
+sites_filepath = common_filepaths['sites']()
+cpra_to_rsids_trie_filepath = common_filepaths['cpra-to-rsids-trie']()
+rsid_to_cpra_trie_filepath  = common_filepaths['rsid-to-cpra-trie']()
 def should_replace(filepath):
     return not os.path.exists(filepath) or os.stat(filepath).st_mtime < os.stat(sites_filepath).st_mtime
 
