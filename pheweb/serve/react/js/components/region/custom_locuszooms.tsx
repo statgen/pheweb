@@ -1,5 +1,5 @@
 import {DataSources, Dashboard, Data, TransformationFunctions, positionIntToString, createCORSPromise } from 'locuszoom';
-import { defer } from 'Q';
+import { defer } from 'q';
 
 export const GWASCatSource = Data.Source.extend(function(init : any) {  this.parseInit(init); }, "GWASCatSourceLZ");
 Data.GWASCatSource = GWASCatSource;
@@ -32,18 +32,17 @@ GWASCatSource.prototype.parseResponse = function(resp, chain, fields, outnames, 
     }
 }
 
-export const ClinvarDataSource = LocusZoom.Data.Source.extend(function(init) {
+export const ClinvarDataSource = Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "ClinvarDataSourceLZ");
-Data.ClinvarDataSource = ClinvarDataSource;
 
 
-Data.ClinvarDataSource.prototype.getURL = function(state, chain, fields) {
+ClinvarDataSource.prototype.getURL = function(state, chain, fields) {
     return this.url
 };
 
 
-Data.ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
+ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
 
     var url = this.getURL(state, chain, fields);
 
@@ -52,21 +51,21 @@ Data.ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
     };
     console.log(`TODO : genome build : ${this.genome_build}`)
     var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[' + (this.genome_build == 37 ? 'chrpos37' : 'chrpos') + ']%22clinsig%20pathogenic%22[Properties]&retmax=500'
-    return LocusZoom.createCORSPromise("GET", requrl).then(function( resp) {
+    return createCORSPromise("GET", requrl).then(function( resp) {
 
         var data = JSON.parse(resp);
 
         if(data.esearchresult.count==0) {
-            var res = Q.defer()
+            var res = defer()
             res.resolve( '{ "noresults":"","pos":' + state.start + ' }'  )
             return res.promise
         }
 
         if (data.esearchresult.idlist != null) {
             var requrl = url + "esummary.fcgi?db=clinvar&retmode=json&id=" + data.esearchresult.idlist.join(",")
-            return LocusZoom.createCORSPromise("GET", requrl)
+            return createCORSPromise("GET", requrl)
         } else {
-            var res = Q.defer()
+            var res = defer()
             console.log( "Failed to query clinvar" + JSON.stringify(data, null, 4 ) )
             res.reject("Failed to query clinvar" + JSON.stringify(data, null, 4 ))
             return res
@@ -75,7 +74,7 @@ Data.ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
     );
 };
 
-Data.ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
 
     if (resp == '') {
         // locuszoom does not show even axis titles if there are no data visible.
@@ -102,17 +101,16 @@ Data.ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, o
         val = val[1]
         var loc = val.variation_set[0].variation_loc.filter(function(x)  {return x.assembly_name=="GRCh38"} )[0]
         if( loc != null) {
-            var object= {}
-            object.start = loc.start;
-            object.stop = loc.stop;
-            object.ref = loc.ref;
-            object.alt = loc.alt;
-            object.chr = loc.chr
-            object.varName = val.variation_set[0].variation_name;
-            object.clinical_sig = val.clinical_significance.description;
-            object.trait = val.trait_set.map( function(x) { return x.trait_name } ).join(":")
-            object.y= 5
-            object.id = val.uid;
+            var object= {  start : loc.start,
+                           stop : loc.stop,
+                           ref : loc.ref,
+                           alt : loc.alt,
+                           chr : loc.chr,
+                           varName : val.variation_set[0].variation_name,
+                           clinical_sig : val.clinical_significance.description,
+                           trait : val.trait_set.map( function(x) { return x.trait_name } ).join(":"),
+                           y : 5 ,
+                           id : val.uid };
 	    object['clinvar:id'] = object.chr + ':' + object.start + '_' + object.ref + '/' + object.alt
 
             respData.push( object )
@@ -122,6 +120,7 @@ Data.ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, o
 
     return {header: chain.header, body: respData};
 };
+Data.ClinvarDataSource = ClinvarDataSource;
 
 
 
@@ -153,14 +152,13 @@ Data.Source.prototype.getData = function(state, fields, outnames, trans) {
     };
 };
 
-export FG_LDDataSource = LocusZoom.Data.Source.extend(function(init) {
+export const FG_LDDataSource = Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "FG_LDDataSourceLZ");
 
-Data.FG_LDDataSource = FG_LDDataSource;
 // https://rest.ensembl.org/info/variation/populations/homo_sapiens?content-type=application/json;filter=LD
 // ld/:species/:id/:population_name
-Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
+FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
 
     var findExtremeValue = function(x, pval, sign) {
         pval = pval || "pvalue";
@@ -188,7 +186,7 @@ Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
 
 };
 
-Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
 
     // if ld was not fetched, return the previous chain skipping this data source
     if (!resp) return chain
@@ -236,21 +234,21 @@ Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, out
 
 }
 
-Data.FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
+FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
     var url = this.getURL(state, chain, fields);
     var headers = {
         "Content-Type": "application/json"
     };
     
-    return url ? LocusZoom.createCORSPromise("GET", url, {}, headers) : Q.defer()
+    return url ? createCORSPromise("GET", url, {}, headers) : defer()
 
 };
+Data.FG_LDDataSource = FG_LDDataSource;
 
 
 export const ConditionalSource = Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "ConditionalLZ");
-Data.ConditionalSource = ConditionalSource;
 
 ConditionalSource.prototype.preGetData = function(state, fields, outnames, trans) {
     var id_field = this.params.id_field || "id";
@@ -305,6 +303,7 @@ ConditionalSource.prototype.parseResponse = function(resp, chain, fields, outnam
     
     return Data.Source.prototype.parseResponse.call(this, this.params.allData[this.params.dataIndex], chain, fields, outnames, trans);
 }
+Data.ConditionalSource = ConditionalSource;
 
 
 export const FineMappingSource = Data.Source.extend(function(init) { this.parseInit(init);}, "FineMappingLZ");
@@ -317,6 +316,6 @@ TransformationFunctions.set("percent", function(x : number) {
     const x_scaled = (x*100).toPrecision(2);
     var x_string = x_scaled.toString()
     if (x_string.indexOf('.') !== -1) { x_string = x_string.replace(/0+$/, ''); }
-    if (x_string.endsWith('.')) { x_string = x_string.substr(0, x.length-1); }
+    if (x_string.endsWith('.')) { x_string = x_string.substr(0, x_string.length-1); }
     return x_string + '%';
 });
