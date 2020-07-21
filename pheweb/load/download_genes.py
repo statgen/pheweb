@@ -47,9 +47,9 @@ vaultRNA
 
 def get_all_genes(gencode_filepath):
     with read_gzip(gencode_filepath) as f:
-        for l in f:
-            if l.startswith('#'): continue
-            r = l.split('\t')
+        for line in f:
+            if line.startswith('#'): continue
+            r = line.split('\t')
             if r[2] != 'gene': continue
 
             try:
