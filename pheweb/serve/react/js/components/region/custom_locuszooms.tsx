@@ -1,6 +1,7 @@
 import {DataSources, Dashboard, Data, TransformationFunctions, positionIntToString, createCORSPromise } from 'locuszoom';
 
 export const GWASCatSource = Data.Source.extend(function(init : any) {  this.parseInit(init); }, "GWASCatSourceLZ");
+Data.GWASCatSource = GWASCatSource;
 
 GWASCatSource.prototype.getURL = function(state, chain : any, fields : any) {
 
@@ -113,7 +114,8 @@ export const ClinvarDataSource = (genome_build : number) => {
     };
     
     return source;
-}
+};
+Data.ClinvarDataSource = ClinvarDataSource;
 
 Data.Source.prototype.getData = function(state, fields, outnames, trans) {
 
@@ -232,11 +234,12 @@ const FG_LDDataSource = (lz_conf) => {
         
     return source;
 }
-
+Data.FG_LDDataSource = FG_LDDataSource
 
 export const ConditionalSource = Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "ConditionalLZ");
+Data.ConditionalSource = ConditionalSource;
 
 ConditionalSource.prototype.preGetData = function(state, fields, outnames, trans) {
     var id_field = this.params.id_field || "id";

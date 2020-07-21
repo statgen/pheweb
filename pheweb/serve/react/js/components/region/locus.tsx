@@ -1,28 +1,38 @@
 import React , { useState, useEffect , useContext } from 'react';
 import { Region , LzConf} from './components';
 import {DataSources, Dashboard, Data, TransformationFunctions, positionIntToString } from 'locuszoom';
-import { FG_LDDataSource , GWASCatSource , ClinvarDataSource } from './custom_locuszooms';
+import { FG_LDDataSource , GWASCatSource , ClinvarDataSource, ConditionalSource } from './custom_locuszooms';
 
-export const init_locus_zoom = (region : Region,lzConfig : LzConf,genome_build : number) => {
+export const init_locus_zoom = (region_ : Region) => {
+    const region : Region = {...region_}; 
     const localBase : string = `/api/region/${region.pheno.phenocode}/lz-`;
     const localCondBase : string = `/api/conditional_region/${region.pheno.phenocode}/lz-`;
     const localFMBase : string = `/api/finemapped_region/${region.pheno.phenocode}/lz-`;
     const remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
     const data_sources = new DataSources();
-
+    
     const gene_source : number = region.genome_build == 37 ? 2 : 1
     const recomb_source : number = region.genome_build == 37 ? 15 : 16
     const gwascat_source : Array<number> = region.genome_build == 37 ? [2,3] : [1,4]
-
+    console.log(ConditionalSource);
     data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     data_sources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
-    data_sources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
+    data_sources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);    
     data_sources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:gene_source}}])
     data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
 
-    // clinvar needs to be added after gene because genes within locuszoom data chain are used for fetching
+
+    /*
     data_sources.add("gwas_cat", new GWASCatSource({url: `${remoteBase}annotation/gwascatalog/`, params: { id:gwascat_source ,pvalue_field: "log_pvalue" }}));
+
     data_sources.add("clinvar", new (ClinvarDataSource(genome_build))({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
+
+
+
+
+    // clinvar needs to be added after gene because genes within locuszoom data chain are used for fetching
+    
+
     if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	data_sources.add("ld", new (FG_LDDataSource(lzConfig))({url: "/api/ld", params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:id" }}));
     } else {
@@ -249,7 +259,7 @@ export const init_locus_zoom = (region : Region,lzConfig : LzConf,genome_build :
         }
     });
 
-
+    */
 
 
 }

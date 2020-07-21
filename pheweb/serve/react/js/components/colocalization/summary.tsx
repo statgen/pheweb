@@ -14,11 +14,11 @@ const Summary = (props : Props) => {
 	data : null,
 	loading: true
     }); /* set up summary state */
-
+    
     const getColocalizationSummary = () => {
 	if(parameter !== null){
 	    const url = `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}/summary?clpa.gte=0.1`;
-	    fetch(url).then(response => response.json()).then((d) => { setSummary({  data: d.data, loading: false, }); console.log(d.data); } ).catch(function(error){ alert(error);});
+	    fetch(url).then(response => response.json()).then((d) => { setSummary({  data: d, loading: false, }); } ).catch(function(error){ alert(error);});
 	}
     }
 

@@ -47,27 +47,27 @@ const colocalization = () => <div className="row">
   </div>
 </div>
     
-    
-    
 const Region = (props : Props) => {
     const [ region, setRegion ] = useState<Region | null>(null);
-    /*
     const updatePheno = () => {
         const summary_url : string = `/api${window.location.pathname}`;
 	fetch(summary_url).
 	    then(res => res.json()).
-	    then(res => { console.log(res); setRegion(res); });
+	    then(res => { setRegion(res); });
+    };
+    const updateLocusZoom = () => {
+	if(region != null){
+	    init_locus_zoom(region);
+	}
     };
     useEffect(() => {updatePheno(); },[]);
-    */
+    useEffect(() => {updateLocusZoom(); },[region]);
     return <div className="container-fluid">
-	/*
 	{ region?banner(region.pheno):<div></div> }
         { region?summary(region.pheno):<div></div> }
         { region?message(region.lz_conf):<div></div> }
         { region?locus_zoom(region.region):<div></div> }
         { colocalization() }
-	*/
     </div>;
 }
 

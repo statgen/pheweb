@@ -14,9 +14,9 @@ const List = (props : Props) => {
     const [colocalizationList, setList] = useState(null); /* set up hooks for colocalization */
 
     const getList = () => {
-        if(parameter !== null){
+        if(parameter != null && parameter.phenotype != null && parameter.locus != null){
 	    const url = `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}?clpa.gte=0.1&clpa.order=desc`;
-            fetch(url).then(response => response.json()).then((d) => { setList(d.data.colocalizations); console.log(d.data); } ).catch(function(error){ alert(error);});
+	    fetch(url).then(response => response.json()).then((d) => { setList(d.colocalizations); } ).catch(function(error){ alert(error);});
         }
     }
 
