@@ -20,15 +20,14 @@ export const init_locus_zoom = (region_ : Region) => {
     data_sources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);    
     data_sources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:gene_source}}])
     data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
-
+    data_sources.add("gwas_cat", new GWASCatSource({url: `${remoteBase}annotation/gwascatalog/`,
+						    genome_build : region.genome_build , 
+						    params: { id:gwascat_source ,pvalue_field: "log_pvalue" }}));
+    data_sources.add("clinvar", new ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/",
+						       genome_build : region.genome_build , 
+						       params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
 
     /*
-    data_sources.add("gwas_cat", new GWASCatSource({url: `${remoteBase}annotation/gwascatalog/`, params: { id:gwascat_source ,pvalue_field: "log_pvalue" }}));
-
-    data_sources.add("clinvar", new (ClinvarDataSource(genome_build))({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
-
-
-
 
     // clinvar needs to be added after gene because genes within locuszoom data chain are used for fetching
     

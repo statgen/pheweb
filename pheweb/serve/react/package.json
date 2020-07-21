@@ -22,6 +22,7 @@
     "locuszoom": "^0.11.0",
     "match-sorter": "^1.8.1",
     "npm-install-all": "^1.1.21",
+    "q": "^1.5.1",
     "react": "^16.8.3",
     "react-csv": "^1.1.1",
     "react-dom": "^16.8.3",
