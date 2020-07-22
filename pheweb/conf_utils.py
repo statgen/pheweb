@@ -5,7 +5,7 @@
 from . import utils
 
 import os
-import imp
+import importlib
 import itertools
 from collections import OrderedDict, Counter
 from copy import deepcopy
@@ -108,7 +108,8 @@ def _ensure_conf():
         _config_filepath = os.path.join(conf.data_dir, 'config.py')
         if os.path.isfile(_config_filepath):
             try:
-                _conf_module = imp.load_source('config', _config_filepath)
+                _conf_module = importlib.util.module_from_spec(importlib.util.spec_from_file_location('config', _config_filepath))
+                _conf_module.__spec__.loader.exec_module(_conf_module)
             except Exception:
                 raise utils.PheWebError("PheWeb tried to load your config.py at {!r} but it failed.".format(_config_filepath))
             else:
