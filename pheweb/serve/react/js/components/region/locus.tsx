@@ -15,30 +15,30 @@ export const init_locus_zoom = (region_ : Region) => {
     const recomb_source : number = region.genome_build == 37 ? 15 : 16
     const gwascat_source : Array<number> = region.genome_build == 37 ? [2,3] : [1,4]
     console.log(ConditionalSource);
+    console.log(region);
     data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     data_sources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
     data_sources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);    
     data_sources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:gene_source}}])
-    data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
+    data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" ,
+							  params : { build : region.genome_build } }])
     data_sources.add("gwas_cat", new GWASCatSource({url: `${remoteBase}annotation/gwascatalog/`,
 						    genome_build : region.genome_build , 
 						    params: { id:gwascat_source ,pvalue_field: "log_pvalue" }}));
     data_sources.add("clinvar", new ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/",
 						       genome_build : region.genome_build , 
 						       params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
-
-    /*
-
     // clinvar needs to be added after gene because genes within locuszoom data chain are used for fetching
-    
-
     if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
-	data_sources.add("ld", new (FG_LDDataSource(lzConfig))({url: "/api/ld", params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:id" }}));
+	data_sources.add("ld", new FG_LDDataSource({url: "/api/ld",
+						    params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:id" },
+						    lzConfig: region.lz_conf }));
     } else {
-	data_sources.add("ld", new (FG_LDDataSource(lzConfig))({url: "https://rest.ensembl.org/ld/homo_sapiens/", params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:rsid" }}));
+	data_sources.add("ld", new FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
+						    params: { id:[1,4] ,pvalue_field: "association:pvalue", "var_id_field":"association:rsid" },
+						    lzConfig: region.lz_conf}));
     }	
     data_sources.add("recomb", ["RecombLZ", { url: `${remoteBase}annotation/recomb/results/`, params: {source: recomb_source} }]);
-
 
     var scatters = ['association', 'conditional', 'finemapping', 'gwas_cat']
 
@@ -59,8 +59,7 @@ export const init_locus_zoom = (region_ : Region) => {
 	}
 	return pScaled
     })
-
-    // dashboard components
+    
     Dashboard.Components.add("region", function(layout){
         Dashboard.Component.apply(this, arguments);
         this.update = function(){
@@ -79,6 +78,8 @@ export const init_locus_zoom = (region_ : Region) => {
             return this;
         };
     });
+
+    // dashboard components
 
     const add_dashboard_button = (name : string, func : (layout : any)=> any )  => {
         Dashboard.Components.add(name, function(layout){
@@ -173,6 +174,17 @@ export const init_locus_zoom = (region_ : Region) => {
             })
         })
     }
+    
+    const plot = LocusZoom.populate("#lz-1", data_sources);
+
+
+    /*
+    plot.addPanel(panel_layouts.association)
+    plot.addPanel(panel_layouts.clinvar)
+    plot.addPanel(panel_layouts.gwas_cat)
+    plot.addPanel(panel_layouts.genes)
+
+
 
     $(function() {
 

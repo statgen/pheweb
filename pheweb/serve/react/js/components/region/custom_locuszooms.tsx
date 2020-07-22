@@ -1,7 +1,9 @@
 import {DataSources, Dashboard, Data, TransformationFunctions, positionIntToString, createCORSPromise } from 'locuszoom';
 import { defer } from 'q';
 
-export const GWASCatSource = Data.Source.extend(function(init : any) {  this.parseInit(init); }, "GWASCatSourceLZ");
+
+
+export const GWASCatSource = Data.Source.extend(function(init : any) {  this.parseInit(init); }, "GWASCatSoureLZ");
 Data.GWASCatSource = GWASCatSource;
 
 GWASCatSource.prototype.getURL = function(state, chain : any, fields : any) {
@@ -50,7 +52,9 @@ ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
         "Content-Type": "application/x-www-form-urlencoded"
     };
     console.log(`TODO : genome build : ${this.genome_build}`)
-    var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[' + (this.genome_build == 37 ? 'chrpos37' : 'chrpos') + ']%22clinsig%20pathogenic%22[Properties]&retmax=500'
+    const genome_build  : string = this.genome_build == 37 ? 'chrpos37' : 'chrpos'
+    var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[' + (window.genome_build == 37 ? 'chrpos37' : 'chrpos') + ']%22clinsig%20pathogenic%22[Properties]&retmax=500'
+
     return createCORSPromise("GET", requrl).then(function( resp) {
 
         var data = JSON.parse(resp);

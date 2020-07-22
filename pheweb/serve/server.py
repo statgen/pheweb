@@ -316,15 +316,14 @@ def api_region_page(phenocode, region):
     else:
         cond_fm_regions = []
     pheno['phenocode'] = phenocode
-    
+    print()
     data = { 'pheno' : pheno ,
              'region' : region,
              'cond_fm_regions' : cond_fm_regions ,
              'tooltip_lztemplate' : conf.parse.tooltip_lztemplate,
              'lz_conf' : conf.locuszoom_conf,
-             'vis_conf' : conf.vis_conf,
-             'genome_build' : config.genome_build
-            }
+             'vis_conf' : conf.vis_conf ,
+             'genome_build' : app.config['genome_build'] }
     return jsonify(data)
 
 @app.route('/region.1/<phenocode>/<region>')
