@@ -15,7 +15,7 @@ declare module 'locuszoom' {
 
 	shouldPersist(): any;
 
-	show(): any;
+	show(): any;layLayoutout
 
 	update(): any;
 
@@ -162,6 +162,7 @@ declare module 'locuszoom' {
 
     }
 
+
     export class DataSources {
 	constructor();
 
@@ -185,8 +186,10 @@ declare module 'locuszoom' {
 
 	toJSON(): any;
 
+	sources : { [key: string]: Data.Source; }
     }
 
+	
     export class Legend {
 	constructor(t: any);
 
@@ -293,29 +296,17 @@ declare module 'locuszoom' {
 	unselectElementsByFilters(t: any, e: any): any;
 
 	static DefaultLayout: {
-            axes: {
-		x: {
-		};
-		y1: {
-		};
-		y2: {
-		};
-            };
-            background_click: string;
-            cliparea: {
-		height: number;
-		origin: {
-                    x: number;
-                    y: number;
-		};
-		width: number;
-            };
-            dashboard: {
-		components: any[];
-            };
-            data_layers: any[];
-            height: number;
-            interaction: {
+        axes: { x: { };
+		        y1: { };
+		        y2: { }; };
+        background_click: string;
+        cliparea: { height: number;
+		            origin: { x: number; y: number; };
+		            width: number; };
+        dashboard: { components: any[]; };
+        data_layers: any[];
+        height: number;
+        interaction: {
 		drag_background_to_pan: boolean;
 		drag_x_ticks_to_scale: boolean;
 		drag_y1_ticks_to_scale: boolean;
@@ -338,11 +329,8 @@ declare module 'locuszoom' {
 		x: number;
 		y: any;
             };
-            proportional_height: any;
-            proportional_origin: {
-		x: number;
-		y: any;
-            };
+            proportional_height?: number;
+            proportional_origin: { x: number; y: number; };
             proportional_width: any;
             title: {
 		style: {
@@ -408,14 +396,14 @@ declare module 'locuszoom' {
     }
 
     export const StandardLayout: {
-	dashboard: {
-            components: {
-		position: string;
-		subtitle: string;
-		title: string;
-		type: string;
-            }[];
-	};
+		dashboard: {
+			components: {
+				position: string;
+				subtitle: string;
+				title: string;
+				type: string;
+				}[];
+		};
 	height: number;
 	aspect_ratio: number;
 	max_region_scale: number;
@@ -429,8 +417,10 @@ declare module 'locuszoom' {
                     tick_format: string;
 		};
 		y1: {
+                    extent: string;
                     label: string;
                     label_offset: number;
+                    tick_format: string;
 		};
 		y2: {
                     label: string;
@@ -539,7 +529,7 @@ declare module 'locuszoom' {
 
             update(): void;
 
-            static Button(t: any): any;
+            static Button(t: any): void;
 
 	}
 
@@ -680,43 +670,47 @@ declare module 'locuszoom' {
 
 	}
 
+	class Parameter {
+
+	}
 	class Source {
             constructor();
+			params : ({ [key: string ]: string; } | Parameter)
 
-            annotateData(t: any, e: any): any;
+            annotateData(records : Object[], chain : Object) : Object[]|Promise<Object>;
 
             combineChainBody(t: any, e: any, a: any, i: any, s: any): any;
 
-            extractFields(t: any, s: any, n: any, o: any): any;
+            extractFields(data : Object[], fields : string[], outnames : string[], trans: ((v : any)=>any)[]) : object[];
 
-            fetchRequest(t: any, e: any, a: any): any;
+            fetchRequest (state: Object, chain: any, fields: any): Promise<any>;
 
-            getCacheKey(t: any, e: any, a: any): any;
+			getCacheKey: (state: Object, chain: any, fields: any) => string | undefined;
 
-            getData(t: any, a: any, i: any, s: any): any;
+			getData: (state : Object, fields : string[], outnames : string[], trans: ((v : any)=>any)[] ) => any;
 
-            getRequest(t: any, e: any, a: any): any;
+			getRequest: (state: Object, chain: any, fields: any) => string | undefined;
 
-            getURL(t: any, e: any, a: any): any;
+			getURL: (state: Object, chain: any, fields: any) => string | undefined;
 
-            normalizeResponse(e: any): any;
+            normalizeResponse(data : Object[]|Object) : any;
 
             parseArraysToObjects(t: any, e: any, a: any, i: any): any;
 
             parseData(t: any, e: any, a: any, i: any): any;
 
-            parseInit(t: any): void;
+            parseInit(init : string | { url : string , params : string}) : void;
 
             parseObjectsToObjects(t: any, e: any, a: any, i: any): any;
 
-            parseResponse(t: any, e: any, a: any, i: any, s: any): any;
+            parseResponse(resp : string | object, chain: Object, fields : string[], outnames : string[], trans: ((v : any)=>any)[] ) : Promise<{header: any, discrete: any, body: object[]}>;
 
             prepareData(t: any): any;
 
-            toJSON(): any;
+            toJSON(): JSON;
 
-            static extend(t: (init : any) => void, e: string, a?: any): any;
-
+            static extend(constructorFun: (init : any) => void, uniqueName: string, base?: (string| any )): any;
+	
 	}
 
 	class StaticSource {
@@ -805,178 +799,200 @@ declare module 'locuszoom' {
 
     }
 
-    export interface layout {
-	id: string;
-	title: Title;
-	proportional_height: number;
-	min_width: number;
-	min_height: number;
-	y_index: number;
-	margin: Margin;
-	inner_border: string;
-	dashboard: Dashboard;
-	axes: Axes;
-	legend: Legend;
-	interaction: Interaction;
-	data_layers?: (DataLayersEntity)[] | null;
-	description?: null;
-	origin: OriginOrProportionalOrigin;
-	proportional_origin: OriginOrProportionalOrigin;
-	background_click: string;
+    export interface Layout {
+		height: number;
+		width: number;
+		responsive_resize: string;
+		id?: string;
+		title?: LayoutTitle;
+		proportional_height?: number;
+		min_width: number;
+		min_height: number;
+		y_index?: number;
+		margin?: LayoutMargin;
+		inner_border?: string;
+		dashboard: LayoutDashboard;
+		axes? : LayoutAxes;
+		legend?: LayoutLegend;
+		interaction?: LayoutInteraction;
+		data_layers?: (LayoutDataLayersEntity)[] | null;
+		description?: string | null;
+		origin?: LayoutOriginOrProportionalOrigin;
+		proportional_origin?: LayoutOriginOrProportionalOrigin;
+		background_click?: string;
+		resizable?: string;
+		min_region_scale?: number;
+		max_region_scale?: number;
+		panel_boundaries?: boolean;
+		mouse_guide?: boolean;
+		panels: LayoutPanel[]
+	}
+
+	export interface LayoutPanel {
+
+	}
+
+    export interface LayoutTitle {
+		text: string;
+		x: number;
+		y: number;
+	}
+
+    export interface LayoutMargin {
+		top: number;
+		right: number;
+		bottom: number;
+		left: number;
+	}
+
+    export interface LayoutDashboard {
+		components?: (LayoutComponentsEntity)[] | null;
+	}
+
+    export interface LayoutComponentsEntity {
+		type: string;
+		position?: string;
+		color?: string;
+		title?: string;
+		text?: string;
+		url?: string;
+		direction?: number;
+		group_position?: string;
+		button_html?: string;
+		step?: number;
+	}
+
+    export interface LayoutAxes {
+		x: LayoutAxesLabel;
+		y1: LayoutAxesLabel;
+	}
+
+    export interface LayoutAxesLabel {
+		extent?: string;
+		label: string;
+		label_function?: null | string;
+		label_offset: number;
+		render?: boolean;
+		tick_format?: string;
     }
-    export interface Title {
-	text: string;
-	x: number;
-	y: number;
-    }
-    export interface Margin {
-	top: number;
-	right: number;
-	bottom: number;
-	left: number;
-    }
-    export interface Dashboard {
-	components?: (ComponentsEntity)[] | null;
-    }
-    export interface ComponentsEntity {
-	type: string;
-	position: string;
-	color: string;
-    }
-    export interface Axes {
-	x: X;
-	y1: Y1;
-    }
-    export interface X {
-	label_function: string;
-	label_offset: number;
-	tick_format: string;
-	extent: string;
-	render: boolean;
-	label: string;
-    }
-    export interface Y1 {
-	label: string;
-	label_offset: number;
-	render: boolean;
-	label_function?: null;
-    }
-    export interface Legend {
-	orientation: string;
-	origin: OriginOrProportionalOrigin;
-	hidden: boolean;
-	width: number;
-	height: number;
-	padding: number;
-	label_size: number;
-    }
-    export interface OriginOrProportionalOrigin {
-	x: number;
-	y: number;
-    }
-    export interface Interaction {
-	drag_background_to_pan: boolean;
-	drag_x_ticks_to_scale: boolean;
-	drag_y1_ticks_to_scale: boolean;
-	drag_y2_ticks_to_scale: boolean;
-	scroll_to_zoom: boolean;
-	x_linked: boolean;
-	y1_linked: boolean;
-	y2_linked: boolean;
-    }
-    export interface DataLayersEntity {
-	id: string;
-	type: string;
-	orientation?: string | null;
-	offset?: number | null;
-	namespace?: Namespace | null;
-	point_shape?: PointShape | null;
-	point_size?: PointSize | null;
-	color?: ( | string)[] | null;
-	fill_opacity?: number | null;
-	legend?: (LegendEntity)[] | null;
-	fields?: (string)[] | null;
-	id_field?: string | null;
-	behaviors?: Behaviors | null;
-	tooltip?: Tooltip | null;
-	x_axis?: XAxis | null;
-	y_axis?: YAxis | null;
-	transition?: boolean | null;
-    }
-    export interface Namespace {
-	conditional: string;
-	association: string;
-	ld: string;
-    }
-    export interface PointShape {
-	scale_function: string;
-	field: string;
-	parameters: Parameters;
-    }
-    export interface Parameters {
-	categories?: (string)[] | null;
-	values?: (string)[] | null;
-	null_value: string;
-    }
-    export interface PointSize {
-	scale_function: string;
-	field: string;
-	parameters: Parameters1;
-    }
-    export interface Parameters1 {
-	categories?: (string)[] | null;
-	values?: (number)[] | null;
-	null_value: number;
-    }
-    export interface  {
-	scale_function: string;
-	field: string;
-	parameters: Parameters2;
-    }
-    export interface Parameters2 {
-	field_value?: number | null;
-	then?: string | null;
-	breaks?: (number)[] | null;
-	values?: (string)[] | null;
-    }
-    export interface LegendEntity {
-	shape: string;
-	color: string;
-	size: number;
-	label: string;
-	class: string;
-    }
-    export interface Behaviors {
-	onmouseover?: (OnmouseoverEntityOrOnmouseoutEntity)[] | null;
-	onmouseout?: (OnmouseoverEntityOrOnmouseoutEntity)[] | null;
-	onclick?: (OnclickEntity)[] | null;
-    }
-    export interface OnmouseoverEntityOrOnmouseoutEntity {
-	action: string;
-	status: string;
-    }
-    export interface OnclickEntity {
-	action: string;
-	href: string;
-    }
-    export interface Tooltip {
-	closable: boolean;
-	show: Show;
-	hide: Hide;
-	html: string;
-    }
-    export interface Show { or?: (string)[] | null; }
-    export interface Hide { and?: (string)[] | null; }
-    export interface XAxis {
-	field: string;
-	axis: number;
-    }
-    export interface YAxis {
-	axis: number;
-	field: string;
-	floor: number;
-	upper_buffer: number;
-	min_extent?: (number)[] | null;
+
+    export interface LayoutLegend {
+		orientation: string;
+		origin: LayoutOriginOrProportionalOrigin;
+		hidden: boolean;
+		width: number;
+		height: number;
+		padding: number;
+		label_size: number;
+	}
+
+    export interface LayoutOriginOrProportionalOrigin {
+		x: number;
+		y: number;
+	}
+
+    export interface LayoutInteraction {
+		drag_background_to_pan: boolean;
+		drag_x_ticks_to_scale: boolean;
+		drag_y1_ticks_to_scale: boolean;
+		drag_y2_ticks_to_scale: boolean;
+		scroll_to_zoom: boolean;
+		x_linked: boolean;
+		y1_linked: boolean;
+		y2_linked: boolean;
+	}
+
+    export interface LayoutDataLayersEntity {
+		id: string;
+		type: string;
+		orientation?: string | null;
+		offset?: number | null;
+		namespace?: LayoutNamespace | null;
+		point_shape?: LayoutPointShape | null;
+		point_size?: LayoutPointSize | null;
+		color?: ( | string)[] | null;
+		fill_opacity?: number | null;
+		legend?: (LayoutLegendEntity)[] | null;
+		fields?: (string)[] | null;
+		id_field?: string | null;
+		behaviors?: LayoutBehaviors | null;
+		tooltip?: LayoutTooltip | null;
+		x_axis?: LayoutAxis | null;
+		y_axis?: LayoutAxis | null;
+		transition?: boolean | null;
+	}
+
+    export interface LayoutNamespace {
+		conditional: string;
+		association: string;
+		ld: string;
+	}
+
+    export interface LayoutPointShape {
+		scale_function: string;
+		field: string;
+		parameters: LayoutParameters;
+	}
+
+    export interface LayoutParameters {
+		categories?: (string)[] | null;
+		values?: (string)[] | null;
+		null_value: string;
+	}
+
+    export interface LayoutPointSize {
+		scale_function: string;
+		field: string;
+		parameters: LayoutPointSizeParameters;
+	}
+
+    export interface LayoutPointSizeParameters {
+		categories?: (string)[] | null;
+		values?: (number)[] | null;
+		null_value: number;
+	}
+
+    export interface LayoutLegendEntity {
+		shape: string;
+		color: string;
+		size: number;
+		label: string;
+		class: string;
+	}
+
+    export interface LayoutBehaviors {
+		onmouseover?: (LayoutOnmouseoverEntityOrOnmouseoutEntity)[] | null;
+		onmouseout?: (LayoutOnmouseoverEntityOrOnmouseoutEntity)[] | null;
+		onclick?: (LayoutOnclickEntity)[] | null;
+	}
+
+    export interface LayoutOnmouseoverEntityOrOnmouseoutEntity {
+		action: string;
+		status: string;
+	}
+
+    export interface LayoutOnclickEntity {
+		action: string;
+		href: string;
+	}
+
+    export interface LayoutTooltip {
+		closable: boolean;
+		show: LayoutShow;
+		hide: LayoutHide;
+		html: string;
+	}
+
+    export interface LayoutShow { or?: (string)[] | null; }
+
+	export interface LayoutHide { and?: (string)[] | null; }
+
+	export interface LayoutAxis {
+		field: string;
+		axis: number;
+		floor?: number;
+		upper_buffer?: number;
+		min_extent?: (number)[] | null;
     }
 
 }

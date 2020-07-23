@@ -1,10 +1,8 @@
 import {DataSources, Dashboard, Data, TransformationFunctions, positionIntToString, createCORSPromise } from 'locuszoom';
 import { defer } from 'q';
 
-
-
 export const GWASCatSource = Data.Source.extend(function(init : any) {  this.parseInit(init); }, "GWASCatSoureLZ");
-Data.GWASCatSource = GWASCatSource;
+Data["GWASCatSource"] = GWASCatSource;
 
 GWASCatSource.prototype.getURL = function(state, chain : any, fields : any) {
 
@@ -14,9 +12,9 @@ GWASCatSource.prototype.getURL = function(state, chain : any, fields : any) {
         " and pos le " + state.end
 };
 
-GWASCatSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+GWASCatSource.prototype.parseResponse = (resp : string , chain: { header: Object}, fields : string[], outnames : string[], trans: ((v : any)=>any)[] ) =>{
 
-    var res = []
+    var res : { data : any[] } = { data: []}
     try {
         res = JSON.parse(resp)
     } catch (e) {
@@ -53,8 +51,7 @@ ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
     };
     console.log(`TODO : genome build : ${this.genome_build}`)
     const genome_build  : string = this.genome_build == 37 ? 'chrpos37' : 'chrpos'
-    var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[' + (window.genome_build == 37 ? 'chrpos37' : 'chrpos') + ']%22clinsig%20pathogenic%22[Properties]&retmax=500'
-
+    var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[' + (this.genome_build == 37 ? 'chrpos37' : 'chrpos') + ']%22clinsig%20pathogenic%22[Properties]&retmax=500'
     return createCORSPromise("GET", requrl).then(function( resp) {
 
         var data = JSON.parse(resp);
@@ -115,16 +112,15 @@ ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnam
                            trait : val.trait_set.map( function(x) { return x.trait_name } ).join(":"),
                            y : 5 ,
                            id : val.uid };
-	    object['clinvar:id'] = object.chr + ':' + object.start + '_' + object.ref + '/' + object.alt
-
-            respData.push( object )
+	        object['clinvar:id'] = `${object.chr}:${object.start}_${object.ref}/${object.alt}`;                    
+            respData.push( object );
         }
 
     });
 
     return {header: chain.header, body: respData};
 };
-Data.ClinvarDataSource = ClinvarDataSource;
+Data["ClinvarDataSource"] = ClinvarDataSource;
 
 
 
@@ -247,7 +243,7 @@ FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
     return url ? createCORSPromise("GET", url, {}, headers) : defer()
 
 };
-Data.FG_LDDataSource = FG_LDDataSource;
+Data["FG_LDDataSource"] = FG_LDDataSource;
 
 
 export const ConditionalSource = Data.Source.extend(function(init) {
@@ -307,7 +303,7 @@ ConditionalSource.prototype.parseResponse = function(resp, chain, fields, outnam
     
     return Data.Source.prototype.parseResponse.call(this, this.params.allData[this.params.dataIndex], chain, fields, outnames, trans);
 }
-Data.ConditionalSource = ConditionalSource;
+Data["ConditionalSource"] = ConditionalSource;
 
 
 export const FineMappingSource = Data.Source.extend(function(init) { this.parseInit(init);}, "FineMappingLZ");

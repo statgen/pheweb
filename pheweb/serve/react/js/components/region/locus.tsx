@@ -1,7 +1,9 @@
+import d3 from 'd3'             
 import React , { useState, useEffect , useContext } from 'react';
-import { Region , LzConf} from './components';
-import {DataSources, Dashboard, Data, TransformationFunctions, positionIntToString } from 'locuszoom';
+import { Region , LzConf, Configuration } from './components';
+import {populate, DataSources, Dashboard, Data, TransformationFunctions, positionIntToString } from 'locuszoom';
 import { FG_LDDataSource , GWASCatSource , ClinvarDataSource, ConditionalSource } from './custom_locuszooms';
+import { association, clinvar, gwas_cat , genes } from './region_layouts';
 
 export const init_locus_zoom = (region_ : Region) => {
     const region : Region = {...region_}; 
@@ -118,7 +120,7 @@ export const init_locus_zoom = (region_ : Region) => {
     const show_conditional = (index) => {
         var params = data_sources.sources.conditional.params
         params.dataIndex = index
-        var panel = window.plot.panels.conditional
+        var panel = plot.panels.conditional
         panel.setTitle('conditioned on ' + params.allData[index].conditioned_on)
         panel.data_layers.associationpvalues.data = data_sources.sources.conditional.parseArraysToObjects(params.allData[index].data, params.fields, params.outnames, params.trans)
         panel.data_layers.associationpvalues.render()
@@ -136,7 +138,7 @@ export const init_locus_zoom = (region_ : Region) => {
     const show_finemapping = (method) => {
         var params = data_sources.sources.finemapping.params
         params.dataIndex = params.allData.reduce((acc, cur, i) => cur.type == method ? i : acc, -1)
-        var panel = window.plot.panels.finemapping
+        var panel = plot.panels.finemapping
         panel.setTitle(method + ' credible sets')
         panel.data_layers.associationpvalues.data = data_sources.sources.finemapping.parseArraysToObjects(params.allData[params.dataIndex].data, params.fields, params.outnames, params.trans)
         panel.data_layers.associationpvalues.render()
@@ -158,7 +160,7 @@ export const init_locus_zoom = (region_ : Region) => {
         dots.each((d, i) => {
             params.lookup[d[key + ':id']] = i
         });
-        var scatters_in = scatters.filter(key2 => key2 != key && window.plot.panels[key2])
+        var scatters_in = scatters.filter(key2 => key2 != key && plot.panels[key2])
         dots.on('mouseover', (d, i) => {
             scatters_in.forEach(key2 => {
                 var idx = data_sources.sources[key2].params.lookup &&
@@ -175,14 +177,15 @@ export const init_locus_zoom = (region_ : Region) => {
         })
     }
     
-    const plot = LocusZoom.populate("#lz-1", data_sources);
+    const plot = populate("#lz-1", data_sources, undefined);
 
+    const configuration : Configuration = {browser : "FINGEN"}
+    plot.addPanel(association(configuration, region))
+    plot.addPanel(clinvar(configuration, region))
+    plot.addPanel(gwas_cat(configuration, region))
+    plot.addPanel(genes(configuration, region))
 
     /*
-    plot.addPanel(panel_layouts.association)
-    plot.addPanel(panel_layouts.clinvar)
-    plot.addPanel(panel_layouts.gwas_cat)
-    plot.addPanel(panel_layouts.genes)
 
 
 
