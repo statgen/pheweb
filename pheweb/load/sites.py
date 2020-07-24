@@ -10,7 +10,6 @@ import random
 import multiprocessing
 import bisect
 import traceback
-import blist
 
 
 MAX_NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #files / #cpus?
@@ -80,7 +79,7 @@ class MergeManager:
         self.files = []
         for pheno in get_phenolist():
             filepath = common_filepaths['parsed'](pheno['phenocode'])
-            assert os.path.exists(filepath)
+            assert os.path.exists(filepath), filepath
             self.files.append({
                 'type': 'input',
                 'filepath': filepath,
@@ -215,7 +214,8 @@ class VariantListMerger:
     Variants must match EXACTLY.
     '''
     def __init__(self):
-        self._q = blist.blist()
+        # self._q = blist.blist()  # TODO: see whether blist.blist() is more performant than [] (b/c blist1.3 raises DeprecationWarnings on py38)
+        self._q = []
         # self._q is like sorted([(key, variant_dict, [reader_id, ...]), ...])
         # key is like (chrom_idx, pos, ref, alt)
 
