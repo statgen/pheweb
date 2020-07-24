@@ -16,8 +16,6 @@ export const init_locus_zoom = (region_ : Region) => {
     const gene_source : number = region.genome_build == 37 ? 2 : 1
     const recomb_source : number = region.genome_build == 37 ? 15 : 16
     const gwascat_source : Array<number> = region.genome_build == 37 ? [2,3] : [1,4]
-    console.log(ConditionalSource);
-    console.log(region);
     data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     data_sources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
     data_sources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);    
@@ -179,12 +177,14 @@ export const init_locus_zoom = (region_ : Region) => {
     
     const plot = populate("#lz-1", data_sources, undefined);
 
+    /*
     const configuration : Configuration = {browser : "FINGEN"}
+
     plot.addPanel(association(configuration, region))
     plot.addPanel(clinvar(configuration, region))
     plot.addPanel(gwas_cat(configuration, region))
     plot.addPanel(genes(configuration, region))
-
+    */
     /*
 
 

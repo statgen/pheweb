@@ -1,7 +1,7 @@
 import { Layout } from 'locuszoom';
 import { Configuration, Region , LzConf} from './components';
 
-const region_layout = (configuration: Configuration,region : Region): Layout =>  { 
+export const region_layout = (configuration: Configuration,region : Region): Layout =>  { 
     return { width: 800,
              height: 400,
             "min_width": 800,
@@ -66,7 +66,7 @@ const region_layout = (configuration: Configuration,region : Region): Layout => 
     
 }
 
-const association =  (configuration: Configuration, region : Region) => {
+export const association =  (configuration: Configuration, region : Region) => {
   return { "id": "association",
            "title": { "text": configuration.browser, "x":55, "y":30 } ,
             "proportional_height": 0.2,
@@ -306,7 +306,7 @@ const association =  (configuration: Configuration, region : Region) => {
             "background_click": "clear_selections" }
 }
 
-const conditional =  (configuration: Configuration, region : Region) => {
+export const conditional =  (configuration: Configuration, region : Region) => {
     return { "id": "conditional",
             "title": { "text":"conditioned", "x":55, "y":30 } ,
             "proportional_height": 0.2,
@@ -490,7 +490,7 @@ const conditional =  (configuration: Configuration, region : Region) => {
            };
 }
 
-const finemapping =  (configuration: Configuration, region : Region) => {
+export const finemapping =  (configuration: Configuration, region : Region) => {
     return { "id": "finemapping",
             "title": { "text":"credible sets", "x":55, "y":30 } ,
             "proportional_height": 0.2,
@@ -697,7 +697,7 @@ const finemapping =  (configuration: Configuration, region : Region) => {
     };
 }
 
-const gwas_cat =  (configuration: Configuration, region : Region) => {
+export const gwas_cat =  (configuration: Configuration, region : Region) => {
     return {
         "id": "gwas_cat",
         "title": { "text":"GWAS catalog + UKBB", "x":55, "y":30 },
@@ -842,7 +842,7 @@ const gwas_cat =  (configuration: Configuration, region : Region) => {
     };
 }
 
-const clinvar =  (configuration: Configuration, region : Region) => {
+export const clinvar =  (configuration: Configuration, region : Region) => {
     return {
         "id": "clinvar",
         "title": { "text":"", "x":55, "y":35, "style":{ "font-size":6} },
@@ -962,7 +962,7 @@ const clinvar =  (configuration: Configuration, region : Region) => {
     }
 }
 
-const genes =  (configuration: Configuration, region : Region) => {
+export const genes =  (configuration: Configuration, region : Region) => {
     return {
         "id": "genes",
         "proportional_height": 0.15,
@@ -1058,6 +1058,5 @@ const genes =  (configuration: Configuration, region : Region) => {
         },
         "background_click": "clear_selections",
         "legend": null
-    }
-    
+    }   
 }

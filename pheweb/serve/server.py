@@ -302,9 +302,17 @@ def ukbb_ns(phenocode):
         abort(404)
     return jsonify(jeeves.get_UKBB_n(phenocode))
 
+# TODO used this for development # remove me
+@app.route('/api/phenocode')
+@check_auth
+def api_phenocode():
+    print(jsonify(list(use_phenos.keys())))
+    return jsonify(list(use_phenos.keys()))
+    
 @app.route('/api/region/<phenocode>/<region>')
 @check_auth
 def api_region_page(phenocode, region):
+    print("{} - {} - {}".format(use_phenos,phenocode,phenocode not in use_phenos))
     if phenocode not in use_phenos:
         abort(404)
     pheno = phenos[phenocode]

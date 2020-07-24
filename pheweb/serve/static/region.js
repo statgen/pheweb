@@ -105,6 +105,8 @@
     });
         
     window.debug.data_sources = data_sources;
+    //window.debug.layout = layout;
+    //window.debug.assoc_data_layer = layout.panels[0].data_layers[2];
 
     window.show_conditional = function(index) {
 	var params = data_sources.sources.conditional.params
@@ -202,7 +204,7 @@
 		}
 		this.setDimensions(this.layout.width, 200);
 		this.parent.setDimensions();
-w		this.parent.panel_ids_by_y_index.forEach(function(id) {
+		this.parent.panel_ids_by_y_index.forEach(function(id) {
 		    if (id == 'clinvar') {// || id == 'genes') {
 			this.parent.panels[id].layout.proportional_height = 0.02
 		    } else if (id != 'genes') {
