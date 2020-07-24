@@ -243,31 +243,33 @@ class Parallelizer:
 
     @staticmethod
     def _make_multiple_tasks_doer(do_single_task):
-        # do_single_task(task) yields pickleable results and may raise an exception
-        def f(taskq, retq):
-            for task in iter(taskq.get, {'exit':True}):
-                try:
-                    x = do_single_task(task)
-                    for ret in (x if isinstance(x, GeneratorType) else [x]): # if it returns None (rather than a generator), assume it has no results
-                        retq.put({
-                            "type": "result",
-                            "task": task,
-                            "value": ret,
-                        })
+        # Use `functools.partial` so that our resulting function will be `pickle`able (for multiprocessing).
+        # See <https://stackoverflow.com/a/14550773/1166306> for more info.
+        return functools.partial(Parallelizer._partialable_multiple_tasks_doer, do_single_task)
+    @staticmethod
+    def _partialable_multiple_tasks_doer(do_single_task, taskq, retq):
+        for task in iter(taskq.get, {'exit':True}):
+            try:
+                x = do_single_task(task)
+                for ret in (x if isinstance(x, GeneratorType) else [x]): # if it returns None (rather than a generator), assume it has no results
                     retq.put({
-                        'type': 'task-completion',
-                        'task': task,
-                    })
-                except (Exception, KeyboardInterrupt) as exc:
-                    retq.put({
-                        "type": "exception",
+                        "type": "result",
                         "task": task,
-                        "exception_str": str(exc),
-                        "exception_tb": traceback.format_exc(),
+                        "value": ret,
                     })
-                    return
-            retq.put({"type":"exit"})
-        return f
+                retq.put({
+                    'type': 'task-completion',
+                    'task': task,
+                })
+            except (Exception, KeyboardInterrupt) as exc:
+                retq.put({
+                    "type": "exception",
+                    "task": task,
+                    "exception_str": str(exc),
+                    "exception_tb": traceback.format_exc(),
+                })
+                return
+        retq.put({"type":"exit"})
 
 class PerPhenoParallelizer(Parallelizer):
     def run_on_each_pheno(self, get_input_filepaths, get_output_filepaths, convert, *, cmd=None, phenos=None):
