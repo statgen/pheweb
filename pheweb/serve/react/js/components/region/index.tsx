@@ -5,7 +5,7 @@ interface Props {};
 import { VisConf , LzConf, Phenotype, Region } from './components';
 import Summary from '../colocalization/summary'
 import List from '../colocalization/list'
-import { init_locus_zoom } from './locus'
+import { init_locus_zoom } from './legacy'
 
 import ColocalizationProvider from '../../contexts/colocalization/ColocalizationContext'
 
@@ -49,6 +49,7 @@ const colocalization = () => <div className="row">
     
 const Region = (props : Props) => {
     const [ region, setRegion ] = useState<Region | null>(null);
+    
     const updatePheno = () => {
         const summary_url : string = `/api${window.location.pathname}`;
 	fetch(summary_url).
@@ -57,9 +58,15 @@ const Region = (props : Props) => {
     };
     const updateLocusZoom = () => {
 	if(region != null){
-	    init_locus_zoom(region);
+	    window["region"] = region
+	    window["pheno"] = region.pheno
+	    window["lz_conf"] = region.lz_conf
+	    window["genome_build"] = region.genome_build
+	    window["vis_conf"] = vis_conf
 	}
     };
+    
+
     useEffect(() => {updatePheno(); },[]);
     useEffect(() => {updateLocusZoom(); },[region]);
     return <div className="container-fluid">
