@@ -312,7 +312,6 @@ def api_phenocode():
 @app.route('/api/region/<phenocode>/<region>')
 @check_auth
 def api_region_page(phenocode, region):
-    print("{} - {} - {}".format(use_phenos,phenocode,phenocode not in use_phenos))
     if phenocode not in use_phenos:
         abort(404)
     pheno = phenos[phenocode]
@@ -336,7 +335,33 @@ def api_region_page(phenocode, region):
 
 @app.route('/region.1/<phenocode>/<region>')
 @check_auth
-def region_page(phenocode, region):
+def region_page_1(phenocode, region):
+    if phenocode not in use_phenos:
+        abort(404)
+    pheno = phenos[phenocode]
+    chr_se = region.split(':')
+    chrom = chr_se[0]
+    start_end = jeeves.get_max_finemapped_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
+    if start_end is not None:
+        cond_fm_regions = jeeves.get_finemapped_region_boundaries_for_pheno('all', phenocode, chrom, int(chr_se[1].split('-')[0]), int(chr_se[1].split('-')[1]))
+    else:
+        cond_fm_regions = []
+    pheno['phenocode'] = phenocode
+    return render_template('region.2.html',
+                           pheno=pheno,
+                           region=region,
+                           cond_fm_regions=cond_fm_regions,
+                           lz_conf=conf.locuszoom_conf,
+                           tooltip_lztemplate=conf.parse.tooltip_lztemplate,
+                           vis_conf=conf.vis_conf
+    )
+
+@app.route('/region.2/<phenocode>/<region>')
+@check_auth
+def region_page_2(phenocode, region):
+    print(phenocode)
+    print(region)
+    return region_page_1(phenocode, region)
     if phenocode not in use_phenos:
         abort(404)
     pheno = phenos[phenocode]
@@ -356,6 +381,7 @@ def region_page(phenocode, region):
                            tooltip_lztemplate=conf.parse.tooltip_lztemplate,
                            vis_conf=conf.vis_conf
     )
+
 
 @app.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
 @check_auth

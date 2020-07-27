@@ -58,11 +58,13 @@ const Region = (props : Props) => {
     };
     const updateLocusZoom = () => {
 	if(region != null){
+	    /*
 	    window["region"] = region
 	    window["pheno"] = region.pheno
 	    window["lz_conf"] = region.lz_conf
 	    window["genome_build"] = region.genome_build
 	    window["vis_conf"] = vis_conf
+	    */
 	}
     };
     

@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+
+{% block in_head %}
+
+<script>
+  window.model = window.model || {};
+  window.pheno = {{ pheno|tojson|safe}};
+  window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
+  window.cond_fm_regions = {{ cond_fm_regions|tojson|safe }}
+  window.vis_conf = {{ vis_conf|tojson|safe }}
+  window.lz_conf = {{ lz_conf|tojson|safe}}
+  window.browser = {{ config.browser|tojson|safe }}
+  window.genome_build = {{ config.genome_build|tojson|safe }}
+</script>
+
+
+<link href="{{ url_for('static', filename='locuszoom/locuszoom.css') }}" rel="stylesheet" type="text/css">
+<script src="{{ url_for('static', filename='locuszoom/locuszoom.app.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='custom_locuszooms.js') }}"></script>
+
+<!-- 
+  $.getScript("/static/custom_locuszooms.js").fail(function( jqxhr, settings, exception ) { alert(exception); });
+  <script src="{{ url_for('static', filename='all.js') }}"></script> -->
+
+<link  href="{{ url_for('static', filename='region.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+
+{% block contained %}
+<div class="row">
+  <div class="col-xs-12">
+    <div id="lz-1" class="lz-locuszoom-container lz-container-responsive" data-region="4:70815147-71215147"></div>
+  </div>
+</div>
+{% endblock %}
