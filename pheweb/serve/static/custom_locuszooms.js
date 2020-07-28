@@ -274,7 +274,11 @@ LocusZoom.Data.ConditionalSource.prototype.preGetData = function(state, fields, 
             trans.unshift(null);
         }
     });
-    return {fields: fields, outnames:outnames, trans:trans};
+    return { _fields: fields,
+	     get fields() {  console.log(`fields -> ${this._fields}`); return this._fields; } ,
+	     set fields (fields_) { console.log(`${this._fields} <- ${fields_}`); this._fields = fields_ },
+	     outnames:outnames,
+	     trans:trans};
 };
 
 LocusZoom.Data.ConditionalSource.prototype.getURL = function(state, chain, fields) {
@@ -287,12 +291,14 @@ LocusZoom.Data.ConditionalSource.prototype.getURL = function(state, chain, field
 
 
 LocusZoom.Data.ConditionalSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
-
-    this.params.allData = JSON.parse(resp)
-    this.params.dataIndex = this.params.dataIndex || 0
-    this.params.fields = fields
-    this.params.outnames = outnames
-    this.params.trans = trans
+    params = { allData : JSON.parse(resp),
+	       dataIndex : this.params.dataIndex || 0,
+	       _fields : fields,
+	       get fields() {  console.log(`fields -> ${this._fields}`); return this._fields; } ,
+	       set fields (fields_) { console.log(`${this._fields} <- ${fields_}`); this._fields = fields_ },
+	       outnames : outnames,
+	       trans : trans };
+    this.params = params
 
     var res = this.params.allData
     var lookup = {}

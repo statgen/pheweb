@@ -519,7 +519,10 @@ window.panel_layouts.association = {
 			    "label": "no r² data",
 			    "class": "lz-data_layer-scatter"
 			}],
-			fields: window.lz_conf.assoc_fields,
+			// mwm1 : fields: window.lz_conf.assoc_fields,
+			_fields : window.lz_conf.assoc_fields,
+			get fields() {  console.log(`fields -> ${this._fields}`); return this._fields; } ,
+			set fields (fields_) { console.log(`${this._fields} <- ${fields_}`); this._fields = fields_ },
 			// ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
 			id_field: "association:id",
 			behaviors: {
@@ -703,7 +706,12 @@ window.panel_layouts.conditional = {
 	    "label": "other",
 	    "class": "lz-data_layer-scatter"
 	}],
-	fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid", "conditional:id", "conditional:chr", "conditional:position", "conditional:ref", "conditional:alt", "conditional:pvalue", "conditional:pvalue|neglog10_or_100", "conditional:beta", "conditional:sebeta", "conditional:AF", "conditional:INFO", "conditional:most_severe", "conditional:fin_enrichment"],
+	
+	// mwm1 fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid", "conditional:id", "conditional:chr", "conditional:position", "conditional:ref", "conditional:alt", "conditional:pvalue", "conditional:pvalue|neglog10_or_100", "conditional:beta", "conditional:sebeta", "conditional:AF", "conditional:INFO", "conditional:most_severe", "conditional:fin_enrichment"],
+	_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid", "conditional:id", "conditional:chr", "conditional:position", "conditional:ref", "conditional:alt", "conditional:pvalue", "conditional:pvalue|neglog10_or_100", "conditional:beta", "conditional:sebeta", "conditional:AF", "conditional:INFO", "conditional:most_severe", "conditional:fin_enrichment"],
+	get fields() {  console.log(`fields -> ${this._fields}`); return this._fields; } ,
+	set fields (fields_) { console.log(`${this._fields} <- ${fields_}`); this._fields = fields_ },
+	
         id_field: "conditional:id",
         behaviors: {
 	    onmouseover: [{action: "set", status:"selected"}],
@@ -909,7 +917,11 @@ window.panel_layouts.finemapping = {
 	    "class": "lz-data_layer-scatter"
         }],
 
-	fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid", "finemapping:id", "finemapping:chr", "finemapping:position", "finemapping:ref", "finemapping:alt", "finemapping:prob", "finemapping:cs", "finemapping:most_severe", "finemapping:AF", "finemapping:fin_enrichment", "finemapping:INFO"],
+	// mwm1 : fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid", "finemapping:id", "finemapping:chr", "finemapping:position", "finemapping:ref", "finemapping:alt", "finemapping:prob", "finemapping:cs", "finemapping:most_severe", "finemapping:AF", "finemapping:fin_enrichment", "finemapping:INFO"],
+	_fields : ["association:pvalue", "association:beta", "association:sebeta", "association:rsid", "finemapping:id", "finemapping:chr", "finemapping:position", "finemapping:ref", "finemapping:alt", "finemapping:prob", "finemapping:cs", "finemapping:most_severe", "finemapping:AF", "finemapping:fin_enrichment", "finemapping:INFO"],
+	get fields() {  console.log(`fields -> ${this._fields}`); return this._fields; } ,
+	set fields (fields_) { console.log(`${this._fields} <- ${fields_}`); this._fields = fields_ },
+	
         id_field: "finemapping:id",
         behaviors: {
 	    onmouseover: [{action: "set", status:"selected"}],
@@ -1050,7 +1062,10 @@ window.panel_layouts.gwas_cat = {
 	    "class": "lz-data_layer-scatter"
         },],
 
-        fields: ["gwas_cat:id", "gwas_cat:or_beta","gwas_cat:pmid","gwas_cat:variant","gwas_cat:chrom", "gwas_cat:risk_allele", "gwas_cat:risk_frq","gwas_cat:pos", "gwas_cat:ref", "gwas_cat:alt","gwas_cat:trait","gwas_cat:study", "gwas_cat:log_pvalue"],
+        // mwm1 : fields: ["gwas_cat:id", "gwas_cat:or_beta","gwas_cat:pmid","gwas_cat:variant","gwas_cat:chrom", "gwas_cat:risk_allele", "gwas_cat:risk_frq","gwas_cat:pos", "gwas_cat:ref", "gwas_cat:alt","gwas_cat:trait","gwas_cat:study", "gwas_cat:log_pvalue"],
+	_fields : ["gwas_cat:id", "gwas_cat:or_beta","gwas_cat:pmid","gwas_cat:variant","gwas_cat:chrom", "gwas_cat:risk_allele", "gwas_cat:risk_frq","gwas_cat:pos", "gwas_cat:ref", "gwas_cat:alt","gwas_cat:trait","gwas_cat:study", "gwas_cat:log_pvalue"],
+	get fields() {  console.log(`fields -> ${this._fields}`); return this._fields; } ,
+	set fields (fields_) { console.log(`${this._fields} <- ${fields_}`); this._fields = fields_ },
 
         id_field: "gwas_cat:variant",
         behaviors: {
@@ -1168,8 +1183,13 @@ window.panel_layouts.clinvar = {
         "color": "#FF0000" ,
         fill_opacity: 0.7,
 
-        fields: ["clinvar:id","clinvar:trait","clinvar:clinical_sig","clinvar:varName","clinvar:chr",
-                 "clinvar:ref","clinvar:alt","clinvar:start","clinvar:stop","clinvar:y"],
+        // mwm1 : fields: ["clinvar:id","clinvar:trait","clinvar:clinical_sig","clinvar:varName","clinvar:chr",
+        //                 "clinvar:ref","clinvar:alt","clinvar:start","clinvar:stop","clinvar:y"],
+	_fields : ["clinvar:id","clinvar:trait","clinvar:clinical_sig","clinvar:varName","clinvar:chr",
+                   "clinvar:ref","clinvar:alt","clinvar:start","clinvar:stop","clinvar:y"],
+	get fields() {  console.log(`fields -> ${this._fields}`); return this._fields; } ,
+	set fields (fields_) { console.log(`${this._fields} <- ${fields_}`); this._fields = fields_ },
+
         id_field: "id",
         behaviors: {
             onmouseover: [{action: "set", status:"selected"}],
@@ -1254,7 +1274,11 @@ window.panel_layouts.genes = {
         },
         "id": "genes",
         "type": "genes",
-        "fields": ["gene:gene"],
+        // mwm1 : "fields": ["gene:gene"],
+	_fields : ["gene:gene"],
+	get fields() {  console.log(`fields -> ${this._fields}`); return this._fields; } ,
+	set fields (fields_) { console.log(`${this._fields} <- ${fields_}`); this._fields = fields_ },
+	
         "id_field": "gene_id",
         "highlighted": {
 	    "onmouseover": "on",
