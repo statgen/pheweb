@@ -139,6 +139,7 @@
         {% if pheno.category %}
           <p>Category: <b>{{ pheno.category}}</b></p>
         {% endif %}
+        {% include "pheno/info.html" %}
     </div>
     <div class="pheno-info col-xs-12 col-sm-4">
       {% if config.DOWNLOAD_PHENO_SUMSTATS_BUTTON %}
