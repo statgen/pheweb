@@ -7,7 +7,7 @@
 
 
 from setuptools import setup
-import imp
+import importlib
 import os.path
 import sys
 
@@ -16,8 +16,11 @@ if sys.platform.startswith('win'):
     raise Exception("PheWeb doesn't support Windows, because pysam doesn't support windows.")
 
 
-version = imp.load_source('pheweb.version', os.path.join('pheweb', 'version.py')).version
-
+def load_module_by_path(module_name, filepath):
+    module = importlib.util.module_from_spec(importlib.util.spec_from_file_location(module_name, filepath))
+    module.__spec__.loader.exec_module(module)
+    return module
+version = load_module_by_path('pheweb.version', os.path.join('pheweb', 'version.py')).version
 
 if sys.argv[-1] in ['publish', 'pub']:
     # TODO: use `class UploadCommand(setuptools.Command)` from <https://github.com/kennethreitz/setup.py/blob/master/setup.py#L49>
