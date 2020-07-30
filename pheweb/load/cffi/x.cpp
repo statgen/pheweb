@@ -156,7 +156,7 @@ private:
     size_t _uncompressed_block_size; // num bytes occupied
     static const size_t BGZF_BLOCK_SIZE = 0xff00; // 255*256
     static const size_t BGZF_MAX_BLOCK_SIZE = 0x10000; //64K
-    static const int COMPRESSION_LEVEL = Z_DEFAULT_COMPRESSION; // currently 6
+    static const int COMPRESSION_LEVEL = 2; // default of 6 is 3x slower than 2.  2 is 10% slower than 1.
     static const int BLOCK_HEADER_LENGTH = 18;
     static const int BLOCK_FOOTER_LENGTH = 8;
     static constexpr const char* BLOCK_HEADER =
