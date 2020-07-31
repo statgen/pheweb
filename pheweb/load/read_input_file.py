@@ -147,7 +147,11 @@ class AssocFileReader:
         # return the per-pheno info for each of the first `limit` variants
         fields_to_check = conf.parse.per_pheno_fields
         with read_maybe_gzip(self.filepath) as f:
-            colnames = [colname.strip('"\' ').lower() for colname in next(f).rstrip('\n\r').split('\t')]
+            try:
+                header_line = next(f)
+            except Exception as exc:
+                raise PheWebError("Failed to read from file {} - is it empty?".format(self.filepath)) from exc
+            colnames = [colname.strip('"\' ').lower() for colname in header_line.rstrip('\n\r').split('\t')]
             colidx_for_field = self._parse_header(colnames, fields_to_check)
             self._assert_all_fields_mapped(colnames, fields_to_check, colidx_for_field)
             for linenum, line in enumerate(itertools.islice(f, 0, limit)):
