@@ -1,6 +1,6 @@
 
 from ..utils import get_phenolist, PheWebError
-from ..file_utils import MatrixReader, get_tmp_path, common_filepaths
+from ..file_utils import MatrixReader, get_tmp_path, common_filepaths, VariantFileReader
 from .cffi._x import ffi, lib
 
 import os
@@ -38,6 +38,21 @@ def should_run():
         print('rerunning because some input files are newer than matrix.tsv.gz')
         return True
 
+def make_matrix_for_chromosome(chrom, output_filepath):
+    sites_filepath = common_filepaths['sites']()
+    sites_byte_offset = get_byte_offset(chrom, sites_filepath)
+    print(sites_byte_offset, chrom, sites_filepath)
+    for pheno in get_phenolist():
+        filepath = common_filepaths['pheno'](pheno['phenocode'])
+        byte_offset = get_byte_offset(chrom, filepath)
+        print(byte_offset, chrom, filepath)
+    # TODO: Run a method like `lib.cffi_make_matrix()` with byte-offsets
+
+def get_byte_offset(chrom, filepath):
+    # TODO: Get byte-offset of `\n{chrom}\t` in `filepath`.
+    return 0
+
+
 def run(argv):
 
     if '-h' in argv or '--help' in argv:
@@ -45,17 +60,32 @@ def run(argv):
         exit(1)
 
     if should_run():
-        # we don't need `ffi.new('char[]', ...)` because args are `const`
-        ret = lib.cffi_make_matrix(sites_filepath.encode('utf8'),
-                                   common_filepaths['pheno']('*').encode('utf8'),
-                                   matrix_gz_tmp_filepath.encode('utf8'))
-        ret_bytes = ffi.string(ret, maxlen=1000)
-        if ret_bytes != b'ok':
-            raise PheWebError('The portion of `pheweb matrix` written in c++/cffi failed with the message ' + repr(ret_bytes))
-        os.rename(matrix_gz_tmp_filepath, matrix_gz_filepath)
-        pysam.tabix_index(
-            filename=matrix_gz_filepath, force=True,
-            seq_col=0, start_col=1, end_col=1 # note: these are 0-based, but `/usr/bin/tabix` is 1-based
-        )
+        chromosomes_to_run = []
+        sites_filepath = common_filepaths['sites']()
+        with VariantFileReader(sites_filepath) as sites_reader:
+            for variant in sites_reader:
+                if variant['chrom'] not in chromosomes_to_run:
+                    chromosomes_to_run.append(variant['chrom'])
+
+        output_filepaths = {chrom: get_tmp_path(chrom) for chrom in chromosomes_to_run}
+
+        # TODO: run using multiprocessing
+        for chrom, output_filepath in output_filepaths.items():
+            make_matrix_for_chromosome(chrom, output_filepath)
+
+        # TODO: concatenate all partial files, append empty bgzip block, and `pysam.tabix_index()`
+
+
+        # # we don't need `ffi.new('char[]', ...)` because args are `const`
+        # ret = lib.cffi_make_matrix(sites_filepath.encode('utf8'),
+        #                            common_filepaths['pheno']('*').encode('utf8'),
+        #                            matrix_gz_tmp_filepath.encode('utf8'))
+        # ret_bytes = ffi.string(ret, maxlen=1000)
+        # if ret_bytes != b'ok':
+        #     raise PheWebError('The portion of `pheweb matrix` written in c++/cffi failed with the message ' + repr(ret_bytes))
+        # os.rename(matrix_gz_tmp_filepath, matrix_gz_filepath)
+        # pysam.tabix_index(
+        #     filename=matrix_gz_filepath, force=True,
+        #     seq_col=0, start_col=1, end_col=1 # note: these are 0-based, but `/usr/bin/tabix` is 1-based
     else:
         print('matrix is up-to-date!')
