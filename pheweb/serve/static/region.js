@@ -16,10 +16,10 @@
     var gwascat_source = window.genome_build == 37 ? [2,3] : [1,4]
     
     data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
-    data_sources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
-    data_sources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
+    //data_sources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
+    //data_sources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
     data_sources.add("gene", ["GeneLZ", {url:remoteBase + "annotation/genes/", params:{source:gene_source}}])
-    data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
+    //data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
     // clinvar needs to be added after gene because genes within locuszoom data chain are used for fetching
     data_sources.add("gwas_cat", new LocusZoom.Data.GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:gwascat_source ,pvalue_field: "log_pvalue" }}));
     data_sources.add("clinvar", new LocusZoom.Data.ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));
@@ -30,7 +30,7 @@
     }	
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: recomb_source} }]);
 
-    var scatters = ['association', 'conditional', 'finemapping', 'gwas_cat']
+    var scatters = ['association', 'gwas_cat']
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
@@ -107,7 +107,7 @@
     window.debug.data_sources = data_sources;
     //window.debug.layout = layout;
     //window.debug.assoc_data_layer = layout.panels[0].data_layers[2];
-
+    /*
     window.show_conditional = function(index) {
 	var params = data_sources.sources.conditional.params
 	params.dataIndex = index
@@ -143,7 +143,7 @@
 	update_mouseover('finemapping')
 	$('#finemapping_options label')[params.dataIndex].classList.add('active')
     }
-
+    */
     window.update_mouseover = function(key) {
 	var params = data_sources.sources[key].params
 	params.lookup = {}
@@ -176,6 +176,7 @@
 	window.plot.addPanel(window.panel_layouts.clinvar)
 	window.plot.addPanel(window.panel_layouts.gwas_cat)
 	window.plot.addPanel(window.panel_layouts.genes)
+	/*
 	window.cond_fm_regions.forEach(region => {
 	    if (region.type == 'susie' || region.type == 'finemap') {
 		if (!window.plot.panels['finemapping']) {
@@ -185,7 +186,7 @@
 		window.plot.addPanel(window.panel_layouts[region.type])
 	    }
 	})
-
+	*/
 	window.plot.panels['clinvar'].on('data_rendered', function() {
 	    update_mouseover('clinvar')
 	})
@@ -194,6 +195,7 @@
 	    window.plot.panels[key].on("data_rendered", function() {
 		console.log(key + ' rendered')
 		update_mouseover(key)
+		/*
 		if (key == 'conditional') {
 		    var params = data_sources.sources[key].params
 		    this.setTitle('conditioned on ' + params.allData[params.dataIndex].conditioned_on)
@@ -201,7 +203,7 @@
 		if (key == 'finemapping') {
 		    var params = data_sources.sources[key].params
 		    this.setTitle(params.allData[params.dataIndex].type + ' credible sets')
-		}
+		}*/
 		this.setDimensions(this.layout.width, 200);
 		this.parent.setDimensions();
 		this.parent.panel_ids_by_y_index.forEach(function(id) {

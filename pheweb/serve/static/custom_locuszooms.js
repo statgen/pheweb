@@ -305,7 +305,7 @@ LocusZoom.Data.ConditionalSource.prototype.parseResponse = function(resp, chain,
     for (var i = 0; i < chain.body.length; i++) {
 	lookup[chain.body[i]['id']] = i
     }
-    for (var f = 0; f < this.params.trait_fields.length; f++) {
+    for (var f = 0; this.params.trait_fields && f < this.params.trait_fields.length; f++) {
 	var field = this.params.trait_fields[f]
 	for (var r = 0; r < res.length; r++) {
 	    res[r].data[field] = []
