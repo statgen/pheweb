@@ -221,8 +221,7 @@ window.panel_layouts.association = {
        id_field: "association:id",
 			behaviors: {
 			    onmouseover: [{action: "set", status:"selected"}],
-			    onmouseout: [{action: "unset", status:"selected"}] /*,
-										 onclick: [{action: "link", href:"/variant/{{association:chr}}-{{association:position}}-{{association:ref}}-{{association:alt}}"}], */
+			    onmouseout: [{action: "unset", status:"selected"}] 
 			},
        tooltip: {
 	   closable: false,
