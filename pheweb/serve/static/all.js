@@ -126,10 +126,7 @@ window.panel_layouts.association = {
     },
     "legend": {
         "orientation": "vertical",
-        "origin": {
-            "x": 55,
-            "y": 40
-        },
+        "origin": { "x": 55, "y": 40 },
         "hidden": true,
         "width": 91.66200256347656,
         "height": 138,
