@@ -10,7 +10,7 @@ import { init_locus_zoom } from './legacy'
 import ColocalizationProvider from '../../contexts/colocalization/ColocalizationContext'
 
 
-const banner = (pheno : Phenotype) => <div className="row">
+const banner = (pheno : Phenotype) => <div className="w-100 row">
     <div className="col-xs-12">
     <h1>{ pheno && pheno.phenostring } </h1>
     <p>
