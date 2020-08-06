@@ -2,35 +2,36 @@ import React, { createContext, ReactChildren, useState , ReactNode } from 'react
 
 
 export interface VisConf {
-    info_tooltip_threshold : number,
-    loglog_threshold : number,
-    manhattan_colors : Array<string>
+    readonly info_tooltip_threshold : number,
+    readonly loglog_threshold : number,
+    readonly manhattan_colors : Array<string>
 }
 
 export interface LzConf {
-    p_threshold : number
-    assoc_fields: Array<string>,
-    ld_ens_pop: string,
-    ld_ens_window: number,
-    ld_max_window: number,
-    ld_service: string,
-    prob_threshold: number,
-    tooltip_html: string };
+    readonly p_threshold : number
+    readonly assoc_fields: Array<string>,
+    readonly ld_ens_pop: string,
+    readonly ld_ens_window: number,
+    readonly ld_max_window: number,
+    readonly ld_service: string,
+    readonly prob_threshold: number,
+    readonly tooltip_html: string };
 
 export interface Phenotype {
-    num_cases: number,
-    num_cases_prev: number,
-    num_controls: number,
-    phenocode: string,
-    phenostring: string,
-    category: string };
+    readonly num_cases: number,
+    readonly num_cases_prev: number,
+    readonly num_controls: number,
+    readonly phenocode: string,
+    readonly phenostring: string,
+    readonly category: string };
 
 export interface Region {
-    pheno: Phenotype,
-    lz_conf : LzConf,
-    vis_conf : VisConf,
-    genome_build : number,
-    region: string
+    readonly pheno: Phenotype,
+    readonly lz_conf : LzConf,
+    readonly vis_conf : VisConf,
+    readonly genome_build : number,
+    readonly region: string,
+    readonly browser: string
 };
 
 export interface RegionState { region : Region ,

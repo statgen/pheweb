@@ -330,7 +330,8 @@ def api_region_page(phenocode, region):
              'tooltip_lztemplate' : conf.parse.tooltip_lztemplate,
              'lz_conf' : conf.locuszoom_conf,
              'vis_conf' : conf.vis_conf ,
-             'genome_build' : app.config['genome_build'] }
+             'genome_build' : app.config['genome_build'] ,
+             'browser' : app.config['browser'] }
     return jsonify(data)
 
 @app.route('/region.1/<phenocode>/<region>')

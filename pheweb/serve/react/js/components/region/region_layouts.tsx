@@ -1,11 +1,11 @@
 import { Layout } from 'locuszoom';
 import { Configuration, Region , LzConf} from './components';
 
-export const region_layout = (configuration: Configuration,region : Region): Layout =>  { 
+export const region_layout = (region : Region): Layout =>  { 
     return { width: 800,
              height: 400,
             "min_width": 800,
-        "min_height": 400,
+            "min_height": 400,
         responsive_resize: 'both',
         "resizable": "responsive",
         // aspect_ratio: 2, // do I want this?
@@ -66,9 +66,9 @@ export const region_layout = (configuration: Configuration,region : Region): Lay
     
 }
 
-export const association =  (configuration: Configuration, region : Region) => {
+export const association =  (region : Region) => {
   return { "id": "association",
-           "title": { "text": configuration.browser, "x":55, "y":30 } ,
+           "title": { "text": region.browser, "x":55, "y":30 } ,
             "proportional_height": 0.2,
             "min_width": 400,
             "min_height": 150,
@@ -306,7 +306,7 @@ export const association =  (configuration: Configuration, region : Region) => {
             "background_click": "clear_selections" }
 }
 
-export const conditional =  (configuration: Configuration, region : Region) => {
+export const conditional =  (region : Region) => {
     return { "id": "conditional",
             "title": { "text":"conditioned", "x":55, "y":30 } ,
             "proportional_height": 0.2,
@@ -490,7 +490,7 @@ export const conditional =  (configuration: Configuration, region : Region) => {
            };
 }
 
-export const finemapping =  (configuration: Configuration, region : Region) => {
+export const finemapping =  (region : Region) => {
     return { "id": "finemapping",
             "title": { "text":"credible sets", "x":55, "y":30 } ,
             "proportional_height": 0.2,
@@ -697,7 +697,7 @@ export const finemapping =  (configuration: Configuration, region : Region) => {
     };
 }
 
-export const gwas_cat =  (configuration: Configuration, region : Region) => {
+export const gwas_cat =  (region : Region) => {
     return {
         "id": "gwas_cat",
         "title": { "text":"GWAS catalog + UKBB", "x":55, "y":30 },
@@ -842,7 +842,7 @@ export const gwas_cat =  (configuration: Configuration, region : Region) => {
     };
 }
 
-export const clinvar =  (configuration: Configuration, region : Region) => {
+export const clinvar =  (region : Region) => {
     return {
         "id": "clinvar",
         "title": { "text":"", "x":55, "y":35, "style":{ "font-size":6} },
@@ -962,7 +962,7 @@ export const clinvar =  (configuration: Configuration, region : Region) => {
     }
 }
 
-export const genes =  (configuration: Configuration, region : Region) => {
+export const genes =  (region : Region) => {
     return {
         "id": "genes",
         "proportional_height": 0.15,
