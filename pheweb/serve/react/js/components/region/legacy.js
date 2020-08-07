@@ -19,9 +19,7 @@ const region_layout = {
     "panels": []
 }
 
-const panel_layouts = {}
-
-panel_layouts.assoc = {
+const assoc_layout = (region) => { return {
     "id": "assoc",
     "title": { "text":window.browser, "x":55, "y":30 } ,
     "proportional_height": 0.2,
@@ -278,8 +276,9 @@ panel_layouts.assoc = {
         "x": 0,
         "y": 0
     },
-    "background_click": "clear_selections",
-}
+    "background_click": "clear_selections"
+};
+			   }
 
 
 
@@ -375,7 +374,7 @@ LocusZoom.Data.FG_LDDataSource.prototype.fetchRequest = function(state, chain, f
 
 };
 
-export const init_locus_zoom = () => {
+export const init_locus_zoom = (region) => {
     // Define LocusZoom Data Sources object
     var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
@@ -434,5 +433,5 @@ export const init_locus_zoom = () => {
 
     window.debug.data_sources = data_sources;
     window.plot = LocusZoom.populate("#lz-1", data_sources, region_layout);
-    window.plot.addPanel(panel_layouts.assoc);
+    window.plot.addPanel(assoc_layout(region));
 };
