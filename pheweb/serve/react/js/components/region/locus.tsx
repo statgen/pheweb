@@ -1,5 +1,6 @@
 import { Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate } from 'locuszoom';
-import { region_layout ,  association_layout , genes_layout, FG_LDDataSource } from './region_layouts';
+import { region_layout ,  association_layout , genes_layout } from './region_layouts';
+import { FG_LDDataSource } from './custom_locuszooms';
 import { Region } from './components';
 
 TransformationFunctions.set("neglog10_or_100", function(x) {
@@ -24,6 +25,7 @@ return pScaled
 export const init_locus_zoom = (region : Region) => {
     // Define LocusZoom Data Sources object
     var localBase : string = `/api/region/${region.pheno.phenocode}/lz-`;
+    var localCondBase = "/api/conditional_region/" + window.pheno.phenocode + "/lz-";
     var remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources : DataSources = new DataSources();
 
@@ -31,6 +33,8 @@ export const init_locus_zoom = (region : Region) => {
     var gene_source : number = region.genome_build == 37 ? 2 : 1
     //data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
     data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
+    //data_sources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
+    
     data_sources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:gene_source}}])   
     if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	data_sources.add("ld", new FG_LDDataSource({url: "/api/ld",
