@@ -1,21 +1,68 @@
-import d3 from 'd3'             
-import React , { useState, useEffect , useContext } from 'react';
-import { Region , LzConf, Configuration } from './components';
-import {populate, DataSources, Dashboard, Data, TransformationFunctions, positionIntToString } from 'locuszoom';
-//import { FG_LDDataSource , GWASCatSource , ClinvarDataSource, ConditionalSource } from './custom_locuszooms';
-import { region_layout, association, clinvar, gwas_cat , genes } from './region_layouts';
+import { Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate } from 'locuszoom';
+import { region_layout ,  association_layout } from './region_layouts';
+import { Region } from './components';
+
+TransformationFunctions.set("neglog10_or_100", function(x) {
+    if (x === 0) return 100;
+    var log = -Math.log(x) / Math.LN10;
+    return log;
+});
+
+TransformationFunctions.set("log_pvalue", function(x) {
+    return x
+});
+
+TransformationFunctions.set("logneglog", function(x) {
+console.assert(this.params && this.params && this.params.region && this.params.region.vis_conf , 'missing vis_conf')
+if (pScaled > this.params.region.vis_conf.loglog_threshold) {
+    pScaled = this.params.region.vis_conf.loglog_threshold * Math.log10(pScaled) / Math.log10(this.params.region.vis_conf.loglog_threshold)
+}
+return pScaled
+})
 
 export const init_locus_zoom = (region : Region) => {
-    const localBase : string = `/api/region/${region.pheno.phenocode}/lz-`;
-    const localCondBase : string = `/api/conditional_region/${region.pheno.phenocode}/lz-`;
-    const localFMBase : string = `/api/finemapped_region/${region.pheno.phenocode}/lz-`;
-    const remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
-    const data_sources = new DataSources();
+    // Define LocusZoom Data Sources object
+    var localBase : string = `/api/region/${region.pheno.phenocode}/lz-`;
+    var remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
+    var data_sources : DataSources = new DataSources();
 
-    const gene_source : number = region.genome_build == 37 ? 2 : 1
-    const recomb_source : = region.genome_build == 37 ? 15 : 16
-    const gwascat_source = region.genome_build == 37 ? [2,3] : [1,4]
+    var recomb_source : number = region.genome_build == 37 ? 15 : 16
+    var gene_source : number = region.genome_build == 37 ? 2 : 1
+    //data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
+    data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
+    
+    if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
+	data_sources.add("ld", new Data.FG_LDDataSource({url: "/api/ld",
+							 params: { id:[1,4] ,
+								   region: region,
+								   pvalue_field: "association:pvalue",
+								   "var_id_field":"association:id" }}));
+    } else {
+	data_sources.add("ld", new Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
+							 params: { id:[1,4] ,
+								   region: region,
+								   pvalue_field: "association:pvalue",
+								   "var_id_field":"association:rsid" }}));
+    }
+    data_sources.add("recomb", ["RecombLZ", { url: `${remoteBase}annotation/recomb/results/`, params: {source: recomb_source} }]);
 
-    data_sources.add("assoc", ["AssociationLZ", {url: localBase, params:{source:3}}]);
-    populate("#lz-1", data_sources, region_layout);
-}
+    
+    // dashboard components
+    function add_dashboard_button(name, func) {
+        Dashboard.Components.add(name, function(layout){
+            Dashboard.Component.apply(this, arguments);
+            this.update = function(){
+                if (this.button)
+                    return this;
+                this.button = new Dashboard.Component.Button(this)
+                    .setColor(layout.color).setText(layout.text).setTitle(layout.title)
+                    .setOnclick(func(layout).bind(this));
+                this.button.show();
+                return this.update();
+            };
+        });
+    }
+
+    const plot = populate("#lz-1", data_sources, region_layout);
+    plot.addPanel(association_layout(region));
+};

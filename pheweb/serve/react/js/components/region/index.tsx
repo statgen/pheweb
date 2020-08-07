@@ -5,9 +5,9 @@ interface Props {};
 import { VisConf , LzConf, Phenotype, Region } from './components';
 import Summary from '../colocalization/summary'
 import List from '../colocalization/list'
-//import { init_locus_zoom } from './locus'
-import { init_locus_zoom } from './legacy'
+import { init_locus_zoom } from './locus'
 import ColocalizationProvider from '../../contexts/colocalization/ColocalizationContext'
+
 
 
 const banner = (pheno : Phenotype) => <div className="w-100 row">
