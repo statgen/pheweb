@@ -1,5 +1,5 @@
 import { Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate } from 'locuszoom';
-import { region_layout ,  association_layout } from './region_layouts';
+import { region_layout ,  association_layout , genes_layout, FG_LDDataSource } from './region_layouts';
 import { Region } from './components';
 
 TransformationFunctions.set("neglog10_or_100", function(x) {
@@ -31,15 +31,15 @@ export const init_locus_zoom = (region : Region) => {
     var gene_source : number = region.genome_build == 37 ? 2 : 1
     //data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
     data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
-    
+    data_sources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:gene_source}}])   
     if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
-	data_sources.add("ld", new Data.FG_LDDataSource({url: "/api/ld",
+	data_sources.add("ld", new FG_LDDataSource({url: "/api/ld",
 							 params: { id:[1,4] ,
 								   region: region,
 								   pvalue_field: "association:pvalue",
 								   "var_id_field":"association:id" }}));
     } else {
-	data_sources.add("ld", new Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
+	data_sources.add("ld", new FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
 							 params: { id:[1,4] ,
 								   region: region,
 								   pvalue_field: "association:pvalue",
@@ -66,4 +66,5 @@ export const init_locus_zoom = (region : Region) => {
 
     const plot = populate("#lz-1", data_sources, region_layout);
     plot.addPanel(association_layout(region));
+    plot.addPanel(genes_layout(region));
 };

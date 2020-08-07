@@ -99,7 +99,7 @@ ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnam
     var respData = []
     Object.entries(data.result).filter(function(x) {return x[0]!="uids"} ).forEach(function(val){
 
-        val = val[1]
+        const val = val[1]
         var loc = val.variation_set[0].variation_loc.filter(function(x)  {return x.assembly_name=="GRCh38"} )[0]
         if( loc != null) {
             var object= {  start : loc.start,

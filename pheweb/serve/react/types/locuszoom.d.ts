@@ -800,9 +800,9 @@ declare module 'locuszoom' {
     }
 
     export interface Layout {
-		height: number;
-		width: number;
-		responsive_resize: string;
+		height?: number;
+		width?: number;
+		responsive_resize?: string;
 		id?: string;
 		title?: LayoutTitle;
 		proportional_height?: number;
@@ -825,7 +825,7 @@ declare module 'locuszoom' {
 		max_region_scale?: number;
 		panel_boundaries?: boolean;
 		mouse_guide?: boolean;
-		panels: LayoutPanel[]
+		panels?: LayoutPanel[]
 	}
 
 	export interface LayoutPanel {

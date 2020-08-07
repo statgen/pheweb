@@ -1,4 +1,4 @@
-import { Layout } from 'locuszoom';
+import { Layout , Panel } from 'locuszoom';
 import { Region , LzConf} from './components';
 import {defer} from 'q';
 
@@ -8,7 +8,7 @@ import { Layouts , Data , createCORSPromise , DataSources , TransformationFuncti
 
 // DEPENDENCIES: This js depends on custom_locuszoom.js and region_layouts.js which need to be included first in html files. We are moving to webpack to take care of the dependencies and this documentation is
 // an interim reminder
-export const region_layout = {
+export const region_layout : Layout = {
 
     width: 800,
     height: 400,
@@ -25,7 +25,7 @@ export const region_layout = {
     "panels": []
 }
 
-export const association_layout = (region : Region) => { return {
+export const association_layout : (region : Region) => Layout = (region : Region) => { return {
     "id": "association",
     "title": { "text":region.browser, "x":55, "y":30 } ,
     "proportional_height": 0.2,
@@ -120,6 +120,7 @@ export const association_layout = (region : Region) => { return {
 	       "null_value": "circle"
 	   }
        },
+       /*
        "point_size": {
 	   "scale_function": "if",
 	   "field": "ld:isrefvar",
@@ -128,7 +129,7 @@ export const association_layout = (region : Region) => { return {
 	       "then": 80,
 	       "else": 40
 	   }
-       },
+       },*/
        "point_size": {
 	   "scale_function": "categorical_bin",
 	   "field": "association:most_severe",
@@ -286,15 +287,113 @@ export const association_layout = (region : Region) => { return {
 };
 			   }
 
+export const genes_layout : (region : Region) => Layout =  (region : Region) => {
+                return {
+                    "id": "genes",
+                    "proportional_height": 0.15,
+                    "min_width": 400,
+                    "y_index": 5,
+                    "min_height": 100,
+                    "margin": {
+                        "top": 0,
+                        "right": 50,
+                        "bottom": 0,
+                        "left": 50
+                    },
+                    "axes": {
+                        "x": {"render": false},
+                        "y1": {"render": false},
+                        "y2": {"render": false}
+                    },
+                    "interaction": {
+                        "drag_background_to_pan": true,
+                        "scroll_to_zoom": true,
+                        "x_linked": true,
+                        "drag_x_ticks_to_scale": false,
+                        "drag_y1_ticks_to_scale": false,
+                        "drag_y2_ticks_to_scale": false,
+                        "y1_linked": false,
+                        "y2_linked": false
+                    },
+                    "dashboard": {
+                        "components": [{
+                        "type": "resize_to_data",
+                        "position": "right",
+                        "color": "blue"
+                        }]
+                    },
+                    "data_layers": [{
+                        "namespace": {
+                        "gene": "gene",
+                        // "constraint": "constraint"
+                        },
+                        "id": "genes",
+                        "type": "genes",
+                        "fields": ["gene:gene"],
+                        "id_field": "gene_id",
+                        "highlighted": {
+                        "onmouseover": "on",
+                        "onmouseout": "off"
+                        },
+                        "selected": {
+                        "onclick": "toggle_exclusive",
+                        "onshiftclick": "toggle"
+                        },
+                        "transition": false,
+                        behaviors: {
+                        onclick: [{action: "toggle", status: "selected", exclusive: true}],
+                        onmouseover: [{action: "set", status: "highlighted"}],
+                        onmouseout: [{action: "unset", status: "highlighted"}],
+                        },
+                        "tooltip": {
+                        "closable": true,
+                        "show": {
+                                "or": ["highlighted", "selected"]
+                        },
+                        "hide": {
+                                "and": ["unhighlighted", "unselected"]
+                        },
+                        "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div>Gene ID: <strong>{{gene_id}}</strong></div><div>Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div>"
+                        // "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div style=\"float: left;\">Gene ID: <strong>{{gene_id}}</strong></div><div style=\"float: right;\">Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table><tr><th>Constraint</th><th>Expected variants</th><th>Observed variants</th><th>Const. Metric</th></tr><tr><td>Synonymous</td><td>{{exp_syn}}</td><td>{{n_syn}}</td><td>z = {{syn_z}}</td></tr><tr><td>Missense</td><td>{{exp_mis}}</td><td>{{n_mis}}</td><td>z = {{mis_z}}</td></tr><tr><td>LoF</td><td>{{exp_lof}}</td><td>{{n_lof}}</td><td>pLI = {{pLI}}</td></tr></table><table width=\"100%\"><tr><td><button onclick=\"LocusZoom.getToolTipPlot(this).panel_ids_by_y_index.forEach(function(panel){ if(panel == 'genes'){ return; } var filters = (panel.indexOf('intervals') != -1 ? [['intervals:start','>=','{{start}}'],['intervals:end','<=','{{end}}']] : [['position','>','{{start}}'],['position','<','{{end}}']]); LocusZoom.getToolTipPlot(this).panels[panel].undimElementsByFilters(filters, true); }.bind(this)); LocusZoom.getToolTipPanel(this).data_layers.genes.unselectAllElements();\">Identify data in region</button></td><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
+                        },
+                        "label_font_size": 12,
+                        "label_exon_spacing": 3,
+                        "exon_height": 8,
+                        "bounding_box_padding": 5,
+                        "track_vertical_spacing": 5,
+                        "hover_element": "bounding_box",
+                        "x_axis": {
+                        "axis": 1
+                        },
+                        "y_axis": {
+                        "axis": 1
+                        },
+                
+                    }
+                           ],
+                    "title": null,
+                    "description": null,
+                    "origin": {
+                        "x": 0,
+                        "y": 225
+                    },
+                    "proportional_origin": {
+                        "x": 0,
+                        "y": 0.5
+                    },
+                    "background_click": "clear_selections",
+                    "legend": null
+                }   
+}
+            
 
-
-Data.FG_LDDataSource = Data.Source.extend(function(init) {
+export const FG_LDDataSource = Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "FG_LDDataSourceLZ");
 
 // https://rest.ensembl.org/info/variation/populations/homo_sapiens?content-type=application/json;filter=LD
 // ld/:species/:id/:population_name
-Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
+FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
 
     var findExtremeValue = function(x, pval, sign) {
         pval = pval || "pvalue";
@@ -322,7 +421,7 @@ Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
 
 };
 
-Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
 
     // if ld was not fetched, return the previous chain skipping this data source
     if (!resp) return chain
@@ -369,7 +468,7 @@ Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, out
 
 }
 
-Data.FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
+FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
     var url = this.getURL(state, chain, fields);
     var headers = {
         "Content-Type": "application/json"

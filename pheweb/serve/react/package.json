@@ -34,13 +34,15 @@
 	"webpack": "^4.29.5",
 	"webpack-cli": "^3.3.11",
 	"@types/d3": "^5.7.2",
-
 	"webpack-merge": "^4.2.1"
     },
     "devDependencies": {
 	"@babel/plugin-proposal-class-properties": "^7.10.4",
+	"@typescript-eslint/eslint-plugin": "^3.8.0",
+	"@typescript-eslint/parser": "^3.8.0",
 	"react-test-renderer": "^16.13.1",
 	"standard": "^14.3.4",
+	"standardx": "^5.0.0",
 	"uglifyjs-webpack-plugin": "^2.2.0",
 	"unminified-webpack-plugin": "^2.0.0",
 	"webpack-dev-server": "^3.11.0"
@@ -50,6 +52,16 @@
     },
     "author": "",
     "license": "ISC",
+    "eslintConfig": {
+	"rules": {
+	    "no-unused-vars": "off",
+	    "@typescript-eslint/no-unused-vars": "error"
+	}
+    },
+    "standardx": {
+	"parser": "@typescript-eslint/parser",
+	"plugins": [ "@typescript-eslint/eslint-plugin" ]
+    },
     "standard": {
 	"ignore": [
 	    "js/pheno.js",
