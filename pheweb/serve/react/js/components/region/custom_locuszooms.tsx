@@ -1,5 +1,5 @@
 import {DataSources, Dashboard, Data, TransformationFunctions, positionIntToString, createCORSPromise } from 'locuszoom';
-import { defer } from 'q';
+import { defer , when } from 'q';
 
 export const GWASCatSource = Data.Source.extend(function(init : any) {  this.parseInit(init); }, "GWASCatSoureLZ");
 Data["GWASCatSource"] = GWASCatSource;
@@ -141,7 +141,7 @@ Data.Source.prototype.getData = function(state, fields, outnames, trans) {
         if (self.dependentSource && chain && chain.body && !chain.body.length) {
             // A "dependent" source should not attempt to fire a request if there is no data for it to act on.
             // Therefore, it should simply return the previous data chain.
-            return Q.when(chain);
+            return when(chain);
         }
 
         self.getRequest(state, chain, fields)

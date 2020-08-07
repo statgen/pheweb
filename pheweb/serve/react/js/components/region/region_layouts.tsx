@@ -1,5 +1,6 @@
 import { Layout } from 'locuszoom';
-import { Configuration, Region , LzConf} from './components';
+import { Region , LzConf} from './components';
+import {defer} from 'q';
 
 import { Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate } from 'locuszoom';
 
@@ -24,7 +25,7 @@ export const region_layout = {
     "panels": []
 }
 
-export const association_layout = (region) => { return {
+export const association_layout = (region : Region) => { return {
     "id": "association",
     "title": { "text":region.browser, "x":55, "y":30 } ,
     "proportional_height": 0.2,
@@ -374,6 +375,6 @@ Data.FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
         "Content-Type": "application/json"
     };
     
-    return url ? createCORSPromise("GET", url, {}, headers) : Q.defer()
+    return url ? createCORSPromise("GET", url, {}, headers) : defer()
     
 };

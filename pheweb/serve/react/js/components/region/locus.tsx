@@ -14,6 +14,7 @@ TransformationFunctions.set("log_pvalue", function(x) {
 
 TransformationFunctions.set("logneglog", function(x) {
 console.assert(this.params && this.params && this.params.region && this.params.region.vis_conf , 'missing vis_conf')
+var pScaled : number = -Math.log10(x)
 if (pScaled > this.params.region.vis_conf.loglog_threshold) {
     pScaled = this.params.region.vis_conf.loglog_threshold * Math.log10(pScaled) / Math.log10(this.params.region.vis_conf.loglog_threshold)
 }
