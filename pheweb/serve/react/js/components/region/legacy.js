@@ -21,7 +21,7 @@ const region_layout = {
 
 const association_layout = (region) => { return {
     "id": "association",
-    "title": { "text":window.browser, "x":55, "y":30 } ,
+    "title": { "text":region.browser, "x":55, "y":30 } ,
     "proportional_height": 0.2,
     "min_width": 400,
     "min_height": 150,
@@ -236,7 +236,7 @@ const association_layout = (region) => { return {
 	   "label": "no r² data",
 	   "class": "lz-data_layer-scatter"
        }],
-       fields: ["association:id", "association:chr", "association:position", "association:ref", "association:alt", "association:pvalue", "association:pvalue|neglog10_or_100", "association:beta", "association:sebeta", "association:rsid", "association:maf", "association:maf_cases", "association:maf_controls", "association:most_severe", "association:fin_enrichment", "association:INFO", "ld:state", "ld:isrefvar"],
+       fields: region.lz_conf.assoc_fields,
        // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
        id_field: "association:id",
 			behaviors: {
@@ -251,7 +251,7 @@ const association_layout = (region) => { return {
 	   "hide": {
 	       "and": ["unhighlighted", "unselected"]
 	   },
-	   html: window.lz_conf.tooltip_html.replace('PHENO', window.pheno.phenostring || window.pheno.phenocode)
+	   html: region.lz_conf.tooltip_html.replace('PHENO', region.pheno.phenostring || region.pheno.phenocode)
        },
 
        "x_axis": {
@@ -307,11 +307,11 @@ LocusZoom.Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields)
     var topvar = chain.body[extremeIdx]
     var refvar=topvar[this.params.var_id_field]
     chain.header.ldrefvar = topvar
-    if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
-	var windowSize = Math.min(state.end - state.start + 10000, window.lz_conf.ld_max_window)
+    if (this.params.region.lz_conf.ld_service.toLowerCase() == 'finngen') {
+	var windowSize = Math.min(state.end - state.start + 10000, this.params.region.lz_conf.ld_max_window)
 	return this.url + "?variant=" + topvar['association:chr'] + ':' + topvar['association:position'] + ':' + topvar['association:ref'] + ':' + topvar['association:alt'] + "&window=" + windowSize + "&panel=sisu3"
     } else {
-	return refvar ? this.url + refvar + "/" + window.lz_conf.ld_ens_pop + "?window_size=" + window.lz_conf.ld_ens_window : this.url + ' lead variant has no rsid, could not get LD'
+	return refvar ? this.url + refvar + "/" + this.params.region.lz_conf.ld_ens_pop + "?window_size=" + this.params.region.lz_conf.ld_ens_window : this.url + ' lead variant has no rsid, could not get LD'
     }
 
 };
@@ -322,7 +322,7 @@ LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, f
     if (!resp) return chain
 
     var res
-    if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
+    if (this.params.region.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	res = JSON.parse(resp)['ld']
     } else {
 	res = JSON.parse(resp)
@@ -340,9 +340,8 @@ LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, f
     for (var i = 0; i < chain.body.length; i++) {
 
 	var d, isref
-	if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
+	if (this.params.region.lz_conf.ld_service.toLowerCase() == 'finngen') {
             d = lookup[chain.body[i][this.params.var_id_field].replace('_', ':').replace('/', ':')]
-            //isref = chain.header.ldrefvar[this.params.var_id_field].split('_')[0] == chain.body[i][this.params.var_id_field].split('_')[0] ? 1:0
 	    isref = chain.header.ldrefvar[this.params.var_id_field] == chain.body[i][this.params.var_id_field] ? 1:0
 	} else {
 	    d = lookup[chain.body[i][this.params.var_id_field]]
@@ -376,23 +375,26 @@ LocusZoom.Data.FG_LDDataSource.prototype.fetchRequest = function(state, chain, f
 
 export const init_locus_zoom = (region) => {
     // Define LocusZoom Data Sources object
-    var localBase = "/api/region/" + window.pheno.phenocode + "/lz-";
+    var localBase = "/api/region/" + region.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources();
 
-    var recomb_source = window.genome_build == 37 ? 15 : 16
-    var gene_source = window.genome_build == 37 ? 2 : 1
+    var recomb_source = region.genome_build == 37 ? 15 : 16
+    var gene_source = region.genome_build == 37 ? 2 : 1
     //data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
     data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     
-    if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
+    if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "/api/ld",
 								   params: { id:[1,4] ,
+									     region: region,
 									     pvalue_field: "association:pvalue",
 									     "var_id_field":"association:id" }}));
     } else {
 	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
-								   params: { id:[1,4] ,pvalue_field: "association:pvalue",
+								   params: { id:[1,4] ,
+									     region: region,
+									     pvalue_field: "association:pvalue",
 									     "var_id_field":"association:rsid" }}));
     }
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: recomb_source} }]);
@@ -409,8 +411,8 @@ export const init_locus_zoom = (region) => {
 
     LocusZoom.TransformationFunctions.set("logneglog", function(x) {
 	var pScaled = -Math.log10(x)
-	if (pScaled > window.vis_conf.loglog_threshold) {
-	    pScaled = window.vis_conf.loglog_threshold * Math.log10(pScaled) / Math.log10(window.vis_conf.loglog_threshold)
+	if (pScaled > this.params.region.vis_conf.loglog_threshold) {
+	    pScaled = this.params.region.vis_conf.loglog_threshold * Math.log10(pScaled) / Math.log10(this.params.region.vis_conf.loglog_threshold)
 	}
 	return pScaled
     })
@@ -431,7 +433,6 @@ export const init_locus_zoom = (region) => {
         });
     }
 
-    window.debug.data_sources = data_sources;
-    window.plot = LocusZoom.populate("#lz-1", data_sources, region_layout);
-    window.plot.addPanel(association_layout(region));
+    const plot = LocusZoom.populate("#lz-1", data_sources, region_layout);
+    plot.addPanel(association_layout(region));
 };
