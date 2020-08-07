@@ -19,8 +19,8 @@ const region_layout = {
     "panels": []
 }
 
-const assoc_layout = (region) => { return {
-    "id": "assoc",
+const association_layout = (region) => { return {
+    "id": "association",
     "title": { "text":window.browser, "x":55, "y":30 } ,
     "proportional_height": 0.2,
     "min_width": 400,
@@ -83,13 +83,13 @@ const assoc_layout = (region) => { return {
      },
      LocusZoom.Layouts.get("data_layer", "recomb_rate", { unnamespaced: false }),
      { "namespace": {
-	 "default": "assoc",
+	 "default": "association",
 	 "ld": "ld" },
        "id": "associationpvalues",
        "type": "scatter",
        "point_shape": {
 	   "scale_function": "categorical_bin",
-	   "field": "assoc:most_severe",
+	   "field": "association:most_severe",
 	   "parameters": {
 	       "categories": ["frameshift variant",
 			      "inframe deletion",
@@ -125,7 +125,7 @@ const assoc_layout = (region) => { return {
        },
        "point_size": {
 	   "scale_function": "categorical_bin",
-	   "field": "assoc:most_severe",
+	   "field": "association:most_severe",
 	   "parameters": {
 	       "categories": ["frameshift variant",
 			      "inframe deletion",
@@ -236,9 +236,9 @@ const assoc_layout = (region) => { return {
 	   "label": "no r² data",
 	   "class": "lz-data_layer-scatter"
        }],
-       fields: ["assoc:id", "assoc:chr", "assoc:position", "assoc:ref", "assoc:alt", "assoc:pvalue", "assoc:pvalue|neglog10_or_100", "assoc:beta", "assoc:sebeta", "assoc:rsid", "assoc:maf", "assoc:maf_cases", "assoc:maf_controls", "assoc:most_severe", "assoc:fin_enrichment", "assoc:INFO", "ld:state", "ld:isrefvar"],
+       fields: ["association:id", "association:chr", "association:position", "association:ref", "association:alt", "association:pvalue", "association:pvalue|neglog10_or_100", "association:beta", "association:sebeta", "association:rsid", "association:maf", "association:maf_cases", "association:maf_controls", "association:most_severe", "association:fin_enrichment", "association:INFO", "ld:state", "ld:isrefvar"],
        // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
-       id_field: "assoc:id",
+       id_field: "association:id",
 			behaviors: {
 			    onmouseover: [{action: "set", status:"selected"}],
 			    onmouseout: [{action: "unset", status:"selected"}] 
@@ -255,12 +255,12 @@ const assoc_layout = (region) => { return {
        },
 
        "x_axis": {
-	   "field": "assoc:position",
+	   "field": "association:position",
 	   "axis": 1
        },
        "y_axis": {
 	   "axis": 1,
-	   "field": "assoc:pvalue|neglog10_or_100",
+	   "field": "association:pvalue|neglog10_or_100",
 	   "floor": 0,
 	   "upper_buffer": 0.1,
 	   "min_extent": [0, 10]
@@ -309,7 +309,7 @@ LocusZoom.Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields)
     chain.header.ldrefvar = topvar
     if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	var windowSize = Math.min(state.end - state.start + 10000, window.lz_conf.ld_max_window)
-	return this.url + "?variant=" + topvar['assoc:chr'] + ':' + topvar['assoc:position'] + ':' + topvar['assoc:ref'] + ':' + topvar['assoc:alt'] + "&window=" + windowSize + "&panel=sisu3"
+	return this.url + "?variant=" + topvar['association:chr'] + ':' + topvar['association:position'] + ':' + topvar['association:ref'] + ':' + topvar['association:alt'] + "&window=" + windowSize + "&panel=sisu3"
     } else {
 	return refvar ? this.url + refvar + "/" + window.lz_conf.ld_ens_pop + "?window_size=" + window.lz_conf.ld_ens_window : this.url + ' lead variant has no rsid, could not get LD'
     }
@@ -383,17 +383,17 @@ export const init_locus_zoom = (region) => {
     var recomb_source = window.genome_build == 37 ? 15 : 16
     var gene_source = window.genome_build == 37 ? 2 : 1
     //data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
-    data_sources.add("assoc", ["AssociationLZ", {url: localBase, params:{source:3}}]);
+    data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     
     if (window.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "/api/ld",
 								   params: { id:[1,4] ,
-									     pvalue_field: "assoc:pvalue",
-									     "var_id_field":"assoc:id" }}));
+									     pvalue_field: "association:pvalue",
+									     "var_id_field":"association:id" }}));
     } else {
 	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
-								   params: { id:[1,4] ,pvalue_field: "assoc:pvalue",
-									     "var_id_field":"assoc:rsid" }}));
+								   params: { id:[1,4] ,pvalue_field: "association:pvalue",
+									     "var_id_field":"association:rsid" }}));
     }
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: recomb_source} }]);
 
@@ -433,5 +433,5 @@ export const init_locus_zoom = (region) => {
 
     window.debug.data_sources = data_sources;
     window.plot = LocusZoom.populate("#lz-1", data_sources, region_layout);
-    window.plot.addPanel(assoc_layout(region));
+    window.plot.addPanel(association_layout(region));
 };
