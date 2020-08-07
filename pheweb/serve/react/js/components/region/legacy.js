@@ -1,3 +1,5 @@
+import { Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate } from 'locuszoom';
+
 'use strict';
 
 // DEPENDENCIES: This js depends on custom_locuszoom.js and region_layouts.js which need to be included first in html files. We are moving to webpack to take care of the dependencies and this documentation is
@@ -81,7 +83,7 @@ const association_layout = (region) => { return {
        orientation: "horizontal",
        offset: -Math.log10(5e-8),
      },
-     LocusZoom.Layouts.get("data_layer", "recomb_rate", { unnamespaced: false }),
+     Layouts.get("data_layer", "recomb_rate", { unnamespaced: false }),
      { "namespace": {
 	 "default": "association",
 	 "ld": "ld" },
@@ -282,13 +284,13 @@ const association_layout = (region) => { return {
 
 
 
-LocusZoom.Data.FG_LDDataSource = LocusZoom.Data.Source.extend(function(init) {
+Data.FG_LDDataSource = Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "FG_LDDataSourceLZ");
 
 // https://rest.ensembl.org/info/variation/populations/homo_sapiens?content-type=application/json;filter=LD
 // ld/:species/:id/:population_name
-LocusZoom.Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
+Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
 
     var findExtremeValue = function(x, pval, sign) {
         pval = pval || "pvalue";
@@ -316,7 +318,7 @@ LocusZoom.Data.FG_LDDataSource.prototype.getURL = function(state, chain, fields)
 
 };
 
-LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
 
     // if ld was not fetched, return the previous chain skipping this data source
     if (!resp) return chain
@@ -363,13 +365,13 @@ LocusZoom.Data.FG_LDDataSource.prototype.parseResponse = function(resp, chain, f
 
 }
 
-LocusZoom.Data.FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
+Data.FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
     var url = this.getURL(state, chain, fields);
     var headers = {
         "Content-Type": "application/json"
     };
     
-    return url ? LocusZoom.createCORSPromise("GET", url, {}, headers) : Q.defer()
+    return url ? createCORSPromise("GET", url, {}, headers) : Q.defer()
 
 };
 
@@ -377,7 +379,7 @@ export const init_locus_zoom = (region) => {
     // Define LocusZoom Data Sources object
     var localBase = "/api/region/" + region.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
-    var data_sources = new LocusZoom.DataSources();
+    var data_sources = new DataSources();
 
     var recomb_source = region.genome_build == 37 ? 15 : 16
     var gene_source = region.genome_build == 37 ? 2 : 1
@@ -385,31 +387,31 @@ export const init_locus_zoom = (region) => {
     data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     
     if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
-	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "/api/ld",
-								   params: { id:[1,4] ,
-									     region: region,
-									     pvalue_field: "association:pvalue",
-									     "var_id_field":"association:id" }}));
+	data_sources.add("ld", new Data.FG_LDDataSource({url: "/api/ld",
+							 params: { id:[1,4] ,
+								   region: region,
+								   pvalue_field: "association:pvalue",
+								   "var_id_field":"association:id" }}));
     } else {
-	data_sources.add("ld", new LocusZoom.Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
-								   params: { id:[1,4] ,
-									     region: region,
-									     pvalue_field: "association:pvalue",
-									     "var_id_field":"association:rsid" }}));
+	data_sources.add("ld", new Data.FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
+							 params: { id:[1,4] ,
+								   region: region,
+								   pvalue_field: "association:pvalue",
+								   "var_id_field":"association:rsid" }}));
     }
     data_sources.add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: recomb_source} }]);
 
-    LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
+    TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
         var log = -Math.log(x) / Math.LN10;
         return log;
     });
 
-    LocusZoom.TransformationFunctions.set("log_pvalue", function(x) {
+    TransformationFunctions.set("log_pvalue", function(x) {
         return x
     });
 
-    LocusZoom.TransformationFunctions.set("logneglog", function(x) {
+    TransformationFunctions.set("logneglog", function(x) {
 	var pScaled = -Math.log10(x)
 	if (pScaled > this.params.region.vis_conf.loglog_threshold) {
 	    pScaled = this.params.region.vis_conf.loglog_threshold * Math.log10(pScaled) / Math.log10(this.params.region.vis_conf.loglog_threshold)
@@ -419,12 +421,12 @@ export const init_locus_zoom = (region) => {
     
     // dashboard components
     function add_dashboard_button(name, func) {
-        LocusZoom.Dashboard.Components.add(name, function(layout){
-            LocusZoom.Dashboard.Component.apply(this, arguments);
+        Dashboard.Components.add(name, function(layout){
+            Dashboard.Component.apply(this, arguments);
             this.update = function(){
                 if (this.button)
                     return this;
-                this.button = new LocusZoom.Dashboard.Component.Button(this)
+                this.button = new Dashboard.Component.Button(this)
                     .setColor(layout.color).setText(layout.text).setTitle(layout.title)
                     .setOnclick(func(layout).bind(this));
                 this.button.show();
@@ -433,6 +435,6 @@ export const init_locus_zoom = (region) => {
         });
     }
 
-    const plot = LocusZoom.populate("#lz-1", data_sources, region_layout);
+    const plot = populate("#lz-1", data_sources, region_layout);
     plot.addPanel(association_layout(region));
 };
