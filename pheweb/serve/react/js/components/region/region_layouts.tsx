@@ -385,3 +385,123 @@ export const genes_layout : (region : Region) => Layout =  (region : Region) => 
                     "legend": null
                 }   
 }
+
+export const clinvar_layout : (region : Region) => Layout =  (region : Region) => {
+    return {
+    "id": "clinvar",
+    "title": { "text":"", "x":55, "y":35, "style":{ "font-size":6} },
+    "y_index": 3,
+    "min_width": 400,
+    "min_height": 25,
+    "proportional_height": 0.05,
+    "margin": {
+        "top": 0,
+        "right": 50,
+        "bottom": 0,
+        "left": 50
+    },
+    "axes": {
+        "x": {
+            "label_function": "chromosome",
+            "label_offset": 32,
+            "tick_format": "region",
+            "extent": "state",
+            "render": false,
+            "label": "Chromosome {{chr}} (Mb)"
+        },
+        "y1": {
+            "label": "Clinvar",
+            "label_offset": 28,
+            "render": true,
+            "ticks": [],
+            "label_function": null
+        }
+    },
+    "legend": {
+        "orientation": "vertical",
+        "origin": {
+            "x": 55,
+            "y": 40
+        },
+        "hidden": true,
+        "width": 91.66200256347656,
+        "height": 138,
+        "padding": 5,
+        "label_size": 12
+    },
+    "interaction": {
+        "drag_background_to_pan": true,
+        "drag_x_ticks_to_scale": true,
+        "drag_y1_ticks_to_scale": true,
+        "drag_y2_ticks_to_scale": true,
+        "scroll_to_zoom": true,
+        "x_linked": true,
+        "y1_linked": false,
+        "y2_linked": false
+    },
+    "data_layers": [ {
+        "namespace": {
+            "clinvar":"clinvar"
+        },
+	"id": "associationpvalues",
+        // "id": "clinvar:var",
+        "type": "scatter",
+        "point_shape": "diamond",
+        "point_size": {
+            "scale_function": "if",
+            "field": "ld:isrefvar",
+            "parameters": {
+                "field_value": 1,
+                "then": 80,
+                "else": 40
+            }
+        },
+
+        "color": "#FF0000" ,
+        fill_opacity: 0.7,
+
+        fields: ["clinvar:id","clinvar:trait","clinvar:clinical_sig","clinvar:varName","clinvar:chr",
+                 "clinvar:ref","clinvar:alt","clinvar:start","clinvar:stop","clinvar:y"],
+        id_field: "id",
+        behaviors: {
+            onmouseover: [{action: "set", status:"selected"}],
+            onmouseout: [{action: "unset", status:"selected"}],
+            onclick: [{action: "link", href:"https://www.ncbi.nlm.nih.gov/clinvar/variation/{{id}}",target: "_blank"}],
+
+        },
+        tooltip: {
+            closable: false,
+            "show": {
+                "or": ["highlighted", "selected"]
+            },
+            "hide": {
+                "and": ["unhighlighted", "unselected"]
+            },
+            html: "<h4><strong><i>{{clinvar:trait}}</i></strong></h4><div>variant: <strong>{{varName}}</strong></div><div>Significance: <strong>{{clinical_sig}}</strong></div>"
+        },
+
+        "x_axis": {
+            "field": "clinvar:start",
+            "axis": 1
+        },
+        "y_axis": {
+            "axis": 1,
+            "field": "clinvar:y",
+            "floor": 0,
+            "upper_buffer": 0.1,
+            "min_extent": [0, 10]
+        },
+        "transition": false,
+    }],
+    "description": null,
+    "origin": {
+        "x": 0,
+        "y": 0
+    },
+    "proportional_origin": {
+        "x": 0,
+        "y": 0
+    },
+    "background_click": "clear_selections",
+    }
+}
