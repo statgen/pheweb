@@ -109,5 +109,5 @@ export const init_locus_zoom = (region : Region) => {
     plot.addPanel(association_layout(region));
     plot.addPanel(clinvar_layout(region));
     plot.addPanel(gwas_cat_layout(region));
-    plot.addPanel(genes_layout(region));
+    //plot.addPanel(genes_layout(region));
 };
