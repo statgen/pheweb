@@ -567,77 +567,57 @@ export const gwas_cat_layout : (region : Region) => Layout = (region : Region) =
         "y1_linked": false,
         "y2_linked": false
     },
-    "data_layers": [ {
-        "namespace": {
-	    "gwas_cat":"gwas_cat"
-        },
-        "id": "associationpvalues",
-        "type": "scatter",
-        "point_shape": {
-	    "scale_function": "if",
-	    "field": "gwas_cat:study",
-	    "parameters": {
-                "field_value": "UKBB",
-                "then": "circle",
-                "else":"diamond"
-	    }
-        },
-        "color": {
-	    "scale_function": "if",
-	    "field": "gwas_cat:study",
-	    "parameters": {
-                "field_value": "UKBB",
-                "then": "#9632b8",
-                "else":"#d43f3a"
-	    }
-        },
-        fill_opacity: 0.7,
-        "legend": [{
-	    "shape": "circle",
-	    "color": "#9632b8",
-	    "size": 40,
-	    "label": "UKBB",
-	    "class": "lz-data_layer-scatter"
-        }, {
-	    "shape": "diamond",
-	    "color": "#d43f3a",
-	    "size": 40,
-	    "label": "GWAS catalog",
-	    "class": "lz-data_layer-scatter"
-        },],
-
-        fields: ["gwas_cat:id", "gwas_cat:or_beta","gwas_cat:pmid","gwas_cat:variant","gwas_cat:chrom", "gwas_cat:risk_allele", "gwas_cat:risk_frq","gwas_cat:pos", "gwas_cat:ref", "gwas_cat:alt","gwas_cat:trait","gwas_cat:study", "gwas_cat:log_pvalue"],
-
-        id_field: "gwas_cat:variant",
-        behaviors: {
-	    onmouseover: [{action: "set", status:"selected"}],
-	    onmouseout: [{action: "unset", status:"selected"}],
-	    onclick: [{action: "link", href:"https://www.ncbi.nlm.nih.gov/pubmed/{{gwas_cat:pmid}}",target: "_blank"}],
-
-        },
-        tooltip: {
-	    closable: false,
-	    "show": {
-                "or": ["highlighted", "selected"]
-	    },
-	    "hide": {
-                "and": ["unhighlighted", "unselected"]
-	    },
-	    html: 'Variant:<strong>{{gwas_cat:variant}}</strong><br>\n\nTrait:<strong>{{gwas_cat:trait}}</strong><br>\n\neffect size:<strong>{{gwas_cat:or_beta}}</strong><br>\n\nLog-pval:<strong>{{gwas_cat:log_pvalue}}</strong><br>\n\nRisk allele:<strong>{{gwas_cat:risk_allele}}</strong><br>\n\nRisk allele frq:<strong>{{gwas_cat:risk_frq}}</strong><br>\n\nStudy:<strong>{{gwas_cat:study}}</strong><br>'
-        },
-
-        "x_axis": {
-	    "field": "gwas_cat:pos",
-	    "axis": 1
-        },
-        "y_axis": {
-	    "axis": 1,
-	    "field": "gwas_cat:log_pvalue",
-	    "floor": 0,
-	    "upper_buffer": 0.1,
-	    "min_extent": [0, 10]
-        },
-        "transition": false,
+    "data_layers": [ { "namespace": { "gwas_cat":"gwas_cat"  },
+                       "id": "associationpvalues",
+                       "type": "scatter",
+                       "point_shape": { "scale_function": "if",
+	                                    "field": "gwas_cat:study",
+	                                    "parameters": { "field_value": "UKBB", "then": "circle", "else":"diamond" } },
+                        "color": { "scale_function": "if",
+	                               "field": "gwas_cat:study",
+	                               "parameters": { "field_value": "UKBB",
+                                                   "then": "#9632b8",
+                                                   "else":"#d43f3a" } },
+                        fill_opacity: 0.7,
+                        "legend": [{ "shape": "circle",
+	                                 "color": "#9632b8",
+                                     "size": 40,
+	                                 "label": "UKBB",
+                                     "class": "lz-data_layer-scatter" }, 
+                                    { "shape": "diamond",
+	                                  "color": "#d43f3a",
+	                                  "size": 40,
+	                                  "label": "GWAS catalog",
+	                                  "class": "lz-data_layer-scatter" }],
+                        fields: ["gwas_cat:id", 
+                                 "gwas_cat:or_beta",
+                                 "gwas_cat:pmid",
+                                 "gwas_cat:variant",
+                                 "gwas_cat:chrom", 
+                                 "gwas_cat:risk_allele", 
+                                 "gwas_cat:risk_frq",
+                                 "gwas_cat:pos", 
+                                 "gwas_cat:ref", 
+                                 "gwas_cat:alt",
+                                 "gwas_cat:trait",
+                                 "gwas_cat:study", 
+                                 "gwas_cat:log_pvalue"
+                                ],
+                        id_field: "gwas_cat:variant",
+                        behaviors: { onmouseover: [{action: "set", status:"selected"}],
+	                                 onmouseout: [{action: "unset", status:"selected"}],
+	                                 onclick: [{action: "link", href:"https://www.ncbi.nlm.nih.gov/pubmed/{{gwas_cat:pmid}}",target: "_blank"} ] },
+                        tooltip: { closable: false,
+	                               "show": { "or": ["highlighted", "selected"] },
+	                               "hide": { "and": ["unhighlighted", "unselected"] },
+	                    html: 'Variant:<strong>{{gwas_cat:variant}}</strong><br>\n\nTrait:<strong>{{gwas_cat:trait}}</strong><br>\n\neffect size:<strong>{{gwas_cat:or_beta}}</strong><br>\n\nLog-pval:<strong>{{gwas_cat:log_pvalue}}</strong><br>\n\nRisk allele:<strong>{{gwas_cat:risk_allele}}</strong><br>\n\nRisk allele frq:<strong>{{gwas_cat:risk_frq}}</strong><br>\n\nStudy:<strong>{{gwas_cat:study}}</strong><br>' },
+                        "x_axis": { "field": "gwas_cat:pos", "axis": 1 },
+                        "y_axis": { "axis": 1,
+	                                "field": "gwas_cat:log_pvalue",
+	                                "floor": 0,
+	                                "upper_buffer": 0.1,
+	                                "min_extent": [0, 10] },
+                        "transition": false,
     }],
     "description": null,
     "origin": {
@@ -652,3 +632,101 @@ export const gwas_cat_layout : (region : Region) => Layout = (region : Region) =
 }
 }
 
+export const genes_layout : (region : Region) => Layout =  (region : Region) => {
+                return {
+                    "id": "genes",
+                    "proportional_height": 0.15,
+                    "min_width": 400,
+                    "y_index": 5,
+                    "min_height": 100,
+                    "margin": {
+                        "top": 0,
+                        "right": 50,
+                        "bottom": 0,
+                        "left": 50
+                    },
+                    "axes": {
+                        "x": {"render": false},
+                        "y1": {"render": false},
+                        "y2": {"render": false}
+                    },
+                    "interaction": {
+                        "drag_background_to_pan": true,
+                        "scroll_to_zoom": true,
+                        "x_linked": true,
+                        "drag_x_ticks_to_scale": false,
+                        "drag_y1_ticks_to_scale": false,
+                        "drag_y2_ticks_to_scale": false,
+                        "y1_linked": false,
+                        "y2_linked": false
+                    },
+                    "dashboard": {
+                        "components": [{
+                        "type": "resize_to_data",
+                        "position": "right",
+                        "color": "blue"
+                        }]
+                    },
+                    "data_layers": [{
+                        "namespace": {
+                        "gene": "gene",
+                        // "constraint": "constraint"
+                        },
+                        "id": "genes",
+                        "type": "genes",
+                        "fields": ["gene:gene"],
+                        "id_field": "gene_id",
+                        "highlighted": {
+                        "onmouseover": "on",
+                        "onmouseout": "off"
+                        },
+                        "selected": {
+                        "onclick": "toggle_exclusive",
+                        "onshiftclick": "toggle"
+                        },
+                        "transition": false,
+                        behaviors: {
+                        onclick: [{action: "toggle", status: "selected", exclusive: true}],
+                        onmouseover: [{action: "set", status: "highlighted"}],
+                        onmouseout: [{action: "unset", status: "highlighted"}],
+                        },
+                        "tooltip": {
+                        "closable": true,
+                        "show": {
+                                "or": ["highlighted", "selected"]
+                        },
+                        "hide": {
+                                "and": ["unhighlighted", "unselected"]
+                        },
+                        "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div>Gene ID: <strong>{{gene_id}}</strong></div><div>Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div>"
+                        // "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div style=\"float: left;\">Gene ID: <strong>{{gene_id}}</strong></div><div style=\"float: right;\">Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table><tr><th>Constraint</th><th>Expected variants</th><th>Observed variants</th><th>Const. Metric</th></tr><tr><td>Synonymous</td><td>{{exp_syn}}</td><td>{{n_syn}}</td><td>z = {{syn_z}}</td></tr><tr><td>Missense</td><td>{{exp_mis}}</td><td>{{n_mis}}</td><td>z = {{mis_z}}</td></tr><tr><td>LoF</td><td>{{exp_lof}}</td><td>{{n_lof}}</td><td>pLI = {{pLI}}</td></tr></table><table width=\"100%\"><tr><td><button onclick=\"LocusZoom.getToolTipPlot(this).panel_ids_by_y_index.forEach(function(panel){ if(panel == 'genes'){ return; } var filters = (panel.indexOf('intervals') != -1 ? [['intervals:start','>=','{{start}}'],['intervals:end','<=','{{end}}']] : [['position','>','{{start}}'],['position','<','{{end}}']]); LocusZoom.getToolTipPlot(this).panels[panel].undimElementsByFilters(filters, true); }.bind(this)); LocusZoom.getToolTipPanel(this).data_layers.genes.unselectAllElements();\">Identify data in region</button></td><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
+                        },
+                        "label_font_size": 12,
+                        "label_exon_spacing": 3,
+                        "exon_height": 8,
+                        "bounding_box_padding": 5,
+                        "track_vertical_spacing": 5,
+                        "hover_element": "bounding_box",
+                        "x_axis": {
+                        "axis": 1
+                        },
+                        "y_axis": {
+                        "axis": 1
+                        },
+                
+                    }
+                           ],
+                    "title": null,
+                    "description": null,
+                    "origin": {
+                        "x": 0,
+                        "y": 225
+                    },
+                    "proportional_origin": {
+                        "x": 0,
+                        "y": 0.5
+                    },
+                    "background_click": "clear_selections",
+                    "legend": null
+                }   
+}

@@ -108,6 +108,6 @@ export const init_locus_zoom = (region : Region) => {
     const plot = populate("#lz-1", data_sources, region_layout(region));
     plot.addPanel(association_layout(region));
     plot.addPanel(clinvar_layout(region));
-    plot.addPanel(gwas_cat_layout(region));
-    //plot.addPanel(genes_layout(region));
+    //plot.addPanel(gwas_cat_layout(region));
+    plot.addPanel(genes_layout(region));
 };

@@ -348,7 +348,7 @@ def region_page_1(phenocode, region):
     else:
         cond_fm_regions = []
     pheno['phenocode'] = phenocode
-    return render_template('region.1.html',
+    return render_template('region.html',
                            pheno=pheno,
                            region=region,
                            cond_fm_regions=cond_fm_regions,
