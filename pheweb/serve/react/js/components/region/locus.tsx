@@ -36,7 +36,7 @@ export const init_locus_zoom = (region : Region) => {
     // Define LocusZoom Data Sources object
     var localBase : string = `/api/region/${region.pheno.phenocode}/lz-`;
     var localCondBase : string = "/api/conditional_region/" + region.pheno.phenocode + "/lz-";
-    var localFMBase : string = "/api/finemapped_region/" + window.pheno.phenocode + "/lz-";
+    var localFMBase : string = "/api/finemapped_region/" + region.pheno.phenocode + "/lz-";
     var remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources : DataSources = new DataSources();
 
@@ -51,7 +51,7 @@ export const init_locus_zoom = (region : Region) => {
     
     data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
     data_sources.add("gwas_cat", new GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:gwascat_source ,pvalue_field: "log_pvalue" }}));
-    data_sources.add("clinvar", new ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { id:[1,4] ,pvalue_field: "log_pvalue" }}));  
+    data_sources.add("clinvar", new ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { region:region , id:[1,4] ,pvalue_field: "log_pvalue" }}));  
     
     if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	data_sources.add("ld", new FG_LDDataSource({url: "/api/ld",
@@ -108,6 +108,6 @@ export const init_locus_zoom = (region : Region) => {
     const plot = populate("#lz-1", data_sources, region_layout(region));
     plot.addPanel(association_layout(region));
     plot.addPanel(clinvar_layout(region));
-    //plot.addPanel(gwas_cat_layout(region));
+    plot.addPanel(gwas_cat_layout(region));
     plot.addPanel(genes_layout(region));
 };

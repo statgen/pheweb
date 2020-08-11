@@ -187,7 +187,7 @@ ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
     var headers = {
         "Content-Type": "application/x-www-form-urlencoded"
     };
-    var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[' + (window.genome_build == 37 ? 'chrpos37' : 'chrpos') + ']%22clinsig%20pathogenic%22[Properties]&retmax=500'
+    var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[' + (this.params.region.genome_build == 37 ? 'chrpos37' : 'chrpos') + ']%22clinsig%20pathogenic%22[Properties]&retmax=500'
     return createCORSPromise("GET", requrl).then(function( resp) {
 
         var data = JSON.parse(resp);
