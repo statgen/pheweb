@@ -1,6 +1,124 @@
 import {DataSources, Dashboard, Data, TransformationFunctions, positionIntToString, createCORSPromise } from 'locuszoom';
 import { defer , when } from 'q';
 
+export const GWASCatSource = Data.Source.extend(function(init : any) {  this.parseInit(init); }, "GWASCatSoureLZ");
+
+GWASCatSource.prototype.getURL = function(state, chain : any, fields : any) {
+
+    return this.url + "results/?format=objects&filter=id in " + this.params.id   +
+        " and chrom eq  '" + state.chr + "'" +
+        " and pos ge " + state.start +
+        " and pos le " + state.end
+};
+
+GWASCatSource.prototype.parseResponse = function(resp : string , chain: { header: Object}, fields : string[], outnames : string[], trans: ((v : any)=>any)[] ) {
+
+    var res : { data : any[] } = { data: []}
+    try {
+        res = JSON.parse(resp)
+    } catch (e) {
+        resp = resp.replace(/Infinity/g,'"Inf"');
+        res = JSON.parse(resp)
+    }
+
+    if( res.data.length==0) {
+        // gotta have mock variant in correct format so LD search does not internal server error
+        var dat = outnames.reduce(  function(acc : any, curr : any, i : number) { acc[curr]="0:0_a/t"; return acc }, {} )
+        return {header: chain.header, body:[dat] };
+    } else {
+        res.data.forEach(d => { d.id = d.variant })
+        return Data.Source.prototype.parseResponse.call(this, res, chain, fields, outnames, trans);
+    }
+}
+
+export const ClinvarDataSource = Data.Source.extend(function(init) {
+    this.parseInit(init);
+}, "ClinvarDataSourceLZ");
+
+ClinvarDataSource.prototype.getURL = function(state, chain, fields) {
+    return this.url
+};
+
+ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
+
+    var url = this.getURL(state, chain, fields);
+
+    var headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    };
+    var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[' + (this.params.region.genome_build == 37 ? 'chrpos37' : 'chrpos') + ']%22clinsig%20pathogenic%22[Properties]&retmax=500'
+    return createCORSPromise("GET", requrl).then(function( resp) {
+
+        var data = JSON.parse(resp);
+
+        if(data.esearchresult.count==0) {
+            var res = defer()
+            res.resolve( '{ "noresults":"","pos":' + state.start + ' }'  )
+            return res.promise
+        }
+
+        if (data.esearchresult.idlist != null) {
+            var requrl = url + "esummary.fcgi?db=clinvar&retmode=json&id=" + data.esearchresult.idlist.join(",")
+            return createCORSPromise("GET", requrl)
+        } else {
+            var res = defer()
+            console.log( "Failed to query clinvar" + JSON.stringify(data, null, 4 ) )
+            res.reject("Failed to query clinvar" + JSON.stringify(data, null, 4 ))
+            return res
+        }
+    }
+    );
+};
+
+ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+
+    if (resp == '') {
+        // locuszoom does not show even axis titles if there are no data visible.
+        // make a mock element with id-1 which is set to invisible in the layout
+        var dat = fields.reduce(  function(acc, curr, i) { acc[curr]=-1; return acc }, {} )
+        return {header: chain.header, body:[dat] };
+    }
+
+    var data = JSON.parse(resp)
+
+    if( data.noresults != null) {
+        // locuszoom does not show even axis titles if there are no data visible.
+        // make a mock element with id-1 which is set to invisible in the layout
+        var dat = fields.reduce(  function(acc, curr, i) { acc[curr]=-1; return acc }, {} )
+        return {header: chain.header, body:[dat] };
+    }
+
+    if (data.result==null) {
+            throw "error while processing clinvar:" +  data.esummaryresult
+    }
+    var respData = []
+    Object.entries(data.result).filter(function(x) {return x[0]!="uids"} ).forEach(function(val){
+
+        val = val[1]
+        var loc = val.variation_set[0].variation_loc.filter(function(x)  {return x.assembly_name=="GRCh38"} )[0]
+        if( loc != null) {
+            var object= {}
+            object.start = loc.start;
+            object.stop = loc.stop;
+            object.ref = loc.ref;
+            object.alt = loc.alt;
+            object.chr = loc.chr
+            object.varName = val.variation_set[0].variation_name;
+            object.clinical_sig = val.clinical_significance.description;
+            object.trait = val.trait_set.map( function(x) { return x.trait_name } ).join(":")
+            object.y= 5
+            object.id = val.uid;
+            object['clinvar:id'] = object.chr + ':' + object.start + '_' + object.ref + '/' + object.alt
+
+            respData.push( object )
+        }
+
+    });
+
+    return {header: chain.header, body: respData};
+};
+
+
 Data.GeneConstraintSource.prototype.fetchRequest = function(state, chain, fields) {
     var geneids = [];
     chain.body.forEach(function(gene){
@@ -18,6 +136,7 @@ Data.GeneConstraintSource.prototype.fetchRequest = function(state, chain, fields
     return createCORSPromise("POST", this.url, body, headers);
 
 };
+
 Data.Source.prototype.getData = function(state, fields, outnames, trans) {
 
     if (this.preGetData) {
@@ -140,124 +259,8 @@ FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
 };
 
 
-export const GWASCatSource = Data.Source.extend(function(init : any) {  this.parseInit(init); }, "GWASCatSoureLZ");
-
-GWASCatSource.prototype.getURL = function(state, chain : any, fields : any) {
-
-    return this.url + "results/?format=objects&filter=id in " + this.params.id   +
-        " and chrom eq  '" + state.chr + "'" +
-        " and pos ge " + state.start +
-        " and pos le " + state.end
-};
-
-GWASCatSource.prototype.parseResponse = (resp : string , chain: { header: Object}, fields : string[], outnames : string[], trans: ((v : any)=>any)[] ) =>{
-
-    var res : { data : any[] } = { data: []}
-    try {
-        res = JSON.parse(resp)
-    } catch (e) {
-        resp = resp.replace(/Infinity/g,'"Inf"');
-        res = JSON.parse(resp)
-    }
-
-    if( res.data.length==0) {
-        // gotta have mock variant in correct format so LD search does not internal server error
-        var dat = outnames.reduce(  function(acc : any, curr : any, i : number) { acc[curr]="0:0_a/t"; return acc }, {} )
-        return {header: chain.header, body:[dat] };
-    } else {
-        res.data.forEach(d => { d.id = d.variant })
-        return Data.Source.prototype.parseResponse.call(this, res, chain, fields, outnames, trans);
-    }
-}
 
 
-
-export const ClinvarDataSource = Data.Source.extend(function(init) {
-    this.parseInit(init);
-}, "ClinvarDataSourceLZ");
-
-ClinvarDataSource.prototype.getURL = function(state, chain, fields) {
-    return this.url
-};
-
-ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
-
-    var url = this.getURL(state, chain, fields);
-
-    var headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    };
-    var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[' + (this.params.region.genome_build == 37 ? 'chrpos37' : 'chrpos') + ']%22clinsig%20pathogenic%22[Properties]&retmax=500'
-    return createCORSPromise("GET", requrl).then(function( resp) {
-
-        var data = JSON.parse(resp);
-
-        if(data.esearchresult.count==0) {
-            var res = defer()
-            res.resolve( '{ "noresults":"","pos":' + state.start + ' }'  )
-            return res.promise
-        }
-
-        if (data.esearchresult.idlist != null) {
-            var requrl = url + "esummary.fcgi?db=clinvar&retmode=json&id=" + data.esearchresult.idlist.join(",")
-            return createCORSPromise("GET", requrl)
-        } else {
-            var res = defer()
-            console.log( "Failed to query clinvar" + JSON.stringify(data, null, 4 ) )
-            res.reject("Failed to query clinvar" + JSON.stringify(data, null, 4 ))
-            return res
-        }
-    }
-    );
-};
-
-ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
-
-    if (resp == '') {
-        // locuszoom does not show even axis titles if there are no data visible.
-        // make a mock element with id-1 which is set to invisible in the layout
-        var dat = fields.reduce(  function(acc, curr, i) { acc[curr]=-1; return acc }, {} )
-        return {header: chain.header, body:[dat] };
-    }
-
-    var data = JSON.parse(resp)
-
-    if( data.noresults != null) {
-        // locuszoom does not show even axis titles if there are no data visible.
-        // make a mock element with id-1 which is set to invisible in the layout
-        var dat = fields.reduce(  function(acc, curr, i) { acc[curr]=-1; return acc }, {} )
-        return {header: chain.header, body:[dat] };
-    }
-
-    if (data.result==null) {
-            throw "error while processing clinvar:" +  data.esummaryresult
-    }
-    var respData = []
-    Object.entries(data.result).filter(function(x) {return x[0]!="uids"} ).forEach(function(val){
-
-        val = val[1]
-        var loc = val.variation_set[0].variation_loc.filter(function(x)  {return x.assembly_name=="GRCh38"} )[0]
-        if( loc != null) {
-            var object= {}
-            object.start = loc.start;
-            object.stop = loc.stop;
-            object.ref = loc.ref;
-            object.alt = loc.alt;
-            object.chr = loc.chr
-            object.varName = val.variation_set[0].variation_name;
-            object.clinical_sig = val.clinical_significance.description;
-            object.trait = val.trait_set.map( function(x) { return x.trait_name } ).join(":")
-            object.y= 5
-            object.id = val.uid;
-            object['clinvar:id'] = object.chr + ':' + object.start + '_' + object.ref + '/' + object.alt
-
-            respData.push( object )
-        }
-
-    });
-
-    return {header: chain.header, body: respData};
-};
 
 
 

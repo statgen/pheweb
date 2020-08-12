@@ -588,7 +588,7 @@ export const gwas_cat_layout : (region : Region) => Layout = (region : Region) =
 	                                  "color": "#d43f3a",
 	                                  "size": 40,
 	                                  "label": "GWAS catalog",
-	                                  "class": "lz-data_layer-scatter" }],
+                                      "class": "lz-data_layer-scatter" }],
                         fields: ["gwas_cat:id", 
                                  "gwas_cat:or_beta",
                                  "gwas_cat:pmid",
@@ -618,7 +618,7 @@ export const gwas_cat_layout : (region : Region) => Layout = (region : Region) =
 	                                "upper_buffer": 0.1,
 	                                "min_extent": [0, 10] },
                         "transition": false,
-    }],
+                    } ],
     "description": null,
     "origin": {
         "x": 0,
