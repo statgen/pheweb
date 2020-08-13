@@ -5,46 +5,46 @@ declare module 'locuszoom' {
     export class Dashboard {
 	constructor(t: any);
 
-	destroy(t: any): any;
+	destroy(force: boolean): Dashboard;
 
-	hide(): any;
+	hide(): Dashboard;
 
-	initialize(): any;
+	initialize(): Dashboard;
 
-	position(): any;
+	position(): Dashboard;
 
-	shouldPersist(): any;
+	shouldPersist(): boolean;
 
-	show(): any;layLayoutout
+	show(): Dashboard;
 
-	update(): any;
+	update(): void;
 
     }
 
     export class DataLayer {
-	constructor(t: any, e: any);
+	constructor(layout: object, parent: Panel);
 
-	addField(t: any, e: any, a: any): any;
+	addField(fieldName: string, nameSpace: string, transformations: string|string[]): string;
 
 	applyAllElementStatus(): void;
 
-	applyBehaviors(a: any): void;
+	applyBehaviors(selection: any): void;
 
-	applyCustomDataMethods(): any;
+	applyCustomDataMethods(): DataLayer;
 
-	applyDataMethods(): any;
+	applyDataMethods(): DataLayer;
 
-	createTooltip(t: any): any;
+	createTooltip(data: string|object): DataLayer;
 
-	destroyAllTooltips(): any;
+	destroyAllTooltips(): DataLayer;
 
-	destroyTooltip(t: any, e: any): any;
+	destroyTooltip(element_or_id: string|object, temporary: boolean): DataLayer
 
-	draw(): any;
+	draw(): DataLayer;
 
-	executeBehaviors(t: any, e: any): any;
+	executeBehaviors(directive: string, behaviors: { action : string , status : string }): DataLayer;
 
-	exportData(t: any): any;
+	exportData(format?: string): string;
 
 	fadeAllElements(): any;
 
@@ -52,29 +52,29 @@ declare module 'locuszoom' {
 
 	fadeElementsByFilters(t: any, e: any): any;
 
-	filter(e: any, a: any): any;
+	filter(filters: any[], return_type: string): any[];
 
-	filterElements(t: any): any;
+	filterElements(t: any): any[];
 
-	filterIndexes(t: any): any;
+	filterIndexes(t: any): any[];
 
-	getAbsoluteDataHeight(): any;
+	getAbsoluteDataHeight(): number;
 
-	getAxisExtent(t: any): any;
+	getAxisExtent(dimension: string): number[];
 
-	getBaseId(): any;
+	getBaseId(): string;
 
 	getElementAnnotation(t: any, e: any): any;
 
-	getElementById(t: any): any;
+	getElementById(id: string): object|null;
 
-	getElementId(t: any): any;
+	getElementId(element: string|object): string;
 
-	getElementStatusNodeId(t: any): any;
+	getElementStatusNodeId(element : string| object): string| null;
 
-	getPageOrigin(): any;
+	getPageOrigin(): {x: number, y: number};
 
-	getTicks(t: any, e: any): any;
+	getTicks(dimension: string, config: object): object[];
 
 	hideAllElements(): any;
 
@@ -88,19 +88,21 @@ declare module 'locuszoom' {
 
 	highlightElementsByFilters(t: any, e: any): any;
 
-	initialize(): any;
+	initialize(): DataLayer;
 
-	moveDown(): any;
+	moveDown(): DataLayer;
 
-	moveUp(): any;
+	moveUp(): DataLayer;
 
-	positionAllTooltips(): any;
+	positionAllTooltips(): DataLayer;
 
-	positionTooltip(t: any): any;
+	positionTooltip(id: string): DataLayer;
 
-	reMap(): any;
+	reMap(): Promise<void>;
 
-	resolveScalableParameter(t: any, e: any, a: any): any;
+	resolveScalableParameter<X,Y>(layout: Array<any>|number|string|object,
+				      element_data: X,
+				      data_index: number): Y;
 
 	selectAllElements(): any;
 
@@ -108,15 +110,15 @@ declare module 'locuszoom' {
 
 	selectElementsByFilters(t: any, e: any): any;
 
-	setAllElementStatus(a: any, t: any): any;
+	setAllElementStatus(status: string, toogle: boolean): DataLayer;
 
-	setElementAnnotation(t: any, e: any, a: any): any;
+	setElementAnnotation<T>(element: string|object, key: string, value : T): DataLayer;
 
-	setElementStatus(t: any, e: any, a: any, i: any): any;
+	setElementStatus(status: string, element: string | object, active: boolean, exclusive: boolean): DataLayer;
 
-	setElementStatusByFilters(e: any, a: any, t: any, i: any): any;
+	setElementStatusByFilters(status: string, toogle: boolean, filters: any[], exclusive: boolean): DataLayer;
 
-	showOrHideTooltip(t: any, e: any): any;
+	showOrHideTooltip(element: string | object, first_time: boolean): DataLayer;
 
 	unfadeAllElements(): any;
 
@@ -142,16 +144,14 @@ declare module 'locuszoom' {
 
 	unselectElementsByFilters(t: any, e: any): any;
 
-	updateTooltip(t: any, e: any): any;
+	updateTooltip(d: string|object, id: string): DataLayer;
 
 	static DefaultLayout: {
-            fields: any[];
+            fields?: (string)[] | null;
             tooltip_positioning: string;
             type: string;
-            x_axis: {
-            };
-            y_axis: {
-            };
+            x_axis?: LayoutAxis | null;
+	    y_axis?: LayoutAxis | null;
 	};
 
 	static Statuses: {
@@ -166,25 +166,25 @@ declare module 'locuszoom' {
     export class DataSources {
 	constructor();
 
-	add(t: any, e: any): any;
+	add(ns: string, x: Data.Source|Array<any>|null): DataSources;
 
-	addSource(t: any, e: any): any;
+	addSource(ns: string, x: string): DataSources;
 
-	fromJSON(e: any): any;
+	fromJSON(ns: string): DataSources;
 
-	get(t: any): any;
+	get(ns: string): Data.Source;
 
-	getSource(t: any): any;
+	getSource(ns: string): Data.Source;
 
-	keys(): any;
+	keys(): string[];
 
-	remove(t: any): any;
+	remove(ns: string): DataSources;
 
-	removeSource(t: any): any;
+	removeSource(ns: string): DataSources;
 
-	set(t: any, e: any): any;
+	set(ns: string, x: Data.Source): DataSources;
 
-	toJSON(): any;
+	toJSON(): string;
 
 	sources : { [key: string]: Data.Source; }
     }
@@ -201,6 +201,7 @@ declare module 'locuszoom' {
 
 	show(): void;
 
+	
 	static DefaultLayout: {
             height: number;
             hidden: boolean;
@@ -409,24 +410,9 @@ declare module 'locuszoom' {
 	max_region_scale: number;
 	min_region_scale: number;
 	panels: {
-            axes: {
-		x: {
-                    extent: string;
-                    label: string;
-                    label_offset: number;
-                    tick_format: string;
-		};
-		y1: {
-                    extent: string;
-                    label: string;
-                    label_offset: number;
-                    tick_format: string;
-		};
-		y2: {
-                    label: string;
-                    label_offset: number;
-		};
-            };
+            axes: { x: LayoutAxesLabel;
+		    y1: LayoutAxesLabel;
+		    y2: LayoutAxesLabel; };
             dashboard: {
 		components: {
                     color: string;
@@ -869,9 +855,9 @@ declare module 'locuszoom' {
 
     export interface LayoutAxesLabel {
 		extent?: string;
-		label: string;
+		label?: string;
 		label_function?: null | string;
-		label_offset: number;
+		label_offset?: number;
 		render?: boolean;
 		tick_format?: string;
     }
@@ -903,23 +889,23 @@ declare module 'locuszoom' {
 	}
 
     export interface LayoutDataLayersEntity {
+		behaviors?: LayoutBehaviors | null;
+		color?: ( | string)[] | null;
+		fields?: (string)[] | null;
+		fill_opacity?: number | null;
 		id: string;
-		type: string;
-		orientation?: string | null;
-		offset?: number | null;
+		id_field?: string | null;
+		legend?: (LayoutLegendEntity)[] | null;
 		namespace?: LayoutNamespace | null;
+		offset?: number | null;
+		orientation?: string | null;
 		point_shape?: LayoutPointShape | null;
 		point_size?: LayoutPointSize | null;
-		color?: ( | string)[] | null;
-		fill_opacity?: number | null;
-		legend?: (LayoutLegendEntity)[] | null;
-		fields?: (string)[] | null;
-		id_field?: string | null;
-		behaviors?: LayoutBehaviors | null;
 		tooltip?: LayoutTooltip | null;
+		transition?: boolean | null;
+		type: string;
 		x_axis?: LayoutAxis | null;
 		y_axis?: LayoutAxis | null;
-		transition?: boolean | null;
 	}
 
     export interface LayoutNamespace {
@@ -985,13 +971,14 @@ declare module 'locuszoom' {
 
     export interface LayoutShow { or?: (string)[] | null; }
 
-	export interface LayoutHide { and?: (string)[] | null; }
+    export interface LayoutHide { and?: (string)[] | null; }
 
-	export interface LayoutAxis {
+    export interface LayoutAxis {
 		field: string;
 		axis: number;
-		floor?: number;
-		upper_buffer?: number;
+	        floor?: number;
+	        lower_buffer?: number;
+	        upper_buffer?: number;
 		min_extent?: (number)[] | null;
     }
 
