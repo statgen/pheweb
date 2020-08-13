@@ -460,33 +460,33 @@ declare module 'locuszoom' {
 
     export const version: string;
 
-    export function createCORSPromise(s: any, n: any, o?: any, r?: any, l?: any): any;
+    export function createCORSPromise<X>(method: string, url: string, body: string, headers : object, timeout : number): Promise<X>;
 
-    export function generateCurtain(): any;
+    export function generateCurtain(): object;
 
-    export function generateLoader(): any;
+    export function generateLoader(): object;
 
-    export function getToolTipData(t: any): any;
+    export function getToolTipData<E>(node: Element): E;
 
-    export function getToolTipDataLayer(t: any): any;
+    export function getToolTipDataLayer(node: Element): DataLayer;
 
-    export function getToolTipPanel(t: any): any;
+    export function getToolTipPanel(node: Element): Panel;
 
-    export function getToolTipPlot(t: any): any;
+    export function getToolTipPlot(node: Element): Plot;
 
-    export function parseFields(e: any, t: any): any;
+    export function parseFields(data : object, html: string): string;
 
-    export function parsePositionQuery(t: any): any;
+    export function parsePositionQuery(query: string): {chr:string, start: number, end:number} | {chr:string, position:number};
 
-    export function populate(t: any, a: any, i: any): any;
+    export function populate(selector: string, datasources: DataSources, parameter: object): Plot;
 
-    export function populateAll(t: any, a: any, i: any): any;
+    export function populateAll(selector: string, datasources: DataSources, layout: object): Plot[];
 
-    export function positionIntToString(t: any, e: any, a: any): any;
+    export function positionIntToString(position: number, exponent: number, suffix: boolean): string;
 
-    export function positionStringToInt(t: any): any;
+    export function positionStringToInt(s: string): number;
 
-    export function prettyTicks(t: any, e: any, a: any): any;
+    export function prettyTicks(range: number[], clip_range: string, target_tick_count : number): number[];
 
     export function subclass(t: any, e: any, ...args: any[]): any;
 
