@@ -8,6 +8,7 @@ interface Props {}
 const List = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
     const [stateSelected, setStateSelected]= useState({ selected : [], row : [] });
+    const [selectedRow, setSelectedRow]= useState<Set<number>>(new Set());
     useEffect( () => {
         getList();
     }, [parameter]); /* only update on when position is updated */
@@ -40,42 +41,36 @@ const List = (props : Props) => {
 
   const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
   const headers = columns.map(c => ({ ...c , key: c.accessor }))
-  /*
-  const getTrProps = (state, rowInfo, column) => { return { onClick: (e) => { const a = state.selected.indexOf(rowInfo.index);
-    if (a == -1) { 
-      setState({selected: [...state.selected, rowInfo.index]}); 
-    }
-    const array = state.selected;
-    if(a != -1){ 
-      array.splice(a, 1);
-      setState({selected: array}); 
-    }
-  } ,
-   style: { /*background: state.selected.indexOf(rowInfo.index) != -1 ? '#393740': '#302f36' } 
-} 
-}; */
 
-const getTrProps = (state, rowInfo, column) => { 
-  const s = stateSelected;
-  const setS = setStateSelected;
-  return { onClick: () => { const a = s.selected.indexOf(rowInfo.index); 
-    if (a == -1) {  setS({selected: [...s.selected, rowInfo.index], row: s.row}); }
-    const array = state.selected;
-    if(a != -1){ 
-      array.splice(a, 1);
-      setS({selected: array , row: s.row}); 
-    }
-  } ,
-  style: { /* background: s.selected.indexOf(rowInfo.index) != -1 ? '#393740': '#302f36'*/ } } };
+  const getTrProps = (row, setRow) => (state, rowInfo?, column, instance?) => { 
+  if(rowInfo && rowInfo.row){
+    const index : number = rowInfo.index; 
+    const onClick = () => {
+          console.log(Array.from(row).join(' ')+' '+row.has(index));
+          if(row.has(index)){
+            row.delete(index);
+            setRow(row);
+          } else {
+            setRow(row.add(index));
+          }
+          if(instance){ instance.forceUpdate(); }
+    };
+    const style : { background : string , color : string } = { background: "#0aafec" , color : "white" }
+    const result : { onClick : () => void ,
+                     style? : { background : string , color : string } } = row.has(rowInfo.index)?{ onClick , style }:{ onClick };
+    console.log(result);
+    return result;
+} else { return {}; }
+}
 
-        return (<div>
+return (<div>
 		<ReactTable data={ colocalizationList }
                        columns={ columns }
                        defaultSorted={[{  id: "clpa", desc: true }]}
                        defaultPageSize={10}
                        filterable
                        defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase())}
-                       getTrProps={getTrProps}
+                       getTrProps={getTrProps(selectedRow, setSelectedRow)}
 		            className="-striped -highlight"/>
 		<p></p>
 		<div className="row">

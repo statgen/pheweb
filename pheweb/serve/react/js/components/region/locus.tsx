@@ -42,7 +42,7 @@ export const init_locus_zoom = (region : Region) => {
 
     var recomb_source : number = region.genome_build == 37 ? 15 : 16
     var gene_source : number = region.genome_build == 37 ? 2 : 1
-    var gwascat_source = region.genome_build == 37 ? [2,3] : [1,4]
+    var gwascat_source : Array<number> = region.genome_build == 37 ? [2,3] : [1,4]
 
     data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     data_sources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
@@ -55,16 +55,16 @@ export const init_locus_zoom = (region : Region) => {
     
     if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	data_sources.add("ld", new FG_LDDataSource({url: "/api/ld",
-							 params: { id:[1,4] ,
-								   region: region,
-								   pvalue_field: "association:pvalue",
-								   "var_id_field":"association:id" }}));
+							                    params: { id:[1,4] ,
+								                region: region,
+								                pvalue_field: "association:pvalue",
+								                var_id_field: "association:id" }}));
     } else {
 	data_sources.add("ld", new FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
 							 params: { id:[1,4] ,
-								   region: region,
-								   pvalue_field: "association:pvalue",
-								   "var_id_field":"association:rsid" }}));
+								       region: region,
+								       pvalue_field: "association:pvalue",
+								       var_id_field: "association:rsid" }}));
     }
     data_sources.add("recomb", ["RecombLZ", { url: `${remoteBase}annotation/recomb/results/`, params: {source: recomb_source} }]);
 

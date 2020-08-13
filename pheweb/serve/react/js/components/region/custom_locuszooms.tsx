@@ -6,9 +6,9 @@ export const GWASCatSource = Data.Source.extend(function(init : any) {  this.par
 GWASCatSource.prototype.getURL = function(state, chain : any, fields : any) {
 
     return this.url + "results/?format=objects&filter=id in " + this.params.id   +
-        " and chrom eq  '" + state.chr + "'" +
-        " and pos ge " + state.start +
-        " and pos le " + state.end
+                      " and chrom eq  '" + state.chr + "'" +
+                      " and pos ge " + state.start +
+                      " and pos le " + state.end
 };
 
 GWASCatSource.prototype.parseResponse = function(resp : string , chain: { header: Object}, fields : string[], outnames : string[], trans: ((v : any)=>any)[] ) {
@@ -257,12 +257,6 @@ FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
     return url ? createCORSPromise("GET", url, {}, headers) : defer()
 
 };
-
-
-
-
-
-
 
 export const ConditionalSource = Data.Source.extend(function(init) {
     this.parseInit(init);
