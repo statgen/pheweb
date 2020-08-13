@@ -92,24 +92,42 @@ ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnam
             throw "error while processing clinvar:" +  data.esummaryresult
     }
     var respData = []
-    Object.entries(data.result).filter(function(x) {return x[0]!="uids"} ).forEach(function(val){
+    Object.entries(data.result).filter(function(x) {return x[0]!="uids"} ).forEach(function(x : any){
 
-        val = val[1]
+        const val : { variation_set : { variation_name : string , 
+                                        variation_loc : { assembly_name : string ,
+                                                          start : string ,
+                                                          stop : string,
+                                                          ref : string ,
+                                                          alt: string  
+                                                          chr : string }[] }[],
+                      clinical_significance : { description : string },
+                      trait_set : any, 
+                      uid : string }= x[1]
         var loc = val.variation_set[0].variation_loc.filter(function(x)  {return x.assembly_name=="GRCh38"} )[0]
         if( loc != null) {
-            var object= {}
-            object.start = loc.start;
-            object.stop = loc.stop;
-            object.ref = loc.ref;
-            object.alt = loc.alt;
-            object.chr = loc.chr
-            object.varName = val.variation_set[0].variation_name;
-            object.clinical_sig = val.clinical_significance.description;
-            object.trait = val.trait_set.map( function(x) { return x.trait_name } ).join(":")
-            object.y= 5
-            object.id = val.uid;
-            object['clinvar:id'] = object.chr + ':' + object.start + '_' + object.ref + '/' + object.alt
-
+           const start = loc.start;
+           const stop = loc.stop;
+           const ref = loc.ref;
+           const alt = loc.alt;
+           const chr = loc.chr
+           const varName = val.variation_set[0].variation_name;
+           const clinical_sig = val.clinical_significance.description;
+           const trait = val.trait_set.map( function(x) { return x.trait_name } ).join(":")
+           const y= 5
+           const id = val.uid;
+           const clinvar_id = chr + ':' + start + '_' + ref + '/' + alt
+           const object = { start,
+                            stop, 
+                            ref, 
+                            alt,
+                            chr,
+                            varName,
+                            clinical_sig,
+                            trait,
+                            y,
+                            id,
+                            'clinvar:id' : clinvar_id} 
             respData.push( object )
         }
 
