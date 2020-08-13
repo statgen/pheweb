@@ -1,4 +1,4 @@
-import { Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate } from 'locuszoom';
+import { Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate, Plot } from 'locuszoom';
 import { region_layout ,  association_layout , genes_layout , clinvar_layout , gwas_cat_layout , finemapping_layout} from './region_layouts';
 import { FG_LDDataSource , GWASCatSource , ClinvarDataSource } from './custom_locuszooms';
 import { Region } from './components';
@@ -30,43 +30,46 @@ TransformationFunctions.set("percent", function(n : number) {
     return x + '%';
 });
 
+export interface LocusZoomContext {
+    plot : Plot
+    dataSources : DataSources
+}
 
-
-export const init_locus_zoom = (region : Region) => {
+export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     // Define LocusZoom Data Sources object
-    var localBase : string = `/api/region/${region.pheno.phenocode}/lz-`;
-    var localCondBase : string = "/api/conditional_region/" + region.pheno.phenocode + "/lz-";
-    var localFMBase : string = "/api/finemapped_region/" + region.pheno.phenocode + "/lz-";
-    var remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
-    var data_sources : DataSources = new DataSources();
-
-    var recomb_source : number = region.genome_build == 37 ? 15 : 16
-    var gene_source : number = region.genome_build == 37 ? 2 : 1
-    var gwascat_source : Array<number> = region.genome_build == 37 ? [2,3] : [1,4]
-
-    data_sources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
-    data_sources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
-    data_sources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
-    data_sources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:gene_source}}])   
+    const localBase : string = `/api/region/${region.pheno.phenocode}/lz-`;
+    const localCondBase : string = "/api/conditional_region/" + region.pheno.phenocode + "/lz-";
+    const localFMBase : string = "/api/finemapped_region/" + region.pheno.phenocode + "/lz-";
+    const remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
+    const dataSources : DataSources = new DataSources();
     
-    data_sources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
-    data_sources.add("gwas_cat", new GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:gwascat_source ,pvalue_field: "log_pvalue" }}));
-    data_sources.add("clinvar", new ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { region:region , id:[1,4] ,pvalue_field: "log_pvalue" }}));  
+    const recombSource : number = region.genome_build == 37 ? 15 : 16
+    const geneSource : number = region.genome_build == 37 ? 2 : 1
+    const gwascatSource : Array<number> = region.genome_build == 37 ? [2,3] : [1,4]
+
+    dataSources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
+    dataSources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
+    dataSources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
+    dataSources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:geneSource}}])   
+    
+    dataSources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
+    dataSources.add("gwas_cat", new GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:gwascatSource ,pvalue_field: "log_pvalue" }}));
+    dataSources.add("clinvar", new ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { region:region , id:[1,4] ,pvalue_field: "log_pvalue" }}));  
     
     if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
-	data_sources.add("ld", new FG_LDDataSource({url: "/api/ld",
-							                    params: { id:[1,4] ,
-								                region: region,
-								                pvalue_field: "association:pvalue",
-								                var_id_field: "association:id" }}));
+	dataSources.add("ld", new FG_LDDataSource({url: "/api/ld",
+						   params: { id:[1,4] ,
+							     region: region,
+							     pvalue_field: "association:pvalue",
+							     var_id_field: "association:id" }}));
     } else {
-	data_sources.add("ld", new FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
+	dataSources.add("ld", new FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
 							 params: { id:[1,4] ,
 								       region: region,
 								       pvalue_field: "association:pvalue",
 								       var_id_field: "association:rsid" }}));
     }
-    data_sources.add("recomb", ["RecombLZ", { url: `${remoteBase}annotation/recomb/results/`, params: {source: recomb_source} }]);
+    dataSources.add("recomb", ["RecombLZ", { url: `${remoteBase}annotation/recomb/results/`, params: {source: recombSource} }]);
 
     
     // dashboard components
@@ -92,7 +95,7 @@ export const init_locus_zoom = (region : Region) => {
     });
 
     add_dashboard_button('move', function(layout) {
-        // see also the default component `shift_region`
+        // see also the sefault component `shift_region`
         return function() {
             var start = this.parent_plot.state.start;
             var end = this.parent_plot.state.end;
@@ -104,12 +107,13 @@ export const init_locus_zoom = (region : Region) => {
             });
         }
     });
-    
 
-    const plot = populate("#lz-1", data_sources, region_layout(region));
+    const plot : Plot = populate("#lz-1", dataSources, region_layout(region));
     plot.addPanel(association_layout(region));
     plot.addPanel(clinvar_layout(region));
     plot.addPanel(gwas_cat_layout(region));
     plot.addPanel(genes_layout(region));
     plot.addPanel(finemapping_layout(region));
+
+    return { plot , dataSources }
 };

@@ -2,12 +2,16 @@ import React, { useState, useEffect , useContext } from 'react';
 import ReactTable, { Cell } from 'react-table';
 import { ColocalizationContext, ColocalizationState } from '../../contexts/colocalization/ColocalizationContext';
 import { CSVLink } from 'react-csv'
+import { LocusZoomContext } from './locus'
 
-interface Props {}
+interface Props { locusZoomContext? : LocusZoomContext }
+
+const colocalizationList = (locusZoomContext? : LocusZoomContext) => {
+
+}
 
 const List = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
-    const [stateSelected, setStateSelected]= useState({ selected : [], row : [] });
     const [selectedRow, setSelectedRow]= useState<Set<number>>(new Set());
     useEffect( () => {
         getList();
@@ -58,7 +62,6 @@ const List = (props : Props) => {
     const style : { background : string , color : string } = { background: "#0aafec" , color : "white" }
     const result : { onClick : () => void ,
                      style? : { background : string , color : string } } = row.has(rowInfo.index)?{ onClick , style }:{ onClick };
-    console.log(result);
     return result;
 } else { return {}; }
 }

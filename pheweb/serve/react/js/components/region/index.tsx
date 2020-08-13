@@ -5,8 +5,9 @@ interface Props {};
 import { VisConf , LzConf, Phenotype, Region } from './components';
 import Summary from '../colocalization/summary'
 import List from '../colocalization/list'
-import { init_locus_zoom } from './locus'
+import { init_locus_zoom, LocusZoomContext } from './locus'
 import ColocalizationProvider from '../../contexts/colocalization/ColocalizationContext'
+
 
 const banner = (pheno : Phenotype) => <div className="w-100 row">
     <div className="col-xs-12">
@@ -39,14 +40,15 @@ const locus_zoom = (region : string) => <div className="row">
 </div>
 
 
-const colocalization = () => <div className="row">
+const colocalization = (locusZoomContext : LocusZoomContext | undefined) => <div className="row">
   <div className="col-xs-12" id="colocalization_list_div">
-    <ColocalizationProvider><List /></ColocalizationProvider>
+    <ColocalizationProvider><List locusZoomContext /></ColocalizationProvider>
   </div>
 </div>
     
 const Region = (props : Props) => {
-    const [ region, setRegion ] = useState<Region | null>(null);
+    const [ region, setRegion ] = useState<Region | undefined>(undefined);
+    const [ locusZoomContext, setLocusZoomContext] = useState<LocusZoomContext | undefined>(undefined);
     
     const updatePheno = () => {
         const summary_url : string = `/api${window.location.pathname}`;
@@ -55,8 +57,8 @@ const Region = (props : Props) => {
 	    then(res => { setRegion(res); });
     };
     const updateLocusZoom = () => {
-	if(region != null){
-	    init_locus_zoom(region);
+	if(region){
+	    setLocusZoomContext(init_locus_zoom(region));
 	}
     };
     
@@ -68,7 +70,7 @@ const Region = (props : Props) => {
         { region?summary(region.pheno):<div></div> }
         { region?message(region.lz_conf):<div></div> }
         { region?locus_zoom(region.region):<div></div> }
-        { colocalization() }
+        { colocalization(locusZoomContext) }
     </div>;
 }
 
