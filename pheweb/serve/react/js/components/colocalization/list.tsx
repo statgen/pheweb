@@ -2,22 +2,22 @@ import React, { useState, useEffect , useContext } from 'react';
 import ReactTable, { Cell } from 'react-table';
 import { ColocalizationContext, ColocalizationState } from '../../contexts/colocalization/ColocalizationContext';
 import { CSVLink } from 'react-csv'
-import { LocusZoomContext } from './locus'
+import { Colocalization } from './model'
+import { LocusZoomContext } from '../region/locus';
 
 interface Props { locusZoomContext? : LocusZoomContext }
 
-const colocalizationList = (locusZoomContext? : LocusZoomContext) => {
-
+const updateLocusZoom = (locusZoomContext : LocusZoomContext,selected : Array<Colocalization>) => {
+    console.log(selected);
 }
 
 const List = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
     const [selectedRow, setSelectedRow]= useState<Set<number>>(new Set());
-    useEffect( () => {
-        getList();
-    }, [parameter]); /* only update on when position is updated */
+    const context : LocusZoomContext = props.locusZoomContext
+    useEffect( () => { getList(); }, [parameter]); /* only update on when position is updated */
     
-    const [colocalizationList, setList] = useState(null); /* set up hooks for colocalization */
+    const [colocalizationList, setList] = useState<Array<Colocalization> | undefined>(undefined); /* set up hooks for colocalization */
 
     const getList = () => {
         if(parameter != null && parameter.phenotype != null && parameter.locus != null){
@@ -50,14 +50,16 @@ const List = (props : Props) => {
   if(rowInfo && rowInfo.row){
     const index : number = rowInfo.index; 
     const onClick = () => {
-          console.log(Array.from(row).join(' ')+' '+row.has(index));
           if(row.has(index)){
             row.delete(index);
             setRow(row);
           } else {
             setRow(row.add(index));
           }
-          if(instance){ instance.forceUpdate(); }
+	if(colocalizationList && context){
+  }
+  if(instance){ instance.forceUpdate(); }
+  updateLocusZoom(context, Array.from<number>(row).map((i : number) => colocalizationList[i]))
     };
     const style : { background : string , color : string } = { background: "#0aafec" , color : "white" }
     const result : { onClick : () => void ,
