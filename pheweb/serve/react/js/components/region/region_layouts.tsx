@@ -710,15 +710,6 @@ export const finemapping_layout : (region : Region) => Layout = (region : Region
 		     }
 		 },
 		 "point_size": {
-		     "scale_function": "if",
-		     "field": "ld:isrefvar",
-		     "parameters": {
-			 "field_value": 1,
-			 "then": 80,
-			 "else": 40
-		     }
-		 },
-		 "point_size": {
 		     "scale_function": "categorical_bin",
 		     "field": "finemapping:most_severe",
 		     "parameters": {

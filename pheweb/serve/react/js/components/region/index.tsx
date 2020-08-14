@@ -42,7 +42,7 @@ const locus_zoom = (region : string) => <div className="row">
 
 const colocalization = (locusZoomContext : LocusZoomContext | undefined) => <div className="row">
   <div className="col-xs-12" id="colocalization_list_div">
-    <ColocalizationProvider><List locusZoomContext /></ColocalizationProvider>
+    <ColocalizationProvider><List locusZoomContext={locusZoomContext} /></ColocalizationProvider>
   </div>
 </div>
     

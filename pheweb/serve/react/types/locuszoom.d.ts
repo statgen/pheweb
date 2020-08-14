@@ -197,7 +197,7 @@ declare module 'locuszoom' {
 
 	toJSON(): string;
 
-	sources : { [key: string]: Data.Source; }
+	sources: { [key: string]: Data.Source; }
     }
 
 	
@@ -460,7 +460,7 @@ declare module 'locuszoom' {
 
     export const version: string;
 
-    export function createCORSPromise<X>(method: string, url: string, body: string, headers : object, timeout : number): Promise<X>;
+    export function createCORSPromise<X>(method: string, url: string, body: string, headers? : object, timeout? : number): Promise<X>;
 
     export function generateCurtain(): object;
 

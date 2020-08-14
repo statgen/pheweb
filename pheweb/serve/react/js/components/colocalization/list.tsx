@@ -4,12 +4,41 @@ import { ColocalizationContext, ColocalizationState } from '../../contexts/coloc
 import { CSVLink } from 'react-csv'
 import { Colocalization } from './model'
 import { LocusZoomContext } from '../region/locus';
+import { Panel } from 'locuszoom';
 
 interface Props { locusZoomContext? : LocusZoomContext }
 
-const updateLocusZoom = (locusZoomContext : LocusZoomContext,selected : Array<Colocalization>) => {
-    console.log(selected);
+const reformat = (locus : string) : string | undefined => {                                                                                                                                                                            
+  var regexp = /^chr([^_]+)_([\d]+)_([^_]+)_([^_]+)$/;                                                                                                                                                     
+  var match = locus.match(regexp);                                                                                                                                                                         
+  let result : string | undefined;                                                                                                                                                                                              
+  if(match){                                                                                                                                                                                               
+    const [chromosome,position,reference,alternative] = match.slice(1);                                                                                                                                    
+    result = `${chromosome}:${position}_${reference}/${alternative}`;                                                                                                                                      
+  } else {                                                                                                                                                                                                 
+    result = undefined;                                                                                                                                                                                    
+  }                                                                                                                                                                                                        
+  return result;
 }
+  
+const updateLocusZoom = (locusZoomContext : LocusZoomContext,selected : Array<Colocalization>) => {
+    const { dataSources , plot } = locusZoomContext;
+    const params = dataSources.get("finemapping").params
+    const panel : Panel = plot.panels.finemapping
+    const title: string = (selected.length == 0)?"Credible Set":"Credible Set : Colocalization"
+    panel.setTitle(title)
+
+    // there are two data tracks will focus on the first one for now
+    var data = dataSources.sources.finemapping.parseArraysToObjects(params.allData[0].data, params.fields, params.outnames, params.trans)
+    if(selected.length > 0){
+      const locus : Array<string> = selected.map(c => c.locus_id1).map(reformat).filter(l => l)
+      data = data.filter(d => locus.includes(d["finemapping:id"]))
+    }
+
+    panel.data_layers.associationpvalues.data = data
+    panel.data_layers.associationpvalues.render()
+  }
+
 
 const List = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
