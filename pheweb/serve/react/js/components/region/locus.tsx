@@ -1,5 +1,5 @@
 import { Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate, Plot } from 'locuszoom';
-import { region_layout ,  association_layout , genes_layout , clinvar_layout , gwas_cat_layout , finemapping_layout} from './region_layouts';
+import { region_layout ,  association_layout , genes_layout , clinvar_layout , gwas_cat_layout , finemapping_layout , colocalization_layout } from './region_layouts';
 import { FG_LDDataSource , GWASCatSource , ClinvarDataSource } from './custom_locuszooms';
 import { Region } from './components';
 
@@ -114,6 +114,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     plot.addPanel(gwas_cat_layout(region));
     plot.addPanel(genes_layout(region));
     plot.addPanel(finemapping_layout(region));
+    plot.addPanel(colocalization_layout(region));
 
     return { plot , dataSources }
 };

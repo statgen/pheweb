@@ -8,31 +8,36 @@ import { Panel } from 'locuszoom';
 
 interface Props { locusZoomContext? : LocusZoomContext }
 
-const reformat = (locus : string) : string | undefined => {                                                                                                                                                                            
-  var regexp = /^chr([^_]+)_([\d]+)_([^_]+)_([^_]+)$/;                                                                                                                                                     
-  var match = locus.match(regexp);                                                                                                                                                                         
-  let result : string | undefined;                                                                                                                                                                                              
-  if(match){                                                                                                                                                                                               
-    const [chromosome,position,reference,alternative] = match.slice(1);                                                                                                                                    
-    result = `${chromosome}:${position}_${reference}/${alternative}`;                                                                                                                                      
-  } else {                                                                                                                                                                                                 
-    result = undefined;                                                                                                                                                                                    
-  }                                                                                                                                                                                                        
+const reformat = (locus : string) : string | undefined => {
+  var regexp = /^chr([^_]+)_([\d]+)_([^_]+)_([^_]+)$/;
+  var match = locus.match(regexp);
+  let result : string | undefined;
+  if(match){
+    const [chromosome,position,reference,alternative] = match.slice(1);
+    result = `${chromosome}:${position}_${reference}/${alternative}`;
+  } else {
+    result = undefined;
+  }
   return result;
 }
-  
+
+const credible_set(spec : string) : string[] => {
+    spec.split(',').map(reformat).filter(l => l)
+}
+
 const updateLocusZoom = (locusZoomContext : LocusZoomContext,selected : Array<Colocalization>) => {
     const { dataSources , plot } = locusZoomContext;
     const params = dataSources.get("finemapping").params
     const panel : Panel = plot.panels.finemapping
-    const title: string = (selected.length == 0)?"Credible Set":"Credible Set : Colocalization"
+    const title: string = (selected.length == 0)?"Credible Set : Colocalization":"Credible Set : Colocalization : *"
     panel.setTitle(title)
 
     // there are two data tracks will focus on the first one for now
     var data = dataSources.sources.finemapping.parseArraysToObjects(params.allData[0].data, params.fields, params.outnames, params.trans)
     if(selected.length > 0){
-      const locus : Array<string> = selected.map(c => c.locus_id1).map(reformat).filter(l => l)
-      data = data.filter(d => locus.includes(d["finemapping:id"]))
+        const locus : Array<string> = selected.map(c => c.variation).map(credible_set).flat()
+        console.log(locus);
+	      data = data.filter(d => locus.includes(d["finemapping:id"]))
     }
 
     panel.data_layers.associationpvalues.data = data
@@ -45,7 +50,7 @@ const List = (props : Props) => {
     const [selectedRow, setSelectedRow]= useState<Set<number>>(new Set());
     const context : LocusZoomContext = props.locusZoomContext
     useEffect( () => { getList(); }, [parameter]); /* only update on when position is updated */
-    
+
     const [colocalizationList, setList] = useState<Array<Colocalization> | undefined>(undefined); /* set up hooks for colocalization */
 
     const getList = () => {
@@ -75,9 +80,9 @@ const List = (props : Props) => {
   const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
   const headers = columns.map(c => ({ ...c , key: c.accessor }))
 
-  const getTrProps = (row, setRow) => (state, rowInfo?, column, instance?) => { 
+  const getTrProps = (row, setRow) => (state, rowInfo?, column, instance?) => {
   if(rowInfo && rowInfo.row){
-    const index : number = rowInfo.index; 
+    const index : number = rowInfo.index;
     const onClick = () => {
           if(row.has(index)){
             row.delete(index);
@@ -109,7 +114,7 @@ return (<div>
 		<p></p>
 		<div className="row">
 		   <div className="col-xs-12">
-	              <CSVLink 
+	              <CSVLink
 		               headers={headers}
 		               data={ colocalizationList }
 		               separator={'\t'}
