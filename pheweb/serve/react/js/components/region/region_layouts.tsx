@@ -322,40 +322,28 @@ export const genes_layout : (region : Region) => Layout =  (region : Region) => 
                 "color": "blue"
             }]
         },
-        "data_layers": [{
-            "namespace": {
-                "gene": "gene",
-                // "constraint": "constraint"
-            },
-            "id": "genes",
-            "type": "genes",
-            "fields": ["gene:gene"],
-            "id_field": "gene_id",
-            "highlighted": {
-                "onmouseover": "on",
-                "onmouseout": "off"
-            },
-            "selected": {
-                "onclick": "toggle_exclusive",
-                "onshiftclick": "toggle"
-            },
-            "transition": false,
-            behaviors: {
-                onclick: [{action: "toggle", status: "selected", exclusive: true}],
-                onmouseover: [{action: "set", status: "highlighted"}],
-                onmouseout: [{action: "unset", status: "highlighted"}],
-            },
-            "tooltip": {
-                "closable": true,
-                "show": {
-                    "or": ["highlighted", "selected"]
-                },
-                "hide": {
-                    "and": ["unhighlighted", "unselected"]
-                },
-                "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div>Gene ID: <strong>{{gene_id}}</strong></div><div>Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div>"
-                // "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div style=\"float: left;\">Gene ID: <strong>{{gene_id}}</strong></div><div style=\"float: right;\">Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table><tr><th>Constraint</th><th>Expected variants</th><th>Observed variants</th><th>Const. Metric</th></tr><tr><td>Synonymous</td><td>{{exp_syn}}</td><td>{{n_syn}}</td><td>z = {{syn_z}}</td></tr><tr><td>Missense</td><td>{{exp_mis}}</td><td>{{n_mis}}</td><td>z = {{mis_z}}</td></tr><tr><td>LoF</td><td>{{exp_lof}}</td><td>{{n_lof}}</td><td>pLI = {{pLI}}</td></tr></table><table width=\"100%\"><tr><td><button onclick=\"LocusZoom.getToolTipPlot(this).panel_ids_by_y_index.forEach(function(panel){ if(panel == 'genes'){ return; } var filters = (panel.indexOf('intervals') != -1 ? [['intervals:start','>=','{{start}}'],['intervals:end','<=','{{end}}']] : [['position','>','{{start}}'],['position','<','{{end}}']]); LocusZoom.getToolTipPlot(this).panels[panel].undimElementsByFilters(filters, true); }.bind(this)); LocusZoom.getToolTipPanel(this).data_layers.genes.unselectAllElements();\">Identify data in region</button></td><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
-            },
+        "data_layers": [{ "namespace": { "gene": "gene" },
+			  "id": "genes",
+			  "type": "genes",
+			  "fields": ["gene:gene"],
+			  "id_field": "gene_id",
+			  "highlighted": {
+			      "onmouseover": "on",
+			      "onmouseout": "off"
+			  },
+			  "selected": {
+			      "onclick": "toggle_exclusive",
+			      "onshiftclick": "toggle"
+			  },
+			  "transition": false,
+			  behaviors: { onclick: [{action: "toggle", status: "selected", exclusive: true}],
+				       onmouseover: [{action: "set", status: "highlighted"}],
+				       onmouseout: [{action: "unset", status: "highlighted"}] },
+			  "tooltip": {"closable": true,
+				      "show": { "or": ["highlighted", "selected"] },
+				      "hide": { "and": ["unhighlighted", "unselected"] },
+				      "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div>Gene ID: <strong>{{gene_id}}</strong></div><div>Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div>"
+				     },
             "label_font_size": 12,
             "label_exon_spacing": 3,
             "exon_height": 8,
@@ -679,35 +667,26 @@ export const finemapping_layout : (region : Region) => Layout = (region : Region
 		 "padding": 5,
 		 "label_size": 12
 	     },
-	     "interaction": {
-		 "drag_background_to_pan": true,
-		 "drag_x_ticks_to_scale": true,
-		 "drag_y1_ticks_to_scale": true,
-		 "drag_y2_ticks_to_scale": true,
-		 "scroll_to_zoom": true,
-		 "x_linked": true,
-		 "y1_linked": false,
-		 "y2_linked": false
-	     },
-	     "data_layers": [{
-		 "id": "significance",
-		 type: "orthogonal_line",
-		 orientation: "horizontal",
-		 offset: -Math.log10(5e-8),
-	     }, {
-		 "namespace": {
-		     "finemapping": "finemapping"
-		 },
-		 "id": "associationpvalues",
-		 "type": "scatter",
-		 "point_shape": {
-		     "scale_function": "categorical_bin",
-		     "field": "finemapping:most_severe",
-		     "parameters": {
-			 "categories": ["frameshift variant", "inframe deletion", "inframe insertion", "splice acceptor variant", "splice donor variant", "start lost", "stop gained", "stop lost", "TFBS ablation", "missense variant"],
-			 "values": ["triangle-up", "triangle-down", "triangle-down", "triangle-up", "triangle-up", "triangle-down", "triangle-down", "triangle-down", "triangle-down", "square"],
-			 "null_value": "circle"
-		     }
+	     "interaction": { "drag_background_to_pan": true,
+			      "drag_x_ticks_to_scale": true,
+			      "drag_y1_ticks_to_scale": true,
+			      "drag_y2_ticks_to_scale": true,
+			      "scroll_to_zoom": true,
+			      "x_linked": true,
+			      "y1_linked": false,
+			      "y2_linked": false },
+	     "data_layers": [{ "id": "significance",
+			       type: "orthogonal_line",
+			       orientation: "horizontal",
+			       offset: -Math.log10(5e-8) },
+			     { "namespace": { "finemapping": "finemapping" },
+			       "id": "associationpvalues",
+			       "type": "scatter",
+			       "point_shape": { "scale_function": "categorical_bin",
+						"field": "finemapping:most_severe",
+						"parameters": { "categories": ["frameshift variant", "inframe deletion", "inframe insertion", "splice acceptor variant", "splice donor variant", "start lost", "stop gained", "stop lost", "TFBS ablation", "missense variant"],
+								"values": ["triangle-up", "triangle-down", "triangle-down", "triangle-up", "triangle-up", "triangle-down", "triangle-down", "triangle-down", "triangle-down", "square"],
+								"null_value": "circle" }
 		 },
 		 "point_size": {
 		     "scale_function": "categorical_bin",
@@ -830,158 +809,147 @@ export const finemapping_layout : (region : Region) => Layout = (region : Region
 
 export const colocalization_layout : (region : Region) => Layout = (region : Region) => {
     return { "id": "colocalization",
-	         "title": { "text":"Credible Set : Colocalization", "x":55, "y":30 } ,
-	         "proportional_height": 0.2,
-	         "min_width": 400,
-	         "min_height": 150,
-	         "y_index": 2,
-	         "margin": { "top": 10, "right": 50, "bottom": 40, "left": 50 },
-	         "inner_border": "rgb(210, 210, 210)",
-	         "dashboard": { "components": [{ "type": "toggle_legend", "position": "right", "color": "green" }] },
-	         "axes": { "x": { "label_function": "chromosome",
-		                      "label_offset": 32,
-		                      "tick_format": "region",
-		                      "extent": "state",
-		                      "render": true,
-		                      "label": "Chromosome {{chr}} (Mb)" },
-		               "y1": { "label": "posterior inclusion probability",
-		                       "label_offset": 28,
-		                       "render": true,
-		                       "label_function": null } },
-	         "legend": { "orientation": "vertical",
-		                 "origin": { "x": 55, "y": 40 },
-		     "hidden": true,
-		     "width": 91.66200256347656,
+	     "title": { "text":"Credible Set : Colocalization", "x":55, "y":30 } ,
+	     "proportional_height": 0.2,
+	     "min_width": 400,
+	     "min_height": 150,
+	     "y_index": 2,
+	     "margin": { "top": 10, "right": 50, "bottom": 40, "left": 50 },
+	     "inner_border": "rgb(210, 210, 210)",
+	     "dashboard": { "components": [{ "type": "toggle_legend",
+					     "position": "right",
+					     "color": "green" }] },
+	     "axes": { "x": { "label_function": "chromosome",
+		              "label_offset": 32,
+		              "tick_format": "region",
+		              "extent": "state",
+		              "render": true,
+		              "label": "Chromosome {{chr}} (Mb)" },
+		       "y1": { "label": "posterior inclusion probability",
+		               "label_offset": 28,
+		               "render": true,
+		               "label_function": null } },
+	     "legend": { "orientation": "vertical",
+		         "origin": { "x": 55, "y": 40 },
+			 "hidden": true,
+			 "width": 91.66200256347656,
 			 "height": 138,
 			 "padding": 5,
 			 "label_size": 12 },
-	         "interaction": { "drag_background_to_pan": true,
-		                      "drag_x_ticks_to_scale": true,
-		                      "drag_y1_ticks_to_scale": true,
-		                      "drag_y2_ticks_to_scale": true,
-		                      "scroll_to_zoom": true,
-		                      "x_linked": true,
-		                      "y1_linked": false,
-		                      "y2_linked": false },
-	         "data_layers": [{ "id": "significance",
-		                       type: "orthogonal_line",
-		                       orientation: "horizontal",
-							   offset: -Math.log10(5e-8) }, 
-							 { "namespace": { "finemapping": "finemapping" },
-		     				   "id": "associationpvalues",
-		                       "type": "scatter",
-		                       "point_shape": { "scale_function": "categorical_bin",
-		                                        "field": "finemapping:most_severe",
-		                                        "parameters": { "categories": ["frameshift variant", "inframe deletion", "inframe insertion", "splice acceptor variant", "splice donor variant", "start lost", "stop gained", "stop lost", "TFBS ablation", "missense variant"],
-			                                                    "values": ["triangle-up", "triangle-down", "triangle-down", "triangle-up", "triangle-up", "triangle-down", "triangle-down", "triangle-down", "triangle-down", "square"],
-			                                                    "null_value": "circle" } },
-		                       "point_size": { "scale_function": "categorical_bin",
-		                                       "field": "finemapping:most_severe",
-		                       "parameters": { "categories": ["frameshift variant", "inframe deletion", "inframe insertion", "splice acceptor variant", "splice donor variant", "start lost", "stop gained", "stop lost", "TFBS ablation", "missense variant"],
-			 					               "values": [80, 80, 80, 80, 80, 80, 80, 80, 80, 80],
-			                                   "null_value": 40 } },
-		                       "color": [{ "scale_function": "numerical_bin",
-		     	                           "field": "finemapping:cs",
-		                                   "parameters": { "breaks": [0, 1.1, 2.1, 3.1, 4.1],
-			                                               "values": ["#66165d", "#d86b33", "#4eab48", "#357ebd", "#ff0000"],
-										                   "null_value": "#ff0000" } }, 
-						"#B8B8B8"],
-		     fill_opacity: 0.7,
-		     "legend": [{ "shape": "triangle-up",
-		     "color": "#B8B8B8",
-		     "size": 80,
-		     "label": "frameshift, splice acceptor, splice donor",
-		     "class": "lz-data_layer-scatter"
-		 }, {
-		     "shape": "square",
-		     "color": "#B8B8B8",
-		     "size": 80,
-		     "label": "missense",
-		     "class": "lz-data_layer-scatter"
-		 }, {
-		     "shape": "triangle-down",
-		     "color": "#B8B8B8",
-		     "size": 80,
-		     "label": "inframe indel, start lost, stop lost, stop gained",
-		     "class": "lz-data_layer-scatter"
-		 }, {
-		     "shape": "circle",
-		     "color": "#B8B8B8",
-		     "size": 40,
-		     "label": "other",
-		     "class": "lz-data_layer-scatter"
-		 }, {
-		     "shape": "circle",
-		     "color": "#66165d",
-		     "size": 40,
-		     "label": "credible set 1",
-		     "class": "lz-data_layer-scatter"
-		 }, {
-		     "shape": "circle",
-		     "color": "#d86b33",
-		     "size": 40,
-		     "label": "credible set 2",
-		     "class": "lz-data_layer-scatter"
-		 }, {
-		     "shape": "circle",
-		     "color": "#4eab48",
-		     "size": 40,
-		     "label": "credible set 3",
-		     "class": "lz-data_layer-scatter"
-		 }, {
-		     "shape": "circle",
-		     "color": "#357ebd",
-		     "size": 40,
-		     "label": "credible set 4",
-		     "class": "lz-data_layer-scatter"
-		 }, {
-		     "shape": "circle",
-		     "color": "#ff0000",
-		     "size": 40,
-		     "label": "credible set > 4",
-		     "class": "lz-data_layer-scatter"
-		 }],
+	     "interaction": { "drag_background_to_pan": true,
+		              "drag_x_ticks_to_scale": true,
+		              "drag_y1_ticks_to_scale": true,
+		              "drag_y2_ticks_to_scale": true,
+		              "scroll_to_zoom": true,
+		              "x_linked": true,
+		              "y1_linked": false,
+		              "y2_linked": false },
+	     "data_layers": [{ "id": "significance",
+		               type: "orthogonal_line",
+		               orientation: "horizontal",
+			       offset: -Math.log10(5e-8) }, 
+			     { "namespace": { "finemapping": "finemapping" },
+		     	       "id": "associationpvalues",
+		               "type": "scatter",
+		               "point_shape": { "scale_function": "categorical_bin",
+		                                "field": "finemapping:most_severe",
+		                                "parameters": { "categories": ["frameshift variant", "inframe deletion", "inframe insertion", "splice acceptor variant", "splice donor variant", "start lost", "stop gained", "stop lost", "TFBS ablation", "missense variant"],
+			                                        "values": ["triangle-up", "triangle-down", "triangle-down", "triangle-up", "triangle-up", "triangle-down", "triangle-down", "triangle-down", "triangle-down", "square"],
+			                                        "null_value": "circle" } },
+		               "point_size": { "scale_function": "categorical_bin",
+		                               "field": "finemapping:most_severe",
+					       "parameters": { "categories": ["frameshift variant", "inframe deletion", "inframe insertion", "splice acceptor variant", "splice donor variant", "start lost", "stop gained", "stop lost", "TFBS ablation", "missense variant"],
+			 				       "values": [80, 80, 80, 80, 80, 80, 80, 80, 80, 80],
+			                                       "null_value": 40 } },
+		               "color": [{ "scale_function": "numerical_bin",
+		     	                   "field": "finemapping:cs",
+		                           "parameters": { "breaks": [0, 1.1, 2.1, 3.1, 4.1],
+			                                   "values": ["#66165d", "#d86b33", "#4eab48", "#357ebd", "#ff0000"],
+							   "null_value": "#ff0000" } }, 
+					 "#B8B8B8"],
+			       fill_opacity: 0.7,
+			       "legend": [{ "shape": "triangle-up",
+					    "color": "#B8B8B8",
+					    "size": 80,
+					    "label": "frameshift, splice acceptor, splice donor",
+					    "class": "lz-data_layer-scatter"
+					  }, {
+					      "shape": "square",
+					      "color": "#B8B8B8",
+					      "size": 80,
+					      "label": "missense",
+					      "class": "lz-data_layer-scatter"
+					  }, {
+					      "shape": "triangle-down",
+					      "color": "#B8B8B8",
+					      "size": 80,
+					      "label": "inframe indel, start lost, stop lost, stop gained",
+					      "class": "lz-data_layer-scatter"
+					  }, {
+					      "shape": "circle",
+					      "color": "#B8B8B8",
+					      "size": 40,
+					      "label": "other",
+					      "class": "lz-data_layer-scatter"
+					  }, {
+					      "shape": "circle",
+					      "color": "#66165d",
+					      "size": 40,
+					      "label": "credible set 1",
+					      "class": "lz-data_layer-scatter"
+					  }, {
+					      "shape": "circle",
+					      "color": "#d86b33",
+					      "size": 40,
+					      "label": "credible set 2",
+					      "class": "lz-data_layer-scatter"
+					  }, {
+					      "shape": "circle",
+					      "color": "#4eab48",
+					      "size": 40,
+					      "label": "credible set 3",
+					      "class": "lz-data_layer-scatter"
+					  }, {
+					      "shape": "circle",
+					      "color": "#357ebd",
+					      "size": 40,
+					      "label": "credible set 4",
+					      "class": "lz-data_layer-scatter"
+					  }, {
+					      "shape": "circle",
+					      "color": "#ff0000",
+					      "size": 40,
+					      "label": "credible set > 4",
+					      "class": "lz-data_layer-scatter"
+					  }],
 
-		 fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid", "finemapping:id", "finemapping:chr", "finemapping:position", "finemapping:ref", "finemapping:alt", "finemapping:prob", "finemapping:cs", "finemapping:most_severe", "finemapping:AF", "finemapping:fin_enrichment", "finemapping:INFO"],
-		 id_field: "finemapping:id",
-		 behaviors: {
-		     onmouseover: [{action: "set", status:"selected"}],
-		     onmouseout: [{action: "unset", status:"selected"}],
-		     onclick: [{action: "link", href:"/variant/{{finemapping:chr}}-{{finemapping:position}}-{{finemapping:ref}}-{{finemapping:alt}}"}],
-		 },
-		 tooltip: {
-		     closable: false,
-		     "show": {
-			 "or": ["highlighted", "selected"]
-		     },
-		     "hide": {
-			 "and": ["unhighlighted", "unselected"]
-		     },
-		     html: '<strong>{{finemapping:id}}</strong><br><strong>{{association:rsid}}</strong><br><strong>{{finemapping:most_severe}}</strong><table><tbody><tr><td>prob</td><td><strong>{{finemapping:prob}}</strong></td></tr><tr><td>p-value</td><td><strong>{{association:pvalue|scinotation}}</strong></td></tr><tr><td>beta</td><td><strong>{{association:beta}}</strong> ({{association:sebeta}})</td></tr><tr><td>AF</td><td><strong>{{finemapping:AF|percent}}</strong></td></tr><tr><td>FIN enrichment</td><td><strong>{{finemapping:fin_enrichment}}</strong></td></tr><tr><td>INFO</td><td><strong>{{finemapping:INFO}}</strong></td></tr></tbody></table>'
-		 },
+			       fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid", "finemapping:id", "finemapping:chr", "finemapping:position", "finemapping:ref", "finemapping:alt", "finemapping:prob", "finemapping:cs", "finemapping:most_severe", "finemapping:AF", "finemapping:fin_enrichment", "finemapping:INFO"],
+			       id_field: "finemapping:id",
+			       behaviors: {
+				   onmouseover: [{action: "set", status:"selected"}],
+				   onmouseout: [{action: "unset", status:"selected"}],
+				   onclick: [{action: "link", href:"/variant/{{finemapping:chr}}-{{finemapping:position}}-{{finemapping:ref}}-{{finemapping:alt}}"}],
+			       },
+			       tooltip: {
+				   closable: false,
+				   "show": { "or": ["highlighted", "selected"] },
+				   "hide": { "and": ["unhighlighted", "unselected"] },
+				   html: '<strong>{{finemapping:id}}</strong><br><strong>{{association:rsid}}</strong><br><strong>{{finemapping:most_severe}}</strong><table><tbody><tr><td>prob</td><td><strong>{{finemapping:prob}}</strong></td></tr><tr><td>p-value</td><td><strong>{{association:pvalue|scinotation}}</strong></td></tr><tr><td>beta</td><td><strong>{{association:beta}}</strong> ({{association:sebeta}})</td></tr><tr><td>AF</td><td><strong>{{finemapping:AF|percent}}</strong></td></tr><tr><td>FIN enrichment</td><td><strong>{{finemapping:fin_enrichment}}</strong></td></tr><tr><td>INFO</td><td><strong>{{finemapping:INFO}}</strong></td></tr></tbody></table>'
+			       },
 
-		 "x_axis": {
-		     "field": "finemapping:position",
-		     "axis": 1
-		 },
-		 "y_axis": {
-		     "axis": 1,
-		     "field": "finemapping:prob",
-		     "floor": 0,
-		     "upper_buffer": 0.1,
-		     "min_extent": [0, 1.1]
-		 },
-		 "transition": false,
-	     }],
+			       "x_axis": { "field": "finemapping:position", "axis": 1 },
+			       "y_axis": {
+				   "axis": 1,
+				   "field": "finemapping:prob",
+				   "floor": 0,
+				   "upper_buffer": 0.1,
+				   "min_extent": [0, 1.1]
+			       },
+			       "transition": false,
+			     }],
 	     "description": null,
-	     "origin": {
-		 "x": 0,
-		 "y": 0
-	     },
-	     "proportional_origin": {
-		 "x": 0,
-		 "y": 0
-	     },
+	     "origin": { "x": 0, "y": 0 },
+	     "proportional_origin": { "x": 0, "y": 0 },
 	     "background_click": "clear_selections"
 	   }
 }

@@ -37,15 +37,3 @@ export interface Region {
 export interface RegionState { region : Region ,
                                setRegion : React.Dispatch<React.SetStateAction<Region>> };
 
-/*
-export const RegionContext = createContext<Partial<RegionState>>({});
-
-type Props = { children: ReactNode };
-
-const RegionProvider = (props : Props) => {
-    const [ region, setRegion ] = useState<RegionState>(null);
-    return (<RegionContext.Provider value={ { region, setRegion } } >{ props.children }</RegionContext.Provider>);
-}
-
-export default RegionProvider;
-*/

@@ -21,19 +21,20 @@ const reformat = (locus : string) : string | undefined => {
   return result;
 }
 
-const credible_set(spec : string) : string[] => {
-    spec.split(',').map(reformat).filter(l => l)
-}
+const credible_set = (spec : string) : string[] => spec.split(',').map(reformat).filter(l => l)
 
 const updateLocusZoom = (locusZoomContext : LocusZoomContext,selected : Array<Colocalization>) => {
     const { dataSources , plot } = locusZoomContext;
     const params = dataSources.get("finemapping").params
-    const panel : Panel = plot.panels.finemapping
+    const panel : Panel = plot.panels.colocalization
     const title: string = (selected.length == 0)?"Credible Set : Colocalization":"Credible Set : Colocalization : *"
     panel.setTitle(title)
 
     // there are two data tracks will focus on the first one for now
-    var data = dataSources.sources.finemapping.parseArraysToObjects(params.allData[0].data, params.fields, params.outnames, params.trans)
+    var data = dataSources.sources.finemapping.parseArraysToObjects(params.allData[0].data,
+								    params.fields,
+								    params.outnames,
+								    params.trans)
     if(selected.length > 0){
         const locus : Array<string> = selected.map(c => c.variation).map(credible_set).flat()
         console.log(locus);

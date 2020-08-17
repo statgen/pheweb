@@ -460,7 +460,7 @@ declare module 'locuszoom' {
 
     export const version: string;
 
-    export function createCORSPromise<X>(method: string, url: string, body: string, headers? : object, timeout? : number): Promise<X>;
+    export function createCORSPromise<X>(method: string, url: string, body?: string, headers? : object, timeout? : number): Promise<X>;
 
     export function generateCurtain(): object;
 
