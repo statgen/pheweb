@@ -26,3 +26,17 @@ def check_auth(func):
         print('{} visited {!r}'.format(current_user.email, request.path))
         return func(*args, **kwargs)
     return decorated_view
+
+def before_request():
+    if not conf.authentication:
+        print('anonymous visited {!r}'.format(request.path))
+        return None
+    elif current_user is None or not hasattr(current_user, 'email'):
+        return redirect(url_for('get_authorized'))
+    elif not verify_membership(current_user.email):
+        print('{} is unauthorized and visited {!r}'.format(current_user.email, request.path))
+        session['original_destination'] = request.path
+        return redirect(url_for('get_authorized'))
+    else:
+        print('{} visited {!r}'.format(current_user.email, request.path))
+        return None

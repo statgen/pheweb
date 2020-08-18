@@ -18,6 +18,20 @@ from sqlalchemy.dialects.mysql import LONGTEXT
 csv.field_size_limit(sys.maxsize)
 
 metadata = MetaData()
+
+casual_variant = Table('casual_variant',
+                       metadata,
+                       Column('id', Integer, primary_key=True, autoincrement=True),
+                       Column('colocation_id', Integer,),
+                       Column('vars_pip1', unique=False, nullable=False),
+                       Column('vars_pip2', unique=False, nullable=False),
+                       Column('vars_beta1', unique=False, nullable=False),
+                       Column('vars_beta2', unique=False, nullable=False),
+                       Column('variation_chromosome', String(2), unique=False, nullable=False),
+                       Column('variation_position', Integer, unique=False, nullable=False),
+                       Column('variation_ref', String(100), unique=False, nullable=False),
+                       Column('variation_alt', String(100), unique=False, nullable=False))
+
 colocalization_table = Table('colocalization',
                              metadata,
                              Column('id', Integer, primary_key=True, autoincrement=True),
@@ -51,17 +65,9 @@ colocalization_table = Table('colocalization',
                              Column('beta_id1', Float, unique=False, nullable=True),
                              Column('beta_id2', Float, unique=False, nullable=True),
 
-                             Column('variation', LONGTEXT(), unique=False, nullable=False),
-                             Column('vars_pip1', LONGTEXT(), unique=False, nullable=False),
-                             Column('vars_pip2', LONGTEXT(), unique=False, nullable=False),
-                             Column('vars_beta1', LONGTEXT(), unique=False, nullable=False),
-                             Column('vars_beta2', LONGTEXT(), unique=False, nullable=False),
                              Column('len_cs1', Integer, unique=False, nullable=False),
                              Column('len_cs2', Integer, unique=False, nullable=False),
                              Column('len_inter', Integer, unique=False, nullable=False))
-
-
-
 
 @attr.s
 class ColocalizationDTO(Colocalization):

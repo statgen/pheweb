@@ -32,7 +32,7 @@ from collections import defaultdict
 from .encoder import FGJSONEncoder
 from .group_based_auth  import verify_membership
 
-from .server_auth import check_auth
+from .server_auth import check_auth, before_request
 
 from .colocalization.view import colocalization
 
@@ -110,29 +110,45 @@ jeeves = ServerJeeves( conf )
 app.jeeves = jeeves
 app.register_blueprint(colocalization)
 
+def is_public(function):
+    function.is_public = True
+    return function
+
+@app.before_request
+def check_auth():
+    print(request.endpoint)
+    print(app.view_functions[request.endpoint])
+    print(dir(app.view_functions[request.endpoint]))    
+    print(getattr(app.view_functions[request.endpoint], 'is_public', False))
+    if getattr(app.view_functions[request.endpoint], 'is_public', False) :
+        result = None
+    else:
+        result = before_request()
+    return result
+
+
 @app.route('/auth')
+@is_public
 def auth():
     return render_template('auth.html')
 
 @app.route('/health')
+@is_public
 def health():
     return jsonify({'health': 'ok'})
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-@check_auth
 def homepage(path):
     return render_template('index_react.html',
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
                            vis_conf=conf.vis_conf)
 
 @app.route('/api/autoreport/<phenocode>')
-@check_auth
 def autoreport(phenocode):
     return jsonify(jeeves.get_autoreport(phenocode))
 
 @app.route('/api/ld')
-@check_auth
 def ld():
     url = conf.ld_server + '/api/ld?'
     url_parts = list(urlparse.urlparse(url))
@@ -142,20 +158,17 @@ def ld():
     return urllib.request.urlopen(urlparse.urlunparse(url_parts).replace(';', '?')).read()
 
 @app.route('/api/pheno/<phenocode>')
-@check_auth
 def pheno(phenocode):
     if phenocode not in use_phenos:
         abort(404)
     return jsonify(phenos[phenocode])
 
 @app.route('/api/phenos')
-@check_auth
 def phenolist():
     return jsonify([pheno for pheno in get_phenolist() if pheno['phenocode'] in use_phenos])
 
 autocompleter = Autocompleter(use_phenos)
 @app.route('/api/autocomplete')
-@check_auth
 def autocomplete():
     query = request.args.get('query', '')
     suggestions = autocompleter.autocomplete(query)
@@ -164,7 +177,6 @@ def autocomplete():
     return jsonify([])
 
 @app.route('/go')
-@check_auth
 def go():
     query = request.args.get('query', None)
     if query is None:
@@ -175,14 +187,12 @@ def go():
     die("Couldn't find page for {!r}".format(query))
 
 @app.route('/api/variant/<query>')
-@check_auth
 def api_variant(query):
     variant = get_variant(query)
     variant['phenos'] = [pheno for pheno in variant['phenos'] if pheno['phenocode'] in use_phenos]
     return jsonify(variant)
 
 @app.route('/variant/<query>')
-@check_auth
 def variant_page(query):
     try:
         q=query.split("-")
@@ -208,7 +218,6 @@ def variant_page(query):
         die('Oh no, something went wrong', exc)
 
 @app.route('/api/manhattan/pheno/<phenocode>')
-@check_auth
 def api_pheno(phenocode):
     if phenocode not in use_phenos:
         abort(404)
@@ -218,13 +227,11 @@ def api_pheno(phenocode):
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
 
 @app.route('/api/gene_phenos/<gene>')
-@check_auth
 def api_gene_phenos(gene):
     res = [res for res in jeeves.gene_phenos(gene) if res.pheno['phenocode'] in use_phenos]
     return jsonify( res )
 
 @app.route('/api/gene_functional_variants/<gene>')
-@check_auth
 def api_gene_functional_variants(gene):
     pThreshold=1.1
     if ('p' in request.args):
@@ -235,7 +242,6 @@ def api_gene_functional_variants(gene):
     return jsonify(annotations)
 
 @app.route('/api/lof')
-@check_auth
 def api_lof():
     lofs = [lof for lof in jeeves.get_all_lofs(conf.lof_threshold) if lof['gene_data']['pheno'] in use_phenos]
     if lofs is None:
@@ -243,7 +249,6 @@ def api_lof():
     return jsonify(sorted(lofs,  key=lambda lof: lof['gene_data']['p_value']))
 
 @app.route('/api/lof/<gene>')
-@check_auth
 def api_lof_gene(gene):
     lofs = jeeves.get_gene_lofs(gene)
     lofs_use = []
@@ -255,40 +260,33 @@ def api_lof_gene(gene):
     return jsonify(lofs_use)
 
 @app.route('/api/top_hits.json')
-@check_auth
 def api_top_hits():
     return send_file(common_filepaths['top-hits-1k'])
 @app.route('/download/top_hits.tsv')
-@check_auth
 def download_top_hits():
     return send_file(common_filepaths['top-hits-tsv'])
 
 @app.route('/api/qq/pheno/<phenocode>')
-@check_auth
 def api_pheno_qq(phenocode):
     if phenocode not in use_phenos:
         abort(404)
     return send_from_directory(common_filepaths['qq'](''), phenocode)
 
 @app.route('/top_hits')
-@check_auth
 def top_hits_page():
     return render_template('top_hits.html')
 
 @app.route('/api/coding_data')
-@check_auth
 def coding_data():
     data = [d for d in jeeves.coding() if d['pheno'] in use_phenos]
     return jsonify(data)
 
 @app.route('/api/chip_data')
-@check_auth
 def chip_data():
     data = [d for d in jeeves.chip() if d['pheno'] in use_phenos]
     return jsonify(data)
 
 @app.route('/random')
-@check_auth
 def random_page():
     url = get_random_page()
     if url is None:
@@ -296,7 +294,6 @@ def random_page():
     return redirect(url)
 
 @app.route('/api/ukbb_n/<phenocode>')
-@check_auth
 def ukbb_ns(phenocode):
     if phenocode not in use_phenos:
         abort(404)
@@ -304,13 +301,11 @@ def ukbb_ns(phenocode):
 
 # TODO used this for development # remove me
 @app.route('/api/phenocode')
-@check_auth
 def api_phenocode():
     print(jsonify(list(use_phenos.keys())))
     return jsonify(list(use_phenos.keys()))
     
 @app.route('/api/region/<phenocode>/<region>')
-@check_auth
 def api_region_page(phenocode, region):
     if phenocode not in use_phenos:
         abort(404)
@@ -335,7 +330,6 @@ def api_region_page(phenocode, region):
     return jsonify(data)
 
 @app.route('/region.1/<phenocode>/<region>')
-@check_auth
 def region_page_1(phenocode, region):
     if phenocode not in use_phenos:
         abort(404)
@@ -358,7 +352,6 @@ def region_page_1(phenocode, region):
     )
 
 @app.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
-@check_auth
 def api_region(phenocode):
     if phenocode not in use_phenos:
         abort(404)
@@ -370,7 +363,6 @@ def api_region(phenocode):
     return jsonify(rv)
 
 @app.route('/api/conditional_region/<phenocode>/lz-results/')
-@check_auth
 def api_conditional_region(phenocode):
     if phenocode not in use_phenos:
         abort(404)
@@ -381,7 +373,6 @@ def api_conditional_region(phenocode):
     return jsonify(rv)
 
 @app.route('/api/finemapped_region/<phenocode>/lz-results/')
-@check_auth
 def api_finemapped_region(phenocode):
     if phenocode not in use_phenos:
         abort(404)
@@ -392,7 +383,6 @@ def api_finemapped_region(phenocode):
     return jsonify(rv)
 
 @app.route('/region/<phenocode>/gene/<genename>')
-@check_auth
 def gene_phenocode_page(phenocode, genename):
     try:
         gene_region_mapping = jeeves.get_gene_region_mapping()
@@ -436,7 +426,6 @@ def gene_phenocode_page(phenocode, genename):
 
 
 @app.route('/gene/<genename>')
-@check_auth
 def gene_page(genename):
     phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
@@ -445,7 +434,6 @@ def gene_page(genename):
 
 
 @app.route('/genereport/<genename>')
-@check_auth
 def gene_report(genename):
     phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
@@ -507,7 +495,6 @@ def gene_report(genename):
     return response
 
 @app.route('/api/drugs/<genename>')
-@check_auth
 def drugs(genename):
     try:
         drugs = jeeves.get_gene_drugs(genename)
@@ -521,7 +508,6 @@ def about_page():
 
 # NCBI sometimes doesn't like cross-origin requests so do them here and not in the browser
 @app.route('/api/ncbi/<endpoint>')
-@check_auth
 def ncbi(endpoint):
     url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/' + endpoint + '?'
     url_parts = list(urlparse.urlparse(url))
@@ -577,18 +563,21 @@ if 'login' in conf:
         return None
 
     @app.route('/logout')
+    @is_public
     def logout():
         print(current_user.email, 'logged out')
         logout_user()
         return redirect(url_for('homepage'))
 
     @app.route('/login_with_google')
+    @is_public
     def login_with_google():
         "this route is for the login button"
         session['original_destination'] = url_for('homepage')
         return redirect(url_for('get_authorized'))
 
     @app.route('/get_authorized')
+    @is_public
     def get_authorized():
         "This route tries to be clever and handle lots of situations."
         if current_user.is_anonymous or not verify_membership(current_user.email):
@@ -602,6 +591,7 @@ if 'login' in conf:
             return redirect(orig_dest)
 
     @app.route('/callback/google')
+    @is_public
     def oauth_callback_google():
         if not current_user.is_anonymous and verify_membership(current_user.email):
             return redirect(url_for('homepage'))

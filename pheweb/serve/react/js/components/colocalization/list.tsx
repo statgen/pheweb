@@ -45,7 +45,9 @@ const updateLocusZoom = (locusZoomContext : LocusZoomContext,selected : Array<Co
     panel.data_layers.associationpvalues.render()
   }
 
-
+const subComponent = (colocalizationList) => (row) => {
+    const colocalization : Colocalization = colocalizationList[row.index]
+    return (<div style={{ padding: "20px" }}>Another Sub Component!</div>);  }
 const List = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
     const [selectedRow, setSelectedRow]= useState<Set<number>>(new Set());
@@ -81,6 +83,13 @@ const List = (props : Props) => {
   const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
   const headers = columns.map(c => ({ ...c , key: c.accessor }))
 
+	/*
+  const subComponent = row => { console.log(row);
+	                        return (<div style={{ padding: "20px" }}>Another Sub Component!</div>);  }
+  const subComponent = colocalizationList => row => {
+      return <div>sub component</div>
+  }
+
   const getTrProps = (row, setRow) => (state, rowInfo?, column, instance?) => {
   if(rowInfo && rowInfo.row){
     const index : number = rowInfo.index;
@@ -102,7 +111,7 @@ const List = (props : Props) => {
     return result;
 } else { return {}; }
 }
-
+*/
 return (<div>
 		<ReactTable data={ colocalizationList }
                        columns={ columns }
@@ -110,8 +119,8 @@ return (<div>
                        defaultPageSize={10}
                        filterable
                        defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase())}
-                       getTrProps={getTrProps(selectedRow, setSelectedRow)}
-		            className="-striped -highlight"/>
+                       SubComponent={ subComponent(colocalizationList) }
+	               className="-striped -highlight" />1
 		<p></p>
 		<div className="row">
 		   <div className="col-xs-12">

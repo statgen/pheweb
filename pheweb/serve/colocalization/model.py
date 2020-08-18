@@ -149,6 +149,19 @@ class ChromosomeRange(JSONifiable, Kwargs):
         return self.chromosome, self.start, self.stop
 
 
+# causal_variant = Table('colocalization_credible_set',
+#                      metadata,
+#                      Column('id', Integer, primary_key=True, autoincrement=True),
+#                      Column('colocation_id', Integer,),
+#                      Column('vars_pip1', unique=False, nullable=False),
+#                      Column('vars_pip2', unique=False, nullable=False),
+#                      Column('vars_beta1', unique=False, nullable=False),
+#                      Column('vars_beta2', unique=False, nullable=False),
+#                      Column('variation_chromosome', String(2), unique=False, nullable=False),
+#                      Column('variation_position', Integer, unique=False, nullable=False),
+#                      Column('variation_ref', String(100), unique=False, nullable=False),
+#                      Column('variation_alt', String(100), unique=False, nullable=False))
+    
 @attr.s
 class Colocalization(Kwargs, JSONifiable):
     """
