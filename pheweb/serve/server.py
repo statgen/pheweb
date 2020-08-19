@@ -110,6 +110,8 @@ jeeves = ServerJeeves( conf )
 app.jeeves = jeeves
 app.register_blueprint(colocalization)
 
+# see discussion
+# https://stackoverflow.com/questions/13428708/best-way-to-make-flask-logins-login-required-the-default
 def is_public(function):
     function.is_public = True
     return function

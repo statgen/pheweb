@@ -3,7 +3,8 @@ import attr
 import typing
 import attr
 from attr.validators import instance_of
-#from ..data_access.db import JSONifiable
+from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float, Text, ForeignKey
+
 import re
 
 class JSONifiable(object):
@@ -26,8 +27,7 @@ def na(f):
     return lambda value : None if value == 'NA' or value == 'na' else f(value)
     
 def ascii(value: str) -> str:
-    return value
-#    return "".join(char for char in value if ord(char) < 128)
+    return "".join(char for char in value if ord(char) < 128)
 
 def nvl(value: str, f: typing.Callable[[str], X]) -> typing.Optional[X]:
     """
@@ -47,34 +47,30 @@ def nvl(value: str, f: typing.Callable[[str], X]) -> typing.Optional[X]:
     return result
 
 
-
 @attr.s
-class ChromosomePosition(Kwargs, JSONifiable):
+class Variant(JSONifiable):
     """
-    # TODO what is the right term for this object
-
-    DTO containing the chromosome position with
-
+    
+    DTO containing variant information
+    
     """
-    chromosome = attr.ib(validator=instance_of(str))
+    chromosome = attr.ib(validator=instance_of(int))
     position = attr.ib(validator=instance_of(int))
     reference = attr.ib(validator=instance_of(str))
     alternate = attr.ib(validator=instance_of(str))
 
     @staticmethod
-    def from_str(text: str) -> typing.Optional["ChromosomePosition"]:
-        # TODO what are the valid letters that go here
-        #fragments = re.match(r'chr(?P<chromosome>[A-Za-z0-9]+)_(?P<position>\d+)_(?P<reference>[A-Za-z]+)_(?P<alternate>[A-Za-z]+)', text)
-        fragments = re.match(r'^chr(?P<chromosome>[A-Za-z0-9]+)_(?P<position>\d+)_(?P<reference>[A-Za-z]+)_(?P<alternate>.+)$', text)
+    def from_str(text: str) -> typing.Optional["Variant"]:
+        fragments = re.match(r'^chr(?P<chromosome>[0-9]+)_(?P<position>\d+)_(?P<reference>[ACGTU]{1,100})_(?P<alternate>[ACGTU]{1,100})$', text)
         if fragments is None:
             None
         else:
-            return ChromosomePosition(chromosome=fragments.group('chromosome'),
-                                      position=int(fragments.group('position')),
-                                      reference=fragments.group('reference'),
-                                      alternate=fragments.group('alternate'))
+            return Variant(chromosome=int(fragments.group('chromosome')),
+                           position=int(fragments.group('position')),
+                           reference=fragments.group('reference'),
+                           alternate=fragments.group('alternate'))
 
-    def to_str(self) -> str:
+    def __str__(self) -> str:
         return "chr{chromosome}_{position}_{reference}_{alternate}".format(chromosome=self.chromosome,
                                                                            position=self.position,
                                                                            reference=self.reference,
@@ -83,8 +79,17 @@ class ChromosomePosition(Kwargs, JSONifiable):
     def json_rep(self):
         return self.__dict__
 
-    def kwargs_rep(self) -> typing.Dict[str, typing.Any]:
+    def __repr__(self) -> typing.Dict[str, typing.Any]:
         return self.__dict__
+
+    @staticmethod
+    def columns(prefix : typing.Optional[str] = None) -> typing.List[Column]:
+        prefix = prefix if prefix is not None else ""
+        return [ Column('{}chromosome'.format(prefix), String(2), unique=False, nullable=False), 
+                 Column('{}position'.format(prefix), Integer, unique=False, nullable=False), 
+                 Column('{}ref'.format(prefix), String(100), unique=False, nullable=False), 
+                 Column('{}alt'.format(prefix), String(100), unique=False, nullable=False), ]
+
 
     def __composite_values__(self):
         """
@@ -95,36 +100,41 @@ class ChromosomePosition(Kwargs, JSONifiable):
         """
         return self.chromosome, self.position, self.reference, self.alternate
 
-# Locus
+
 @attr.s
-class ChromosomeRange(JSONifiable, Kwargs):
+class Locus(JSONifiable):
     """
         Chromosome coordinate range
-        # TODO what is the right term for this object
 
         chromosome: chromosome
         start: start of range
         stop: end of range
     """
-    chromosome = attr.ib(validator=instance_of(str))
+    chromosome = attr.ib(validator=attr.validators.and_(instance_of(str)))
     start = attr.ib(validator=instance_of(int))
     stop = attr.ib(validator=instance_of(int))
 
     @staticmethod
-    def from_str(text: str) -> typing.Optional["ChromosomeRange"]:
+    def from_str(text: str) -> typing.Optional["Locus"]:
         """
         Takes a string representing a range and returns a tuple of integers
         (chromosome,start,stop).  Returns None if it cannot be parsed.
         """
         fragments = re.match(r'(?P<chromosome>[A-Za-z0-9]+):(?P<start>\d+)-(?P<stop>\d+)', text)
+        result = None
         if fragments is None:
-            return None
+            result = None
         else:
-            return ChromosomeRange(chromosome=fragments.group('chromosome'),
-                                   start=int(fragments.group('start')),
-                                   stop=int(fragments.group('stop')))
-
-    def to_str(self):
+            chromosome=fragments.group('chromosome')
+            start=int(fragments.group('start'))
+            stop=int(fragments.group('stop'))
+            if start <= stop:
+                result = Locus(chromosome, start, stop)
+            else:
+                result = None
+        return result
+    
+    def __str__(self):
         """
 
         :return: string representation of range
@@ -136,9 +146,17 @@ class ChromosomeRange(JSONifiable, Kwargs):
     def json_rep(self):
         return self.__dict__
 
-    def kwargs_rep(self) -> typing.Dict[str, typing.Any]:
+    def __repr__(self) -> typing.Dict[str, typing.Any]:
         return self.__dict__
 
+    @staticmethod
+    def columns(prefix : typing.Optional[str] = None) -> typing.List[Column]:
+        prefix = prefix if prefix is not None else ""
+        return [ Column('{}chromosome'.format(prefix), String(2), unique=False, nullable=False), 
+                 Column('{}start'.format(prefix), Integer, unique=False, nullable=False), 
+                 Column('{}stop'.format(prefix), Integer, unique=False, nullable=False) ]
+
+    @staticmethod    
     def __composite_values__(self):
         """
         These are artifacts needed for composition by sqlalchemy.
@@ -149,18 +167,44 @@ class ChromosomeRange(JSONifiable, Kwargs):
         return self.chromosome, self.start, self.stop
 
 
-# causal_variant = Table('colocalization_credible_set',
-#                      metadata,
-#                      Column('id', Integer, primary_key=True, autoincrement=True),
-#                      Column('colocation_id', Integer,),
-#                      Column('vars_pip1', unique=False, nullable=False),
-#                      Column('vars_pip2', unique=False, nullable=False),
-#                      Column('vars_beta1', unique=False, nullable=False),
-#                      Column('vars_beta2', unique=False, nullable=False),
-#                      Column('variation_chromosome', String(2), unique=False, nullable=False),
-#                      Column('variation_position', Integer, unique=False, nullable=False),
-#                      Column('variation_ref', String(100), unique=False, nullable=False),
-#                      Column('variation_alt', String(100), unique=False, nullable=False))
+@attr.s
+class CasualVariant(JSONifiable, Kwargs):
+    """ 
+    Causual variant DTO
+    
+    pip1, pip2, beta1, beta2, variant
+
+    """
+
+    pip1 = attr.ib(validator=instance_of(float))
+    pip2 = attr.ib(validator=instance_of(float))
+    beta1 = attr.ib(validator=instance_of(float))
+    beta2 = attr.ib(validator=instance_of(float))
+    variant = attr.ib(validator=instance_of(Variant))
+
+    def kwargs_rep(self) -> typing.Dict[str, typing.Any]:
+        return self.__dict__
+
+    def json_rep(self):
+        d = self.__dict__
+        d["variation"] = d["variation"].to_str()
+        return d
+
+    @staticmethod
+    def from_list(pip1_str: str,
+                  pip2_str: str,
+                  beta1_str: str,
+                  beta2_str: str,
+                  variation_str: str) -> typing.List["Colocalization"]:
+        pip1_list = pip1_str.spit(',')
+        pip2_list = pip2_str.split(',')
+        beta1_list = beta1_str.split(',')
+        beta2_list = beta2_str.split(',')
+        variation_list = variation_str.split(',')
+
+        result = zip(pip1_list,pip2_list,beta1_list,beta2_list,variation_list).map(CasualVariant)
+        return result
+
     
 @attr.s
 class Colocalization(Kwargs, JSONifiable):
@@ -181,20 +225,17 @@ class Colocalization(Kwargs, JSONifiable):
     phenotype2_description = attr.ib(validator=instance_of(str))
     tissue1 = attr.ib(validator=attr.validators.optional(instance_of(str)))
     tissue2 = attr.ib(validator=instance_of(str))
-    locus_id1 = attr.ib(validator=instance_of(ChromosomePosition))
-    locus_id2 = attr.ib(validator=instance_of(ChromosomePosition))
+    locus_id1 = attr.ib(validator=instance_of(Variant))
+    locus_id2 = attr.ib(validator=instance_of(Variant))
     chromosome = attr.ib(validator=instance_of(str))
     start = attr.ib(validator=instance_of(int))
     stop = attr.ib(validator=instance_of(int))
     clpp = attr.ib(validator=instance_of(float))
     clpa = attr.ib(validator=instance_of(float))
-    beta_id1 = attr.ib(validator=attr.validators.optional(instance_of(float)))
-    beta_id2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
-    variation = attr.ib(validator=instance_of(str))
-    vars_pip1 = attr.ib(validator=instance_of(str))
-    vars_pip2 = attr.ib(validator=instance_of(str))
-    vars_beta1 = attr.ib(validator=instance_of(str))
-    vars_beta2 = attr.ib(validator=instance_of(str))
+    variants_1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CasualVariant),
+                                                                 iterable_validator=instance_of(typing.List)))
+    variants_2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CasualVariant),
+                                                                 iterable_validator=instance_of(typing.List)))
     len_cs1 = attr.ib(validator=instance_of(int))
     len_cs2 = attr.ib(validator=instance_of(int))
     len_inter = attr.ib(validator=instance_of(int))
@@ -238,8 +279,8 @@ class Colocalization(Kwargs, JSONifiable):
 
                                         tissue1=nvl(line[6], str),
                                         tissue2=nvl(line[7], str),
-                                        locus_id1=nvl(line[8], ChromosomePosition.from_str),
-                                        locus_id2=nvl(line[9], ChromosomePosition.from_str),
+                                        locus_id1=nvl(line[8], Variant.from_str),
+                                        locus_id2=nvl(line[9], Variant.from_str),
 
                                         chromosome=nvl(line[10], str),
                                         start=nvl(line[11], na(int)),
@@ -250,11 +291,11 @@ class Colocalization(Kwargs, JSONifiable):
                                         beta_id1=nvl(line[15], na(float)),
                                         beta_id2=nvl(line[16], na(float)),
 
-                                        variation=nvl(line[17], str),
-                                        vars_pip1=nvl(line[18], str),
-                                        vars_pip2=nvl(line[19], str),
-                                        vars_beta1=nvl(line[20], str),
-                                        vars_beta2=nvl(line[21], str),
+                                        credible_set = CasualVariant.from_list(nvl(line[17], str),
+                                                                               nvl(line[18], str),
+                                                                               nvl(line[19], str),
+                                                                               nvl(line[20], str),
+                                                                               nvl(line[21], str)),
                                         len_cs1=nvl(line[22], na(int)),
                                         len_cs2=nvl(line[23], na(int)),
                                         len_inter=nvl(line[24], na(int)))
@@ -321,10 +362,10 @@ class ColocalizationDB:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_phenotype_range(self,
-                            phenotype: str,
-                            chromosome_range: ChromosomeRange,
-                            flags: typing.Dict[str, typing.Any]) -> SearchResults:
+    def get_locus(self,
+                  phenotype: str,
+                  locus: Locus,
+                  flags: typing.Dict[str, typing.Any]) -> SearchResults:
         """
         Search for colocalization that match
         phenotype and range and return them.
@@ -338,10 +379,10 @@ class ColocalizationDB:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_phenotype_range_summary(self,
-                                    phenotype: str,
-                                    chromosome_range: ChromosomeRange,
-                                    flags: typing.Dict[str, typing.Any]) -> SearchSummary:
+    def get_variant(self,
+                    phenotype: str,
+                    variant: Variant,
+                    flags: typing.Dict[str, typing.Any]) -> SearchSummary:
         """
         Search for colocalization that match
         phenotype and range a summary of matches.
@@ -355,8 +396,8 @@ class ColocalizationDB:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_locus(self,
-                  phenotype: str,
-                  locus: ChromosomePosition,
-                  flags: typing.Dict[str, typing.Any]) -> SearchResults:
+    def get_locus_summary(self,
+                          phenotype: str,
+                          locus: Locus,
+                          flags: typing.Dict[str, typing.Any] = {}) -> SearchSummary:
         raise NotImplementedError

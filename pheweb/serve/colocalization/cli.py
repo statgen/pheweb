@@ -22,6 +22,13 @@ def wrap(path,f):
 def init(path) -> None:
     wrap(path,lambda dao: dao.create_schema())
 
+@data_cli.command("dump")
+@click.argument("path", required=True, type=str)
+@with_appcontext
+def dump(path) -> None:
+    wrap(path,lambda dao: dao.dump())
+
+    
 @data_cli.command("delete")
 @click.argument("path", required=True, type=str)
 @with_appcontext
