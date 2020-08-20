@@ -19,13 +19,12 @@ metadata = MetaData()
 casual_variant_table = Table('casual_variant',
                              metadata,
                              Column('id', Integer, primary_key=True, autoincrement=True),
-                             Column('vars_pip1', Float, unique=False, nullable=False),
-                             Column('vars_pip2', Float, unique=False, nullable=False),
-                             Column('vars_beta1', Float, unique=False, nullable=False),
-                             Column('vars_beta2', Float, unique=False, nullable=False),
-                             Column('variation_chromosome', String(2), unique=False, nullable=False),
+                             Column('pip1', Float, unique=False, nullable=False),
+                             Column('pip2', Float, unique=False, nullable=False),
+                             Column('beta1', Float, unique=False, nullable=False),
+                             Column('beta2', Float, unique=False, nullable=False),
                              *Variant.columns('variation_'),
-                             Column('colocalization_id', Integer, ForeignKey('colocalization.id'), primary_key=True))
+                             Column('colocalization_id', Integer, ForeignKey('colocalization.id'), primary_key=False))
 
 colocalization_table = Table('colocalization',
                              metadata,
@@ -81,11 +80,11 @@ class ColocalizationDTO(Colocalization):
 
 casual_variant_mapper = mapper(CasualVariant,
                                casual_variant_table,
-                               properties = { 'variation': composite(Variant,
-                                                                     casual_variant_table.c.variation_chromosome,
-                                                                     casual_variant_table.c.variation_position,
-                                                                     casual_variant_table.c.variation_ref,
-                                                                     casual_variant_table.c.variation_alt)
+                               properties = { 'variant': composite(Variant,
+                                                                   casual_variant_table.c.variation_chromosome,
+                                                                   casual_variant_table.c.variation_position,
+                                                                   casual_variant_table.c.variation_ref,
+                                                                   casual_variant_table.c.variation_alt)
                                             })
 
 cluster_coordinate_mapper = mapper(Colocalization,
@@ -100,10 +99,15 @@ cluster_coordinate_mapper = mapper(Colocalization,
                                                                       colocalization_table.c.locus_id2_position,
                                                                       colocalization_table.c.locus_id2_ref,
                                                                       colocalization_table.c.locus_id2_alt),
-                                               'credible_set': relationship('casual_variant',
-                                                                            cascade='all, delete-orphan',
-                                                                            backref='colocalization') }
-                                   )
+                                               
+                                               'variants_1': relationship(CasualVariant,
+                                                                          cascade='all, delete-orphan'),
+
+                                               'variants_2': relationship(CasualVariant,
+                                                                          cascade='all, delete-orphan'),
+
+                                   }
+)
 
 
 class ColocalizationDAO(ColocalizationDB):
@@ -118,9 +122,6 @@ class ColocalizationDAO(ColocalizationDB):
             return 'mysql://{}:{}@{}/{}'.format(user,password,host,db)
         else:
             return path
-    
-    
-
     
     def __init__(self, db_url: str, parameters=dict()):
         self.db_url=ColocalizationDAO.mysql_config(db_url)
@@ -187,6 +188,10 @@ class ColocalizationDAO(ColocalizationDB):
         session.commit()
         return count
 
+    def save(self,colocalization : Colocalization) -> None:
+        session = self.Session()
+        session.add(colocalization)
+        session.commit()
 
     def get_phenotype(self,
                       flags: typing.Dict[str, typing.Any]={}) -> typing.List[str]:
@@ -226,7 +231,16 @@ class ColocalizationDAO(ColocalizationDB):
                     variant: Variant,
                     flags: typing.Dict[str, typing.Any] = {}) -> SearchResults:
         session = self.Session()
-        raise NotImplementedError
+        matches = self.support.query_matches(session,
+                                             flags={**{"phenotype1": phenotype,
+                                                       "locus_id1_chromosome": variant.chromosome,
+                                                       "locus_id1_position": variant.position,
+                                                       "locus_id1_reference": variant.reference,
+                                                       "locus_id1_alternate": variant.alternate,
+                                             },**flags},
+                                             f=lambda x: x.to_colocalization())
+        return SearchResults(colocalizations=matches,
+                             count=len(matches))
 
 
     def get_locus_summary(self,

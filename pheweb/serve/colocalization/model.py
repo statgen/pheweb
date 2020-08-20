@@ -176,11 +176,11 @@ class CasualVariant(JSONifiable, Kwargs):
 
     """
 
+    variant = attr.ib(validator=instance_of(Variant))
     pip1 = attr.ib(validator=instance_of(float))
     pip2 = attr.ib(validator=instance_of(float))
     beta1 = attr.ib(validator=instance_of(float))
     beta2 = attr.ib(validator=instance_of(float))
-    variant = attr.ib(validator=instance_of(Variant))
 
     def kwargs_rep(self) -> typing.Dict[str, typing.Any]:
         return self.__dict__
@@ -191,19 +191,30 @@ class CasualVariant(JSONifiable, Kwargs):
         return d
 
     @staticmethod
-    def from_list(pip1_str: str,
+    def from_list(variation_str: str,
+                  pip1_str: str,
                   pip2_str: str,
                   beta1_str: str,
-                  beta2_str: str,
-                  variation_str: str) -> typing.List["Colocalization"]:
-        pip1_list = pip1_str.spit(',')
-        pip2_list = pip2_str.split(',')
-        beta1_list = beta1_str.split(',')
-        beta2_list = beta2_str.split(',')
-        variation_list = variation_str.split(',')
+                  beta2_str: str) -> typing.List["Colocalization"]:
+        
+        variation_list = map(Variant.from_str,variation_str.split(','))
+        pip1_list = map(float,pip1_str.split(','))
+        pip2_list = map(float,pip2_str.split(','))
+        beta1_list = map(float,beta1_str.split(','))
+        beta2_list = map(float,beta2_str.split(','))
 
-        result = zip(pip1_list,pip2_list,beta1_list,beta2_list,variation_list).map(CasualVariant)
+        result = list(map(lambda p : CasualVariant(*p),zip(variation_list,pip1_list,pip2_list,beta1_list,beta2_list)))
         return result
+
+    @staticmethod    
+    def __composite_values__(self):
+        """
+        These are artifacts needed for composition by sqlalchemy.
+        Returns a tuple containing the constructor args.
+
+        :return: tuple (chromosome, start, stop)
+        """
+        return self.variant , self.pip1 , self.pip2 , self.beta1 ,self.beta2
 
     
 @attr.s
@@ -232,6 +243,11 @@ class Colocalization(Kwargs, JSONifiable):
     stop = attr.ib(validator=instance_of(int))
     clpp = attr.ib(validator=instance_of(float))
     clpa = attr.ib(validator=instance_of(float))
+
+    beta_id1 = attr.ib(validator=attr.validators.optional(instance_of(float)))
+    beta_id2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
+
+    
     variants_1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CasualVariant),
                                                                  iterable_validator=instance_of(typing.List)))
     variants_2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CasualVariant),
@@ -269,6 +285,7 @@ class Colocalization(Kwargs, JSONifiable):
         :param line: string array with value
         :return: colocalization object
         """
+        
         colocalization = Colocalization(source1=nvl(line[0], str),
                                         source2=nvl(line[1], str),
 
@@ -290,12 +307,18 @@ class Colocalization(Kwargs, JSONifiable):
                                         clpa=nvl(line[14], float),
                                         beta_id1=nvl(line[15], na(float)),
                                         beta_id2=nvl(line[16], na(float)),
+                                        variants_1 = CasualVariant.from_list(nvl(line[17], str),
+                                                                             nvl(line[18], str),
+                                                                             nvl(line[19], str),
+                                                                             nvl(line[20], str),
+                                                                             nvl(line[21], str)),
 
-                                        credible_set = CasualVariant.from_list(nvl(line[17], str),
-                                                                               nvl(line[18], str),
-                                                                               nvl(line[19], str),
-                                                                               nvl(line[20], str),
-                                                                               nvl(line[21], str)),
+                                        variants_2 = CasualVariant.from_list(nvl(line[17], str),
+                                                                             nvl(line[18], str),
+                                                                             nvl(line[19], str),
+                                                                             nvl(line[20], str),
+                                                                             nvl(line[21], str)),
+
                                         len_cs1=nvl(line[22], na(int)),
                                         len_cs2=nvl(line[23], na(int)),
                                         len_inter=nvl(line[24], na(int)))

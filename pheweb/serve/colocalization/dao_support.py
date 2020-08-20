@@ -144,7 +144,7 @@ class DAOSupport:
     X = typing.TypeVar('X')
     Y = typing.TypeVar('Y')
 
-    def query_matches(self,
+    def query_matchesl(self,
                       session,
                       flags: typing.Dict[str, typing.Any] = dict(),
                       f: typing.Callable[[X], Y] = lambda x: x) -> typing.List[Y]:
