@@ -7,7 +7,7 @@ import gzip
 from sqlalchemy.orm import mapper, composite, relationship
 import attr
 from .dao_support import DAOSupport
-from sqlalchemy import func, distinct
+from sqlalchemy import func, distinct, or_, and_
 import os
 import sys
 import importlib
@@ -160,7 +160,7 @@ class ColocalizationDAO(ColocalizationDB):
                 for line in reader:
                     #count = count + 1
                     try:
-                        dto = ColocalizationDTO(**Colocalization.from_list(line).kwargs_rep())
+                        dto = Colocalization.from_list(line)
                         yield dto
                     except Exception as e:
                         print(e)
@@ -213,6 +213,22 @@ class ColocalizationDAO(ColocalizationDB):
         return SearchResults(colocalizations=matches,
                              count=len(matches))
 
+    def get_colocalizations(self,
+                           phenotype: str,
+                           locus: Locus,
+                           flags: typing.Dict[str, typing.Any] = {}) -> SearchResults:
+        locus_id1 = Colocalization.variants_1.any(and_(CasualVariant.variation_chromosome == locus.chromosome,
+                                                       CasualVariant.variation_position >= locus.start,
+                                                       CasualVariant.variation_position <= locus.stop))
+        
+        locus_id2 = Colocalization.variants_2.any(and_(CasualVariant.variation_chromosome == locus.chromosome,
+                                                       CasualVariant.variation_position >= locus.start,
+                                                       CasualVariant.variation_position <= locus.stop))
+        
+        matches = self.Session().query(Colocalization).filter(or_(locus_id1, locus_id2)).all()
+        return SearchResults(colocalizations=matches,
+                             count=len(matches))
+        
     def get_variant(self,
                     phenotype: str,
                     variant: Variant,
