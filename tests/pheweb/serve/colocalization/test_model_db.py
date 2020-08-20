@@ -45,7 +45,7 @@ def test_can_insert():
     
     dao.save(colocalization)
     results = dao.get_variant(phenotype1, Variant.from_str("chr1_2_A_C"))
-    #results = dao.get_locus(phenotype1,
-    #                        locus=Locus.from_str("1:2-3"),
-    #                        flags={})
-    #print(results)
+    assert results.count == 1
+    assert results.colocalizations[0] == colocalization
+    results = dao.get_variant(phenotype1, Variant.from_str("chr2_2_A_C"))
+    assert results.count == 0

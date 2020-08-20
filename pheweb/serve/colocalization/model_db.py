@@ -55,19 +55,9 @@ colocalization_table = Table('colocalization',
                              Column('len_cs2', Integer, unique=False, nullable=False),
                              Column('len_inter', Integer, unique=False, nullable=False))
 
-@attr.s
-class ColocalizationDTO(Colocalization):
-    """
-    The mapper adds persistence state attributes
-    to the the class to avoid this problem we use
-    the DTO subclass.  We have to change the
-    json method
-    """
-    def json_rep(self) -> typing.Dict[str, typing.Any]:
-        return {x: getattr(self, x) for x in Colocalization.column_names()}
-
-    def to_colocalization(self) -> Colocalization:
-        return Colocalization(**self.json_rep())
+def refine_colocalization(c : Colocalization) -> Colocalization:
+    c = {x: getattr(c, x) for x in Colocalization.column_names()}
+    return Colocalization(**c)
 
 
 casual_variant_mapper = mapper(CasualVariant,
@@ -219,7 +209,7 @@ class ColocalizationDAO(ColocalizationDB):
                                                        "locus_id1_chromosome": locus.chromosome,
                                                        "locus_id1_position.gte": locus.start,
                                                        "locus_id1_position.lte": locus.stop},**flags},
-                                             f=lambda x: x.to_colocalization())
+                                             f=refine_colocalization)
         return SearchResults(colocalizations=matches,
                              count=len(matches))
 
@@ -235,7 +225,7 @@ class ColocalizationDAO(ColocalizationDB):
                                                        "locus_id1_reference": variant.reference,
                                                        "locus_id1_alternate": variant.alternate,
                                              },**flags},
-                                             f=lambda x: x.to_colocalization())
+                                             f=refine_colocalization)
         return SearchResults(colocalizations=matches,
                              count=len(matches))
 
