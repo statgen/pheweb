@@ -118,9 +118,9 @@ def test_colocalization():
                               tissue2 = "tissue2",
                               locus_id1 = Variant.from_str("chr1_2_A_C"),
                               locus_id2 = Variant.from_str("chr3_4_G_T"),
-                              chromosome = "7",
-                              start = 8,
-                              stop = 9,
+
+                              locus = Locus("7", 8, 9),
+                              
                               clpp = 10.0,
                               clpa = 11.0,
                               

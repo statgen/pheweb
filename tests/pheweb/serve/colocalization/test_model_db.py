@@ -24,11 +24,12 @@ def test_can_insert():
                                     phenotype2_description = "phenotype2_description",
                                     tissue1 = "tissue1",
                                     tissue2 = "tissue2",
+                                    
                                     locus_id1 = Variant.from_str("chr1_2_A_C"),
                                     locus_id2 = Variant.from_str("chr3_4_G_T"),
-                                    chromosome = "7",
-                                    start = 8,
-                                    stop = 9,
+
+                                    locus = Locus("7", 8, 9),
+                                    
                                     clpp = 10.0,
                                     clpa = 11.0,
                                     
@@ -43,8 +44,8 @@ def test_can_insert():
                                     len_inter = 16)
     
     dao.save(colocalization)
-    #results = dao.get_variant(phenotype1, Variant.from_str("chr1_2_A_C"))
-    results = dao.get_locus(phenotype1,
-                            locus=Locus.from_str("1:2-3"),
-                            flags={})
-    print(results)
+    results = dao.get_variant(phenotype1, Variant.from_str("chr1_2_A_C"))
+    #results = dao.get_locus(phenotype1,
+    #                        locus=Locus.from_str("1:2-3"),
+    #                        flags={})
+    #print(results)

@@ -54,7 +54,7 @@ class Variant(JSONifiable):
     DTO containing variant information
     
     """
-    chromosome = attr.ib(validator=instance_of(int))
+    chromosome = attr.ib(validator=instance_of(str))
     position = attr.ib(validator=instance_of(int))
     reference = attr.ib(validator=instance_of(str))
     alternate = attr.ib(validator=instance_of(str))
@@ -65,7 +65,7 @@ class Variant(JSONifiable):
         if fragments is None:
             None
         else:
-            return Variant(chromosome=int(fragments.group('chromosome')),
+            return Variant(chromosome=fragments.group('chromosome'),
                            position=int(fragments.group('position')),
                            reference=fragments.group('reference'),
                            alternate=fragments.group('alternate'))
@@ -156,7 +156,6 @@ class Locus(JSONifiable):
                  Column('{}start'.format(prefix), Integer, unique=False, nullable=False), 
                  Column('{}stop'.format(prefix), Integer, unique=False, nullable=False) ]
 
-    @staticmethod    
     def __composite_values__(self):
         """
         These are artifacts needed for composition by sqlalchemy.
@@ -236,11 +235,12 @@ class Colocalization(Kwargs, JSONifiable):
     phenotype2_description = attr.ib(validator=instance_of(str))
     tissue1 = attr.ib(validator=attr.validators.optional(instance_of(str)))
     tissue2 = attr.ib(validator=instance_of(str))
+    
     locus_id1 = attr.ib(validator=instance_of(Variant))
     locus_id2 = attr.ib(validator=instance_of(Variant))
-    chromosome = attr.ib(validator=instance_of(str))
-    start = attr.ib(validator=instance_of(int))
-    stop = attr.ib(validator=instance_of(int))
+
+    locus = attr.ib(validator=instance_of(Locus))
+    
     clpp = attr.ib(validator=instance_of(float))
     clpa = attr.ib(validator=instance_of(float))
 
@@ -263,6 +263,7 @@ class Colocalization(Kwargs, JSONifiable):
         d = self.__dict__
         d["locus_id1"] = d["locus_id1"].to_str()
         d["locus_id2"] = d["locus_id2"].to_str()
+        d["locus"] = d["locus"].to_str()
         return d
 
     @staticmethod
@@ -299,9 +300,9 @@ class Colocalization(Kwargs, JSONifiable):
                                         locus_id1=nvl(line[8], Variant.from_str),
                                         locus_id2=nvl(line[9], Variant.from_str),
 
-                                        chromosome=nvl(line[10], str),
-                                        start=nvl(line[11], na(int)),
-                                        stop=nvl(line[12], na(int)),
+                                        locus = Locus(nvl(line[10], str), # chromosome
+                                                      nvl(line[11], na(int)), # start
+                                                      nvl(line[12], na(int))), # stop
 
                                         clpp=nvl(line[13], float),
                                         clpa=nvl(line[14], float),

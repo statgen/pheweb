@@ -10,7 +10,7 @@ from .dao_support import DAOSupport
 from sqlalchemy import func, distinct
 import os
 import sys
-
+import importlib
 # TODO remove
 csv.field_size_limit(sys.maxsize)
 
@@ -39,20 +39,12 @@ colocalization_table = Table('colocalization',
                              Column('tissue2', String(80), unique=False, nullable=False), #primary_key=True),
 
                              # locus_id1
-                             Column('locus_id1_chromosome', String(2), unique=False, nullable=False), #primary_key=True),
-                             Column('locus_id1_position', Integer, unique=False, nullable=False), #primary_key=True),
-                             Column('locus_id1_ref', String(100), unique=False, nullable=False), #primary_key=True),
-                             Column('locus_id1_alt', String(100), unique=False, nullable=False), #primary_key=True),
-
+                             *Variant.columns('locus_id1_'),
                              # locus_id2
-                             Column('locus_id2_chromosome', String(2), unique=False, nullable=False), #primary_key=True),
-                             Column('locus_id2_position', Integer, unique=False, nullable=False), #primary_key=True),
-                             Column('locus_id2_ref', String(100), unique=False, nullable=False), #primary_key=True),
-                             Column('locus_id2_alt', String(100), unique=False, nullable=False), #primary_key=True),
+                             *Variant.columns('locus_id2_'),
 
-                             Column('chromosome',  String(2), unique=False, nullable=False),
-                             Column('start', Integer, unique=False, nullable=False),
-                             Column('stop', Integer, unique=False, nullable=False),
+                             # locus
+                             *Locus.columns(''),
 
                              Column('clpp', Float, unique=False, nullable=False),
                              Column('clpa', Float, unique=False, nullable=False),
@@ -100,6 +92,11 @@ cluster_coordinate_mapper = mapper(Colocalization,
                                                                       colocalization_table.c.locus_id2_ref,
                                                                       colocalization_table.c.locus_id2_alt),
                                                
+                                               'locus': composite(Locus,
+                                                                  colocalization_table.c.chromosome,
+                                                                  colocalization_table.c.start,
+                                                                  colocalization_table.c.stop),
+
                                                'variants_1': relationship(CasualVariant,
                                                                           cascade='all, delete-orphan'),
 
@@ -114,7 +111,7 @@ class ColocalizationDAO(ColocalizationDB):
     @staticmethod
     def mysql_config(path : str) -> typing.Optional[str] :
         if os.path.exists(path):
-            auth_module = imp.load_source('mysql_auth', path)
+            auth_module = importlib.load_source('mysql_auth', path)
             user = getattr(auth_module, 'mysql')['user']
             password = getattr(auth_module, 'mysql')['password']
             host = getattr(auth_module, 'mysql')['host']
@@ -131,7 +128,7 @@ class ColocalizationDAO(ColocalizationDB):
                                     *parameters)
         metadata.bind = self.engine
         self.Session = sessionmaker(bind=self.engine)
-        self.support = DAOSupport(ColocalizationDTO)
+        self.support = DAOSupport(Colocalization)
     
     def __del__(self):
         if hasattr(self, 'engine') and self.engine:
