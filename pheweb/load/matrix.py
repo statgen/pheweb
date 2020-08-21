@@ -55,7 +55,7 @@ def run(argv):
         os.rename(matrix_gz_tmp_filepath, matrix_gz_filepath)
         pysam.tabix_index(
             filename=matrix_gz_filepath, force=True,
-            seq_col=0, start_col=1, end_col=1 # note: these are 0-based, but `/usr/bin/tabix` is 1-based
+            seq_col=0, start_col=1, end_col=1 # note: column indexes start at 0, whereas `/usr/bin/tabix` starts at 1
         )
     else:
         print('matrix is up-to-date!')
