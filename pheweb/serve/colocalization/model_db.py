@@ -10,7 +10,9 @@ from .dao_support import DAOSupport
 from sqlalchemy import func, distinct, or_, and_
 import os
 import sys
-import importlib
+import importlib.machinery
+import importlib.util
+
 # TODO remove
 csv.field_size_limit(sys.maxsize)
 
@@ -101,7 +103,11 @@ class ColocalizationDAO(ColocalizationDB):
     @staticmethod
     def mysql_config(path : str) -> typing.Optional[str] :
         if os.path.exists(path):
-            auth_module = importlib.load_source('mysql_auth', path)
+            loader = importlib.machinery.SourceFileLoader('auth_module',path)
+            spec = importlib.util.spec_from_loader(loader.name, loader)
+            auth_module = importlib.util.module_from_spec(spec)
+            loader.exec_module(auth_module)
+
             user = getattr(auth_module, 'mysql')['user']
             password = getattr(auth_module, 'mysql')['password']
             host = getattr(auth_module, 'mysql')['host']
@@ -183,7 +189,7 @@ class ColocalizationDAO(ColocalizationDB):
     def get_phenotype(self,
                       flags: typing.Dict[str, typing.Any]={}) -> typing.List[str]:
         session = self.Session()
-        q = session.query(distinct(ColocalizationDTO.phenotype1))
+        q = session.query(distinct(Colocalization.phenotype1))
         matches = self.support.create_filter(q, flags)
         return PhenotypeList(phenotypes = [r[0] for r in q.all()])
         return phenotype1

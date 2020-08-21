@@ -4,7 +4,6 @@ import os
 import typing
 from colocalization.model_db import ColocalizationDAO
 from flask.cli import AppGroup, with_appcontext
-import imp
 
 data_cli = AppGroup('data')
 

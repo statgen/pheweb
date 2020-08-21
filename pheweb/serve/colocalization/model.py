@@ -61,7 +61,7 @@ class Variant(JSONifiable):
 
     @staticmethod
     def from_str(text: str) -> typing.Optional["Variant"]:
-        fragments = re.match(r'^chr(?P<chromosome>[0-9]+)_(?P<position>\d+)_(?P<reference>[ACGTU]{1,100})_(?P<alternate>[ACGTU]{1,100})$', text)
+        fragments = re.match(r'^chr(?P<chromosome>[0-9]+)_(?P<position>\d+)_(?P<reference>[^_]{1,100})_(?P<alternate>.{1,100})$', text)
         if fragments is None:
             None
         else:
