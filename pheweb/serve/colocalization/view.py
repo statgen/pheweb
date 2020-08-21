@@ -23,7 +23,7 @@ def get_locus(phenotype: str,
                                         locus = Locus(chromosome,
                                                       start,
                                                       stop),
-                                        flags=flags).json_rep())
+                                        flags=flags).json_rep(), default=lambda o: None)
 
 
 # @colocalization.route('/api/colocalization/<string:phenotype>/<string:chromosome>:<int:start>-<int:stop>/summary', methods=["GET"])

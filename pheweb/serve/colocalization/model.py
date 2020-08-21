@@ -168,7 +168,7 @@ class Locus(JSONifiable):
 
 
 @attr.s
-class CasualVariant(JSONifiable, Kwargs):
+class CausalVariant(JSONifiable, Kwargs):
     """
     Causual variant DTO
 
@@ -187,7 +187,7 @@ class CasualVariant(JSONifiable, Kwargs):
 
     def json_rep(self):
         d = self.__dict__
-        d["variation"] = d["variation"].to_str()
+        d["variation"] = str(d["variation"])
         return d
 
     @staticmethod
@@ -203,7 +203,7 @@ class CasualVariant(JSONifiable, Kwargs):
         beta1_list = map(na(float),beta1_str.split(','))
         beta2_list = map(na(float),beta2_str.split(','))
 
-        result = list(map(lambda p : CasualVariant(*p),zip(variation_list,pip1_list,pip2_list,beta1_list,beta2_list)))
+        result = list(map(lambda p : CausalVariant(*p),zip(variation_list,pip1_list,pip2_list,beta1_list,beta2_list)))
         return result
 
     @staticmethod
@@ -249,9 +249,9 @@ class Colocalization(Kwargs, JSONifiable):
     beta_id2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
 
 
-    variants_1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CasualVariant),
+    variants_1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CausalVariant),
                                                                  iterable_validator=instance_of(typing.List)))
-    variants_2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CasualVariant),
+    variants_2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CausalVariant),
                                                                  iterable_validator=instance_of(typing.List)))
     len_cs1 = attr.ib(validator=instance_of(int))
     len_cs2 = attr.ib(validator=instance_of(int))
@@ -262,9 +262,9 @@ class Colocalization(Kwargs, JSONifiable):
 
     def json_rep(self):
         d = self.__dict__
-        d["locus_id1"] = d["locus_id1"].to_str()
-        d["locus_id2"] = d["locus_id2"].to_str()
-        d["locus"] = d["locus"].to_str()
+        d["locus_id1"] = str(d["locus_id1"])
+        d["locus_id2"] = str(d["locus_id2"])
+        d["locus"] = str(d["locus"])
         return d
 
     @staticmethod
@@ -309,13 +309,13 @@ class Colocalization(Kwargs, JSONifiable):
                                         clpa=nvl(line[14], float),
                                         beta_id1=nvl(line[15], na(float)),
                                         beta_id2=nvl(line[16], na(float)),
-                                        variants_1 = CasualVariant.from_list(nvl(line[17], str),
+                                        variants_1 = CausalVariant.from_list(nvl(line[17], str),
                                                                              nvl(line[18], str),
                                                                              nvl(line[19], str),
                                                                              nvl(line[20], str),
                                                                              nvl(line[21], str)),
 
-                                        variants_2 = CasualVariant.from_list(nvl(line[17], str),
+                                        variants_2 = CausalVariant.from_list(nvl(line[17], str),
                                                                              nvl(line[18], str),
                                                                              nvl(line[19], str),
                                                                              nvl(line[20], str),

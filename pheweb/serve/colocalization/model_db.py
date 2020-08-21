@@ -1,7 +1,7 @@
 import typing
 from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float, Text, ForeignKey
 from sqlalchemy.orm import sessionmaker
-from .model import Colocalization, CasualVariant, ColocalizationDB, SearchSummary, Locus, SearchResults, PhenotypeList, Variant
+from .model import Colocalization, CausalVariant, ColocalizationDB, SearchSummary, Locus, SearchResults, PhenotypeList, Variant
 import csv
 import gzip
 from sqlalchemy.orm import mapper, composite, relationship
@@ -18,15 +18,14 @@ csv.field_size_limit(sys.maxsize)
 
 metadata = MetaData()
 
-casual_variant_table = Table('casual_variant',
+causal_variant_table = Table('causal_variant',
                              metadata,
                              Column('id', Integer, primary_key=True, autoincrement=True),
                              Column('pip1', Float, unique=False, nullable=False),
                              Column('pip2', Float, unique=False, nullable=False),
                              Column('beta1', Float, unique=False, nullable=False),
                              Column('beta2', Float, unique=False, nullable=False),
-                             *Variant.columns('variation_'),
-                             Column('colocalization_id', Integer, ForeignKey('colocalization.id'), primary_key=False))
+                             *Variant.columns('variation_'))
 
 colocalization_table = Table('colocalization',
                              metadata,
@@ -61,15 +60,27 @@ def refine_colocalization(c : Colocalization) -> Colocalization:
     c = {x: getattr(c, x) for x in Colocalization.column_names()}
     return Colocalization(**c)
 
+colocalization_variants_1_table = Table('colocalization_variants_1',
+                                        metadata,
+                                        Column('colocalization_id', Integer, ForeignKey('colocalization.id')),
+                                        Column('causal_variant_id', Integer, ForeignKey('causal_variant.id')))
 
-casual_variant_mapper = mapper(CasualVariant,
-                               casual_variant_table,
+colocalization_variants_2_table = Table('colocalization_variants_2',
+                                        metadata,
+                                        Column('colocalization', Integer, ForeignKey('colocalization.id')),
+                                        Column('causal_variant_id', Integer, ForeignKey('causal_variant.id')))
+
+
+
+causal_variant_mapper = mapper(CausalVariant,
+                               causal_variant_table,
                                properties = { 'variant': composite(Variant,
-                                                                   casual_variant_table.c.variation_chromosome,
-                                                                   casual_variant_table.c.variation_position,
-                                                                   casual_variant_table.c.variation_ref,
-                                                                   casual_variant_table.c.variation_alt)
+                                                                   causal_variant_table.c.variation_chromosome,
+                                                                   causal_variant_table.c.variation_position,
+                                                                   causal_variant_table.c.variation_ref,
+                                                                   causal_variant_table.c.variation_alt)
                                             })
+
 
 cluster_coordinate_mapper = mapper(Colocalization,
                                    colocalization_table,
@@ -89,11 +100,11 @@ cluster_coordinate_mapper = mapper(Colocalization,
                                                                   colocalization_table.c.start,
                                                                   colocalization_table.c.stop),
 
-                                               'variants_1': relationship(CasualVariant,
-                                                                          cascade='all, delete-orphan'),
+                                               'variants_1': relationship(CausalVariant,
+                                                                          secondary=colocalization_variants_1_table),
 
-                                               'variants_2': relationship(CasualVariant,
-                                                                          cascade='all, delete-orphan'),
+                                               'variants_2': relationship(CausalVariant,
+                                                                          secondary=colocalization_variants_2_table),
 
                                    }
 )
@@ -209,27 +220,13 @@ class ColocalizationDAO(ColocalizationDB):
 
         :return: matching colocalizations
         """
-        session = self.Session()
-        matches = self.support.query_matches(session,
-                                             flags={**{"phenotype1": phenotype,
-                                                       "locus_id1_chromosome": locus.chromosome,
-                                                       "locus_id1_position.gte": locus.start,
-                                                       "locus_id1_position.lte": locus.stop},**flags},
-                                             f=refine_colocalization)
-        return SearchResults(colocalizations=matches,
-                             count=len(matches))
+        locus_id1 = Colocalization.variants_1.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
+                                                       CausalVariant.variation_position >= locus.start,
+                                                       CausalVariant.variation_position <= locus.stop))
 
-    def get_colocalizations(self,
-                           phenotype: str,
-                           locus: Locus,
-                           flags: typing.Dict[str, typing.Any] = {}) -> SearchResults:
-        locus_id1 = Colocalization.variants_1.any(and_(CasualVariant.variation_chromosome == locus.chromosome,
-                                                       CasualVariant.variation_position >= locus.start,
-                                                       CasualVariant.variation_position <= locus.stop))
-
-        locus_id2 = Colocalization.variants_2.any(and_(CasualVariant.variation_chromosome == locus.chromosome,
-                                                       CasualVariant.variation_position >= locus.start,
-                                                       CasualVariant.variation_position <= locus.stop))
+        locus_id2 = Colocalization.variants_2.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
+                                                       CausalVariant.variation_position >= locus.start,
+                                                       CausalVariant.variation_position <= locus.stop))
 
         matches = self.Session().query(Colocalization).filter(or_(locus_id1, locus_id2)).all()
         return SearchResults(colocalizations=matches,
