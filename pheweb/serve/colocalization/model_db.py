@@ -83,7 +83,7 @@ cluster_coordinate_mapper = mapper(Colocalization,
                                                                       colocalization_table.c.locus_id2_position,
                                                                       colocalization_table.c.locus_id2_ref,
                                                                       colocalization_table.c.locus_id2_alt),
-                                               
+
                                                'locus': composite(Locus,
                                                                   colocalization_table.c.chromosome,
                                                                   colocalization_table.c.start,
@@ -115,7 +115,7 @@ class ColocalizationDAO(ColocalizationDB):
             return 'mysql://{}:{}@{}/{}'.format(user,password,host,db)
         else:
             return path
-    
+
     def __init__(self, db_url: str, parameters=dict()):
         self.db_url=ColocalizationDAO.mysql_config(db_url)
         print("ColocalizationDAO : {}".format(self.db_url))
@@ -125,14 +125,14 @@ class ColocalizationDAO(ColocalizationDB):
         metadata.bind = self.engine
         self.Session = sessionmaker(bind=self.engine)
         self.support = DAOSupport(Colocalization)
-    
+
     def __del__(self):
         if hasattr(self, 'engine') and self.engine:
             self.engine.dispose()
-    
+
     def create_schema(self):
         return metadata.create_all(self.engine)
-    
+
     def dump(self):
         print(self.db_url)
         # see  : https://stackoverflow.com/questions/2128717/sqlalchemy-printing-raw-sql-from-create
@@ -140,11 +140,11 @@ class ColocalizationDAO(ColocalizationDB):
             print(sql.compile(dialect=engine.dialect))
         engine = create_engine(self.db_url, strategy='mock', executor=metadata_dump)
         metadata.create_all(engine)
-            
+
     def delete_all(self):
         self.engine.execute(colocalization_table.delete())
-        metadata.drop_all(self.engine) 
-    
+        metadata.drop_all(self.engine)
+
     def load_data(self, path: str, header : bool=True) -> typing.Optional[int]:
         count = 0
         def generate_colocalization():
@@ -162,20 +162,20 @@ class ColocalizationDAO(ColocalizationDB):
                     assert expected_header == actual_header, \
                         "header expected '{expected_header}' got '{actual_header}'".format(expected_header=expected_header,
                                                                                            actual_header=actual_header)
-                
+
                 for line in reader:
                     #count = count + 1
                     try:
                         dto = Colocalization.from_list(line)
                         yield dto
                     except Exception as e:
+                        print(line)
                         print(e)
-                        print(dto)
                         print("file:{}".format(path), file=sys.stderr, flush=True)
                         print("line:{}".format(count), file=sys.stderr, flush=True)
                         print(line, file=sys.stderr, flush=True)
                         raise
-                    
+
         session = self.Session()
         session.bulk_save_objects(generate_colocalization())
         session.commit()
@@ -226,15 +226,15 @@ class ColocalizationDAO(ColocalizationDB):
         locus_id1 = Colocalization.variants_1.any(and_(CasualVariant.variation_chromosome == locus.chromosome,
                                                        CasualVariant.variation_position >= locus.start,
                                                        CasualVariant.variation_position <= locus.stop))
-        
+
         locus_id2 = Colocalization.variants_2.any(and_(CasualVariant.variation_chromosome == locus.chromosome,
                                                        CasualVariant.variation_position >= locus.start,
                                                        CasualVariant.variation_position <= locus.stop))
-        
+
         matches = self.Session().query(Colocalization).filter(or_(locus_id1, locus_id2)).all()
         return SearchResults(colocalizations=matches,
                              count=len(matches))
-        
+
     def get_variant(self,
                     phenotype: str,
                     variant: Variant,

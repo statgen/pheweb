@@ -24,8 +24,8 @@ class Kwargs(object):
 X = typing.TypeVar('X')
 
 def na(f):
-    return lambda value : None if value == 'NA' or value == 'na' else f(value)
-    
+    return lambda value : None if value == 'NA' or value == 'na' or value == 'None'  else f(value)
+
 def ascii(value: str) -> str:
     return "".join(char for char in value if ord(char) < 128)
 
@@ -50,9 +50,9 @@ def nvl(value: str, f: typing.Callable[[str], X]) -> typing.Optional[X]:
 @attr.s
 class Variant(JSONifiable):
     """
-    
+
     DTO containing variant information
-    
+
     """
     chromosome = attr.ib(validator=instance_of(str))
     position = attr.ib(validator=instance_of(int))
@@ -61,8 +61,9 @@ class Variant(JSONifiable):
 
     @staticmethod
     def from_str(text: str) -> typing.Optional["Variant"]:
-        fragments = re.match(r'^chr(?P<chromosome>[0-9]+)_(?P<position>\d+)_(?P<reference>[^_]{1,100})_(?P<alternate>.{1,100})$', text)
+        fragments = re.match(r'^chr(?P<chromosome>[0-9a-zA-Z]{1,2})_(?P<position>\d+)_(?P<reference>[^_]{1,1000})_(?P<alternate>.{1,1000})$', text)
         if fragments is None:
+            raise Exception(text)
             None
         else:
             return Variant(chromosome=fragments.group('chromosome'),
@@ -85,10 +86,10 @@ class Variant(JSONifiable):
     @staticmethod
     def columns(prefix : typing.Optional[str] = None) -> typing.List[Column]:
         prefix = prefix if prefix is not None else ""
-        return [ Column('{}chromosome'.format(prefix), String(2), unique=False, nullable=False), 
-                 Column('{}position'.format(prefix), Integer, unique=False, nullable=False), 
-                 Column('{}ref'.format(prefix), String(100), unique=False, nullable=False), 
-                 Column('{}alt'.format(prefix), String(100), unique=False, nullable=False), ]
+        return [ Column('{}chromosome'.format(prefix), String(2), unique=False, nullable=False),
+                 Column('{}position'.format(prefix), Integer, unique=False, nullable=False),
+                 Column('{}ref'.format(prefix), String(1000), unique=False, nullable=False),
+                 Column('{}alt'.format(prefix), String(1000), unique=False, nullable=False), ]
 
 
     def __composite_values__(self):
@@ -133,7 +134,7 @@ class Locus(JSONifiable):
             else:
                 result = None
         return result
-    
+
     def __str__(self):
         """
 
@@ -152,8 +153,8 @@ class Locus(JSONifiable):
     @staticmethod
     def columns(prefix : typing.Optional[str] = None) -> typing.List[Column]:
         prefix = prefix if prefix is not None else ""
-        return [ Column('{}chromosome'.format(prefix), String(2), unique=False, nullable=False), 
-                 Column('{}start'.format(prefix), Integer, unique=False, nullable=False), 
+        return [ Column('{}chromosome'.format(prefix), String(2), unique=False, nullable=False),
+                 Column('{}start'.format(prefix), Integer, unique=False, nullable=False),
                  Column('{}stop'.format(prefix), Integer, unique=False, nullable=False) ]
 
     def __composite_values__(self):
@@ -168,9 +169,9 @@ class Locus(JSONifiable):
 
 @attr.s
 class CasualVariant(JSONifiable, Kwargs):
-    """ 
+    """
     Causual variant DTO
-    
+
     pip1, pip2, beta1, beta2, variant
 
     """
@@ -178,8 +179,8 @@ class CasualVariant(JSONifiable, Kwargs):
     variant = attr.ib(validator=instance_of(Variant))
     pip1 = attr.ib(validator=instance_of(float))
     pip2 = attr.ib(validator=instance_of(float))
-    beta1 = attr.ib(validator=instance_of(float))
-    beta2 = attr.ib(validator=instance_of(float))
+    beta1 = attr.ib(validator=attr.validators.optional(instance_of(float)))
+    beta2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
 
     def kwargs_rep(self) -> typing.Dict[str, typing.Any]:
         return self.__dict__
@@ -195,17 +196,17 @@ class CasualVariant(JSONifiable, Kwargs):
                   pip2_str: str,
                   beta1_str: str,
                   beta2_str: str) -> typing.List["Colocalization"]:
-        
+
         variation_list = map(Variant.from_str,variation_str.split(','))
-        pip1_list = map(float,pip1_str.split(','))
-        pip2_list = map(float,pip2_str.split(','))
-        beta1_list = map(float,beta1_str.split(','))
-        beta2_list = map(float,beta2_str.split(','))
+        pip1_list = map(na(float),pip1_str.split(','))
+        pip2_list = map(na(float),pip2_str.split(','))
+        beta1_list = map(na(float),beta1_str.split(','))
+        beta2_list = map(na(float),beta2_str.split(','))
 
         result = list(map(lambda p : CasualVariant(*p),zip(variation_list,pip1_list,pip2_list,beta1_list,beta2_list)))
         return result
 
-    @staticmethod    
+    @staticmethod
     def __composite_values__(self):
         """
         These are artifacts needed for composition by sqlalchemy.
@@ -215,7 +216,7 @@ class CasualVariant(JSONifiable, Kwargs):
         """
         return self.variant , self.pip1 , self.pip2 , self.beta1 ,self.beta2
 
-    
+
 @attr.s
 class Colocalization(Kwargs, JSONifiable):
     """
@@ -235,19 +236,19 @@ class Colocalization(Kwargs, JSONifiable):
     phenotype2_description = attr.ib(validator=instance_of(str))
     tissue1 = attr.ib(validator=attr.validators.optional(instance_of(str)))
     tissue2 = attr.ib(validator=instance_of(str))
-    
+
     locus_id1 = attr.ib(validator=instance_of(Variant))
     locus_id2 = attr.ib(validator=instance_of(Variant))
 
     locus = attr.ib(validator=instance_of(Locus))
-    
+
     clpp = attr.ib(validator=instance_of(float))
     clpa = attr.ib(validator=instance_of(float))
 
     beta_id1 = attr.ib(validator=attr.validators.optional(instance_of(float)))
     beta_id2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
 
-    
+
     variants_1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CasualVariant),
                                                                  iterable_validator=instance_of(typing.List)))
     variants_2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CasualVariant),
@@ -286,7 +287,7 @@ class Colocalization(Kwargs, JSONifiable):
         :param line: string array with value
         :return: colocalization object
         """
-        
+
         colocalization = Colocalization(source1=nvl(line[0], str),
                                         source2=nvl(line[1], str),
 

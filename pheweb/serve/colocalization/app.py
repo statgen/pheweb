@@ -8,7 +8,6 @@ from .cli import data_cli
 from .model_db import ColocalizationDB
 import atexit
 import sys
-#sys.path.append(".")
 
 db_url = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:////tmp/tmp.db')
 
