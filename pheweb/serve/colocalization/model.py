@@ -426,10 +426,17 @@ class ColocalizationDB:
         raise NotImplementedError
 
     @abc.abstractmethod
+    def get_finemapping(self,
+                        phenotype: str,
+                        locus: Locus,
+                        flags: typing.Dict[str, typing.Any]={}) -> ColocalizationMap:
+        None
+    
+    @abc.abstractmethod
     def get_variant(self,
                     phenotype: str,
                     variant: Variant,
-                    flags: typing.Dict[str, typing.Any]) -> SearchSummary:
+                    flags: typing.Dict[str, typing.Any]) -> SearchResults:
         """
         Search for colocalization that match
         phenotype and range a summary of matches.
