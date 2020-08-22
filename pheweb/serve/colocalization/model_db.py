@@ -1,7 +1,7 @@
 import typing
-from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float, Text, ForeignKey
+from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float, Text, ForeignKey, Index
 from sqlalchemy.orm import sessionmaker
-from .model import Colocalization, CausalVariant, ColocalizationDB, SearchSummary, Locus, SearchResults, PhenotypeList, Variant
+from .model import Colocalization, CausalVariant, ColocalizationDB, SearchSummary, Locus, SearchResults, PhenotypeList, Variant, ColocalizationMap
 import csv
 import gzip
 from sqlalchemy.orm import mapper, composite, relationship
@@ -12,6 +12,7 @@ import os
 import sys
 import importlib.machinery
 import importlib.util
+from sqlalchemy.sql import func
 
 # TODO remove
 csv.field_size_limit(sys.maxsize)
@@ -25,7 +26,9 @@ causal_variant_table = Table('causal_variant',
                              Column('pip2', Float, unique=False, nullable=False),
                              Column('beta1', Float, unique=False, nullable=False),
                              Column('beta2', Float, unique=False, nullable=False),
-                             *Variant.columns('variation_'))
+                             *Variant.columns('variation_'),
+                             Index('causal_variant_variation_chromosome','variation_chromosome'),
+                             Index('causal_variant_variation_position','variation_position'))
 
 colocalization_table = Table('colocalization',
                              metadata,
@@ -62,14 +65,13 @@ def refine_colocalization(c : Colocalization) -> Colocalization:
 
 colocalization_variants_1_table = Table('colocalization_variants_1',
                                         metadata,
-                                        Column('colocalization_id', Integer, ForeignKey('colocalization.id')),
-                                        Column('causal_variant_id', Integer, ForeignKey('causal_variant.id')))
+                                        Column('colocalization_id', Integer, ForeignKey('colocalization.id'), primary_key=True),
+                                        Column('causal_variant_id', Integer, ForeignKey('causal_variant.id'), primary_key=True))
 
 colocalization_variants_2_table = Table('colocalization_variants_2',
                                         metadata,
-                                        Column('colocalization', Integer, ForeignKey('colocalization.id')),
-                                        Column('causal_variant_id', Integer, ForeignKey('causal_variant.id')))
-
+                                        Column('colocalization', Integer, ForeignKey('colocalization.id'), primary_key=True),
+                                        Column('causal_variant_id', Integer, ForeignKey('causal_variant.id'), primary_key=True))
 
 
 causal_variant_mapper = mapper(CausalVariant,
@@ -188,14 +190,22 @@ class ColocalizationDAO(ColocalizationDB):
                         raise
 
         session = self.Session()
-        session.bulk_save_objects(generate_colocalization())
+        #session.bulk_save_objects(generate_colocalization())
+        for c in generate_colocalization():
+            self.save(c)
+            c = None
+
         session.commit()
         return count
 
     def save(self,colocalization : Colocalization) -> None:
         session = self.Session()
+        variants = colocalization.variants_1 + colocalization.variants_2
+        for v in variants:
+            session.add(v)
         session.add(colocalization)
         session.commit()
+
 
     def get_phenotype(self,
                       flags: typing.Dict[str, typing.Any]={}) -> typing.List[str]:
@@ -205,6 +215,19 @@ class ColocalizationDAO(ColocalizationDB):
         return PhenotypeList(phenotypes = [r[0] for r in q.all()])
         return phenotype1
 
+    def locus_query(self,
+                    phenotype: str,
+                    locus: Locus,
+                    flags: typing.Dict[str, typing.Any]={},
+                    projection = [Colocalization]):
+        locus_id1 = Colocalization.variants_1.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
+                                                       CausalVariant.variation_position >= locus.start,
+                                                       CausalVariant.variation_position <= locus.stop))
+
+        locus_id2 = Colocalization.variants_2.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
+                                                       CausalVariant.variation_position >= locus.start,
+                                                       CausalVariant.variation_position <= locus.stop))
+        return self.Session().query(*projection).filter(or_(locus_id1, locus_id2))
 
     def get_locus(self,
                   phenotype: str,
@@ -220,17 +243,51 @@ class ColocalizationDAO(ColocalizationDB):
 
         :return: matching colocalizations
         """
-        locus_id1 = Colocalization.variants_1.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
-                                                       CausalVariant.variation_position >= locus.start,
-                                                       CausalVariant.variation_position <= locus.stop))
-
-        locus_id2 = Colocalization.variants_2.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
-                                                       CausalVariant.variation_position >= locus.start,
-                                                       CausalVariant.variation_position <= locus.stop))
-
-        matches = self.Session().query(Colocalization).filter(or_(locus_id1, locus_id2)).all()
+        query = self.locus_query(phenotype, locus, flags)
+        matches = query.all()
         return SearchResults(colocalizations=matches,
                              count=len(matches))
+
+    def get_finemapping(self,
+                        phenotype: str,
+                        locus: Locus,
+                        flags: typing.Dict[str, typing.Any]={}) -> ColocalizationMap:
+        """
+        Search for colocalization that match
+        the locus and range and return them.
+
+        :param phenotype: phenotype to match in search
+        :param chromosome_range: chromosome range to search
+        :param flags: a collection of optional flags
+
+        :return: matching colocalizations
+        """
+        query = self.locus_query(phenotype, locus, flags)
+        rows = []
+        for r in query.all():
+            variants = r.variants_1 + r.variants_2
+            rows.extend(map(lambda v: [v.variant, v.pip1, v.pip2, v.beta1, v.beta2, r.id], variants))
+        rows = list(map(list,zip(*rows)))
+        print(rows)
+        return ColocalizationMap(variant = rows[0],
+                                 pip1  = rows[1],
+                                 pip2  = rows[2],
+                                 beta1 = rows[3],
+                                 beta2  = rows[4],
+                                 colocalization_id = rows[5])
+
+    def get_locus_summary(self,
+                          phenotype: str,
+                          locus: Locus,
+                          flags: typing.Dict[str, typing.Any] = {}) -> SearchSummary:
+        aggregates =  [func.count('*'),
+                       func.count(distinct('colocalization.phenotype1')),
+                       func.count(distinct('colocalization.phenotype2'))]
+        query = self.locus_query(phenotype, locus, flags, aggregates)
+        count, unique_phenotype2, unique_tissue2 = query.all()[0]
+        return SearchSummary(count=count,
+                             unique_phenotype2 = unique_phenotype2,
+                             unique_tissue2 = unique_tissue2)
 
     def get_variant(self,
                     phenotype: str,
@@ -247,26 +304,3 @@ class ColocalizationDAO(ColocalizationDB):
                                              f=refine_colocalization)
         return SearchResults(colocalizations=matches,
                              count=len(matches))
-
-
-    def get_locus_summary(self,
-                          phenotype: str,
-                          locus: Locus,
-                          flags: typing.Dict[str, typing.Any] = {}) -> SearchSummary:
-        session = self.Session()
-        flags = {**{"phenotype1": phenotype,
-                    "locus_id1_chromosome": locus.chromosome,
-                    "locus_id1_position.gte": locus.start,
-                    "locus_id1_position.lte": locus.stop},**flags}
-        _, count = self.support.create_filter(session.query(self.support.clazz), flags=flags)
-        count = count.count()
-        unique_phenotype2 = session.query(func.count(func.distinct(getattr(self.support.clazz, "phenotype2"))))
-        warnings, unique_phenotype2 = self.support.create_filter(unique_phenotype2, flags=flags)
-        unique_phenotype2 = unique_phenotype2.scalar()
-        unique_tissue2 = session.query(func.count(func.distinct(getattr(self.support.clazz, "tissue2"))))
-        warnings, unique_tissue2 = self.support.create_filter(unique_tissue2, flags=flags)
-        unique_tissue2 = unique_tissue2.scalar()
-
-        return SearchSummary(count=count,
-                             unique_phenotype2 = unique_phenotype2,
-                             unique_tissue2 = unique_tissue2)

@@ -47,6 +47,7 @@ def nvl(value: str, f: typing.Callable[[str], X]) -> typing.Optional[X]:
     return result
 
 
+
 @attr.s
 class Variant(JSONifiable):
     """
@@ -84,12 +85,12 @@ class Variant(JSONifiable):
         return self.__dict__
 
     @staticmethod
-    def columns(prefix : typing.Optional[str] = None) -> typing.List[Column]:
+    def columns(prefix : typing.Optional[str] = None, primary_key=False, nullable=False) -> typing.List[Column]:
         prefix = prefix if prefix is not None else ""
-        return [ Column('{}chromosome'.format(prefix), String(2), unique=False, nullable=False),
-                 Column('{}position'.format(prefix), Integer, unique=False, nullable=False),
-                 Column('{}ref'.format(prefix), String(1000), unique=False, nullable=False),
-                 Column('{}alt'.format(prefix), String(1000), unique=False, nullable=False), ]
+        return [ Column('{}chromosome'.format(prefix), String(2), primary_key=primary_key, nullable=nullable),
+                 Column('{}position'.format(prefix), Integer, primary_key=primary_key, nullable=nullable),
+                 Column('{}ref'.format(prefix), String(1000), primary_key=primary_key, nullable=nullable),
+                 Column('{}alt'.format(prefix), String(1000), primary_key=primary_key, nullable=nullable), ]
 
 
     def __composite_values__(self):
@@ -168,6 +169,26 @@ class Locus(JSONifiable):
 
 
 @attr.s
+class ColocalizationMap(JSONifiable, ):
+    variant = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(Variant),
+                                                              iterable_validator=instance_of(typing.List)))
+    pip1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+                                                           iterable_validator=instance_of(typing.List)))
+    pip2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+                                                           iterable_validator=instance_of(typing.List)))
+    beta1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+                                                            iterable_validator=instance_of(typing.List)))
+    beta2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+                                                            iterable_validator=instance_of(typing.List)))
+    colocalization_id = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
+                                                                        iterable_validator=instance_of(typing.List)))
+    def json_rep(self):
+        d = self.__dict__
+        d["variant"] = list(map(str,d["variant"]))
+        return d
+
+
+@attr.s
 class CausalVariant(JSONifiable, Kwargs):
     """
     Causual variant DTO
@@ -228,6 +249,7 @@ class Colocalization(Kwargs, JSONifiable):
     how data is loaded.
 
     """
+    id
     source1 = attr.ib(validator=instance_of(str))
     source2 = attr.ib(validator=instance_of(str))
     phenotype1 = attr.ib(validator=instance_of(str))
