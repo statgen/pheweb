@@ -848,7 +848,7 @@ export const colocalization_layout : (region : Region) => Layout = (region : Reg
 		               type: "orthogonal_line",
 		               orientation: "horizontal",
 			       offset: -Math.log10(5e-8) }, 
-			     { "namespace": { "finemapping": "finemapping" },
+			     { "namespace": { "colocalization" },
 		     	       "id": "associationpvalues",
 		               "type": "scatter",
 		               "point_shape": { "scale_function": "categorical_bin",

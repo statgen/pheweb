@@ -40,6 +40,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     const localBase : string = `/api/region/${region.pheno.phenocode}/lz-`;
     const localCondBase : string = "/api/conditional_region/" + region.pheno.phenocode + "/lz-";
     const localFMBase : string = "/api/finemapped_region/" + region.pheno.phenocode + "/lz-";
+    const localColocalizationBase : string = "/api/colocalization/" + region.pheno.phenocode + "/lz-";
     const remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
     const dataSources : DataSources = new DataSources();
     
@@ -50,6 +51,8 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     dataSources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     dataSources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
     dataSources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
+    dataSources.add("colocalization", ["ColocalizationLZ", {url: localFMBase, params:{trait_fields: ['colocalization:pip1', 'colocalization:pip2', 'colocalization:beta1', , 'colocalization:beta2']}}]);
+
     dataSources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:geneSource}}])   
     
     dataSources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])

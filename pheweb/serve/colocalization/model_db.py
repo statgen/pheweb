@@ -38,7 +38,7 @@ colocalization_table = Table('colocalization',
                              Column('phenotype1', String(1000), unique=False, nullable=False),
                              Column('phenotype1_description', String(1000), unique=False, nullable=False),
                              Column('phenotype2', String(1000), unique=False, nullable=False),
-                             Column('phenotype2_description', String(1000), unique=False,
+                             Column('phenotype2_description', String(1000), unique=False),
                              Column('tissue1', String(80), unique=False, nullable=True),
                              Column('tissue2', String(80), unique=False, nullable=False),
 
@@ -158,6 +158,7 @@ class ColocalizationDAO(ColocalizationDB):
         self.engine.execute(colocalization_table.delete())
         metadata.drop_all(self.engine)
 
+
     def load_data(self, path: str, header : bool=True) -> typing.Optional[int]:
         count = 0
         def generate_colocalization():
@@ -227,7 +228,8 @@ class ColocalizationDAO(ColocalizationDB):
         locus_id2 = Colocalization.variants_2.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
                                                        CausalVariant.variation_position >= locus.start,
                                                        CausalVariant.variation_position <= locus.stop))
-        return self.Session().query(*projection).filter(or_(locus_id1, locus_id2))
+        session = self.Session()
+        return [session,session.query(*projection).filter(or_(locus_id1, locus_id2))]
 
     def get_locus(self,
                   phenotype: str,
@@ -243,7 +245,8 @@ class ColocalizationDAO(ColocalizationDB):
 
         :return: matching colocalizations
         """
-        query = self.locus_query(phenotype, locus, flags)
+        [session,query] = self.locus_query(phenotype, locus, flags)
+        session.expire_all()
         matches = query.all()
         return SearchResults(colocalizations=matches,
                              count=len(matches))
@@ -262,20 +265,13 @@ class ColocalizationDAO(ColocalizationDB):
 
         :return: matching colocalizations
         """
-        query = self.locus_query(phenotype, locus, flags)
-        rows = []
+        [session,query] = self.locus_query(phenotype, locus, flags)
+        session.expire_all()
+        variants = []
         for r in query.all():
-            variants = r.variants_1 + r.variants_2
-            rows.extend(map(lambda v: [v.variant, v.pip1, v.pip2, v.beta1, v.beta2, r.id], variants))
-        rows = list(map(list,zip(*rows)))
-        print(rows)
-        return ColocalizationMap(variant = rows[0],
-                                 pip1  = rows[1],
-                                 pip2  = rows[2],
-                                 beta1 = rows[3],
-                                 beta2  = rows[4],
-                                 colocalization_id = rows[5])
-
+            variants.extend(r.variants_1 + r.variants_2)
+        return ColocalizationMap(variants = variants)
+    
     def get_locus_summary(self,
                           phenotype: str,
                           locus: Locus,

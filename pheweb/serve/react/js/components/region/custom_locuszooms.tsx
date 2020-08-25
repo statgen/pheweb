@@ -342,3 +342,11 @@ FineMappingSource.prototype.preGetData = ConditionalSource.prototype.preGetData
 FineMappingSource.prototype.getURL = ConditionalSource.prototype.getURL
 FineMappingSource.prototype.parseResponse = ConditionalSource.prototype.parseResponse
 
+const ColocalizationSource = Data.Source.extend(function(init) {
+    this.parseInit(init);
+}, "ColocalizationLZ");
+
+ColocalizationSource.prototype.preGetData = ConditionalSource.prototype.preGetData
+ColocalizationSource.prototype.getURL = ConditionalSource.prototype.getURL
+ColocalizationSource.prototype.parseResponse = ConditionalSource.prototype.parseResponse
+

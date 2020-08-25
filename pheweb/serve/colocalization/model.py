@@ -168,25 +168,6 @@ class Locus(JSONifiable):
         return self.chromosome, self.start, self.stop
 
 
-@attr.s
-class ColocalizationMap(JSONifiable, ):
-    variant = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(Variant),
-                                                              iterable_validator=instance_of(typing.List)))
-    pip1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
-                                                           iterable_validator=instance_of(typing.List)))
-    pip2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
-                                                           iterable_validator=instance_of(typing.List)))
-    beta1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
-                                                            iterable_validator=instance_of(typing.List)))
-    beta2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
-                                                            iterable_validator=instance_of(typing.List)))
-    colocalization_id = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
-                                                                        iterable_validator=instance_of(typing.List)))
-    def json_rep(self):
-        d = self.__dict__
-        d["variant"] = list(map(str,d["variant"]))
-        return d
-
 
 @attr.s
 class CausalVariant(JSONifiable, Kwargs):
@@ -208,7 +189,7 @@ class CausalVariant(JSONifiable, Kwargs):
 
     def json_rep(self):
         d = self.__dict__
-        d["variation"] = str(d["variation"])
+        d["variant"] = str(d["variant"])
         return d
 
     @staticmethod
@@ -236,6 +217,21 @@ class CausalVariant(JSONifiable, Kwargs):
         :return: tuple (chromosome, start, stop)
         """
         return self.variant , self.pip1 , self.pip2 , self.beta1 ,self.beta2
+
+@attr.s
+class ColocalizationMap(JSONifiable):
+    """
+    Wrapper to hold causal variatns
+
+    """
+
+    variants = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CausalVariant),
+                                                               iterable_validator=instance_of(typing.List)))
+
+    def json_rep(self):
+        d = self.__dict__
+        d["variants"] = list(map(lambda d: d.json_rep(),d["variants"]))
+        return d
 
 
 @attr.s
