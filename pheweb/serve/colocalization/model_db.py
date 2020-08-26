@@ -229,7 +229,7 @@ class ColocalizationDAO(ColocalizationDB):
                                                        CausalVariant.variation_position >= locus.start,
                                                        CausalVariant.variation_position <= locus.stop))
         session = self.Session()
-        return [session,session.query(*projection).filter(or_(locus_id1, locus_id2))]
+        return [session,session.query(*projection).select_from(Colocalization).filter(or_(locus_id1, locus_id2))]
 
     def get_locus(self,
                   phenotype: str,
@@ -279,7 +279,8 @@ class ColocalizationDAO(ColocalizationDB):
         aggregates =  [func.count('*'),
                        func.count(distinct('colocalization.phenotype1')),
                        func.count(distinct('colocalization.phenotype2'))]
-        query = self.locus_query(phenotype, locus, flags, aggregates)
+        [session,query] = self.locus_query(phenotype, locus, flags, aggregates)
+        session.expire_all()
         count, unique_phenotype2, unique_tissue2 = query.all()[0]
         return SearchSummary(count=count,
                              unique_phenotype2 = unique_phenotype2,

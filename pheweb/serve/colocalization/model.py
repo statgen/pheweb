@@ -190,6 +190,7 @@ class CausalVariant(JSONifiable, Kwargs):
     def json_rep(self):
         d = self.__dict__
         d["variant"] = str(d["variant"])
+        d.pop("_sa_instance_state", None)
         return d
 
     @staticmethod
