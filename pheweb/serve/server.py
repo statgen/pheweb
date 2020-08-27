@@ -118,10 +118,6 @@ def is_public(function):
 
 @app.before_request
 def check_auth():
-    print(request.endpoint)
-    print(app.view_functions[request.endpoint])
-    print(dir(app.view_functions[request.endpoint]))    
-    print(getattr(app.view_functions[request.endpoint], 'is_public', False))
     if getattr(app.view_functions[request.endpoint], 'is_public', False) :
         result = None
     else:

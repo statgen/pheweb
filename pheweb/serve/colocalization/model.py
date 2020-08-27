@@ -189,8 +189,21 @@ class CausalVariant(JSONifiable, Kwargs):
 
     def json_rep(self):
         d = self.__dict__
-        d["variant"] = str(d["variant"])
+        d = d.copy()
         d.pop("_sa_instance_state", None)
+        d["id"] = "{0}:{1}_{2}/{3}".format(self.variant.chromosome,
+                                           self.variant.position,
+                                           self.variant.reference,
+                                           self.variant.alternate)
+        d["rsid"] = "chr{0}_{1}_{2}/{3}".format(self.variant.chromosome,
+                                                self.variant.position,
+                                                self.variant.reference,
+                                                self.variant.alternate)
+        d["varid"] = "{0}:{1}:{2}:{3}".format(self.variant.chromosome,
+                                              self.variant.position,
+                                              self.variant.reference,
+                                              self.variant.alternate)
+        d["variant"] = str(d["variant"])
         return d
 
     @staticmethod

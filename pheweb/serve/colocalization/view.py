@@ -1,6 +1,7 @@
 import json
 from flask import Blueprint, current_app as app, g, request
 from .model import Locus
+import re
 
 colocalization = Blueprint('colocalization', __name__)
 development = Blueprint('development', __name__)
