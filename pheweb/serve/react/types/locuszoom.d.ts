@@ -875,7 +875,7 @@ declare module 'locuszoom' {
 		id: string;
 		id_field?: string | null;
 		legend?: (LayoutLegendEntity)[] | null;
-		namespace?: LayoutNamespace | null;
+		namespace?: {[key: string]: string } | null;
 		offset?: number | null;
 		orientation?: string | null;
 		point_shape?: LayoutPointShape | null;

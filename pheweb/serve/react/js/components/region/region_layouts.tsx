@@ -1,4 +1,4 @@
-import { Layout, Panel } from 'locuszoom';
+import { Layout, Panel, LayoutDataLayersEntity } from 'locuszoom';
 import { Region, LzConf } from './components';
 import { defer } from 'q';
 
@@ -842,6 +842,43 @@ export const finemapping_layout: (region: Region) => Layout = (region: Region) =
 	}
 }
 
+const datalayer : LayoutDataLayersEntity = {
+	"id": "colocalization",
+	type: "scatter",
+	fields: [
+		"association:beta",
+		"association:pvalue",
+		"association:rsid",
+		"association:sebeta",
+		"colocalization:beta1",
+		"colocalization:beta2",
+		"colocalization:id",
+		"colocalization:id",
+		"colocalization:pip1",
+		"colocalization:pip2",
+		"colocalization:rsid",
+		"colocalization:variant",
+		"colocalization:variation_alt",
+		"colocalization:variation_chromosome",
+		"colocalization:variation_position",
+		"colocalization:variation_ref",
+		"colocalization:varid"
+	],
+	orientation: "horizontal",
+	offset: -Math.log10(5e-8),
+	"namespace": { "colocalization": "colocalization" },
+	id_field: "colocalization:id",
+	"x_axis": { "field": "colocalization:variation_position", "axis": 1 },
+	"y_axis": {
+		"axis": 1,
+		"field": "colocalization:pip1",
+		"floor": 0,
+		"upper_buffer": 0.1,
+		"min_extent": [0, 1.1]
+	}
+}
+
+
 export const colocalization_layout: (region: Region) => Layout = (region: Region) => {
 	return {
 		"id": "colocalization",
@@ -897,46 +934,6 @@ export const colocalization_layout: (region: Region) => Layout = (region: Region
 			"y1_linked": false,
 			"y2_linked": false
 		},
-		"data_layers": [{
-			"id": "colocalization",
-			type: "scatter",
-			fields: [
-				"association:beta",
-				"association:pvalue",
-				"association:rsid",
-				"association:sebeta",
-				"colocalization:beta1",
-				"colocalization:beta2",
-				"colocalization:id",
-				"colocalization:id",
-				"colocalization:pip1",
-				"colocalization:pip2",
-				"colocalization:rsid",
-				"colocalization:variant",
-				"colocalization:variation_alt",
-				"colocalization:variation_chromosome",
-				"colocalization:variation_position",
-				"colocalization:variation_ref",
-				"colocalization:varid"
-			],
-			orientation: "horizontal",
-			offset: -Math.log10(5e-8)
-		},
-
-		{
-			"namespace": { "colocalization": "colocalization" },
-			"id": "colocalizationvalues",
-			id_field: "colocalization:id",
-			"x_axis": { "field": "colocalization:variation_position", "axis": 1 },
-			"y_axis": {
-				"axis": 1,
-				"field": "colocalization:pip1",
-				"floor": 0,
-				"upper_buffer": 0.1,
-				"min_extent": [0, 1.1]
-			}
-
-		}
-		]
+		"data_layers": [ datalayer ]
 	}
 }
