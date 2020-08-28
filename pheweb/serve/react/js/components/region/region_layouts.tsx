@@ -845,14 +845,17 @@ export const finemapping_layout: (region: Region) => Layout = (region: Region) =
 const datalayer : LayoutDataLayersEntity = {
 	"id": "colocalization",
 	type: "scatter",
-	fields: [
+    fields: [
+	"colocalization:id",
+	"colocalization:variation_position",
+	"colocalization:pip1",
+	/*
 		"association:beta",
 		"association:pvalue",
 		"association:rsid",
 		"association:sebeta",
 		"colocalization:beta1",
 		"colocalization:beta2",
-		"colocalization:id",
 		"colocalization:id",
 		"colocalization:pip1",
 		"colocalization:pip2",
@@ -863,6 +866,7 @@ const datalayer : LayoutDataLayersEntity = {
 		"colocalization:variation_position",
 		"colocalization:variation_ref",
 		"colocalization:varid"
+	*/
 	],
 	orientation: "horizontal",
 	offset: -Math.log10(5e-8),

@@ -48,11 +48,28 @@ def get_finemapping(phenotype: str):
     chromosome, start, stop = groups[0], int(groups[1]), int(groups[2])
     app_dao = app.jeeves.colocalization
     flags = request.args.to_dict()
-    return json.dumps(app_dao.get_finemapping(phenotype=phenotype,
-                                              locus = Locus(chromosome,
-                                                            start,
-                                                            stop),
-                                              flags=flags).json_rep(), default=lambda o: None)
+    locus = Locus(chromosome,
+                  start,
+                  stop)
+                                              
+    print(locus)
+    variants = app_dao.get_finemapping(phenotype=phenotype,
+                                       locus = locus,
+                                       flags=flags)
+    variants = list(map(lambda v : v.json_rep(),variants))
+    #return json.dumps({ "data" : variants}, default=lambda o: None)
+    return json.dumps([{ "data" : { "variation_chromosome": [],
+                                   "varid": [],
+                                   "variant": [],
+                                   "pip1": [],
+                                   "variation_ref": [],
+                                   "id": [],
+                                   "variation_position": [],
+                                   "variation_alt": [],
+                                   "pip2": [],
+                                   "beta2": [],
+                                   "rsid": [],
+                                    "beta1": []} }])
 
 @colocalization.route('/api/colocalization/<string:phenotype>/<string:chromosome>:<int:start>-<int:stop>/finemapping', methods=["GET"])
 def get_test(phenotype: str,
@@ -61,13 +78,26 @@ def get_test(phenotype: str,
              stop: int):
     app_dao = app.jeeves.colocalization
     flags = request.args.to_dict()
-    return json.dumps(app_dao.get_finemapping(phenotype=phenotype,
+    variants = app_dao.get_finemapping(phenotype=phenotype,
                                               locus = Locus(chromosome,
                                                             start,
                                                             stop),
-                                              flags=flags).json_rep(), default=lambda o: None)
-
-
+                                              flags=flags)
+    variants = list(map(lambda v : v.json_rep(),variants))
+    #return json.dumps({ "data" : variants}, default=lambda o: None)
+    return json.dumps([{ "data" : { "variation_chromosome": [],
+                                   "varid": [],
+                                   "variant": [],
+                                   "pip1": [],
+                                   "variation_ref": [],
+                                   "id": [],
+                                   "variation_position": [],
+                                   "variation_alt": [],
+                                   "pip2": [],
+                                   "beta2": [],
+                                   "rsid": [],
+                                    "beta1": []} }])
+    
 # @colocalization.route('/api/colocalization/<string:phenotype>/<string:chromosome>:<int:start>-<int:stop>/finemapping', methods=["GET"])
 # def get_finemapping(phenotype: str,
 #                     chromosome: str,

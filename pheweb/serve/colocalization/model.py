@@ -191,6 +191,7 @@ class CausalVariant(JSONifiable, Kwargs):
         d = self.__dict__
         d = d.copy()
         d.pop("_sa_instance_state", None)
+        d["position"] = self.variant.position
         d["id"] = "{0}:{1}_{2}/{3}".format(self.variant.chromosome,
                                            self.variant.position,
                                            self.variant.reference,
@@ -439,7 +440,7 @@ class ColocalizationDB:
     def get_finemapping(self,
                         phenotype: str,
                         locus: Locus,
-                        flags: typing.Dict[str, typing.Any]={}) -> ColocalizationMap:
+                        flags: typing.Dict[str, typing.Any]={}) -> typing.List[CausalVariant]:
         None
     
     @abc.abstractmethod

@@ -254,7 +254,7 @@ class ColocalizationDAO(ColocalizationDB):
     def get_finemapping(self,
                         phenotype: str,
                         locus: Locus,
-                        flags: typing.Dict[str, typing.Any]={}) -> ColocalizationMap:
+                        flags: typing.Dict[str, typing.Any]={}) -> typing.List[CausalVariant]:
         """
         Search for colocalization that match
         the locus and range and return them.
@@ -270,7 +270,7 @@ class ColocalizationDAO(ColocalizationDB):
         variants = []
         for r in query.all():
             variants.extend(r.variants_1 + r.variants_2)
-        return ColocalizationMap(variants = variants)
+        return variants
     
     def get_locus_summary(self,
                           phenotype: str,
