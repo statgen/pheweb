@@ -48,69 +48,23 @@ def get_finemapping(phenotype: str):
     chromosome, start, stop = groups[0], int(groups[1]), int(groups[2])
     app_dao = app.jeeves.colocalization
     flags = request.args.to_dict()
+    return get_locuszoom(phenotype, chromosome, start, stop, flags)
+
+@colocalization.route('/api/colocalization/<string:phenotype>/<string:chromosome>:<int:start>-<int:stop>/finemapping', methods=["GET"])
+def get_locuszoom(phenotype: str,
+                  chromosome: str,
+                  start: int,
+                  stop: int,
+                  flags = None):
+    flags = flags or request.args.to_dict()
+    app_dao = app.jeeves.colocalization
     locus = Locus(chromosome,
                   start,
                   stop)
-                                              
-    print(locus)
     variants = app_dao.get_finemapping(phenotype=phenotype,
                                        locus = locus,
                                        flags=flags)
-    return json.dumps([{ "data" : variants }])
-    #variants = list(map(lambda v : v.json_rep(),variants))
-    #return json.dumps({ "data" : variants}, default=lambda o: None)
-    # return json.dumps([{ "data" : { "variation_chromosome": [],
-    #                                "varid": [],
-    #                                "variant": [],
-    #                                "pip1": [],
-    #                                "variation_ref": [],
-    #                                "id": [],
-    #                                "variation_position": [],
-    #                                "variation_alt": [],
-    #                                "pip2": [],
-    #                                "beta2": [],
-    #                                "rsid": [],
-    #                                 "beta1": []} }])
-
-@colocalization.route('/api/colocalization/<string:phenotype>/<string:chromosome>:<int:start>-<int:stop>/finemapping', methods=["GET"])
-def get_test(phenotype: str,
-             chromosome: str,
-             start: int,
-             stop: int):
-    app_dao = app.jeeves.colocalization
-    flags = request.args.to_dict()
-    variants = app_dao.get_finemapping(phenotype=phenotype,
-                                              locus = Locus(chromosome,
-                                                            start,
-                                                            stop),
-                                              flags=flags)
-    variants = list(map(lambda v : v.json_rep(),variants))
-    #return json.dumps({ "data" : variants}, default=lambda o: None)
-    return json.dumps([{ "data" : { "variation_chromosome": [],
-                                   "varid": [],
-                                   "variant": [],
-                                   "pip1": [],
-                                   "variation_ref": [],
-                                   "id": [],
-                                   "variation_position": [],
-                                   "variation_alt": [],
-                                   "pip2": [],
-                                   "beta2": [],
-                                   "rsid": [],
-                                    "beta1": []} }])
-    
-# @colocalization.route('/api/colocalization/<string:phenotype>/<string:chromosome>:<int:start>-<int:stop>/finemapping', methods=["GET"])
-# def get_finemapping(phenotype: str,
-#                     chromosome: str,
-#                     start: int,
-#                     stop: int):
-#     app_dao = app.jeeves.colocalization
-#     flags = request.args.to_dict()
-#     return json.dumps(app_dao.get_finemapping(phenotype=phenotype,
-#                                               locus = Locus(chromosome,
-#                                                             start,
-#                                                             stop),
-#                                               flags=flags).json_rep())
+    return json.dumps({ "data" : variants , "lastpage" : None })
 
 @development.route('/api/colocalization', methods=["POST"])
 def post_phenotype1():
