@@ -46,8 +46,22 @@ const updateLocusZoom = (locusZoomContext : LocusZoomContext,selected : Array<Co
   }
 
 const subComponent = (colocalizationList) => (row) => {
+    const metadata = [ { title: "id" , accessor: "id" , label:"Id" },
+		       { title: "pip1" , accessor: "pip1" , label:"Pip 1" },
+		       { title: "pip2" , accessor: "pip2" , label:"Pip 2" },
+		       { title: "beta1" , accessor: "beta1" , label:"Beta 1" },
+		       { title: "beta2" , accessor: "beta2" , label:"Beta 2" }]
+    const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
     const colocalization : Colocalization = colocalizationList[row.index]
-    return (<div style={{ padding: "20px" }}>Another Sub Component!</div>);  }
+    const data = colocalization.variants_1
+    return (<div style={{ padding: "20px" }}>
+	      <ReactTable
+                  data={ data }
+                  columns={ columns }
+                  defaultPageSize={3}
+                  showPagination={false} />
+	    </div>);
+}
 const List = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
     const [selectedRow, setSelectedRow]= useState<Set<number>>(new Set());

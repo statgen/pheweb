@@ -1,3 +1,19 @@
+export CausualVariant {
+    variation_alt: string,
+    variation_chromosome: string,
+    beta2 : number,
+    variant : string,
+    id : string,
+    variation_ref : string,
+    pip2 : number,
+    varid : string,
+    variation_position : number,
+    beta1 : number,
+    rsid: string, 
+    position : string,
+    pip1 : number
+};
+
 export interface Colocalization {
     id : number ,
     
@@ -30,5 +46,8 @@ export interface Colocalization {
     len_cs1 : number,
     len_cs2 : number,
     len_inter : number
+
+    variants_1 : CausualVariant[]
+    variants_2 : CausualVariant[]
 };
 

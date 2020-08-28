@@ -239,7 +239,6 @@ class ColocalizationMap(JSONifiable):
     Wrapper to hold causal variatns
 
     """
-
     variants = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CausalVariant),
                                                                iterable_validator=instance_of(typing.List)))
 
@@ -297,7 +296,8 @@ class Colocalization(Kwargs, JSONifiable):
         d = self.__dict__
         d["locus_id1"] = str(d["locus_id1"])
         d["locus_id2"] = str(d["locus_id2"])
-        d["locus"] = str(d["locus"])
+        d["variants_1"] = list(map(lambda c : c.json_rep(), self.variants_1))
+        d["variants_2"] = list(map(lambda c : c.json_rep(), self.variants_2))
         return d
 
     @staticmethod
