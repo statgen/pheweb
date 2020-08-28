@@ -271,19 +271,39 @@ class ColocalizationDAO(ColocalizationDB):
         for r in query.all():
             variants = r.variants_1 + r.variants_2
             variants = map(lambda r : r.json_rep(), variants)
-            rows.extend(map(lambda v: [v["position"],  v["variant"], v["pip1"], v["pip2"],  v["beta1"], v["beta2"], v["id"], v["rsid"], v["varid"], v["variant"]], variants))
+            rows.extend(map(lambda v: [v["position"],  v["variant"], v["pip1"], v["pip2"],  v["beta1"], v["beta2"], v["id"], v["rsid"], v["varid"]], variants))
         rows = list(map(list,zip(*rows)))
+        if rows:
+            position = rows[0]
+            variant = rows[1]
+            pip1 = rows[2]
+            pip2 = rows[3]
+            beta1 = rows[4]
+            beta2 = rows[5]
+            ids = rows[6]
+            rsid = rows[7]
+            varid = rows[8]
+        else:
+            position = []
+            variant = []
+            pip1 = []
+            pip2 = []
+            beta1 = []
+            beta2 = []
+            ids = []
+            rsid = []
+            varid = []
 
-        return {"position" : rows[0],
-                "variant" : rows[1],
-                "pip1" : rows[2],
-                "pip2" : rows[3],
-                "beta1" : rows[4],
-                "beta2" : rows[5],
-                "id" : rows[6],
-                "rsid" : rows[7],
-                "varid" : rows[8],
-                "variant" : rows[9]}
+            
+        return {"position" : position,
+                "variant" : variant,
+                "pip1" : pip1,
+                "pip2" : pip2,
+                "beta1" : beta1,
+                "beta2" : beta2,
+                "id" : ids,
+                "rsid" : rsid,
+                "varid" : varid }
     
     def get_locus_summary(self,
                           phenotype: str,

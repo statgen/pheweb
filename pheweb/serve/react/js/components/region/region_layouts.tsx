@@ -844,45 +844,60 @@ export const finemapping_layout: (region: Region) => Layout = (region: Region) =
 }
 
 const datalayer : LayoutDataLayersEntity = {
-	"id": "colocalization",
-	type: "scatter",
+    "id": "colocalization",
+    type: "scatter",
     fields: [
 	"colocalization:id",
 	"colocalization:position",
+	"colocalization:variant",
 	"colocalization:pip1",
-	/*
-		"association:beta",
-		"association:pvalue",
-		"association:rsid",
-		"association:sebeta",
-		"colocalization:beta1",
-		"colocalization:beta2",
-		"colocalization:id",
-		"colocalization:pip1",
-		"colocalization:pip2",
-		"colocalization:rsid",
-		"colocalization:variant",
-		"colocalization:variation_alt",
-		"colocalization:variation_chromosome",
-		"colocalization:variation_position",
-		"colocalization:variation_ref",
-		"colocalization:varid"
-	*/
-	],
-	orientation: "horizontal",
-	offset: -Math.log10(5e-8),
-	"namespace": { "colocalization": "colocalization" },
-	id_field: "colocalization:id",
-	"x_axis": { "field": "colocalization:position", "axis": 1 },
-	"y_axis": {
-		"axis": 1,
-		"field": "colocalization:pip1",
-		"floor": 0,
-		"upper_buffer": 0.0,
-		"min_extent": [0, 1.1]
-	}
+	"colocalization:pip2",
+	"colocalization:beta1",
+	"colocalization:beta2",
+	"colocalization:rsid",
+	"colocalization:varid",	
+    ],
+    orientation: "horizontal",
+    offset: -Math.log10(5e-8),
+    "namespace": { "colocalization": "colocalization" },
+    id_field: "colocalization:id",
+    behaviors: {
+	onclick: [{ action: "toggle", status: "selected", exclusive: true }],
+	onmouseover: [{ action: "set", status: "highlighted" }],
+	onmouseout: [{ action: "unset", status: "highlighted" }]
+    },
+    "tooltip": {
+	"closable": true,
+	"show": { "or": ["highlighted", "selected"] },
+	"hide": { "and": ["unhighlighted", "unselected"] },
+	"html": `<strong>{{colocalization:id}}</strong><br/>
+                 <strong>{{colocalization:rsid}}</strong><br/>
+                 <table>
+                   <tbody>
+                     <tr>
+                       <td>pip1</td><td><strong>{{colocalization:pip1}}</strong></td>
+                     </tr>
+                     <tr>
+                       <td>pip2</td><td><strong>{{colocalization:pip2}}</strong></td>
+                     </tr>
+                     <tr>
+                       <td>beta1</td><td><strong>{{colocalization:beta1}}</strong></td>
+                     </tr>
+                     <tr>
+                       <td>beta2</td><td><strong>{{colocalization:beta2}}</strong></td>
+                     </tr>
+                   </tbody>
+                 </table>`
+    },
+    "x_axis": { "field": "colocalization:position", "axis": 1 },
+    "y_axis": {
+	"axis": 1,
+	"field": "colocalization:pip1",
+	"floor": 0,
+	"upper_buffer": 0.0,
+	"min_extent": [0, 1.1]
+    }
 }
-
 
 export const colocalization_layout: (region: Region) => Layout = (region: Region) => {
 	return {
@@ -935,10 +950,20 @@ export const colocalization_layout: (region: Region) => Layout = (region: Region
 			"drag_y1_ticks_to_scale": true,
 			"drag_y2_ticks_to_scale": true,
 			"scroll_to_zoom": true,
-			"x_linked": true,
+		    "x_linked": true,
 			"y1_linked": false,
 			"y2_linked": false
 		},
-		"data_layers": [ datalayer ]
+	    "interaction": {
+		"drag_background_to_pan": true,
+		"drag_x_ticks_to_scale": true,
+		"drag_y1_ticks_to_scale": true,
+		"drag_y2_ticks_to_scale": true,
+		"scroll_to_zoom": true,
+			"x_linked": true,
+		"y1_linked": false,
+		"y2_linked": false
+	    },
+	    "data_layers": [ datalayer ]
 	}
 }
