@@ -51,7 +51,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     dataSources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     dataSources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
     dataSources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
-    dataSources.add("colocalization", ["ColocalizationLZ", {url: localColocalizationBase, params:{trait_fields: [ "association:pvalue", "association:beta", "association:sebeta", "association:rsid", 'colocalization:pip1', 'colocalization:pip2', 'colocalization:beta1', , 'colocalization:beta2']}}]);
+    dataSources.add("colocalization", ["AssociationLZ", {url: localColocalizationBase, params:{source:3}}]);
 
     dataSources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:geneSource}}])   
     

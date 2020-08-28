@@ -26,6 +26,7 @@ export const region_layout: (region: Region) => Layout = (region: Region) => {
 		"panels": []
 	}
 }
+
 export const association_layout: (region: Region) => Layout = (region: Region) => {
 	return {
 		"id": "association",
@@ -910,7 +911,7 @@ export const colocalization_layout: (region: Region) => Layout = (region: Region
 				"label": "Chromosome {{chr}} (Mb)"
 			},
 			"y1": {
-				"label": "posterior inclusion probability",
+				"label": "colocalization",
 				"label_offset": 28,
 				"render": true,
 				"label_function": null
