@@ -5,8 +5,11 @@ import { CSVLink } from 'react-csv'
 import { Colocalization } from './model'
 import { LocusZoomContext } from '../region/locus';
 import { Panel } from 'locuszoom';
+import selectTableHOC from "react-table/lib/hoc/selectTable";
 
 interface Props { locusZoomContext? : LocusZoomContext }
+
+const SelectTable = selectTableHOC(ReactTable);
 
 const reformat = (locus : string) : string | undefined => {
   var regexp = /^chr([^_]+)_([\d]+)_([^_]+)_([^_]+)$/;
@@ -127,18 +130,20 @@ const List = (props : Props) => {
 }
 */
 return (<div>
-		<ReactTable data={ colocalizationList }
-                       columns={ columns }
-                       defaultSorted={[{  id: "clpa", desc: true }]}
-                       defaultPageSize={10}
-                       filterable
-                       defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase())}
-                       SubComponent={ subComponent(colocalizationList) }
-	               className="-striped -highlight" />1
-		<p></p>
-		<div className="row">
-		   <div className="col-xs-12">
-	              <CSVLink
+    <SelectTable data={ colocalizationList }
+	ref={r => (this.checkboxTable = r)}
+        columns={ columns }
+        defaultSorted={[{  id: "clpa", desc: true }]}
+        defaultPageSize={10}
+        filterable
+	selectType="checkbox"
+        defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase())}
+        SubComponent={ subComponent(colocalizationList) }
+	className="-striped -highlight" />
+    <p></p>
+    <div className="row">
+    <div className="col-xs-12">
+    <CSVLink
 		               headers={headers}
 		               data={ colocalizationList }
 		               separator={'\t'}
