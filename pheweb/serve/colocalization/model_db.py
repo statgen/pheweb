@@ -254,7 +254,7 @@ class ColocalizationDAO(ColocalizationDB):
     def get_finemapping(self,
                         phenotype: str,
                         locus: Locus,
-                        flags: typing.Dict[str, typing.Any]={}) -> typing.List[CausalVariant]:
+                        flags: typing.Dict[str, typing.Any]={}) :
         """
         Search for colocalization that match
         the locus and range and return them.
@@ -267,10 +267,23 @@ class ColocalizationDAO(ColocalizationDB):
         """
         [session,query] = self.locus_query(phenotype, locus, flags)
         session.expire_all()
-        variants = []
+        rows = []
         for r in query.all():
-            variants.extend(r.variants_1 + r.variants_2)
-        return variants
+            variants = r.variants_1 + r.variants_2
+            variants = map(lambda r : r.json_rep(), variants)
+            rows.extend(map(lambda v: [v["position"],  v["variant"], v["pip1"], v["pip2"],  v["beta1"], v["beta2"], v["id"], v["rsid"], v["varid"], v["variant"]], variants))
+        rows = list(map(list,zip(*rows)))
+
+        return {"position" : rows[0],
+                "variant" : rows[1],
+                "pip1" : rows[2],
+                "pip2" : rows[3],
+                "beta1" : rows[4],
+                "beta2" : rows[5],
+                "id" : rows[6],
+                "rsid" : rows[7],
+                "varid" : rows[8],
+                "variant" : rows[9]}
     
     def get_locus_summary(self,
                           phenotype: str,

@@ -847,7 +847,7 @@ const datalayer : LayoutDataLayersEntity = {
 	type: "scatter",
     fields: [
 	"colocalization:id",
-	"colocalization:variation_position",
+	"colocalization:position",
 	"colocalization:pip1",
 	/*
 		"association:beta",
@@ -872,12 +872,12 @@ const datalayer : LayoutDataLayersEntity = {
 	offset: -Math.log10(5e-8),
 	"namespace": { "colocalization": "colocalization" },
 	id_field: "colocalization:id",
-	"x_axis": { "field": "colocalization:variation_position", "axis": 1 },
+	"x_axis": { "field": "colocalization:position", "axis": 1 },
 	"y_axis": {
 		"axis": 1,
 		"field": "colocalization:pip1",
 		"floor": 0,
-		"upper_buffer": 0.1,
+		"upper_buffer": 0.0,
 		"min_extent": [0, 1.1]
 	}
 }
