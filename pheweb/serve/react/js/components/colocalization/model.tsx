@@ -1,4 +1,5 @@
-export CausualVariant {
+
+export interface CausualVariant {
     variation_alt: string,
     variation_chromosome: string,
     beta2 : number,

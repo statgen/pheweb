@@ -900,70 +900,42 @@ const datalayer : LayoutDataLayersEntity = {
 }
 
 export const colocalization_layout: (region: Region) => Layout = (region: Region) => {
-	return {
-		"id": "colocalization",
-		"title": { "text": "Credible Set : Colocalization", "x": 55, "y": 30 },
-		"proportional_height": 0.2,
-		"min_width": 400,
-		"min_height": 150,
-		"y_index": 3,
-		"margin": { "top": 10, "right": 50, "bottom": 40, "left": 50 },
-		"inner_border": "rgb(210, 210, 210)",
-		"dashboard": {
-			"components": [{
-				"type": "toggle_legend",
-				"position": "right",
-				"color": "green"
-			}]
-		},
-		"axes": {
-			"x": {
-				"label_function": "chromosome",
-				"label_offset": 32,
-				"tick_format": "region",
-				"extent": "state",
-				"render": true,
-				"label": "Chromosome {{chr}} (Mb)"
-			},
-			"y1": {
-				"label": "colocalization",
-				"label_offset": 28,
-				"render": true,
-				"label_function": null
-			}
-		},
-		"legend": {
-			"orientation": "vertical",
-			"origin": {
-				"x": 55,
-				"y": 40
-			},
-			"hidden": true,
-			"width": 91.66200256347656,
-			"height": 138,
-			"padding": 5,
-			"label_size": 12
-		},
-		"interaction": {
-			"drag_background_to_pan": true,
-			"drag_x_ticks_to_scale": true,
-			"drag_y1_ticks_to_scale": true,
-			"drag_y2_ticks_to_scale": true,
-			"scroll_to_zoom": true,
-		    "x_linked": true,
-			"y1_linked": false,
-			"y2_linked": false
-		},
-	    "interaction": {
-		"drag_background_to_pan": true,
-		"drag_x_ticks_to_scale": true,
-		"drag_y1_ticks_to_scale": true,
-		"drag_y2_ticks_to_scale": true,
-		"scroll_to_zoom": true,
-			"x_linked": true,
-		"y1_linked": false,
-		"y2_linked": false
-	    },
+	return { "id": "colocalization",
+		 "title": { "text": "Credible Set : Colocalization", "x": 55, "y": 30 },
+		 "proportional_height": 0.2,
+		 "min_width": 400,
+		 "min_height": 150,
+		 "y_index": 3,
+		 "margin": { "top": 10, "right": 50, "bottom": 40, "left": 50 },
+		 "inner_border": "rgb(210, 210, 210)",
+		 "dashboard": { "components": [ { "type": "toggle_legend",
+						  "position": "right",
+						  "color": "green" } ] },
+		 "axes": { "x": { "label_function": "chromosome",
+				  "label_offset": 32,
+				  "tick_format": "region",
+				  "extent": "state",
+				  "render": true,
+				  "label": "Chromosome {{chr}} (Mb)" },
+			   "y1": { "label": "colocalization",
+				   "label_offset": 28,
+				   "render": true,
+				   "label_function": null } },
+		 "legend": { "orientation": "vertical",
+			     "origin": { "x": 55, "y": 40 },
+			     "hidden": true,
+			     "width": 91.66200256347656,
+			     "height": 138,
+			     "padding": 5,
+			     "label_size": 12 },
+		 "interaction": { "drag_background_to_pan": true,
+				  "drag_x_ticks_to_scale": true,
+				  "drag_y1_ticks_to_scale": true,
+				  "drag_y2_ticks_to_scale": true,
+				  "scroll_to_zoom": true,
+				  "x_linked": true,
+				  "y1_linked": false,
+				  "y2_linked": false },
 	    "data_layers": [ datalayer ]
 	}
 }

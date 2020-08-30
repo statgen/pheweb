@@ -55,13 +55,13 @@ declare module 'locuszoom' {
 
 	executeBehaviors(directive: string, behaviors: { action : string , status : string }): DataLayer;
 
-	exportData(format?: string): string;
+	exportData(format?: 'csv' | 'tsv' | 'json'): string;
 
 	fadeAllElements(): any;
 
-	fadeElement(t: any, e: any): any;
+	fadeElement(t: any, exclusive?: boolean): any;
 
-	fadeElementsByFilters(t: any, e: any): any;
+	fadeElementsByFilters(t: any, exclusive?: boolean): any;
 
 	filter(filters: any[], return_type: string): any[];
 
@@ -89,15 +89,15 @@ declare module 'locuszoom' {
 
 	hideAllElements(): any;
 
-	hideElement(t: any, e: any): any;
+	hideElement(t: any, exclusive?: boolean): any;
 
-	hideElementsByFilters(t: any, e: any): any;
+	hideElementsByFilters(t: any, exclusive?: boolean): any;
 
 	highlightAllElements(): any;
 
-	highlightElement(t: any, e: any): any;
+	highlightElement(t: any, exclusive?: boolean): any;
 
-	highlightElementsByFilters(t: any, e: any): any;
+	highlightElementsByFilters(t: any, exclusive?: boolean): any;
 
 	initialize(): DataLayer;
 
@@ -117,9 +117,9 @@ declare module 'locuszoom' {
 
 	selectAllElements(): any;
 
-	selectElement(t: any, e: any): any;
+	selectElement(t: any, exclusive?: boolean): any;
 
-	selectElementsByFilters(t: any, e: any): any;
+	selectElementsByFilters(t: any, exclusive?: boolean): any;
 
 	setAllElementStatus(status: string, toogle: boolean): DataLayer;
 
@@ -133,27 +133,27 @@ declare module 'locuszoom' {
 
 	unfadeAllElements(): any;
 
-	unfadeElement(t: any, e: any): any;
+	unfadeElement(t: any, exclusive?: boolean): any;
 
-	unfadeElementsByFilters(t: any, e: any): any;
+	unfadeElementsByFilters(t: any, exclusive?: boolean): any;
 
 	unhideAllElements(): any;
 
-	unhideElement(t: any, e: any): any;
+	unhideElement(t: any, exclusive?: boolean): any;
 
-	unhideElementsByFilters(t: any, e: any): any;
+	unhideElementsByFilters(t: any, exclusive?: boolean): any;
 
 	unhighlightAllElements(): any;
 
-	unhighlightElement(t: any, e: any): any;
+	unhighlightElement(t: any, exclusive?: boolean): any;
 
-	unhighlightElementsByFilters(t: any, e: any): any;
+	unhighlightElementsByFilters(t: any, exclusive?: boolean): any;
 
 	unselectAllElements(): any;
 
-	unselectElement(t: any, e: any): any;
+	unselectElement(t: any, exclusive?: boolean): any;
 
-	unselectElementsByFilters(t: any, e: any): any;
+	unselectElementsByFilters(t: any, exclusive?: boolean): any;
 
 	updateTooltip(d: string|object, id: string): DataLayer;
 
