@@ -298,6 +298,7 @@ class Colocalization(Kwargs, JSONifiable):
         d["locus_id2"] = str(d["locus_id2"])
         d["variants_1"] = list(map(lambda c : c.json_rep(), self.variants_1))
         d["variants_2"] = list(map(lambda c : c.json_rep(), self.variants_2))
+        d["cs_size"] = len(self.variants_1) + len(self.variants_2)
         return d
 
     @staticmethod

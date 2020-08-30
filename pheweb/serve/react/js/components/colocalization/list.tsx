@@ -56,13 +56,13 @@ const subComponent = (colocalizationList) => (row) => {
 		       { title: "beta2" , accessor: "beta2" , label:"Beta 2" }]
     const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
     const colocalization : Colocalization = colocalizationList[row.index]
-    const data = colocalization.variants_1
+    const data = [... colocalization.variants_1, ...  colocalization.variants_2] // TODO : add variant columns
     return (<div style={{ padding: "20px" }}>
 	      <ReactTable
                   data={ data }
                   columns={ columns }
-                  defaultPageSize={3}
-                  showPagination={false} />
+                  defaultPageSize={5}
+                  showPagination={true} />
 	    </div>);
 }
 const List = (props : Props) => {
@@ -95,7 +95,8 @@ const List = (props : Props) => {
 			                 label: "CLPP" },
                      { title: "clpa", accessor: "clpa" ,
                        Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
-                       label: "CLPA" }];
+                       label: "CLPA" },
+                     { title: "cs_size", accessor: "cs_size", label: "CS Size" } ];
 
   const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
   const headers = columns.map(c => ({ ...c , key: c.accessor }))
