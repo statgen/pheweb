@@ -11,15 +11,16 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json']
   },
-  module: {
-    rules: [
-      {
-        test: /\.js?$/,
-        loader: 'babel-loader',
-        query: { presets: ['@babel/preset-env', '@babel/preset-react'] },
-        exclude: /node_modules/
-      },
+    module: {
+	rules: [
+	    { test: /\.css$/, loader: "style-loader!css-loader" },
+	    {
+		test: /\.js?$/,
+		loader: 'babel-loader',
+		query: { presets: ['@babel/preset-env', '@babel/preset-react'] },
+		exclude: /node_modules/
+	    },
       { test: /\.tsx?$/, loader: 'ts-loader', exclude: /node_modules/ }
-    ]
-  }
+	]
+    }
 }
