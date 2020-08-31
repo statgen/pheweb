@@ -2,9 +2,9 @@ import React, { useState, useEffect , useContext } from 'react';
 import ReactTable, { Cell } from 'react-table';
 import { ColocalizationContext, ColocalizationState } from '../../contexts/colocalization/ColocalizationContext';
 import { CSVLink } from 'react-csv'
-import { Colocalization , CausualVariant } from './model'
+import { Colocalization , CasualVariant } from './model'
 import { LocusZoomContext } from '../region/locus';
-import { Panel, DataLayer } from 'locuszoom';
+import { Panel, DataLayer, Plot } from 'locuszoom';
 import selectTableHOC from "react-table/lib/hoc/selectTable";
 import "react-table/react-table.css";
 
@@ -27,9 +27,10 @@ const reformat = (locus : string) : string | undefined => {
 
 const credible_set = (spec : string) : string[] => spec.split(',').map(reformat).filter(l => l)
 
+const label = (variant_label : string,variants : Array<CasualVariant>) : CasualVariant[] => variants.map((v) => { return { ... v, variant_label } })
+
 const updateLocusZoom = (locusZoomContext : LocusZoomContext,selectedRow : Map<number,Colocalization>) => {
-    const { dataSources , plot } = locusZoomContext;
-    // update title
+    const { plot } : { plot : Plot }= locusZoomContext;
     const selectedRowSize = selectedRow.size
     const title: string = (selectedRowSize == 0)?"Credible Set : Colocalization":`Credible Set : Colocalization : ${selectedRowSize}`
     const panel : Panel = plot.panels.colocalization
@@ -37,9 +38,10 @@ const updateLocusZoom = (locusZoomContext : LocusZoomContext,selectedRow : Map<n
 
     const data_layer : DataLayer = panel.data_layers.colocalization;
 
-    const variants : CausualVariant [] = Array.
+    const variants : CasualVariant [] = Array.
                                          from(selectedRow.values()).
-                                         reduce<CausualVariant []>((acc,value) => (acc.concat(value.variants_1,value.variants_2)),
+                                         reduce<CasualVariant []>((acc,value) => (acc.concat(label('variant 1',value.variants_1),
+                                                                                             label('variant 2',value.variants_2))),
                                                                                    new Array());
     const ids : string [] = variants.map(v => v.id);
     if(ids.length == 0){
@@ -57,10 +59,12 @@ const subComponent = (colocalizationList) => (row) => {
 		       { title: "pip1" , accessor: "pip1" , label:"Pip 1" },
 		       { title: "pip2" , accessor: "pip2" , label:"Pip 2" },
 		       { title: "beta1" , accessor: "beta1" , label:"Beta 1" },
-		       { title: "beta2" , accessor: "beta2" , label:"Beta 2" }]
+           { title: "beta2" , accessor: "beta2" , label:"Beta 2" },
+           { title: "variant_label" , accessor: "variant_label" , label:"Label" }]
     const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
     const colocalization : Colocalization = colocalizationList[row.index]
-    const data = [... colocalization.variants_1, ...  colocalization.variants_2] // TODO : add variant columns
+    const data = [... label('variant 1', colocalization.variants_1),
+                  ... label('variant 2', colocalization.variants_2)] // TODO : add variant columns
     return (<div style={{ padding: "20px" }}>
 	      <ReactTable
                   data={ data }

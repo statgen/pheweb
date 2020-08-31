@@ -33,6 +33,7 @@ declare module 'locuszoom' {
     }
 
     export class DataLayer {
+		render () : void;
 	constructor(layout: object, parent: Panel);
 
 	addField(fieldName: string, nameSpace: string, transformations: string|string[]): string;
@@ -226,6 +227,8 @@ declare module 'locuszoom' {
     }
 
     export class Panel {
+		data_layers : { [key: string]: DataLayer };
+
 	constructor(t: any, e: any, ...args: any[]);
 
 	addBasicLoader(t: any): any;
@@ -346,52 +349,23 @@ declare module 'locuszoom' {
     }
 
     export class Plot {
-	constructor(t: any, e: any, a: any);
-
-	addPanel(t: any): any;
-
-	applyState(t: any): any;
-
-	clearPanelData(t: any, i: any): any;
-
-	initialize(): any;
-
-	initializeLayout(): any;
-
-	positionPanels(): any;
-
-	refresh(): any;
-
-	removePanel(t: any): any;
-
-	rescaleSVG(): any;
-
-	setDimensions(t: any, e: any): any;
-
-	startDrag(t: any, e: any): any;
-
-	stopDrag(): any;
-
-	subscribeToData(t: any, e: any, a: any): any;
-
-	sumProportional(t: any): any;
-
-	static DefaultLayout: {
-            aspect_ratio: number;
-            dashboard: {
-		components: any[];
-            };
-            height: number;
-            min_height: number;
-            min_width: number;
-            mouse_guide: boolean;
-            panel_boundaries: boolean;
-            panels: any[];
-            responsive_resize: boolean;
-            state: {
-            };
-            width: number;
-	};
+		panels : { [key: string]: Panel };
+		constructor(id: string, datasource: DataSources, layout: Layout);
+		addPanel(layout: Layout): Panel;
+		applyState<T>(state_changes: any): Promise<T>;
+		clearPanelData(panelId : string, mode : string): Plot;
+		initialize(): Plot;
+		initializeLayout(): Plot;
+		positionPanels(): Plot;
+		refresh<T>(): Promise<T>;
+		removePanel(id: string): Plot;
+		rescaleSVG(): Plot;
+		setDimensions(width : number, height : number): Plot;
+		startDrag(panel: Panel, method: string): Plot
+		stopDrag(): Plot;
+        subscribeToData(fields : string[], success_callback : (param : any) => void, opts : boolean): any;
+        sumProportional(dimension: string): number;
+        static DefaultLayout: Layout;
 
     }
 

@@ -1,5 +1,4 @@
-
-export interface CausualVariant {
+export interface CasualVariant {
     variation_alt: string,
     variation_chromosome: string,
     beta2 : number,
@@ -12,7 +11,8 @@ export interface CausualVariant {
     beta1 : number,
     rsid: string, 
     position : string,
-    pip1 : number
+    pip1 : number,
+    variant_label? : string
 };
 
 export interface Colocalization {
