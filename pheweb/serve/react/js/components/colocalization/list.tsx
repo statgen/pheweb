@@ -11,7 +11,8 @@ import "react-table/react-table.css";
 interface Props { locusZoomContext? : LocusZoomContext }
 
 const SelectTable = selectTableHOC(ReactTable);
-
+// remove the select all button
+SelectTable.prototype.headSelector = () => null;
 const reformat = (locus : string) : string | undefined => {
   var regexp = /^chr([^_]+)_([\d]+)_([^_]+)_([^_]+)$/;
   var match = locus.match(regexp);
