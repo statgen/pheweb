@@ -50,7 +50,7 @@ declare module 'locuszoom' {
 
 	destroyAllTooltips(): DataLayer;
 
-	destroyTooltip(element_or_id: string|object, temporary: boolean): DataLayer
+	destroyTooltip(element_or_id: string|object, temporary: boolean): DataLayer;
 
 	draw(): DataLayer;
 
@@ -58,11 +58,11 @@ declare module 'locuszoom' {
 
 	exportData(format?: 'csv' | 'tsv' | 'json'): string;
 
-	fadeAllElements(): any;
+	fadeAllElements(): DataLayer;
 
-	fadeElement(t: any, exclusive?: boolean): any;
+	fadeElement(id: string, exclusive?: boolean): DataLayer;
 
-	fadeElementsByFilters(t: any, exclusive?: boolean): any;
+	fadeElementsByFilters(t: any, exclusive?: boolean): DataLayer;
 
 	filter(filters: any[], return_type: string): any[];
 
@@ -88,17 +88,17 @@ declare module 'locuszoom' {
 
 	getTicks(dimension: string, config: object): object[];
 
-	hideAllElements(): any;
+	hideAllElements(): DataLayer;
 
-	hideElement(t: any, exclusive?: boolean): any;
+	hideElement(id: string, exclusive?: boolean): DataLayer;
 
-	hideElementsByFilters(t: any, exclusive?: boolean): any;
+	hideElementsByFilters(filters: string[][], exclusive?: boolean): DataLayer;
 
-	highlightAllElements(): any;
+	highlightAllElements(): DataLayer;
 
-	highlightElement(t: any, exclusive?: boolean): any;
+	highlightElement(id: string, exclusive?: boolean): DataLayer;
 
-	highlightElementsByFilters(t: any, exclusive?: boolean): any;
+	highlightElementsByFilters(filters: string[][], exclusive?: boolean): DataLayer;
 
 	initialize(): DataLayer;
 
@@ -116,11 +116,11 @@ declare module 'locuszoom' {
 				      element_data: X,
 				      data_index: number): Y;
 
-	selectAllElements(): any;
+	selectAllElements(): DataLayer;
 
-	selectElement(t: any, exclusive?: boolean): any;
+	selectElement(id: string, exclusive?: boolean): DataLayer;
 
-	selectElementsByFilters(t: any, exclusive?: boolean): any;
+	selectElementsByFilters(filters: string[][], exclusive?: boolean): DataLayer;
 
 	setAllElementStatus(status: string, toogle: boolean): DataLayer;
 
@@ -132,29 +132,29 @@ declare module 'locuszoom' {
 
 	showOrHideTooltip(element: string | object, first_time: boolean): DataLayer;
 
-	unfadeAllElements(): any;
+	unfadeAllElements(): DataLayer;
 
-	unfadeElement(t: any, exclusive?: boolean): any;
+	unfadeElement(id: string, exclusive?: boolean): DataLayer;
 
-	unfadeElementsByFilters(t: any, exclusive?: boolean): any;
+	unfadeElementsByFilters(filters: string[][], exclusive?: boolean): DataLayer;
 
-	unhideAllElements(): any;
+	unhideAllElements(): DataLayer;
 
-	unhideElement(t: any, exclusive?: boolean): any;
+	unhideElement(id: string, exclusive?: boolean): DataLayer;
 
-	unhideElementsByFilters(t: any, exclusive?: boolean): any;
+	unhideElementsByFilters(filters : string[][], exclusive?: boolean): DataLayer;
 
-	unhighlightAllElements(): any;
+	unhighlightAllElements(): DataLayer;
 
-	unhighlightElement(t: any, exclusive?: boolean): any;
+	unhighlightElement(id: string, exclusive?: boolean): DataLayer;
 
-	unhighlightElementsByFilters(t: any, exclusive?: boolean): any;
+	unhighlightElementsByFilters(filters: string[][], exclusive?: boolean): DataLayer;
 
-	unselectAllElements(): any;
+	unselectAllElements(): DataLayer;
 
-	unselectElement(t: any, exclusive?: boolean): any;
+	unselectElement(id: string, exclusive?: boolean): DataLayer;
 
-	unselectElementsByFilters(t: any, exclusive?: boolean): any;
+	unselectElementsByFilters(t: any, exclusive?: boolean): DataLayer;
 
 	updateTooltip(d: string|object, id: string): DataLayer;
 
