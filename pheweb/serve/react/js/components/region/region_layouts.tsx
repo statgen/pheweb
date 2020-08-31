@@ -22,9 +22,55 @@ export const region_layout: (region: Region) => Layout = (region: Region) => {
 		"panel_boundaries": true,
 		mouse_guide: true,
 
-		"dashboard": { "components": [] },
+		"dashboard": {
+			"components": [{
+				type: 'link',
+				title: 'Go to Manhattan Plot',
+				text:' Manhattan Plot',
+				url: '/pheno/' + region.pheno.phenocode
+			},{
+				type: 'move',
+				text: '<<',
+				title: 'Shift view 1/4 to the left',
+				direction: -0.75,
+				group_position: "start",
+			},{
+				type: 'move',
+				text: '<',
+				title: 'Shift view 1/4 to the left',
+				direction: -0.25,
+				group_position: "middle",
+			},{
+				type: 'zoom_region',
+				button_html: 'z+',
+				title: 'zoom in 2x',
+				step: -0.5,
+				group_position: "middle",
+			},{
+				type: 'zoom_region',
+				button_html: 'z-',
+				title: 'zoom out 2x',
+				step: 1,
+				group_position: "middle",
+			},{
+				type: 'move',
+				text: '>',
+				title: 'Shift view 1/4 to the right',
+				direction: 0.25,
+				group_position: "middle",
+			},{
+				type: 'move',
+				text: '>>',
+				title: 'Shift view 3/4 to the right',
+				direction: 0.75,
+				group_position: "end",
+			},{
+				"type": "download",
+				"position": "right",
+			}]
+		},
 		"panels": []
-	}
+		}
 }
 
 export const association_layout: (region: Region) => Layout = (region: Region) => {
