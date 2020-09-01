@@ -48,7 +48,7 @@ export interface Colocalization {
     len_cs2 : number,
     len_inter : number
 
-    variants_1 : CausualVariant[]
-    variants_2 : CausualVariant[]
+    variants_1 : CasualVariant[]
+    variants_2 : CasualVariant[]
 };
 
