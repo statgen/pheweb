@@ -346,7 +346,6 @@ const ColocalizationSource = Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "ColocalizationLZ");
 
-ColocalizationSource.prototype.preGetData = ConditionalSource.prototype.preGetData
-ColocalizationSource.prototype.getURL = ConditionalSource.prototype.getURL
-ColocalizationSource.prototype.parseResponse = ConditionalSource.prototype.parseResponse
-
+ColocalizationSource.prototype.getURL = function(state, chain, fields) { 
+    return this.url;
+}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect , useContext } from 'react';
 import ReactTable, { Cell } from 'react-table';
-import { ColocalizationContext, ColocalizationState } from '../../contexts/colocalization/ColocalizationContext';
+import { ColocalizationContext, ColocalizationState, Locus } from '../../contexts/colocalization/ColocalizationContext';
 import { CSVLink } from 'react-csv'
-import { Colocalization , CasualVariant } from './model'
+import { Colocalization , CasualVariant, LocusZoomData } from './model'
 import { LocusZoomContext } from '../region/locus';
 import { Panel, DataLayer, Plot } from 'locuszoom';
 import selectTableHOC from "react-table/lib/hoc/selectTable";
@@ -49,7 +49,10 @@ const updateLocusZoom = (locusZoomContext : LocusZoomContext,selectedRow : Map<n
       data_layer.unhideAllElements();
     } else {                                      
       data_layer.hideAllElements();
-      variants.forEach(v => data_layer.unhideElement(`${v.variation_chromosome}${v.position}_${v.variation_ref}${v.variation_alt}`))
+      variants.forEach(v => {
+        const id : string = `${v.variation_chromosome}${v.position}_${v.variation_ref}${v.variation_alt}`;
+        data_layer.unhideElement(id);
+      });
     }
     data_layer.render();
 
@@ -57,8 +60,8 @@ const updateLocusZoom = (locusZoomContext : LocusZoomContext,selectedRow : Map<n
 
 const subComponent = (colocalizationList) => (row) => {
     const metadata = [ { title: "id" , accessor: "id" , label:"Id" },
-		       { title: "pip1" , accessor: "pip1" , label:"Pip 1" },
-		       { title: "pip2" , accessor: "pip2" , label:"Pip 2" },
+		       { title: "pip1" , accessor: "pip1" , label:"PIP 1" },
+		       { title: "pip2" , accessor: "pip2" , label:"PIP 2" },
 		       { title: "beta1" , accessor: "beta1" , label:"Beta 1" },
            { title: "beta2" , accessor: "beta2" , label:"Beta 2" },
            { title: "variant_label" , accessor: "variant_label" , label:"Label" }]
@@ -77,12 +80,28 @@ const subComponent = (colocalizationList) => (row) => {
 
 const List = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
-    const [selectedRow, setRowSelected]= useState<Map<number,Colocalization>>(new Map<number,Colocalization>());
-   
+    const [selectedRow, setRowSelected]= useState<string | undefined>(undefined);
+    const toggleSelection = (key, shift, row) => setRowSelected(selectedRow ? undefined : key);
+    const isSelected = (key) =>  selectedRow === `select-${key}`;
+  
+    const rowFn = (state, rowInfo, column, instance) => {
+      return {
+        onClick: (e, handleOriginal) => handleOriginal && handleOriginal(),
+        style: {
+          background:
+            rowInfo &&
+            selectedRow === `select-${rowInfo.original.id}` &&
+            "lightgrey"
+        }
+      };
+    };
+     
     const context : LocusZoomContext = props.locusZoomContext
     const [colocalizationList, setList] = useState<Array<Colocalization> | undefined>(undefined); /* set up hooks for colocalization */
+    const [locusZoomData, setLocusZoomData] = useState<LocusZoomData | undefined>(undefined); /* set up hooks for colocalization */
 
-    useEffect( () => { getList(); }, [parameter]); /* only update on when position is updated */
+    useEffect( () => { getList(); 
+                       getLocusZoomData(); }, [parameter]); /* only update on when position is updated */
 
     
     const getList = () => {
@@ -92,13 +111,24 @@ const List = (props : Props) => {
         }
     }
 
-    if(parameter == null) {
+
+    const getLocusZoomData = () => {
+      if(parameter != null && parameter.phenotype != null && parameter.locus != null){
+        const phenotype : string = parameter.phenotype;
+        const locus : Locus = parameter.locus;
+        const url = `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}/finemapping`;
+        fetch(url).then(response => response.json()).then((d) => { setLocusZoomData(d); } ).catch(function(error){ alert(error);});
+          }
+        
+    }
+
+    if(parameter == null || locusZoomData === undefined) {
         return  (<div />);
     } else if(colocalizationList != null){
 	const metadata = [ { title: "source" , accessor: "source2" , label:"Source" },
 			   { title: "locus id", accessor: "locus_id1" , label:"Locus ID" },
-			   { title: "qlt code", accessor: "phenotype2", label: "QTL Code" },
-			   { title: "qlt", accessor: "phenotype2_description", label: "QTL" },
+			   { title: "code", accessor: "phenotype2", label: "Code" },
+			   { title: "description", accessor: "phenotype2_description", label: "Description" },
 			   { title: "tissue", accessor: "tissue2",
 			     Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.replace(/_/g,' '),
 			     label: "Tissue" },
@@ -108,25 +138,13 @@ const List = (props : Props) => {
 			   { title: "clpa", accessor: "clpa" ,
 			     Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
 			     label: "CLPA" },
-			   { title: "cs_size", accessor: "cs_size", label: "CS Size" } ];
+         { title: "cs_size_1", accessor: "cs_size_1", label: "CS Size 1" },
+         { title: "cs_size_2", accessor: "cs_size_2", label: "CS Size 2" }
+        
+        ];
 
   const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
   const headers = columns.map(c => ({ ...c , key: c.accessor }))
-
-  const toggleSelection = (key : string, shift : boolean, row : Colocalization) => {
-      if(selectedRow && setRowSelected && row){
-	      const id : number = row.id;
-  	    if(selectedRow.has(id)){
-          selectedRow.delete(id);
-	      } else {
-          selectedRow.set(id, row);
-	      }
-        setRowSelected(selectedRow);
-	      context && selectedRow && updateLocusZoom(context, selectedRow);
-      }
-  }
-	
-  const isSelected = (key : number) => { }
 
   return (<div>
     <SelectTable data={ colocalizationList }
@@ -135,12 +153,13 @@ const List = (props : Props) => {
                  defaultSorted={[{  id: "clpa", desc: true }]}
                  defaultPageSize={10}
                  filterable
-	               selectType="checkbox"
                  defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase())}
                  SubComponent={ subComponent(colocalizationList) }
-	               toggleSelection={ toggleSelection }
-	               isSelected={ isSelected }
-	               className="-striped -highlight" />
+                 toggleSelection={toggleSelection}
+                 selectType="radio"
+                 isSelected={isSelected}
+                 getTrProps={rowFn}
+                 className="-striped -highlight" />
     <p></p>
     <div className="row">
     <div className="col-xs-12">

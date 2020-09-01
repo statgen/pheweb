@@ -177,7 +177,7 @@ class CausalVariant(JSONifiable, Kwargs):
     pip1, pip2, beta1, beta2, variant
 
     """
-
+    id = attr.ib(validator=attr.validators.optional(instance_of(int)))
     variant = attr.ib(validator=instance_of(Variant))
     pip1 = attr.ib(validator=instance_of(float))
     pip2 = attr.ib(validator=instance_of(float))
@@ -192,10 +192,10 @@ class CausalVariant(JSONifiable, Kwargs):
         d = d.copy()
         d.pop("_sa_instance_state", None)
         d["position"] = self.variant.position
-        d["id"] = "{0}:{1}_{2}/{3}".format(self.variant.chromosome,
-                                           self.variant.position,
-                                           self.variant.reference,
-                                           self.variant.alternate)
+        d["plotid"] = "{0}:{1}_{2}/{3}".format(self.variant.chromosome,
+                                               self.variant.position,
+                                               self.variant.reference,
+                                               self.variant.alternate)
         d["rsid"] = "chr{0}_{1}_{2}/{3}".format(self.variant.chromosome,
                                                 self.variant.position,
                                                 self.variant.reference,
@@ -259,7 +259,7 @@ class Colocalization(Kwargs, JSONifiable):
     how data is loaded.
 
     """
-    id
+    id = attr.ib(validator=attr.validators.optional(instance_of(int)))
     source1 = attr.ib(validator=instance_of(str))
     source2 = attr.ib(validator=instance_of(str))
     phenotype1 = attr.ib(validator=instance_of(str))
@@ -298,7 +298,8 @@ class Colocalization(Kwargs, JSONifiable):
         d["locus_id2"] = str(d["locus_id2"])
         d["variants_1"] = list(map(lambda c : c.json_rep(), self.variants_1))
         d["variants_2"] = list(map(lambda c : c.json_rep(), self.variants_2))
-        d["cs_size"] = len(self.variants_1) + len(self.variants_2)
+        d["cs_size_1"] = len(self.variants_1)
+        d["cs_size_2"] = len(self.variants_2)
         return d
 
     @staticmethod
