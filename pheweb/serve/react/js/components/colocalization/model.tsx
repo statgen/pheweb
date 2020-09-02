@@ -79,14 +79,4 @@ export const EMPTY : CasualVariantVector = {
     variant : [],
     rsid : []
 }
-export interface LocusZoomData { data : {
-    id : number[],
-    position : number[],
-    varid : string[],
-    beta1: number[],
-    beta2: number[],
-    pip1: number[],
-    pip2: number[],
-    variant : string[],
-    rsid : string[]
-} };
+export type LocusZoomData = { [ key: string]: CasualVariantVector };

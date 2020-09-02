@@ -58,13 +58,9 @@ def get_locuszoom(phenotype: str,
                   flags = None):
     flags = flags or request.args.to_dict()
     app_dao = app.jeeves.colocalization
-    locus = Locus(chromosome,
-                  start,
-                  stop)
-    variants = app_dao.get_finemapping(phenotype=phenotype,
-                                       locus = locus,
-                                       flags=flags)
-    return json.dumps({ "data" : variants , "lastpage" : None })
+    locus = Locus(chromosome, start, stop)
+    variants = app_dao.get_finemapping(phenotype=phenotype, locus = locus, flags=flags)
+    return json.dumps(variants)
 
 @development.route('/api/colocalization', methods=["POST"])
 def post_phenotype1():

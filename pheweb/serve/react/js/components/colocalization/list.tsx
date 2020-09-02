@@ -38,8 +38,9 @@ const updateLocusZoom = (locusZoomData : LocusZoomData | undefined,context : Loc
 
     const dataSource = dataSources.sources.colocalization;
     const params : { [key: string ]: any; } = dataSource.params;
-
-    panel.data_layers.colocalization.data = dataSource.parseArraysToObjects((colocalization && locusZoomData)?locusZoomData.data:EMPTY,
+    const doLookup : boolean = colocalization && locusZoomData && colocalization.id in locusZoomData;
+    const data = doLookup?locusZoomData[colocalization.id]:EMPTY;
+    panel.data_layers.colocalization.data = dataSource.parseArraysToObjects(data,
                                                                             params.fields,
                                                                             params.outnames,
                                                                             params.trans);

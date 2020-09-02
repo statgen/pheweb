@@ -267,43 +267,44 @@ class ColocalizationDAO(ColocalizationDB):
         """
         [session,query] = self.locus_query(phenotype, locus, flags)
         session.expire_all()
-        rows = []
+        rows = {}
         for r in query.all():
             variants = r.variants_1 + r.variants_2
             variants = map(lambda r : r.json_rep(), variants)
-            rows.extend(map(lambda v: [v["position"],  v["variant"], v["pip1"], v["pip2"],  v["beta1"], v["beta2"], v["id"], v["rsid"], v["varid"]], variants))
-        rows = list(map(list,zip(*rows)))
-        if rows:
-            position = rows[0]
-            variant = rows[1]
-            pip1 = rows[2]
-            pip2 = rows[3]
-            beta1 = rows[4]
-            beta2 = rows[5]
-            ids = rows[6]
-            rsid = rows[7]
-            varid = rows[8]
-        else:
-            position = []
-            variant = []
-            pip1 = []
-            pip2 = []
-            beta1 = []
-            beta2 = []
-            ids = []
-            rsid = []
-            varid = []
+            variants = map(lambda v: [v["position"],  v["variant"], v["pip1"], v["pip2"],  v["beta1"], v["beta2"], v["id"], v["rsid"], v["varid"]], variants)
+            variants = list(map(list,zip(*variants)))
+            if variants:
+                position = variants[0]
+                variant = variants[1]
+                pip1 = variants[2]
+                pip2 = variants[3]
+                beta1 = variants[4]
+                beta2 = variants[5]
+                ids = variants[6]
+                rsid = variants[7]
+                varid = variants[8]
+            else
+                position = []
+                variant = []
+                pip1 = []
+                pip2 = []
+                beta1 = []
+                beta2 = []
+                ids = []
+                rsid = []
+                varid = []
 
-            
-        return {"position" : position,
-                "variant" : variant,
-                "pip1" : pip1,
-                "pip2" : pip2,
-                "beta1" : beta1,
-                "beta2" : beta2,
-                "id" : ids,
-                "rsid" : rsid,
-                "varid" : varid }
+            rows[r.id] = {"position" : position,
+                          "variant" : variant,
+                          "pip1" : pip1,
+                          "pip2" : pip2,
+                          "beta1" : beta1,
+                          "beta2" : beta2,
+                          "id" : ids,
+                          "rsid" : rsid,
+                          "varid" : varid }
+
+        return rows
     
     def get_locus_summary(self,
                           phenotype: str,
