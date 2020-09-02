@@ -1,7 +1,7 @@
 import typing
 from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float, Text, ForeignKey, Index
 from sqlalchemy.orm import sessionmaker
-from .model import Colocalization, CausalVariant, ColocalizationDB, SearchSummary, Locus, SearchResults, PhenotypeList, Variant, ColocalizationMap
+from .model import Colocalization, CausalVariant, ColocalizationDB, SearchSummary, Locus, SearchResults, PhenotypeList, Variant, ColocalizationMap, CausalVariantVector
 import csv
 import gzip
 from sqlalchemy.orm import mapper, composite, relationship
@@ -254,7 +254,7 @@ class ColocalizationDAO(ColocalizationDB):
     def get_finemapping(self,
                         phenotype: str,
                         locus: Locus,
-                        flags: typing.Dict[str, typing.Any]={}) :
+                        flags: typing.Dict[str, typing.Any]={}) -> typing.Dict[str, CausalVariantVector]   :
         """
         Search for colocalization that match
         the locus and range and return them.
@@ -271,7 +271,18 @@ class ColocalizationDAO(ColocalizationDB):
         for r in query.all():
             variants = r.variants_1 + r.variants_2
             variants = map(lambda r : r.json_rep(), variants)
-            variants = map(lambda v: [v["position"],  v["variant"], v["pip1"], v["pip2"],  v["beta1"], v["beta2"], v["id"], v["rsid"], v["varid"]], variants)
+            variants = map(lambda v: [v["position"],
+                                      v["variant"],
+                                      v["pip1"],
+                                      v["pip2"],
+                                      v["beta1"],
+                                      v["beta2"],
+                                      v["id"],
+                                      v["rsid"],
+                                      v["varid"],
+                                      r.phenotype1,
+                                      r.phenotype1_description
+                                      ], variants)
             variants = list(map(list,zip(*variants)))
             if variants:
                 position = variants[0]
@@ -280,29 +291,35 @@ class ColocalizationDAO(ColocalizationDB):
                 pip2 = variants[3]
                 beta1 = variants[4]
                 beta2 = variants[5]
-                ids = variants[6]
+                causalvariantid = variants[6]
                 rsid = variants[7]
                 varid = variants[8]
-            else
+                phenotype1 = variants[9]
+                phenotype1_description = variants[10]
+            else:
                 position = []
                 variant = []
                 pip1 = []
                 pip2 = []
                 beta1 = []
                 beta2 = []
-                ids = []
+                causalvariantid = []
                 rsid = []
                 varid = []
+                phenotype1 = []
+                phenotype1_description = []
 
-            rows[r.id] = {"position" : position,
-                          "variant" : variant,
-                          "pip1" : pip1,
-                          "pip2" : pip2,
-                          "beta1" : beta1,
-                          "beta2" : beta2,
-                          "id" : ids,
-                          "rsid" : rsid,
-                          "varid" : varid }
+            rows[r.id] = CausalVariantVector(position,
+                                             variant,
+                                             pip1,
+                                             pip2,
+                                             beta1,
+                                             beta2,
+                                             causalvariantid,
+                                             rsid,
+                                             varid,
+                                             phenotype1,
+                                             phenotype1_description)
 
         return rows
     

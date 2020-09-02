@@ -897,7 +897,7 @@ const datalayer = (label : string, color : string []) : LayoutDataLayersEntity =
     "id": datalayer_id,
     type: "scatter",
     fields: [
-	"colocalization:id",
+	"colocalization:causalvariantid",
 	"colocalization:position",
 	"colocalization:variant",
 	"colocalization:pip1",
@@ -905,12 +905,14 @@ const datalayer = (label : string, color : string []) : LayoutDataLayersEntity =
 	"colocalization:beta1",
 	"colocalization:beta2",
 	"colocalization:rsid",
-	"colocalization:varid",	
+	"colocalization:varid",
+	"colocalization:phenotype1",	
+	"colocalization:phenotype1_description"	
     ],
     orientation: "horizontal",
     offset: -Math.log10(5e-8),
     "namespace": { "colocalization": "colocalization" },
-    id_field: "colocalization:id",
+    id_field: "colocalization:causalvariantid",
     behaviors: {
 	onclick: [{ action: "toggle", status: "selected", exclusive: true }],
 	onmouseover: [{ action: "set", status: "highlighted" }],
@@ -920,8 +922,9 @@ const datalayer = (label : string, color : string []) : LayoutDataLayersEntity =
 	"closable": true,
 	"show": { "or": ["highlighted", "selected"] },
 	"hide": { "and": ["unhighlighted", "unselected"] },
-	"html": `<strong>{{colocalization:id}}</strong><br/>
-                 <strong>{{colocalization:rsid}}</strong><br/>
+	"html": `<strong>{{colocalization:phenotype1}}</strong><br/>
+	         {{colocalization:phenotype1_description|truncate}}<br/>
+             <strong>{{colocalization:variant}}</strong><br/>
                  <table>
                    <tbody>
                      <tr>

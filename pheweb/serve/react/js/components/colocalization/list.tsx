@@ -53,7 +53,7 @@ const updateLocusZoom = (locusZoomData : LocusZoomData | undefined,context : Loc
   }
 
 const subComponent = (colocalizationList) => (row) => {
-    const metadata = [ { title: "id" , accessor: "id" , label:"Id" },
+    const metadata = [ { title: "Variant" , accessor: "variant" , label: "Variant" },
 		       { title: "pip1" , accessor: "pip1" , label:"PIP 1" },
 		       { title: "pip2" , accessor: "pip2" , label:"PIP 2" },
 		       { title: "beta1" , accessor: "beta1" , label:"Beta 1" },
@@ -84,9 +84,9 @@ const List = (props : Props) => {
                        getLocusZoomData(); }, [parameter]); /* only update on when position is updated */
 
 
-
     const toggleSelection = (key, shift, row : Colocalization) => { 
       setRowSelected(selectedRow ? undefined : key);
+
       updateLocusZoom(locusZoomData,context,selectedRow ? undefined : row);
     }
     const isSelected = (key) =>  selectedRow === `select-${key}`;

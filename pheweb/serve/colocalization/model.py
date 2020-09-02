@@ -158,15 +158,47 @@ class Locus(JSONifiable):
                  Column('{}start'.format(prefix), Integer, unique=False, nullable=False),
                  Column('{}stop'.format(prefix), Integer, unique=False, nullable=False) ]
 
-    def __composite_values__(self):
-        """
-        These are artifacts needed for composition by sqlalchemy.
-        Returns a tuple containing the constructor args.
+@attr.s
+class CausalVariantVector(JSONifiable, Kwargs):
+    """ Vector of causal variants
+    """
+    position = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
+                                                               iterable_validator=instance_of(typing.List)))
 
-        :return: tuple (chromosome, start, stop)
-        """
-        return self.chromosome, self.start, self.stop
+    variant = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+                                                              iterable_validator=instance_of(typing.List)))
 
+    pip1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+                                                           iterable_validator=instance_of(typing.List)))
+
+    pip2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+                                                           iterable_validator=instance_of(typing.List)))
+
+    beta1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+                                                            iterable_validator=instance_of(typing.List)))
+
+    beta2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+                                                            iterable_validator=instance_of(typing.List)))
+
+    causalvariantid = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
+                                                                      iterable_validator=instance_of(typing.List)))
+    rsid = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+                                                           iterable_validator=instance_of(typing.List)))
+
+    varid = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+                                                            iterable_validator=instance_of(typing.List)))
+
+    phenotype1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+                                                                 iterable_validator=instance_of(typing.List)))
+
+    phenotype1_description = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+                                                                             iterable_validator=instance_of(typing.List)))
+
+    def json_rep(self):
+        return self.__dict__
+
+    def __repr__(self) -> typing.Dict[str, typing.Any]:
+        return self.__dict__
 
 
 @attr.s

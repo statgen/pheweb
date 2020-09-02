@@ -699,7 +699,7 @@ declare module 'locuszoom' {
 
 	function list(): any;
 
-	function set(t: string, e: (x : number) => number | string): void;
+	function set<X,Y>(name: string, e: (x : X) => Y): void;
 
     }
 

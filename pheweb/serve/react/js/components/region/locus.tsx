@@ -2,6 +2,7 @@ import { Layouts , Data , createCORSPromise , DataSources , TransformationFuncti
 import { region_layout ,  association_layout , genes_layout , clinvar_layout , gwas_cat_layout , finemapping_layout , colocalization_layout } from './region_layouts';
 import { FG_LDDataSource , GWASCatSource , ClinvarDataSource } from './custom_locuszooms';
 import { Region } from './components';
+import { assert } from 'console';
 
 TransformationFunctions.set("neglog10_or_100", function(x : number) {
     if (x === 0) return 100;
@@ -13,7 +14,7 @@ TransformationFunctions.set("log_pvalue", function(x: number) {
     return x
 });
 
-TransformationFunctions.set("logneglog", function(x) {
+TransformationFunctions.set("logneglog", function(x : number) {
 console.assert(this.params && this.params && this.params.region && this.params.region.vis_conf , 'missing vis_conf')
 var pScaled : number = -Math.log10(x)
 if (pScaled > this.params.region.vis_conf.loglog_threshold) {
@@ -29,6 +30,23 @@ TransformationFunctions.set("percent", function(n : number) {
     if (x.endsWith('.')) { x = x.substr(0, x.length-1); }
     return x + '%';
 });
+
+const truncate = (max_length : number,dots : string) =>  (s :string) : string => {
+    console.assert(max_length > dots.length, `invalid dot '${dots}' and length '${max_length}' combination.`);
+    let result : string;
+    if(s.length > max_length){
+            result = s.substring(0,max_length - dots.length) + dots ;
+    } else {
+        result = s;
+    }
+    return result;
+}
+
+TransformationFunctions.set<number,boolean>("positive",(value : number) => value > 0);
+TransformationFunctions.set<number,boolean>("zero",(value : number) => value == 0);
+TransformationFunctions.set<number,boolean>("negative",(value : number) => value < 0);
+TransformationFunctions.set<string,string>("truncate", truncate(20,"..."));
+
 
 export interface LocusZoomContext {
     plot : Plot
@@ -51,7 +69,17 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     dataSources.add("association", ["AssociationLZ", {url: localBase, params:{source:3}}]);
     dataSources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
     dataSources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
-    const colocalizationURL = `data:,  { \"data\" : { "id" : [] ,"position" : [] , "varid" : [] , "beta1" : [] , "beta2" : [] , "pip1" : [] , "pip2" : [] , "variant" : [] , "rsid" : [] } }`
+    const colocalizationURL = `data:,  { "data" : { "causalvariantid" : [] ,
+                                                    "position" : [] , 
+                                                    "varid" : [] , 
+                                                    "beta1" : [] , 
+                                                    "beta2" : [] , 
+                                                    "pip1" : [] , 
+                                                    "pip2" : [] , 
+                                                    "variant" : [] , 
+                                                    "rsid" : [] ,
+                                                    "phenotype1" : [],
+                                                    "phenotype1_description" : [] } }`
     dataSources.add("colocalization", ["ColocalizationLZ", {url: colocalizationURL }]);
     //dataSources.add("colocalization", ["AssociationLZ", {url: localColocalizationBase, params:{source:3}}]);
 

@@ -57,7 +57,7 @@ export interface Colocalization {
 };
 
 export interface CasualVariantVector {
-    id : number[],
+    causalvariantid : number[],
     position : number[],
     varid : string[],
     beta1: number[],
@@ -65,11 +65,13 @@ export interface CasualVariantVector {
     pip1: number[],
     pip2: number[],
     variant : string[],
-    rsid : string[]
+    rsid : string[],
+    phenotype1 : string [],
+    phenotype1_description : string [],
 }
 
 export const EMPTY : CasualVariantVector = {
-    id : [],
+    causalvariantid : [],
     position : [],
     varid : [],
     beta1: [],
@@ -77,6 +79,8 @@ export const EMPTY : CasualVariantVector = {
     pip1: [],
     pip2: [],
     variant : [],
-    rsid : []
+    rsid : [],
+    phenotype1 : [],
+    phenotype1_description : []
 }
 export type LocusZoomData = { [ key: string]: CasualVariantVector };
