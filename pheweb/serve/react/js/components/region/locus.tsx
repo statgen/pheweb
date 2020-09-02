@@ -1,4 +1,4 @@
-import { Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate, Plot } from 'locuszoom';
+import { Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate, Plot, Layout, LayoutComponentsEntity } from 'locuszoom';
 import { region_layout ,  association_layout , genes_layout , clinvar_layout , gwas_cat_layout , finemapping_layout , colocalization_layout } from './region_layouts';
 import { FG_LDDataSource , GWASCatSource , ClinvarDataSource } from './custom_locuszooms';
 import { Region } from './components';
@@ -109,12 +109,11 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
 
     
     // dashboard components
-    function add_dashboard_button(name, func) {
-        Dashboard.Components.add(name, function(layout){
+    function add_dashboard_button(name : string, func : (layout : LayoutComponentsEntity) => { bind : (a : any) => any }) {
+        Dashboard.Components.add(name, function(layout : LayoutComponentsEntity){
             Dashboard.Component.apply(this, arguments);
             this.update = function(){
-                if (this.button)
-                    return this;
+                if (this.button)return this;
                 this.button = new Dashboard.Component.Button(this)
                     .setColor(layout.color).setText(layout.text).setTitle(layout.title)
                     .setOnclick(func(layout).bind(this));
@@ -122,15 +121,13 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
                 return this.update();
             };
         });
-    }
-
-    add_dashboard_button('link', function(layout) {
-        return function() {
-            window.location.href = layout.url;
-        };
+    };
+    
+    add_dashboard_button('link', function(layout : LayoutComponentsEntity) {
+        return () => { window.location.href = layout.url; };
     });
 
-    add_dashboard_button('move', function(layout) {
+    add_dashboard_button('move', function(layout : LayoutComponentsEntity) {
         // see also the sefault component `shift_region`
         return function() {
             var start = this.parent_plot.state.start;
@@ -152,5 +149,5 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     plot.addPanel(finemapping_layout(region));
     plot.addPanel(colocalization_layout(region));
 
-    return { plot , dataSources }
+    return { plot , dataSources };
 };

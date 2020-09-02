@@ -32,7 +32,7 @@ const label = (variant_label : string,variants : Array<CasualVariant>) : CasualV
 
 const updateLocusZoom = (locusZoomData : LocusZoomData | undefined,context : LocusZoomContext,colocalization : Colocalization | undefined) => {
     const { dataSources ,  plot } = context;
-    const title: string = colocalization?`Credible Set : ${colocalization.phenotype1}`:"Credible Set : Colocalization"
+    const title: string = colocalization?`Credible Set : ${colocalization.phenotype2}`:"Credible Set : Colocalization"
     const panel : Panel = plot.panels.colocalization
     panel.setTitle(title)
 

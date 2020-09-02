@@ -1,3 +1,12 @@
+
+
+export interface SearchSummary {
+    unique_phenotype2: number,
+    unique_tissue2: number,
+
+};
+    
+
 export interface CasualVariant {
     variation_alt: string,
     variation_chromosome: string,

@@ -281,7 +281,9 @@ class ColocalizationDAO(ColocalizationDB):
                                       v["rsid"],
                                       v["varid"],
                                       r.phenotype1,
-                                      r.phenotype1_description
+                                      r.phenotype1_description,
+                                      r.phenotype2,
+                                      r.phenotype2_description
                                       ], variants)
             variants = list(map(list,zip(*variants)))
             if variants:
@@ -296,6 +298,8 @@ class ColocalizationDAO(ColocalizationDB):
                 varid = variants[8]
                 phenotype1 = variants[9]
                 phenotype1_description = variants[10]
+                phenotype2 = variants[11]
+                phenotype2_description = variants[12]
             else:
                 position = []
                 variant = []
@@ -319,7 +323,9 @@ class ColocalizationDAO(ColocalizationDB):
                                              rsid,
                                              varid,
                                              phenotype1,
-                                             phenotype1_description)
+                                             phenotype1_description,
+                                             phenotype2,
+                                             phenotype2_description)
 
         return rows
     

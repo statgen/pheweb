@@ -890,8 +890,10 @@ export const finemapping_layout: (region: Region) => Layout = (region: Region) =
 }
 
 const datalayer = (pip : string,beta : string,color : string []) : LayoutDataLayersEntity => {
+
 	const datalayer_id : string = `colocalization_${pip}`
 	const field : string = `colocalization:${pip}`
+	console.log(beta);	
 	return {
     "id": datalayer_id,
 	type: "scatter",
@@ -915,7 +917,9 @@ const datalayer = (pip : string,beta : string,color : string []) : LayoutDataLay
 	"colocalization:rsid",
 	"colocalization:varid",
 	"colocalization:phenotype1",	
-	"colocalization:phenotype1_description"	
+	"colocalization:phenotype1_description",
+	"colocalization:phenotype2",	
+	"colocalization:phenotype2_description"	
     ],
     orientation: "horizontal",
     offset: -Math.log10(5e-8),
@@ -930,8 +934,8 @@ const datalayer = (pip : string,beta : string,color : string []) : LayoutDataLay
 	"closable": true,
 	"show": { "or": ["highlighted", "selected"] },
 	"hide": { "and": ["unhighlighted", "unselected"] },
-	"html": `<strong>{{colocalization:phenotype1}}</strong><br/>
-	         {{colocalization:phenotype1_description|truncate}}<br/>
+	"html": `<strong>{{colocalization:phenotype2}}</strong><br/>
+	         {{colocalization:phenotype2_description|truncate}}<br/>
              <strong>{{colocalization:variant}}</strong><br/>
                  <table>
                    <tbody>

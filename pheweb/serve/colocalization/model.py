@@ -194,6 +194,12 @@ class CausalVariantVector(JSONifiable, Kwargs):
     phenotype1_description = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
                                                                              iterable_validator=instance_of(typing.List)))
 
+    phenotype2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+                                                                 iterable_validator=instance_of(typing.List)))
+
+    phenotype2_description = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+                                                                             iterable_validator=instance_of(typing.List)))
+
     def json_rep(self):
         return self.__dict__
 
