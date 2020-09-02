@@ -10,25 +10,23 @@ TransformationFunctions.set("neglog10_or_100", function(x : number) {
     return log;
 });
 
-TransformationFunctions.set("log_pvalue", function(x: number) {
-    return x
-});
+TransformationFunctions.set<number,number>("log_pvalue", function(x: number) { return x });
 
-TransformationFunctions.set("logneglog", function(x : number) {
-console.assert(this.params && this.params && this.params.region && this.params.region.vis_conf , 'missing vis_conf')
-var pScaled : number = -Math.log10(x)
-if (pScaled > this.params.region.vis_conf.loglog_threshold) {
-    pScaled = this.params.region.vis_conf.loglog_threshold * Math.log10(pScaled) / Math.log10(this.params.region.vis_conf.loglog_threshold)
-}
-return pScaled
+TransformationFunctions.set<number,number>("logneglog", function(x : number) {
+    console.assert(this.params && this.params && this.params.region && this.params.region.vis_conf , 'missing vis_conf')
+    var pScaled : number = -Math.log10(x)
+    if (pScaled > this.params.region.vis_conf.loglog_threshold) {
+        pScaled = this.params.region.vis_conf.loglog_threshold * Math.log10(pScaled) / Math.log10(this.params.region.vis_conf.loglog_threshold)
+    }
+    return pScaled
 })
 
-TransformationFunctions.set("percent", function(n : number) {
+TransformationFunctions.set<number,string>("percent", function(n : number) {
     if (n === 1) { return "100%"; }
     var x : string = (n*100).toPrecision(2);
     if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }
     if (x.endsWith('.')) { x = x.substr(0, x.length-1); }
-    return x + '%';
+    return x + '%'; 
 });
 
 const truncate = (max_length : number,dots : string) =>  (s :string) : string => {
@@ -42,9 +40,14 @@ const truncate = (max_length : number,dots : string) =>  (s :string) : string =>
     return result;
 }
 
-TransformationFunctions.set<number,boolean>("positive",(value : number) => value > 0);
-TransformationFunctions.set<number,boolean>("zero",(value : number) => value == 0);
-TransformationFunctions.set<number,boolean>("negative",(value : number) => value < 0);
+const sign = (value : number) => { let result : "positive"|"negative"|"zero";
+                                   if(value > 0){ result = "positive";  } 
+                                   else if(value < 0){ result = "negative"; } 
+                                   else { result = "zero"; }
+                                   console.log(`${value} : ${result}`);
+                                   return result;
+                                }
+TransformationFunctions.set<number,"positive"|"negative"|"zero">("sign",sign);
 TransformationFunctions.set<string,string>("truncate", truncate(20,"..."));
 
 
