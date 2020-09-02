@@ -869,6 +869,8 @@ declare module 'locuszoom' {
     export interface LayoutOnclickEntity {
 		action: string;
 		href?: string;
+		status: string;
+		exclusive: boolean;
 	}
 
     export interface LayoutTooltip {

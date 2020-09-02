@@ -889,9 +889,9 @@ export const finemapping_layout: (region: Region) => Layout = (region: Region) =
 	}
 }
 
-const datalayer = (field : string) : LayoutDataLayersEntity => {
+const datalayer = (datalayer_id, field : string, color : string []) : LayoutDataLayersEntity => {
 	return {
-    "id": "colocalization",
+    "id": datalayer_id,
     type: "scatter",
     fields: [
 	"colocalization:id",
@@ -937,13 +937,8 @@ const datalayer = (field : string) : LayoutDataLayersEntity => {
                  </table>`
     },
     "x_axis": { "field": "colocalization:position", "axis": 1 },
-    "y_axis": {
-	"axis": 1,
-	"field": field,
-	"floor": 0,
-	"upper_buffer": 0.0,
-	"min_extent": [0, 1.1]
-    }
+    "y_axis": { "axis": 1, "floor": 0, "upper_buffer": 0.0, "min_extent": [0, 1.1], "field": field },
+	"color": color
 }
 }
 
@@ -984,8 +979,8 @@ export const colocalization_layout: (region: Region) => Layout = (region: Region
 				  "x_linked": true,
 				  "y1_linked": false,
 				  "y2_linked": false },
-	    "data_layers": [ datalayer("colocalization:pip1")
-						// datalayer("colocalization:pip2") 
+	    "data_layers": [ datalayer("colocalization_pip1","colocalization:pip1",["#FF0000"]),
+						 datalayer("colocalization_pip2","colocalization:pip2",["#0000FF"])
 						]
 	}
 }

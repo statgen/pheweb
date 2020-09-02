@@ -40,11 +40,16 @@ const updateLocusZoom = (locusZoomData : LocusZoomData | undefined,context : Loc
     const params : { [key: string ]: any; } = dataSource.params;
     const doLookup : boolean = colocalization && locusZoomData && colocalization.id in locusZoomData;
     const data = doLookup?locusZoomData[colocalization.id]:EMPTY;
-    panel.data_layers.colocalization.data = dataSource.parseArraysToObjects(data,
-                                                                            params.fields,
-                                                                            params.outnames,
-                                                                            params.trans);
-    panel.data_layers.colocalization.render();
+    panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data,
+                                                                                 params.fields,
+                                                                                 params.outnames,
+                                                                                 params.trans);
+    panel.data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data,
+                                                                                 params.fields,
+                                                                                 params.outnames,
+                                                                                 params.trans);
+    panel.data_layers.colocalization_pip1.render();
+    panel.data_layers.colocalization_pip2.render();
   }
 
 const subComponent = (colocalizationList) => (row) => {
