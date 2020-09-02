@@ -2,7 +2,7 @@ import React, { useState, useEffect , useContext } from 'react';
 import ReactTable, { Cell } from 'react-table';
 import { ColocalizationContext, ColocalizationState, Locus } from '../../contexts/colocalization/ColocalizationContext';
 import { CSVLink } from 'react-csv'
-import { Colocalization , CasualVariant, LocusZoomData } from './model'
+import { Colocalization , CasualVariant, LocusZoomData, EMPTY } from './model'
 import { LocusZoomContext } from '../region/locus';
 import { Panel, DataLayer, Plot } from 'locuszoom';
 import selectTableHOC from "react-table/lib/hoc/selectTable";
@@ -30,32 +30,20 @@ const credible_set = (spec : string) : string[] => spec.split(',').map(reformat)
 
 const label = (variant_label : string,variants : Array<CasualVariant>) : CasualVariant[] => variants.map((v) => { return { ... v, variant_label } })
 
-const updateLocusZoom = (locusZoomContext : LocusZoomContext,selectedRow : Map<number,Colocalization>) => {
-    const { plot } : { plot : Plot }= locusZoomContext;
-    const selectedRowSize = selectedRow.size
-    const title: string = (selectedRowSize == 0)?"Credible Set : Colocalization":`Credible Set : Colocalization : ${selectedRowSize}`
+const updateLocusZoom = (locusZoomData : LocusZoomData | undefined,context : LocusZoomContext,colocalization : Colocalization | undefined) => {
+    const { dataSources ,  plot } = context;
+    const title: string = colocalization?`Credible Set : ${colocalization.phenotype1}`:"Credible Set : Colocalization"
     const panel : Panel = plot.panels.colocalization
     panel.setTitle(title)
 
-    const data_layer : DataLayer = panel.data_layers.colocalization;
+    const dataSource = dataSources.sources.colocalization;
+    const params : { [key: string ]: any; } = dataSource.params;
 
-    const variants : CasualVariant [] = Array.
-                                         from(selectedRow.values()).
-                                         reduce<CasualVariant []>((acc,value) => (acc.concat(label('variant 1',value.variants_1),
-                                                                                             label('variant 2',value.variants_2))),
-                                                                                   new Array());
-    const ids : string [] = variants.map(v => v.id);
-    if(ids.length == 0){
-      data_layer.unhideAllElements();
-    } else {                                      
-      data_layer.hideAllElements();
-      variants.forEach(v => {
-        const id : string = `${v.variation_chromosome}${v.position}_${v.variation_ref}${v.variation_alt}`;
-        data_layer.unhideElement(id);
-      });
-    }
-    data_layer.render();
-
+    panel.data_layers.colocalization.data = dataSource.parseArraysToObjects((colocalization && locusZoomData)?locusZoomData.data:EMPTY,
+                                                                            params.fields,
+                                                                            params.outnames,
+                                                                            params.trans);
+    panel.data_layers.colocalization.render();
   }
 
 const subComponent = (colocalizationList) => (row) => {
@@ -80,8 +68,21 @@ const subComponent = (colocalizationList) => (row) => {
 
 const List = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
+    const context : LocusZoomContext = props.locusZoomContext
+
     const [selectedRow, setRowSelected]= useState<string | undefined>(undefined);
-    const toggleSelection = (key, shift, row) => setRowSelected(selectedRow ? undefined : key);
+    const [colocalizationList, setList] = useState<Array<Colocalization> | undefined>(undefined); /* set up hooks for colocalization */
+    const [locusZoomData, setLocusZoomData] = useState<LocusZoomData | undefined>(undefined); /* set up hooks for colocalization */
+
+    useEffect( () => { getList(); 
+                       getLocusZoomData(); }, [parameter]); /* only update on when position is updated */
+
+
+
+    const toggleSelection = (key, shift, row : Colocalization) => { 
+      setRowSelected(selectedRow ? undefined : key);
+      updateLocusZoom(locusZoomData,context,selectedRow ? undefined : row);
+    }
     const isSelected = (key) =>  selectedRow === `select-${key}`;
   
     const rowFn = (state, rowInfo, column, instance) => {
@@ -96,14 +97,6 @@ const List = (props : Props) => {
       };
     };
      
-    const context : LocusZoomContext = props.locusZoomContext
-    const [colocalizationList, setList] = useState<Array<Colocalization> | undefined>(undefined); /* set up hooks for colocalization */
-    const [locusZoomData, setLocusZoomData] = useState<LocusZoomData | undefined>(undefined); /* set up hooks for colocalization */
-
-    useEffect( () => { getList(); 
-                       getLocusZoomData(); }, [parameter]); /* only update on when position is updated */
-
-    
     const getList = () => {
         if(parameter != null && parameter.phenotype != null && parameter.locus != null){
 	    const url = `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}?clpa.gte=0.1&clpa.order=desc`;

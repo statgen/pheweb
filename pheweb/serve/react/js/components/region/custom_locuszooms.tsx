@@ -349,3 +349,12 @@ const ColocalizationSource = Data.Source.extend(function(init) {
 ColocalizationSource.prototype.getURL = function(state, chain, fields) { 
     return this.url;
 }
+
+ColocalizationSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+    this.params.fields = fields;
+    this.params.outnames = outnames;
+    this.params.trans = trans;
+
+    return Data.Source.prototype.parseResponse.call(this, JSON.parse(resp), chain, fields, outnames, trans);
+}
+

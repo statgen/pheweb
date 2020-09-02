@@ -50,5 +50,43 @@ export interface Colocalization {
 
     variants_1 : CasualVariant[]
     variants_2 : CasualVariant[]
+
+    cs_size_1: number;
+    x: number;
+
 };
 
+export interface CasualVariantVector {
+    id : number[],
+    position : number[],
+    varid : string[],
+    beta1: number[],
+    beta2: number[],
+    pip1: number[],
+    pip2: number[],
+    variant : string[],
+    rsid : string[]
+}
+
+export const EMPTY : CasualVariantVector = {
+    id : [],
+    position : [],
+    varid : [],
+    beta1: [],
+    beta2: [],
+    pip1: [],
+    pip2: [],
+    variant : [],
+    rsid : []
+}
+export interface LocusZoomData { data : {
+    id : number[],
+    position : number[],
+    varid : string[],
+    beta1: number[],
+    beta2: number[],
+    pip1: number[],
+    pip2: number[],
+    variant : string[],
+    rsid : string[]
+} };

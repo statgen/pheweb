@@ -34,15 +34,16 @@ declare module 'locuszoom' {
 
     export class DataLayer {
 		render () : void;
-	constructor(layout: object, parent: Panel);
+		data : object[];
+		constructor(layout: object, parent: Panel);
 
-	addField(fieldName: string, nameSpace: string, transformations: string|string[]): string;
+		addField(fieldName: string, nameSpace: string, transformations: string|string[]): string;
 
-	applyAllElementStatus(): void;
+		applyAllElementStatus(): void;
 
-	applyBehaviors(selection: any): void;
+		applyBehaviors(selection: any): void;
 
-	applyCustomDataMethods(): DataLayer;
+		applyCustomDataMethods(): DataLayer;
 
 	applyDataMethods(): DataLayer;
 
@@ -203,49 +204,38 @@ declare module 'locuszoom' {
 
 	
     export class Legend {
-	constructor(t: any);
+	constructor(parent : Panel);
 
 	hide(): void;
 
-	position(): any;
+	position(): void;
 
-	render(): any;
+	render(): void;
 
 	show(): void;
-
 	
-	static DefaultLayout: {
-            height: number;
-            hidden: boolean;
-            label_size: number;
-            orientation: string;
-            origin: Origin;
-            padding: number;
-            width: number;
-	};
-
-    }
+    };
 
     export class Panel {
 		data_layers : { [key: string]: DataLayer };
+		
+		constructor(layout : Layout, parent : Plot|null);
 
-	constructor(t: any, e: any, ...args: any[]);
+		addBasicLoader(addBasicLoader : boolean): Panel;
 
-	addBasicLoader(t: any): any;
+		addDataLayer(layout: Layout): any;
 
-	addDataLayer(t: any): any;
+		clearSelections(): Panel;
 
-	clearSelections(): any;
+		fadeAllElements(): any;
 
-	fadeAllElements(): any;
+		fadeElementsByFilters(t: any, e: any): any;
 
-	fadeElementsByFilters(t: any, e: any): any;
+		generateExtents(): Panel;
 
-	generateExtents(): any;
+		generateTicks(axis: 'x'|'y1'|'y2'): number[]|object[];
 
-	generateTicks(i: any): any;
-
-	getLinkedPanelIds(e: any): any;
+		getLinkedPanelIds(e: any): any;
 
 	hideAllElements(): any;
 
@@ -307,44 +297,7 @@ declare module 'locuszoom' {
 
 	unselectElementsByFilters(t: any, e: any): any;
 
-	static DefaultLayout: {
-        axes: { x: { };
-		y1: { };
-		y2: { }; };
-        background_click: string;
-        cliparea: { height: number;
-		    origin: Origin;
-		    width: number; };
-        dashboard: { components: any[]; };
-        data_layers: any[];
-        height: number;
-        interaction: {
-		drag_background_to_pan: boolean;
-		drag_x_ticks_to_scale: boolean;
-		drag_y1_ticks_to_scale: boolean;
-		drag_y2_ticks_to_scale: boolean;
-		scroll_to_zoom: boolean;
-		x_linked: boolean;
-		y1_linked: boolean;
-		y2_linked: boolean;
-            };
-            legend: any;
-            margin: Margin;
-            min_height: number;
-            min_width: number;
-            origin: Origin;
-            proportional_height?: number;
-            proportional_origin: Origin;
-            proportional_width: any;
-            title: {
-		style: {};
-		text: string;
-		x: number;
-		y: number;
-            };
-            width: number;
-            y_index: any;
-	};
+	static DefaultLayout: Layout;
 
     }
 
@@ -626,7 +579,7 @@ declare module 'locuszoom' {
 	}
 	class Source {
             constructor();
-			params : ({ [key: string ]: string; } | Parameter)
+			params : ({ [key: string ]: string; } | { [key: string ]: any; } | Parameter)
 
             annotateData(records : Object[], chain : Object) : Object[]|Promise<Object>;
 
@@ -768,15 +721,18 @@ declare module 'locuszoom' {
 		interaction?: LayoutInteraction;
 		data_layers?: (LayoutDataLayersEntity)[] | null;
 		description?: string | null;
-	        origin?: Origin;
-	        proportional_origin?: Origin;
+	    origin?: Origin;
+	    proportional_origin?: Origin;
 		background_click?: string;
 		resizable?: string;
 		min_region_scale?: number;
 		max_region_scale?: number;
 		panel_boundaries?: boolean;
 		mouse_guide?: boolean;
-		panels?: LayoutPanel[]
+		cliparea?: { height: number;
+		    		origin: Origin;
+		    		width: number; };
+		panels?: LayoutPanel[];
 	}
 
 	export interface LayoutPanel {
