@@ -102,7 +102,7 @@ const List = (props : Props) => {
         }
       };
     };
-     
+
     const getList = () => {
         if(parameter != null && parameter.phenotype != null && parameter.locus != null){
 	    const url = `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}?clpa.gte=0.1&clpa.order=desc`;

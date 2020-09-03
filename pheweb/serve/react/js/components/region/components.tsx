@@ -25,8 +25,23 @@ export interface Phenotype {
     readonly phenostring: string,
     readonly category: string };
 
+
+export type layout_types = 'finemap' | 'susie' | 'association' | 'genes' | 'clinvar' | 'gwas_cat' | 'colocalization' | 'conditional' 
+
+export interface CondFMRegions {
+    chr: number,
+    end: number,
+    n_signals: number,
+    n_signals_prob: number,
+    path: string,
+    start: number,
+    type: layout_types,
+    variants: string };
+};
+
 export interface Region {
     readonly pheno: Phenotype,
+    readonly cond_fm_regions: CondFMRegions [];
     readonly lz_conf : LzConf,
     readonly vis_conf : VisConf,
     readonly genome_build : number,

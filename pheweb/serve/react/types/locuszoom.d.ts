@@ -14,229 +14,135 @@ declare module 'locuszoom' {
     };
     
     export class Dashboard {
-	constructor(t: any);
-
+	constructor(parent: Plot| Panel);
 	destroy(force: boolean): Dashboard;
-
 	hide(): Dashboard;
-
 	initialize(): Dashboard;
-
 	position(): Dashboard;
-
 	shouldPersist(): boolean;
-
 	show(): Dashboard;
-
 	update(): void;
-
     }
 
     export class DataLayer {
-		render () : void;
-		data : object[];
-		constructor(layout: object, parent: Panel);
-
-		addField(fieldName: string, nameSpace: string, transformations: string|string[]): string;
-
-		applyAllElementStatus(): void;
-
-		applyBehaviors(selection: any): void;
-
-		applyCustomDataMethods(): DataLayer;
-
+	render () : void;
+	data : object[];
+	constructor(layout: object, parent: Panel);
+	addField(fieldName: string, nameSpace: string, transformations: string|string[]): string;
+	applyAllElementStatus(): void;
+	applyBehaviors(selection: any): void;
+	applyCustomDataMethods(): DataLayer;
 	applyDataMethods(): DataLayer;
-
 	createTooltip(data: string|object): DataLayer;
-
 	destroyAllTooltips(): DataLayer;
-
 	destroyTooltip(element_or_id: string|object, temporary: boolean): DataLayer;
-
 	draw(): DataLayer;
-
 	executeBehaviors(directive: string, behaviors: { action : string , status : string }): DataLayer;
-
 	exportData(format?: 'csv' | 'tsv' | 'json'): string;
-
 	fadeAllElements(): DataLayer;
-
 	fadeElement(id: string, exclusive?: boolean): DataLayer;
-
 	fadeElementsByFilters(t: any, exclusive?: boolean): DataLayer;
-
 	filter(filters: any[], return_type: string): any[];
-
 	filterElements(t: any): any[];
-
 	filterIndexes(t: any): any[];
-
 	getAbsoluteDataHeight(): number;
-
 	getAxisExtent(dimension: string): number[];
-
 	getBaseId(): string;
-
 	getElementAnnotation(t: any, e: any): any;
-
 	getElementById(id: string): object|null;
-
 	getElementId(element: string|object): string;
-
 	getElementStatusNodeId(element : string| object): string| null;
-
 	getPageOrigin(): {x: number, y: number};
-
 	getTicks(dimension: string, config: object): object[];
-
 	hideAllElements(): DataLayer;
-
 	hideElement(id: string, exclusive?: boolean): DataLayer;
-
 	hideElementsByFilters(filters: string[][], exclusive?: boolean): DataLayer;
-
 	highlightAllElements(): DataLayer;
-
 	highlightElement(id: string, exclusive?: boolean): DataLayer;
-
 	highlightElementsByFilters(filters: string[][], exclusive?: boolean): DataLayer;
-
 	initialize(): DataLayer;
-
 	moveDown(): DataLayer;
-
 	moveUp(): DataLayer;
-
 	positionAllTooltips(): DataLayer;
-
 	positionTooltip(id: string): DataLayer;
-
 	reMap(): Promise<void>;
-
 	resolveScalableParameter<X,Y>(layout: Array<any>|number|string|object,
 				      element_data: X,
 				      data_index: number): Y;
-
 	selectAllElements(): DataLayer;
-
 	selectElement(id: string, exclusive?: boolean): DataLayer;
-
 	selectElementsByFilters(filters: string[][], exclusive?: boolean): DataLayer;
-
 	setAllElementStatus(status: string, toogle: boolean): DataLayer;
-
 	setElementAnnotation<T>(element: string|object, key: string, value : T): DataLayer;
-
 	setElementStatus(status: string, element: string | object, active: boolean, exclusive: boolean): DataLayer;
-
 	setElementStatusByFilters(status: string, toogle: boolean, filters: any[], exclusive: boolean): DataLayer;
-
 	showOrHideTooltip(element: string | object, first_time: boolean): DataLayer;
-
 	unfadeAllElements(): DataLayer;
-
 	unfadeElement(id: string, exclusive?: boolean): DataLayer;
-
 	unfadeElementsByFilters(filters: string[][], exclusive?: boolean): DataLayer;
-
 	unhideAllElements(): DataLayer;
-
 	unhideElement(id: string, exclusive?: boolean): DataLayer;
-
 	unhideElementsByFilters(filters : string[][], exclusive?: boolean): DataLayer;
-
 	unhighlightAllElements(): DataLayer;
-
 	unhighlightElement(id: string, exclusive?: boolean): DataLayer;
-
 	unhighlightElementsByFilters(filters: string[][], exclusive?: boolean): DataLayer;
-
 	unselectAllElements(): DataLayer;
-
 	unselectElement(id: string, exclusive?: boolean): DataLayer;
-
 	unselectElementsByFilters(t: any, exclusive?: boolean): DataLayer;
-
 	updateTooltip(d: string|object, id: string): DataLayer;
 
-	static DefaultLayout: {
-            fields?: (string)[] | null;
-            tooltip_positioning: string;
-            type: string;
-            x_axis?: LayoutAxis | null;
-	    y_axis?: LayoutAxis | null;
-	};
-
 	static Statuses: {
-            adjectives: string[];
-            menu_antiverbs: string[];
-            verbs: string[];
+	    verbs: 'highlight' | 'select' | 'fade' | 'hide';
+	    adjectives: 'highlighted' | 'selected' | 'faded' | 'hidden';
+	    menu_antiverbs: 'unhighlight' | 'deselect' | 'unfade' | 'show';
 	};
 
     }
 
-
     export class DataSources {
 	constructor();
-
 	add(ns: string, x: Data.Source|Array<any>|null): DataSources;
-
 	addSource(ns: string, x: string): DataSources;
-
 	fromJSON(ns: string): DataSources;
-
 	get(ns: string): Data.Source;
-
 	getSource(ns: string): Data.Source;
-
 	keys(): string[];
-
 	remove(ns: string): DataSources;
-
 	removeSource(ns: string): DataSources;
-
 	set(ns: string, x: Data.Source): DataSources;
-
 	toJSON(): string;
-
 	sources: { [key: string]: Data.Source; }
     }
 
 	
     export class Legend {
 	constructor(parent : Panel);
-
 	hide(): void;
-
 	position(): void;
-
 	render(): void;
-
 	show(): void;
 	
     };
 
     export class Panel {
-		data_layers : { [key: string]: DataLayer };
-		
-		constructor(layout : Layout, parent : Plot|null);
+	on<E>(event : string, hook : ((e : E) => void)) : ((e : E) => void);
+	data_layers : { [key: string]: DataLayer };
+	constructor(layout : Layout, parent : Plot|null);
+	addBasicLoader(addBasicLoader : boolean): Panel;
+	addDataLayer(layout: Layout): any;
+	
+	clearSelections(): Panel;
+	
+	fadeAllElements(): any;
+	
+	fadeElementsByFilters(t: any, e: any): any;
 
-		addBasicLoader(addBasicLoader : boolean): Panel;
+	generateExtents(): Panel;
 
-		addDataLayer(layout: Layout): any;
+	generateTicks(axis: 'x'|'y1'|'y2'): number[]|object[];
 
-		clearSelections(): Panel;
-
-		fadeAllElements(): any;
-
-		fadeElementsByFilters(t: any, e: any): any;
-
-		generateExtents(): Panel;
-
-		generateTicks(axis: 'x'|'y1'|'y2'): number[]|object[];
-
-		getLinkedPanelIds(e: any): any;
-
+	getLinkedPanelIds(e: any): any;
+	
 	hideAllElements(): any;
 
 	hideElementsByFilters(t: any, e: any): any;
@@ -263,7 +169,7 @@ declare module 'locuszoom' {
 
 	resortDataLayers(): void;
 
-	scaleHeightToData(a: any): void;
+	scaleHeightToData(target_height?: number|null): void;
 
 	selectAllElements(): any;
 
@@ -322,68 +228,9 @@ declare module 'locuszoom' {
 
     }
 
-    export const StandardLayout: {
-		dashboard: {
-			components: {
-				position: string;
-				subtitle: string;
-				title: string;
-				type: string;
-				}[];
-		};
-	height: number;
-	aspect_ratio: number;
-	max_region_scale: number;
-	min_region_scale: number;
-	panels: {
-            axes: { x: LayoutAxesLabel;
-		    y1: LayoutAxesLabel;
-		    y2: LayoutAxesLabel; };
-            dashboard: {
-		components: {
-                    color: string;
-                    group_position: string;
-                    position: string;
-                    type: string;
-		}[];
-            };
-            data_layers: {
-		id: string;
-		offset: number;
-		orientation: string;
-		type: string;
-            }[];
-            height: number;
-            id: string;
-            inner_border: string;
-            interaction: {
-		drag_background_to_pan: boolean;
-		drag_x_ticks_to_scale: boolean;
-		drag_y1_ticks_to_scale: boolean;
-		drag_y2_ticks_to_scale: boolean;
-		scroll_to_zoom: boolean;
-		x_linked: boolean;
-            };
-            legend: {
-		hidden: boolean;
-		orientation: string;
-		origin: Origin;
-            };
-            margin: Margin;
-            min_height: number;
-            min_width: number;
-            proportional_height: number;
-            proportional_width: number;
-            width: number;
-	}[];
-	responsive_resize: string;
-	state: {
-	};
-	width: number;
-    };
+    export const StandardLayout: Layout;
 
-    export const ext: {
-    };
+    export const ext: { };
 
     export const version: string;
 
@@ -438,13 +285,13 @@ declare module 'locuszoom' {
 	}
 
 	namespace Components {
-            function add(t: any, e: any): void;
+            function add<X>(name: string, cons: ((_ : X) => Component)): void;
 
-            function get(t: any, e: any, a: any): any;
+            function get(name: string, layout: Layout, parent: Dashboard): Component;
 
             function list(): any;
 
-            function set(t: any, e: any): void;
+            function set(nam: string, component: Component): void;
 
 	}
 
@@ -704,36 +551,36 @@ declare module 'locuszoom' {
     }
 
     export interface Layout {
-		height?: number;
-		width?: number;
-		responsive_resize?: string;
-		id?: string;
-		title?: LayoutTitle;
-		proportional_height?: number;
-		min_width: number;
-		min_height: number;
-		y_index?: number;
-		margin?: Margin;
-		inner_border?: string;
-		dashboard: LayoutDashboard;
-		axes? : LayoutAxes;
-		legend?: LayoutLegend;
-		interaction?: LayoutInteraction;
-		data_layers?: (LayoutDataLayersEntity)[] | null;
-		description?: string | null;
-	    origin?: Origin;
-	    proportional_origin?: Origin;
-		background_click?: string;
-		resizable?: string;
-		min_region_scale?: number;
-		max_region_scale?: number;
-		panel_boundaries?: boolean;
-		mouse_guide?: boolean;
-		cliparea?: { height: number;
-		    		origin: Origin;
-		    		width: number; };
-		panels?: LayoutPanel[];
-	}
+	height?: number;
+	width?: number;
+	responsive_resize?: string;
+	id?: string;
+	title?: LayoutTitle;
+	proportional_height?: number;
+	min_width: number;
+	min_height: number;
+	y_index?: number;
+	margin?: Margin;
+	inner_border?: string;
+	dashboard: LayoutDashboard;
+	axes? : LayoutAxes;
+	legend?: LayoutLegend;
+	interaction?: LayoutInteraction;
+	data_layers?: (LayoutDataLayersEntity)[] | null;
+	description?: string | null;
+	origin?: Origin;
+	proportional_origin?: Origin;
+	background_click?: string;
+	resizable?: string;
+	min_region_scale?: number;
+	max_region_scale?: number;
+	panel_boundaries?: boolean;
+	mouse_guide?: boolean;
+	cliparea?: { height: number;
+		     origin: Origin;
+		     width: number; };
+	panels?: LayoutPanel[];
+    }
 
 	export interface LayoutPanel {
 

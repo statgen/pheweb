@@ -1,5 +1,5 @@
 import { Layout, Panel, LayoutDataLayersEntity } from 'locuszoom';
-import { Region, LzConf } from './components';
+import { Region, LzConf, layout_types } from './components';
 import { defer } from 'q';
 
 import { Layouts, Data, createCORSPromise, DataSources, TransformationFunctions, Dashboard, populate } from 'locuszoom';
@@ -889,11 +889,11 @@ export const finemapping_layout: (region: Region) => Layout = (region: Region) =
 	}
 }
 
-const datalayer = (pip : string,beta : string,color : string []) : LayoutDataLayersEntity => {
+const datalayer = (pip : string,beta : string,color : string) : LayoutDataLayersEntity => {
 
 	const datalayer_id : string = `colocalization_${pip}`
 	const field : string = `colocalization:${pip}`
-	console.log(beta);	
+
 	return {
     "id": datalayer_id,
 	type: "scatter",
@@ -956,8 +956,8 @@ const datalayer = (pip : string,beta : string,color : string []) : LayoutDataLay
     },
     "x_axis": { "field": "colocalization:position", "axis": 1 },
     "y_axis": { "axis": 1, "floor": 0, "upper_buffer": 0.0, "min_extent": [0, 1.1], "field": field },
-	"color": color,
-	legend :  [ { shape: "circle", color, size: 40, pip , "class" : "lz-data_layer-scatter" } ]
+	"color": [color],
+	legend :  [ { shape: "circle", "color" : color, size: 40, "label" : pip , "class" : "lz-data_layer-scatter" } ]
 }
 }
 
@@ -998,8 +998,16 @@ export const colocalization_layout: (region: Region) => Layout = (region: Region
 				  "x_linked": true,
 				  "y1_linked": false,
 				  "y2_linked": false },
-	    "data_layers": [ datalayer("pip1","beta1",["#FF0000"]),
-						 datalayer("pip2","beta2",["#0000FF"])
+	    "data_layers": [ datalayer("pip1","beta1", "#FF0000"),
+						 datalayer("pip2","beta2", "#0000FF")
 						]
 	}
 }
+
+export const panel_layouts : Map<layout_types,Layout> = new Map([
+	['association' , association_layout] ,
+	['genes' , genes_layout ] ,
+	['clinvar' , clinvar_layout ] , 
+	['gwas_cat' , gwas_cat_layout ],
+	['finemapping' , finemapping_layout ], 
+	['colocalization' , colocalization_layout ] ]);
