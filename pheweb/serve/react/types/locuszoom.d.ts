@@ -213,10 +213,6 @@ declare module 'locuszoom' {
      */
 	clearSelections(): Panel;
 	
-	fadeAllElements(): any;
-	
-	fadeElementsByFilters(t: any, e: any): any;
-
 	/**                                                                                                                                                                                                                                                                                                                    
      * Iterate over data layers to generate panel axis extents                                                                                                                                                                                                                                                             
      * @returns {Panel}                                                                                                                                                                                                                                                                                          
@@ -233,13 +229,6 @@ declare module 'locuszoom' {
      */
 	getLinkedPanelIds(axis: 'x'|'y1'|'y2'): string[];
 	
-	hideAllElements(): any;
-
-	hideElementsByFilters(t: any, e: any): any;
-
-	highlightAllElements(): any;
-
-	highlightElementsByFilters(t: any, e: any): any;
 
 	/**                                                                                                                                                                                                                                                                                                                    
      * Prepare the first rendering of the panel. This includes drawing the individual data layers, but also creates shared                                                                                                                                                                                                 
@@ -301,9 +290,6 @@ declare module 'locuszoom' {
 	scaleHeightToData(target_height?: number|null): void;
 
 
-	selectAllElements(): any;
-
-	selectElementsByFilters(status: string, e: any): any;
 	
 	/**                                                                                                                                                                                                                                                                                                                    
      * Set/unset element statuses across all data layers                                                                                                                                                                                                                                                                   
@@ -321,9 +307,9 @@ declare module 'locuszoom' {
      * @public                                                                                                                                                                                                                                                                                                             
      * @param {number} [width]                                                                                                                                                                                                                                                                                             
      * @param {number} [height]                                                                                                                                                                                                                                                                                            
-     * @returns {LocusZoom.Panel}                                                                                                                                                                                                                                                                                          
+     * @returns {Panel}                                                                                                                                                                                                                                                                                          
      */
-	setDimensions(t: any, e: any): any;
+	setDimensions(width: number, height: number): Panel;
 
 	/**                                                                                                                                                                                                                                                                                                                    
      * Methods to set/unset element statuses across all data layers                                                                                                                                                                                                                                                        
@@ -370,6 +356,22 @@ declare module 'locuszoom' {
      * @returns {Panel}                                                                                                                                                                                                                                                                                          
      */
 	setTitle(title : string|{ text : string , x : number , y : number , style : object }|null): Panel;
+
+	fadeAllElements(): any;
+	
+	fadeElementsByFilters(t: any, e: any): any;
+
+	hideAllElements(): any;
+
+	hideElementsByFilters(t: any, e: any): any;
+
+	highlightAllElements(): any;
+
+	highlightElementsByFilters(t: any, e: any): any;
+
+	selectAllElements(): any;
+
+	selectElementsByFilters(status: string, e: any): any;
 
 	unfadeAllElements(): any;
 
@@ -747,16 +749,16 @@ declare module 'locuszoom' {
 	width?: number;
 	responsive_resize?: string;
 	id?: string;
-	title?: LayoutTitle;
+	title?: LayoutTitle | null;
 	proportional_height?: number;
 	min_width: number;
 	min_height: number;
 	y_index?: number;
 	margin?: Margin;
 	inner_border?: string;
-	dashboard: { components?: (ComponentsEntity)[] | null; };
+	dashboard?: { components?: (ComponentsEntity)[] | null; };
 	axes? : LayoutAxes;
-	legend?: LayoutLegend;
+	legend?: LayoutLegend | null;
 	interaction?: LayoutInteraction;
 	data_layers?: (LayoutDataLayersEntity)[] | null;
 	description?: string | null;
@@ -834,7 +836,7 @@ declare module 'locuszoom' {
 
     export interface LayoutDataLayersEntity {
 		behaviors?: LayoutBehaviors | null;
-		color?: ( | string)[] | null;
+		color?: (ValueMap<string> | string) | (ValueMap<string> | string)[] | null;
 		fields?: (string)[] | null;
 		fill_opacity?: number | null;
 		id: string;
@@ -843,8 +845,8 @@ declare module 'locuszoom' {
 		namespace?: {[key: string]: string } | null;
 		offset?: number | null;
 		orientation?: string | null;
-		point_shape?: LayoutPointShape | null;
-		point_size?: LayoutPointSize | null;
+		point_shape?: ValueMap<string> | string | null;
+		point_size?: ValueMap<number> | number | null;
 		tooltip?: LayoutTooltip | null;
 		transition?: boolean | null;
 		type: string;
@@ -852,28 +854,29 @@ declare module 'locuszoom' {
 		y_axis?: LayoutAxis | null;
 	}
 
+	export interface ValueMap<V> {
+		scale_function: string;
+		field: string;
+		parameters: { categories?: (string)[] | null,
+			          values?: V[] | null,
+					  null_value: V } | 
+					{ field_value: string | number,
+					   then: V,
+					   else: V };
+	}
+
+
+
     export interface LayoutNamespace {
 		conditional?: string;
 		association?: string;
 		ld?: string;
 	}
 
-    export interface LayoutPointShape {
-		scale_function: string;
-		field: string;
-		parameters: LayoutParameters;
-	}
-
     export interface LayoutParameters {
 		categories?: (string)[] | null;
 		values?: (string)[] | null;
 		null_value: string;
-	}
-
-    export interface LayoutPointSize {
-		scale_function: string;
-		field: string;
-		parameters: LayoutPointSizeParameters;
 	}
 
     export interface LayoutPointSizeParameters {
@@ -904,8 +907,8 @@ declare module 'locuszoom' {
     export interface LayoutOnclickEntity {
 		action: string;
 		href?: string;
-		status: string;
-		exclusive: boolean;
+		status?: string;
+		exclusive?: boolean;
 	}
 
     export interface LayoutTooltip {
@@ -920,7 +923,7 @@ declare module 'locuszoom' {
     export interface LayoutHide { and?: (string)[] | null; }
 
     export interface LayoutAxis {
-		field: string;
+		field?: string;
 		axis: number;
 	        floor?: number;
 	        lower_buffer?: number;
