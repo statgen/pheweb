@@ -815,7 +815,7 @@ declare module 'locuszoom' {
     }
     export interface LayoutLegend {
 		orientation: string;
-	        origin: Origin;
+	    origin: Origin;
 		hidden: boolean;
 		width: number;
 		height: number;
