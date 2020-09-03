@@ -8,21 +8,16 @@ declare module 'locuszoom' {
 		left: number;
     };
     
-    export interface Origin {
-		x: number;
-		y: number;
-    };
+    export interface Origin { x: number; y: number; };
     
-    export class Dashboard {
-	constructor(parent: Plot| Panel);
-	destroy(force: boolean): Dashboard;
-	hide(): Dashboard;
-	initialize(): Dashboard;
-	position(): Dashboard;
-	shouldPersist(): boolean;
-	show(): Dashboard;
-	update(): void;
-    }
+    export class Dashboard { constructor(parent: Plot| Panel);
+	                         destroy(force: boolean): Dashboard;
+	                         hide(): Dashboard;
+	                         initialize(): Dashboard;
+	                         position(): Dashboard;
+	                         shouldPersist(): boolean;
+	                         show(): Dashboard;
+	                         update(): void; }
 
     export class DataLayer {
 	render () : void;
@@ -125,23 +120,118 @@ declare module 'locuszoom' {
     };
 
     export class Panel {
-	on<E>(event : string, hook : ((e : E) => void)) : ((e : E) => void);
+
+	/** @member {LocusZoom.Plot|null} */
+	parent : Plot | null;
+    /** @member {LocusZoom.Plot|null} */
+	parent_plot : Plot | null;
+	/** @member {String} */
+	id : string
+	/** @member {Boolean} */
+	initialized : boolean;
+    /**                                                                                                                                                                                                                                                                                                                
+	 * The index of this panel in the parent plot's `layout.panels`                                                                                                                                                                                                                                                    
+	 * @member {number}                                                                                                                                                                                                                                                                                                
+	 * */
+	layout_idx : number;
+	/** @member {Object} */
+	svg : object;
+	/**                                                                                                                                                                                                                                                                                                                
+     * A JSON-serializable object used to describe the composition of the Panel                                                                                                                                                                                                                                        
+     * @member {Object}                                                                                                                                                                                                                                                                                                
+     */
+    layout : Layout;	
+	/** @member {Object} */
 	data_layers : { [key: string]: DataLayer };
+	/** @member {String[]} */
+	data_layer_ids_by_z_index : string[];
+	/**                                                                                                                                                                                                                                                                                                                
+     * Track data requests in progress                                                                                                                                                                                                                                                                                 
+     * @member {Promise[]}                                                                                                                                                                                                                                                                                             
+     *  @protected                                                                                                                                                                                                                                                                                                     
+     */
+    data_promises : Promise<object>[];
+    /** @member {Number[]} */
+    x_ticks : number[];
+    /** @member {Number[]} */
+    y1_ticks : number[];
+    /** @member {Number[]} */
+    y2_ticks : number[];
+    /**                                                                                                                                                                                                                                                                                                                
+     * A timeout ID as returned by setTimeout                                                                                                                                                                                                                                                                          
+     * @protected                                                                                                                                                                                                                                                                                                      
+     * @member {number}                                                                                                                                                                                                                                                                                                
+     */
+    zoom_timeout : number | null;
+
+    /** @returns {string} */
+    getBaseId() : string;
+
+
+
+	/**                                                                                                                                                                                                                                                                                                                
+     * There are several events that a LocusZoom panel can "emit" when appropriate, and LocusZoom supports registering                                                                                                                                                                                                 
+     *   "hooks" for these events which are essentially custom functions intended to fire at certain times.                                                                                                                                                                                                            
+     *                                                                                                                                                                                                                                                                                                                 
+     * The following panel-level events are currently supported:                                                                                                                                                                                                                                                       
+     *   - `layout_changed` - context: panel - Any aspect of the panel's layout (including dimensions or state) has changed.                                                                                                                                                                                           
+     *   - `data_requested` - context: panel - A request for new data from any data source used in the panel has been made.                                                                                                                                                                                            
+     *   - `data_rendered` - context: panel - Data from a request has been received and rendered in the panel.                                                                                                                                                                                                         
+     *   - `element_clicked` - context: panel - A data element in any of the panel's data layers has been clicked.                                                                                                                                                                                                     
+     *   - `element_selection` - context: panel - Triggered when an element changes "selection" status, and identifies                                                                                                                                                                                                 
+     *        whether the element is being selected or deselected.                                                                                                                                                                                                                                                     
+     *                                                                                                                                                                                                                                                                                                                 
+     * To register a hook for any of these events use `panel.on('event_name', function() {})`.                                                                                                                                                                                                                         
+     *                                                                                                                                                                                                                                                                                                                 
+     * There can be arbitrarily many functions registered to the same event. They will be executed in the order they                                                                                                                                                                                                   
+     *   were registered. The this context bound to each event hook function is dependent on the type of event, as                                                                                                                                                                                                     
+     *   denoted above. For example, when data_requested is emitted the context for this in the event hook will be the                                                                                                                                                                                                 
+     *   panel itself, but when element_clicked is emitted the context for this in the event hook will be the element                                                                                                                                                                                                  
+     *   that was clicked.                                                                                                                                                                                                                                                                                             
+     *                                                                                                                                                                                                                                                                                                                 
+     * @param {String} event The name of the event (as defined in `event_hooks`)                                                                                                                                                                                                                                       
+     * @param {function} hook                                                                                                                                                                                                                                                                                          
+     * @returns {function} The registered event listener                                                                                                                                                                                                                                                               
+     */
+	on(event : 'layout_changed' | 'data_requested' | 'data_rendered' | 'element_clicked' | 'element_selection', hook : (() => void)) : (() => void);
+	/**                                                                                                                                                                                                                                                                                                                
+     * Remove one or more previously defined event listeners                                                                                                                                                                                                                                                           
+     * @param {String} event The name of an event (as defined in `event_hooks`)                                                                                                                                                                                                                                        
+     * @param {eventCallback} [hook] The callback to deregister                                                                                                                                                                                                                                                        
+     * @returns {LocusZoom.Panel}                                                                                                                                                                                                                                                                                      
+     */
+    off(event : 'layout_changed' | 'data_requested' | 'data_rendered' | 'element_clicked' | 'element_selection', hook : (() => void)) : Panel ;
+
+
 	constructor(layout : Layout, parent : Plot|null);
 	addBasicLoader(addBasicLoader : boolean): Panel;
 	addDataLayer(layout: Layout): any;
 	
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Clear all selections on all data layers                                                                                                                                                                                                                                                                             
+     * @returns {LocusZoom.Panel}                                                                                                                                                                                                                                                                                          
+     */
 	clearSelections(): Panel;
 	
 	fadeAllElements(): any;
 	
 	fadeElementsByFilters(t: any, e: any): any;
 
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Iterate over data layers to generate panel axis extents                                                                                                                                                                                                                                                             
+     * @returns {Panel}                                                                                                                                                                                                                                                                                          
+     */
 	generateExtents(): Panel;
 
+	
 	generateTicks(axis: 'x'|'y1'|'y2'): number[]|object[];
 
-	getLinkedPanelIds(e: any): any;
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Get an array of panel IDs that are axis-linked to this panel                                                                                                                                                                                                                                                        
+     * @param {('x'|'y1'|'y2')} axis                                                                                                                                                                                                                                                                                       
+     * @returns {Array}                                                                                                                                                                                                                                                                                                    
+     */
+	getLinkedPanelIds(axis: 'x'|'y1'|'y2'): string[];
 	
 	hideAllElements(): any;
 
@@ -151,41 +241,135 @@ declare module 'locuszoom' {
 
 	highlightElementsByFilters(t: any, e: any): any;
 
-	initialize(): any;
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Prepare the first rendering of the panel. This includes drawing the individual data layers, but also creates shared                                                                                                                                                                                                 
+     * elements such as axes,  title, and loader/curtain.                                                                                                                                                                                                                                                                
+     * @returns {Panel}                                                                                                                                                                                                                                                                                          
+     */
+	initialize(): Panel;
 
 	initializeLayout(): any;
 
-	moveDown(): any;
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Move a panel up relative to others by y-index                                                                                                                                                                                                                                                                       
+     * @returns {Panel}                                                                                                                                                                                                                                                                                          
+     */
+	moveDown(): Panel;
 
-	moveUp(): any;
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Move a panel down (y-axis) relative to others in the plot                                                                                                                                                                                                                                                           
+     * @returns {Panel}                                                                                                                                                                                                                                                                                          
+     */
+	moveUp(): Panel;
 
-	reMap(): any;
+	/**                                                                                                                                                                                                                                                                                                                    
+     * When the parent plot changes state, adjust the panel accordingly. For example, this may include fetching new data                                                                                                                                                                                                   
+     *   from the API as the viewing region changes                                                                                                                                                                                                                                                                        
+     * @returns {Promise}                                                                                                                                                                                                                                                                                                  
+     */
+	reMap(): Promise<void>;
+	
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Remove a data layer by id                                                                                                                                                                                                                                                                                           
+     * @param {string} id                                                                                                                                                                                                                                                                                                  
+     * @returns {Panel}                                                                                                                                                                                                                                                                                          
+     */
+	removeDataLayer(id: string): Panel;
 
-	removeDataLayer(t: any): any;
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Update rendering of this panel whenever an event triggers a redraw. Assumes that the panel has already been                                                                                                                                                                                                         
+     *   prepared the first time via `initialize`                                                                                                                                                                                                                                                                          
+     * @returns {LocusZoom.Panel}                                                                                                                                                                                                                                                                                          
+     */
+	render(): Panel;
 
-	render(): any;
-
-	renderAxis(i: any): any;
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Render ticks for a particular axis                                                                                                                                                                                                                                                                                  
+     * @param {('x'|'y1'|'y2')} axis The identifier of the axes                                                                                                                                                                                                                                                            
+     * @returns {LocusZoom.Panel}                                                                                                                                                                                                                                                                                          
+     */
+	renderAxis(axis: 'x'|'y1'|'y2'): any;
 
 	resortDataLayers(): void;
 
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Force the height of this panel to the largest absolute height of the data in                                                                                                                                                                                                                                        
+     * all child data layers (if not null for any child data layers)                                                                                                                                                                                                                                                     
+     * @param {number|null} [target_height] A target height, which will be used in situations when the expected height can be                                                                                                                                                                                              
+     *   pre-calculated (eg when the layers are transitioning)                                                                                                                                                                                                                                                             
+     */
 	scaleHeightToData(target_height?: number|null): void;
+
 
 	selectAllElements(): any;
 
-	selectElementsByFilters(t: any, e: any): any;
+	selectElementsByFilters(status: string, e: any): any;
+	
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Set/unset element statuses across all data layers                                                                                                                                                                                                                                                                   
+     * @param {String} status                                                                                                                                                                                                                                                                                              
+     * @param {Boolean} toggle                                                                                                                                                                                                                                                                                             
+     */
+	setAllElementStatus(stuats: string, toogle: boolean): void;
 
-	setAllElementStatus(e: any, a: any): void;
 
+ 	/**                                                                                                                                                                                                                                                                                                                    
+     * Set the dimensions for the panel. If passed with no arguments will calculate optimal size based on layout                                                                                                                                                                                                           
+     *   directives and the available area within the plot. If passed discrete width (number) and height (number) will                                                                                                                                                                                                     
+     *   attempt to resize the panel to them, but may be limited by minimum dimensions defined on the plot or panel.                                                                                                                                                                                                       
+     *                                                                                                                                                                                                                                                                                                                     
+     * @public                                                                                                                                                                                                                                                                                                             
+     * @param {number} [width]                                                                                                                                                                                                                                                                                             
+     * @param {number} [height]                                                                                                                                                                                                                                                                                            
+     * @returns {LocusZoom.Panel}                                                                                                                                                                                                                                                                                          
+     */
 	setDimensions(t: any, e: any): any;
 
-	setElementStatusByFilters(e: any, a: any, i: any, s: any): void;
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Methods to set/unset element statuses across all data layers                                                                                                                                                                                                                                                        
+     * @param {String} status                                                                                                                                                                                                                                                                                              
+     * @param {Boolean} toggle                                                                                                                                                                                                                                                                                             
+     * @param {Array} filters                                                                                                                                                                                                                                                                                              
+     * @param {Boolean} exclusive                                                                                                                                                                                                                                                                                          
+     */
+	setElementStatusByFilters(status: string, toogle: boolean, filters: string[], exclusive: boolean): void;
 
-	setMargin(t: any, e: any, a: any, i: any): any;
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Set margins around this panel                                                                                                                                                                                                                                                                                       
+     * @public                                                                                                                                                                                                                                                                                                             
+     * @param {number} top                                                                                                                                                                                                                                                                                                 
+     * @param {number} right                                                                                                                                                                                                                                                                                               
+     * @param {number} bottom                                                                                                                                                                                                                                                                                              
+     * @param {number} left                                                                                                                                                                                                                                                                                                
+     * @returns {Panel}                                                                                                                                                                                                                                                                                          
+     */
 
-	setOrigin(t: any, e: any): any;
+	setMargin(top: number, right: number, bottom: number, left: number): Panel;
 
-	setTitle(t: any): any;
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Set panel origin on the plot, and re-render as appropriate                                                                                                                                                                                                                                                          
+     *                                                                                                                                                                                                                                                                                                                     
+     * @public                                                                                                                                                                                                                                                                                                             
+     * @param {number} x                                                                                                                                                                                                                                                                                                   
+     * @param {number} y                                                                                                                                                                                                                                                                                                   
+     * @returns {LocusZoom.Panel}                                                                                                                                                                                                                                                                                          
+     */
+	setOrigin(x: number, y: number): Panel;
+
+	/**                                                                                                                                                                                                                                                                                                                    
+     * Set the title for the panel. If passed an object, will merge the object with the existing layout configuration, so                                                                                                                                                                                                  
+     *   that all or only some of the title layout object's parameters can be customized. If passed null, false, or an empty                                                                                                                                                                                               
+     *   string, the title DOM element will be set to display: none.                                                                                                                                                                                                                                                       
+     *                                                                                                                                                                                                                                                                                                                     
+     * @param {string|object|null} title The title text, or an object with additional configuration                                                                                                                                                                                                                        
+     * @param {string} title.text Text to display. Since titles are rendered as SVG text, HTML and newlines will not be rendered.                                                                                                                                                                                          
+     * @param {number} title.x X-offset, in pixels, for the title's text anchor (default left) relative to the top-left corner of the panel.                                                                                                                                                                               
+     * @param {number} title.y Y-offset, in pixels, for the title's text anchor (default left) relative to the top-left corner of the panel.                                                                                                                                                                               
+     *                         NOTE: SVG y values go from the top down, so the SVG origin of (0,0) is in the top left corner.                                                                                                                                                                                                                     
+     * @param {object} title.style CSS styles object to be applied to the title's DOM element.                                                                                                                                                                                                                             
+     * @returns {Panel}                                                                                                                                                                                                                                                                                          
+     */
+	setTitle(title : string|{ text : string , x : number , y : number , style : object }|null): Panel;
 
 	unfadeAllElements(): any;
 
@@ -204,6 +388,14 @@ declare module 'locuszoom' {
 	unselectElementsByFilters(t: any, e: any): any;
 
 	static DefaultLayout: Layout;
+
+	/**                                                                                                                                                                                                                                                                                                                
+     * Get an object with the x and y coordinates of the panel's origin in terms of the entire page                                                                                                                                                                                                                    
+     * Necessary for positioning any HTML elements over the panel                                                                                                                                                                                                                                                      
+     * @returns {{x: Number, y: Number}}                                                                                                                                                                                                                                                                               
+     */
+	getPageOrigin() : { x : number , y : number};
+	
 
     }
 
@@ -280,7 +472,7 @@ declare module 'locuszoom' {
 
             update(): void;
 
-            static Button(t: any): void;
+            static Button(parent: Component): void;
 
 	}
 
@@ -562,7 +754,7 @@ declare module 'locuszoom' {
 	y_index?: number;
 	margin?: Margin;
 	inner_border?: string;
-	dashboard: LayoutDashboard;
+	dashboard: { components?: (ComponentsEntity)[] | null; };
 	axes? : LayoutAxes;
 	legend?: LayoutLegend;
 	interaction?: LayoutInteraction;
@@ -592,11 +784,7 @@ declare module 'locuszoom' {
 		y: number;
 	}
 
-    export interface LayoutDashboard {
-		components?: (LayoutComponentsEntity)[] | null;
-	}
-
-    export interface LayoutComponentsEntity {
+    export interface ComponentsEntity {
 		type: string;
 		position?: string;
 		color?: string;
@@ -620,9 +808,9 @@ declare module 'locuszoom' {
 		label_function?: null | string;
 		label_offset?: number;
 		render?: boolean;
+
 		tick_format?: string;
     }
-
     export interface LayoutLegend {
 		orientation: string;
 	        origin: Origin;
