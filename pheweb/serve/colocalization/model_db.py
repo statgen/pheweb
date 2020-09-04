@@ -217,13 +217,13 @@ class ColocalizationDAO(ColocalizationDB):
                     locus: Locus,
                     flags: typing.Dict[str, typing.Any]={},
                     projection = [Colocalization]):
-        locus_id1 = Colocalization.variants.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
-                                                     CausalVariant.variation_position >= locus.start,
-                                                     CausalVariant.variation_position <= locus.stop))
+        locus_id1 = Colocalization.variants.any(and_(CausalVariant.variant1_chromosome == locus.chromosome,
+                                                     CausalVariant.variant1_position >= locus.start,
+                                                     CausalVariant.variant1_position <= locus.stop))
 
-        locus_id2 = Colocalization.variants_2.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
-                                                       CausalVariant.variation_position >= locus.start,
-                                                       CausalVariant.variation_position <= locus.stop))
+        locus_id2 = Colocalization.variants.any(and_(CausalVariant.variant2_chromosome == locus.chromosome,
+                                                     CausalVariant.variant2_position >= locus.start,
+                                                     CausalVariant.variant2_position <= locus.stop))
         session = self.Session()
         return [session,session.query(*projection).select_from(Colocalization).filter(or_(locus_id1, locus_id2))]
 
@@ -247,7 +247,7 @@ class ColocalizationDAO(ColocalizationDB):
         return SearchResults(colocalizations=matches,
                              count=len(matches))
 
-    def get_finemapping(self,
+    def get_locuszoom(self,
                         phenotype: str,
                         locus: Locus,
                         flags: typing.Dict[str, typing.Any]={}) -> typing.Dict[str, CausalVariantVector]   :
@@ -265,63 +265,87 @@ class ColocalizationDAO(ColocalizationDB):
         session.expire_all()
         rows = {}
         for r in query.all():
-            variants = r.variants_1 + r.variants_2
-            variants = map(lambda r : r.json_rep(), variants)
-            variants = map(lambda v: [v["position"],
-                                      v["variant"],
+            variants = map(lambda r : r.json_rep(), r.variants)
+            variants = map(lambda v: [v["position1"],
+                                      v["position2"],
+                                      v["variant1"],
+                                      v["variant2"],
                                       v["pip1"],
                                       v["pip2"],
                                       v["beta1"],
                                       v["beta2"],
                                       v["id"],
-                                      v["rsid"],
-                                      v["varid"],
+                                      v["rsid1"],
+                                      v["rsid2"],
+                                      v["varid1"],
+                                      v["varid2"],
+                                      v["count_variants"],
                                       r.phenotype1,
                                       r.phenotype1_description,
                                       r.phenotype2,
                                       r.phenotype2_description
-                                      ], variants)
+                                    ], variants)
             variants = list(map(list,zip(*variants)))
             if variants:
-                position = variants[0]
-                variant = variants[1]
-                pip1 = variants[2]
-                pip2 = variants[3]
-                beta1 = variants[4]
-                beta2 = variants[5]
-                causalvariantid = variants[6]
-                rsid = variants[7]
-                varid = variants[8]
-                phenotype1 = variants[9]
-                phenotype1_description = variants[10]
-                phenotype2 = variants[11]
-                phenotype2_description = variants[12]
+                position1 = variants[0]
+                position2 = variants[1]
+                variant1 = variants[2]
+                variant2 = variants[3]
+                pip1 = variants[4]
+                pip2 = variants[5]
+                beta1 = variants[6]
+                beta2 = variants[7]
+                causalvariantid = variants[8]
+                rsid1 = variants[9]
+                rsid2 = variants[10]
+                varid1 = variants[11]
+                varid2 = variants[12]
+                count_variants = variants[13]
+                phenotype1 = variants[14]
+                phenotype1_description = variants[15]
+                phenotype2 = variants[16]
+                phenotype2_description = variants[17]
             else:
-                position = []
-                variant = []
+                position1 = []
+                position2 = []
+                variant1 = []
+                variant2 = []
                 pip1 = []
                 pip2 = []
                 beta1 = []
                 beta2 = []
                 causalvariantid = []
-                rsid = []
-                varid = []
+                rsid1 = []
+                rsid2 = []
+                varid1 = []
+                varid2 = []
+                count_variants = []
                 phenotype1 = []
                 phenotype1_description = []
-
-            rows[r.id] = CausalVariantVector(position,
-                                             variant,
+                phenotype2 = []
+                phenotype2_description = []
+                
+            rows[r.id] = CausalVariantVector(position1,
+                                             position2,
+                                             variant1,
+                                             variant2,
                                              pip1,
                                              pip2,
                                              beta1,
                                              beta2,
                                              causalvariantid,
-                                             rsid,
-                                             varid,
+                                             rsid1,
+                                             rsid2,
+                                             varid1,
+                                             varid2,
+                                             count_variants,
                                              phenotype1,
                                              phenotype1_description,
                                              phenotype2,
                                              phenotype2_description)
+
+
+
 
         return rows
     

@@ -171,13 +171,16 @@ class Locus(JSONifiable):
 class CausalVariantVector(JSONifiable, Kwargs):
     """ Vector of causal variants
     """
-    position = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
+    position1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(int)),
+                                                                iterable_validator=instance_of(typing.List)))
+
+    position2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(int)),
+                                                                iterable_validator=instance_of(typing.List)))
+
+    variant1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
                                                                iterable_validator=instance_of(typing.List)))
 
-    variant1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
-                                                               iterable_validator=instance_of(typing.List)))
-
-    variant2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+    variant2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
                                                                iterable_validator=instance_of(typing.List)))
 
     pip1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(float)),
@@ -194,26 +197,34 @@ class CausalVariantVector(JSONifiable, Kwargs):
 
     causalvariantid = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
                                                                       iterable_validator=instance_of(typing.List)))
-    rsid = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
-                                                           iterable_validator=instance_of(typing.List)))
+    
+    rsid1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
+                                                             iterable_validator=instance_of(typing.List)))
 
-    varid = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
-                                                            iterable_validator=instance_of(typing.List)))
+    rsid2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
+                                                             iterable_validator=instance_of(typing.List)))
 
-    phenotype1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+    varid1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
+                                                             iterable_validator=instance_of(typing.List)))
+
+    varid2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
+                                                             iterable_validator=instance_of(typing.List)))
+
+    count_variants = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
+                                                              iterable_validator=instance_of(typing.List)))
+
+    phenotype1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
                                                                  iterable_validator=instance_of(typing.List)))
 
-    phenotype1_description = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+    phenotype1_description = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
                                                                              iterable_validator=instance_of(typing.List)))
 
-    phenotype2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+    phenotype2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
                                                                  iterable_validator=instance_of(typing.List)))
 
-    phenotype2_description = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+    phenotype2_description = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
                                                                              iterable_validator=instance_of(typing.List)))
     
-    cs_size = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
-                                                              iterable_validator=instance_of(typing.List)))
 
     def json_rep(self):
         return self.__dict__
@@ -274,6 +285,7 @@ class CausalVariant(JSONifiable, Kwargs):
                                                self.variant2.reference,
                                                self.variant2.alternate) if self.variant2 else None
         d["variant2"] = str(d["variant2"]) if self.variant2 else None
+        d["count_variants"] = self.count_variants()
         return d
 
     @staticmethod
@@ -377,8 +389,8 @@ class Colocalization(Kwargs, JSONifiable):
     def json_rep(self):
         d = self.__dict__
         print(d)
-        d["locus_id1"] = str(d["locus_id1"])
-        d["locus_id2"] = str(d["locus_id2"])
+        d["locus_id1"] = str(d["locus_id1"]) if self.locus_id1 else None
+        d["locus_id2"] = str(d["locus_id2"]) if self.locus_id2  else None
         d["cs_size_1"] = sum(map(lambda c : c.count_variant1(), self.variants))
         d["cs_size_2"] = sum(map(lambda c : c.count_variant2(), self.variants))
         d["variants"] = list(map(lambda c : c.json_rep(), self.variants))

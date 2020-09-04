@@ -60,7 +60,7 @@ def get_locuszoom(phenotype: str,
     app_dao = app.jeeves.colocalization
     locus = Locus(chromosome, start, stop)
     variants = app_dao.get_locuszoom(phenotype=phenotype, locus = locus, flags=flags)
-    variants = {k: v.json_rep() for k, v in variants.items()}
+    variants = {k: v.json_rep() for k, v in variants.items()} if variants else []
     return json.dumps(variants)
 
 @development.route('/api/colocalization', methods=["POST"])
