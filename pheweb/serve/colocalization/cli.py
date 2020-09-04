@@ -2,6 +2,7 @@ import typing
 import click
 import os
 import typing
+import csv
 from colocalization.model_db import ColocalizationDAO
 from flask.cli import AppGroup, with_appcontext
 
@@ -20,6 +21,7 @@ def wrap(path,f):
 @with_appcontext
 def init(path) -> None:
     wrap(path,lambda dao: dao.create_schema())
+
 
 @data_cli.command("dump")
 @click.argument("path", required=True, type=str)
@@ -47,4 +49,3 @@ def harness() -> None:
 @with_appcontext
 def cli_load(path: str, data: str, header: bool) -> None:
     wrap(path,lambda dao: dao.load_data(data, header = header))
-    

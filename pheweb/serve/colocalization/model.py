@@ -174,19 +174,22 @@ class CausalVariantVector(JSONifiable, Kwargs):
     position = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
                                                                iterable_validator=instance_of(typing.List)))
 
-    variant = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
-                                                              iterable_validator=instance_of(typing.List)))
+    variant1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+                                                               iterable_validator=instance_of(typing.List)))
 
-    pip1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+    variant2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
+                                                               iterable_validator=instance_of(typing.List)))
+
+    pip1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(float)),
                                                            iterable_validator=instance_of(typing.List)))
 
-    pip2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+    pip2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(float)),
                                                            iterable_validator=instance_of(typing.List)))
 
-    beta1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+    beta1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(float)),
                                                             iterable_validator=instance_of(typing.List)))
 
-    beta2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(float),
+    beta2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(float)),
                                                             iterable_validator=instance_of(typing.List)))
 
     causalvariantid = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
@@ -208,6 +211,9 @@ class CausalVariantVector(JSONifiable, Kwargs):
 
     phenotype2_description = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(str),
                                                                              iterable_validator=instance_of(typing.List)))
+    
+    cs_size = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
+                                                              iterable_validator=instance_of(typing.List)))
 
     def json_rep(self):
         return self.__dict__
@@ -224,9 +230,10 @@ class CausalVariant(JSONifiable, Kwargs):
     pip1, pip2, beta1, beta2, variant
 
     """
-    variant = attr.ib(validator=instance_of(Variant))
-    pip1 = attr.ib(validator=instance_of(float))
-    pip2 = attr.ib(validator=instance_of(float))
+    variant1 = attr.ib(validator=instance_of(Variant))
+    variant2 = attr.ib(validator=instance_of(Variant))
+    pip1 = attr.ib(validator=attr.validators.optional(instance_of(float)))
+    pip2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
     beta1 = attr.ib(validator=attr.validators.optional(instance_of(float)))
     beta2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
     id = attr.ib(validator=attr.validators.optional(instance_of(int)), default= None)
@@ -251,23 +258,25 @@ class CausalVariant(JSONifiable, Kwargs):
                                               self.variant.position,
                                               self.variant.reference,
                                               self.variant.alternate)
-        d["variant"] = str(d["variant"])
+        d["variant1"] = str(d["variant1"])
+        d["variant2"] = str(d["variant2"])
         return d
 
     @staticmethod
-    def from_list(variation_str: str,
+    def from_list(variant1_str: str,
+                  variant2_str: str,
                   pip1_str: str,
                   pip2_str: str,
                   beta1_str: str,
                   beta2_str: str) -> typing.List["Colocalization"]:
 
-        variation_list = list(map(Variant.from_str,variation_str.split(',')))
+        variant1_list = list(map(Variant.from_str,variant1_str.split(',')))
+        variant2_list = list(map(Variant.from_str,variant2_str.split(',')))
         pip1_list = list(map(na(float),pip1_str.split(',')))
         pip2_list = list(map(na(float),pip2_str.split(',')))
         beta1_list = list(map(na(float),beta1_str.split(',')))
         beta2_list = list(map(na(float),beta2_str.split(',')))
-
-        result = list(map(lambda p : CausalVariant(*p),zip(variation_list,pip1_list,pip2_list,beta1_list,beta2_list)))
+        result = list(map(lambda p : CausalVariant(*p),zip(variant1_list,variant2_list,pip1_list,pip2_list,beta1_list,beta2_list)))
         return result
 
     @staticmethod
@@ -327,10 +336,8 @@ class Colocalization(Kwargs, JSONifiable):
     beta_id2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
 
 
-    variants_1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CausalVariant),
-                                                                 iterable_validator=instance_of(typing.List)))
-    variants_2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CausalVariant),
-                                                                 iterable_validator=instance_of(typing.List)))
+    variants = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CausalVariant),
+                                                               iterable_validator=instance_of(typing.List)))
     len_cs1 = attr.ib(validator=instance_of(int))
     len_cs2 = attr.ib(validator=instance_of(int))
     len_inter = attr.ib(validator=instance_of(int))
@@ -343,8 +350,7 @@ class Colocalization(Kwargs, JSONifiable):
         d = self.__dict__
         d["locus_id1"] = str(d["locus_id1"])
         d["locus_id2"] = str(d["locus_id2"])
-        d["variants_1"] = list(map(lambda c : c.json_rep(), self.variants_1))
-        d["variants_2"] = list(map(lambda c : c.json_rep(), self.variants_2))
+        d["variants"] = list(map(lambda c : c.json_rep(), self.variants))
         d["cs_size_1"] = len(self.variants_1)
         d["cs_size_2"] = len(self.variants_2)
         return d
@@ -391,17 +397,12 @@ class Colocalization(Kwargs, JSONifiable):
                                         clpa=nvl(line[14], float),
                                         beta_id1=nvl(line[15], na(float)),
                                         beta_id2=nvl(line[16], na(float)),
-                                        variants_1 = CausalVariant.from_list(nvl(line[17], str),
-                                                                             nvl(line[18], str),
-                                                                             nvl(line[19], str),
-                                                                             nvl(line[20], str),
-                                                                             nvl(line[21], str)),
-
-                                        variants_2 = CausalVariant.from_list(nvl(line[17], str),
-                                                                             nvl(line[18], str),
-                                                                             nvl(line[19], str),
-                                                                             nvl(line[20], str),
-                                                                             nvl(line[21], str)),
+                                        variants = CausalVariant.from_list(nvl(line[17], str),
+                                                                           nvl(line[17], str),
+                                                                           nvl(line[18], str),
+                                                                           nvl(line[19], str),
+                                                                           nvl(line[20], str),
+                                                                           nvl(line[21], str)),
 
                                         len_cs1=nvl(line[22], na(int)),
                                         len_cs2=nvl(line[23], na(int)),

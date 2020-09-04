@@ -22,13 +22,13 @@ metadata = MetaData()
 causal_variant_table = Table('causal_variant',
                              metadata,
                              Column('id', Integer, primary_key=True, autoincrement=True),
-                             Column('pip1', Float, unique=False, nullable=False),
-                             Column('pip2', Float, unique=False, nullable=False),
+                             Column('pip1', Float, unique=False, nullable=True),
+                             Column('pip2', Float, unique=False, nullable=True),
                              Column('beta1', Float, unique=False, nullable=True),
                              Column('beta2', Float, unique=False, nullable=True),
-                             *Variant.columns('variation_'),
-                             Index('causal_variant_variation_chromosome','variation_chromosome'),
-                             Index('causal_variant_variation_position','variation_position'))
+                             *Variant.columns('variant1_'),
+                             *Variant.columns('variant2_'),
+                             Column('colocalization_id', Integer, ForeignKey('colocalization.id')))
 
 colocalization_table = Table('colocalization',
                              metadata,
@@ -63,24 +63,18 @@ def refine_colocalization(c : Colocalization) -> Colocalization:
     c = {x: getattr(c, x) for x in Colocalization.column_names()}
     return Colocalization(**c)
 
-colocalization_variants_1_table = Table('colocalization_variants_1',
-                                        metadata,
-                                        Column('colocalization_id', Integer, ForeignKey('colocalization.id'), primary_key=True),
-                                        Column('causal_variant_id', Integer, ForeignKey('causal_variant.id'), primary_key=True))
-
-colocalization_variants_2_table = Table('colocalization_variants_2',
-                                        metadata,
-                                        Column('colocalization', Integer, ForeignKey('colocalization.id'), primary_key=True),
-                                        Column('causal_variant_id', Integer, ForeignKey('causal_variant.id'), primary_key=True))
-
-
 causal_variant_mapper = mapper(CausalVariant,
                                causal_variant_table,
-                               properties = { 'variant': composite(Variant,
-                                                                   causal_variant_table.c.variation_chromosome,
-                                                                   causal_variant_table.c.variation_position,
-                                                                   causal_variant_table.c.variation_ref,
-                                                                   causal_variant_table.c.variation_alt)
+                               properties = { 'variant1': composite(Variant,
+                                                                   causal_variant_table.c.variant1_chromosome,
+                                                                   causal_variant_table.c.variant1_position,
+                                                                   causal_variant_table.c.variant1_ref,
+                                                                   causal_variant_table.c.variant1_alt)
+                                            , 'variant2': composite(Variant,
+                                                                     causal_variant_table.c.variant2_chromosome,
+                                                                     causal_variant_table.c.variant2_position,
+                                                                     causal_variant_table.c.variant2_ref,
+                                                                     causal_variant_table.c.variant2_alt)
                                             })
 
 
@@ -102,12 +96,7 @@ cluster_coordinate_mapper = mapper(Colocalization,
                                                                   colocalization_table.c.start,
                                                                   colocalization_table.c.stop),
 
-                                               'variants_1': relationship(CausalVariant,
-                                                                          secondary=colocalization_variants_1_table),
-
-                                               'variants_2': relationship(CausalVariant,
-                                                                          secondary=colocalization_variants_2_table),
-
+                                               'variants': relationship(CausalVariant),
                                    }
 )
 
@@ -115,6 +104,7 @@ cluster_coordinate_mapper = mapper(Colocalization,
 class ColocalizationDAO(ColocalizationDB):
     @staticmethod
     def mysql_config(path : str) -> typing.Optional[str] :
+        print(path)
         if os.path.exists(path):
             loader = importlib.machinery.SourceFileLoader('auth_module',path)
             spec = importlib.util.spec_from_loader(loader.name, loader)
@@ -191,8 +181,8 @@ class ColocalizationDAO(ColocalizationDB):
                         raise
 
         session = self.Session()
-        #session.bulk_save_objects(generate_colocalization())
         for c in generate_colocalization():
+            print('.',flush=True,sep='')
             self.save(c)
             c = None
 
@@ -201,9 +191,6 @@ class ColocalizationDAO(ColocalizationDB):
 
     def save(self,colocalization : Colocalization) -> None:
         session = self.Session()
-        variants = colocalization.variants_1 + colocalization.variants_2
-        for v in variants:
-            session.add(v)
         session.add(colocalization)
         session.commit()
 
@@ -221,9 +208,9 @@ class ColocalizationDAO(ColocalizationDB):
                     locus: Locus,
                     flags: typing.Dict[str, typing.Any]={},
                     projection = [Colocalization]):
-        locus_id1 = Colocalization.variants_1.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
-                                                       CausalVariant.variation_position >= locus.start,
-                                                       CausalVariant.variation_position <= locus.stop))
+        locus_id1 = Colocalization.variants.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
+                                                     CausalVariant.variation_position >= locus.start,
+                                                     CausalVariant.variation_position <= locus.stop))
 
         locus_id2 = Colocalization.variants_2.any(and_(CausalVariant.variation_chromosome == locus.chromosome,
                                                        CausalVariant.variation_position >= locus.start,
