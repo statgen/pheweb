@@ -359,10 +359,6 @@ class ColocalizationDAO(ColocalizationDB):
                            colocalization_id : int,
                            flags: typing.Dict[str, typing.Any] = dict()) -> typing.Optional[Colocalization]:
         session = self.Session()
-        #matches = session.query(Colocalization).filter(CausalVariant.id == id).one_or_none()
-        print(type(colocalization_id))
-        matches = session.query(Colocalization).first()
-        session.expire_all()
-        print(matches)
+        matches = session.query(Colocalization).filter(Colocalization.id == colocalization_id).one_or_none()
         return matches
 

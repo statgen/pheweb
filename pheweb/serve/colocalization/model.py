@@ -364,7 +364,6 @@ class Colocalization(Kwargs, JSONifiable):
     beta_id1 = attr.ib(validator=attr.validators.optional(instance_of(float)))
     beta_id2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
 
-
     variants = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(CausalVariant),
                                                                iterable_validator=instance_of(typing.List)))
     len_cs1 = attr.ib(validator=instance_of(int))
@@ -377,6 +376,7 @@ class Colocalization(Kwargs, JSONifiable):
 
     def json_rep(self):
         d = self.__dict__
+        print(d)
         d["locus_id1"] = str(d["locus_id1"])
         d["locus_id2"] = str(d["locus_id2"])
         d["cs_size_1"] = sum(map(lambda c : c.count_variant1(), self.variants))
