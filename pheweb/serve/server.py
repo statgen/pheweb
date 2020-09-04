@@ -274,6 +274,7 @@ def api_lof_gene(gene):
 @check_auth
 def api_top_hits():
     return send_file(common_filepaths['top-hits-1k'])
+
 @app.route('/download/top_hits.tsv')
 @check_auth
 def download_top_hits():
@@ -282,7 +283,7 @@ def download_top_hits():
 @app.route('/api/qq/pheno/<phenocode>')
 @check_auth
 def api_pheno_qq(phenocode):
-    if phenocode not in use_phenos:
+    if phenocode.replace('.json', '') not in use_phenos:
         abort(404)
     return send_from_directory(common_filepaths['qq'](''), phenocode)
 
