@@ -158,6 +158,15 @@ class Locus(JSONifiable):
                  Column('{}start'.format(prefix), Integer, unique=False, nullable=False),
                  Column('{}stop'.format(prefix), Integer, unique=False, nullable=False) ]
 
+    def __composite_values__(self):                                                                                                                                                                            
+        """                                                                                                                                                                                                    
+        These are artifacts needed for composition by sqlalchemy.                                                                                                                                              
+        Returns a tuple containing the constructor args.                                                                                                                                                       
+                                                                                                                                                                                                               
+        :return: tuple (chromosome, start, stop)                                                                                                                                                               
+        """                                                                                                                                                                                                    
+        return self.chromosome, self.start, self.stop                                                                                                                                                          
+                                                         
 @attr.s
 class CausalVariantVector(JSONifiable, Kwargs):
     """ Vector of causal variants
@@ -215,13 +224,13 @@ class CausalVariant(JSONifiable, Kwargs):
     pip1, pip2, beta1, beta2, variant
 
     """
-    id = attr.ib(validator=attr.validators.optional(instance_of(int)))
     variant = attr.ib(validator=instance_of(Variant))
     pip1 = attr.ib(validator=instance_of(float))
     pip2 = attr.ib(validator=instance_of(float))
     beta1 = attr.ib(validator=attr.validators.optional(instance_of(float)))
     beta2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
-
+    id = attr.ib(validator=attr.validators.optional(instance_of(int)), default= None)
+ 
     def kwargs_rep(self) -> typing.Dict[str, typing.Any]:
         return self.__dict__
 
@@ -252,11 +261,11 @@ class CausalVariant(JSONifiable, Kwargs):
                   beta1_str: str,
                   beta2_str: str) -> typing.List["Colocalization"]:
 
-        variation_list = map(Variant.from_str,variation_str.split(','))
-        pip1_list = map(na(float),pip1_str.split(','))
-        pip2_list = map(na(float),pip2_str.split(','))
-        beta1_list = map(na(float),beta1_str.split(','))
-        beta2_list = map(na(float),beta2_str.split(','))
+        variation_list = list(map(Variant.from_str,variation_str.split(',')))
+        pip1_list = list(map(na(float),pip1_str.split(',')))
+        pip2_list = list(map(na(float),pip2_str.split(',')))
+        beta1_list = list(map(na(float),beta1_str.split(',')))
+        beta2_list = list(map(na(float),beta2_str.split(',')))
 
         result = list(map(lambda p : CausalVariant(*p),zip(variation_list,pip1_list,pip2_list,beta1_list,beta2_list)))
         return result
@@ -297,7 +306,6 @@ class Colocalization(Kwargs, JSONifiable):
     how data is loaded.
 
     """
-    id = attr.ib(validator=attr.validators.optional(instance_of(int)))
     source1 = attr.ib(validator=instance_of(str))
     source2 = attr.ib(validator=instance_of(str))
     phenotype1 = attr.ib(validator=instance_of(str))
@@ -327,6 +335,7 @@ class Colocalization(Kwargs, JSONifiable):
     len_cs2 = attr.ib(validator=instance_of(int))
     len_inter = attr.ib(validator=instance_of(int))
 
+    id = attr.ib(validator=attr.validators.optional(instance_of(int)), default=None)
     def kwargs_rep(self) -> typing.Dict[str, typing.Any]:
         return self.__dict__
 
@@ -482,7 +491,7 @@ class ColocalizationDB:
                         locus: Locus,
                         flags: typing.Dict[str, typing.Any]={}) -> typing.List[CausalVariant]:
         None
-    
+
     @abc.abstractmethod
     def get_variant(self,
                     phenotype: str,
