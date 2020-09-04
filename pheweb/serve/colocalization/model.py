@@ -245,21 +245,35 @@ class CausalVariant(JSONifiable, Kwargs):
         d = self.__dict__
         d = d.copy()
         d.pop("_sa_instance_state", None)
-        d["position"] = self.variant.position
-        d["plotid"] = "{0}:{1}_{2}/{3}".format(self.variant.chromosome,
-                                               self.variant.position,
-                                               self.variant.reference,
-                                               self.variant.alternate)
-        d["rsid"] = "chr{0}_{1}_{2}/{3}".format(self.variant.chromosome,
-                                                self.variant.position,
-                                                self.variant.reference,
-                                                self.variant.alternate)
-        d["varid"] = "{0}:{1}:{2}:{3}".format(self.variant.chromosome,
-                                              self.variant.position,
-                                              self.variant.reference,
-                                              self.variant.alternate)
-        d["variant1"] = str(d["variant1"])
-        d["variant2"] = str(d["variant2"])
+        d["position1"] = self.variant1.position if self.variant1 else None 
+        d["plotid1"] = "{0}:{1}_{2}/{3}".format(self.variant1.chromosome,
+                                                self.variant1.position,
+                                                self.variant1.reference,
+                                                self.variant1.alternate) if self.variant1 else None
+        d["rsid1"] = "chr{0}_{1}_{2}/{3}".format(self.variant1.chromosome,
+                                                 self.variant1.position,
+                                                 self.variant1.reference,
+                                                 self.variant1.alternate) if self.variant1 else None
+        d["varid1"] = "{0}:{1}:{2}:{3}".format(self.variant1.chromosome,
+                                               self.variant1.position,
+                                               self.variant1.reference,
+                                               self.variant1.alternate) if self.variant1 else None
+        d["variant1"] = str(d["variant1"]) if self.variant1 else None
+        
+        d["position2"] = self.variant2.position if self.variant2 else None
+        d["plotid2"] = "{0}:{1}_{2}/{3}".format(self.variant2.chromosome,
+                                                self.variant2.position,
+                                                self.variant2.reference,
+                                                self.variant2.alternate) if self.variant2 else None
+        d["rsid2"] = "chr{0}_{1}_{2}/{3}".format(self.variant2.chromosome,
+                                                 self.variant2.position,
+                                                 self.variant2.reference,
+                                                 self.variant2.alternate) if self.variant2 else None
+        d["varid2"] = "{0}:{1}:{2}:{3}".format(self.variant2.chromosome,
+                                               self.variant2.position,
+                                               self.variant2.reference,
+                                               self.variant2.alternate) if self.variant2 else None
+        d["variant2"] = str(d["variant2"]) if self.variant2 else None
         return d
 
     @staticmethod
@@ -288,6 +302,21 @@ class CausalVariant(JSONifiable, Kwargs):
         :return: tuple (chromosome, start, stop)
         """
         return self.variant , self.pip1 , self.pip2 , self.beta1 ,self.beta2
+
+    def has_variant1(self) -> bool:
+        return self.variant1 and self.pip1 and self.beta1
+
+    def has_variant2(self) -> bool:
+        return self.variant2 and self.pip2 and self.beta2
+
+    def count_variant1(self) -> int:
+        return 1 if self.has_variant1() else 0
+        
+    def count_variant2(self) -> int:
+        return 1 if self.has_variant2() else 0
+
+    def count_variants(self) -> int:
+        return self.count_variant1() + self.count_variant2()
 
 @attr.s
 class ColocalizationMap(JSONifiable):
@@ -350,9 +379,9 @@ class Colocalization(Kwargs, JSONifiable):
         d = self.__dict__
         d["locus_id1"] = str(d["locus_id1"])
         d["locus_id2"] = str(d["locus_id2"])
+        d["cs_size_1"] = sum(map(lambda c : c.count_variant1(), self.variants))
+        d["cs_size_2"] = sum(map(lambda c : c.count_variant2(), self.variants))
         d["variants"] = list(map(lambda c : c.json_rep(), self.variants))
-        d["cs_size_1"] = len(self.variants_1)
-        d["cs_size_2"] = len(self.variants_2)
         return d
 
     @staticmethod
@@ -487,7 +516,7 @@ class ColocalizationDB:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_finemapping(self,
+    def get_locuszoom(self,
                         phenotype: str,
                         locus: Locus,
                         flags: typing.Dict[str, typing.Any]={}) -> typing.List[CausalVariant]:
@@ -515,4 +544,11 @@ class ColocalizationDB:
                           phenotype: str,
                           locus: Locus,
                           flags: typing.Dict[str, typing.Any] = {}) -> SearchSummary:
+        raise NotImplementedError
+
+
+    @abc.abstractmethod
+    def get_colocalization(self,
+                           colocalization_id : int,
+                           flags : typing.Dict[str, typing.Any] = {}) -> typing.Optional[Colocalization]:
         raise NotImplementedError

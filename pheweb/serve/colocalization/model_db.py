@@ -26,8 +26,8 @@ causal_variant_table = Table('causal_variant',
                              Column('pip2', Float, unique=False, nullable=True),
                              Column('beta1', Float, unique=False, nullable=True),
                              Column('beta2', Float, unique=False, nullable=True),
-                             *Variant.columns('variant1_'),
-                             *Variant.columns('variant2_'),
+                             *Variant.columns('variant1_', nullable=True),
+                             *Variant.columns('variant2_', nullable=True),
                              Column('colocalization_id', Integer, ForeignKey('colocalization.id')))
 
 colocalization_table = Table('colocalization',
@@ -63,14 +63,23 @@ def refine_colocalization(c : Colocalization) -> Colocalization:
     c = {x: getattr(c, x) for x in Colocalization.column_names()}
     return Colocalization(**c)
 
+def NullableVariant(chromosome : typing.Optional[str],
+                    position : typing.Optional[int],
+                    reference : typing.Optional[str],
+                    alternate : typing.Optional[str]) -> typing.Optional[Variant] :
+    if chromosome and position and reference and alternate:
+        return Variant(chromosome, position, reference, alternate)
+    else:
+        return None
+        
 causal_variant_mapper = mapper(CausalVariant,
                                causal_variant_table,
-                               properties = { 'variant1': composite(Variant,
+                               properties = { 'variant1': composite(NullableVariant,
                                                                    causal_variant_table.c.variant1_chromosome,
                                                                    causal_variant_table.c.variant1_position,
                                                                    causal_variant_table.c.variant1_ref,
                                                                    causal_variant_table.c.variant1_alt)
-                                            , 'variant2': composite(Variant,
+                                            , 'variant2': composite(NullableVariant,
                                                                      causal_variant_table.c.variant2_chromosome,
                                                                      causal_variant_table.c.variant2_position,
                                                                      causal_variant_table.c.variant2_ref,
@@ -233,8 +242,8 @@ class ColocalizationDAO(ColocalizationDB):
         :return: matching colocalizations
         """
         [session,query] = self.locus_query(phenotype, locus, flags)
-        session.expire_all()
         matches = query.all()
+        session.expire_all()
         return SearchResults(colocalizations=matches,
                              count=len(matches))
 
@@ -345,3 +354,15 @@ class ColocalizationDAO(ColocalizationDB):
                                              f=refine_colocalization)
         return SearchResults(colocalizations=matches,
                              count=len(matches))
+        
+    def get_colocalization(self,
+                           colocalization_id : int,
+                           flags: typing.Dict[str, typing.Any] = dict()) -> typing.Optional[Colocalization]:
+        session = self.Session()
+        #matches = session.query(Colocalization).filter(CausalVariant.id == id).one_or_none()
+        print(type(colocalization_id))
+        matches = session.query(Colocalization).first()
+        session.expire_all()
+        print(matches)
+        return matches
+

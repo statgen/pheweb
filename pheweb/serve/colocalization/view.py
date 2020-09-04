@@ -42,7 +42,7 @@ def do_summary_colocalization(phenotype: str,
 
 
 @colocalization.route('/api/colocalization/<string:phenotype>/lz-results/', methods=["GET"])
-def get_finemapping(phenotype: str):
+def get_locuszoom_results(phenotype: str):
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chromosome, start, stop = groups[0], int(groups[1]), int(groups[2])
@@ -59,7 +59,7 @@ def get_locuszoom(phenotype: str,
     flags = flags or request.args.to_dict()
     app_dao = app.jeeves.colocalization
     locus = Locus(chromosome, start, stop)
-    variants = app_dao.get_finemapping(phenotype=phenotype, locus = locus, flags=flags)
+    variants = app_dao.get_locuszoom(phenotype=phenotype, locus = locus, flags=flags)
     variants = {k: v.json_rep() for k, v in variants.items()}
     return json.dumps(variants)
 
@@ -70,3 +70,13 @@ def post_phenotype1():
     path = os.path.join(upload_dir, path)
     f.save(path)
     return json.dumps(app_dao.load_data(path), default=lambda o: None)
+
+
+@development.route('/api/colocalization/<int:colocalization_id>', methods=["GET"])
+def get_colocalization(colocalization_id: int):
+    app_dao = app.jeeves.colocalization
+    flags = request.args.to_dict()
+    results = app_dao.get_colocalization(colocalization_id)
+    return json.dumps(results.json_rep() if results else None, default=lambda o: None)
+
+
