@@ -84,6 +84,7 @@ assert pad_gene(200000, 800000) == (200000, 800000)
 
 chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
 chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
+chrom_order['23'] = 22
 chrom_aliases = {'23': 'X', '24': 'Y', '25': 'MT', 'M': 'MT'}
 
 
