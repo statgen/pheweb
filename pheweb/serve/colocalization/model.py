@@ -158,15 +158,15 @@ class Locus(JSONifiable):
                  Column('{}start'.format(prefix), Integer, unique=False, nullable=False),
                  Column('{}stop'.format(prefix), Integer, unique=False, nullable=False) ]
 
-    def __composite_values__(self):                                                                                                                                                                            
-        """                                                                                                                                                                                                    
-        These are artifacts needed for composition by sqlalchemy.                                                                                                                                              
-        Returns a tuple containing the constructor args.                                                                                                                                                       
-                                                                                                                                                                                                               
-        :return: tuple (chromosome, start, stop)                                                                                                                                                               
-        """                                                                                                                                                                                                    
-        return self.chromosome, self.start, self.stop                                                                                                                                                          
-                                                         
+    def __composite_values__(self):
+        """
+        These are artifacts needed for composition by sqlalchemy.
+        Returns a tuple containing the constructor args.
+
+        :return: tuple (chromosome, start, stop)
+        """
+        return self.chromosome, self.start, self.stop
+
 @attr.s
 class CausalVariantVector(JSONifiable, Kwargs):
     """ Vector of causal variants
@@ -197,7 +197,7 @@ class CausalVariantVector(JSONifiable, Kwargs):
 
     causalvariantid = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
                                                                       iterable_validator=instance_of(typing.List)))
-    
+
     rsid1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
                                                              iterable_validator=instance_of(typing.List)))
 
@@ -224,7 +224,7 @@ class CausalVariantVector(JSONifiable, Kwargs):
 
     phenotype2_description = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
                                                                              iterable_validator=instance_of(typing.List)))
-    
+
 
     def json_rep(self):
         return self.__dict__
@@ -248,7 +248,7 @@ class CausalVariant(JSONifiable, Kwargs):
     beta1 = attr.ib(validator=attr.validators.optional(instance_of(float)))
     beta2 = attr.ib(validator=attr.validators.optional(instance_of(float)))
     id = attr.ib(validator=attr.validators.optional(instance_of(int)), default= None)
- 
+
     def kwargs_rep(self) -> typing.Dict[str, typing.Any]:
         return self.__dict__
 
@@ -256,7 +256,7 @@ class CausalVariant(JSONifiable, Kwargs):
         d = self.__dict__
         d = d.copy()
         d.pop("_sa_instance_state", None)
-        d["position1"] = self.variant1.position if self.variant1 else None 
+        d["position1"] = self.variant1.position if self.variant1 else None
         d["plotid1"] = "{0}:{1}_{2}/{3}".format(self.variant1.chromosome,
                                                 self.variant1.position,
                                                 self.variant1.reference,
@@ -270,7 +270,7 @@ class CausalVariant(JSONifiable, Kwargs):
                                                self.variant1.reference,
                                                self.variant1.alternate) if self.variant1 else None
         d["variant1"] = str(d["variant1"]) if self.variant1 else None
-        
+
         d["position2"] = self.variant2.position if self.variant2 else None
         d["plotid2"] = "{0}:{1}_{2}/{3}".format(self.variant2.chromosome,
                                                 self.variant2.position,
@@ -286,6 +286,7 @@ class CausalVariant(JSONifiable, Kwargs):
                                                self.variant2.alternate) if self.variant2 else None
         d["variant2"] = str(d["variant2"]) if self.variant2 else None
         d["count_variants"] = self.count_variants()
+        d["count_label"] = self.count_label()
         return d
 
     @staticmethod
@@ -323,12 +324,23 @@ class CausalVariant(JSONifiable, Kwargs):
 
     def count_variant1(self) -> int:
         return 1 if self.has_variant1() else 0
-        
+
     def count_variant2(self) -> int:
         return 1 if self.has_variant2() else 0
 
     def count_variants(self) -> int:
         return self.count_variant1() + self.count_variant2()
+
+    def count_label(self) -> int:
+        if self.has_variant1() and self.has_variant2():
+            label = 'Both'
+        elif self.has_variant1():
+            label = 'CS1'
+        elif self.has_variant2():
+            label = 'CS2'
+        else:
+            label = 'None'
+        return label
 
 @attr.s
 class ColocalizationMap(JSONifiable):

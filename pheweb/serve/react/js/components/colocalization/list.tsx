@@ -32,7 +32,7 @@ const label = (variant_label : string,variants : Array<CasualVariant>) : CasualV
 
 const updateLocusZoom = (locusZoomData : LocusZoomData | undefined,context : LocusZoomContext,colocalization : Colocalization | undefined) => {
     const { dataSources ,  plot } = context;
-    const title: string = colocalization?`Credible Set : ${colocalization.phenotype2}`:"Credible Set : Colocalization"
+    const title: string = colocalization?`Credible Set : ${colocalization.phenotype2_description} : ${colocalization.tissue2}`:"Credible Set : Colocalization"
     const panel : Panel = plot.panels.colocalization
     panel.setTitle(title)
 
@@ -53,16 +53,16 @@ const updateLocusZoom = (locusZoomData : LocusZoomData | undefined,context : Loc
   }
 
 const subComponent = (colocalizationList) => (row) => {
-    const metadata = [ { title: "Variant" , accessor: "variant" , label: "Variant" },
+    const metadata = [ { title: "Variant 1" , accessor: "varid1" , label: "Variant 1" },
 		       { title: "pip1" , accessor: "pip1" , label:"PIP 1" },
-		       { title: "pip2" , accessor: "pip2" , label:"PIP 2" },
 		       { title: "beta1" , accessor: "beta1" , label:"Beta 1" },
-           { title: "beta2" , accessor: "beta2" , label:"Beta 2" },
-           { title: "variant_label" , accessor: "variant_label" , label:"Label" }]
+		       { title: "Variant 2" , accessor: "varid2" , label: "Variant 2" },
+		       { title: "pip2" , accessor: "pip2" , label:"PIP 2" },
+		       { title: "beta2" , accessor: "beta2" , label:"Beta 2" },
+		       { title: "count_label" , accessor: "count_label" , label:"Label" }]
     const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
     const colocalization : Colocalization = colocalizationList[row.index]
-    const data = [... label('variant 1', colocalization.variants_1),
-                  ... label('variant 2', colocalization.variants_2)] // TODO : add variant columns
+    const data = colocalization.variants
     return (<div style={{ padding: "20px" }}>
 	      <ReactTable
                   data={ data }
@@ -97,8 +97,7 @@ const List = (props : Props) => {
         style: {
           background:
             rowInfo &&
-            selectedRow === `select-${rowInfo.original.id}` &&
-            "lightgrey"
+            selectedRow === `select-${rowInfo.original.id}` && "lightgrey"
         }
       };
     };
@@ -137,8 +136,8 @@ const List = (props : Props) => {
 			   { title: "clpa", accessor: "clpa" ,
 			     Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
 			     label: "CLPA" },
-         { title: "cs_size_1", accessor: "cs_size_1", label: "CS Size 1" },
-         { title: "cs_size_2", accessor: "cs_size_2", label: "CS Size 2" }
+			   { title: "cs_size_1", accessor: "cs_size_1", label: "CS Size 1" },
+			   { title: "cs_size_2", accessor: "cs_size_2", label: "CS Size 2" }
         
         ];
 

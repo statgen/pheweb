@@ -888,37 +888,43 @@ export const finemapping_layout: (region: Region) => Layout = (region: Region) =
 	}
 }
 
-const datalayer = (pip : string,beta : string,color : string) : LayoutDataLayersEntity => {
+const datalayer = (index : int,color : string) : LayoutDataLayersEntity => {
+    const pip = `pip${index}`
+    const beta = `beta${index}`
+    const datalayer_id : string = `colocalization_${pip}`
+    const field : string = `colocalization:${pip}`
 
-	const datalayer_id : string = `colocalization_${pip}`
-	const field : string = `colocalization:${pip}`
-
-	return {
-    "id": datalayer_id,
+    return {
+	"id": datalayer_id,
 	type: "scatter",
 	point_shape : {
-		scale_function : "categorical_bin",
-		field : `colocalization:${beta}|sign`  ,
-		parameters : {
-			categories : [ "positive", "zero", "negative"] ,
-			values : [ "triangle-up" , "circle" , "triangle-down" ],
-			null_value : "square"
-		}
+	    scale_function : "categorical_bin",
+	    field : `colocalization:beta${index}|sign`  ,
+	    parameters : {
+		categories : [ "positive", "zero", "negative"] ,
+		values : [ "triangle-up" , "circle" , "triangle-down" ],
+		null_value : "square"
+	    }
 	},
     fields: [
 	"colocalization:causalvariantid",
-	"colocalization:position",
-	"colocalization:variant",
+	"colocalization:position1",
+	"colocalization:position2",
+	"colocalization:variant1",
+	"colocalization:variant2",
 	"colocalization:pip1",
 	"colocalization:pip2",
 	"colocalization:beta1",
 	"colocalization:beta2",
-	"colocalization:rsid",
-	"colocalization:varid",
+	"colocalization:rsid1",
+	"colocalization:rsid2",
+	"colocalization:varid1",
+	"colocalization:varid2",
+	"colocalization:count_variants",	
 	"colocalization:phenotype1",	
 	"colocalization:phenotype1_description",
 	"colocalization:phenotype2",	
-	"colocalization:phenotype2_description"	
+	"colocalization:phenotype2_description"
     ],
     orientation: "horizontal",
     offset: -Math.log10(5e-8),
@@ -942,10 +948,10 @@ const datalayer = (pip : string,beta : string,color : string) : LayoutDataLayers
                        <td>pip1</td><td><strong>{{colocalization:pip1}}</strong></td>
                      </tr>
                      <tr>
-                       <td>pip2</td><td><strong>{{colocalization:pip2}}</strong></td>
+                       <td>beta1</td><td><strong>{{colocalization:beta1}}</strong></td>
                      </tr>
                      <tr>
-                       <td>beta1</td><td><strong>{{colocalization:beta1}}</strong></td>
+                       <td>pip2</td><td><strong>{{colocalization:pip2}}</strong></td>
                      </tr>
                      <tr>
                        <td>beta2</td><td><strong>{{colocalization:beta2}}</strong></td>
@@ -953,10 +959,14 @@ const datalayer = (pip : string,beta : string,color : string) : LayoutDataLayers
                    </tbody>
                  </table>`
     },
-    "x_axis": { "field": "colocalization:position", "axis": 1 },
-    "y_axis": { "axis": 1, "floor": 0, "upper_buffer": 0.0, "min_extent": [0, 1.1], "field": field },
+    "x_axis": { "field": `colocalization:position${index}`, "axis": 1 },
+    "y_axis": { "axis": 1, "floor": 0, "upper_buffer": 0.0, "min_extent": [0, 0.3], "field": field },
 	"color": [color],
-	legend :  [ { shape: "circle", "color" : color, size: 40, "label" : pip , "class" : "lz-data_layer-scatter" } ]
+	legend :  [ { shape: "circle",
+		      "color" : color,
+		      size: 40,
+		      "label" : pip ,
+		      "class" : "lz-data_layer-scatter" } ]
 }
 }
 
@@ -997,9 +1007,9 @@ export const colocalization_layout: (region: Region) => Layout = (region: Region
 				  "x_linked": true,
 				  "y1_linked": false,
 				  "y2_linked": false },
-	    "data_layers": [ datalayer("pip1","beta1", "#FF0000"),
-						 datalayer("pip2","beta2", "#0000FF")
-						]
+	    "data_layers": [ datalayer(1, "#FF0000"),
+			     datalayer(2, "#0000FF")
+			   ]
 	}
 }
 

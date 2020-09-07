@@ -28,7 +28,7 @@ TransformationFunctions.set<number,string>("percent", function(n : number) {
     var x : string = (n*100).toPrecision(2);
     if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }
     if (x.endsWith('.')) { x = x.substr(0, x.length-1); }
-    return x + '%'; 
+    return x + '%';
 });
 
 const truncate = (max_length : number,dots : string) =>  (s :string) : string => {
@@ -43,8 +43,8 @@ const truncate = (max_length : number,dots : string) =>  (s :string) : string =>
 }
 
 const sign = (value : number) => { let result : "positive"|"negative"|"zero";
-                                   if(value > 0){ result = "positive";  } 
-                                   else if(value < 0){ result = "negative"; } 
+                                   if(value > 0){ result = "positive";  }
+                                   else if(value < 0){ result = "negative"; }
                                    else { result = "zero"; }
                                    return result;
                                 }
@@ -56,6 +56,29 @@ export interface LocusZoomContext {
     plot : Plot
     dataSources : DataSources
 }
+// dashboard components
+function add_dashboard_button(name : string, func : (layout : LayoutComponentsEntity) => { bind : (a : any) => any }) {
+    Dashboard.Components.add(name, function(layout : LayoutComponentsEntity){
+        Dashboard.Component.apply(this, arguments);
+        this.update = function(){
+            if (this.button)return this;
+            this.button = new Dashboard.Component.Button(this)
+                .setColor(layout.color).setText(layout.text).setTitle(layout.title)
+                .setOnclick(func(layout).bind(this));
+            this.button.show();
+            return this.update();
+        };
+    });
+};
+interface ConditionalParams {
+    dataIndex : number ,
+    allData :{ conditioned_on : boolean ,
+               data : any ,
+               type: any } [],
+    fields : any,
+    outnames : any,
+    trans : any,
+};
 
 export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     // Define LocusZoom Data Sources object
@@ -65,7 +88,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     const localColocalizationBase : string = "/api/colocalization/" + region.pheno.phenocode + "/lz-";
     const remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
     const dataSources : DataSources = new DataSources();
-    
+
     const recombSource : number = region.genome_build == 37 ? 15 : 16
     const geneSource : number = region.genome_build == 37 ? 2 : 1
     const gwascatSource : Array<number> = region.genome_build == 37 ? [2,3] : [1,4]
@@ -74,22 +97,22 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     dataSources.add("conditional", ["ConditionalLZ", {url: localCondBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
     dataSources.add("finemapping", ["FineMappingLZ", {url: localFMBase, params:{trait_fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid"]}}]);
     const colocalizationURL = `data:,  { "data" : { "causalvariantid" : [] ,
-                                                    "position" : [] , 
-                                                    "varid" : [] , 
-                                                    "beta1" : [] , 
-                                                    "beta2" : [] , 
-                                                    "pip1" : [] , 
-                                                    "pip2" : [] , 
-                                                    "variant" : [] , 
+                                                    "position" : [] ,
+                                                    "varid" : [] ,
+                                                    "beta1" : [] ,
+                                                    "beta2" : [] ,
+                                                    "pip1" : [] ,
+                                                    "pip2" : [] ,
+                                                    "variant" : [] ,
                                                     "rsid" : [] ,
                                                     "phenotype1" : [],
                                                     "phenotype1_description" : [] } }`
     dataSources.add("colocalization", ["ColocalizationLZ", {url: colocalizationURL }]);
-    dataSources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:geneSource}}])   
+    dataSources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:geneSource}}])
     dataSources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
     dataSources.add("gwas_cat", new GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:gwascatSource ,pvalue_field: "log_pvalue" }}));
     dataSources.add("clinvar", new ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { region:region , id:[1,4] ,pvalue_field: "log_pvalue" }}));
-    
+
     if (region.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	dataSources.add("ld", new FG_LDDataSource({url: "/api/ld",
 						   params: { id:[1,4] ,
@@ -104,7 +127,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
 								       var_id_field: "association:rsid" }}));
     }
     dataSources.add("recomb", ["RecombLZ", { url: `${remoteBase}annotation/recomb/results/`, params: {source: recombSource} }]);
-        
+
     Dashboard.Components.add<LayoutComponentsEntity>("region", function(layout : LayoutComponentsEntity){
         Dashboard.Component.apply(this, arguments);
         this.update = function(){
@@ -123,21 +146,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
             return this;
         };
     });
-    // dashboard components
-    function add_dashboard_button(name : string, func : (layout : LayoutComponentsEntity) => { bind : (a : any) => any }) {
-        Dashboard.Components.add(name, function(layout : LayoutComponentsEntity){
-            Dashboard.Component.apply(this, arguments);
-            this.update = function(){
-                if (this.button)return this;
-                this.button = new Dashboard.Component.Button(this)
-                    .setColor(layout.color).setText(layout.text).setTitle(layout.title)
-                    .setOnclick(func(layout).bind(this));
-                this.button.show();
-                return this.update();
-            };
-        });
-    };
-    
+
     function update_mouseover(key : string) {
         var params : { lookup : object } = dataSources.sources[key].params
         params.lookup = {}
@@ -180,16 +189,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
             });
         }
     });
-    
-    interface ConditionalParams {
-        dataIndex : number , 
-        allData :{ conditioned_on : boolean ,
-                   data : any ,
-                   type: any } [],
-        fields : any, 
-        outnames : any,
-        trans : any,
-    };
+
 
     const show_conditional = function(index : number) {
         var params : ConditionalParams  = dataSources.sources.conditional.params;
@@ -253,7 +253,8 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         update_mouseover('clinvar')
     });
 
-    const scatters : string[] = ['association', 'conditional', 'finemapping', 'gwas_cat']    
+    const scatters : string[] = ['association', 'conditional', 'finemapping', 'gwas_cat']
+
 
     scatters.filter(key => plot.panels[key]).forEach(key => {
         plot.panels[key].on("data_rendered", function() {
@@ -270,7 +271,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         this.setDimensions(this.layout.width, 200);
         this.parent.setDimensions();
         this.parent.panel_ids_by_y_index.forEach(function(id : string) {
-            if (id == 'clinvar') {// || id == 'genes') {                                                                                                                                                                                                                                                       
+            if (id == 'clinvar') {// || id == 'genes') {
                 this.parent.panels[id].layout.proportional_height = 0.02
             } else if (id != 'genes') {
                 if (this.parent.panel_ids_by_y_index.length > 4) {
@@ -280,23 +281,24 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
                 }
             }
         }.bind(this));
-            // after all have been rendered, scale gene panel to height                                                                                                                                                                                                                                            
-            // have not found another way to keep panels heights somewhat ok                                                                                                                                                                                                                                       
-            // this now assumes that other panels have been rendered before the last assoc/cond/finemap panel                                                                                                                                                                                                      
-            this.rendered = true
-            var nRendered = scatters.reduce((acc, cur) => acc + (plot.panels[cur] && plot.panels[cur].rendered === true ? 1 : 0), 0)
-            if (nRendered == scatters.length) {
-                console.log('scaling gene panel')
-                plot.panels.genes.scaleHeightToData()
-            }
-            this.parent.positionPanels();
+
+        // after all have been rendered, scale gene panel to height
+        // have not found another way to keep panels heights somewhat ok
+        // this now assumes that other panels have been rendered before the last assoc/cond/finemap panel
+        //this.rendered = true
+        //var nRendered = scatters.reduce((acc, cur) => acc + (plot.panels[cur] && plot.panels[cur].rendered === true ? 1 : 0), 0)
+        //if (nRendered == scatters.length) {
+        //    console.log('scaling gene panel')
+        //    plot.panels.genes.scaleHeightToData()
+        //}
+        //this.parent.positionPanels();
         })
     })
 
     const region_span = (region : CondFMRegions) : string => region.type === 'finemap' ?
             `<span>${region.n_signals} ${region.type} signals (prob. ${region.n_signals_prob.toFixed(3)} </span><br/>` :
             `<span>${region.n_signals} ${region.type} signals</span><br/>`;
-   
+
     if (region.cond_fm_regions && region.cond_fm_regions.length > 0) {
         var cond_regions = region.cond_fm_regions.filter(region => region.type == 'conditional')
         var n_cond_signals = cond_regions.length > 0 ? cond_regions[0].n_signals : 0
