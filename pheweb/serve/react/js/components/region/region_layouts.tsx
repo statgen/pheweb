@@ -960,8 +960,17 @@ const datalayer = (index : int,color : string) : LayoutDataLayersEntity => {
                  </table>`
     },
     "x_axis": { "field": `colocalization:position${index}`, "axis": 1 },
-    "y_axis": { "axis": 1, "floor": 0, "upper_buffer": 0.0, "min_extent": [0, 0.3], "field": field },
+	"y_axis": { "axis": 1, "floor": 0, "upper_buffer": 0.0, "min_extent": [0, 0.3], "field": field },
 	"color": [color],
+	fill_opacity: {
+	    scale_function : "categorical_bin",
+	    field : 'colocalization:count_variants'  ,
+	    parameters : {
+		categories : [ 0, 1, 2 ] ,
+		values : [ 0.2 , 0.4 , 0.9 ],
+		null_value : 1.0
+	    }
+	},
 	legend :  [ { shape: "circle",
 		      "color" : color,
 		      size: 40,
