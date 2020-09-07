@@ -262,6 +262,10 @@ def create_gene_tree():
         start, end = pad_gene(start, end)
         treeDict[chrom][start:end] = gene_symbol
 
+    treeDict['23'] = treeDict['X']
+    treeDict['24'] = treeDict['Y']
+    treeDict['25'] = treeDict['M']
+    treeDict['25'] = treeDict['MT']
     print('TreeDict created.')
     return treeDict
 
