@@ -97,6 +97,9 @@ class Pheno extends React.Component {
 			variant.maf = variant.af_alt
 			variant.maf_cases = variant.af_alt_cases
 			variant.maf_controls = variant.af_alt_controls
+			delete variant.af_alt
+			delete variant.af_alt_cases
+			delete variant.af_alt_controls
 		    }
 		    variant.phenocode = phenocode
 		    if (!variant.gnomad) {
