@@ -35,6 +35,12 @@ class _Get_Pheno_Region:
                 _Get_Pheno_Region._rename(v, 'pos', 'position')
                 _Get_Pheno_Region._rename(v, 'rsids', 'rsid')
                 _Get_Pheno_Region._rename(v, 'pval', 'pvalue')
+                if 'af_alt' in v:
+                    _Get_Pheno_Region._rename(v, 'af_alt', 'maf')
+                if 'af_alt_cases' in v:
+                    _Get_Pheno_Region._rename(v, 'af_alt_cases', 'maf_cases')
+                if 'af_alt_controls' in v:
+                    _Get_Pheno_Region._rename(v, 'af_alt_controls', 'maf_controls')
                 if v['pvalue'] < p_threshold:
                     variants.append(v)
 

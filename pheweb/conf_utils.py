@@ -271,10 +271,10 @@ def _ensure_conf():
             'type': float,
             'nullable': True,
             'sigfigs': 2,
-            'tooltip_underscoretemplate': 'mlog10p-value: <%= d.mlog10p %><br>',
+            'tooltip_underscoretemplate': 'mlog10p-value: <%= d.mlogp %><br>',
             'tooltip_lztemplate': {
                 'condition': False,
-                'template': ('mlog10p-value: <strong>{{trait:pvalue|scinotation}}</strong><br>')
+                'template': ('mlog10p-value: <strong>{{trait:mlogp|scinotation}}</strong><br>')
             },
             'display': 'mlog10p-value'
         }),

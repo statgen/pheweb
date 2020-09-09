@@ -41,7 +41,7 @@ class Pheno extends React.Component {
     }
     
     error_alert(error) {
-	alert(`${phenocode}: ${error.statusText || error}`)
+	alert(`${error.statusText || error}`)
     }
 
     getUKBBN(phenocode) {
@@ -89,8 +89,15 @@ class Pheno extends React.Component {
                     variant.most_severe = variant.annotation.most_severe ? variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '') : ''
                     variant.info = variant.annotation.INFO
 		})
+		data.unbinned_variants.forEach(variant => { if (variant.pval == 0) variant.pval = 5e-324 })
 		//TODO server side
 		data.unbinned_variants.forEach(variant => {
+		    // TODO naming af maf quickly
+		    if (variant.af_alt !== undefined && variant.maf === undefined) {
+			variant.maf = variant.af_alt
+			variant.maf_cases = variant.af_alt_cases
+			variant.maf_controls = variant.af_alt_controls
+		    }
 		    variant.phenocode = phenocode
 		    if (!variant.gnomad) {
 			variant.fin_enrichment = -1
@@ -132,8 +139,6 @@ class Pheno extends React.Component {
 	    return <div>loading</div>
 	}
 	
-	console.log(this.state)
-	
 	const pheno = this.state.pheno
 	const ukbb = window.show_ukbb ? (this.state.ukbb_n ?
 	      <div>UKBB: <strong>{this.state.ukbb_n[0]}</strong> cases, <strong>{this.state.ukbb_n[1]}</strong> controls</div> :
@@ -163,7 +168,7 @@ class Pheno extends React.Component {
 	    id: "lead_pval",
 	    desc: false
 	}]}
-	defaultPageSize={10}
+	defaultPageSize={20}
 	className="-striped -highlight"
 	    />
 	    </div> :
@@ -180,7 +185,7 @@ class Pheno extends React.Component {
 	    id: "pval",
 	    desc: false
 	}]}
-	defaultPageSize={10}
+	defaultPageSize={20}
 	className="-striped -highlight"
 	    />
 	    </div> :

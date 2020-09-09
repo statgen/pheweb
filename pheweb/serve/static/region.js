@@ -176,15 +176,17 @@
 	window.plot.addPanel(window.panel_layouts.clinvar)
 	window.plot.addPanel(window.panel_layouts.gwas_cat)
 	window.plot.addPanel(window.panel_layouts.genes)
-	window.cond_fm_regions.forEach(region => {
-	    if (region.type == 'susie' || region.type == 'finemap') {
-		if (!window.plot.panels['finemapping']) {
-		    window.plot.addPanel(window.panel_layouts['finemapping'])
+	if (window.cond_fm_regions) {
+	    window.cond_fm_regions.forEach(region => {
+		if (region.type == 'susie' || region.type == 'finemap') {
+		    if (!window.plot.panels['finemapping']) {
+			window.plot.addPanel(window.panel_layouts['finemapping'])
+		    }
+		} else {
+		    window.plot.addPanel(window.panel_layouts[region.type])
 		}
-	    } else {
-		window.plot.addPanel(window.panel_layouts[region.type])
-	    }
-	})
+	    })
+	}
 
 	window.plot.panels['clinvar'].on('data_rendered', function() {
 	    update_mouseover('clinvar')

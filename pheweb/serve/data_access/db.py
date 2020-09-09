@@ -24,6 +24,7 @@ import time
 import io
 import os
 import subprocess
+import sys
 
 from pathlib import Path
 
@@ -102,6 +103,7 @@ class PhenoResult(JSONifiable):
         self.phenocode = phenocode
         self.phenostring = phenostring
         self.pval = float(pval) if pval is not None and pval!='NA' else None
+        self.pval = sys.float_info.min * sys.float_info.epsilon if self.pval == 0 else self.pval
         self.beta = float(beta) if beta is not None and beta!='NA' else None
         self.maf = float(maf) if maf is not None and maf!='NA' and maf != '' else None
         self.maf_case = float(maf_case) if maf_case is not None and maf_case!='NA' else None
@@ -616,8 +618,11 @@ class TabixResultDao(ResultDB):
                 pval = split[pheno[1]]
                 beta = split[pheno[1]+self.header_offset['beta']]
                 maf = split[pheno[1]+self.header_offset['maf']] if 'maf' in self.header_offset else None
+                maf = split[pheno[1]+self.header_offset['af_alt']] if 'af_alt' in self.header_offset else maf
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
+                maf_case = split[pheno[1]+self.header_offset['af_alt_cases']] if 'af_alt_cases' in self.header_offset else maf_case
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
+                maf_control = split[pheno[1]+self.header_offset['af_alt_controls']] if 'af_alt_controls' in self.header_offset else maf_control
                 pr = PhenoResult(pheno[0],
                                  self.pheno_map[pheno[0]]['phenostring'],
                                  self.pheno_map[pheno[0]]['category'],
@@ -666,8 +671,11 @@ class TabixResultDao(ResultDB):
                 pval = split[pheno[1]]
                 beta = split[pheno[1]+self.header_offset['beta']]
                 maf = split[pheno[1]+self.header_offset['maf']] if 'maf' in self.header_offset else None
+                maf = split[pheno[1]+self.header_offset['af_alt']] if 'af_alt' in self.header_offset else maf
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
+                maf_case = split[pheno[1]+self.header_offset['af_alt_cases']] if 'af_alt_cases' in self.header_offset else maf_case
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
+                maf_control = split[pheno[1]+self.header_offset['af_alt_controls']] if 'af_alt_controls' in self.header_offset else maf_control
                 if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):
                     pr = PhenoResult(pheno[0],
                                      self.pheno_map[pheno[0]]['phenostring'],

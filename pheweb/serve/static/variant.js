@@ -286,7 +286,11 @@ $(function() {
 	af_popmax = af_popmax.toExponential(1)
     }
     if (window.browser.startsWith('FINNGEN')) {
-	$('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' + window.variant.annotation.gnomad.fin_enrichment + '</p>')
+	if (af_fin !== undefined) {
+	    $('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' + window.variant.annotation.gnomad.fin_enrichment + '</p>')
+	} else {
+	    $('#gnomad').html('<p>No data found in gnomAD 2.1.1</p>')
+	}
     } else {
 	$('#gnomad').html('<p>Frequency in gnomAD genomes 2.1.1: ' + Object.keys(window.variant.annotation.gnomad).filter(g => g.startsWith('AF')).map(g => g + ': ' + window.variant.annotation.gnomad[g]).join(', ') + '</p>')
     }
@@ -350,6 +354,7 @@ $(function() {
 })();
 
 (function() {
+    console.log(variant)
     var rsid = window.variant.annotation.annot.rsids || window.variant.annotation.rsids
     if (!rsid) return
     rsid = rsid.split(',')[0]
