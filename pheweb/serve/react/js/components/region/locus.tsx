@@ -253,9 +253,13 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         update_mouseover('clinvar')
     });
 
-    const scatters : string[] = ['association', 'conditional', 'finemapping', 'gwas_cat']
+    const scatters : string[] = ['association', 'conditional', 'finemapping', 'gwas_cat', 'colocalization']
 
+    plot.panels['colocalization'].on('data_rendered', () => { console.log('..'); })
+    plot.panels['colocalization'].on('element_selection', () => { console.log('.+'); })
 
+    
+/*
     scatters.filter(key => plot.panels[key]).forEach(key => {
         plot.panels[key].on("data_rendered", function() {
         console.log(key + ' rendered')
@@ -285,16 +289,17 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         // after all have been rendered, scale gene panel to height
         // have not found another way to keep panels heights somewhat ok
         // this now assumes that other panels have been rendered before the last assoc/cond/finemap panel
-        //this.rendered = true
-        //var nRendered = scatters.reduce((acc, cur) => acc + (plot.panels[cur] && plot.panels[cur].rendered === true ? 1 : 0), 0)
-        //if (nRendered == scatters.length) {
-        //    console.log('scaling gene panel')
-        //    plot.panels.genes.scaleHeightToData()
-        //}
-        //this.parent.positionPanels();
+        this.rendered = true
+        var nRendered = scatters.reduce((acc, cur) => acc + (plot.panels[cur] && plot.panels[cur].rendered === true ? 1 : 0), 0)
+        if (nRendered == scatters.length) {
+            console.log('scaling gene panel')
+            plot.panels.genes.scaleHeightToData()
+        }
+        this.parent.positionPanels();
         })
     })
-
+*/
+    
     const region_span = (region : CondFMRegions) : string => region.type === 'finemap' ?
             `<span>${region.n_signals} ${region.type} signals (prob. ${region.n_signals_prob.toFixed(3)} </span><br/>` :
             `<span>${region.n_signals} ${region.type} signals</span><br/>`;
@@ -320,6 +325,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
             $('#finemapping_options').html('<p>Show fine-mapping from ' + opt_html + '<span></p>')
         }
     };
+
 
    return { plot , dataSources };
 };

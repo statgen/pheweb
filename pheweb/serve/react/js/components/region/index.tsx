@@ -7,7 +7,7 @@ import Summary from '../colocalization/summary'
 import List from '../colocalization/list'
 import { init_locus_zoom, LocusZoomContext } from './locus'
 import ColocalizationProvider from '../../contexts/colocalization/ColocalizationContext'
-
+import styles from './region.css'
 
 const banner = (pheno : Phenotype) => <div className="w-100 row">
     <div className="col-xs-12">
@@ -65,10 +65,10 @@ const Region = (props : Props) => {
 
     useEffect(() => {updatePheno(); },[]);
     useEffect(() => {updateLocusZoom(); },[region]);
-    return <div className="container-fluid">
+    return <div className="container-fluid"  style={{ width : "85%"}}>
 	{ region?banner(region.pheno):<div></div> }
-        { region?summary(region.pheno):<div></div> }
-        { region?message(region.lz_conf):<div></div> }
+        { /* region?summary(region.pheno): */ <div></div> }
+        { /* region?message(region.lz_conf) :*/<div></div> }
         { region?locus_zoom(region.region):<div></div> }
         { colocalization(locusZoomContext) }
     </div>;

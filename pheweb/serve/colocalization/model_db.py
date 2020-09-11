@@ -191,7 +191,7 @@ class ColocalizationDAO(ColocalizationDB):
 
         session = self.Session()
         for c in generate_colocalization():
-            print('.',flush=True,sep='')
+            print('.', flush=True, end='')
             self.save(c)
             c = None
 
@@ -224,8 +224,11 @@ class ColocalizationDAO(ColocalizationDB):
         locus_id2 = Colocalization.variants.any(and_(CausalVariant.variant2_chromosome == locus.chromosome,
                                                      CausalVariant.variant2_position >= locus.start,
                                                      CausalVariant.variant2_position <= locus.stop))
+        phenotype1 = Colocalization.phenotype1 == phenotype
         session = self.Session()
-        return [session,session.query(*projection).select_from(Colocalization).filter(or_(locus_id1, locus_id2))]
+        print(phenotype1)
+        print(phenotype)
+        return [session, session.query(*projection).select_from(Colocalization).filter(or_(locus_id1, locus_id2)).filter(phenotype1) ]
 
     def get_locus(self,
                   phenotype: str,
@@ -354,8 +357,8 @@ class ColocalizationDAO(ColocalizationDB):
                           locus: Locus,
                           flags: typing.Dict[str, typing.Any] = {}) -> SearchSummary:
         aggregates =  [func.count('*'),
-                       func.count(distinct('colocalization.phenotype1')),
-                       func.count(distinct('colocalization.phenotype2'))]
+                       func.count(distinct('colocalization.phenotype2')),
+                       func.count(distinct('colocalization.tissue2'))]
         [session,query] = self.locus_query(phenotype, locus, flags, aggregates)
         session.expire_all()
         count, unique_phenotype2, unique_tissue2 = query.all()[0]

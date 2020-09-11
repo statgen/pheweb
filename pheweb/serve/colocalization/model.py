@@ -317,10 +317,10 @@ class CausalVariant(JSONifiable, Kwargs):
         return self.variant , self.pip1 , self.pip2 , self.beta1 ,self.beta2
 
     def has_variant1(self) -> bool:
-        return self.variant1 and self.pip1 and self.beta1
+        return self.variant1 and (self.pip1 or self.beta1)
 
     def has_variant2(self) -> bool:
-        return self.variant2 and self.pip2 and self.beta2
+        return self.variant2 and (self.pip2 or self.beta2)
 
     def count_variant1(self) -> int:
         return 1 if self.has_variant1() else 0

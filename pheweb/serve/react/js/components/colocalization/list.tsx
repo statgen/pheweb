@@ -2,11 +2,12 @@ import React, { useState, useEffect , useContext } from 'react';
 import ReactTable, { Cell } from 'react-table';
 import { ColocalizationContext, ColocalizationState, Locus } from '../../contexts/colocalization/ColocalizationContext';
 import { CSVLink } from 'react-csv'
-import { Colocalization , CasualVariant, LocusZoomData, EMPTY } from './model'
+import { Colocalization , CasualVariant, LocusZoomData, EMPTY, CasualVariantVector } from './model'
 import { LocusZoomContext } from '../region/locus';
 import { Panel, DataLayer, Plot } from 'locuszoom';
 import selectTableHOC from "react-table/lib/hoc/selectTable";
 import "react-table/react-table.css";
+import { selectAll} from 'd3' ;
 
 interface Props { locusZoomContext? : LocusZoomContext }
 
@@ -30,7 +31,7 @@ const credible_set = (spec : string) : string[] => spec.split(',').map(reformat)
 
 const label = (variant_label : string,variants : Array<CasualVariant>) : CasualVariant[] => variants.map((v) => { return { ... v, variant_label } })
 
-const updateLocusZoom = (locusZoomData : LocusZoomData | undefined,context : LocusZoomContext,colocalization : Colocalization | undefined) => {
+const updateLocusZoom = (locusZoomData : { [key : number] : CasualVariantVector} | undefined,context : LocusZoomContext,colocalization : Colocalization | undefined) => {
     const { dataSources ,  plot } = context;
     const title: string = colocalization?`Credible Set : ${colocalization.phenotype2_description} : ${colocalization.tissue2}`:"Credible Set : Colocalization"
     const panel : Panel = plot.panels.colocalization
@@ -38,8 +39,28 @@ const updateLocusZoom = (locusZoomData : LocusZoomData | undefined,context : Loc
 
     const dataSource = dataSources.sources.colocalization;
     const params : { [key: string ]: any; } = dataSource.params;
-    const doLookup : boolean = colocalization && locusZoomData && colocalization.id in locusZoomData;
-    const data = doLookup?locusZoomData[colocalization.id]:EMPTY;
+    const data : CasualVariantVector = colocalization && locusZoomData && locusZoomData[colocalization.id] || EMPTY;
+    
+    const pip : number [] = [ ... data.pip1 , ... data.pip2]
+    var [min, max] = pip.reduce<number[]>((acc,value) => acc === undefined ? 
+                                            [value,value]
+                                            :
+                                            [Math.min(acc[0],value), Math.max(acc[1],value)],
+                                            [1,0])
+    const margin : number = max == min ?0.5:(max - min)*0.05
+    const min_extent : number[] = [min === 1?0:Math.max(min -= margin,0),max === 0?1:Math.min(max += margin,1)]
+
+    /*
+
+    if(panel.data_layers.colocalization_pip1.layout.data_layers){
+      panel.data_layers.colocalization_pip1.layout.data_layers =
+      panel.data_layers.colocalization_pip1.layout.data_layers.map((datalayer) => { return {...datalayer, 
+                                                                                            y_axis : { ... datalayer.y_axis , min_extent } }})  
+    }
+    panel.removeDataLayer('colocalization_pip1')
+    panel.addDataLayer()
+    */
+    
     panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data,
                                                                                  params.fields,
                                                                                  params.outnames,
@@ -48,15 +69,28 @@ const updateLocusZoom = (locusZoomData : LocusZoomData | undefined,context : Loc
                                                                                  params.fields,
                                                                                  params.outnames,
                                                                                  params.trans);
+    
     panel.data_layers.colocalization_pip1.render();
     panel.data_layers.colocalization_pip2.render();
-  }
+    panel.render();
+    
+    const mouseOver = (d : { [ key : string]  : string | number}, i) => { }
+    const mouseOut = (d, i) => { }
+    
+    const dots1 =  selectAll("[id='lz-1.colocalization.colocalization_pip1.data_layer'] path");
+    dots1.on('mouseover', mouseOver);
+    dots1.on('mouseout', mouseOut);
+
+    const dots2 =  selectAll("[id='lz-1.colocalization.colocalization_pip2.data_layer'] path");
+    dots2.on('mouseover', mouseOver);
+    dots2.on('mouseout', mouseOut);
+
+}
 
 const subComponent = (colocalizationList) => (row) => {
     const metadata = [ { title: "Variant 1" , accessor: "varid1" , label: "Variant 1" },
 		       { title: "pip1" , accessor: "pip1" , label:"PIP 1" },
 		       { title: "beta1" , accessor: "beta1" , label:"Beta 1" },
-		       { title: "Variant 2" , accessor: "varid2" , label: "Variant 2" },
 		       { title: "pip2" , accessor: "pip2" , label:"PIP 2" },
 		       { title: "beta2" , accessor: "beta2" , label:"Beta 2" },
 		       { title: "count_label" , accessor: "count_label" , label:"Label" }]
@@ -92,13 +126,8 @@ const List = (props : Props) => {
     const isSelected = (key) =>  selectedRow === `select-${key}`;
   
     const rowFn = (state, rowInfo, column, instance) => {
-      return {
-        onClick: (e, handleOriginal) => handleOriginal && handleOriginal(),
-        style: {
-          background:
-            rowInfo &&
-            selectedRow === `select-${rowInfo.original.id}` && "lightgrey"
-        }
+      return { onClick: (e, handleOriginal) => handleOriginal && handleOriginal(),
+               style: { background: rowInfo && selectedRow === `select-${rowInfo.original.id}` && "lightgrey" }
       };
     };
 
