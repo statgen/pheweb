@@ -73,17 +73,48 @@ const updateLocusZoom = (locusZoomData : { [key : number] : CasualVariantVector}
     panel.data_layers.colocalization_pip1.render();
     panel.data_layers.colocalization_pip2.render();
     panel.render();
+
     
-    const mouseOver = (d : { [ key : string]  : string | number}, i) => { }
-    const mouseOut = (d, i) => { }
+    const mouseOver = (index : number) => (d : { [ key : string]  : string | number}, i : number) => { 
+      const locus : string = d[`colocalization:varid${index}`] as string
+      const re = /^([^:]+):([^:]+):([^:]+):([^:]+)$/;
+      const match = re.exec(locus)
+      if(match){
+          const [ignore,chromosome,position,reference,alternate] = match;
+          const finemapping : DataLayer = plot.panels.finemapping.data_layers.associationpvalues;
+          const association : DataLayer = plot.panels.association.data_layers.associationpvalues;
+          const identifier : string = `${chromosome}${position}_${reference}${alternate}`;
+          finemapping.highlightElement(identifier);
+          finemapping.render();
+          association.highlightElement(identifier);
+          association.render();
+        }
+      console.log(`mouseOver : ${d}:${i} locus : ${locus}`)
+    }
+    const mouseOut = (index : number) => (d : { [ key : string]  : string | number}, i : number) => { 
+      const locus : string = d[`colocalization:varid${index}`] as string
+      const re = /^([^:]+):([^:]+):([^:]+):([^:]+)$/;
+      const match = re.exec(locus)
+      if(match){
+          const [ignore,chromosome,position,reference,alternate] = match;
+          const finemapping : DataLayer = plot.panels.finemapping.data_layers.associationpvalues;
+          const association : DataLayer = plot.panels.association.data_layers.associationpvalues;
+          const identifier : string = `${chromosome}${position}_${reference}${alternate}`;
+          finemapping.unhighlightElement(identifier);
+          finemapping.render();
+          association.unhighlightElement(identifier);
+          association.render();
+        }
+      console.log(`mouseOut : ${d}:${i} locus : ${locus}`)
+  }
     
     const dots1 =  selectAll("[id='lz-1.colocalization.colocalization_pip1.data_layer'] path");
-    dots1.on('mouseover', mouseOver);
-    dots1.on('mouseout', mouseOut);
+    dots1.on('mouseover', mouseOver(1));
+    dots1.on('mouseout', mouseOut(1));
 
     const dots2 =  selectAll("[id='lz-1.colocalization.colocalization_pip2.data_layer'] path");
-    dots2.on('mouseover', mouseOver);
-    dots2.on('mouseout', mouseOut);
+    dots2.on('mouseover', mouseOver(2));
+    dots2.on('mouseout', mouseOut(2));
 
 }
 
