@@ -137,6 +137,20 @@ const subComponent = (colocalizationList) => (row) => {
 	    </div>);
 }
 
+
+const locus_id1_cell = (cell : { original : Colocalization}) => {
+  var regexp = /^chr([^_]+)_([\d]+)_([^_]+)_([^_]+)$/;
+  var match = cell.original.locus_id1.match(regexp);
+  let result;
+  if(match){
+    const [chromosome,position,reference,alternative] = match.slice(1);
+    result = <a href={ `/variant/${chromosome}-${position}-${reference}-${alternative}`}>{chromosome}:{position}:{reference}:{alternative}</a>;
+  } else {
+    result = undefined;
+  }
+  return result;
+}
+
 const List = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
     const context : LocusZoomContext = props.locusZoomContext
@@ -184,7 +198,7 @@ const List = (props : Props) => {
         return  (<div />);
     } else if(colocalizationList != null){
 	const metadata = [ { title: "source" , accessor: "source2" , label:"Source" },
-			   { title: "locus id", accessor: "locus_id1" , label:"Locus ID" },
+    { title: "locus id", accessor: "locus_id1" , label:"Locus ID", Cell: locus_id1_cell },
 			   { title: "code", accessor: "phenotype2", label: "Code" },
 			   { title: "description", accessor: "phenotype2_description", label: "Description" },
 			   { title: "tissue", accessor: "tissue2",
