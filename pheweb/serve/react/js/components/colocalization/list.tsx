@@ -31,6 +31,23 @@ const credible_set = (spec : string) : string[] => spec.split(',').map(reformat)
 
 const label = (variant_label : string,variants : Array<CasualVariant>) : CasualVariant[] => variants.map((v) => { return { ... v, variant_label } })
 
+const regexp = /^chr([^_]+)_([\d]+)_([^_]+)_([^_]+)$/;
+
+const locus_link = (variant : string) : JSX.Element=> {
+  var match = variant.match(regexp);
+  let result;
+  if(match){
+    const [chromosome,position,reference,alternative] = match.slice(1);
+    result = <a href={ `/variant/${chromosome}-${position}-${reference}-${alternative}`}>{chromosome}:{position}:{reference}:{alternative}</a>;
+  } else {
+    result = <span>variant</span>;
+  }
+  return result;
+}
+
+const locus_id1_cell = (cell : { original : Colocalization}) : JSX.Element => locus_link(cell.original.locus_id1);
+const variant1_cell = (cell : unknown) => locus_link(cell.original.variant1);
+
 const updateLocusZoom = (locusZoomData : { [key : number] : CasualVariantVector} | undefined,context : LocusZoomContext,colocalization : Colocalization | undefined) => {
     const { dataSources ,  plot } = context;
     const title: string = colocalization?`Credible Set : ${colocalization.phenotype2_description} : ${colocalization.tissue2}`:"Credible Set : Colocalization"
@@ -49,17 +66,6 @@ const updateLocusZoom = (locusZoomData : { [key : number] : CasualVariantVector}
                                             [1,0])
     const margin : number = max == min ?0.5:(max - min)*0.05
     const min_extent : number[] = [min === 1?0:Math.max(min -= margin,0),max === 0?1:Math.min(max += margin,1)]
-
-    /*
-
-    if(panel.data_layers.colocalization_pip1.layout.data_layers){
-      panel.data_layers.colocalization_pip1.layout.data_layers =
-      panel.data_layers.colocalization_pip1.layout.data_layers.map((datalayer) => { return {...datalayer, 
-                                                                                            y_axis : { ... datalayer.y_axis , min_extent } }})  
-    }
-    panel.removeDataLayer('colocalization_pip1')
-    panel.addDataLayer()
-    */
     
     panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data,
                                                                                  params.fields,
@@ -119,12 +125,12 @@ const updateLocusZoom = (locusZoomData : { [key : number] : CasualVariantVector}
 }
 
 const subComponent = (colocalizationList) => (row) => {
-    const metadata = [ { title: "Variant 1" , accessor: "varid1" , label: "Variant 1" },
-		       { title: "pip1" , accessor: "pip1" , label:"PIP 1" },
-		       { title: "beta1" , accessor: "beta1" , label:"Beta 1" },
-		       { title: "pip2" , accessor: "pip2" , label:"PIP 2" },
-		       { title: "beta2" , accessor: "beta2" , label:"Beta 2" },
-		       { title: "count_label" , accessor: "count_label" , label:"Label" }]
+    const metadata = [ { title: "Variant 1" , accessor: "varid1" , label: "Variant 1" , Cell : variant1_cell },
+		                   { title: "pip1" , accessor: "pip1" , label:"PIP 1" },
+		                   { title: "beta1" , accessor: "beta1" , label:"Beta 1" },
+		                   { title: "pip2" , accessor: "pip2" , label:"PIP 2" },
+		                   { title: "beta2" , accessor: "beta2" , label:"Beta 2" },
+		                   { title: "count_label" , accessor: "count_label" , label:"Label" }]
     const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
     const colocalization : Colocalization = colocalizationList[row.index]
     const data = colocalization.variants
@@ -137,23 +143,9 @@ const subComponent = (colocalizationList) => (row) => {
 	    </div>);
 }
 
-
-const locus_id1_cell = (cell : { original : Colocalization}) => {
-  var regexp = /^chr([^_]+)_([\d]+)_([^_]+)_([^_]+)$/;
-  var match = cell.original.locus_id1.match(regexp);
-  let result;
-  if(match){
-    const [chromosome,position,reference,alternative] = match.slice(1);
-    result = <a href={ `/variant/${chromosome}-${position}-${reference}-${alternative}`}>{chromosome}:{position}:{reference}:{alternative}</a>;
-  } else {
-    result = undefined;
-  }
-  return result;
-}
-
 const List = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
-    const context : LocusZoomContext = props.locusZoomContext
+    const context : LocusZoomContext | undefined  = props.locusZoomContext
 
     const [selectedRow, setRowSelected]= useState<string | undefined>(undefined);
     const [colocalizationList, setList] = useState<Array<Colocalization> | undefined>(undefined); /* set up hooks for colocalization */
@@ -197,7 +189,7 @@ const List = (props : Props) => {
     if(parameter == null || locusZoomData === undefined) {
         return  (<div />);
     } else if(colocalizationList != null){
-	const metadata = [ { title: "source" , accessor: "source2" , label:"Source" },
+	const metadata = [ { title: "source" , accessor: "source2" , label:"Source", flexBasis: "max-content" },
     { title: "locus id", accessor: "locus_id1" , label:"Locus ID", Cell: locus_id1_cell },
 			   { title: "code", accessor: "phenotype2", label: "Code" },
 			   { title: "description", accessor: "phenotype2_description", label: "Description" },
@@ -206,12 +198,14 @@ const List = (props : Props) => {
 			     label: "Tissue" },
 			   { title: "clpp", accessor: "clpp",
 			     Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
-			     label: "CLPP" },
+           label: "CLPP",
+           width: 80 },
 			   { title: "clpa", accessor: "clpa" ,
 			     Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
-			     label: "CLPA" },
-			   { title: "cs_size_1", accessor: "cs_size_1", label: "CS Size 1" },
-			   { title: "cs_size_2", accessor: "cs_size_2", label: "CS Size 2" }
+           label: "CLPA",
+           width: 80 },
+			   { title: "cs_size_1", accessor: "cs_size_1", label: "CS Size 1", width: 80 },
+			   { title: "cs_size_2", accessor: "cs_size_2", label: "CS Size 2", width: 80 }
         
         ];
 
@@ -231,7 +225,8 @@ const List = (props : Props) => {
                  selectType="radio"
                  isSelected={isSelected}
                  getTrProps={rowFn}
-                 className="-striped -highlight" />
+                 className="-striped -highlight"
+                 useFlexLayout />
     <p></p>
     <div className="row">
     <div className="col-xs-12">

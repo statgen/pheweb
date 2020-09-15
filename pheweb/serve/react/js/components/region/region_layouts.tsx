@@ -650,7 +650,7 @@ export const finemapping_layout: (region: Region) => Layout = (region: Region) =
 	       }
 }
 
-const datalayer = (index : int,color : string) : LayoutDataLayersEntity => {
+const datalayer = (index : number,color : string) : LayoutDataLayersEntity => {
     const pip = `pip${index}`
     const beta = `beta${index}`
     const datalayer_id : string = `colocalization_${pip}`

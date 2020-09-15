@@ -65,7 +65,7 @@ const Region = (props : Props) => {
 
     useEffect(() => {updatePheno(); },[]);
     useEffect(() => {updateLocusZoom(); },[region]);
-    return <div className="container-fluid"  style={{ width : "85%"}}>
+    return <div className="container-fluid"  style={{ width : "95%"}}>
 	{ region?banner(region.pheno):<div></div> }
         { /* region?summary(region.pheno): */ <div></div> }
         { /* region?message(region.lz_conf) :*/<div></div> }
