@@ -6,7 +6,10 @@ import csv
 from colocalization.model_db import ColocalizationDAO
 from flask.cli import AppGroup, with_appcontext
 
-data_cli = AppGroup('data')
+# TOOO : write documentation
+# TODO : fix name of dump
+
+data_cli = AppGroup('colocalization')
 
 def wrap(path,f):
     dao = ColocalizationDAO(db_url=path, parameters={})
@@ -23,7 +26,7 @@ def init(path) -> None:
     wrap(path,lambda dao: dao.create_schema())
 
 
-@data_cli.command("dump")
+@data_cli.command("schema")
 @click.argument("path", required=True, type=str)
 @with_appcontext
 def dump(path) -> None:
@@ -36,7 +39,7 @@ def dump(path) -> None:
 def init(path) -> None:
     wrap(path,lambda dao: dao.delete_all())
 
-@data_cli.command("harness")
+@data_cli.command("debug")
 @with_appcontext
 def harness() -> None:
     import pdb; pdb.set_trace()
