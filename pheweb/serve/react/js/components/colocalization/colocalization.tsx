@@ -1,6 +1,6 @@
 import React, { useState, useEffect , useContext } from 'react';
 import ReactTable, { Cell } from 'react-table';
-import { ColocalizationContext , ColocalizationState } from '../../contexts/colocalization/ColocalizationContext';
+import { ColocalizationContext , ColocalizationState } from '../region/ColocalizationContext';
 import { CSVLink } from 'react-csv'
 
 
@@ -15,7 +15,7 @@ const ColocalizationList = (props : Props) => {
     const [colocalizationList, setColocalizationList] = useState(null); /* set up hooks for colocalization */
 
     const getColocalizationList = () => {
-        if(parameter !== null){
+        if(parameter){
 	      const url = `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}`;
         fetch(url).then(response => response.json()).then((d) => { setColocalizationList(d.data.colocalizations); console.log(d.data); } ).catch(function(error){ alert(error);});
         }

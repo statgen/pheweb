@@ -1,6 +1,6 @@
 import React, { useState, useEffect , useContext } from 'react';
 import ReactTable, { Cell } from 'react-table';
-import { ColocalizationContext, ColocalizationState, Locus } from '../../contexts/colocalization/ColocalizationContext';
+import { ColocalizationContext, ColocalizationState, Locus } from '../region/ColocalizationContext';
 import { CSVLink } from 'react-csv'
 import { Colocalization , CasualVariant, LocusZoomData, EMPTY, CasualVariantVector } from './model'
 import { LocusZoomContext } from '../region/locus';

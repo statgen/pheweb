@@ -6,7 +6,7 @@ import { VisConf , LzConf, Phenotype, Region } from './components';
 import Summary from '../colocalization/summary'
 import List from '../colocalization/list'
 import { init_locus_zoom, LocusZoomContext } from './locus'
-import ColocalizationProvider from '../../contexts/colocalization/ColocalizationContext'
+import ColocalizationProvider from './ColocalizationContext'
 import styles from './region.css'
 
 const banner = (pheno : Phenotype) => <div className="w-100 row">

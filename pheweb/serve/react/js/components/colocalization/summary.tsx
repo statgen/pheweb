@@ -1,5 +1,5 @@
 import React, { useState, useEffect , useContext } from 'react';
-import { ColocalizationContext, ColocalizationState } from '../../contexts/colocalization/ColocalizationContext';
+import { ColocalizationContext, ColocalizationState } from '../region/ColocalizationContext';
 import { Summary } from './model'
 
 interface Prop {}

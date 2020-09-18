@@ -1,4 +1,34 @@
+import { setFlagsFromString } from "v8";
 
+export interface Variant {
+    chromosome : string
+    position : number
+    reference : string
+    alternate : string
+}
+
+const stringToVariant = (str : string ) : Variant | undefined => {
+    return undefined;
+}
+
+export interface Locus {
+    chromosome : string 
+    start : number
+    stop : number
+}
+
+export const stringToLocus = (str : string ) : Locus | undefined => {
+    let result : Locus | undefined
+    const match = str.match("^([A-Za-z0-9]+):([0-9]+)-([0-9]+)$")
+	if(match){
+        const [ chromosome, start , stop ] : Array<string> = match;
+        
+        result = { chromosome, 
+                   start: parseInt(start, 10) ,
+                   stop : parseInt(stop, 10) } 
+	} else { result = undefined; }
+    return result;
+}
 
 export interface SearchSummary {
     unique_phenotype2: number,
