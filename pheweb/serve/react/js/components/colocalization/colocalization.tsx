@@ -2,10 +2,21 @@ import React, { useState, useEffect , useContext } from 'react';
 import ReactTable, { Cell } from 'react-table';
 import { ColocalizationContext , ColocalizationState } from '../region/ColocalizationContext';
 import { CSVLink } from 'react-csv'
-
+import { cell_text , cell_number } from '../common/formatter'
 
 interface Props {}
 
+const metadata = [ { title: "source" , accessor: "source2" , label:"Source" },
+                   { title: "locus id", accessor: "locus_id1" , label:"Locus ID" },
+                   { title: "qlt code", accessor: "phenotype2", label: "QTL Code" },
+                   { title: "qlt", accessor: "phenotype2_description", label: "QTL" },
+                   { title: "tissue", accessor: "tissue2", Cell: cell_text, label: "Tissue" },
+                   { title: "clpp", accessor: "clpp", Cell: cell_number, label: "CLPP" },
+                   { title: "clpa", accessor: "clpa" , Cell: cell_number, label: "CLPA" }];
+
+const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
+const headers = columns.map(c => ({ ...c , key: c.accessor }))
+           
 const ColocalizationList = (props : Props) => {
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
     useEffect( () => {
@@ -24,33 +35,7 @@ const ColocalizationList = (props : Props) => {
     if(parameter == null) {
         return  (<div />);
     } else if(colocalizationList != null){
-	const metadata = [ { title: "source" ,
-                             accessor: "source2" ,
-			     label:"Source" },
-                           { title: "locus id",
-                             accessor: "locus_id1" ,
-			     label:"Locus ID" },
-                           { title: "qlt code",
-                             accessor: "phenotype2",
-			     label: "QTL Code" },
-                           { title: "qlt",
-                             accessor: "phenotype2_description",
-			     label: "QTL" },
-                           { title: "tissue",
-                             accessor: "tissue2",
-                             Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.replace(/_/g,' '),
-			     label: "Tissue" },
-                           { title: "clpp",
-                             accessor: "clpp",
-                             Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
-			     label: "CLPP" },
-                           { title: "clpa",
-                             accessor: "clpa" ,
-                             Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
-                             label: "CLPA" }];
 
-        const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
-	const headers = columns.map(c => ({ ...c , key: c.accessor }))
         return (<div>
 		<ReactTable data={ colocalizationList }
                 columns={ columns }

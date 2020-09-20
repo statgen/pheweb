@@ -19,8 +19,7 @@ export interface ColocalizationState {
 export const ColocalizationContext = createContext<Partial<ColocalizationState>>({});
 
 
-const createParameter = () : ColocalizationParameter | undefined  => {
-	const href = window.location.href
+const createParameter = (href : string = window.location.href) : ColocalizationParameter | undefined  => {
 	const match = href.match("\/region\/([^\/]+)\/([^\/]+)$")
 	if(match){
         const [ignore, phenotype, locusString ] : Array<string> = match;
@@ -28,6 +27,7 @@ const createParameter = () : ColocalizationParameter | undefined  => {
 
         return locus?{ phenotype, locus  } : undefined
     }
+}
 
 const ColocalizationContextProvider = (props : Props) => {
     const inital_parameter = createParameter();
