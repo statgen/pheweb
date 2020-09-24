@@ -5,13 +5,13 @@ import { Summary } from './model'
 interface Prop {}
 
 const Summary = (prop : Prop) => {
-
+/*
     const parameter = useContext<Partial<ColocalizationState>>(ColocalizationContext).parameter;
     useEffect( () => {
         getColocalizationSummary();
-    }, [parameter]); /* only update on when position is updated */
+    }, [parameter]); // only update on when position is updated
 
-    const [ summary, setSummary] = useState<{ data? : Summary , loading : boolean}>({ data : undefined, loading: true }); /* set up summary state */
+    const [ summary, setSummary] = useState<{ data? : Summary , loading : boolean}>({ data : undefined, loading: true }); // set up summary state
     
     const getColocalizationSummary = () => {
 	if(parameter && parameter !== null){
@@ -30,6 +30,8 @@ const Summary = (prop : Prop) => {
     } else {
         return (<div>Loading ... </div>);
     }
+    */
+    return <div/>;
 }
 
 export default Summary

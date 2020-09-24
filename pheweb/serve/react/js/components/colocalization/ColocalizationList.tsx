@@ -1,52 +1,109 @@
 import React, { useState, useEffect , useContext } from 'react';
+import {Colocalization, Variant, variantFromStr} from "../../common/Model";
 import ReactTable, { Cell } from 'react-table';
-import { ColocalizationContext, ColocalizationState, Locus } from '../region/ColocalizationContext';
+import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
+import selectTableHOC from "react-table/lib/hoc/selectTable";
 import { CSVLink } from 'react-csv'
+import {cell_number, cell_text, variant_link} from "../../common/Formatter";
+
+const SelectTable = selectTableHOC(ReactTable);
+
+const locus_id1_cell = (cell : Cell<Colocalization>) : JSX.Element => {
+    variant_link(cell.row.original.locus_id1);
+}
+const variant1_cell = (cell : unknown) => {
+    variant_link(cell.original.variant1);
+}
+
+const metadata = [ { title: "source" , accessor: "source2" , label:"Source", flexBasis: "max-content" },
+                   { title: "locus id", accessor: "locus_id1" , label:"Locus ID", Cell: locus_id1_cell },
+                   { title: "code", accessor: "phenotype2", label: "Code" },
+                   { title: "description", accessor: "phenotype2_description", label: "Description" },
+                   { title: "tissue", accessor: "tissue2",
+                     Cell: cell_text,
+                     label: "Tissue" },
+                   { title: "clpp", accessor: "clpp",
+                     Cell: cell_number,
+                     label: "CLPP",
+                     width: 80 },
+                   { title: "clpa", accessor: "clpa" ,
+                     Cell: cell_number,
+                     label: "CLPA",
+                     width: 80 },
+                   { title: "cs_size_1", accessor: "cs_size_1", label: "CS Size 1", width: 80 },
+                   { title: "cs_size_2", accessor: "cs_size_2", label: "CS Size 2", width: 80 }
+
+];
+
+const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
+const headers = columns.map(c => ({ ...c , key: c.accessor }))
+
+interface Props {}
+const List = (props : Props) => {
+    const { searchResults } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
+    if(searchResults){
+        const colocalizations = searchResults.colocalizations;
+        return (<div>
+            <SelectTable data={ colocalizations }
+                         keyField="id"
+                         columns={ columns }
+                         defaultSorted={[{  id: "clpa", desc: true }]}
+                         defaultPageSize={10}
+                         filterable
+                         defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase())}
+                //SubComponent={ subComponent(colocalizationList) }
+                //toggleSelection={toggleSelection}
+                         selectType="radio"
+                //isSelected={isSelected}
+                //getTrProps={rowFn}
+                         className="-striped -highlight"
+                         useFlexLayout />
+            <p></p>
+            <div className="row">
+                <div className="col-xs-12">
+                    <CSVLink
+                        headers={headers}
+                        data={ colocalizations }
+                        separator={'\t'}
+                        enclosingCharacter={''}
+                        filename={`colocalization.tsv`}
+                        className="btn btn-primary"
+                        target="_blank">Download Table
+                    </CSVLink>
+                </div>
+
+            </div>
+        </div>);
+    } else {
+        return (<div>Loading ... </div>);
+    }
+}
+export default List
+
+/*
+import { ColocalizationContext, ColocalizationState, Locus } from '../region/ColocalizationContext';
 import { Colocalization , CasualVariant, LocusZoomData, EMPTY, CasualVariantVector } from './model'
 import { LocusZoomContext } from '../region/locus';
 import { Panel, DataLayer, Plot } from 'locuszoom';
-import selectTableHOC from "react-table/lib/hoc/selectTable";
 import "react-table/react-table.css";
 import { selectAll} from 'd3' ;
+import {locusFromStr, variantFromStr, variantToStr} from '../../common/model';
 
 interface Props { locusZoomContext? : LocusZoomContext }
 
-const SelectTable = selectTableHOC(ReactTable);
 // remove the select all button
 SelectTable.prototype.headSelector = () => null;
-const reformat = (locus : string) : string | undefined => {
-  var regexp = /^chr([^_]+)_([\d]+)_([^_]+)_([^_]+)$/;
-  var match = locus.match(regexp);
-  let result : string | undefined;
-  if(match){
-    const [chromosome,position,reference,alternative] = match.slice(1);
-    result = `${chromosome}:${position}_${reference}/${alternative}`;
-  } else {
-    result = undefined;
-  }
-  return result;
+
+const reformat = (locusString : string) : string | undefined => {
+  const variant = variantFromStr(locusString);
+  return variant?variantToStr(variant):undefined;
 }
 
 const credible_set = (spec : string) : string[] => spec.split(',').map(reformat).filter(l => l)
 
 const label = (variant_label : string,variants : Array<CasualVariant>) : CasualVariant[] => variants.map((v) => { return { ... v, variant_label } })
 
-const regexp = /^chr([^_]+)_([\d]+)_([^_]+)_([^_]+)$/;
 
-const locus_link = (variant : string) : JSX.Element=> {
-  var match = variant.match(regexp);
-  let result;
-  if(match){
-    const [chromosome,position,reference,alternative] = match.slice(1);
-    result = <a href={ `/variant/${chromosome}-${position}-${reference}-${alternative}`}>{chromosome}:{position}:{reference}:{alternative}</a>;
-  } else {
-    result = <span>variant</span>;
-  }
-  return result;
-}
-
-const locus_id1_cell = (cell : { original : Colocalization}) : JSX.Element => locus_link(cell.original.locus_id1);
-const variant1_cell = (cell : unknown) => locus_link(cell.original.variant1);
 
 const updateLocusZoom = (locusZoomData : { [key : number] : CasualVariantVector} | undefined,context : LocusZoomContext,colocalization : Colocalization | undefined) => {
     const { dataSources ,  plot } = context;
@@ -148,11 +205,11 @@ const List = (props : Props) => {
     const context : LocusZoomContext | undefined  = props.locusZoomContext
 
     const [selectedRow, setRowSelected]= useState<string | undefined>(undefined);
-    const [colocalizationList, setList] = useState<Array<Colocalization> | undefined>(undefined); /* set up hooks for colocalization */
-    const [locusZoomData, setLocusZoomData] = useState<LocusZoomData | undefined>(undefined); /* set up hooks for colocalization */
+    const [colocalizationList, setList] = useState<Array<Colocalization> | undefined>(undefined); // set up hooks for colocalization
+    const [locusZoomData, setLocusZoomData] = useState<LocusZoomData | undefined>(undefined); // set up hooks for colocalization
 
     useEffect( () => { getList(); 
-                       getLocusZoomData(); }, [parameter]); /* only update on when position is updated */
+                       getLocusZoomData(); }, [parameter]); // only update on when position is updated
 
 
     const toggleSelection = (key, shift, row : Colocalization) => { 
@@ -189,28 +246,6 @@ const List = (props : Props) => {
     if(parameter == null || locusZoomData === undefined) {
         return  (<div />);
     } else if(colocalizationList != null){
-	const metadata = [ { title: "source" , accessor: "source2" , label:"Source", flexBasis: "max-content" },
-    { title: "locus id", accessor: "locus_id1" , label:"Locus ID", Cell: locus_id1_cell },
-			   { title: "code", accessor: "phenotype2", label: "Code" },
-			   { title: "description", accessor: "phenotype2_description", label: "Description" },
-			   { title: "tissue", accessor: "tissue2",
-			     Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.replace(/_/g,' '),
-			     label: "Tissue" },
-			   { title: "clpp", accessor: "clpp",
-			     Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
-           label: "CLPP",
-           width: 80 },
-			   { title: "clpa", accessor: "clpa" ,
-			     Cell: (props : Cell) => (props.value === 'NA' || props.value === '') ? 'NA' : props.value.toPrecision(2),
-           label: "CLPA",
-           width: 80 },
-			   { title: "cs_size_1", accessor: "cs_size_1", label: "CS Size 1", width: 80 },
-			   { title: "cs_size_2", accessor: "cs_size_2", label: "CS Size 2", width: 80 }
-        
-        ];
-
-  const columns = metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
-  const headers = columns.map(c => ({ ...c , key: c.accessor }))
 
   return (<div>
     <SelectTable data={ colocalizationList }
@@ -245,6 +280,4 @@ const List = (props : Props) => {
 		</div>);
     } else { return (<div>Loading ... </div>); }
 }
-
-
-export default List
+*/
