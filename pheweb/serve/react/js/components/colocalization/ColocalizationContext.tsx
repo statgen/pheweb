@@ -1,5 +1,5 @@
 import React, { createContext,  useState , useEffect } from 'react';
-import { Locus , locusFromStr } from '../../common/Model'
+import {Colocalization, Locus, locusFromStr} from '../../common/Model'
 import {LocusZoomData, SearchResults, SearchSummary} from "./ColocalizationModel";
 import { getSearchResults , getLocusZoomData} from "./ColocalizationAPI";
 
@@ -12,7 +12,7 @@ export interface ColocalizationParameter {
 
 export interface ColocalizationState {
     readonly parameter : ColocalizationParameter
-    readonly searchResults : SearchResults
+    readonly colocalization : Colocalization []
     readonly locusZoomData : LocusZoomData
 }
 
@@ -30,11 +30,11 @@ export const createParameter = (href : string = window.location.href) : Colocali
 
 const ColocalizationContextProvider = (props : Props) => {
     const parameter : ColocalizationParameter| undefined = createParameter();
-    const [searchResults, setSearchResults] = useState<SearchResults| undefined>(undefined);
+    const [colocalization, setColocalization] = useState<Colocalization[]| undefined>(undefined);
     const [locusZoomData, setLocusZoomData] = useState<LocusZoomData| undefined>(undefined);
 
     useEffect(() => {
-        getSearchResults(parameter, setSearchResults);
+        getSearchResults(parameter, (s : SearchResults)  => setColocalization());
         getLocusZoomData(parameter, setLocusZoomData);
     },[]);
 

@@ -56,9 +56,11 @@ export interface SearchResults {
 
 const hydrateColocalization = (c : ResponseColocalization) : Colocalization => { return {
     ...c,
-    locus_id1 : variantFromStr(c.locus_id1),
-    locus_id2 : variantFromStr(c.locus_id2)
-} }
+    locus_id1 : variantFromStr(c.locus_id1 as string),
+    locus_id2 : variantFromStr(c.locus_id2 as string)
+} as Colocalization }
+
+export const searchResultsColocalization = (c : SearchResults) : Colocalization [] => c.colocalizations.map(hydrateColocalization)
 
 export interface PhenotypeList {
     phenotypes : string []

@@ -5,18 +5,16 @@ import {ColocalizationContext, ColocalizationState} from "./ColocalizationContex
 import selectTableHOC from "react-table/lib/hoc/selectTable";
 import { CSVLink } from 'react-csv'
 import {cell_number, cell_text, variant_link} from "../../common/Formatter";
+import {compose} from "../../common/Utilities";
 
 const SelectTable = selectTableHOC(ReactTable);
 
-const locus_id1_cell = (cell : Cell<Colocalization>) : JSX.Element => {
-    variant_link(cell.row.original.locus_id1);
-}
-const variant1_cell = (cell : unknown) => {
-    variant_link(cell.original.variant1);
-}
+export const cell_locus_id1 = (cell : Cell<Colocalization>) => cell.row.original.locus_id1
+export const cell_variant1 = (cell : Cell<Colocalization>) => cell.row.original.variants_1
 
 const metadata = [ { title: "source" , accessor: "source2" , label:"Source", flexBasis: "max-content" },
-                   { title: "locus id", accessor: "locus_id1" , label:"Locus ID", Cell: locus_id1_cell },
+                   { title: "locus id", accessor: "locus_id1" , label:"Locus ID",
+                     Cell: compose(cell_locus_id1,variant_link) },
                    { title: "code", accessor: "phenotype2", label: "Code" },
                    { title: "description", accessor: "phenotype2_description", label: "Description" },
                    { title: "tissue", accessor: "tissue2",
