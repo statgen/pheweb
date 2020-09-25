@@ -1,6 +1,6 @@
 import React, { useState, useEffect , useContext } from 'react';
 import {Colocalization, Variant, variantFromStr} from "../../common/Model";
-import ReactTable, { Cell } from 'react-table';
+import ReactTable, {Cell, Row} from 'react-table';
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
 import selectTableHOC from "react-table/lib/hoc/selectTable";
 import { CSVLink } from 'react-csv'
@@ -8,8 +8,8 @@ import {cell_number, cell_text, variant_link} from "../../common/Formatter";
 import {compose} from "../../common/Utilities";
 const SelectTable = selectTableHOC(ReactTable);
 
-export const cell_locus_id1 = (cell : Cell<Colocalization>) => cell.row.original.locus_id1
-export const cell_variant1 = (cell : Cell<Colocalization>) => cell.row.original.variants_1
+export const cell_locus_id1 = (row : Row<Colocalization>) => row.original.locus_id1
+export const cell_variant1 = (row : Row<Colocalization>) => row.original.variants_1
 
 const metadata = [ { title: "source" , accessor: "source2" , label:"Source", flexBasis: "max-content" },
                    { title: "locus id", accessor: "locus_id1" , label:"Locus ID",
@@ -37,11 +37,11 @@ const headers = columns.map(c => ({ ...c , key: c.accessor }))
 
 interface Props {}
 const List = (props : Props) => {
-    const { searchResults } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
-    if(searchResults){
-        const colocalizations = searchResults.colocalizations;
+    const { colocalization } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
+
+    if(colocalization){
         return (<div>
-            <SelectTable data={ colocalizations }
+            <SelectTable data={ colocalization }
                          keyField="id"
                          columns={ columns }
                          defaultSorted={[{  id: "clpa", desc: true }]}
@@ -60,7 +60,7 @@ const List = (props : Props) => {
                 <div className="col-xs-12">
                     <CSVLink
                         headers={headers}
-                        data={ colocalizations }
+                        data={ colocalization }
                         separator={'\t'}
                         enclosingCharacter={''}
                         filename={`colocalization.tsv`}

@@ -21,7 +21,7 @@ export const get : <X,Y = X>(url: string,
         then(response => response.json()).
         then(transformation).
         then(setter).
-        catch(console.log);
+        catch(console.error);
     }
 
 export const getSearchResults = (parameter: ColocalizationParameter | undefined,
