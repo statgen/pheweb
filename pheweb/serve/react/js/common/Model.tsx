@@ -81,7 +81,6 @@ export function variantFromStr(str : string ) : Variant | undefined {
   return result;
 }
 
-
 export interface Locus {
   readonly chromosome : string
   readonly start : number

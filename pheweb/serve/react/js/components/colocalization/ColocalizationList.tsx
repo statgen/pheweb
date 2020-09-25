@@ -6,7 +6,6 @@ import selectTableHOC from "react-table/lib/hoc/selectTable";
 import { CSVLink } from 'react-csv'
 import {cell_number, cell_text, variant_link} from "../../common/Formatter";
 import {compose} from "../../common/Utilities";
-
 const SelectTable = selectTableHOC(ReactTable);
 
 export const cell_locus_id1 = (cell : Cell<Colocalization>) => cell.row.original.locus_id1

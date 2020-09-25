@@ -34,12 +34,12 @@ const ColocalizationContextProvider = (props : Props) => {
     const [locusZoomData, setLocusZoomData] = useState<LocusZoomData| undefined>(undefined);
 
     useEffect(() => {
-        getSearchResults(parameter, (s : SearchResults)  => setColocalization());
+        getSearchResults(parameter, setColocalization);
         getLocusZoomData(parameter, setLocusZoomData);
     },[]);
 
     return (<ColocalizationContext.Provider value={{ parameter ,
-                                                     searchResults ,
+                                                     colocalization ,
                                                      locusZoomData }}>
                 {props.children}
             </ColocalizationContext.Provider>);
