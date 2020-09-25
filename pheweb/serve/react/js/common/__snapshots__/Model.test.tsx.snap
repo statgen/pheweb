@@ -4,12 +4,6 @@ exports[`variant link 1`] = `
 <a
   href="/variant/1-1-A-G"
 >
-  1
-  :
-  1
-  :
-  A
-  :
-  G
+  1:1:A:G
 </a>
 `;

@@ -1,4 +1,4 @@
-import {LocusZoomData, SearchResults, searchResultsColocalization} from "./ColocalizationModel";
+import {LocusZoomData, SearchResults, searchResultsColocalization, SearchSummary} from "./ColocalizationModel";
 import {ColocalizationParameter} from "./ColocalizationContext";
 import {Colocalization} from "../../common/Model";
 
@@ -35,3 +35,7 @@ export const getLocusZoomData = (parameter: ColocalizationParameter | undefined,
                                  getURL = get) =>
     parameter &&  getURL<LocusZoomData>(rest_url(parameter,'/finemapping'), setter);
 
+export const getSummary = (parameter: ColocalizationParameter | undefined,
+                                 setter : (s : SearchSummary) => void,
+                                 getURL = get) =>
+    parameter &&  getURL<SearchSummary>(rest_url(parameter,'/summary?clpa.gte=0.1'), setter);

@@ -30,11 +30,6 @@ export const EMPTY : CasualVariantVector = {
 }
 
 export interface SearchSummary {
-    unique_phenotype2: number,
-    unique_tissue2: number,
-};
-
-export interface SearchSummary {
     count : number
     unique_phenotype2 : number
     unique_tissue2 : number

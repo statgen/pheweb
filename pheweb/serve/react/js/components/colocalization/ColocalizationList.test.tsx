@@ -1,20 +1,19 @@
 /* eslint-env jest */
 
 import {Cell, Row} from "react-table";
-import {Colocalization} from "../../common/Model";
+import {CasualVariant, Colocalization, variantFromStr} from "../../common/Model";
 import {ColocalizationParameter, createParameter} from "./ColocalizationContext";
 import {cell_locus_id1, cell_variant1} from "./ColocalizationList";
+import {CasualVariantVector} from "./ColocalizationModel";
 
 test('locus id1', () => {
-    const locus_id1 = "test";
+    const locus_id1 = variantFromStr("chr1_1_A_G");
     const row : Row<Colocalization> = { original : { locus_id1 } } as Row<Colocalization>;
     expect(cell_locus_id1(row)).toBe(locus_id1)
 });
 
 test('variant1 cell', () => {
-    const variants_1 = "test";
-    const row : Row<Colocalization> = { original : { variants_1 } } as Row<Colocalization>;
-    expect(cell_variant1(row)).toBe(variants_1)
+    const variant1 = variantFromStr("chr1_1_A_G");
+    const row : Row<CasualVariant> = { original : { variant1 } } as Row<CasualVariant>;
+    expect(cell_variant1(row)).toBe(variant1)
 });
-const locus_id1_cell = (cell : Cell<Colocalization>) => cell.row.original.locus_id1
-const variant1_cell = (cell : Cell<Colocalization>) => cell.row.original.variants_1
