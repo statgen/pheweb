@@ -46,19 +46,24 @@ export type SubstituteType<T, A, B> =
         ? { [K in keyof T]: SubstituteType<T[K], A, B> }
         : T;
 type ResponseColocalization = SubstituteType<Colocalization, Variant | undefined, String>
+type ResponseCasualVariant = SubstituteType<CasualVariant, Variant | undefined, String>
 
 export interface SearchResults {
     count : number
     colocalizations : ResponseColocalization[]
 }
 
+const hydrateCasualVariant = (c : ResponseCasualVariant) : CasualVariant => {
+    return { ...c,
+             variant1 : variantFromStr(c.variant1 as string),
+             variant2 : variantFromStr(c.variant2 as string) } as CasualVariant
+}
 
-
-const hydrateColocalization = (c : ResponseColocalization) : Colocalization => { return {
-    ...c,
-    locus_id1 : variantFromStr(c.locus_id1 as string),
-    locus_id2 : variantFromStr(c.locus_id2 as string)
-} as Colocalization }
+const hydrateColocalization = (c : ResponseColocalization) : Colocalization => {
+    return { ...c,
+             locus_id1 : variantFromStr(c.locus_id1 as string),
+             locus_id2 : variantFromStr(c.locus_id2 as string),
+             variants : c.variants.map(hydrateCasualVariant) } as Colocalization }
 
 export const searchResultsColocalization = (c : SearchResults) : Colocalization [] => c.colocalizations.map(hydrateColocalization)
 

@@ -14,10 +14,11 @@ export interface ColocalizationState {
     readonly parameter : ColocalizationParameter
     readonly colocalization : Colocalization []
     readonly locusZoomData : LocusZoomData
+    readonly selectedRow : string
+    readonly setRowSelected : string => void
 }
 
 export const ColocalizationContext = createContext<Partial<ColocalizationState>>({});
-
 
 export const createParameter = (href : string = window.location.href) : ColocalizationParameter | undefined  => {
 	const match = href.match("\/region\/([^\/]+)\/([^\/]+)$")
@@ -32,15 +33,22 @@ const ColocalizationContextProvider = (props : Props) => {
     const parameter : ColocalizationParameter| undefined = createParameter();
     const [colocalization, setColocalization] = useState<Colocalization[]| undefined>(undefined);
     const [locusZoomData, setLocusZoomData] = useState<LocusZoomData| undefined>(undefined);
+    const [selectedRow, setRowSelected]= useState<string | undefined>(undefined);
 
     useEffect(() => {
         getSearchResults(parameter, setColocalization);
         getLocusZoomData(parameter, setLocusZoomData);
     },[]);
 
+    useEffect(() => {
+        console.log(locusZoomData);
+    },[locusZoomData]);
+
     return (<ColocalizationContext.Provider value={{ parameter ,
                                                      colocalization ,
-                                                     locusZoomData }}>
+                                                     locusZoomData ,
+                                                     selectedRow,
+                                                     setRowSelected }}>
                 {props.children}
             </ColocalizationContext.Provider>);
 }

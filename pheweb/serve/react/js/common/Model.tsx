@@ -3,18 +3,17 @@ https://stackoverflow.com/questions/59833839/swap-one-typescript-type-with-anoth
 export interface CasualVariant {
   readonly variation_alt: string,
   readonly variation_chromosome: string,
-  readonly beta2 : number,
-  readonly variant : Variant,
-  readonly id : string,
-  readonly variation_ref : string,
-  readonly pip2 : number,
-  readonly varid : string,
-  readonly variation_position : number,
   readonly beta1 : number,
-  readonly rsid: string,
-  readonly position : string,
+  readonly beta2 : number,
+  readonly variant1? : Variant,
+  readonly variant2? : Variant,
+  readonly id : string,
   readonly pip1 : number,
-  readonly variant_label? : string
+  readonly pip2 : number,
+  readonly rsid1: string,
+  readonly rsid2: string,
+  readonly varid1 : string,
+  readonly varid2 : string,
 };
 
 
@@ -42,7 +41,7 @@ export interface Colocalization {
   readonly beta_id1? : number,
   readonly beta_id2? : number,
 
-  readonly variants : string,
+  readonly variants : CasualVariant[],
   readonly vars_pip1 : string,
   readonly vars_pip2 : string,
   readonly vars_beta1 : string,
@@ -50,9 +49,6 @@ export interface Colocalization {
   readonly len_cs1 : number,
   readonly len_cs2 : number,
   readonly len_inter : number
-
-  readonly variants_1 : CasualVariant[]
-  readonly variants_2 : CasualVariant[]
 
   readonly cs_size_1: number;
   readonly x: number;
