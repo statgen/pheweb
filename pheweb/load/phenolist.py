@@ -34,8 +34,7 @@ def run():
         for line in f:
             s = line.strip().split('\t')
             code2tag[s[2]] = s[0]
-            if s[0] not in tag2index:
-                tag2index[s[0]] = len(tag2index)
+            tag2index[s[0]] = int(s[1])
 
     with open(sys.argv[5]) as f:
         h = {h.strip():i for i,h in enumerate(f.readline().strip().split('\t'))}
