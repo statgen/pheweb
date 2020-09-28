@@ -473,7 +473,7 @@ def gene_report(genename):
     ukbb_match=[]
     for assoc in top_assoc:
         ukbb_match.append(matching_ukbb(assoc.assoc))
-    genedata = jeeves.get_gene_data(gene)
+    genedata = jeeves.get_gene_data(genename)
     gene_region_mapping = jeeves.get_gene_region_mapping()
     chrom, start, end = gene_region_mapping[genename]
 
