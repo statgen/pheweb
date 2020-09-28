@@ -1,5 +1,5 @@
 import { setFlagsFromString } from "v8";
-import { Variant , Locus , Colocalization, CasualVariant , variantFromStr } from "../../common/Model";
+import { Variant , Locus , Colocalization, CasualVariant , variantFromStr } from "../../../common/Model";
 
 export interface CasualVariantVector {
     causalvariantid : number[],

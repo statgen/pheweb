@@ -75,7 +75,7 @@ const updateLocusZoom = (locusZoomData : { [key : number] : CasualVariantVector}
 
 }
  */
-import {Colocalization} from "../../common/Model";
+import {Colocalization} from "../../../common/Model";
 import {LocusZoomData} from "./ColocalizationModel";
 import {useContext, useEffect} from "react";
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";

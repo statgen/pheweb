@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 //import RegionProvider from './components'
 interface Props {};
 import { VisConf , LzConf, Phenotype, Region } from './components';
-import Summary from '../colocalization/ColocalizationSummary'
-import List from '../colocalization/ColocalizationList'
-import { init_locus_zoom, LocusZoomContext } from './locus'
-import ColocalizationProvider from '../colocalization/ColocalizationContext'
+import Summary from './Colocalization/ColocalizationSummary'
+import List from './Colocalization/ColocalizationList'
+import { init_locus_zoom, LocusZoomContext } from './RegionLocus'
+import ColocalizationProvider from './Colocalization/ColocalizationContext'
 import styles from './region.css'
 
 const banner = (pheno : Phenotype) => <div className="w-100 row">

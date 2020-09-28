@@ -1,5 +1,5 @@
 import React, { createContext,  useState , useEffect } from 'react';
-import {Colocalization, Locus, locusFromStr} from '../../common/Model'
+import {Colocalization, Locus, locusFromStr} from '../../../common/Model'
 import {LocusZoomData, SearchResults, SearchSummary} from "./ColocalizationModel";
 import {getSearchResults, getLocusZoomData, getSummary} from "./ColocalizationAPI";
 
