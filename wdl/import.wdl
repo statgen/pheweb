@@ -35,7 +35,7 @@ task annotation {
         docker: "${docker}"
     	cpu: 2
     	memory: "7 GB"
-        disks: "local-disk 50 SSD"
+        disks: "local-disk 50 HDD"
         preemptible: 0
     }
 }
@@ -83,7 +83,7 @@ task pheno {
         docker: "${docker}"
     	cpu: 1
         memory: "3.75 GB"
-        disks: "local-disk 20 SSD"
+        disks: "local-disk 20 HDD"
         preemptible: 2
     }
 }
@@ -190,7 +190,7 @@ task matrix {
         docker: "${docker}"
     	cpu: "${cpu}"
     	memory: "${mem} GB"
-        disks: "local-disk ${disk} SSD"
+        disks: "local-disk ${disk} HDD"
         preemptible: 0
     }
 }
