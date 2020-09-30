@@ -10,7 +10,7 @@ const RegionLocusZoom =  (props : Props) => {
     if(locusZoomContext) {
         return (<div className="row">
             <div className="col-xs-12" id="colocalization_list_div">
-                <ColocalizationProvider><List locusZoomContext={locusZoomContext} /></ColocalizationProvider>
+                <List locusZoomContext={locusZoomContext} />
             </div>
         </div>);
     } else {

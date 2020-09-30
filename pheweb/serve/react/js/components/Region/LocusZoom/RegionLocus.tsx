@@ -1,5 +1,5 @@
 import { positionIntToString, Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate, Plot, Layout, LayoutComponentsEntity } from 'locuszoom';
-import { region_layout ,  association_layout , genes_layout , clinvar_layout , gwas_cat_layout , finemapping_layout , colocalization_layout , panel_layouts } from './region_layouts';
+import { region_layout ,  association_layout , genes_layout , clinvar_layout , gwas_cat_layout , finemapping_layout , colocalization_layout , panel_layouts } from './RegionLayouts';
 import { FG_LDDataSource , GWASCatSource , ClinvarDataSource } from './RegionCustomLocuszooms';
 import { Region, CondFMRegions } from '../RegionModel';
 import { selectAll} from 'd3' ;

@@ -1,8 +1,8 @@
 import typing
 from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float, Text, ForeignKey, Index
 from sqlalchemy.orm import sessionmaker
-from .model import ColocalizationDB, SearchSummary, SearchResults, PhenotypeList, ColocalizationMap, CausalVariantVector
-from finngen_common_data_model.data import Variant, Locus
+from .model import ColocalizationDB, SearchSummary, SearchResults, PhenotypeList, CausalVariantVector
+from finngen_common_data_model.genomics import Variant, Locus
 from finngen_common_data_model.colocalization import CausalVariant, Colocalization 
 
 import csv

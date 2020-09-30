@@ -5,7 +5,7 @@ interface Props {}
 
 const RegionMessage =  (props : Props) => {
     const { region } = useContext<Partial<RegionState>>(RegionContext);
-    if(region) {
+    if(region?.lzConf) {
         const {lzConf} = region;
 
         return (<div className="row">

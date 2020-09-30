@@ -4,7 +4,8 @@ import typing
 import attr
 from attr.validators import instance_of
 from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float, Text, ForeignKey
-from finngen_common_data_model.data import JSONifiable, Kwargs, Variant, Locus
+from finngen_common_data_model.data import JSONifiable, Kwargs
+from finngen_common_data_model.genomics import Variant, Locus
 from finngen_common_data_model.colocalization import CausalVariant, Colocalization 
 import re
 
