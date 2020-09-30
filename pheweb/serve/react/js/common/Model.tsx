@@ -1,6 +1,6 @@
 https://stackoverflow.com/questions/59833839/swap-one-typescript-type-with-another-inside-an-object
 
-export interface CasualVariant {
+interface CasualVariant {
   readonly variation_alt: string,
   readonly variation_chromosome: string,
   readonly beta1 : number,
@@ -15,7 +15,7 @@ export interface CasualVariant {
   readonly varid1 : string,
   readonly varid2 : string,
 };
-
+export { CasualVariant };
 
 export interface Colocalization {
   readonly id : number ,
