@@ -1,4 +1,4 @@
-import {ColocalizationParameter} from "./Colocalization/ColocalizationContext";
+import {RegionParameter} from "./Colocalization/ColocalizationContext";
 import {compose, get} from "../../common/Utilities";
 import {Colocalization} from "../../common/Model";
 import {SearchResults, searchResultsColocalization} from "./Colocalization/ColocalizationModel";
@@ -12,7 +12,7 @@ import {Region} from "./RegionModel";
  *
  * @param parameter
  */
-export const region_url = (parameter : ColocalizationParameter) : string =>  `/api/region/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}`
+export const region_url = (parameter : RegionParameter) : string =>  `/api/region/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}`
 
 /**
  * Given a parameter return the region matching
@@ -22,7 +22,7 @@ export const region_url = (parameter : ColocalizationParameter) : string =>  `/a
  * @param sink
  * @param getURL
  */
-export const getRegion = (parameter: ColocalizationParameter | undefined,
+export const getRegion = (parameter: RegionParameter | undefined,
                           sink: (s: Region) => void,
                           getURL = get) =>
     parameter &&  getURL<Region>(region_url(parameter),sink);

@@ -2,7 +2,7 @@
 /* eslint-env jest */
 import ColocalizationProvider, {
     createParameter,
-    ColocalizationParameter,
+    RegionParameter,
     ColocalizationContext,
     ColocalizationState
 } from "./ColocalizationContext";
@@ -20,7 +20,7 @@ test('get search results : trivial', () => {
 
 test('get search results : trivial', () => {
     const result = {"locus": {"chromosome": "4", "start": 70815147, "stop": 71215147}, "phenotype": "RX_STATIN"}
-    const parameter : ColocalizationParameter | undefined = createParameter("/region/RX_STATIN/4:70815147-71215147");
+    const parameter : RegionParameter | undefined = createParameter("/region/RX_STATIN/4:70815147-71215147");
     expect(parameter).toStrictEqual(result)
 });
 

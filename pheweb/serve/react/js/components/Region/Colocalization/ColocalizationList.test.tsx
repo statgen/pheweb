@@ -2,7 +2,7 @@
 
 import {Cell, Row} from "react-table";
 import {CasualVariant, Colocalization, variantFromStr} from "../../../common/Model";
-import {ColocalizationParameter, createParameter} from "./ColocalizationContext";
+import {RegionParameter, createParameter} from "./ColocalizationContext";
 import {cell_locus_id1, cell_variant1} from "./ColocalizationList";
 import {CasualVariantVector} from "./ColocalizationModel";
 

@@ -1,5 +1,5 @@
 import {LocusZoomData, SearchResults, searchResultsColocalization, SearchSummary} from "./ColocalizationModel";
-import {ColocalizationParameter} from "./ColocalizationContext";
+import {RegionParameter} from "./ColocalizationContext";
 import {Colocalization} from "../../../common/Model";
 import {compose, get } from "../../../common/Utilities";
 
@@ -11,7 +11,7 @@ import {compose, get } from "../../../common/Utilities";
  * @param parameter
  * @param suffix
  */
-export const rest_url = (parameter : ColocalizationParameter,suffix : string = "") : string =>  `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}${suffix}`
+export const rest_url = (parameter : RegionParameter, suffix : string = "") : string =>  `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}${suffix}`
 
 /**
  * Given a parameter return the colocalization entries associated
@@ -21,7 +21,7 @@ export const rest_url = (parameter : ColocalizationParameter,suffix : string = "
  * @param sink
  * @param getURL
  */
-export const getSearchResults = (parameter: ColocalizationParameter | undefined,
+export const getSearchResults = (parameter: RegionParameter | undefined,
                                  sink: (s: Colocalization[]) => void,
                                  getURL = get) =>
     parameter &&  getURL<SearchResults>(rest_url(parameter),compose(searchResultsColocalization,sink));
@@ -34,7 +34,7 @@ export const getSearchResults = (parameter: ColocalizationParameter | undefined,
  * @param sink
  * @param getURL
  */
-export const getLocusZoomData = (parameter: ColocalizationParameter | undefined,
+export const getLocusZoomData = (parameter: RegionParameter | undefined,
                                  sink : (s : LocusZoomData) => void,
                                  getURL : <LocusZoomData>(url: string, sink: (x: LocusZoomData) => void) => Promise<void> = get) =>
     parameter &&  getURL<LocusZoomData>(rest_url(parameter,'/finemapping'), sink);
@@ -47,7 +47,7 @@ export const getLocusZoomData = (parameter: ColocalizationParameter | undefined,
  * @param sink
  * @param getURL
  */
-export const getSummary = (parameter: ColocalizationParameter | undefined,
+export const getSummary = (parameter: RegionParameter | undefined,
                            sink : (s : SearchSummary) => void,
                            getURL : <SearchSummary>(url: string, sink: (x: SearchSummary) => void) => Promise<void> = get) =>
     parameter &&  getURL<SearchSummary>(rest_url(parameter,'/summary?clpa.gte=0.1'), sink);

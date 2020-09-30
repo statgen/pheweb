@@ -1,5 +1,19 @@
 import React, { createContext, ReactChildren, useState , ReactNode } from 'react';
+import {Locus, locusFromStr} from "../../common/Model";
 
+export interface RegionParameter {
+    readonly locus : Locus,
+    readonly phenotype : string ,
+};
+
+export const createParameter = (href : string = window.location.href) : RegionParameter | undefined  => {
+    const match = href.match("\/region\/([^\/]+)\/([^\/]+)$")
+    if(match){
+        const [ignore, phenotype, locusString ] : Array<string> = match;
+        const locus : Locus | undefined = locusFromStr(locusString)
+        return locus?{ phenotype, locus  } : undefined
+    }
+}
 
 export interface VisConf {
     readonly info_tooltip_threshold : number,
@@ -37,7 +51,6 @@ export interface CondFMRegions {
     start: number,
     type: layout_types,
     variants: string };
-};
 
 export interface Region {
     readonly pheno: Phenotype,
