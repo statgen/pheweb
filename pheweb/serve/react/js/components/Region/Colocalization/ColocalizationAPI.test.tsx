@@ -1,6 +1,7 @@
 /* eslint-env jest */
 import {getSearchResults , rest_url} from "./ColocalizationAPI";
 import {Locus, locusFromStr} from "../../../common/Model";
+import {LocusZoomData} from "./ColocalizationModel";
 
 test('check rest url', () => {
     const phenotype : string = "a"

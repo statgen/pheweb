@@ -3,6 +3,7 @@ import {compose, get} from "../../common/Utilities";
 import {Colocalization} from "../../common/Model";
 import {SearchResults, searchResultsColocalization} from "./Colocalization/ColocalizationModel";
 import {rest_url} from "./Colocalization/ColocalizationAPI";
+import {Region} from "./RegionModel";
 
 /**
  * Given a colocalization parameter
@@ -24,4 +25,4 @@ export const region_url = (parameter : ColocalizationParameter) : string =>  `/a
 export const getRegion = (parameter: ColocalizationParameter | undefined,
                           sink: (s: Region) => void,
                           getURL = get) =>
-    parameter &&  getURL<Region>(rest_url(parameter),compose(searchResultsColocalization,sink));
+    parameter &&  getURL<Region>(region_url(parameter),sink);

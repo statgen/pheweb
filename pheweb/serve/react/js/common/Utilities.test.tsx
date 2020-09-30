@@ -9,7 +9,8 @@ test('get search results : trivial', () => {
 
 test('get', async () => {
     const response : Response =  { json : () => Promise.resolve({ key : "1" }) } as Response;
+    const handler = jest.fn((x) => {})
     const fetchURL : (input: RequestInfo, init?: RequestInit) => Promise<Response> = (input: RequestInfo, init?: RequestInit) => Promise.resolve(response);
     global.fetch = jest.fn(fetchURL);
-    get("url",console.log);
+    get("url",handler).then(() => expect(handler.mock.calls.length).toBe(1));
 });

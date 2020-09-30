@@ -13,7 +13,6 @@ import {compose, get } from "../../../common/Utilities";
  */
 export const rest_url = (parameter : ColocalizationParameter,suffix : string = "") : string =>  `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}${suffix}`
 
-
 /**
  * Given a parameter return the colocalization entries associated
  * with the parameter
@@ -37,7 +36,7 @@ export const getSearchResults = (parameter: ColocalizationParameter | undefined,
  */
 export const getLocusZoomData = (parameter: ColocalizationParameter | undefined,
                                  sink : (s : LocusZoomData) => void,
-                                 getURL = get) =>
+                                 getURL : <LocusZoomData>(url: string, sink: (x: LocusZoomData) => void) => Promise<void> = get) =>
     parameter &&  getURL<LocusZoomData>(rest_url(parameter,'/finemapping'), sink);
 
 /**
@@ -50,7 +49,7 @@ export const getLocusZoomData = (parameter: ColocalizationParameter | undefined,
  */
 export const getSummary = (parameter: ColocalizationParameter | undefined,
                            sink : (s : SearchSummary) => void,
-                           getURL = get) =>
+                           getURL : <SearchSummary>(url: string, sink: (x: SearchSummary) => void) => Promise<void> = get) =>
     parameter &&  getURL<SearchSummary>(rest_url(parameter,'/summary?clpa.gte=0.1'), sink);
 
 

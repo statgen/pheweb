@@ -1,6 +1,6 @@
 import React, { useState, useEffect , useContext } from 'react';
 import {CasualVariant, Colocalization, Variant, variantFromStr, variantToStr} from "../../../common/Model";
-import ReactTable, {Cell, Row} from 'react-table';
+import ReactTable, {Cell, Column, Row} from 'react-table';
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
 import selectTableHOC from "react-table/lib/hoc/selectTable";
 import { CSVLink } from 'react-csv'
@@ -57,11 +57,11 @@ interface Props {}
 const List = (props : Props) => {
     const { locusZoomData, colocalization , selectedRow, setRowSelected } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
 
-    const toggleSelection = (key, shift, row : Colocalization) =>
+    const toggleSelection = (key : string, shift, row : Colocalization) =>
         setRowSelected && setRowSelected(selectedRow ? undefined : key);
-    const isSelected = (key) =>  selectedRow === `select-${key}`;
+    const isSelected = (key : string) =>  selectedRow === `select-${key}`;
 
-    const rowFn = (state, rowInfo, column, instance) => {
+    const rowFn = (state, rowInfo, column : Column<Colocalization>, instance) => {
         return { onClick: (e, handleOriginal) => handleOriginal && handleOriginal(),
                  style: { background: rowInfo && selectedRow === `select-${rowInfo.original.id}` && "lightgrey" }
         };

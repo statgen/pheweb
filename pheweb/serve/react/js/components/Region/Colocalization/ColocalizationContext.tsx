@@ -15,8 +15,8 @@ export interface ColocalizationState {
     readonly colocalization : Colocalization []
     readonly locusZoomData : LocusZoomData
     readonly searchSummary : SearchSummary
-    readonly selectedRow : string
-    readonly setRowSelected : string => void
+    readonly selectedRow : string | undefined
+    readonly setRowSelected : (rowid : string | undefined) => void
 }
 
 export const ColocalizationContext = createContext<Partial<ColocalizationState>>({});
