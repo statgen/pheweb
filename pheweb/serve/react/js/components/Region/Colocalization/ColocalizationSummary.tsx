@@ -3,8 +3,14 @@ import {ColocalizationContext, ColocalizationState} from "./ColocalizationContex
 
 interface Prop {}
 
-const Summary = (prop : Prop) => {
+const ColocalizationSummary = (prop : Prop) => {
     const { searchSummary } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
+    console.log(searchSummary);
+    useEffect(() => {
+        console.log(`useEffect 2 : ${searchSummary}`);
+    },[searchSummary]);
+
+
     if(searchSummary) {
         return (<p>
                 This region has {` ${ searchSummary.count }`} colocalizations ,
@@ -16,4 +22,4 @@ const Summary = (prop : Prop) => {
     }
 }
 
-export default Summary
+export default ColocalizationSummary

@@ -36,6 +36,7 @@ const ColocalizationContextProvider = (props : Props) => {
                                                      colocalization ,
                                                      locusZoomData ,
                                                      selectedRow,
+                                                     searchSummary,
                                                      setRowSelected }}>
                 {props.children}
             </ColocalizationContext.Provider>);

@@ -17,8 +17,11 @@ const Region = (props : Props) => {
                 <div className="container-fluid"  style={{ width : "95%"}}>
                     <RegionBanner/>
                     <RegionSummary/>
+                    <p>3</p>
                     <RegionMessage/>
+                    <p>4</p>
                     <RegionLocusZoom/>
+                    <p>5</p>
                     <RegionColocalization/>
                 </div>
             </RegionContextProvider>

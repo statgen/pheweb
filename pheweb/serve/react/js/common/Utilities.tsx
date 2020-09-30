@@ -26,6 +26,6 @@ export const get : <X>(url: string,
     console.log(url);
     return fetch(url).
         then(response => response.json()).
-        then(sink).
+        then(x => { console.log(x);sink(x)}).
         catch(console.error);
 }

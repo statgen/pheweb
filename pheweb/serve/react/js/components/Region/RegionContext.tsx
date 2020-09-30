@@ -27,7 +27,6 @@ const RegionContextProvider = (props : Props) => {
 
     useEffect(() => { getRegion(parameter,setRegion); },[]);
 //    useEffect(() => { region && updateLocusZoom(region, setLocusZoomContext); },[region]);
-
     return (<RegionContext.Provider value={{ region ,
                                              locusZoomContext,
                                              setLocusZoomContext }}>

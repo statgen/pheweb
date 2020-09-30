@@ -66,7 +66,6 @@ const List = (props : Props) => {
                  style: { background: rowInfo && selectedRow === `select-${rowInfo.original.id}` && "lightgrey" }
         };
     };
-
     if(colocalization && locusZoomData){
         return (<div>
             <SelectTable data={ colocalization }

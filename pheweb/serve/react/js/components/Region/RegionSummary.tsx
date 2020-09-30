@@ -1,19 +1,20 @@
 import {Phenotype} from "./RegionModel";
 
-import Summary from "./Colocalization/ColocalizationSummary";
-import React, {useContext} from "react";
+import ColocalizationSummary from "./Colocalization/ColocalizationSummary";
+import React, {useContext, useEffect} from "react";
 import {RegionContext, RegionState} from "./RegionContext";
 
 interface Props {}
 const RegionSummary =  (props : Props) => {
     const { region } = useContext<Partial<RegionState>>(RegionContext);
+    useEffect(() => { console.log(region); },[region]);
     if(region) {
         const { pheno } = region;
         return (<div className="row">
             <div className="pheno-info col-xs-12">
                 <p><b>{pheno.num_cases}</b> cases, <b>{pheno.num_controls}</b> controls</p>
                 <p>{pheno.category}</p>
-                <Summary/>
+                { /* <ColocalizationSummary/> */ }
             </div>
         </div>)
     } else {

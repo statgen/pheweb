@@ -8,12 +8,15 @@ const RegionBanner =  (props : Props) => {
     if(region) {
         const {pheno} = region;
 
-        return (<div className="col-xs-12">
-            <h1>{pheno && pheno.phenostring} </h1>
-            <p>
-                <a href={`https://risteys.finngen.fi/phenocode/${pheno.phenostring}`} target="_blank">RISTEYS</a>
-            </p>
-        </div>);
+        return (<div className="row">
+            <div className="col-xs-12">
+            { /* RegionBanner */ }
+                <h1>{pheno && pheno.phenostring} </h1>
+                    <p>
+                        <a href={`https://risteys.finngen.fi/phenocode/${pheno.phenostring}`} target="_blank">RISTEYS</a>
+                    </p>
+                </div>
+            </div>);
     } else {
         return (<div className="col-xs-12"></div>);
     }
