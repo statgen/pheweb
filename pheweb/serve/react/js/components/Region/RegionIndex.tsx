@@ -1,15 +1,11 @@
 import React , { useState, useEffect , useContext } from 'react'
 
 interface Props {};
-import { VisConf , LzConf, Phenotype, Region } from './components';
-import Summary from './Colocalization/ColocalizationSummary'
-import List from './Colocalization/ColocalizationList'
-import { init_locus_zoom, LocusZoomContext } from './LocusZoom/RegionLocus'
-import ColocalizationProvider from './Colocalization/ColocalizationContext'
-import styles from './region.css'
 import RegionMessage from "./RegionMessage";
 import RegionLocusZoom from "./RegionLocusZoom";
 import RegionColocalization from "./RegionColocalization";
+import RegionBanner from "./RegionBanner";
+import RegionSummary from "./RegionSummary";
 
 const Region = (props : Props) => {
 
