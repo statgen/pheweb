@@ -20,8 +20,6 @@ In repository root:
 Get credentials for a running cluster:  
 `gcloud container clusters get-credentials [CLUSTER-NAME] --zone=europe-west1-b`
 
-PheWeb of R1 results is running in the cluster `pheweb-r1`
-
 Or create a new cluster:  
 `gcloud container clusters create [CLUSTER-NAME] --num-nodes=1 --machine-type=n1-standard-1 --zone=europe-west1-b`
 
@@ -35,23 +33,22 @@ If necessary:
 
 ### 4. Apply kubernetes settings
 
-If using a running cluster:
+This example is for R6 data. If using a running cluster:
 
-In `deploy/pheweb-deployment-dev.yaml` (or other pheweb-deployment-* file), change the Docker image to the one you just created (or make other desired changes). Make sure that in `deploy/pheweb-pv-dev.yaml` (or other pheweb-pv-* file) the GCE disk is the one you want with the wanted data - and that there is a correct config.py in the /mnt/data-disk-ssd/pheweb directory of the disk. In a running kubernetes node, mounted disks are at
-`/home/kubernetes/containerized_mounter/rootfs/var/lib/kubelet/plugins/kubernetes.io/gce-pd/mounts/`
+In e.g. `deploy/pheweb-deployment-r6.yaml` (or other pheweb-deployment-* file), change the Docker image to the one you just created (or make other desired changes, note that `replicas` should usually be the same as the cluster size). Make sure that in `deploy/pheweb-pv-nfs.yaml`(or other pheweb-pv-* file) the NFS / GCE disk is the one you want with the wanted data - and that there is a correct config.py in the data directory of the disk. The data directory needs to be specified (`PHEWEB_DIR`) in `deploy/pheweb-deployment-r6.yaml`.
 
 Then, apply the changes you made (example with dev config):
 
-`kubectl apply -f deploy/pheweb-pv-dev.yaml` and/or  
-`kubectl apply -f deploy/pheweb-deployment-dev.yaml`
+`kubectl apply -f deploy/pheweb-pv-nfs.yaml` (if changed) and/or  
+`kubectl apply -f deploy/pheweb-deployment-r6.yaml`
 
 Or if using a new cluster:
 
-Modify `deploy/pheweb-ingress-dev.yaml`, `deploy/pheweb-deployment-dev.yaml` and `deploy/pheweb-pv-dev.yaml` -- or other than `-dev` files -- as needed. Then
+Modify `deploy/pheweb-ingress-r6.yaml`, `deploy/pheweb-deployment-r6.yaml` and `deploy/pheweb-pv-nfs.yaml` -- or other files -- as needed. Then
 
-`kubectl create -f deploy/pheweb-ingress-dev.yaml` and  
-`kubectl create -f deploy/pheweb-pv-dev.yaml` and  
-`kubectl create -f deploy/pheweb-deployment-dev.yaml`
+`kubectl create -f deploy/pheweb-ingress-r6.yaml` and  
+`kubectl create -f deploy/pheweb-pv-nfs.yaml` and  
+`kubectl create -f deploy/pheweb-deployment-r6.yaml`
 
 ### 5. Update running StateFulSet
 
@@ -71,9 +68,9 @@ In case of an incomprehensible situation and it would be great to bring the serv
 gcloud container clusters delete [CLUSTER_NAME]
 gcloud container clusters create [CLUSTER_NAME] --num-nodes=4 --machine-type=n1-standard-1 --zone=europe-west1-b
 kubectl create secret tls finngen-tls --key /path/to/star_finngen_fi.key --cert /path/to/star_finngen_fi.crt
-kubectl create -f deploy/pheweb-ingress.yaml
-kubectl create -f deploy/pheweb-pv-r2.yaml
-kubectl create -f deploy/pheweb-deployment-r2.yaml
+kubectl create -f deploy/pheweb-ingress-r6.yaml
+kubectl create -f deploy/pheweb-pv-nfs.yaml
+kubectl create -f deploy/pheweb-deployment-r6.yaml
 ```
 
 ### 7. Useful commands
