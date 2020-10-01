@@ -648,7 +648,7 @@ class TabixResultDao(ResultDB):
             variants = [variants]
         results = []
         for v in variants:
-            res = self.get_variant_results_range('X' if v.chr == 23 else v.chr, v.pos, v.pos)
+            res = self.get_variant_results_range(v.chr, v.pos, v.pos)
             for r in res:
                 if r[0]==v:
                     results.append(r)
