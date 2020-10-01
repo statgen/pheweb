@@ -14,8 +14,8 @@ export class RegionErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        console.log(error);
-        console.log(errorInfo);
+        console.error(error);
+        console.error(errorInfo);
     }
 
     render() {

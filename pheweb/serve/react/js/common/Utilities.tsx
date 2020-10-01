@@ -22,10 +22,8 @@ export function compose<A, B, C>(f: (arg: A) => B, g: (arg: B) => C): (arg: A) =
  * @param fetchURL
  */
 export const get : <X>(url: string,
-                       sink : (x: X) => void) => Promise<void> = (url, sink) => {
-    console.log(url);
-    return fetch(url).
-        then(response => response.json()).
-        then(x => { console.log(x);sink(x)}).
-        catch(console.error);
-}
+                       sink : (x: X) => void) => Promise<void> = (url, sink) =>
+    fetch(url).
+    then(response => response.json()).
+    then(sink).
+    catch(console.error);

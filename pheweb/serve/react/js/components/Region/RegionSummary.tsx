@@ -7,7 +7,6 @@ import {RegionContext, RegionState} from "./RegionContext";
 interface Props {}
 const RegionSummary =  (props : Props) => {
     const { region } = useContext<Partial<RegionState>>(RegionContext);
-    useEffect(() => { console.log(region); },[region]);
     if(region) {
         const { pheno } = region;
         return (<div className="row">

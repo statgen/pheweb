@@ -13,13 +13,13 @@ export interface RegionState {
 }
 
 export const RegionContext = createContext<Partial<RegionState>>({});
-
+/*
 const updateLocusZoom = (region, setLocusZoomContext) => {
     if(region){
         setLocusZoomContext(init_locus_zoom(region));
     }
 };
-
+*/
 const RegionContextProvider = (props : Props) => {
     const parameter : RegionParameter| undefined = createParameter();
     const [region, setRegion] = useState<Region| undefined>(undefined);

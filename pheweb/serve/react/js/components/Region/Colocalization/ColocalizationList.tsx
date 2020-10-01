@@ -54,7 +54,7 @@ const subComponent = (colocalizationList) => (row : Row<Colocalization>) => {
 }
 
 interface Props {}
-const List = (props : Props) => {
+const ColocalizationList = (props : Props) => {
     const { locusZoomData, colocalization , selectedRow, setRowSelected } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
 
     const toggleSelection = (key : string, shift, row : Colocalization) =>
@@ -102,4 +102,4 @@ const List = (props : Props) => {
         return (<div>Loading ... </div>);
     }
 }
-export default List
+export default ColocalizationList

@@ -1,19 +1,13 @@
 import React, {useContext} from "react";
 import {RegionContext, RegionState} from "./RegionContext";
+import ColocalizationList from "./Colocalization/ColocalizationList";
 
 interface Props {}
 
 const RegionColocalization =  (props : Props) => {
     const { region } = useContext<Partial<RegionState>>(RegionContext);
     if(region) {
-        const {pheno} = region;
-
-        return (<div className="col-xs-12">
-            <h1>{pheno && pheno.phenostring} </h1>
-            <p>
-                <a href={`https://risteys.finngen.fi/phenocode/${pheno.phenostring}`} target="_blank">RISTEYS</a>
-            </p>
-        </div>);
+        return (<ColocalizationList/>);
     } else {
         return (<div className="col-xs-12"></div>);
     }

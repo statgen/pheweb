@@ -5,12 +5,6 @@ interface Prop {}
 
 const ColocalizationSummary = (prop : Prop) => {
     const { searchSummary } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
-    console.log(searchSummary);
-    useEffect(() => {
-        console.log(`useEffect 2 : ${searchSummary}`);
-    },[searchSummary]);
-
-
     if(searchSummary) {
         return (<p>
                 This region has {` ${ searchSummary.count }`} colocalizations ,
