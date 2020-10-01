@@ -1,6 +1,6 @@
 import json
 from flask import Blueprint, current_app as app, g, request
-from .model import Locus
+from finngen_common_data_model.genomics import Variant, Locus
 import re
 
 colocalization = Blueprint('colocalization', __name__)
@@ -13,31 +13,23 @@ def get_phenotype():
     app_dao = app.jeeves.colocalization
     return json.dumps(app_dao.get_phenotype(flags={}).json_rep())
 
-@colocalization.route('/api/colocalization/<string:phenotype>/<string:chromosome>:<int:start>-<int:stop>', methods=["GET"])
+@colocalization.route('/api/colocalization/<string:phenotype>/<string:locus>', methods=["GET"])
 def get_locus(phenotype: str,
-              chromosome: str,
-              start: int,
-              stop: int):
+              locus: str):
     app_dao = app.jeeves.colocalization
     flags = request.args.to_dict()
     return json.dumps(app_dao.get_locus(phenotype=phenotype,
-                                        locus = Locus(chromosome,
-                                                      start,
-                                                      stop),
+                                        locus = Locus.from_str(locus),
                                         flags=flags).json_rep(), default=lambda o: None)
 
 
-@colocalization.route('/api/colocalization/<string:phenotype>/<string:chromosome>:<int:start>-<int:stop>/summary', methods=["GET"])
+@colocalization.route('/api/colocalization/<string:phenotype>/<string:locus>/summary', methods=["GET"])
 def do_summary_colocalization(phenotype: str,
-                              chromosome: str,
-                              start: int,
-                              stop: int):
+                              locus : str):
   app_dao = app.jeeves.colocalization
   flags = request.args.to_dict()
   return json.dumps(app_dao.get_locus_summary(phenotype=phenotype,
-                                              locus = Locus(chromosome,
-                                                            start,
-                                                            stop),
+                                              locus = Locus.from_str(locus),
                                               flags=flags).json_rep(), default=lambda o: None)
 
 
@@ -50,15 +42,13 @@ def get_locuszoom_results(phenotype: str):
     flags = request.args.to_dict()
     return get_locuszoom(phenotype, chromosome, start, stop, flags)
 
-@colocalization.route('/api/colocalization/<string:phenotype>/<string:chromosome>:<int:start>-<int:stop>/finemapping', methods=["GET"])
+@colocalization.route('/api/colocalization/<string:phenotype>/<string:locus>/finemapping', methods=["GET"])
 def get_locuszoom(phenotype: str,
-                  chromosome: str,
-                  start: int,
-                  stop: int,
+                  locus : str,
                   flags = None):
     flags = flags or request.args.to_dict()
     app_dao = app.jeeves.colocalization
-    locus = Locus(chromosome, start, stop)
+    locus = Locus.from_str(locus)
     variants = app_dao.get_locuszoom(phenotype=phenotype, locus = locus, flags=flags)
     variants = {k: v.json_rep() for k, v in variants.items()} if variants else []
     return json.dumps(variants)

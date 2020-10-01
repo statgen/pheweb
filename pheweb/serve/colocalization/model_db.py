@@ -2,12 +2,12 @@ import typing
 from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float, Text, ForeignKey, Index
 from sqlalchemy.orm import sessionmaker
 from .model import ColocalizationDB, SearchSummary, SearchResults, PhenotypeList, CausalVariantVector
+from .model_mapper import create_metadata
 from finngen_common_data_model.genomics import Variant, Locus
 from finngen_common_data_model.colocalization import CausalVariant, Colocalization 
 
 import csv
 import gzip
-from sqlalchemy.orm import mapper, composite, relationship
 import attr
 from .dao_support import DAOSupport
 from sqlalchemy import func, distinct, or_, and_
@@ -20,100 +20,14 @@ from sqlalchemy.sql import func
 # TODO remove
 csv.field_size_limit(sys.maxsize)
 
-metadata = MetaData()
-
-causal_variant_table = Table('causal_variant',
-                             metadata,
-                             Column('id', Integer, primary_key=True, autoincrement=True),
-                             Column('pip1', Float, unique=False, nullable=True),
-                             Column('pip2', Float, unique=False, nullable=True),
-                             Column('beta1', Float, unique=False, nullable=True),
-                             Column('beta2', Float, unique=False, nullable=True),
-                             *Variant.columns('variant1_', nullable=True),
-                             *Variant.columns('variant2_', nullable=True),
-                             Column('colocalization_id', Integer, ForeignKey('colocalization.id')))
-
-colocalization_table = Table('colocalization',
-                             metadata,
-                             Column('id', Integer, primary_key=True, autoincrement=True),
-                             Column('source1', String(80), unique=False, nullable=False),
-                             Column('source2', String(80), unique=False, nullable=False),
-                             Column('phenotype1', String(1000), unique=False, nullable=False),
-                             Column('phenotype1_description', String(1000), unique=False, nullable=False),
-                             Column('phenotype2', String(1000), unique=False, nullable=False),
-                             Column('phenotype2_description', String(1000), unique=False),
-                             Column('tissue1', String(80), unique=False, nullable=True),
-                             Column('tissue2', String(80), unique=False, nullable=False),
-
-                             # locus_id1
-                             *Variant.columns('locus_id1_'),
-                             # locus_id2
-                             *Variant.columns('locus_id2_'),
-
-                             # locus
-                             *Locus.columns(''),
-
-                             Column('clpp', Float, unique=False, nullable=False),
-                             Column('clpa', Float, unique=False, nullable=False),
-                             Column('beta_id1', Float, unique=False, nullable=True),
-                             Column('beta_id2', Float, unique=False, nullable=True),
-
-                             Column('len_cs1', Integer, unique=False, nullable=False),
-                             Column('len_cs2', Integer, unique=False, nullable=False),
-                             Column('len_inter', Integer, unique=False, nullable=False))
-
-def refine_colocalization(c : Colocalization) -> Colocalization:
-    c = {x: getattr(c, x) for x in Colocalization.column_names()}
-    return Colocalization(**c)
-
-def NullableVariant(chromosome : typing.Optional[str],
-                    position : typing.Optional[int],
-                    reference : typing.Optional[str],
-                    alternate : typing.Optional[str]) -> typing.Optional[Variant] :
-    if chromosome and position and reference and alternate:
-        return Variant(chromosome, position, reference, alternate)
-    else:
-        return None
-        
-causal_variant_mapper = mapper(CausalVariant,
-                               causal_variant_table,
-                               properties = { 'variant1': composite(NullableVariant,
-                                                                   causal_variant_table.c.variant1_chromosome,
-                                                                   causal_variant_table.c.variant1_position,
-                                                                   causal_variant_table.c.variant1_ref,
-                                                                   causal_variant_table.c.variant1_alt)
-                                            , 'variant2': composite(NullableVariant,
-                                                                     causal_variant_table.c.variant2_chromosome,
-                                                                     causal_variant_table.c.variant2_position,
-                                                                     causal_variant_table.c.variant2_ref,
-                                                                     causal_variant_table.c.variant2_alt)
-                                            })
-
-
-cluster_coordinate_mapper = mapper(Colocalization,
-                                   colocalization_table,
-                                   properties={'locus_id1': composite(Variant,
-                                                                      colocalization_table.c.locus_id1_chromosome,
-                                                                      colocalization_table.c.locus_id1_position,
-                                                                      colocalization_table.c.locus_id1_ref,
-                                                                      colocalization_table.c.locus_id1_alt),
-                                               'locus_id2': composite(Variant,
-                                                                      colocalization_table.c.locus_id2_chromosome,
-                                                                      colocalization_table.c.locus_id2_position,
-                                                                      colocalization_table.c.locus_id2_ref,
-                                                                      colocalization_table.c.locus_id2_alt),
-
-                                               'locus': composite(Locus,
-                                                                  colocalization_table.c.chromosome,
-                                                                  colocalization_table.c.start,
-                                                                  colocalization_table.c.stop),
-
-                                               'variants': relationship(CausalVariant),
-                                   }
-)
-
-
 class ColocalizationDAO(ColocalizationDB):
+    metadata = None
+    @staticmethod
+    def getMetaData():
+        if not ColocalizationDAO.metadata:
+            ColocalizationDAO.metadata = create_metadata()
+        return ColocalizationDAO.metadata
+
     @staticmethod
     def mysql_config(path : str) -> typing.Optional[str] :
         print(path)
@@ -137,7 +51,8 @@ class ColocalizationDAO(ColocalizationDB):
         self.engine = create_engine(self.db_url,
                                     pool_pre_ping=True,
                                     *parameters)
-        metadata.bind = self.engine
+
+        ColocalizationDAO.getMetaData().bind = self.engine
         self.Session = sessionmaker(bind=self.engine)
         self.support = DAOSupport(Colocalization)
 
@@ -146,7 +61,7 @@ class ColocalizationDAO(ColocalizationDB):
             self.engine.dispose()
 
     def create_schema(self):
-        return metadata.create_all(self.engine)
+        return ColocalizationDAO.getMetaData().create_all(self.engine)
 
     def dump(self):
         print(self.db_url)
@@ -154,11 +69,11 @@ class ColocalizationDAO(ColocalizationDB):
         def metadata_dump(sql, *multiparams, **params):
             print(sql.compile(dialect=engine.dialect))
         engine = create_engine(self.db_url, strategy='mock', executor=metadata_dump)
-        metadata.create_all(engine)
+        ColocalizationDAO.getMetaData().create_all(engine)
 
     def delete_all(self):
         self.engine.execute(colocalization_table.delete())
-        metadata.drop_all(self.engine)
+        ColocalizationDAO.getMetaData().drop_all(self.engine)
 
 
     def load_data(self, path: str, header : bool=True) -> typing.Optional[int]:
