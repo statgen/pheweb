@@ -5,7 +5,6 @@ interface Props {}
 
 const RegionMessage =  (props : Props) => {
     const { region } = useContext<Partial<RegionState>>(RegionContext);
-    useEffect(() => { console.log(region) },[region]);
     if(region?.lz_conf) {
         const {lz_conf} = region;
         return (<div className="row">

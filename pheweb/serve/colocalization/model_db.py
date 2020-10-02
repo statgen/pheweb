@@ -196,10 +196,6 @@ class ColocalizationDAO(ColocalizationDB):
                                       v["beta1"],
                                       v["beta2"],
                                       v["id"],
-                                      v["rsid1"],
-                                      v["rsid2"],
-                                      v["varid1"],
-                                      v["varid2"],
                                       v["count_variants"],
                                       r.phenotype1,
                                       r.phenotype1_description,
@@ -217,15 +213,11 @@ class ColocalizationDAO(ColocalizationDB):
                 beta1 = variants[6]
                 beta2 = variants[7]
                 causalvariantid = variants[8]
-                rsid1 = variants[9]
-                rsid2 = variants[10]
-                varid1 = variants[11]
-                varid2 = variants[12]
-                count_variants = variants[13]
-                phenotype1 = variants[14]
-                phenotype1_description = variants[15]
-                phenotype2 = variants[16]
-                phenotype2_description = variants[17]
+                count_variants = variants[9]
+                phenotype1 = variants[10]
+                phenotype1_description = variants[11]
+                phenotype2 = variants[12]
+                phenotype2_description = variants[13]
             else:
                 position1 = []
                 position2 = []
@@ -236,10 +228,6 @@ class ColocalizationDAO(ColocalizationDB):
                 beta1 = []
                 beta2 = []
                 causalvariantid = []
-                rsid1 = []
-                rsid2 = []
-                varid1 = []
-                varid2 = []
                 count_variants = []
                 phenotype1 = []
                 phenotype1_description = []
@@ -255,10 +243,10 @@ class ColocalizationDAO(ColocalizationDB):
                                              beta1,
                                              beta2,
                                              causalvariantid,
-                                             rsid1,
-                                             rsid2,
-                                             varid1,
-                                             varid2,
+                                             [],
+                                             [],
+                                             [],
+                                             [],
                                              count_variants,
                                              phenotype1,
                                              phenotype1_description,
