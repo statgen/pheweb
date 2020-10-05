@@ -20,7 +20,7 @@ const Region = (props : Props) => {
                     <RegionMessage/>
                     <RegionLocusZoom/>
                     <RegionColocalization/>
-                    </div>
+                </div>
             </RegionContextProvider>
           </ColocalizationContextProvider>
         </RegionErrorBoundary>)
