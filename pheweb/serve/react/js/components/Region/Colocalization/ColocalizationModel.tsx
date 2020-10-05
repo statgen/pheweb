@@ -40,8 +40,8 @@ export type SubstituteType<T, A, B> =
         : T extends {}
         ? { [K in keyof T]: SubstituteType<T[K], A, B> }
         : T;
-type ResponseColocalization = SubstituteType<Colocalization, Variant | undefined, String>
-type ResponseCasualVariant = SubstituteType<CasualVariant, Variant | undefined, String>
+type ResponseColocalization = SubstituteType<Colocalization, Variant | undefined, string>
+type ResponseCasualVariant = SubstituteType<CasualVariant, Variant | undefined, string>
 
 export interface SearchResults {
     count : number

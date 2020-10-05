@@ -23,10 +23,12 @@ const RegionLocusZoom =  (props : Props) => {
         }
     },[locusZoomData, region]);
 
+
     if(region) {
+        console.log("...render...");
         return (<div className="row">
             <div className="col-xs-12">
-                <div id="lz-1" className="lz-locuszoom-container lz-container-responsive" data-region={ region }></div>
+                <div id="lz-1" className="lz-locuszoom-container lz-container-responsive" data-region={ JSON.stringify(region) }></div>
             </div>
         </div>);
 

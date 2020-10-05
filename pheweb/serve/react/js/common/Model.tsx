@@ -95,8 +95,8 @@ export function locusFromStr(str : string ) : Locus | undefined {
     const [ ignore, chromosome, start , stop ] : Array<string> = match;
 
     result = { chromosome,
-      start: parseInt(start, 10) ,
-      stop : parseInt(stop, 10) }
+      start:  +start ,
+      stop : +stop }
   } else { result = undefined; }
   return result;
 }
