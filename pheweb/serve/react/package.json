@@ -22,6 +22,7 @@
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
     "babel-loader": "^8.0.5",
+    "d3": "^6.2.0",
     "dts-gen": "^0.6.0",
     "locuszoom": "^0.11.0",
     "match-sorter": "^1.8.1",

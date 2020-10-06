@@ -28,7 +28,7 @@ const RegionLocusZoom =  (props : Props) => {
         console.log("...render...");
         return (<div className="row">
             <div className="col-xs-12">
-                <div id="lz-1" className="lz-locuszoom-container lz-container-responsive" data-region={ JSON.stringify(region) }></div>
+                <div id="lz-1" className="lz-locuszoom-container lz-container-responsive" data-region={ region.region }></div>
             </div>
         </div>);
 

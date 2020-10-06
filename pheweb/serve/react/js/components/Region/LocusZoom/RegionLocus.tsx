@@ -88,7 +88,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     const localColocalizationBase : string = "/api/colocalization/" + region.pheno.phenocode + "/lz-";
     const remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
     const dataSources : DataSources = new DataSources();
-/*
+
     const recombSource : number = region.genome_build == 37 ? 15 : 16
     const geneSource : number = region.genome_build == 37 ? 2 : 1
     const gwascatSource : Array<number> = region.genome_build == 37 ? [2,3] : [1,4]
@@ -258,8 +258,8 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     plot.panels['colocalization'].on('data_rendered', () => { console.log('..'); })
     plot.panels['colocalization'].on('element_selection', () => { console.log('.+'); })
 
-
-//
+    
+/*
     scatters.filter(key => plot.panels[key]).forEach(key => {
         plot.panels[key].on("data_rendered", function() {
         console.log(key + ' rendered')
@@ -298,8 +298,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         this.parent.positionPanels();
         })
     })
-//
-
+*/
     const region_span = (region : CondFMRegions) : string => region.type === 'finemap' ?
             `<span>${region.n_signals} ${region.type} signals (prob. ${region.n_signals_prob.toFixed(3)} </span><br/>` :
             `<span>${region.n_signals} ${region.type} signals</span><br/>`;
@@ -326,11 +325,5 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         }
     };
 
-    */
-
-    const plot : Plot = populate("#lz-1", dataSources, region_layout(region));
-    plot.addPanel(association_layout(region));
-    const element = document.getElementById('lz-1');
-    console.log(element);
-    return { plot , dataSources };
+   return { plot , dataSources };
 };
