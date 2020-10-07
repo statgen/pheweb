@@ -1,4 +1,4 @@
-import React , { Component } from 'react'
+import React, {Component, ErrorInfo} from 'react'
 
 interface Props { children: React.ReactNode }
 
@@ -13,17 +13,15 @@ export class RegionErrorBoundary extends React.Component {
         return { hasError: true };
     }
 
-    componentDidCatch(error, errorInfo) {
+    componentDidCatch(error : Error, errorInfo : ErrorInfo) {
         console.error(error);
         console.error(errorInfo);
     }
 
     render() {
         if (this.state.hasError) {
-            // You can render any custom fallback UI
-            return <h1>Something went wrong.</h1>;
+            return <h1>Error</h1>;
         }
-
         return this.props.children;
     }
 }

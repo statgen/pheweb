@@ -1,4 +1,4 @@
-import {RegionParameter} from "./Colocalization/ColocalizationContext";
+import {RegionParameter} from "./RegionModel";
 import {compose, get} from "../../common/Utilities";
 import {Colocalization} from "../../common/Model";
 import {SearchResults, searchResultsColocalization} from "./Colocalization/ColocalizationModel";

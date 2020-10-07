@@ -13,11 +13,11 @@ import {compose, get } from "../../../common/Utilities";
  */
 export const rest_url = (parameter : RegionParameter, suffix : string = "") : string =>  `/api/colocalization/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}${suffix}`
 
-/**
- * Given a parameter return the colocalization entries associated
- * with the parameter
- *
- * @param parameter to search
+    /**
+     * Given a parameter return the colocalization entries associated
+     * with the parameter
+     *
+     * @param parameter to search
  * @param sink
  * @param getURL
  */

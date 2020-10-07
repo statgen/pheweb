@@ -1,4 +1,16 @@
-import { positionIntToString, Layouts , Data , createCORSPromise , DataSources , TransformationFunctions , Dashboard , populate, Plot, Layout, LayoutComponentsEntity } from 'locuszoom';
+import {
+    positionIntToString,
+    Layouts,
+    Data,
+    createCORSPromise,
+    DataSources,
+    TransformationFunctions,
+    Dashboard,
+    populate,
+    Plot,
+    Layout,
+    ComponentsEntity
+} from 'locuszoom';
 import { region_layout ,  association_layout , genes_layout , clinvar_layout , gwas_cat_layout , finemapping_layout , colocalization_layout , panel_layouts } from './RegionLayouts';
 import { FG_LDDataSource , GWASCatSource , ClinvarDataSource } from './RegionCustomLocuszooms';
 import { Region, CondFMRegions } from '../RegionModel';
@@ -172,11 +184,11 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     }
 
 
-    add_dashboard_button('link', function(layout : LayoutComponentsEntity) {
+    add_dashboard_button('link', function(layout : ComponentsEntity) {
         return () => { if(layout.url) { window.location.href = layout.url }; };
     });
 
-    add_dashboard_button('move', function(layout : LayoutComponentsEntity) {
+    add_dashboard_button('move', function(layout : ComponentsEntity) {
         // see also the sefault component `shift_region`
         return function() {
             var start = this.parent_plot.state.start;
@@ -312,7 +324,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         var summary_html =  summary_region + summary_message;
         $('#region_summary').html(summary_html)
         if (n_cond_signals > 1) {
-            var opt_html = region.cond_fm_regions.filter(r => r.type == 'conditional')[0].path.map((path, i : number) =>
+            var opt_html : string = region.cond_fm_regions.filter(r => r.type == 'conditional')[0].path.map((path, i : number) =>
               '<label onClick="show_conditional(' + i + ')" data-cond-i="' + i + '" class="btn btn-primary' + (i === 0 ? ' active' : '') + '"><span>' + (i+1) + '</span></label>'
             ).join('\n')
             $('#cond_options').html('<p>Show conditioned on ' + opt_html + ' variants<span></p>')

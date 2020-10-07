@@ -1,6 +1,9 @@
-https://stackoverflow.com/questions/59833839/swap-one-typescript-type-with-another-inside-an-object
+/* eslint camelcase: 0 */
+/* eslint no-unused-vars: ["error", { "varsIgnorePattern": "ignore" }] */
 
-interface CasualVariant {
+// https:// stackoverflow.com/questions/59833839/swap-one-typescript-type-with-another-inside-an-object
+
+export interface CasualVariant {
   readonly variation_alt: string,
   readonly variation_chromosome: string,
   readonly beta1 : number,
@@ -15,13 +18,12 @@ interface CasualVariant {
   readonly varid1 : string,
   readonly varid2 : string,
 };
-export { CasualVariant };
 
 export interface Colocalization {
-  readonly id : number ,
+  readonly id : number,
 
-  readonly source1 : string ,
-  readonly source2 : string ,
+  readonly source1 : string,
+  readonly source2 : string,
   readonly phenotype1 : string,
   readonly phenotype1_description : string,
   readonly phenotype2 : string,
@@ -62,19 +64,18 @@ export interface Variant {
   readonly alternate : string
 }
 
-export function variantToStr(variant : Variant) {
-  return `${variant.chromosome}:${variant.position}_${variant.reference}/${variant.alternate}`;
+export function variantToStr (variant : Variant) {
+  return `${variant.chromosome}:${variant.position}_${variant.reference}/${variant.alternate}`
 }
 
-export function variantFromStr(str : string ) : Variant | undefined {
+export function variantFromStr (str : string) : Variant | undefined {
   let result : Variant | undefined
-  const match = str.match("^chr([^_]+)_([\\d]+)_([^_]+)_([^_]+)$")
-  if(match){
-    const [ ignore, chromosome, position , reference, alternate ] : Array<string> = match;
-    result = { chromosome, position : parseInt(position, 10) , reference, alternate
-    }
-  } else { result = undefined; }
-  return result;
+  const match = str.match('^chr([^_]+)_([\\d]+)_([^_]+)_([^_]+)$')
+  if (match) {
+    const [ignore, chromosome, position, reference, alternate] : Array<string> = match
+    result = { chromosome, position: parseInt(position, 10), reference, alternate }
+  } else { result = undefined }
+  return result
 }
 
 export interface Locus {
@@ -83,20 +84,21 @@ export interface Locus {
   readonly stop : number
 }
 
-export function locusToStr(locus : Locus) {
-  return `${locus.chromosome}:${locus.start}-${locus.stop}`;
+export function locusToStr (locus : Locus) {
+  return `${locus.chromosome}:${locus.start}-${locus.stop}`
 }
 
-export function locusFromStr(str : string ) : Locus | undefined {
-
+export function locusFromStr (str : string) : Locus | undefined {
   let result : Locus | undefined
-  const match = str.match("^([A-Za-z0-9]+):([0-9]+)-([0-9]+)$")
-  if(match){
-    const [ ignore, chromosome, start , stop ] : Array<string> = match;
+  const match = str.match('^([A-Za-z0-9]+):([0-9]+)-([0-9]+)$')
+  if (match) {
+    const [ignore, chromosome, start, stop] : Array<string> = match
 
-    result = { chromosome,
-      start:  +start ,
-      stop : +stop }
-  } else { result = undefined; }
-  return result;
+    result = {
+      chromosome,
+      start: +start,
+      stop: +stop
+    }
+  } else { result = undefined }
+  return result
 }

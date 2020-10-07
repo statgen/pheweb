@@ -777,10 +777,11 @@ export const colocalization_layout: (region: Region) => Layout = (region: Region
 	}
 }
 
-export const panel_layouts : Map<layout_types,Layout> = new Map([
-	['association' , association_layout] ,
-	['genes' , genes_layout ] ,
-	['clinvar' , clinvar_layout ] , 
-	['gwas_cat' , gwas_cat_layout ],
-	['finemapping' , finemapping_layout ], 
-	['colocalization' , colocalization_layout ] ]);
+export const panel_layouts : { [key:layout_types]: (region: Region) => Layout } = {
+	'association' : association_layout ,
+    'genes' : genes_layout ,
+	'clinvar' : clinvar_layout ,
+	'gwas_cat' : gwas_cat_layout ,
+	'finemapping' : finemapping_layout ,
+	 'colocalization' : colocalization_layout
+};

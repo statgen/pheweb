@@ -47,7 +47,7 @@ ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
         "Content-Type": "application/x-www-form-urlencoded"
     };
     var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + '[' + (this.params.region.genome_build == 37 ? 'chrpos37' : 'chrpos') + ']%22clinsig%20pathogenic%22[Properties]&retmax=500'
-    return createCORSPromise("GET", requrl).then(function( resp) {
+    return createCORSPromise("GET", requrl).then(function( resp : string) {
 
         var data = JSON.parse(resp);
 
@@ -70,7 +70,7 @@ ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
     );
 };
 
-ClinvarDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+ClinvarDataSource.prototype.parseResponse = function(resp : string, chain, fields, outnames, trans) {
 
     if (resp == '') {
         // locuszoom does not show even axis titles if there are no data visible.
@@ -296,7 +296,7 @@ ConditionalSource.prototype.preGetData = function(state : { [key : string ] , (o
 };
 
 interface ChainResponse {
-    header : {},
+    header : { analysis? : string },
     body : (string|object)[],
     discrete : object
 }
