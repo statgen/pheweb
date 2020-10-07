@@ -11,17 +11,17 @@ import {init_locus_zoom} from "./LocusZoom/RegionLocus";
 interface Props {}
 
 const RegionLocusZoom =  (props : Props) => {
-    const { locusZoomData } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
-    const { region } = useContext<Partial<RegionState>>(RegionContext);
+    const { locusZoomData  } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
+    const { region , setLocusZoomContext } = useContext<Partial<RegionState>>(RegionContext);
 
-    useEffect(() => { //getRegion(parameter,setRegion);
+    useEffect(() => {
         const element = document.getElementById('lz-1');
         const msg = `${region} ${locusZoomData} ${element}`;
         console.log(msg);
-        if(region && locusZoomData && element){
-            init_locus_zoom(region);
+        if(region && locusZoomData && element && setLocusZoomContext){
+            setLocusZoomContext(init_locus_zoom(region));
         }
-    },[locusZoomData, region]);
+    },[locusZoomData, region, setLocusZoomContext]);
 
 
     if(region) {

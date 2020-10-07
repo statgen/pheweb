@@ -46,7 +46,7 @@ setup(
         'pytest-runner~=4.0',
     ],
     install_requires=[
-        'finngen_common_data_model@git+https://github.com/FINNGEN/finngen-common-data-model.git#egg=finngen_common_data_model',
+        'finngen_common_data_model@git+https://github.com/FINNGEN/finngen-common-data-model.git@a0e7d4a0159ab0c358e68c72d2826f879b7c5039#egg=finngen_common_data_model',
         'Flask>=0.12',
         'Flask-Compress~=1.4',
         'Flask-Login~=0.4',

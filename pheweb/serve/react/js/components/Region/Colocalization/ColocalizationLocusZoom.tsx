@@ -76,26 +76,62 @@ const updateLocusZoom = (locusZoomData : { [key : number] : CasualVariantVector}
 }
  */
 import {Colocalization} from "../../../common/Model";
-import {LocusZoomData} from "./ColocalizationModel";
+import {CasualVariantVector, EMPTY, LocusZoomData} from "./ColocalizationModel";
 import {useContext, useEffect} from "react";
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
 import {Panel} from "locuszoom";
+import {RegionContext, RegionState} from "../RegionContext";
+import {LocusZoomContext} from "../LocusZoom/RegionLocus";
 
 const refreshLocusZoom = (colocalization : Colocalization | undefined,
-                          locusZoomData : LocusZoomData) => {
-    console.log(locusZoomData);
-    /*
-    const { dataSources ,  plot } = locusZoomData;
+                          locusZoomData : LocusZoomData,
+                          locusZoomContext : LocusZoomContext ) => {
+    const { dataSources ,  plot } = locusZoomContext;
     const title: string = colocalization?`Credible Set : ${colocalization.phenotype2_description} : ${colocalization.tissue2}`:"Credible Set : Colocalization";
     const panel : Panel = plot.panels.colocalization;
     panel.setTitle(title);
 
-     */
+    const dataSource = dataSources.sources.colocalization;
+    const params : { [key: string ]: any; } = dataSource.params;
+    const data : CasualVariantVector = colocalization && locusZoomData && locusZoomData[colocalization.id] || EMPTY;
+
+    delete data.rsid1;
+    delete data.rsid2;
+    delete data.varid1;
+    delete data.varid2;
+
+    const pip : number [] = [ ... data.pip1 , ... data.pip2]
+    var [min, max] = pip.reduce<number[]>((acc,value) => acc === undefined ?
+        [value,value]
+        :
+        [Math.min(acc[0],value), Math.max(acc[1],value)],
+        [1,0])
+    const margin : number = max == min ?0.5:(max - min)*0.05
+    const min_extent : number[] = [min === 1?0:Math.max(min -= margin,0),max === 0?1:Math.min(max += margin,1)]
+
+
+    panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data,
+        params.fields,
+        params.outnames,
+        params.trans);
+    panel.data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data,
+        params.fields,
+        params.outnames,
+        params.trans);
+
+    panel.data_layers.colocalization_pip1.render();
+    panel.data_layers.colocalization_pip2.render();
+    panel.render();
+
 }
 
 export const locusZoomHandler = () => {
     const { colocalization , locusZoomData , selectedColocalization } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
+    const { locusZoomContext } = useContext<Partial<RegionState>>(RegionContext);
 
-    useEffect(() => { colocalization && locusZoomData && refreshLocusZoom(selectedColocalization, locusZoomData); },
-        [ colocalization , locusZoomData , selectedColocalization]);
+    useEffect(() => { colocalization
+                             && locusZoomData
+                             && locusZoomContext
+                             && refreshLocusZoom(selectedColocalization, locusZoomData, locusZoomContext); },
+        [ colocalization , locusZoomData , selectedColocalization, locusZoomContext ]);
 }
