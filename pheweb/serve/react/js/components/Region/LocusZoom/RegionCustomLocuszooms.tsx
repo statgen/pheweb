@@ -276,11 +276,14 @@ FG_LDDataSource.prototype.fetchRequest = function(state, chain, fields) {
 
 };
 
-export const ConditionalSource = Data.Source.extend(function(init) {
+export const ConditionalSource = Data.Source.extend(function(init : { url : string , params : { trait_fields : string [] } }) {
     this.parseInit(init);
 }, "ConditionalLZ");
 
-ConditionalSource.prototype.preGetData = function(state, fields, outnames, trans) {
+ConditionalSource.prototype.preGetData = function(state : { [key : string ] , (object | number) },
+                                                  fields : string[],
+                                                  outnames : string[],
+                                                  trans : null[]) {
     var id_field = this.params.id_field || "id";
     [id_field, "position"].forEach(function(x) {
         if (fields.indexOf(x)==-1) {
@@ -292,7 +295,17 @@ ConditionalSource.prototype.preGetData = function(state, fields, outnames, trans
     return {fields: fields, outnames:outnames, trans:trans};
 };
 
-ConditionalSource.prototype.getURL = function(state, chain, fields) {
+interface ChainResponse {
+    header : {},
+    body : (string|object)[],
+    discrete : object
+}
+
+type StateResponse = {[ key : string] , (Object | number) };
+
+ConditionalSource.prototype.getURL = function(state : { [key : string ] , (object | number) },
+                                              chain : ChainResponse,
+                                              fields : string[]) {
     var analysis = state.analysis || chain.header.analysis || this.params.analysis || 3;
     return this.url + "results/?filter=analysis in " + analysis  +
         " and chromosome in  '" + state.chr + "'" +
@@ -300,7 +313,8 @@ ConditionalSource.prototype.getURL = function(state, chain, fields) {
         " and position le " + state.end;
 };
 
-ConditionalSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
+
+ConditionalSource.prototype.parseResponse = function(resp : string, chain : ChainResponse, fields : string[], outnames : string[], trans) {
 
     this.params.allData = JSON.parse(resp)
     this.params.dataIndex = this.params.dataIndex || 0
@@ -334,7 +348,7 @@ ConditionalSource.prototype.parseResponse = function(resp, chain, fields, outnam
 }
 
 
-const FineMappingSource = Data.Source.extend(function(init) {
+const FineMappingSource = Data.Source.extend(function(init : { data : string }) {
     this.parseInit(init);
 }, "FineMappingLZ");
 
@@ -346,15 +360,24 @@ const ColocalizationSource = Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "ColocalizationLZ");
 
-ColocalizationSource.prototype.getURL = function(state, chain, fields) { 
-    return this.url;
+ColocalizationSource.prototype.getURL = function(state : StateResponse,
+                                                 chain : ChainResponse,
+                                                 fields : string[]) {
+    const that = this as { url : string }
+    return that.url;
 }
 
-ColocalizationSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
-    this.params.fields = fields;
-    this.params.outnames = outnames;
-    this.params.trans = trans;
 
-    return Data.Source.prototype.parseResponse.call(this, JSON.parse(resp), chain, fields, outnames, trans);
+ColocalizationSource.prototype.parseResponse = function(resp : string,
+                                                        chain : ChainResponse,
+                                                        fields : string[],
+                                                        outnames : string[],
+                                                        trans : null[]) {
+    const that = this as { params : { fields : string[] , outnames : string [], trans : null[] } };
+    that.params.fields = fields;
+    that.params.outnames = outnames;
+    that.params.trans = trans;
+
+    return Data.Source.prototype.parseResponse.call(that, JSON.parse(resp), chain, fields, outnames, trans);
 }
 

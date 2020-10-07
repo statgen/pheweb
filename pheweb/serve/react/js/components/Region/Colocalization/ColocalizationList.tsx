@@ -4,8 +4,10 @@ import ReactTable, {Cell, Column, Row} from 'react-table';
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
 import selectTableHOC from "react-table/lib/hoc/selectTable";
 import { CSVLink } from 'react-csv'
-import {cell_number, cell_text, variant_link} from "../../../common/Formatter";
-import {compose} from "../../../common/Utilities";
+import { cell_number, cell_text, variant_link } from "../../../common/Formatter";
+import { compose } from "../../../common/Utilities";
+import { locusZoomHandler } from "./ColocalizationLocusZoom"
+
 const SelectTable = selectTableHOC(ReactTable);
 SelectTable.prototype.headSelector = () => null;
 
@@ -55,10 +57,17 @@ const subComponent = (colocalizationList) => (row : Row<Colocalization>) => {
 
 interface Props {}
 const ColocalizationList = (props : Props) => {
-    const { locusZoomData, colocalization , selectedRow, setRowSelected } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
+    const { locusZoomData,
+            colocalization ,
+            setSelectedColocalization } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
 
-    const toggleSelection = (key : string, shift, row : Colocalization) =>
-        setRowSelected && setRowSelected(selectedRow ? undefined : key);
+    const [selectedRow, setRowSelected]= useState<string | undefined>(undefined);
+    locusZoomHandler();
+    const toggleSelection = (key : string, shift, row : Colocalization) => {
+        setSelectedColocalization && setSelectedColocalization(selectedRow ? undefined : row);
+        setRowSelected(selectedRow ? undefined : key);
+    }
+
     const isSelected = (key : string) =>  selectedRow === `select-${key}`;
 
     const rowFn = (state, rowInfo, column : Column<Colocalization>, instance) => {

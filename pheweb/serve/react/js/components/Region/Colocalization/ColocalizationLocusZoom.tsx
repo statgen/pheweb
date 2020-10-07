@@ -79,25 +79,23 @@ import {Colocalization} from "../../../common/Model";
 import {LocusZoomData} from "./ColocalizationModel";
 import {useContext, useEffect} from "react";
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
+import {Panel} from "locuszoom";
 
-const clearLocusZoom = (context : LocusZoomContext) => {
+const refreshLocusZoom = (colocalization : Colocalization | undefined,
+                          locusZoomData : LocusZoomData) => {
+    console.log(locusZoomData);
+    /*
+    const { dataSources ,  plot } = locusZoomData;
+    const title: string = colocalization?`Credible Set : ${colocalization.phenotype2_description} : ${colocalization.tissue2}`:"Credible Set : Colocalization";
+    const panel : Panel = plot.panels.colocalization;
+    panel.setTitle(title);
 
+     */
 }
 
-const updateLocusZoom = (context : LocusZoomContext,colocalization : Colocalization[]) => {
+export const locusZoomHandler = () => {
+    const { colocalization , locusZoomData , selectedColocalization } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
 
-}
-
-const refreshLocusZoom = (context : LocusZoomContext,colocalization : Colocalization[] | undefined) => {
-    if(colocalization){
-        updateLocusZoom(context, colocalization);
-    } else {
-        clearLocusZoom(context);
-    }
-}
-
-export default const locusZoomHandler = () => {
-    const { colocalization , locusZoomData } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
-    useEffect(() => { locusZoomData && refreshLocusZoom(locusZoomData, colocalization); },
-        [colocalization , locusZoomData]);
+    useEffect(() => { colocalization && locusZoomData && refreshLocusZoom(selectedColocalization, locusZoomData); },
+        [ colocalization , locusZoomData , selectedColocalization]);
 }

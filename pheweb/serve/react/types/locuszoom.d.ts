@@ -858,7 +858,7 @@ declare module 'locuszoom' {
     export interface ValueMap<V> {
 	scale_function: string;
 	field: string;
-	parameters: { categories?: (string)[] | null,
+	parameters: { categories?: (string | number)[] | null,
 		      values?: V[] | null,
 		      null_value: V } |
 	    { field_value: string | number,

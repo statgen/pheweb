@@ -12,8 +12,8 @@ export interface ColocalizationState {
     readonly colocalization : Colocalization []
     readonly locusZoomData : LocusZoomData
     readonly searchSummary : SearchSummary
-    readonly selectedRow : string | undefined
-    readonly setRowSelected : (rowid : string | undefined) => void
+    readonly selectedColocalization : Colocalization | undefined
+    readonly setSelectedColocalization : (rowid : Colocalization | undefined) => void
 }
 
 export const ColocalizationContext = createContext<Partial<ColocalizationState>>({});
@@ -23,7 +23,7 @@ const ColocalizationContextProvider = (props : Props) => {
     const parameter : RegionParameter| undefined = createParameter();
     const [colocalization, setColocalization] = useState<Colocalization[]| undefined>(undefined);
     const [locusZoomData, setLocusZoomData] = useState<LocusZoomData| undefined>(undefined);
-    const [selectedRow, setRowSelected]= useState<string | undefined>(undefined);
+    const [selectedColocalization, setSelectedColocalization]= useState<Colocalization | undefined>(undefined);
     const [searchSummary, setSearchSummary]= useState<SearchSummary | undefined>(undefined);
 
     useEffect(() => {
@@ -35,9 +35,9 @@ const ColocalizationContextProvider = (props : Props) => {
     return (<ColocalizationContext.Provider value={{ parameter ,
                                                      colocalization ,
                                                      locusZoomData ,
-                                                     selectedRow,
-                                                     searchSummary,
-                                                     setRowSelected }}>
+                                                     selectedColocalization,
+                                                     setSelectedColocalization,
+                                                     searchSummary }}>
                 {props.children}
             </ColocalizationContext.Provider>);
 }

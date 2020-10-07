@@ -1,8 +1,6 @@
 // @target: es2017
 /* eslint-env jest */
 import ColocalizationProvider, {
-    createParameter,
-    RegionParameter,
     ColocalizationContext,
     ColocalizationState
 } from "./ColocalizationContext";
@@ -11,7 +9,6 @@ import Enzyme, { mount} from "enzyme";
 import React from 'react'
 import Adapter from 'enzyme-adapter-react-16';
 import {act} from "react-dom/test-utils";
-
 
 test('get search results : trivial', () => {
     delete global.window.location;

@@ -312,7 +312,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         var summary_html =  summary_region + summary_message;
         $('#region_summary').html(summary_html)
         if (n_cond_signals > 1) {
-            var opt_html = region.cond_fm_regions.filter(r => r.type == 'conditional')[0].paths.map((path, i) =>
+            var opt_html = region.cond_fm_regions.filter(r => r.type == 'conditional')[0].path.map((path, i : number) =>
               '<label onClick="show_conditional(' + i + ')" data-cond-i="' + i + '" class="btn btn-primary' + (i === 0 ? ' active' : '') + '"><span>' + (i+1) + '</span></label>'
             ).join('\n')
             $('#cond_options').html('<p>Show conditioned on ' + opt_html + ' variants<span></p>')
