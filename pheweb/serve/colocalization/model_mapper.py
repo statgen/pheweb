@@ -69,14 +69,14 @@ def create_metadata():
                                  Column('len_inter', Integer, unique=False, nullable=False))
 
 
+    colocalization_chromosome = Index('colocalization_chromosome',
+                                      colocalization_table.c.chromosome)
 
     colocalization_phenotype1 = Index('colocalization_phenotype1',
                                       colocalization_table.c.phenotype1)
 
     colocalization_phenotype1 = Index('colocalization_phenotype1',
                                       colocalization_table.c.phenotype1)
-    colocalization_phenotype2 = Index('colocalization_phenotype2',
-                                      colocalization_table.c.phenotype2)
 
     causal_variant_mapper = mapper(CausalVariant,
                                    causal_variant_table,

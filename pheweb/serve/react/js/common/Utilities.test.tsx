@@ -1,7 +1,6 @@
 /* eslint-env jest */
 // https://stackoverflow.com/questions/59833839/swap-one-typescript-type-with-another-inside-an-object
 import { compose, get } from './Utilities'
-import * as jest from 'jest'
 
 test('get search results : trivial', () => {
   expect(compose((x : number) => x * 2, (y: number) => y * 3)(5)).toBe(30)
