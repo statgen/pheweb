@@ -40,18 +40,6 @@ class CausalVariantVector(JSONifiable, Kwargs):
     causalvariantid = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
                                                                       iterable_validator=instance_of(typing.List)))
 
-    rsid1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
-                                                             iterable_validator=instance_of(typing.List)))
-
-    rsid2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
-                                                             iterable_validator=instance_of(typing.List)))
-
-    varid1 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
-                                                             iterable_validator=instance_of(typing.List)))
-
-    varid2 = attr.ib(validator=attr.validators.deep_iterable(member_validator=attr.validators.optional(instance_of(str)),
-                                                             iterable_validator=instance_of(typing.List)))
-
     count_variants = attr.ib(validator=attr.validators.deep_iterable(member_validator=instance_of(int),
                                                               iterable_validator=instance_of(typing.List)))
 

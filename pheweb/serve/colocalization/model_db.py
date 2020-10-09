@@ -50,6 +50,7 @@ class ColocalizationDAO(ColocalizationDB):
         print("ColocalizationDAO : {}".format(self.db_url))
         self.engine = create_engine(self.db_url,
                                     pool_pre_ping=True,
+                                    echo=True,
                                     *parameters)
 
         ColocalizationDAO.getMetaData().bind = self.engine
@@ -136,17 +137,22 @@ class ColocalizationDAO(ColocalizationDB):
                     flags: typing.Dict[str, typing.Any]={},
                     projection = [Colocalization]):
         locus_id1 = Colocalization.variants.any(and_(CausalVariant.variant1_chromosome == locus.chromosome,
-                                                     CausalVariant.variant1_position >= locus.start,
+                                                      CausalVariant.variant1_position >= locus.start,
                                                      CausalVariant.variant1_position <= locus.stop))
 
         locus_id2 = Colocalization.variants.any(and_(CausalVariant.variant2_chromosome == locus.chromosome,
                                                      CausalVariant.variant2_position >= locus.start,
                                                      CausalVariant.variant2_position <= locus.stop))
+
+        colocalization_filter = and_(Colocalization.phenotype1 == phenotype,
+                                     Colocalization.chromosome == locus.chromosome)
         phenotype1 = Colocalization.phenotype1 == phenotype
         session = self.Session()
-        print(phenotype1)
-        print(phenotype)
-        return [session, session.query(*projection).select_from(Colocalization).filter(or_(locus_id1, locus_id2)).filter(phenotype1) ]
+        return [session, session
+                         .query(*projection)
+                         .select_from(Colocalization)
+                         .filter(or_(locus_id1, locus_id2))
+                         .filter(colocalization_filter) ]
 
     def get_locus(self,
                   phenotype: str,
@@ -243,10 +249,6 @@ class ColocalizationDAO(ColocalizationDB):
                                              beta1,
                                              beta2,
                                              causalvariantid,
-                                             [],
-                                             [],
-                                             [],
-                                             [],
                                              count_variants,
                                              phenotype1,
                                              phenotype1_description,

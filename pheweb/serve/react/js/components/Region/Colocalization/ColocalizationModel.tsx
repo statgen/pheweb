@@ -2,31 +2,47 @@ import { setFlagsFromString } from "v8";
 import { Variant , Locus , Colocalization, CasualVariant , variantFromStr } from "../../../common/Model";
 
 export interface CasualVariantVector {
-    causalvariantid : number[],
-    position : number[],
-    varid : string[],
-    beta1: number[],
-    beta2: number[],
-    pip1: number[],
-    pip2: number[],
-    variant : string[],
-    rsid : string[],
-    phenotype1 : string [],
-    phenotype1_description : string [],
+    causalvariantid : number[]
+
+    position1 : number []
+    position2 : number []
+
+    variant1 : string[]
+    variant2 : string[]
+
+    pip1 : number[]
+    pip2 : number[]
+
+    beta1 : number[]
+    beta2 : number[]
+    count_variants : number[]
+    phenotype1 : string[]
+    phenotype1_description : string[]
+    phenotype2 : string[]
+    phenotype2_description : string[]
 }
 
 export const EMPTY : CasualVariantVector = {
     causalvariantid : [],
-    position : [],
-    varid : [],
-    beta1: [],
-    beta2: [],
-    pip1: [],
-    pip2: [],
-    variant : [],
-    rsid : [],
+
+    position1 : [],
+    position2 : [],
+
+    variant1 : [],
+    variant2 : [],
+
+    pip1 : [],
+    pip2 : [],
+
+    beta1 : [],
+    beta2 : [],
+
+    count_variants : [],
+
     phenotype1 : [],
-    phenotype1_description : []
+    phenotype1_description : [],
+    phenotype2 : [],
+    phenotype2_description : []
 }
 
 export interface SearchSummary {

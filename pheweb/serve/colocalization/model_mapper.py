@@ -31,6 +31,14 @@ def create_metadata():
                                  *Variant.columns('variant2_', nullable=True),
                                  Column('colocalization_id', Integer, ForeignKey('colocalization.id')))
 
+    causal_variant1_chromosome_position = Index('causal_variant1_chromosome_position',
+                                                causal_variant_table.c.variant1_chromosome,
+                                                causal_variant_table.c.variant1_position)
+
+    causal_variant2_chromosome_position = Index('causal_variant2_chromosome_position',
+                                                causal_variant_table.c.variant2_chromosome,
+                                                causal_variant_table.c.variant2_position)
+
     colocalization_table = Table('colocalization',
                                  metadata,
                                  Column('id', Integer, primary_key=True, autoincrement=True),
@@ -60,6 +68,15 @@ def create_metadata():
                                  Column('len_cs2', Integer, unique=False, nullable=False),
                                  Column('len_inter', Integer, unique=False, nullable=False))
 
+
+
+    colocalization_phenotype1 = Index('colocalization_phenotype1',
+                                      colocalization_table.c.phenotype1)
+
+    colocalization_phenotype1 = Index('colocalization_phenotype1',
+                                      colocalization_table.c.phenotype1)
+    colocalization_phenotype2 = Index('colocalization_phenotype2',
+                                      colocalization_table.c.phenotype2)
 
     causal_variant_mapper = mapper(CausalVariant,
                                    causal_variant_table,

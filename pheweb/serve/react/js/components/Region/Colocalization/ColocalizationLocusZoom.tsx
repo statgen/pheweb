@@ -95,11 +95,6 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
     const params : { [key: string ]: any; } = dataSource.params;
     const data : CasualVariantVector = colocalization && locusZoomData && locusZoomData[colocalization.id] || EMPTY;
 
-    delete data.rsid1;
-    delete data.rsid2;
-    delete data.varid1;
-    delete data.varid2;
-
     const pip : number [] = [ ... data.pip1 , ... data.pip2]
     var [min, max] = pip.reduce<number[]>((acc,value) => acc === undefined ?
         [value,value]

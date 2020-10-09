@@ -316,7 +316,6 @@ def api_region_page(phenocode, region):
     else:
         cond_fm_regions = []
     pheno['phenocode'] = phenocode
-    print()
     data = { 'pheno' : pheno ,
              'region' : region,
              'cond_fm_regions' : cond_fm_regions ,
