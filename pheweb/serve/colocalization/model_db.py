@@ -1,4 +1,4 @@
-    import typing
+import typing
 from sqlalchemy import Table, MetaData, create_engine, Column, Integer, String, Float, Text, ForeignKey, Index
 from sqlalchemy.orm import sessionmaker
 from .model import ColocalizationDB, SearchSummary, SearchResults, PhenotypeList, CausalVariantVector
