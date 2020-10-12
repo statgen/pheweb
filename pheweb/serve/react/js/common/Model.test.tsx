@@ -50,6 +50,12 @@ test('parse variant 4', () => {
   expect(variantFromStr(variant)).toStrictEqual(expected)
 })
 
+test('parse variant 5', () => {
+  const variant : string = "chr9_96792507_T_<INS:ME:ALU>"
+  const expected : Variant = { chromosome: 9, position: 96792507, reference: 'T', alternate: '<INS:ME:ALU>' }
+  expect(variantFromStr(variant)).toStrictEqual(expected)
+})
+
 test('parse locus 1', () => {
   const locus : string = '1:1-10'
   const expected : Locus = { chromosome: 1, start: 1, stop: 10 }

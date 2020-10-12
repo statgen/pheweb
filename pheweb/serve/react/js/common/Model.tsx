@@ -123,7 +123,7 @@ export const stringToChromosome = (chr :string) : (number | undefined) => {
  */
 export function variantFromStr (str : string) : Variant | undefined {
   let result : Variant | undefined
-  const match = str.match(/^(chr)?([\da-zA-Z]+)([_:/])([\d]+)([_:/])([^_:/]+)([_:/])([^_:/]+)$/)
+  const match = str.match(/^(chr)?([\da-zA-Z]+)([_:/])([\d]+)([_:/])([^_:/]+)([_:/])(.+)$/)
   if (match) {
     const [ignore1, ignore2,
            chromosomeString,

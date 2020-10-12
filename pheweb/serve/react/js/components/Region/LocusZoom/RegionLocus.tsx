@@ -271,7 +271,6 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     plot.panels['colocalization'].on('element_selection', () => { console.log('.+'); })
 
     
-/*
     scatters.filter(key => plot.panels[key]).forEach(key => {
         plot.panels[key].on("data_rendered", function() {
         console.log(key + ' rendered')
@@ -310,7 +309,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         this.parent.positionPanels();
         })
     })
-*/
+
     const region_span = (region : CondFMRegions) : string => region.type === 'finemap' ?
             `<span>${region.n_signals} ${region.type} signals (prob. ${region.n_signals_prob.toFixed(3)} </span><br/>` :
             `<span>${region.n_signals} ${region.type} signals</span><br/>`;

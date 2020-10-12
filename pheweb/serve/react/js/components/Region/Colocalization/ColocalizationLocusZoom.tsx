@@ -1,3 +1,5 @@
+import { selectAll} from 'd3' ;
+
 /*
 const updateLocusZoom = (locusZoomData : { [key : number] : CasualVariantVector} | undefined,context : LocusZoomContext,colocalization : Colocalization | undefined) => {
     const { dataSources ,  plot } = context;
@@ -75,11 +77,11 @@ const updateLocusZoom = (locusZoomData : { [key : number] : CasualVariantVector}
 
 }
  */
-import {Colocalization} from "../../../common/Model";
+import {Colocalization, Variant, variantFromStr} from "../../../common/Model";
 import {CasualVariantVector, EMPTY, LocusZoomData} from "./ColocalizationModel";
 import {useContext, useEffect} from "react";
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
-import {Panel} from "locuszoom";
+import {DataLayer, Panel} from "locuszoom";
 import {RegionContext, RegionState} from "../RegionContext";
 import {LocusZoomContext} from "../LocusZoom/RegionLocus";
 
@@ -95,28 +97,60 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
     const params : { [key: string ]: any; } = dataSource.params;
     const data : CasualVariantVector = colocalization && locusZoomData && locusZoomData[colocalization.id] || EMPTY;
 
-    const pip : number [] = [ ... data.pip1 , ... data.pip2]
-    var [min, max] = pip.reduce<number[]>((acc,value) => acc === undefined ?
-        [value,value]
-        :
-        [Math.min(acc[0],value), Math.max(acc[1],value)],
-        [1,0])
-    const margin : number = max == min ?0.5:(max - min)*0.05
-    const min_extent : number[] = [min === 1?0:Math.max(min -= margin,0),max === 0?1:Math.min(max += margin,1)]
-
-
-    panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data,
-        params.fields,
-        params.outnames,
-        params.trans);
-    panel.data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data,
-        params.fields,
-        params.outnames,
-        params.trans);
+    panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data, params.fields, params.outnames, params.trans);
+    panel.data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data, params.fields, params.outnames, params.trans);
 
     panel.data_layers.colocalization_pip1.render();
     panel.data_layers.colocalization_pip2.render();
     panel.render();
+
+
+    const mouseOver = (index : number) => (event : Event, d : { [ key : string]  : string }, i : number) => {
+      const value : string | undefined = d[`colocalization:variant${index}`];
+      const variant : Variant | undefined = (value && variantFromStr(value)) || undefined;
+      if(variant){
+          const identifier : string = `${variant.chromosome}${variant.position}_${variant.reference}${variant.alternate}`;
+          const finemapping : DataLayer = plot.panels.finemapping.data_layers.associationpvalues;
+          const association : DataLayer = plot.panels.association.data_layers.associationpvalues;
+
+          finemapping.unhighlightElement(identifier);
+          finemapping.render();
+          association.unhighlightElement(identifier);
+          association.render();
+
+      }
+    }
+    /**
+     * Given the index {1,2} to handle return
+     * an event handler.
+     * 
+     * @param index pip index
+     * @returns event handler
+     */
+    const mouseOut = (index : number) => (event : Event,d : { [ key : string]  : string}, i : number) => {                                       
+      const value : string | undefined = d[`colocalization:variant${index}`];
+      const variant : Variant | undefined = (value && variantFromStr(value)) || undefined;
+      if(variant){
+            const identifier : string = `${variant.chromosome}${variant.position}_${variant.reference}${variant.alternate}`;
+            console.log(identifier);
+            const finemapping : DataLayer = plot.panels.finemapping.data_layers.associationpvalues;
+            const association : DataLayer = plot.panels.association.data_layers.associationpvalues;
+
+            finemapping.unhighlightElement(identifier);
+            finemapping.render();
+            association.unhighlightElement(identifier);
+            association.render();
+        }
+    }
+
+    const dots1 =  selectAll("[id='lz-1.colocalization.colocalization_pip1.data_layer'] path");
+    dots1.on('mouseover', mouseOver(1));
+    dots1.on('mouseout', mouseOut(1));
+
+    const dots2 =  selectAll("[id='lz-1.colocalization.colocalization_pip2.data_layer'] path");
+    dots2.on('mouseover', mouseOver(2));
+    dots2.on('mouseout', mouseOut(2));
+
 
 }
 
