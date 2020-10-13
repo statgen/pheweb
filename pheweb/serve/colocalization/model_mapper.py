@@ -75,8 +75,8 @@ def create_metadata():
     colocalization_phenotype1 = Index('colocalization_phenotype1',
                                       colocalization_table.c.phenotype1)
 
-    colocalization_phenotype1 = Index('colocalization_phenotype1',
-                                      colocalization_table.c.phenotype1)
+    colocalization_phenotype2 = Index('colocalization_phenotype2',
+                                      colocalization_table.c.phenotype2)
 
     causal_variant_mapper = mapper(CausalVariant,
                                    causal_variant_table,
