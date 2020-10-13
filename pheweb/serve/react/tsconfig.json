@@ -8,10 +8,11 @@
     "strictNullChecks" : true,
     "sourceMap": true,
   "lib": [
-    "dom",
-    "es5",
-    "scripthost",
-    "es2015.promise"
+      "dom",
+      "es6",
+      "scripthost",
+      "es2018.promise",
+      "es2018.RegExp"
   ]
 },
   /*"typeRoots": [ "./types", "./node_modules/@types"], */

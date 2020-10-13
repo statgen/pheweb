@@ -15,7 +15,6 @@ import { region_layout ,  association_layout , genes_layout , clinvar_layout , g
 import { FG_LDDataSource , GWASCatSource , ClinvarDataSource } from './RegionCustomLocuszooms';
 import { Region, CondFMRegions } from '../RegionModel';
 import { selectAll} from 'd3' ;
-import { assert } from 'console';
 
 
 TransformationFunctions.set("neglog10_or_100", function(x : number) {
@@ -68,6 +67,7 @@ export interface LocusZoomContext {
     plot : Plot
     dataSources : DataSources
 }
+
 // dashboard components
 function add_dashboard_button(name : string, func : (layout : LayoutComponentsEntity) => { bind : (a : any) => any }) {
     Dashboard.Components.add(name, function(layout : LayoutComponentsEntity){
@@ -162,7 +162,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     function update_mouseover(key : string) {
         var params : { lookup : object } = dataSources.sources[key].params
         params.lookup = {}
-        var dots = d3.selectAll("[id='lz-1." + key + ".associationpvalues.data_layer'] path")
+        var dots = selectAll("[id='lz-1." + key + ".associationpvalues.data_layer'] path")
         dots.each((d, i) => {
             params.lookup[d[key + ':id']] = i
         });
@@ -270,7 +270,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     plot.panels['colocalization'].on('data_rendered', () => { console.log('..'); })
     plot.panels['colocalization'].on('element_selection', () => { console.log('.+'); })
 
-    
+    /*
     scatters.filter(key => plot.panels[key]).forEach(key => {
         plot.panels[key].on("data_rendered", function() {
         console.log(key + ' rendered')
@@ -309,7 +309,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         this.parent.positionPanels();
         })
     })
-
+    */
     const region_span = (region : CondFMRegions) : string => region.type === 'finemap' ?
             `<span>${region.n_signals} ${region.type} signals (prob. ${region.n_signals_prob.toFixed(3)} </span><br/>` :
             `<span>${region.n_signals} ${region.type} signals</span><br/>`;
@@ -321,18 +321,21 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         var summary_region : string = region.cond_fm_regions.map(region_span).join('');
         var summary_message : string = n_cond_signals > 0 ? '<span>Conditional analysis results are approximations from summary stats. Conditioning is repeated until no signal p < 1e-6 is left.</span><br/>' : '';
         var summary_html =  summary_region + summary_message;
-        $('#region_summary').html(summary_html)
+        const region_summary = document.getElementById('region_summary');
+        if(region_summary) {region_summary.innerHTML = summary_html; }
         if (n_cond_signals > 1) {
             var opt_html : string = region.cond_fm_regions.filter(r => r.type == 'conditional')[0].path.map((path, i : number) =>
               '<label onClick="show_conditional(' + i + ')" data-cond-i="' + i + '" class="btn btn-primary' + (i === 0 ? ' active' : '') + '"><span>' + (i+1) + '</span></label>'
             ).join('\n')
-            $('#cond_options').html('<p>Show conditioned on ' + opt_html + ' variants<span></p>')
+            const cond_options = document.getElementById('cond_options');
+            if(cond_options) { cond_options.innerHTML = `<p>Show conditioned on {opt_html} variants<span></p>`; }
         }
         if (region.cond_fm_regions.filter(r => r.type == 'susie' || r.type == 'finemap').length > 1) {
             var opt_html = region.cond_fm_regions.filter(r => r.type == 'susie' || r.type == 'finemap').map((r, i) =>
               '<label onClick="show_finemapping(\'' + r.type + '\')' + '" class="btn btn-primary' + (i === 0 ? ' active' : '') + '"><span>' + r.type + '</span></label>'
             ).join('\n')
-            $('#finemapping_options').html('<p>Show fine-mapping from ' + opt_html + '<span></p>')
+            const finemapping_options = document.getElementById('finemapping_options');
+            if(finemapping_options){ finemapping_options.innerHTML = `<p>Show fine-mapping from {opt_html} <span></p>`; }
         }
     };
 
