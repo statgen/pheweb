@@ -78,7 +78,7 @@ class Index extends React.Component {
 	    id: "num_gw_significant",
 	    desc: true
 	}]}
-	defaultPageSize={10}
+	defaultPageSize={20}
 	className="-striped -highlight"
 	    />
 	    <div className="row">

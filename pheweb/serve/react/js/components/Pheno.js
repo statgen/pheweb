@@ -97,7 +97,8 @@ class Pheno extends React.Component {
 	    .then(this.resp_json)
 	    .then(response => {
 		this.setState({
-		    credibleSets: response
+		    credibleSets: response,
+		    selectedTab: response.length == 0 ? 1 : 0
 		})
 	    })
 	    .catch(this.error_alert)
@@ -198,7 +199,7 @@ class Pheno extends React.Component {
 	    id: "lead_pval",
 	    desc: false
 	}]}
-	defaultPageSize={10}
+	defaultPageSize={20}
 	className="-striped -highlight"
 	SubComponent={row => 
 		<ReactTable 
@@ -251,7 +252,7 @@ class Pheno extends React.Component {
 	    id: "pval",
 	    desc: false
 	}]}
-	defaultPageSize={10}
+	defaultPageSize={20}
 	className="-striped -highlight"
 	    />
 	    </div> :
@@ -286,7 +287,7 @@ class Pheno extends React.Component {
                 {ukbb}
 		<div id='manhattan_plot_container' />
 		<h3>Lead variants{is_cs}</h3>
-		<Tabs forceRenderTabPanel={true} defaultIndex={0} onSelect={this.onTabSelect} style={{height: '100%', width: '100%'}}>
+		<Tabs forceRenderTabPanel={true} selectedIndex={this.state.selectedTab} onSelect={this.onTabSelect} style={{width: '100%'}}>
 		<TabList>
 		<Tab>Credible Sets</Tab>
 		<Tab>Traditional</Tab>

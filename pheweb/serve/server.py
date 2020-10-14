@@ -1,4 +1,4 @@
-from ..utils import get_phenolist, get_gene_tuples, pad_gene
+from ..utils import get_phenolist, get_use_phenos, get_gene_tuples, pad_gene
 from ..conf_utils import conf
 from ..file_utils import common_filepaths
 from .server_utils import get_variant, get_random_page, get_pheno_region
@@ -30,6 +30,9 @@ from .server_jeeves  import ServerJeeves
 
 from collections import defaultdict
 from .encoder import FGJSONEncoder
+from .group_based_auth  import verify_membership
+
+
 app = Flask(__name__)
 
 ## allows debug statements in jinja
@@ -94,6 +97,7 @@ if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
+use_phenos = {phenocode: phenos[phenocode] for phenocode in get_use_phenos()}
 
 threadpool = ThreadPoolExecutor(max_workers=4)
 
@@ -111,20 +115,20 @@ def check_auth(func):
     @functools.wraps(func)
     def decorated_view(*args, **kwargs):
         if current_user.is_anonymous:
-            print('unauthorized user visited {!r}'.format(request.path))
+            print('anonymous user visited {!r}'.format(request.path))
+            session['original_destination'] = request.path
+            return redirect(url_for('get_authorized'))
+        if not verify_membership(current_user.email):
+            print('{} is unauthorized and visited {!r}'.format(current_user.email, request.path))
             session['original_destination'] = request.path
             return redirect(url_for('get_authorized'))
         print('{} visited {!r}'.format(current_user.email, request.path))
-        if 'whitelist' in conf.login.keys():
-            assert current_user.email.lower().endswith('@finngen.fi') or current_user.email.lower() in conf.login['whitelist'], current_user
-        else:
-            assert current_user.email.lower().endswith('@finngen.fi'), current_user
         return func(*args, **kwargs)
     return decorated_view
 
-@app.route('/index')
-def homepage_():
-    return render_template('index.html')
+@app.route('/auth')
+def auth():
+    return render_template('auth.html')
 
 @app.route('/health')
 def health():
@@ -161,16 +165,16 @@ def ld():
 @app.route('/api/pheno/<phenocode>')
 @check_auth
 def pheno(phenocode):
-    if phenocode not in phenos:
+    if phenocode not in use_phenos:
         abort(404)
     return jsonify(phenos[phenocode])
 
 @app.route('/api/phenos')
 @check_auth
 def phenolist():
-    return send_file(common_filepaths['phenolist'])
+    return jsonify([pheno for pheno in get_phenolist() if pheno['phenocode'] in use_phenos])
 
-autocompleter = Autocompleter(phenos)
+autocompleter = Autocompleter(use_phenos)
 @app.route('/api/autocomplete')
 @check_auth
 def autocomplete():
@@ -195,6 +199,7 @@ def go():
 @check_auth
 def api_variant(query):
     variant = get_variant(query)
+    variant['phenos'] = [pheno for pheno in variant['phenos'] if pheno['phenocode'] in use_phenos]
     return jsonify(variant)
 
 @app.route('/variant/<query>')
@@ -208,7 +213,10 @@ def variant_page(query):
         variantdat = jeeves.get_single_variant_data(v)
         if variantdat is None:
             die("Sorry, I couldn't find the variant {}".format(query))
+        variantdat = (variantdat[0], [pheno for pheno in variantdat[1] if pheno.phenocode in use_phenos])
         regions = jeeves.get_finemapped_regions(v)
+        if regions is not None:
+            regions = [region for region in regions if region['phenocode'] in use_phenos]
         return render_template('variant.html',
                                variant=variantdat[0],
                                results=variantdat[1],
@@ -223,6 +231,8 @@ def variant_page(query):
 @app.route('/api/manhattan/pheno/<phenocode>')
 @check_auth
 def api_pheno(phenocode):
+    if phenocode not in use_phenos:
+        abort(404)
     try:
         return jsonify( jeeves.get_pheno(phenocode))
     except Exception as exc:
@@ -231,7 +241,8 @@ def api_pheno(phenocode):
 @app.route('/api/gene_phenos/<gene>')
 @check_auth
 def api_gene_phenos(gene):
-        return jsonify( jeeves.gene_phenos(gene) )
+    res = [res for res in jeeves.gene_phenos(gene) if res.pheno['phenocode'] in use_phenos]
+    return jsonify( res )
 
 @app.route('/api/gene_functional_variants/<gene>')
 @check_auth
@@ -240,12 +251,14 @@ def api_gene_functional_variants(gene):
     if ('p' in request.args):
         pThreshold= float(request.args.get('p'))
     annotations = jeeves.gene_functional_variants(gene, pThreshold)
+    for anno in annotations:
+        anno['significant_phenos'] = [pheno for pheno in anno['significant_phenos'] if pheno.phenocode in use_phenos]
     return jsonify(annotations)
 
 @app.route('/api/lof')
 @check_auth
 def api_lof():
-    lofs = jeeves.get_all_lofs(conf.lof_threshold)
+    lofs = [lof for lof in jeeves.get_all_lofs(conf.lof_threshold) if lof['gene_data']['pheno'] in use_phenos]
     if lofs is None:
         die("LoF data not available")
     return jsonify(sorted(lofs,  key=lambda lof: lof['gene_data']['p_value']))
@@ -256,7 +269,7 @@ def api_lof_gene(gene):
     lofs = jeeves.get_gene_lofs(gene)
     lofs_use = []
     for lof in lofs:
-        if lof['gene_data']['pheno'] in phenos.keys():
+        if lof['gene_data']['pheno'] in use_phenos:
             lof['gene_data']['phenostring'] = phenos[lof['gene_data']['pheno']]['phenostring']
             lof['gene_data']['beta'] = '{:.3f}'.format(float(lof['gene_data']['beta']))
             lofs_use.append(lof)
@@ -274,6 +287,8 @@ def download_top_hits():
 @app.route('/api/qq/pheno/<phenocode>')
 @check_auth
 def api_pheno_qq(phenocode):
+    if phenocode not in use_phenos:
+        abort(404)
     return send_from_directory(common_filepaths['qq'](''), phenocode)
 
 @app.route('/top_hits')
@@ -284,12 +299,14 @@ def top_hits_page():
 @app.route('/api/coding_data')
 @check_auth
 def coding_data():
-    return jsonify(jeeves.coding())
+    data = [d for d in jeeves.coding() if d['pheno'] in use_phenos]
+    return jsonify(data)
 
 @app.route('/api/chip_data')
 @check_auth
 def chip_data():
-    return jsonify(jeeves.chip())
+    data = [d for d in jeeves.chip() if d['pheno'] in use_phenos]
+    return jsonify(data)
 
 @app.route('/random')
 @check_auth
@@ -302,32 +319,16 @@ def random_page():
 @app.route('/api/ukbb_n/<phenocode>')
 @check_auth
 def ukbb_ns(phenocode):
+    if phenocode not in use_phenos:
+        abort(404)
     return jsonify(jeeves.get_UKBB_n(phenocode))
-
-@app.route('/pheno_/<phenocode>')
-@check_auth
-def pheno_page(phenocode):
-    try:
-        pheno = phenos[phenocode]
-    except KeyError:
-        die("Sorry, I couldn't find the pheno code {!r}".format(phenocode))
-    return render_template('pheno.html',
-                           phenocode=phenocode,
-                           pheno=pheno,
-                           ukbb_ns= jeeves.get_UKBB_n(phenocode),
-                           tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
-                           var_export_fields=conf.var_export_fields,
-                           vis_conf=conf.vis_conf,
-
-    )
 
 @app.route('/region/<phenocode>/<region>')
 @check_auth
 def region_page(phenocode, region):
-    try:
-        pheno = phenos[phenocode]
-    except KeyError:
-        die("Sorry, I couldn't find the phewas code {!r}".format(phenocode))
+    if phenocode not in use_phenos:
+        abort(404)
+    pheno = phenos[phenocode]
     chr_se = region.split(':')
     chrom = chr_se[0]
     start_end = jeeves.get_max_finemapped_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
@@ -336,7 +337,6 @@ def region_page(phenocode, region):
     else:
         cond_fm_regions = []
     pheno['phenocode'] = phenocode
-    print(conf.locuszoom_conf)
     return render_template('region.html',
                            pheno=pheno,
                            region=region,
@@ -349,6 +349,8 @@ def region_page(phenocode, region):
 @app.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
 @check_auth
 def api_region(phenocode):
+    if phenocode not in use_phenos:
+        abort(404)
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
@@ -359,6 +361,8 @@ def api_region(phenocode):
 @app.route('/api/conditional_region/<phenocode>/lz-results/')
 @check_auth
 def api_conditional_region(phenocode):
+    if phenocode not in use_phenos:
+        abort(404)
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
@@ -368,26 +372,19 @@ def api_conditional_region(phenocode):
 @app.route('/api/finemapped_region/<phenocode>/lz-results/')
 @check_auth
 def api_finemapped_region(phenocode):
+    if phenocode not in use_phenos:
+        abort(404)
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
     rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, prob_threshold=conf.locuszoom_conf['prob_threshold'])
     return jsonify(rv)
 
-@functools.lru_cache(None)
-def get_gene_region_mapping():
-    return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
-
-@functools.lru_cache(None)
-def get_best_phenos_by_gene():
-    with open(common_filepaths['best-phenos-by-gene']) as f:
-        return json.load(f)
-
 @app.route('/region/<phenocode>/gene/<genename>')
 @check_auth
 def gene_phenocode_page(phenocode, genename):
     try:
-        gene_region_mapping = get_gene_region_mapping()
+        gene_region_mapping = jeeves.get_gene_region_mapping()
         chrom, start, end = gene_region_mapping[genename]
 
         include_string = request.args.get('include', '')
@@ -404,11 +401,12 @@ def gene_phenocode_page(phenocode, genename):
         pheno = phenos[phenocode]
 
         phenos_in_gene = []
-        for pheno_in_gene in get_best_phenos_by_gene().get(genename, []):
-            phenos_in_gene.append({
-                'pheno': {k:v for k,v in phenos[pheno_in_gene['phenocode']].items() if k not in ['assoc_files', 'colnum']},
-                'assoc': {k:v for k,v in pheno_in_gene.items() if k != 'phenocode'},
-            })
+        for pheno_in_gene in jeeves.get_best_phenos_by_gene().get(genename, []):
+            if pheno_in_gene['phenocode'] in use_phenos:
+                phenos_in_gene.append({
+                    'pheno': {k:v for k,v in phenos[pheno_in_gene['phenocode']].items() if k not in ['assoc_files', 'colnum']},
+                    'assoc': {k:v for k,v in pheno_in_gene.items() if k != 'phenocode'},
+                })
 
         return render_template('gene.html',
                                pheno=pheno,
@@ -429,7 +427,7 @@ def gene_phenocode_page(phenocode, genename):
 @app.route('/gene/<genename>')
 @check_auth
 def gene_page(genename):
-    phenos_in_gene = get_best_phenos_by_gene().get(genename, [])
+    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
@@ -438,10 +436,12 @@ def gene_page(genename):
 @app.route('/genereport/<genename>')
 @check_auth
 def gene_report(genename):
-    phenos_in_gene = get_best_phenos_by_gene().get(genename, [])
+    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     func_vars = jeeves.gene_functional_variants( genename,  conf.report_conf["func_var_assoc_threshold"])
+    for func_var in func_vars:
+        func_var['significant_phenos'] = [pheno for pheno in func_var['significant_phenos'] if pheno.phenocode in use_phenos]
     funcvar = []
     chunk_size = 10
 
@@ -473,13 +473,13 @@ def gene_report(genename):
                              'nSigPhenos':len(var["significant_phenos"]), "maf": var["var"].get_annotation('annot')["AF"], "info": var["var"].get_annotation("annot")["INFO"] ,
                               "sigPhenos": sigphenos })
             i = i + chunk_size
-    top_phenos = jeeves.gene_phenos(genename)
+    top_phenos = [res for res in jeeves.gene_phenos(genename) if res.pheno['phenocode'] in use_phenos]
     top_assoc = [ assoc for assoc in top_phenos if assoc.assoc.pval<  conf.report_conf["gene_top_assoc_threshold"]  ]
     ukbb_match=[]
     for assoc in top_assoc:
         ukbb_match.append(matching_ukbb(assoc.assoc))
-    genedata = jeeves.get_gene_data()
-    gene_region_mapping = get_gene_region_mapping()
+    genedata = jeeves.get_gene_data(gene)
+    gene_region_mapping = jeeves.get_gene_region_mapping()
     chrom, start, end = gene_region_mapping[genename]
 
     knownhits = jeeves.get_known_hits_by_loc(chrom,start,end)
@@ -561,14 +561,8 @@ if 'login' in conf:
 
     @lm.user_loader
     def load_user(id):
-        if 'whitelist' in conf.login.keys():
-            if 'whitelist_only' in conf.login.keys() and conf.login['whitelist_only'] == True and id in conf.login['whitelist']:
-                return User(email=id)
-            elif id.endswith('@finngen.fi') or id in conf.login['whitelist']:
-                return User(email=id)
-        else:
-            if id.endswith('@finngen.fi'):
-                return User(email=id)
+        if id.endswith('@finngen.fi') or id in (conf.login['whitelist'] if 'whitelist' in conf.login.keys() else []):
+            return User(email=id)
         return None
 
     @app.route('/logout')
@@ -586,7 +580,7 @@ if 'login' in conf:
     @app.route('/get_authorized')
     def get_authorized():
         "This route tries to be clever and handle lots of situations."
-        if current_user.is_anonymous:
+        if current_user.is_anonymous or not verify_membership(current_user.email):
             return google_sign_in.authorize()
         else:
             if 'original_destination' in session:
@@ -598,7 +592,7 @@ if 'login' in conf:
 
     @app.route('/callback/google')
     def oauth_callback_google():
-        if not current_user.is_anonymous:
+        if not current_user.is_anonymous and verify_membership(current_user.email):
             return redirect(url_for('homepage'))
         try:
             username, email = google_sign_in.callback() # oauth.callback reads request.args.
@@ -607,23 +601,15 @@ if 'login' in conf:
             print(exc)
             print(traceback.format_exc())
             flash('Something is wrong with authentication. Please contact humgen-servicedesk@helsinki.fi')
-            return redirect(url_for('homepage'))
+            return redirect(url_for('auth'))
         if email is None:
             # I need a valid email address for my user identification
             flash('Authentication failed by failing to get an email address.')
-            return redirect(url_for('homepage'))
+            return redirect(url_for('auth'))
 
-        if 'whitelist' in conf.login.keys():
-            if 'whitelist_only' in conf.login.keys() and conf.login['whitelist_only'] == True and email.lower() not in conf.login['whitelist']:
-                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
-                return redirect(url_for('homepage'))
-            if not email.lower().endswith('@finngen.fi') and email.lower() not in conf.login['whitelist']:
-                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
-                return redirect(url_for('homepage'))
-        else:
-            if not email.lower().endswith('@finngen.fi'):
-                flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
-                return redirect(url_for('homepage'))
+        if not verify_membership(email):
+            flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
+            return redirect(url_for('auth'))
 
         # Log in the user, by default remembering them for their next visit.
         user = User(username, email)
