@@ -289,7 +289,8 @@ def download_top_hits():
 def api_pheno_qq(phenocode):
     if phenocode not in use_phenos:
         abort(404)
-    return send_from_directory(common_filepaths['qq'](''), phenocode)
+        print('jee')
+    return send_from_directory(common_filepaths['qq'](''), phenocode + '.json')
 
 @app.route('/top_hits')
 @check_auth
