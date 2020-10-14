@@ -147,7 +147,9 @@ class Pheno extends React.Component {
 	}
 	
     download() {
-	const data = this.cstable.getResolvedState().sortedData.map(datum => Object.keys(datum).reduce((acc, cur) => { if (!cur.startsWith('_')) acc[cur]=datum[cur]; return acc}, {}))
+	const data = this.state.selectedTab == 0 ?
+	      this.cstable.getResolvedState().sortedData.map(datum => Object.keys(datum).reduce((acc, cur) => { if (!cur.startsWith('_')) acc[cur]=datum[cur]; return acc}, {})) :
+	      this.vartable.getResolvedState().sortedData.map(datum => Object.keys(datum).reduce((acc, cur) => { if (!cur.startsWith('_')) acc[cur]=datum[cur]; return acc}, {}))
 	this.setState({
 	    dataToDownload: data
 	}, () => {
@@ -235,7 +237,7 @@ class Pheno extends React.Component {
 	data={this.state.dataToDownload}
 	separator={'\t'}
 	enclosingCharacter={''}
-	filename="finngen_endpoints.tsv"
+	filename={this.state.selectedTab == 0 ? `finngen_${window.release}_${pheno.phenocode}_autorep.tsv` : `finngen_${window.release}_${pheno.phenocode}_lead.tsv`}
 	className="hidden"
 	ref={(r) => this.csvLink = r}
 	target="_blank" />
@@ -256,8 +258,13 @@ class Pheno extends React.Component {
 	defaultPageSize={20}
 	className="-striped -highlight"
 	    />
+	    <div className="row">
+	    <div className="col-xs-12">
+	    <div className="btn btn-primary" onClick={this.download}>Download table</div>
+	    </div>
+	    </div>
 	    </div> :
-	<div>loading</div>
+	    <div>loading</div>
 	const qq_table = this.state.qq ?
 	      <div>
 	      <table className='column_spacing'>
