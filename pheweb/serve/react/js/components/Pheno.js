@@ -148,7 +148,7 @@ class Pheno extends React.Component {
 	
 	download() {
 		this.setState({
-			dataToDownload: this.reactTable.getResolvedState().sortedData
+			dataToDownload: this.cstable.getResolvedState().sortedData
 		}, () => {
 			this.csvLink.link.click()
 		})
@@ -181,7 +181,7 @@ class Pheno extends React.Component {
 	       pheno.num_samples ?
 	       <tbody><tr><td><b>{pheno.num_samples}</b> samples</td></tr></tbody> :
  	       null)
-
+	
 	const n_cc2 = pheno.cohorts ?
 	      <div>
 	      <h3>{this.state.pheno.cohorts.length} cohorts in meta-analysis</h3>
@@ -190,7 +190,7 @@ class Pheno extends React.Component {
 	const cs_table = this.state.credibleSets ?
 	      <div>
 	      <ReactTable
-	ref={(r) => this.reactTable = r}
+	    ref={(r) => this.cstable = r}
 	data={this.state.credibleSets}
 	filterable
 	defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())}
@@ -240,11 +240,10 @@ class Pheno extends React.Component {
 	target="_blank" />
 	    </div> :
 	<div>loading</div>
-	
 	const var_table = this.state.data ?
 	      <div>
 	    <ReactTable
-	    ref={(r) => this.reactTable = r}
+	    ref={(r) => this.vartable = r}
 	data={this.state.data.unbinned_variants.filter(v => !!v.peak)}
 	filterable
 	defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())}
