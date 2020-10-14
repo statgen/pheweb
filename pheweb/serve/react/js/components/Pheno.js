@@ -146,19 +146,20 @@ class Pheno extends React.Component {
 	    .catch(this.error_alert)
 	}
 	
-	download() {
-		this.setState({
-			dataToDownload: this.cstable.getResolvedState().sortedData
-		}, () => {
-			this.csvLink.link.click()
-		})
-		}
-	
-	onTabSelect(index){
-		this.setState({
-			selectedTab:index
-		})
-	}
+    download() {
+	const data = this.cstable.getResolvedState().sortedData.map(datum => Object.keys(datum).reduce((acc, cur) => { if (!cur.startsWith('_')) acc[cur]=datum[cur]; return acc}, {}))
+	this.setState({
+	    dataToDownload: data
+	}, () => {
+	    this.csvLink.link.click()
+	})
+    }
+    
+    onTabSelect(index){
+	this.setState({
+	    selectedTab:index
+	})
+    }
 	
     render() {
 	if (this.state.error) {
