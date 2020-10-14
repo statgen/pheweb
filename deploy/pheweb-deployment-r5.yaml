@@ -29,7 +29,7 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:autotest910985
+        image: gcr.io/phewas-development/pheweb:prod_da5a5d1
         env:
         - name: PHEWEB_DIR
           value: "/mnt/nfs/pheweb/r5"

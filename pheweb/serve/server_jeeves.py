@@ -394,6 +394,11 @@ class ServerJeeves(object):
     def get_gene_region_mapping(self):
         return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
 
+    @functools.lru_cache(None)
+    def get_best_phenos_by_gene(self):
+        with open(common_filepaths['best-phenos-by-gene']) as f:
+            return json.load(f)
+
     def get_autoreport(self, phenocode):
         if self.autoreporting_dao == None:
             return None

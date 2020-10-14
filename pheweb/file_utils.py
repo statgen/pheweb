@@ -30,6 +30,7 @@ genes_version = 'v25'
 
 common_filepaths = {
     'phenolist': os.path.join(conf.data_dir, 'pheno-list.json'),
+    'use_phenos': os.path.join(conf.data_dir, 'use_phenos.txt'),
     'genes': get_cacheable_file_location('sites/genes', 'genes-b38-{}.bed'.format(genes_version)),
     'gene-aliases-trie': get_cacheable_file_location('sites/genes', 'gene_aliases_b38.marisa_trie'),
     'rsids': get_cacheable_file_location('sites/dbSNP', 'rsids-b38-{}.vcf.gz'.format(dbsnp_version)),

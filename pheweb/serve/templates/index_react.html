@@ -50,6 +50,19 @@
   window.model = window.model || {}
   window.model.tooltip_underscoretemplate = {{ tooltip_underscoretemplate|tojson }}
   window.vis_conf = {{vis_conf|tojson|safe}}
+  window.sounds = [
+  'https://sound.peal.io/ps/audios/000/029/713/original/youtube_29713.mp3?1553760622',
+  'https://sound.peal.io/ps/audios/000/029/696/original/youtube_29696.mp3?1553758748',
+  'https://sound.peal.io/ps/audios/000/029/706/original/youtube_29706.mp3?1553759924',
+  'https://sound.peal.io/ps/audios/000/029/716/original/youtube_29716.mp3?1553760827',
+  'https://sound.peal.io/ps/audios/000/029/697/original/youtube_29697.mp3?1553758854',
+  'https://sound.peal.io/ps/audios/000/029/712/original/youtube_29712.mp3?1553760486',
+  'https://sound.peal.io/ps/audios/000/029/699/original/youtube_29699.mp3?1553759113',
+  'https://sound.peal.io/ps/audios/000/029/714/original/youtube_29714.mp3?1553760710',
+  'https://sound.peal.io/ps/audios/000/029/710/original/youtube_29710.mp3?1553760216',
+  'https://sound.peal.io/ps/audios/000/029/697/original/youtube_29697.mp3?1553758854',
+  'https://sound.peal.io/ps/audios/000/029/707/original/youtube_29707.mp3?1553759990'
+  ]
 </script>
 
 <style type="text/css">
@@ -117,8 +130,10 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-	    <a href="/">
+	    <span ondblclick="new Audio(window.sounds[Math.floor(Math.random() * window.sounds.length)]).play()">
 	      {{ config.logo|safe }}
+	    </span>
+	    <a href="/">
 	      <span class="logo-header">{{ config['title'] }}</span>
 	    </a>
             <!-- <a class="navbar-brand" href="/" style="color: #333; font-weight: bold; float: left; font-size: 15px;">PheWeb</a> -->
