@@ -1,5 +1,5 @@
 import { selectAll} from 'd3' ;
-import {Colocalization, Variant, variantFromStr} from "../../../common/Model";
+import {CasualVariant, Colocalization, Variant, variantFromStr} from "../../../common/Model";
 import {CasualVariantVector, EMPTY, LocusZoomData} from "./ColocalizationModel";
 import {useContext, useEffect} from "react";
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
@@ -9,7 +9,8 @@ import {LocusZoomContext} from "../LocusZoom/RegionLocus";
 
 const refreshLocusZoom = (colocalization : Colocalization | undefined,
                           locusZoomData : LocusZoomData,
-                              locusZoomContext : LocusZoomContext ) => {
+                          locusZoomContext : LocusZoomContext,
+                          selectedCasualVariant : (c : CasualVariant | undefined) => void ) => {
     const { dataSources ,  plot } = locusZoomContext;
     const title: string = colocalization?`Credible Set : ${colocalization.phenotype2_description} : ${colocalization.tissue2}`:"Credible Set : Colocalization";
     const panel : Panel = plot.panels.colocalization;
@@ -37,7 +38,8 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
     const mouseOperation = (operation : (identifier : string,data: DataLayer) => void) =>
                            (index : number) =>
                            (event : Event, d : { [ key : string]  : string }, i : number) => {
-        console.log(JSON.stringify(d));
+        const causalvariantid : string | undefined = d["colocalization:causalvariantid"]
+        console.log(causalvariantid);
         const value : string | undefined = d[`colocalization:variant${index}`];
         const variant : Variant | undefined = (value && variantFromStr(value)) || undefined;
         if(variant){
@@ -51,9 +53,13 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
             association.render();
         }
     }
+    const mouseOver = (identifier : string,dataLayer: DataLayer) => {
+        dataLayer.highlightElement(identifier);
+    }
+    const mouseOut = (identifier : string,dataLayer: DataLayer) => {
+        dataLayer.unhighlightElement(identifier);
+    }
 
-    const mouseOver = (identifier : string,dataLayer: DataLayer) => dataLayer.highlightElement(identifier);
-    const mouseOut = (identifier : string,dataLayer: DataLayer) => dataLayer.unhighlightElement(identifier);
 
     for(const i of [1,2]){
         const selector : string = `[id='lz-${i}.colocalization.colocalization_pip${i}.data_layer'] path`;
@@ -64,12 +70,16 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
 }
 
 export const locusZoomHandler = () => {
-    const { colocalization , locusZoomData , selectedColocalization } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
+    const { colocalization ,
+            locusZoomData ,
+            selectedColocalization ,
+            selectedCasualVariant } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
     const { locusZoomContext } = useContext<Partial<RegionState>>(RegionContext);
 
     useEffect(() => { colocalization
                       && locusZoomData
                       && locusZoomContext
+                      && selectedCasualVariant
                       && refreshLocusZoom(selectedColocalization, locusZoomData, locusZoomContext); },
         [ colocalization , locusZoomData , selectedColocalization, locusZoomContext ]);
 }
