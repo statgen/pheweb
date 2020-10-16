@@ -147,6 +147,11 @@ def homepage(path):
 def autoreport(phenocode):
     return jsonify(jeeves.get_autoreport(phenocode))
 
+@app.route('/api/autoreport_variants/<phenocode>/<locus_id>')
+@check_auth
+def autoreport_variants(phenocode,locus_id):
+    return jsonify(jeeves.get_autoreport_variants(phenocode,locus_id))
+
 @app.route('/api/ld')
 @check_auth
 def ld():
@@ -274,7 +279,6 @@ def api_lof_gene(gene):
 @check_auth
 def api_top_hits():
     return send_file(common_filepaths['top-hits-1k'])
-
 @app.route('/download/top_hits.tsv')
 @check_auth
 def download_top_hits():
@@ -283,9 +287,10 @@ def download_top_hits():
 @app.route('/api/qq/pheno/<phenocode>')
 @check_auth
 def api_pheno_qq(phenocode):
-    if phenocode.replace('.json', '') not in use_phenos:
+    if phenocode not in use_phenos:
         abort(404)
-    return send_from_directory(common_filepaths['qq'](''), phenocode)
+        print('jee')
+    return send_from_directory(common_filepaths['qq'](''), phenocode + '.json')
 
 @app.route('/top_hits')
 @check_auth
@@ -327,6 +332,7 @@ def region_page(phenocode, region):
     pheno = phenos[phenocode]
     chr_se = region.split(':')
     chrom = chr_se[0]
+    chrom = 'X' if str(chrom) == '23' else chrom
     start_end = jeeves.get_max_finemapped_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
     if start_end is not None:
         cond_fm_regions = jeeves.get_finemapped_region_boundaries_for_pheno('all', phenocode, chrom, int(chr_se[1].split('-')[0]), int(chr_se[1].split('-')[1]))
@@ -373,6 +379,7 @@ def api_finemapped_region(phenocode):
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
+    chrom = 'X' if str(chrom) == '23' else chrom
     rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, prob_threshold=conf.locuszoom_conf['prob_threshold'])
     return jsonify(rv)
 

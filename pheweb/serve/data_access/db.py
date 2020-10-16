@@ -558,6 +558,8 @@ class TabixGnomadDao(GnomadDB):
         return annotations
 
     def get_variant_annotations_range(self, chrom, start, end):
+        # gnomAD annotation still has X and not 23
+        chrom = 'X' if str(chrom) == '23' else chrom
         try:
             tabix_iter = self.tabix_handles[threading.get_ident()].fetch(chrom, start-1, end)
         except ValueError:
