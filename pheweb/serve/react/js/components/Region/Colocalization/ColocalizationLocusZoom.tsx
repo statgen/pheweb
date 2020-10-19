@@ -53,6 +53,7 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
             association.render();
         }
     }
+    
     const mouseOver = (identifier : string,dataLayer: DataLayer) => {
         dataLayer.highlightElement(identifier);
     }

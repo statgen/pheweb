@@ -651,21 +651,14 @@ export const finemapping_layout: (region: Region) => Layout = (region: Region) =
 }
 
 const datalayer = (index : number,color : string) : LayoutDataLayersEntity => {
-    const pip = `pip${index}`
-    const beta = `beta${index}`
-    const datalayer_id : string = `colocalization_${pip}`
-    const field : string = `colocalization:${pip}`
-
     return {
-	"id": datalayer_id,
+	"id": `colocalization_pip${index}`,
 	type: "scatter",
-	point_shape : {
-	    scale_function : "categorical_bin",
-	    field : `colocalization:beta${index}|sign`  ,
-	    parameters : { categories : [ "positive", "zero", "negative"] ,
-		               values : [ "triangle-up" , "circle" , "triangle-down" ],
-		               null_value : "square" }
-	},
+	point_shape : { scale_function : "categorical_bin",
+	                field : `colocalization:beta${index}|sign`  ,
+	                parameters : { categories : [ "positive", "zero", "negative"] ,
+		                           values : [ "triangle-up" , "circle" , "triangle-down" ],
+		                           null_value : "square" } },
     fields: [ "colocalization:causalvariantid",
 			  "colocalization:position1",
 			  "colocalization:position2",
@@ -692,7 +685,7 @@ const datalayer = (index : number,color : string) : LayoutDataLayersEntity => {
 	             "hide": { "and": ["unhighlighted", "unselected"] },
 	             "html": `<strong>{{colocalization:phenotype2}}</strong><br/>
 	                      {{colocalization:phenotype2_description|truncate}}<br/>
-                          <strong>{{colocalization:variant}}</strong><br/>
+                          <strong>{{colocalization:variant2}}</strong><br/>
 						  <table>
 							<tbody>
 								<tr>
@@ -714,22 +707,18 @@ const datalayer = (index : number,color : string) : LayoutDataLayersEntity => {
 				"floor": 0, 
 				"upper_buffer": 0.0,
 				"min_extent": [0, 1],
-				"field": field },
+				"field": `colocalization:pip${index}` },
 	"color": [color],
 	fill_opacity: { scale_function : "categorical_bin",
 	    			field : 'colocalization:count_variants'  ,
-	    			parameters : {
-					categories : [ 0, 1, 2 ] ,
-					values : [ 0.2 , 0.4 , 0.9 ],
-					null_value : 1.0 }
-	},
+	    			parameters : { categories : [ 0, 1, 2 ] ,
+					               values : [ 0.2 , 0.4 , 0.9 ],
+					               null_value : 1.0 } },
 	legend :  [ { "shape": "circle",
 		          "color" : "color",
 		          "size": 40,
 		          "label" : "pip" ,
-		          "class" : "lz-data_layer-scatter" } ]
-}
-}
+		          "class" : "lz-data_layer-scatter" } ] } }
 
 export const colocalization_layout: (region: Region) => Layout = (region: Region) => {
 	return { "id": "colocalization",
