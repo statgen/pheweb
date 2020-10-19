@@ -1334,7 +1334,7 @@ class DataFactory(object):
         return self.dao_impl["annotation"]
 
     def get_colocalization_dao(self):
-        return self.dao_impl["colocalization"]
+        return self.dao_impl["colocalization"] if "colocalization" in self.dao_impl else None
 
     def get_gnomad_dao(self):
         return self.dao_impl["gnomad"]
