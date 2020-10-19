@@ -30,7 +30,7 @@ def get_locus(phenotype: str,
     else:
         result = SearchResults(colocalizations=[],
                                count=0)
-    return json.dumps(result, default=lambda o: None)
+    return json.dumps(result.json_rep(), default=lambda o: None)
 
 
 @colocalization.route('/api/colocalization/<string:phenotype>/<string:locus>/summary', methods=["GET"])
