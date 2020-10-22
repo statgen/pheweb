@@ -1,5 +1,5 @@
 import {LocusZoomData, SearchResults, searchResultsColocalization, SearchSummary} from "./ColocalizationModel";
-import {RegionParameter} from "./ColocalizationContext";
+import { RegionParameter } from "../RegionModel";
 import {Colocalization} from "../../../common/Model";
 import {compose, get } from "../../../common/Utilities";
 

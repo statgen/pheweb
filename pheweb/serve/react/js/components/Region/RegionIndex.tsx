@@ -10,6 +10,7 @@ import RegionContextProvider from "./RegionContext";
 import ColocalizationContextProvider from "./Colocalization/ColocalizationContext";
 import {RegionErrorBoundary} from "./RegionErrorBoundary";
 
+
 const Region = (props : Props) => {
     return (<RegionErrorBoundary>
         <RegionContextProvider>

@@ -1,8 +1,12 @@
 import React, {Component, ErrorInfo} from 'react'
+import ReactDOM from 'react-dom'
 
 interface Props { children: React.ReactNode }
 
 export class RegionErrorBoundary extends React.Component {
+    state : { hasError : boolean };
+    props : Props;
+
     constructor(props: Props) {
         super(props);
         this.state = { hasError: false };
@@ -18,9 +22,11 @@ export class RegionErrorBoundary extends React.Component {
         console.error(errorInfo);
     }
 
-    render() {
+    errorMessage : React.ReactNode = <h1>Error</h1>
+
+    render() : React.ReactNode | HTMLElement {
         if (this.state.hasError) {
-            return <h1>Error</h1>;
+            return this.errorMessage;
         }
         return this.props.children;
     }
