@@ -1,10 +1,9 @@
 import {DataSources, Dashboard, Data, TransformationFunctions, positionIntToString, createCORSPromise } from 'locuszoom';
-// @ts-ignore
 import { defer , when } from 'q';
 
 export const GWASCatSource = Data.Source.extend(function(init : any) {  this.parseInit(init); }, "GWASCatSoureLZ");
 
-GWASCatSource.prototype.getURL = function(state: { chr: string; start: string; end: string; }, chain : any, fields : any) {
+GWASCatSource.prototype.getURL = function(state, chain : any, fields : any) {
 
     return this.url + "results/?format=objects&filter=id in " + this.params.id   +
                       " and chrom eq  '" + state.chr + "'" +
@@ -36,11 +35,11 @@ export const ClinvarDataSource = Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "ClinvarDataSourceLZ");
 
-ClinvarDataSource.prototype.getURL = function(state : any, chain : any, fields : any) {
+ClinvarDataSource.prototype.getURL = function(state, chain, fields) {
     return this.url
 };
 
-ClinvarDataSource.prototype.fetchRequest = function(state : any, chain : any, fields : any) {
+ClinvarDataSource.prototype.fetchRequest = function(state, chain, fields) {
 
     var url = this.getURL(state, chain, fields);
 
@@ -139,8 +138,8 @@ ClinvarDataSource.prototype.parseResponse = function(resp : string, chain, field
 
 
 Data.GeneConstraintSource.prototype.fetchRequest = function(state, chain, fields) {
-    var geneids : string[] = [];
-    chain.body.forEach(function(gene : { gene_id : string }){
+    var geneids = [];
+    chain.body.forEach(function(gene){
         var gene_id = gene.gene_id;
         if (gene_id.indexOf(".")){
             gene_id = gene_id.substr(0, gene_id.indexOf("."));
@@ -281,7 +280,7 @@ export const ConditionalSource = Data.Source.extend(function(init : { url : stri
     this.parseInit(init);
 }, "ConditionalLZ");
 
-ConditionalSource.prototype.preGetData = function(state : { [key : string ] : (object | number) },
+ConditionalSource.prototype.preGetData = function(state : { [key : string ] , (object | number) },
                                                   fields : string[],
                                                   outnames : string[],
                                                   trans : null[]) {
@@ -302,9 +301,9 @@ interface ChainResponse {
     discrete : object
 }
 
-type StateResponse = {[ key : string] : (Object | number) };
+type StateResponse = {[ key : string] , (Object | number) };
 
-ConditionalSource.prototype.getURL = function(state : { [key : string ] : (object | number) },
+ConditionalSource.prototype.getURL = function(state : { [key : string ] , (object | number) },
                                               chain : ChainResponse,
                                               fields : string[]) {
     var analysis = state.analysis || chain.header.analysis || this.params.analysis || 3;
@@ -326,7 +325,6 @@ ConditionalSource.prototype.parseResponse = function(resp : string, chain : Chai
     var res = this.params.allData
     var lookup = {}
     for (var i = 0; i < chain.body.length; i++) {
-        // @ts-ignore
         lookup[chain.body[i]['id']] = i
     }
     for (var f = 0; f < this.params.trait_fields.length; f++) {
@@ -334,10 +332,8 @@ ConditionalSource.prototype.parseResponse = function(resp : string, chain : Chai
         for (var r = 0; r < res.length; r++) {
             res[r].data[field] = []
             for (var i = 0; i < res[r].data.id.length; i++) {
-                // @ts-ignore
                 const idx = lookup[res[r].data.id[i]]
                 if (idx !== undefined) {
-                    // @ts-ignore
                     res[r].data[field].push(chain.body[idx][field])
                 } else {
                     res[r].data[field].push('n/a')
@@ -364,15 +360,13 @@ const ColocalizationSource = Data.Source.extend(function(init) {
     this.parseInit(init);
 }, "ColocalizationLZ");
 
-ColocalizationSource.prototype.getURL = function(// @ts-ignore
-                                                 state : StateResponse,
-                                                 // @ts-ignore
+ColocalizationSource.prototype.getURL = function(state : StateResponse,
                                                  chain : ChainResponse,
-                                                 // @ts-ignore
                                                  fields : string[]) {
     const that = this as { url : string }
     return that.url;
 }
+
 
 ColocalizationSource.prototype.parseResponse = function(resp : string,
                                                         chain : ChainResponse,
@@ -386,3 +380,4 @@ ColocalizationSource.prototype.parseResponse = function(resp : string,
 
     return Data.Source.prototype.parseResponse.call(that, JSON.parse(resp), chain, fields, outnames, trans);
 }
+

@@ -27,5 +27,4 @@ const Region = (props : Props) => {
         </RegionErrorBoundary>)
 }
 
-
 export default Region;
