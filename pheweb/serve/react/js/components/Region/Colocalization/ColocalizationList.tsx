@@ -8,6 +8,7 @@ import { cellNumber, cellText, variantLink } from "../../../common/Formatter";
 import { compose } from "../../../common/Utilities";
 import { locusZoomHandler } from "./ColocalizationLocusZoom"
 
+
 const SelectTable = selectTableHOC(ReactTable);
 SelectTable.prototype.headSelector = () => null;
 
@@ -58,14 +59,16 @@ const headers = (metadata : Metadata[]) => columns(metadata).map(c => ({ ...c , 
 const subComponent = (row : Row<Colocalization>) => {
     const colocalization : Colocalization = row.original;
     const causalvariant : CasualVariant[] = colocalization.variants;
-    return (<div style={{ padding: "20px" }}>
-        <ReactTable
-            data={ causalvariant }
-            columns={ columns(subComponentMetadata) }
-            defaultPageSize={5}
-            showPagination={true} />
-    </div>);
+    // @ts-ignore
+    const reactTable =         <ReactTable
+        data={ causalvariant }
+        // @ts-ignore
+        columns={ columns(subComponentMetadata) }
+        defaultPageSize={5}
+        showPagination={true} />
+    return (<div style={{ padding: "20px" }}> { reactTable}</div>);
 }
+
 
 interface Props {}
 const ColocalizationList = (props : Props) => {

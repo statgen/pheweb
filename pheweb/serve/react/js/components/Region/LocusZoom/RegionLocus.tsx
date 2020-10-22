@@ -13,7 +13,6 @@ import { Region, CondFMRegions } from '../RegionModel';
 // @ts-ignore
 import { selectAll} from 'd3' ;
 
-
 TransformationFunctions.set("neglog10_or_100", function(x : number) {
     if (x === 0) return 100;
     return -Math.log(x) / Math.LN10;
@@ -71,6 +70,7 @@ function add_dashboard_button(name : string, func : (layout : ComponentsEntity) 
         Dashboard.Component.apply(this, arguments);
         this.update = function(){
             if (this.button)return this;
+            // @ts-ignore
             this.button = new Dashboard.Component.Button(this)
                 .setColor(layout.color).setText(layout.text).setTitle(layout.title)
                 .setOnclick(func(layout).bind(this));
@@ -138,7 +138,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     }
     dataSources.add("recomb", ["RecombLZ", { url: `${remoteBase}annotation/recomb/results/`, params: {source: recombSource} }]);
 
-    Dashboard.Components.add<ComponentsEntity>("region", function(layout : ComponentsEntity){
+    Dashboard.Components.add<ComponentsEntity>("region", function(layout : ComponentsEntity) {
         Dashboard.Component.apply(this, arguments);
         this.update = function(){
             if (!isNaN(this.parent_plot.state.chr) && !isNaN(this.parent_plot.state.start) && !isNaN(this.parent_plot.state.end)
@@ -153,12 +153,12 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
             }
             if (layout.class){ this.selector.attr("class", layout.class); }
             if (layout.style){ this.selector.style(layout.style); }
-            return this;
         };
+        return this as Dashboard.Component;
     });
 
     function update_mouseover(key : string) {
-        var params : { lookup : object } = dataSources.sources[key].params
+        var params : any = dataSources.sources[key].params
         params.lookup = {}
         var dots = selectAll("[id='lz-1." + key + ".associationpvalues.data_layer'] path")
         dots.each((d , i) => {
@@ -166,10 +166,12 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
             params.lookup[d[key + ':id']] = i
         });
         var scatters_in = scatters.filter(key2 => key2 != key && plot.panels[key2])
+
         dots.on('mouseover', (d, i) => {
             scatters_in.forEach((key2 : string) => {
-                var idx = dataSources.sources[key2].params.lookup &&
-                dataSources.sources[key2].params.lookup[d[key + ':id']]
+                var params : any = dataSources.sources[key2].params;
+                // @ts-ignore
+                var idx : number | undefined = params.lookup && params.lookup[d[key + ':id']]
                 if (idx !== undefined) {
                     selectAll("[id='lz-1." + key2 + ".associationpvalues.data_layer'] path").filter((d, j) => j == idx).classed('lz-highlight', true)
                 }
@@ -203,12 +205,14 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
 
 
     const show_conditional = function(index : number) {
+        // @ts-ignore
         var params : ConditionalParams  = dataSources.sources.conditional.params;
         params.dataIndex = index
         var panel = plot.panels.conditional
         panel.setTitle('conditioned on ' + params.allData[index].conditioned_on)
         panel.data_layers.associationpvalues.data = dataSources.sources.conditional.parseArraysToObjects(params.allData[index].data, params.fields, params.outnames, params.trans)
         panel.data_layers.associationpvalues.render()
+        // @ts-ignore
         $('#cond_options label').each((i, tag) => {
             if (i === index) {
                 tag.classList.add('active')
@@ -217,11 +221,13 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
             }
         });
         update_mouseover('conditional')
+        // @ts-ignore
         $('#cond_options label')[index].classList.add('active')
     }
 
 
     const show_finemapping = function(method : string) {
+        // @ts-ignore
         var params : ConditionalParams = dataSources.sources.finemapping.params
         params.dataIndex = params.allData.reduce((acc, cur, i) => cur.type == method ? i : acc, -1)
         var panel = plot.panels.finemapping

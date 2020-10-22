@@ -798,6 +798,8 @@ declare module 'locuszoom' {
 	group_position?: string;
 	button_html?: string;
 	step?: number;
+	class?: string;
+	style?: string;
     }
 
     export interface LayoutAxes {
