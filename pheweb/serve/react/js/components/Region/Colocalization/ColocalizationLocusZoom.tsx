@@ -1,6 +1,7 @@
 import { selectAll} from 'd3' ;
 import {CasualVariant, Colocalization, Variant, variantFromStr} from "../../../common/Model";
 import {CasualVariantVector, EMPTY, LocusZoomData} from "./ColocalizationModel";
+// @ts-ignore
 import {useContext, useEffect} from "react";
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
 import {DataLayer, Panel} from "locuszoom";
@@ -9,8 +10,7 @@ import {LocusZoomContext} from "../LocusZoom/RegionLocus";
 
 const refreshLocusZoom = (colocalization : Colocalization | undefined,
                           locusZoomData : LocusZoomData,
-                          locusZoomContext : LocusZoomContext,
-                          selectedCasualVariant : (c : CasualVariant | undefined) => void ) => {
+                          locusZoomContext : LocusZoomContext) => {
     const { dataSources ,  plot } = locusZoomContext;
     const title: string = colocalization?`Credible Set : ${colocalization.phenotype2_description} : ${colocalization.tissue2}`:"Credible Set : Colocalization";
     const panel : Panel = plot.panels.colocalization;
@@ -61,26 +61,23 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
         dataLayer.unhighlightElement(identifier);
     }
 
-
     for(const i of [1,2]){
         const selector : string = `[id='lz-${i}.colocalization.colocalization_pip${i}.data_layer'] path`;
         const dots =  selectAll(selector);
-        dots.on('mouseover', mouseOperation(mouseOver)(i));
-        dots.on('mouseout', mouseOperation(mouseOut)(i));
+        dots.on('mouseover', mouseOperation(mouseOver)(i) as () => void);
+        dots.on('mouseout', mouseOperation(mouseOut)(i) as () => void);
     }
 }
 
 export const locusZoomHandler = () => {
     const { colocalization ,
             locusZoomData ,
-            selectedColocalization ,
-            selectedCasualVariant } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
+            selectedColocalization } = useContext<Partial<ColocalizationState>>(ColocalizationContext);
     const { locusZoomContext } = useContext<Partial<RegionState>>(RegionContext);
 
     useEffect(() => { colocalization
                       && locusZoomData
                       && locusZoomContext
-                      && selectedCasualVariant
                       && refreshLocusZoom(selectedColocalization, locusZoomData, locusZoomContext); },
         [ colocalization , locusZoomData , selectedColocalization, locusZoomContext ]);
 }

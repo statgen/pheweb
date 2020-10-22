@@ -1,33 +1,30 @@
 import {
     positionIntToString,
-    Layouts,
-    Data,
-    createCORSPromise,
     DataSources,
     TransformationFunctions,
     Dashboard,
     populate,
     Plot,
-    Layout,
-    ComponentsEntity
+    ComponentsEntity, Layout
 } from 'locuszoom';
 import { region_layout ,  association_layout , genes_layout , clinvar_layout , gwas_cat_layout , finemapping_layout , colocalization_layout , panel_layouts } from './RegionLayouts';
 import { FG_LDDataSource , GWASCatSource , ClinvarDataSource } from './RegionCustomLocuszooms';
 import { Region, CondFMRegions } from '../RegionModel';
+// @ts-ignore
 import { selectAll} from 'd3' ;
 
 
 TransformationFunctions.set("neglog10_or_100", function(x : number) {
     if (x === 0) return 100;
-    var log = -Math.log(x) / Math.LN10;
-    return log;
+    return -Math.log(x) / Math.LN10;
 });
 
 TransformationFunctions.set<number,number>("log_pvalue", function(x: number) { return x });
 
 TransformationFunctions.set<number,number>("logneglog", function(x : number) {
-    console.assert(this.params && this.params && this.params.region && this.params.region.vis_conf , 'missing vis_conf')
-    var pScaled : number = -Math.log10(x)
+    console.assert(this.params && this.params && this.params.region && this.params.region.vis_conf ,
+              'missing vis_conf')
+    let pScaled : number = -Math.log10(x)
     if (pScaled > this.params.region.vis_conf.loglog_threshold) {
         pScaled = this.params.region.vis_conf.loglog_threshold * Math.log10(pScaled) / Math.log10(this.params.region.vis_conf.loglog_threshold)
     }
@@ -36,7 +33,7 @@ TransformationFunctions.set<number,number>("logneglog", function(x : number) {
 
 TransformationFunctions.set<number,string>("percent", function(n : number) {
     if (n === 1) { return "100%"; }
-    var x : string = (n*100).toPrecision(2);
+    let x : string = (n*100).toPrecision(2);
     if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }
     if (x.endsWith('.')) { x = x.substr(0, x.length-1); }
     return x + '%';
@@ -69,8 +66,8 @@ export interface LocusZoomContext {
 }
 
 // dashboard components
-function add_dashboard_button(name : string, func : (layout : LayoutComponentsEntity) => { bind : (a : any) => any }) {
-    Dashboard.Components.add(name, function(layout : LayoutComponentsEntity){
+function add_dashboard_button(name : string, func : (layout : ComponentsEntity) => { bind : (a : any) => any }) {
+    Dashboard.Components.add(name, function(layout : ComponentsEntity){
         Dashboard.Component.apply(this, arguments);
         this.update = function(){
             if (this.button)return this;
@@ -80,6 +77,7 @@ function add_dashboard_button(name : string, func : (layout : LayoutComponentsEn
             this.button.show();
             return this.update();
         };
+        return this;
     });
 };
 interface ConditionalParams {
@@ -140,7 +138,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     }
     dataSources.add("recomb", ["RecombLZ", { url: `${remoteBase}annotation/recomb/results/`, params: {source: recombSource} }]);
 
-    Dashboard.Components.add<LayoutComponentsEntity>("region", function(layout : LayoutComponentsEntity){
+    Dashboard.Components.add<ComponentsEntity>("region", function(layout : ComponentsEntity){
         Dashboard.Component.apply(this, arguments);
         this.update = function(){
             if (!isNaN(this.parent_plot.state.chr) && !isNaN(this.parent_plot.state.start) && !isNaN(this.parent_plot.state.end)
@@ -163,7 +161,8 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         var params : { lookup : object } = dataSources.sources[key].params
         params.lookup = {}
         var dots = selectAll("[id='lz-1." + key + ".associationpvalues.data_layer'] path")
-        dots.each((d, i) => {
+        dots.each((d , i) => {
+            // @ts-ignore
             params.lookup[d[key + ':id']] = i
         });
         var scatters_in = scatters.filter(key2 => key2 != key && plot.panels[key2])
@@ -176,7 +175,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
                 }
             })
         })
-        dots.on('mouseout', (d, i) => {
+        dots.on('mouseout', (d : any, i : number) => {
             scatters_in.forEach((key2 : string) => {
                 selectAll("[id='lz-1." + key2 + ".associationpvalues.data_layer'] path").classed('lz-highlight', false)
             })
@@ -193,7 +192,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         return function() {
             var start = this.parent_plot.state.start;
             var end = this.parent_plot.state.end;
-            var shift = Math.floor(end - start) * layout.direction;
+            var shift = Math.floor(end - start) * (layout?.direction|| 0);
             this.parent_plot.applyState({
                 chr: this.parent_plot.state.chr,
                 start: start + shift,
@@ -255,9 +254,9 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
                 plot.addPanel(finemapping_layout(region));
             }
         } else {
-            const layout = panel_layouts.get(r.type);
-            console.assert( layout, '`${r.type} missing layout for type`')
-            layout && plot.addPanel(layout);
+            const layout :  ((region: Region) => Layout) | undefined = panel_layouts[r.type];
+            console.assert(typeof layout == undefined, '`${r.type} missing layout for type`')
+            layout && plot.addPanel(layout(region));
         }
     });
 
@@ -318,17 +317,23 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         var cond_regions = region.cond_fm_regions.filter(region => region.type == 'conditional')
         var n_cond_signals = cond_regions.length > 0 ? cond_regions[0].n_signals : 0
 
-        var summary_region : string = region.cond_fm_regions.map(region_span).join('');
-        var summary_message : string = n_cond_signals > 0 ? '<span>Conditional analysis results are approximations from summary stats. Conditioning is repeated until no signal p < 1e-6 is left.</span><br/>' : '';
-        var summary_html =  summary_region + summary_message;
+        var summary_html = region.cond_fm_regions.map(region => region.type == 'finemap' ?
+                `<span>${region.n_signals} ${region.type} signals (prob. ${region.n_signals_prob.toFixed(3)} </span><br/>`:
+                `<span>${region.n_signals} ${region.type} signals</span><br/>`
+        ).join('');
+        summary_html += n_cond_signals > 0 ? '<span>Conditional analysis results are approximations from summary stats. Conditioning is repeated until no signal p < 1e-6 is left.</span><br/>' : '';
         const region_summary = document.getElementById('region_summary');
         if(region_summary) {region_summary.innerHTML = summary_html; }
+
         if (n_cond_signals > 1) {
-            var opt_html : string = region.cond_fm_regions.filter(r => r.type == 'conditional')[0].path.map((path, i : number) =>
-              '<label onClick="show_conditional(' + i + ')" data-cond-i="' + i + '" class="btn btn-primary' + (i === 0 ? ' active' : '') + '"><span>' + (i+1) + '</span></label>'
-            ).join('\n')
+            const path : string | undefined  = region.cond_fm_regions.find(r => r.type == 'conditional')?.path;
+
             const cond_options = document.getElementById('cond_options');
-            if(cond_options) { cond_options.innerHTML = `<p>Show conditioned on {opt_html} variants<span></p>`; }
+            if(cond_options) {
+                // TODO
+                const i : number = 0;
+                const opt_html : string = `<label onClick="show_conditional(${i})" data-cond-i="${i}" class="btn btn-primary${i === 0 ? 'active' : ''}"><span> ${i+1}</span></label>`;
+                cond_options.innerHTML = `<p>Show conditioned on {opt_html} variants<span></p>`; }
         }
         if (region.cond_fm_regions.filter(r => r.type == 'susie' || r.type == 'finemap').length > 1) {
             var opt_html = region.cond_fm_regions.filter(r => r.type == 'susie' || r.type == 'finemap').map((r, i) =>

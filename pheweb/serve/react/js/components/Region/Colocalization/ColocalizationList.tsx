@@ -51,10 +51,11 @@ const subComponentMetadata = [ { title: "Variant 1" , accessor: "varid1" , label
                                { title: "beta2" , accessor: "beta2" , label:"Beta 2" },
                                { title: "count_label" , accessor: "count_label" , label:"Label" }]
 
+// @ts-ignore
 const columns = (metadata : Metadata[]) => metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
 const headers = (metadata : Metadata[]) => columns(metadata).map(c => ({ ...c , key: c.accessor }))
 
-const subComponent = (colocalizationList) => (row : Row<Colocalization>) => {
+const subComponent = (row : Row<Colocalization>) => {
     const colocalization : Colocalization = row.original;
     const causalvariant : CasualVariant[] = colocalization.variants;
     return (<div style={{ padding: "20px" }}>
@@ -95,7 +96,7 @@ const ColocalizationList = (props : Props) => {
                          defaultPageSize={10}
                          filterable
                          defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase())}
-                         SubComponent={ subComponent(colocalization) }
+                         SubComponent={ subComponent }
                          toggleSelection={toggleSelection}
                          selectType="radio"
                          isSelected={isSelected}

@@ -762,7 +762,7 @@ export const colocalization_layout: (region: Region) => Layout = (region: Region
 	}
 }
 
-export const panel_layouts : { [key:layout_types]: (region: Region) => Layout } = {
+export const panel_layouts : { [ key : string] : (region: Region) => Layout } = {
 	'association' : association_layout ,
     'genes' : genes_layout ,
 	'clinvar' : clinvar_layout ,

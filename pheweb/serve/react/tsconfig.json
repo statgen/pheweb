@@ -2,7 +2,7 @@
     "module": "commonjs",
     "jsx": "react",
     "esModuleInterop": true ,
-    "noImplicitAny": true,
+    /* "noImplicitAny": true, */
     /* "removeComments": true, */
     "preserveConstEnums": true,
     "strictNullChecks" : true,
