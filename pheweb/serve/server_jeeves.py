@@ -11,7 +11,7 @@ import json
 import pandas as pd
 import glob
 
-from typing import List, Tuple, Union
+from typing import List, Dict,Tuple, Union
 
 class ServerJeeves(object):
     '''
