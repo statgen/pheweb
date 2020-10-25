@@ -15,7 +15,7 @@ def run(argv):
 
             # dbSNP downloads are described at <https://www.ncbi.nlm.nih.gov/variation/docs/human_variation_vcf/>
             # This file includes chr-pos-ref-alt-rsid and 4X a bunch of useless columns:
-            dbsnp_url = 'ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b{}_GRCh37p13/VCF/00-All.vcf.gz'.format(dbsnp_version)
+            dbsnp_url = 'https://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b{}_GRCh37p13/VCF/00-All.vcf.gz'.format(dbsnp_version)
 
             print('Downloading dbsnp!')
             make_basedir(raw_filepath)
