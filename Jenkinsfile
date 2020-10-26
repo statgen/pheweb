@@ -11,7 +11,7 @@ pipeline {
         script {
 		    //building the container. Note that the dockerfile and context are specified in second argument
 		    //this is necessary so that dockerfile does not need to be in repo root
-		    c = docker.build("gr-development/pheweb:test-" + "$BUILD_NUMBER", "-f deploy/Dockerfile ./")
+		    c = docker.build("phewas-development/pheweb:test-" + "$BUILD_NUMBER", "-f deploy/Dockerfile ./")
 		    //push docker to registry, only phewas-development is configured right now
 		    docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') {
 			      c.push("test-${env.BUILD_NUMBER}")
