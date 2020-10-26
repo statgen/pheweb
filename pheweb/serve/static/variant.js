@@ -358,7 +358,7 @@ $(function() {
     var rsid = window.variant.annotation.annot.rsids || window.variant.annotation.rsids
     if (!rsid) return
     rsid = rsid.split(',')[0]
-    $.getJSON('http://grch37.rest.ensembl.org/variation/human/' + rsid + '?content-type=application/json')
+    $.getJSON('https://grch37.rest.ensembl.org/variation/human/' + rsid + '?content-type=application/json')
         .done(function(result) {
             if (result.mappings && result.mappings[0]) {
                 var map = result.mappings[0];
