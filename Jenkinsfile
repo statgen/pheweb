@@ -13,7 +13,7 @@ pipeline {
           //this is necessary so that dockerfile does not need to be in repo root
           c = docker.build("phewas-development/betamatch:test-" + "$BUILD_NUMBER", "-f deploy/Dockerfile ./")
           //push docker to registry, only phewas-development is configured right now 
-          docker.withRegistry('http://gcr.io/phewas-development', 'gcr:pheweb-development') {
+          docker.withRegistry('http://gcr.io/phewas-development', 'pheweb-development') {
             c.push("test-${env.BUILD_NUMBER}")
           }
     }
