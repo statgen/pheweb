@@ -19,6 +19,7 @@ pipeline {
 		}
 	    }
 	}
+    /*	
     //Testing stage, insert your tests here
     stage('Tests') {
       steps{
@@ -31,6 +32,7 @@ pipeline {
         }
       }
     }
+    */
     //stage for code metrics etc. Using sonar
     /*	
     stage('Metrics') {
