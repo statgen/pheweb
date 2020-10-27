@@ -6,8 +6,8 @@ pipeline {
         script {    c = docker.build("phewas-development/pheweb:test-${env.BUILD_NUMBER}", "-f deploy/Dockerfile ./")
 		    }
 		}
-	    }
-	}
+    }
+
     stage('Tests') {
       steps{
         script{
@@ -22,7 +22,8 @@ pipeline {
 		    
         }
       }
-    }
+	    }
+	}
     //stage for code metrics etc. Using sonar
     /*	
     stage('Metrics') {
@@ -38,5 +39,5 @@ pipeline {
       }
     } 
     */
-  }
+    }
 }
