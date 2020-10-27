@@ -1,7 +1,7 @@
 FROM debian:9
 
 # can change this in k8s deployment yaml to serve from another directory
-ENV PHEWEB_DIR /mnt/nfs/pheweb/r5
+ENV PHEWEB_DIR /mnt/nfs/pheweb/r6
 
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
