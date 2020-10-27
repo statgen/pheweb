@@ -120,7 +120,7 @@ class Pheno extends React.Component {
     }
 
     getQQ(phenocode) {
-	fetch(`/api/qq/pheno/${phenocode}.json`)
+	fetch(`/api/qq/pheno/${phenocode}`)
             .then(this.resp_json)
 	    .then(data => {
 		this.setState({qq: data})
