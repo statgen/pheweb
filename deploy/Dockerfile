@@ -19,7 +19,7 @@ ADD . /pheweb
 
 RUN apt-get update && apt-get install python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev --yes --fix-missing && \
     pip3 install cython && \
-    pip3 install /pheweb
+    pip3 install --allow-external /pheweb
 
 # create react js bundle
 RUN cd /pheweb/pheweb/serve/react && \
