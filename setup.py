@@ -45,7 +45,7 @@ setup(
         'cffi~=1.11',
         'pytest-runner~=4.0',
     ],
-    dependency_links=['https://github.com/FINNGEN/finngen-common-data-model.git@a0e7d4a0159ab0c358e68c72d2826f879b7c5039#egg=finngen_common_data_model'],
+    dependency_links=['https://github.com/FINNGEN/finngen-common-data-model.git#egg=finngen_common_data_model'],
     install_requires=[
         'Flask>=0.12',
         'Flask-Compress~=1.4',
