@@ -45,9 +45,7 @@ setup(
         'cffi~=1.11',
         'pytest-runner~=4.0',
     ],
-    dependency_links=['https://github.com/FINNGEN/finngen-common-data-model.git#egg=finngen_common_data_model'],
     install_requires=[
-        'finngen_common_data_model@https://github.com/FINNGEN/finngen-common-data-model/archive/v0.0.1.tar.gz#egg=finngen_common_data_model',
         'Flask>=0.12',
         'Flask-Compress~=1.4',
         'Flask-Login~=0.4',
@@ -79,7 +77,9 @@ setup(
         'pandas~=0.24.2',
         'pymysql~=0.9.3',
         'SQLAlchemy~=1.3.19',
+        'finngen_common_data_model @ git+https://github.com/FINNGEN/finngen-common-data-model.git'
     ],
+    dependency_links=['https://github.com/FINNGEN/finngen-common-data-model.git#egg=finngen_common_data_model-0.0.1'],
     tests_require=[
         'pytest~=3.4',
     ],
