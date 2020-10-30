@@ -24,7 +24,7 @@ import time
 import io
 import os
 import subprocess
-from ..colocalization.model_db import ColocalizationDAO
+from pheweb_colocalization.model_db import ColocalizationDAO
 from pathlib import Path
 
 

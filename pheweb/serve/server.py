@@ -34,7 +34,7 @@ from .group_based_auth  import verify_membership
 
 from .server_auth import check_auth, before_request
 
-from .colocalization.view import colocalization
+from pheweb_colocalization.view import colocalization
 
 
 app = Flask(__name__)
