@@ -12,7 +12,7 @@ export interface CasualVariantVector {
 
     beta1 : number[]
     beta2 : number[]
-    count_variants : number[]
+    count_cs : number[]
     phenotype1 : string[]
     phenotype1_description : string[]
     phenotype2 : string[]

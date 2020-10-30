@@ -38,20 +38,24 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
     const mouseOperation = (operation : (identifier : string,data: DataLayer) => void) =>
                            (index : number) =>
                            (event : Event, d : { [ key : string]  : string }, i : number) => {
-        const causalvariantid : string | undefined = d["colocalization:causalvariantid"]
+                const causalvariantid : string | undefined = d["colocalization:causalvariantid"]
         console.log(causalvariantid);
-        const value : string | undefined = d[`colocalization:variant${index}`];
+        const value : string | undefined = d[`colocalization:variant`];
         const variant : Variant | undefined = (value && variantFromStr(value)) || undefined;
         if(variant){
             const identifier : string = `${variant.chromosome}${variant.position}_${variant.reference}${variant.alternate}`;
-            const finemapping : DataLayer = plot.panels.finemapping.data_layers.associationpvalues;
-            const association : DataLayer = plot.panels.association.data_layers.associationpvalues;
 
-            operation(identifier,finemapping);
-            finemapping.render();
-            operation(identifier,association);
-            association.render();
-        }
+            const association : DataLayer = plot.panels.association.data_layers.associationpvalues;
+            const clinvar : DataLayer = plot.panels.clinvar.data_layers.associationpvalues;
+            const finemapping : DataLayer = plot.panels.finemapping.data_layers.associationpvalues;
+            //const genes : DataLayer =
+            const gwas_cat : DataLayer = plot.panels.gwas_cat.data_layers.associationpvalues;
+
+            [association , clinvar, finemapping, gwas_cat].forEach(dataLayer => {
+                //operation(identifier,dataLayer);
+                //dataLayer.render();
+            })
+            }
     }
     
     const mouseOver = (identifier : string,dataLayer: DataLayer) => {

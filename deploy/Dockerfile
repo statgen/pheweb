@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install --no-install-recommends texlive wget --yes
 
 ADD . /pheweb
 
-RUN apt-get update && apt-get install git python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev --yes --fix-missing && \
+RUN apt-get update && apt-get install mysql-server default-libmysqlclient-dev git python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev --yes --fix-missing && \
     pip3 install cython && \
     pip3 install pip --upgrade && \
     pip3 install /pheweb && \
