@@ -8,8 +8,7 @@ export interface CasualVariant {
   readonly variation_chromosome: string,
   readonly beta1 : number,
   readonly beta2 : number,
-  readonly variant1? : Variant,
-  readonly variant2? : Variant,
+  readonly variant? : Variant,
   readonly id : string,
   readonly pip1 : number,
   readonly pip2 : number,
@@ -17,6 +16,8 @@ export interface CasualVariant {
   readonly rsid2: string,
   readonly varid1 : string,
   readonly varid2 : string,
+  readonly count_cs : number;
+  readonly membership_cs : number;
 };
 
 export interface Colocalization {
@@ -52,9 +53,9 @@ export interface Colocalization {
   readonly len_cs2 : number,
   readonly len_inter : number
 
-  readonly cs_size_1: number;
+  readonly count_cs: number;
+  readonly membership_cs: string;
   readonly x: number;
-
 };
 
 export interface Variant {

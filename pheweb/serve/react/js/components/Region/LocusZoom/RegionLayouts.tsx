@@ -660,15 +660,13 @@ const datalayer = (index : number,color : string) : LayoutDataLayersEntity => {
 		                           values : [ "triangle-up" , "circle" , "triangle-down" ],
 		                           null_value : "square" } },
     fields: [ "colocalization:causalvariantid",
-			  "colocalization:position1",
-			  "colocalization:position2",
-			  "colocalization:variant1",
-			  "colocalization:variant2",
+			  "colocalization:position",
+			  "colocalization:variant",
 			  "colocalization:pip1",
 			  "colocalization:pip2",
 			  "colocalization:beta1",
 			  "colocalization:beta2",
-			  "colocalization:count_variants",
+			  "colocalization:count_cs",
 			  "colocalization:phenotype1",	
 			  "colocalization:phenotype1_description",
 			  "colocalization:phenotype2",	
@@ -685,7 +683,7 @@ const datalayer = (index : number,color : string) : LayoutDataLayersEntity => {
 	             "hide": { "and": ["unhighlighted", "unselected"] },
 	             "html": `<strong>{{colocalization:phenotype2}}</strong><br/>
 	                      {{colocalization:phenotype2_description|truncate}}<br/>
-                          <strong>{{colocalization:variant2}}</strong><br/>
+                          <strong>{{colocalization:variant}}</strong><br/>
 						  <table>
 							<tbody>
 								<tr>
@@ -702,7 +700,7 @@ const datalayer = (index : number,color : string) : LayoutDataLayersEntity => {
 								</tr>
 							</tbody>
 						   </table>` },
-	"x_axis": { "field": `colocalization:position${index}`, "axis": 1 },
+	"x_axis": { "field": `colocalization:position`, "axis": 1 },
 	"y_axis": { "axis": 1, 
 				"floor": 0, 
 				"upper_buffer": 0.0,

@@ -1,14 +1,11 @@
-import { setFlagsFromString } from "v8";
-import { Variant , Locus , Colocalization, CasualVariant , variantFromStr } from "../../../common/Model";
+import { Variant , Colocalization, CasualVariant , variantFromStr } from "../../../common/Model";
 
 export interface CasualVariantVector {
     causalvariantid : number[]
 
-    position1 : number []
-    position2 : number []
+    position : number []
 
-    variant1 : string[]
-    variant2 : string[]
+    variant : string[]
 
     pip1 : number[]
     pip2 : number[]
@@ -25,11 +22,9 @@ export interface CasualVariantVector {
 export const EMPTY : CasualVariantVector = {
     causalvariantid : [],
 
-    position1 : [],
-    position2 : [],
+    position : [],
 
-    variant1 : [],
-    variant2 : [],
+    variant : [],
 
     pip1 : [],
     pip2 : [],
@@ -37,7 +32,7 @@ export const EMPTY : CasualVariantVector = {
     beta1 : [],
     beta2 : [],
 
-    count_variants : [],
+    count_cs : [],
 
     phenotype1 : [],
     phenotype1_description : [],
@@ -66,14 +61,13 @@ export interface SearchResults {
 
 const hydrateCasualVariant = (c : ResponseCasualVariant) : CasualVariant => {
     return { ...c,
-             variant1 : variantFromStr(c.variant1 as string),
-             variant2 : variantFromStr(c.variant2 as string) } as CasualVariant
+             variant : variantFromStr(c.variant as string) } as CasualVariant
 }
 
 const hydrateColocalization = (c : ResponseColocalization) : Colocalization => {
     return { ...c,
-             locus_id1 : variantFromStr(c.locus_id1 as string),
-             locus_id2 : variantFromStr(c.locus_id2 as string),
+             locus_id1 : c.locus_id1 && c.locus_id1 != null ?variantFromStr(c.locus_id1 as string): undefined,
+             locus_id2 : c.locus_id2 && c.locus_id2 != null ?variantFromStr(c.locus_id2 as string): undefined,
              variants : c.variants.map(hydrateCasualVariant) } as Colocalization }
 
 export const searchResultsColocalization = (c : SearchResults) : Colocalization [] => c.colocalizations.map(hydrateColocalization)

@@ -13,7 +13,7 @@ const SelectTable = selectTableHOC(ReactTable);
 SelectTable.prototype.headSelector = () => null;
 
 export const cell_locus_id1 = (row : Row<Colocalization>) => row.original.locus_id1
-export const cell_variant1 = (row : Row<CasualVariant>) => row.original.variant1
+export const cell_variant = (row : Row<CasualVariant>) => row.original.variant
 
 interface Metadata { accessor: string
                      label: string
@@ -45,12 +45,12 @@ const listMetadata : Metadata[] = [
     { title: "cs_size_1", accessor: "cs_size_1", label: "CS Size 1", width: 80 },
     { title: "cs_size_2", accessor: "cs_size_2", label: "CS Size 2", width: 80 } ];
 
-const subComponentMetadata = [ { title: "Variant 1" , accessor: "varid1" , label: "Variant 1" , Cell : compose(cell_variant1,variantLink) },
-                               { title: "pip1" , accessor: "pip1" , label:"PIP 1" },
-                               { title: "beta1" , accessor: "beta1" , label:"Beta 1" },
-                               { title: "pip2" , accessor: "pip2" , label:"PIP 2" },
-                               { title: "beta2" , accessor: "beta2" , label:"Beta 2" },
-                               { title: "count_label" , accessor: "count_label" , label:"Label" }]
+const subComponentMetadata = [ { title: "Variant" , accessor: "varid1" , label: "Variant" , Cell : compose(cell_variant,variantLink) },
+                               { title: "pip1" , accessor: "pip1" , label:"PIP 1" , Cell : cellNumber },
+                               { title: "beta1" , accessor: "beta1" , label:"Beta 1" , Cell : cellNumber },
+                               { title: "pip2" , accessor: "pip2" , label:"PIP 2"  , Cell : cellNumber },
+                               { title: "beta2" , accessor: "beta2" , label:"Beta 2"  , Cell : cellNumber },
+                               { title: "count_label" , accessor: "membership_cs" , label:"Label" }]
 
 // @ts-ignore
 const columns = (metadata : Metadata[]) => metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
