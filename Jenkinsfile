@@ -8,7 +8,7 @@ pipeline {
 			      c.push("ci-${env.GIT_COMMIT}")
 		    }
 		    docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') {
-			      c.push("latest-ci")
+			      c.push("ci-latest")
 		    }
 		}
 	    }
