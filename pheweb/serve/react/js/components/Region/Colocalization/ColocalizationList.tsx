@@ -83,7 +83,9 @@ const ColocalizationList = (props : Props) => {
         setRowSelected(selectedRow ? undefined : key);
     }
 
-    const isSelected = (key : string) =>  selectedRow === `select-${key}`;
+    const isSelected = (key : string) => {
+        return selectedRow === `select-${key}`;
+    }
 
     const rowFn = (state : {}, rowInfo : Row<Colocalization>, column : Column<Colocalization>, instance) => {
         return { onClick: (e : Event, handleOriginal : (undefined | (() => void))) => handleOriginal && handleOriginal() ,
