@@ -79,6 +79,8 @@ setup(
         'pandas~=0.24.2',
         'pymysql~=0.9.3',
         'SQLAlchemy~=1.3.19'
+        'PyMySQL>=0.10.1',
+        'mysqlclient>=2.0.1',
     ],
     dependency_links=['https://github.com/FINNGEN/finngen-common-data-model.git@ea9f420d1e7231cf54a035e35326890f6f640e00#egg=finngen_common_data_model',
                       'https://github.com/FINNGEN/pheweb-colocalization.git@26304afb49bfe6040fcaa96dd1363dfc1d1b0d13#egg=pheweb_colocalization',
