@@ -6,22 +6,33 @@ from collections import defaultdict
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
-group_name = conf.group_auth['GROUP']
-service_account_file = conf.group_auth['SERVICE_ACCOUNT_FILE']
-delegated_account = conf.group_auth['DELEGATED_ACCOUNT']
+if conf["authentication"]:
+    group_name = conf.group_auth['GROUP']
+    service_account_file = conf.group_auth['SERVICE_ACCOUNT_FILE']
+    delegated_account = conf.group_auth['DELEGATED_ACCOUNT']
 
-service_account_scopes = [
-    'https://www.googleapis.com/auth/admin.directory.group.readonly',
-    'https://www.googleapis.com/auth/admin.directory.user.readonly',
-    'https://www.googleapis.com/auth/admin.directory.group.member.readonly'
-]
+    service_account_scopes = [
+        'https://www.googleapis.com/auth/admin.directory.group.readonly',
+        'https://www.googleapis.com/auth/admin.directory.user.readonly',
+        'https://www.googleapis.com/auth/admin.directory.group.member.readonly'
+    ]
 
-# set credentials
-creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=service_account_scopes)
-delegated_creds = creds.with_subject(delegated_account)
-services = defaultdict( lambda: build('admin', 'directory_v1', credentials=delegated_creds) )
+    # set credentials
+    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=service_account_scopes)
+    delegated_creds = creds.with_subject(delegated_account)
+    services = defaultdict( lambda: build('admin', 'directory_v1', credentials=delegated_creds) )
 
-whitelist = conf.login['whitelist'] if 'whitelist' in conf.login.keys() else []
+    whitelist = conf.login['whitelist'] if 'whitelist' in conf.login.keys() else []
+
+else:
+    group_name = None
+    service_account_file = None
+    delegated_account = None
+    service_account_scopes = None
+    creds = None
+    delegated_creds = None
+    services = None
+    whitelist = None
 
 def get_all_members(group_name):
     all = services[threading.get_ident()].members().list(groupKey=group_name).execute()
