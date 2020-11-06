@@ -32,7 +32,7 @@ from collections import defaultdict
 from .encoder import FGJSONEncoder
 from .group_based_auth  import verify_membership
 
-from .server_auth import check_auth, before_request
+from .server_auth import before_request
 
 from pheweb_colocalization.view import colocalization
 
@@ -123,7 +123,6 @@ def check_auth():
     else:
         result = before_request()
     return result
-
 
 @app.route('/auth')
 @is_public
