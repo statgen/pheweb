@@ -11,7 +11,7 @@ import json
 import pandas as pd
 import glob
 
-from typing import List, Tuple
+from typing import List, Dict,Tuple, Union
 
 class ServerJeeves(object):
     '''
@@ -399,8 +399,8 @@ class ServerJeeves(object):
         with open(common_filepaths['best-phenos-by-gene']) as f:
             return json.load(f)
 
-    def get_autoreport(self, phenocode):
-        if self.autoreporting_dao == None:
+    def get_autoreport(self, phenocode) -> List[Dict[str,Union[str,int,float,bool]]] :
+        if (self.autoreporting_dao == None) or (self.ukbb_dao == None):
             return None
         data = pd.DataFrame(self.autoreporting_dao.get_group_report(phenocode))
         if not data.empty:
@@ -424,8 +424,9 @@ class ServerJeeves(object):
         return []
         
     
-    def get_autoreport_variants(self, phenocode, locus_id):
-        if self.autoreporting_dao is None:
+    def get_autoreport_variants(self, phenocode: str, locus_id: str) -> List[Dict[str,Union[str,int,float,bool]]]:
+        abort = [a == None for a in [self.autoreporting_dao,self.gnomad_dao, self.annotation_dao]]
+        if any(abort):
             return None
         data=self.autoreporting_dao.get_group_variants(phenocode, locus_id)
         df=pd.DataFrame(data)
@@ -433,4 +434,34 @@ class ServerJeeves(object):
         agg_dict["trait"]=";".join
         agg_dict["trait_name"]=";".join
         df=df.groupby('variant').agg(agg_dict).reset_index(drop=True)
-        return df.to_dict('records')
+        
+        #create list of Variants that is used to get gnomad and finngen annotation data
+        list_of_vars = []
+        variants = list(set([a["variant"] for a in data]))
+        for variant in variants:
+            v=variant.replace("chr","").split("_")
+            if (v[0] in ["X","Y","T"]) :
+                transform = {"X":23,"Y":24,"MT":25}
+                c=transform[v[0]]
+            else:
+                c = int(v[0])
+            list_of_vars.append(Variant(c,v[1],v[2],v[3]))
+
+        # get finngen & gnomad annotations from endpoints
+        fg_data = self.annotation_dao.get_variant_annotations(list_of_vars,True)
+        gnomad_data = self.gnomad_dao.get_variant_annotations(list_of_vars)  
+        # flatten
+        fg_data = [{"variant":a.varid,**a.get_annotations()["annot"]} for a in fg_data]
+        gnomad_data = [{"variant":a["variant"].varid,**a["var_data"]} for a in gnomad_data]
+        #dataframify
+        fg_data = pd.DataFrame(fg_data)
+        gnomad_data = pd.DataFrame(gnomad_data)
+        # C:P:R:A to chrC_P_R_A
+        fg_data["variant"] = "chr"+fg_data["variant"].str.replace(":","_")
+        gnomad_data["variant"] = "chr"+gnomad_data["variant"].str.replace(":","_") 
+        
+        #join that data to autoreporting dataframe
+        output = pd.merge(df,fg_data,on="variant",how="left")
+        output = pd.merge(output,gnomad_data,on="variant",how="left")
+        #and back to dicts :)
+        return output.to_dict('records')
