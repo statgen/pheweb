@@ -123,7 +123,7 @@ class Binner:
         pos_bin_id = variant['pos'] // BIN_LENGTH
         if pos_bin_id not in self._bins[chrom_idx]:
             self._bins[chrom_idx][pos_bin_id] = {'chrom': variant['chrom'], 'startpos': pos_bin_id * BIN_LENGTH, 'qvals': set()}
-        qval = self._rounded(-math.log10(variant['pval']))
+        qval = math.inf if variant['pval'] == 0 else self._rounded(-math.log10(variant['pval']))
         self._bins[chrom_idx][pos_bin_id]["qvals"].add(qval)
 
     def get_result(self):
