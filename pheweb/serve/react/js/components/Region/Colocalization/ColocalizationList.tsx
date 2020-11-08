@@ -95,7 +95,7 @@ const ColocalizationList = (props : Props) => {
     if(colocalization && locusZoomData){
         return (<div>
             <SelectTable data={ colocalization }
-                         keyField="id"
+                         keyField="colocalization_id"
                          columns={ columns(listMetadata) }
                          defaultSorted={[{  id: "clpa", desc: true }]}
                          defaultPageSize={10}
