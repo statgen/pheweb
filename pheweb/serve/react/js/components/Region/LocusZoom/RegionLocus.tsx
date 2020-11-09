@@ -13,12 +13,9 @@ import { Region, CondFMRegions } from '../RegionModel';
 // @ts-ignore
 import { selectAll} from 'd3' ;
 
-TransformationFunctions.set("neglog10_or_100", function(x : number) {
-    if (x === 0) return 100;
-    return -Math.log(x) / Math.LN10;
-});
-
-TransformationFunctions.set<number,number>("log_pvalue", function(x: number) { return x });
+TransformationFunctions.set<number,number>("neglog10_or_100", (x : number) => (x === 0)?100:-Math.log(x) / Math.LN10);
+TransformationFunctions.set<string | null | undefined,string>("na", (x: string | null | undefined) => x??"NA");
+TransformationFunctions.set<number,number>("log_pvalue", (x: number) => x );
 
 TransformationFunctions.set<number,number>("logneglog", function(x : number) {
     console.assert(this.params && this.params && this.params.region && this.params.region.vis_conf ,

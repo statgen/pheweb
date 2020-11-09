@@ -1,7 +1,7 @@
 import { Variant , Colocalization, CasualVariant , variantFromStr } from "../../../common/Model";
 
 export interface CasualVariantVector {
-    causalvariantid : number[]
+    causal_variant_id : number[]
 
     position : number []
 
@@ -20,7 +20,7 @@ export interface CasualVariantVector {
 }
 
 export const EMPTY : CasualVariantVector = {
-    causalvariantid : [],
+    causal_variant_id : [],
 
     position : [],
 

@@ -118,9 +118,11 @@ def is_public(function):
 
 @app.before_request
 def check_auth():
-    if getattr(app.view_functions[request.endpoint], 'is_public', False) :
+    # check if endpoint is mapped then
+    # check if endpoint has is public annotation
+    if request.endpoint and (request.endpoint in app.view_functions) and getattr(app.view_functions[request.endpoint], 'is_public', False) :
         result = None
-    else:
+    else: # check authentication
         result = before_request()
     return result
 

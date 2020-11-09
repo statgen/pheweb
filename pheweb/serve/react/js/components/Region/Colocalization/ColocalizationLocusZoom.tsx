@@ -12,14 +12,14 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
                           locusZoomData : LocusZoomData,
                           locusZoomContext : LocusZoomContext) => {
     const { dataSources ,  plot } = locusZoomContext;
-    const title: string = colocalization?`Credible Set : ${colocalization.phenotype2_description} : ${colocalization.tissue2}`:"Credible Set : Colocalization";
+    const title: string = colocalization?`Credible Set : ${colocalization.phenotype2_description ?? 'NA'} : ${colocalization.tissue2 ?? 'NA'}`:"Credible Set : Colocalization";
     const panel : Panel = plot.panels.colocalization;
     panel.setTitle(title);
 
     const dataSource = dataSources.sources.colocalization;
     const params : { [key: string ]: any; } = dataSource.params;
-    const data : CasualVariantVector = colocalization && locusZoomData && locusZoomData[colocalization.id] || EMPTY;
-
+    const data : CasualVariantVector = colocalization && locusZoomData && locusZoomData[colocalization.colocalization_id] || EMPTY;
+    console.log(data);
     panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data, params.fields, params.outnames, params.trans);
     panel.data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data, params.fields, params.outnames, params.trans);
 
@@ -38,8 +38,8 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
     const mouseOperation = (operation : (identifier : string,data: DataLayer) => void) =>
                            (index : number) =>
                            (event : Event, d : { [ key : string]  : string }, i : number) => {
-                const causalvariantid : string | undefined = d["colocalization:causalvariantid"]
-        console.log(causalvariantid);
+        const causalVariantId : string | undefined = d["colocalization:causal_variant_id"]
+        console.log(causalVariantId);
         const value : string | undefined = d[`colocalization:variant`];
         const variant : Variant | undefined = (value && variantFromStr(value)) || undefined;
         if(variant){

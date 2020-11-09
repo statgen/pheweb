@@ -46,8 +46,8 @@ setup(
         'pytest-runner~=4.0',
     ],
     install_requires=[
-        'finngen_common_data_model@git+https://github.com/FINNGEN/finngen-common-data-model.git@ea9f420d1e7231cf54a035e35326890f6f640e00#egg=finngen_common_data_model',
-        'pheweb_colocalization@git+https://github.com/FINNGEN/pheweb-colocalization.git@07fe46abe67161f6525dfcf94ff74fa27b91cfab#egg=pheweb_colocalization',
+        'finngen_common_data_model@git+https://github.com/FINNGEN/finngen-common-data-model.git@3346113e30d242a50c4a8c8e34e955ff41ad7719#egg=finngen_common_data_model',
+        'pheweb_colocalization@git+https://github.com/FINNGEN/pheweb-colocalization.git@e516accbcfd54ccbcd80bd022995c69a59b23593#egg=pheweb_colocalization',
         'Flask>=0.12',
         'Flask-Compress~=1.4',
         'Flask-Login~=0.4',
@@ -82,8 +82,8 @@ setup(
         'PyMySQL>=0.10.1',
         'mysqlclient>=2.0.1',
     ],
-    dependency_links=['https://github.com/FINNGEN/finngen-common-data-model.git@ea9f420d1e7231cf54a035e35326890f6f640e00#egg=finngen_common_data_model',
-                      'https://github.com/FINNGEN/pheweb-colocalization.git@07fe46abe67161f6525dfcf94ff74fa27b91cfab#egg=pheweb_colocalization',
+    dependency_links=['https://github.com/FINNGEN/finngen-common-data-model.git@3346113e30d242a50c4a8c8e34e955ff41ad7719#egg=finngen_common_data_model',
+                      'https://github.com/FINNGEN/pheweb-colocalization.git@e516accbcfd54ccbcd80bd022995c69a59b23593#egg=pheweb_colocalization',
     ],
     tests_require=[
         'pytest~=3.4',

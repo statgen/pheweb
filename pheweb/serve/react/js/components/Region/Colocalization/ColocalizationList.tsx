@@ -89,7 +89,7 @@ const ColocalizationList = (props : Props) => {
 
     const rowFn = (state : {}, rowInfo : Row<Colocalization>, column : Column<Colocalization>, instance) => {
         return { onClick: (e : Event, handleOriginal : (undefined | (() => void))) => handleOriginal && handleOriginal() ,
-                 style: { background: rowInfo && selectedRow === `select-${rowInfo.original.id}` && "lightgrey" }
+                 style: { background: rowInfo && selectedRow === `select-${rowInfo.original.colocalization_id}` && "lightgrey" }
         };
     };
     if(colocalization && locusZoomData){
