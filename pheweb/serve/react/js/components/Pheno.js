@@ -81,13 +81,14 @@ class Pheno extends React.Component {
 	getGroup(phenocode,locus_id) {
 	fetch('/api/autoreport_variants/'+phenocode+'/'+locus_id)
 		.then(this.resp_json)
-		.then(response => {
+		.then(response => {response?
 			this.setState({
 				locus_groups: {
 					...this.state.locus_groups,
 					[locus_id]:response
 				}
-			})
+			}):
+			0
 		})
 		.catch(this.error_alert)
 	}
@@ -95,12 +96,17 @@ class Pheno extends React.Component {
     getCredibleSets(phenocode) {
 	fetch('/api/autoreport/' + phenocode)
 	    .then(this.resp_json)
-	    .then(response => {
+	    .then(response => response ? 
 		this.setState({
 		    credibleSets: response,
 		    selectedTab: response.length == 0 ? 1 : 0
 		})
-	    })
+		:
+		this.setState({
+		    credibleSets: [],
+		    selectedTab: 1
+		})
+		)
 	    .catch(this.error_alert)
     }
 
