@@ -50,7 +50,8 @@ class Pheno extends React.Component {
 	}
     
     error_alert(error) {
-	alert(`${error.statusText || error}`)
+	console.log(error);
+	alert(`${error.statusText || error}`);
     }
 
     getUKBBN(phenocode) {

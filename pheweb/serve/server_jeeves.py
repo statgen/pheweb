@@ -34,7 +34,7 @@ class ServerJeeves(object):
         self.finemapping_dao = self.dbs_fact.get_finemapping_dao()
         self.knownhits_dao = self.dbs_fact.get_knownhits_dao()
         self.autoreporting_dao = self.dbs_fact.get_autoreporting_dao()
-        
+        self.colocalization = self.dbs_fact.get_colocalization_dao()
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 

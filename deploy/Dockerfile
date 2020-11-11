@@ -1,7 +1,7 @@
 FROM debian:9
 
 # can change this in k8s deployment yaml to serve from another directory
-ENV PHEWEB_DIR /mnt/nfs/pheweb/r5
+ENV PHEWEB_DIR /mnt/nfs/pheweb/r6
 
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
@@ -21,6 +21,12 @@ RUN apt-get update && apt-get install python3-pip libffi-dev libz-dev libssl-dev
 ADD . /pheweb
 
 RUN pip3 install /pheweb
+
+RUN apt-get update && apt-get install default-libmysqlclient-dev git python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev --yes --fix-missing && \
+    pip3 install cython && \
+    pip3 install pip --upgrade && \
+    pip3 install /pheweb && \
+    apt-get purge git --yes
 
 # create react js bundle
 RUN cd /pheweb/pheweb/serve/react && \

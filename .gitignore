@@ -1,3 +1,7 @@
+.direnv
+.vscode
+.envrc
+*~
 *.pyc
 tests/input_files/fake-cache/*
 !tests/input_files/fake-cache/rsids-147.vcf.gz
@@ -14,3 +18,58 @@ generated-by-pheweb
 pheweb/serve/static/bundle.js
 config.py
 pheweb/serve/static/bundle.js
+
+# -*- mode: gitignore; -*-
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Org-mode
+.org-id-locations
+*_archive
+
+# flymake-mode
+*_flymake.*
+
+# eshell files
+/eshell/history
+/eshell/lastdir
+
+# elpa packages
+/elpa/
+
+# reftex files
+*.rel
+
+# AUCTeX auto folder
+/auto/
+
+# cask packages
+.cask/
+dist/
+
+# Flycheck
+flycheck_*.el
+
+# server auth directory
+/server/
+
+# projectiles files
+.projectile
+
+# directory configuration
+.dir-locals.el
+
+# network security
+/network-security.data
+.metals
+
+.idea
+coverage
+finngen_common_data_model
+pheweb_colocalization

@@ -26,6 +26,7 @@ import os
 import subprocess
 import sys
 import glob
+from pheweb_colocalization.model_db import ColocalizationDAO
 
 from pathlib import Path
 
@@ -1448,3 +1449,6 @@ class DataFactory(object):
             return self.dao_impl["externalresultmatrix"]
         else:
             return self.dao_impl["externalresult"]
+
+    def get_colocalization_dao(self):
+        return self.dao_impl["colocalization"] if "colocalization" in self.dao_impl else None
