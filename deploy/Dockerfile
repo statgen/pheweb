@@ -15,11 +15,12 @@ RUN apt-get update && apt-get install --no-install-recommends texlive wget --yes
     wget --no-check-certificate https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/local/bin/cloud_sql_proxy && \
     chmod +x /usr/local/bin/cloud_sql_proxy
 
+RUN apt-get update && apt-get install python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev --yes --fix-missing && \
+    pip3 install cython
+
 ADD . /pheweb
 
-RUN apt-get update && apt-get install python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev --yes --fix-missing && \
-    pip3 install cython && \
-    pip3 install /pheweb
+RUN pip3 install /pheweb
 
 # create react js bundle
 RUN cd /pheweb/pheweb/serve/react && \

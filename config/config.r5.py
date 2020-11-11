@@ -54,6 +54,10 @@ database_conf = (
         "finemapping" : {
             "FineMappingMySQLDao": { "authentication_file": "/mnt/nfs/pheweb/r5/mysql.conf", "base_paths": {"conditional": "/mnt/nfs/finemapping/r5/conditional", "susie": "/mnt/nfs/finemapping/r5/susie/snp", "finemap": "/mnt/nfs/finemapping/r5/finemap/cred"} }
         }
+    }, {
+        "autoreporting": {
+            "AutoreportingDao": { "authentication_file": "/mnt/nfs/pheweb/r5/mysql.conf", "group_report_path": "/mnt/nfs/autoreporting/r5/group_reports/"}
+        }
     }
 )
 
