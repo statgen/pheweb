@@ -84,12 +84,12 @@ const ColocalizationList = (props : Props) => {
     }
 
     const isSelected = (key : string) => {
-        return selectedRow === `select-${key}`;
+        return selectedRow === key;
     }
 
     const rowFn = (state : {}, rowInfo : Row<Colocalization>, column : Column<Colocalization>, instance) => {
         return { onClick: (e : Event, handleOriginal : (undefined | (() => void))) => handleOriginal && handleOriginal() ,
-                 style: { background: rowInfo && selectedRow === `select-${rowInfo.original.colocalization_id}` && "lightgrey" }
+                 style: { background: rowInfo && selectedRow === rowInfo.original.colocalization_id && "lightgrey" }
         };
     };
     if(colocalization && locusZoomData){
