@@ -89,9 +89,13 @@ const ColocalizationList = (props : Props) => {
 
     const rowFn = (state : {}, rowInfo : Row<Colocalization>, column : Column<Colocalization>, instance) => {
         return { onClick: (e : Event, handleOriginal : (undefined | (() => void))) => handleOriginal && handleOriginal() ,
-                 style: { background: rowInfo && selectedRow === rowInfo.original.colocalization_id && "lightgrey" }
+                 style: { background: (rowInfo && selectedRow && +selectedRow === rowInfo.original.colocalization_id)? "lightgrey" : undefined }
         };
     };
+
+    const flatten = (c : Colocalization) => { return { ...c ,
+                                                       locus_id1 : c.locus_id1?variantToStr(c.locus_id1):undefined } };
+
     if(colocalization && locusZoomData){
         return (<div>
             <SelectTable data={ colocalization }
@@ -113,7 +117,7 @@ const ColocalizationList = (props : Props) => {
                 <div className="col-xs-12">
                     <CSVLink
                         headers={headers(listMetadata)}
-                        data={ colocalization }
+                        data={ colocalization.map(flatten) }
                         separator={'\t'}
                         enclosingCharacter={''}
                         filename={`colocalization.tsv`}
