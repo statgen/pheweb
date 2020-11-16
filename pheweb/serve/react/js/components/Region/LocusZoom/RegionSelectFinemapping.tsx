@@ -4,6 +4,12 @@ import {RegionContext, RegionState} from "../RegionContext";
 
 interface Prop {}
 
+interface Params { allData : { type : layout_types , data : unknown , conditioned_on : string }[] ,
+                               fields : unknown ,
+                               outnames : unknown,
+                               trans : unknown ,
+                               dataIndex : number };
+
 export const RegionSelectFinemapping = (prop : Prop) => {
     const { region : {cond_fm_regions} = {} ,
             locusZoomContext : { dataSources , plot } = {} } = useContext<Partial<RegionState>>(RegionContext);
@@ -22,7 +28,7 @@ export const RegionSelectFinemapping = (prop : Prop) => {
 
         useEffect(() => {
             console.log("finemapping.1");
-            const params = dataSources?.sources?.finemapping?.params;
+            const params = dataSources?.sources?.finemapping?.params as Params ;
             console.log(`finemapping.1 ${dataSources} ${params?.allData} ${plot?.panels}`);
 
             if(plot?.panels && selectedMethod){
@@ -41,8 +47,8 @@ export const RegionSelectFinemapping = (prop : Prop) => {
         },[setSelectedMethod, selectedMethod, dataSources, plot]);
 
         useEffect(() => {
-            const params = dataSources?.sources?.finemapping?.params;
-            if(dataSources && params?.allData && plot?.panels) {
+            const params = dataSources?.sources?.finemapping?.params as Params;
+            if(dataSources && params?.allData && plot?.panels && conditionalIndex) {
                 params.dataIndex = conditionalIndex;
                 const panel = plot.panels.conditional;
                 panel.setTitle('conditioned on ' + params.allData[conditionalIndex].conditioned_on);
