@@ -215,7 +215,7 @@ class Pheno extends React.Component {
 	defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())}
 	columns={this.state.csColumns}
 	defaultSorted={[{
-	    id: "lead_pval",
+	    id: "pval",
 	    desc: false
 	}]}
 	defaultPageSize={20}

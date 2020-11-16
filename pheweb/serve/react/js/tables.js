@@ -376,14 +376,20 @@ const csTableCols = [{
     Cell: props => (<a href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
     //width: Math.min(270, 270/maxTableWidth*window.innerWidth),
     minWidth: 60,
+},{
+    Header: () => (<span title="CS quality" style={{textDecoration: 'underline'}}>CS quality</span>),
+    accessor: 'good_cs',
+    filterMethod: (filter,row) => filter.value == row[filter.id],
+    Cell: props => String(props.value),
+    minWidth: 60,
 }, {
     Header: () => (<span title="chromosome" style={{textDecoration: 'underline'}}>chromosome</span>),
-    accessor: 'chr',
+    accessor: 'chrom',
     Cell: props => props.value,
     minWidth: 50,
 }, {
     Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
-    accessor: 'lead_pval',
+    accessor: 'pval',
     filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
     Cell: props => props.value.toExponential(1),
     minWidth: 50,
@@ -395,19 +401,19 @@ const csTableCols = [{
     minWidth: 50,
 }, {
     Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish Enrichment</span>),
-    accessor: 'enrichment',
+    accessor: 'lead_enrichment',
     filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
     Cell: props => tofixed(props.value,3),
     minWidth: 50,
 },{
-    Header: () => (<span title="Minor allele frequency" style={{textDecoration: 'underline'}}>MAF</span>),
-    accessor: 'lead_AF',
+    Header: () => (<span title="Lead variant alternate allele frequency" style={{textDecoration: 'underline'}}>Alternate allele frequency</span>),
+    accessor: 'lead_af_alt',
     filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
     Cell: props => tofixed(props.value,3),
     minWidth: 50,
 },{
     Header: () => (<span title="Lead Variant Gene" style={{textDecoration: 'underline'}}>Lead Variant Gene</span>),
-    accessor: 'most_severe_gene',
+    accessor: 'lead_most_severe_gene',
     Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value} target="_blank">{props.value}</a>):"NA",
     minWidth: 50,
 }, {
@@ -420,20 +426,26 @@ const csTableCols = [{
     Header: () => (<span title="# Credible set variants" style={{textDecoration: 'underline'}}># credible variants</span>),
     accessor: 'credible_set_variants',
     sortMethod: stringToCountSorter,
-    Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
+    Cell: props => props.original.cs_size == "NA"?<div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>:props.original.cs_size,
+    minWidth: 50,
+},{
+    Header: () => (<span title="Credible set Log10 bayes factor" style={{textDecoration: 'underline'}}>Credible set bayes factor (log10)</span>),
+    accessor: 'cs_log_bayes_factor',
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+    Cell: props => tofixed(props.value,3),
     minWidth: 50,
 }, {
     Header: () => (<span title="CS matching Traits" style={{textDecoration: 'underline'}}>CS matching Traits</span>),
     accessor: 'all_traits_strict',
     sortMethod: stringToCountSorter,
     Cell: props => <div><span title={props.value}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
-    minWidth: 100,
+    minWidth: 60,
 }, {
     Header: () => (<span title="LD Partner matching Traits" style={{textDecoration: 'underline'}}>LD Partner Traits</span>),
     accessor: 'all_traits_relaxed',
     sortMethod: stringToCountSorter,
     Cell: props => <div><span title={props.value}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
-    minWidth: 100,
+    minWidth: 60,
 }, {
     Header: () => (<span title="UKBB Neale lab result" style={{textDecoration: 'underline'}}>UKBB</span>),
     accessor: 'ukbb_pval',
@@ -441,7 +453,7 @@ const csTableCols = [{
     Cell: props => props.value != "NA" ? <div>{(Number(props.original.ukbb_beta) >= 0) ? <span style={{color: 'green', float: 'left', paddingRight: '5px'}} className="glyphicon glyphicon-triangle-top" aria-hidden="true"></span> :
 					       (Number(props.original.ukbb_beta) < 0) ? <span style={{color: 'red', float: 'left', paddingRight: '5px'}} className="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span> :
 					       <span></span>} {Number(props.value).toExponential(1)}</div> : props.value,
-    minWidth: 100,
+    minWidth: 60,
 }
 
 ]
@@ -479,32 +491,32 @@ accessor: 'most_severe_consequence',
 Cell: props => props.value ,
 minWidth: 50,
 }, {
-Header: () => (<span title="minimum allele frequency" style={{textDecoration: 'underline'}}>MAF</span>),
-accessor: 'maf',
+Header: () => (<span title="alternate allele frequency (alt. AF)" style={{textDecoration: 'underline'}}>MAF</span>),
+accessor: 'af_alt',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
 minWidth: 40,
 }, {
-Header: () => (<span title="MAF (cases)" style={{textDecoration: 'underline'}}>MAF (cases)</span>),
-accessor: 'maf_cases',
+Header: () => (<span title="alt. AF (cases)" style={{textDecoration: 'underline'}}>MAF (cases)</span>),
+accessor: 'af_alt_cases',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
 minWidth: 40,
 }, {
-Header: () => (<span title="MAF (controls)" style={{textDecoration: 'underline'}}>MAF (controls)</span>),
-accessor: 'maf_controls',
+Header: () => (<span title="alt. AF (controls)" style={{textDecoration: 'underline'}}>MAF (controls)</span>),
+accessor: 'af_alt_controls',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
 minWidth: 40,
 }, {
 Header: () => (<span title="INFO" style={{textDecoration: 'underline'}}>INFO</span>),
-accessor: 'FG_INFO',
+accessor: 'INFO',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
 minWidth: 40,
 }, {
 Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish enrichment</span>),
-accessor: 'GENOME_FI_enrichment_nfe_est',
+accessor: 'enrichment_nfsee',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
 Cell: props => props.value,
 minWidth: 50,
