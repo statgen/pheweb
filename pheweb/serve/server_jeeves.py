@@ -420,8 +420,8 @@ class ServerJeeves(object):
         data = pd.DataFrame(self.autoreporting_dao.get_group_report(phenocode))
         #JSON doesn't implement floating point numbers correctly, so no infinite or nan values even though they are available in both python and js... >_<
         data=data.replace(to_replace={
-            float('inf'): 10000.0,
-            float('-inf'):-10000.0
+            float('inf'): 'inf',
+            float('-inf'):'-inf'
         })
         data=data.fillna("NA")
         if not data.empty:
@@ -487,8 +487,8 @@ class ServerJeeves(object):
         #and back to dicts :)
         #JSON doesn't implement floating point numbers correctly, so no infinite or nan values even though they are available in both python and js... >_<
         output=output.replace(to_replace={
-            float('inf'): 10000.0,
-            float('-inf'):-10000.0
+            float('inf'): "inf",
+            float('-inf'):"-inf"
         })
         output=output.fillna("NA")
         return output.to_dict('records')
