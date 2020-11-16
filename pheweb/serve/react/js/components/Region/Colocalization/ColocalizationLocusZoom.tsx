@@ -1,6 +1,6 @@
 import { selectAll} from 'd3' ;
 import {CasualVariant, Colocalization, Variant, variantFromStr} from "../../../common/Model";
-import {CasualVariantVector, EMPTY, LocusZoomData} from "./ColocalizationModel";
+import {CasualVariantVector, EMPTY, filterCasualVariantVector, LocusZoomData} from "./ColocalizationModel";
 // @ts-ignore
 import {useContext, useEffect} from "react";
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
@@ -19,8 +19,12 @@ const refreshLocusZoom = (colocalization : Colocalization | undefined,
     const dataSource = dataSources.sources.colocalization;
     const params : { [key: string ]: any; } = dataSource.params;
     const data : CasualVariantVector = colocalization && locusZoomData && locusZoomData[colocalization.colocalization_id] || EMPTY;
-    panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data, params.fields, params.outnames, params.trans);
-    panel.data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data, params.fields, params.outnames, params.trans);
+
+    const data1 : CasualVariantVector = filterCasualVariantVector(row => row.beta1 != null && row.pip1 != null,data);
+    const data2 : CasualVariantVector = filterCasualVariantVector(row => row.beta2 != null && row.pip2 != null,data);
+
+    panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data1, params.fields, params.outnames, params.trans);
+    panel.data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data2, params.fields, params.outnames, params.trans);
 
     panel.data_layers.colocalization_pip1.render();
     panel.data_layers.colocalization_pip2.render();

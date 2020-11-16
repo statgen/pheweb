@@ -61,7 +61,3 @@ export interface Region {
     readonly region: string,
     readonly browser: string
 };
-
-export interface RegionState { region : Region ,
-                               setRegion : React.Dispatch<React.SetStateAction<Region>> };
-

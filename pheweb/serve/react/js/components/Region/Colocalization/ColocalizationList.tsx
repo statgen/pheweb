@@ -1,5 +1,5 @@
 import React, { useState, useEffect , useContext } from 'react';
-import {CasualVariant, Colocalization, Variant, variantFromStr, variantToStr} from "../../../common/Model";
+import {CasualVariant, Colocalization, Variant, variantToStr} from "../../../common/Model";
 import ReactTable, {Cell, Column, Row} from 'react-table';
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
 import selectTableHOC from "react-table/lib/hoc/selectTable";
@@ -49,8 +49,7 @@ const subComponentMetadata = [ { title: "Variant" , accessor: "varid1" , label: 
                                { title: "pip1" , accessor: "pip1" , label:"PIP 1" , Cell : cellNumber },
                                { title: "beta1" , accessor: "beta1" , label:"Beta 1" , Cell : cellNumber },
                                { title: "pip2" , accessor: "pip2" , label:"PIP 2"  , Cell : cellNumber },
-                               { title: "beta2" , accessor: "beta2" , label:"Beta 2"  , Cell : cellNumber },
-                               { title: "count_label" , accessor: "membership_cs" , label:"Label" }]
+                               { title: "beta2" , accessor: "beta2" , label:"Beta 2"  , Cell : cellNumber } ]
 
 // @ts-ignore
 const columns = (metadata : Metadata[]) => metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
