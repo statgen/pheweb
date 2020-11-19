@@ -1,11 +1,8 @@
 import React, { useState, useEffect , useContext , Fragment } from 'react';
-import {CondFMRegions, layout_types, Params, Region} from "../RegionModel";
+import {CondFMRegions, layout_types, Params } from "../RegionModel";
 import {RegionContext, RegionState} from "../RegionContext";
 
-interface Prop {}
-
-
-export const RegionSelectFinemapping = (prop : Prop) => {
+export const RegionSelectFinemapping = () => {
     const { region : {cond_fm_regions} = {} ,
             locusZoomContext : { dataSources , plot } = {} } = useContext<Partial<RegionState>>(RegionContext);
 
@@ -30,7 +27,7 @@ export const RegionSelectFinemapping = (prop : Prop) => {
             }
 
             if(dataSources && params?.allData && plot?.panels){
-                const index : number = params.allData.findIndex((cur, i) => cur.type == selectedMethod);
+                const index : number = params.allData.findIndex((cur) => cur.type == selectedMethod);
                 params.dataIndex = index;
                 const panel = plot.panels.finemapping
                 panel.data_layers.associationpvalues.data = dataSources.sources.finemapping.parseArraysToObjects(params.allData[index].data, params.fields, params.outnames, params.trans)

@@ -32,6 +32,8 @@ const refreshLocusZoom = (selectedPosition : number | undefined,
     panel.data_layers.colocalization_pip1.render();
     panel.data_layers.colocalization_pip2.render();
     panel.render();
+    updateMousehandler(setSelectedPosition,locusZoomContext.dataSources,'colocalization');
+    
 }
 
 export const locusZoomHandler = () => {
@@ -41,9 +43,7 @@ export const locusZoomHandler = () => {
     const { locusZoomContext , selectedPosition,setSelectedPosition } = useContext<Partial<RegionState>>(RegionContext);
 
     useEffect(() => {
-                      selectedPosition
-                      && setSelectedPosition
-                      && colocalization
+                      colocalization
                       && locusZoomData
                       && locusZoomContext
                       && refreshLocusZoom(selectedPosition,setSelectedPosition,selectedColocalization, locusZoomData, locusZoomContext); },
