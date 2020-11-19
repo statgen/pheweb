@@ -9,9 +9,7 @@ import {
 } from 'locuszoom';
 import { region_layout ,  association_layout , genes_layout , clinvar_layout , gwas_cat_layout , finemapping_layout , colocalization_layout , panel_layouts } from './RegionLayouts';
 import { FG_LDDataSource , GWASCatSource , ClinvarDataSource } from './RegionCustomLocuszooms';
-import { Region, CondFMRegions } from '../RegionModel';
-// @ts-ignore
-import { selectAll} from 'd3' ;
+import {Region, CondFMRegions, DataSourceKeys} from '../RegionModel';
 
 TransformationFunctions.set<number,number>("neglog10_or_100", (x : number) => (x === 0)?100:-Math.log(x) / Math.LN10);
 TransformationFunctions.set<string | null | undefined,string>("na", (x: string | null | undefined) => x??"NA");
@@ -55,7 +53,6 @@ const sign = (value : number) => { let result : "positive"|"negative"|"zero";
 TransformationFunctions.set<number,"positive"|"negative"|"zero">("sign",sign);
 TransformationFunctions.set<string,string>("truncate", truncate(20,"..."));
 
-
 export interface LocusZoomContext {
     plot : Plot
     dataSources : DataSources
@@ -89,6 +86,7 @@ interface ConditionalParams {
 
 export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     // Define LocusZoom Data Sources object
+
     const localBase : string = `/api/region/${region.pheno.phenocode}/lz-`;
     const localCondBase : string = "/api/conditional_region/" + region.pheno.phenocode + "/lz-";
     const localFMBase : string = "/api/finemapped_region/" + region.pheno.phenocode + "/lz-";
@@ -154,34 +152,6 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
         return this as Dashboard.Component;
     });
 
-    function update_mouseover(key : string) {
-        var params : any = dataSources.sources[key].params
-        params.lookup = {}
-        var dots = selectAll("[id='lz-1." + key + ".associationpvalues.data_layer'] path")
-        dots.each((d , i : number) => {
-            // @ts-ignore
-            params.lookup[d[key + ':id']] = i
-        });
-        var scatters_in = scatters.filter(key2 => key2 != key && plot.panels[key2])
-
-        dots.on('mouseover', (d, i) => {
-            scatters_in.forEach((key2 : string) => {
-                var params : any = dataSources.sources[key2].params;
-                // @ts-ignore
-                var idx : number | undefined = params.lookup && params.lookup[d[key + ':id']]
-                if (idx !== undefined) {
-                    selectAll("[id='lz-1." + key2 + ".associationpvalues.data_layer'] path").filter((d, j) => j == idx).classed('lz-highlight', true)
-                }
-            })
-        })
-        dots.on('mouseout', (d : any, i : number) => {
-            scatters_in.forEach((key2 : string) => {
-                selectAll("[id='lz-1." + key2 + ".associationpvalues.data_layer'] path").classed('lz-highlight', false)
-            })
-        })
-    }
-
-
     add_dashboard_button('link', function(layout : ComponentsEntity) {
         return () => { if(layout.url) { window.location.href = layout.url }; };
     });
@@ -199,48 +169,6 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
             });
         }
     });
-
-
-    const show_conditional = function(index : number) {
-        // @ts-ignore
-        var params : ConditionalParams  = dataSources.sources.conditional.params;
-        params.dataIndex = index
-        var panel = plot.panels.conditional
-        panel.setTitle('conditioned on ' + params.allData[index].conditioned_on)
-        panel.data_layers.associationpvalues.data = dataSources.sources.conditional.parseArraysToObjects(params.allData[index].data, params.fields, params.outnames, params.trans)
-        panel.data_layers.associationpvalues.render()
-        // @ts-ignore
-        $('#cond_options label').each((i, tag) => {
-            if (i === index) {
-                tag.classList.add('active')
-            } else {
-                tag.classList.remove('active')
-            }
-        });
-        update_mouseover('conditional')
-        // @ts-ignore
-        $('#cond_options label')[index].classList.add('active')
-    }
-
-
-    const show_finemapping = function(method : string) {
-        // @ts-ignore
-        var params : ConditionalParams = dataSources.sources.finemapping.params
-        params.dataIndex = params.allData.reduce((acc, cur, i) => cur.type == method ? i : acc, -1)
-        var panel = plot.panels.finemapping
-        panel.setTitle(method + ' credible sets')
-        panel.data_layers.associationpvalues.data = dataSources.sources.finemapping.parseArraysToObjects(params.allData[params.dataIndex].data, params.fields, params.outnames, params.trans)
-        panel.data_layers.associationpvalues.render()
-        $('#finemapping_options label').each((i, tag) => {
-            if (i === params.dataIndex) {
-                tag.classList.add('active')
-            } else {
-                tag.classList.remove('active')
-            }
-        });
-        update_mouseover('finemapping');
-        $('#finemapping_options label')[params.dataIndex].classList.add('active')
-    }
 
     const plot : Plot = populate("#lz-1", dataSources, region_layout(region));
 
@@ -261,90 +189,6 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
             layout && plot.addPanel(layout(region));
         }
     });
-
-    plot.panels['clinvar'].on('data_rendered', function() {
-        update_mouseover('clinvar')
-    });
-
-    const scatters : string[] = ['association', 'conditional', 'finemapping', 'gwas_cat', 'colocalization']
-
-    plot.panels['colocalization'].on('data_rendered', () => { console.log('..'); })
-    plot.panels['colocalization'].on('element_selection', () => { console.log('.+'); })
-
-    /*
-    scatters.filter(key => plot.panels[key]).forEach(key => {
-        plot.panels[key].on("data_rendered", function() {
-        console.log(key + ' rendered')
-        update_mouseover(key)
-        if (key == 'conditional') {
-            var params : ConditionalParams = dataSources.sources[key].params
-            this.setTitle('Conditioned On ' + params.allData[params.dataIndex].conditioned_on)
-        }
-        if (key == 'finemapping') {
-            var params : ConditionalParams = dataSources.sources[key].params
-            this.setTitle(params.allData[params.dataIndex].type + 'Credible Sets')
-        }
-        this.setDimensions(this.layout.width, 200);
-        this.parent.setDimensions();
-        this.parent.panel_ids_by_y_index.forEach(function(id : string) {
-            if (id == 'clinvar') {// || id == 'genes') {
-                this.parent.panels[id].layout.proportional_height = 0.02
-            } else if (id != 'genes') {
-                if (this.parent.panel_ids_by_y_index.length > 4) {
-                    this.parent.panels[id].layout.proportional_height = 0.1
-                } else {
-                    this.parent.panels[id].layout.proportional_height = 0.15
-                }
-            }
-        }.bind(this));
-
-        // after all have been rendered, scale gene panel to height
-        // have not found another way to keep panels heights somewhat ok
-        // this now assumes that other panels have been rendered before the last assoc/cond/finemap panel
-        this.rendered = true
-        var nRendered = scatters.reduce((acc, cur) => acc + (plot.panels[cur] && plot.panels[cur].rendered === true ? 1 : 0), 0)
-        if (nRendered == scatters.length) {
-            console.log('scaling gene panel')
-            plot.panels.genes.scaleHeightToData()
-        }
-        this.parent.positionPanels();
-        })
-    })
-    */
-    const region_span = (region : CondFMRegions) : string => region.type === 'finemap' ?
-            `<span>${region.n_signals} ${region.type} signals (prob. ${region.n_signals_prob.toFixed(3)} </span><br/>` :
-            `<span>${region.n_signals} ${region.type} signals</span><br/>`;
-
-    if (region.cond_fm_regions && region.cond_fm_regions.length > 0) {
-        var cond_regions = region.cond_fm_regions.filter(region => region.type == 'conditional')
-        var n_cond_signals = cond_regions.length > 0 ? cond_regions[0].n_signals : 0
-
-        var summary_html = region.cond_fm_regions.map(region => region.type == 'finemap' ?
-                `<span>${region.n_signals} ${region.type} signals (prob. ${region.n_signals_prob.toFixed(3)} </span><br/>`:
-                `<span>${region.n_signals} ${region.type} signals</span><br/>`
-        ).join('');
-        summary_html += n_cond_signals > 0 ? '<span>Conditional analysis results are approximations from summary stats. Conditioning is repeated until no signal p < 1e-6 is left.</span><br/>' : '';
-        const region_summary = document.getElementById('region_summary');
-        if(region_summary) {region_summary.innerHTML = summary_html; }
-
-        if (n_cond_signals > 1) {
-            const path : string | undefined  = region.cond_fm_regions.find(r => r.type == 'conditional')?.path;
-
-            const cond_options = document.getElementById('cond_options');
-            if(cond_options) {
-                // TODO
-                const i : number = 0;
-                const opt_html : string = `<label onClick="show_conditional(${i})" data-cond-i="${i}" class="btn btn-primary${i === 0 ? 'active' : ''}"><span> ${i+1}</span></label>`;
-                cond_options.innerHTML = `<p>Show conditioned on {opt_html} variants<span></p>`; }
-        }
-        if (region.cond_fm_regions.filter(r => r.type == 'susie' || r.type == 'finemap').length > 1) {
-            var opt_html = region.cond_fm_regions.filter(r => r.type == 'susie' || r.type == 'finemap').map((r, i) =>
-              '<label onClick="show_finemapping(\'' + r.type + '\')' + '" class="btn btn-primary' + (i === 0 ? ' active' : '') + '"><span>' + r.type + '</span></label>'
-            ).join('\n')
-            const finemapping_options = document.getElementById('finemapping_options');
-            if(finemapping_options){ finemapping_options.innerHTML = `<p>Show fine-mapping from {opt_html} <span></p>`; }
-        }
-    };
 
    return { plot , dataSources };
 };

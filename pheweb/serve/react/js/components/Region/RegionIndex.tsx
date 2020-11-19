@@ -9,6 +9,7 @@ import RegionSummary from "./RegionSummary";
 import RegionContextProvider from "./RegionContext";
 import ColocalizationContextProvider from "./Colocalization/ColocalizationContext";
 import {RegionErrorBoundary} from "./RegionErrorBoundary";
+import RegionSelection from "./RegionSelection";
 
 
 const Region = (props : Props) => {
@@ -18,6 +19,7 @@ const Region = (props : Props) => {
                 <div className="container-fluid"  style={{ width : "95%"}}>
                     <RegionBanner/>
                     <RegionSummary/>
+                    <RegionSelection/>
                     <RegionMessage/>
                     <RegionLocusZoom/>
                     <RegionColocalization/>

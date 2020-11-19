@@ -1,14 +1,9 @@
 import React, { useState, useEffect , useContext , Fragment } from 'react';
-import {CondFMRegions, layout_types, Region} from "../RegionModel";
+import {CondFMRegions, layout_types, Params, Region} from "../RegionModel";
 import {RegionContext, RegionState} from "../RegionContext";
 
 interface Prop {}
 
-interface Params { allData : { type : layout_types , data : unknown , conditioned_on : string }[] ,
-                               fields : unknown ,
-                               outnames : unknown,
-                               trans : unknown ,
-                               dataIndex : number };
 
 export const RegionSelectFinemapping = (prop : Prop) => {
     const { region : {cond_fm_regions} = {} ,
@@ -27,9 +22,7 @@ export const RegionSelectFinemapping = (prop : Prop) => {
         const [conditionalIndex, setConditionalIndex] = useState<number | undefined>(n_cond_signals > 0?0:undefined);
 
         useEffect(() => {
-            console.log("finemapping.1");
             const params = dataSources?.sources?.finemapping?.params as Params ;
-            console.log(`finemapping.1 ${dataSources} ${params?.allData} ${plot?.panels}`);
 
             if(plot?.panels && selectedMethod){
                 const panel = plot.panels.finemapping
@@ -37,7 +30,6 @@ export const RegionSelectFinemapping = (prop : Prop) => {
             }
 
             if(dataSources && params?.allData && plot?.panels){
-                console.log("finemapping.2");
                 const index : number = params.allData.findIndex((cur, i) => cur.type == selectedMethod);
                 params.dataIndex = index;
                 const panel = plot.panels.finemapping

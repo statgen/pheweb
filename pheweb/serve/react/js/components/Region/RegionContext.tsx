@@ -10,6 +10,8 @@ export interface RegionState {
     readonly regionParameter : RegionParameter;
     readonly locusZoomContext : LocusZoomContext;
     readonly setLocusZoomContext : (locusZoomContext : LocusZoomContext) => void;
+    readonly selectedPosition : number | undefined;
+    readonly setSelectedPosition : (position : number | undefined) => void;
 }
 
 export const RegionContext = createContext<Partial<RegionState>>({});
@@ -18,11 +20,13 @@ const RegionContextProvider = (props : Props) => {
     const parameter : RegionParameter| undefined = createParameter();
     const [region, setRegion] = useState<Region| undefined>(undefined);
     const [ locusZoomContext, setLocusZoomContext] = useState<LocusZoomContext | undefined>(undefined);
-
-    useEffect(() => { getRegion(parameter,setRegion); },[]);
-    return (<RegionContext.Provider value={{ region ,
+    const [ selectedPosition , setSelectedPosition] = useState<number | undefined>(undefined);
+     useEffect(() => { getRegion(parameter,setRegion); },[]);
+    return (<RegionContext.Provider value={{ region,
                                              locusZoomContext,
-                                             setLocusZoomContext }}>
+                                             setLocusZoomContext,
+                                             selectedPosition,
+                                             setSelectedPosition}}>
         {props.children}
     </RegionContext.Provider>);
 

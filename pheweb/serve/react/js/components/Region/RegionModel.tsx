@@ -1,6 +1,19 @@
 import React, { createContext, ReactChildren, useState , ReactNode } from 'react';
 import {Locus, locusFromStr} from "../../common/Model";
 
+export type DataSourceKeys = "association" | "conditional" | "finemapping" | "colocalization" |
+    "gene" | "constraint" | "gwas_cat" | "clinvar" | "ld" | "recomb"
+
+export interface Params { allData : { type : layout_types , data : unknown , conditioned_on : string }[] ,
+    fields : unknown ,
+    outnames : unknown,
+    trans : unknown ,
+    dataIndex : number ,
+    lookup : { [key : string] : number },
+    handlers : ((position : number | undefined) => void)[] | undefined
+};
+
+
 export interface RegionParameter {
     readonly locus : Locus,
     readonly phenotype : string ,
@@ -40,7 +53,7 @@ export interface Phenotype {
     readonly category: string };
 
 
-export type layout_types = 'finemap' | 'susie' | 'association' | 'genes' | 'clinvar' | 'gwas_cat' | 'colocalization' | 'conditional' 
+export type layout_types = 'finemap' | 'susie' | 'association' | 'genes' | 'clinvar' | 'gwas_cat' | 'colocalization' | 'conditional'
 
 export interface CondFMRegions {
     chr: number,
