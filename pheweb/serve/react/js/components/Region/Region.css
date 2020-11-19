@@ -21,7 +21,7 @@ svg.lz-locuszoom path.lz-data_layer-scatter, svg.lz-locuszoom path.lz-data_layer
 }
 
 svg.lz-locuszoom path.lz-highlight {
-    stroke-width: 6px !important;
+    stroke-width: 10px !important;
 }
 
 div.lz-data_layer-tooltip th, div.lz-data_layer-tooltip td {

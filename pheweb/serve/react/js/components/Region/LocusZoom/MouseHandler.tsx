@@ -1,5 +1,5 @@
 import {DataSourceKeys, Params} from "../RegionModel";
-import {DataSources} from "locuszoom";
+import {Data, DataSources} from "locuszoom";
 import {selectAll} from "d3";
 import '../Region.css'
 import {inspect} from "util";
@@ -22,8 +22,10 @@ const dataLayerIds  = (key : DataSourceKeys) : string [] => {
         case "colocalization":
             layerIds = ["lz-1.colocalization.colocalization_pip1.data_layer" ,
                         "lz-1.colocalization.colocalization_pip2.data_layer"];
+            break;
         default:
             layerIds = [`lz-1.${key}.associationpvalues.data_layer`]
+            break;
     }
     return layerIds;
 }
@@ -31,6 +33,7 @@ const dataLayerIds  = (key : DataSourceKeys) : string [] => {
 const dataLayerHandler = (setSelectedPosition : (position : number |undefined) => void) =>
                          (key : DataSourceKeys) =>
                          (id : string) : ((position : number | undefined) => void) => {
+
     const selector = `[id='${id}'] path`;
     const fieldName: string = positionFieldName(key);
     const index = {};
@@ -44,6 +47,7 @@ const dataLayerHandler = (setSelectedPosition : (position : number |undefined) =
          * */
         index[d[fieldName]] = i;
     });
+
     dots.on('mouseover', (m, data) => {
         setSelectedPosition(data[fieldName] as number);
     });
@@ -65,7 +69,6 @@ export const updateMousehandler =
     (setSelectedPosition : (position : number |undefined) => void,
      dataSources : DataSources,
      key : DataSourceKeys) => {
-
         var params : Params | undefined = dataSources.sources[key]?.params as Params | undefined
         if(params != undefined) {
             const fieldName: string = positionFieldName(key);
@@ -86,6 +89,6 @@ export const removeMousehandler =
 export const processMouseUpdates =
     (selectedPosition : number |undefined,dataSources : DataSources) =>
     Object.values(dataSources.sources).
-    forEach(value => {
+    forEach((value : Data.Source)=> {
         (value.params as Params).handlers?.forEach(h => h(selectedPosition));
     } );

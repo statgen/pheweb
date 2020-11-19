@@ -7,6 +7,7 @@ import { CSVLink } from 'react-csv'
 import { cellNumber, cellText, variantLink } from "../../../common/Formatter";
 import { compose } from "../../../common/Utilities";
 import { locusZoomHandler } from "./ColocalizationLocusZoom"
+import {RegionContext, RegionState} from "../RegionContext";
 
 
 const SelectTable = selectTableHOC(ReactTable);
@@ -58,6 +59,7 @@ const headers = (metadata : Metadata[]) => columns(metadata).map(c => ({ ...c , 
 const subComponent = (row : Row<Colocalization>) => {
     const colocalization : Colocalization = row.original;
     const causalvariant : CasualVariant[] = colocalization.variants;
+
     // @ts-ignore
     const reactTable =         <ReactTable
         data={ causalvariant }

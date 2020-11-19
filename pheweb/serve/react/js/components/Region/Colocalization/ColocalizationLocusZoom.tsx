@@ -4,13 +4,13 @@ import {CasualVariantVector, EMPTY, filterCasualVariantVector, LocusZoomData} fr
 // @ts-ignore
 import {useContext, useEffect} from "react";
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
-import {DataLayer, Panel} from "locuszoom";
+import {DataLayer, DataSources, Panel} from "locuszoom";
 import {RegionContext, RegionState} from "../RegionContext";
 import {LocusZoomContext} from "../LocusZoom/RegionLocus";
 import {updateMousehandler} from "../LocusZoom/MouseHandler";
+import {DataSourceKeys} from "../RegionModel";
 
-const refreshLocusZoom = (selectedPosition : number | undefined,
-                          setSelectedPosition : (position : number | undefined) => void,
+const refreshLocusZoom = (setSelectedPosition : (position : number | undefined) => void,
                           colocalization : Colocalization | undefined,
                           locusZoomData : LocusZoomData,
                           locusZoomContext : LocusZoomContext) => {
@@ -32,8 +32,8 @@ const refreshLocusZoom = (selectedPosition : number | undefined,
     panel.data_layers.colocalization_pip1.render();
     panel.data_layers.colocalization_pip2.render();
     panel.render();
-    updateMousehandler(setSelectedPosition,locusZoomContext.dataSources,'colocalization');
-    
+
+    updateMousehandler(setSelectedPosition,dataSources,'colocalization');
 }
 
 export const locusZoomHandler = () => {
@@ -46,6 +46,7 @@ export const locusZoomHandler = () => {
                       colocalization
                       && locusZoomData
                       && locusZoomContext
-                      && refreshLocusZoom(selectedPosition,setSelectedPosition,selectedColocalization, locusZoomData, locusZoomContext); },
-        [ selectedPosition,setSelectedPosition , colocalization , locusZoomData , selectedColocalization, locusZoomContext ]);
+                      && setSelectedPosition
+                      && refreshLocusZoom(setSelectedPosition,selectedColocalization, locusZoomData, locusZoomContext); },
+        [ setSelectedPosition , colocalization , locusZoomData , selectedColocalization, locusZoomContext ]);
 }

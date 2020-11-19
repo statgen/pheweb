@@ -10,7 +10,7 @@ interface  Props {}
 
 const scatters :  DataSourceKeys[] = ['association', 'conditional', 'finemapping', 'gwas_cat', 'colocalization']
 const RegionSelection =  (props : Props) => {
-    const { setSelectedPosition , locusZoomContext } = useContext<Partial<RegionState>>(RegionContext);
+    const { region, setSelectedPosition , locusZoomContext } = useContext<Partial<RegionState>>(RegionContext);
     useEffect(() => {
         if(locusZoomContext && setSelectedPosition){
             const scatters :  DataSourceKeys[] = ['association', 'conditional', 'finemapping', 'gwas_cat', 'colocalization']
@@ -28,11 +28,18 @@ const RegionSelection =  (props : Props) => {
         (locusZoomContext) && processMouseUpdates(selectedPosition,locusZoomContext.dataSources);
     },[ selectedPosition , locusZoomContext ]);
 
-    return (<div className="row">
-                <div className="pheno-info col-xs-12">
-                    <p>Position : {selectedPosition?selectedPosition:"N/A"} </p>
-                </div>
-            </div>);
+    if(region) {
+        return (<div className="row">
+            <div className="pheno-info col-xs-12">
+                <p>Position : {selectedPosition?selectedPosition:"N/A"} </p>
+            </div>
+        </div>);
+    } else {
+        return (<div className="row">
+            <div className="pheno-info col-xs-12">
+            </div>
+        </div>);
+    }
 }
 
 export default RegionSelection;
