@@ -28,18 +28,7 @@ const RegionSelection =  (props : Props) => {
         (locusZoomContext) && processMouseUpdates(selectedPosition,locusZoomContext.dataSources);
     },[ selectedPosition , locusZoomContext ]);
 
-    if(region) {
-        return (<div className="row">
-            <div className="pheno-info col-xs-12">
-                <p>Position : {selectedPosition?selectedPosition:"N/A"} </p>
-            </div>
-        </div>);
-    } else {
-        return (<div className="row">
-            <div className="pheno-info col-xs-12">
-            </div>
-        </div>);
-    }
+    return (<div/>);
 }
 
 export default RegionSelection;

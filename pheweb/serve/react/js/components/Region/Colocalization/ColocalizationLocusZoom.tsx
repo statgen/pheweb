@@ -17,6 +17,7 @@ const refreshLocusZoom = (setSelectedPosition : (position : number | undefined) 
     const { dataSources ,  plot } = locusZoomContext;
     const title: string = colocalization?`Credible Set : ${colocalization.phenotype2_description ?? 'NA'} : ${colocalization.tissue2 ?? 'NA'}`:"Credible Set : Colocalization";
     const panel : Panel = plot.panels.colocalization;
+
     panel.setTitle(title);
 
     const dataSource = dataSources.sources.colocalization;
@@ -26,13 +27,25 @@ const refreshLocusZoom = (setSelectedPosition : (position : number | undefined) 
     const data1 : CasualVariantVector = filterCasualVariantVector(row => row.beta1 != null && row.pip1 != null,data);
     const data2 : CasualVariantVector = filterCasualVariantVector(row => row.beta2 != null && row.pip2 != null,data);
 
-    panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data1, params.fields, params.outnames, params.trans);
-    panel.data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data2, params.fields, params.outnames, params.trans);
 
-    panel.data_layers.colocalization_pip1.render();
-    panel.data_layers.colocalization_pip2.render();
-    panel.render();
+    const render = () => {
+        panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data1, params.fields, params.outnames, params.trans);
+        panel.data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data2, params.fields, params.outnames, params.trans);
 
+        panel.data_layers.colocalization_pip1.render();
+        panel.data_layers.colocalization_pip2.render();
+        panel.render();
+    }
+
+    render();
+
+    /* Hack to deal with re-rendering when
+     * zoom or scroll is used.  It loads
+     * the data erasing the graph.  So it
+     * look for a data render event and over
+     * writes it.
+     */
+    panel.on('data_rendered',  render);
     updateMousehandler(setSelectedPosition,dataSources,'colocalization');
 }
 
