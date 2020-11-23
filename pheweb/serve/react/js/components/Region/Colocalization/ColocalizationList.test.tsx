@@ -10,10 +10,9 @@ test('locus id1', () => {
     const row : Row<Colocalization> = { original : { locus_id1 } } as Row<Colocalization>;
     expect(cell_locus_id1(row)).toBe(locus_id1)
 });
-/*
+
 test('variant1 cell', () => {
     const variant1 = variantFromStr("chr1_1_A_G");
-    const row : Row<CasualVariant> = { original : { variant } } as Row<CasualVariant>;
+    const row : Row<CasualVariant> = { original : { variant1 } } as unknown as Row<CasualVariant>;
     expect(cell_variant(row)).toBe(variant1)
 });
-*/
