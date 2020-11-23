@@ -418,6 +418,12 @@ class ServerJeeves(object):
         if (self.autoreporting_dao == None) or (self.ukbb_dao == None):
             return None
         data = pd.DataFrame(self.autoreporting_dao.get_group_report(phenocode))
+        #JSON doesn't implement floating point numbers correctly, so no infinite or nan values even though they are available in both python and js... >_<
+        data=data.replace(to_replace={
+            float('inf'): 'inf',
+            float('-inf'):'-inf'
+        })
+        data=data.fillna("NA")
         if not data.empty:
             #add ukbb data
             vars=[]
@@ -449,7 +455,7 @@ class ServerJeeves(object):
         agg_dict["trait"]=";".join
         agg_dict["trait_name"]=";".join
         df=df.groupby('variant').agg(agg_dict).reset_index(drop=True)
-        
+
         #create list of Variants that is used to get gnomad and finngen annotation data
         list_of_vars = []
         variants = list(set([a["variant"] for a in data]))
@@ -479,4 +485,10 @@ class ServerJeeves(object):
         output = pd.merge(df,fg_data,on="variant",how="left")
         output = pd.merge(output,gnomad_data,on="variant",how="left")
         #and back to dicts :)
+        #JSON doesn't implement floating point numbers correctly, so no infinite or nan values even though they are available in both python and js... >_<
+        output=output.replace(to_replace={
+            float('inf'): "inf",
+            float('-inf'):"-inf"
+        })
+        output=output.fillna("NA")
         return output.to_dict('records')
