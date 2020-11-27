@@ -238,6 +238,8 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var mafs = window.results.map(function(v) {
         if (isnum(v.maf_control))  { return v.maf_control; }
         else if (isnum(v.af)) { return v.af; }
+        else if (isnum(v.af_alt)) { return v.af_alt; }
+        else if (isnum(v.maf)) { return v.maf; }
         else if (isnum(v.ac) && isnum(v.num_samples)) { return v.ac / v.num_samples; }
         else { return undefined; }
     });
@@ -261,39 +263,39 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     }
 })();
 
-(function() {
-    if (window.variant.gnomad) {
-	$(function() {
-	    if (!variant.gnomad) {
-		variant.gnomad = {fin_enrichment: 'No data in Gnomad'}
-	    } else if (variant.gnomad.AF_fin === 0) {
-		variant.gnomad.fin_enrichment = 'No FIN in Gnomad'
-	    } else if (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu'] == 0) {
-		variant.gnomad.fin_enrichment = 'No NFEE in Gnomad'
-	    } else {
-		variant.gnomad.fin_enrichment = +variant.gnomad['AC_fin'] / +variant.gnomad['AN_fin'] /
-		    ( (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu']) / (+variant.gnomad['AN_nfe_nwe'] + +variant.gnomad['AN_nfe_onf'] + +variant.gnomad['AN_nfe_seu']) )
-	    }
-	    if (!isNaN(parseFloat(variant.gnomad.fin_enrichment)) && isFinite(variant.gnomad.fin_enrichment)) {
-		variant.gnomad.fin_enrichment = variant.gnomad.fin_enrichment.toFixed(3)
-	    }
-	    var af_fin = window.variant.gnomad.AF_fin
-	    if (af_fin && !isNaN(parseFloat(af_fin)) && isFinite(af_fin)) {
-		af_fin = af_fin.toExponential(1)
-	    }
-	    var af_popmax = window.variant.gnomad.AF_popmax
-	    if (af_popmax && !isNaN(parseFloat(af_popmax)) && isFinite(af_popmax)) {
-		af_popmax = af_popmax.toExponential(1)
-	    }
-	    if (window.browser == 'FINNGEN') {
-		$('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' + window.variant.gnomad.fin_enrichment + '</p>')
-	    } else {
-		$('#gnomad').html('<p>Frequency in gnomAD genomes 2.1.1: ' + Object.keys(window.variant.gnomad).filter(g => g.startsWith('AF')).map(g => g + ': ' + window.variant.gnomad[g]).join(', ') + '</p>')
-	    }
-            $('#gnomad p').css('margin-bottom', '0');
-	})
+$(function() {
+    if (!variant.annotation.gnomad) {
+	variant.annotation.gnomad = {fin_enrichment: 'No data in gnomAD'}
+    } else if (variant.annotation.gnomad.AF_fin === 0) {
+	variant.annotation.gnomad.fin_enrichment = 'No FIN in gnomAD'
+    } else if (+variant.annotation.gnomad['AC_nfe_nwe'] + +variant.annotation.gnomad['AC_nfe_onf'] + +variant.annotation.gnomad['AC_nfe_seu'] == 0) {
+	variant.annotation.gnomad.fin_enrichment = 'No NFEE in gnomAD'
+    } else {
+	variant.annotation.gnomad.fin_enrichment = +variant.annotation.gnomad['AC_fin'] / +variant.annotation.gnomad['AN_fin'] /
+	    ( (+variant.annotation.gnomad['AC_nfe_nwe'] + +variant.annotation.gnomad['AC_nfe_onf'] + +variant.annotation.gnomad['AC_nfe_seu']) / (+variant.annotation.gnomad['AN_nfe_nwe'] + +variant.annotation.gnomad['AN_nfe_onf'] + +variant.annotation.gnomad['AN_nfe_seu']) )
     }
-})();
+    if (!isNaN(parseFloat(variant.annotation.gnomad.fin_enrichment)) && isFinite(variant.annotation.gnomad.fin_enrichment)) {
+	variant.annotation.gnomad.fin_enrichment = variant.annotation.gnomad.fin_enrichment.toFixed(3)
+    }
+    var af_fin = window.variant.annotation.gnomad.AF_fin
+    if (af_fin && !isNaN(parseFloat(af_fin)) && isFinite(af_fin)) {
+	af_fin = af_fin.toExponential(1)
+    }
+    var af_popmax = window.variant.annotation.gnomad.AF_popmax
+    if (af_popmax && !isNaN(parseFloat(af_popmax)) && isFinite(af_popmax)) {
+	af_popmax = af_popmax.toExponential(1)
+    }
+    if (window.browser.startsWith('FINNGEN')) {
+	if (af_fin !== undefined) {
+	    $('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' + window.variant.annotation.gnomad.fin_enrichment + '</p>')
+	} else {
+	    $('#gnomad').html('<p>No data found in gnomAD 2.1.1</p>')
+	}
+    } else {
+	$('#gnomad').html('<p>Frequency in gnomAD genomes 2.1.1: ' + Object.keys(window.variant.annotation.gnomad).filter(g => g.startsWith('AF')).map(g => g + ': ' + window.variant.annotation.gnomad[g]).join(', ') + '</p>')
+    }
+    $('#gnomad p').css('margin-bottom', '0');
+});
 
 (function() {
     if (!(window.variant.annotation.annot && window.variant.annotation.annot.INFO)) return
@@ -337,10 +339,10 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 
 // Check Clinvar and render link.
 (function() {
-    var clinvar_api_template = _.template('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=<%= chr %>[Chromosome]%20AND%20<%= pos %>[Base%20Position%20for%20Assembly%20GRCh37]&retmode=json');
+    var clinvar_api_template = _.template('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=<%= chr %>[Chromosome]%20AND%20<%= pos %>[Base%20Position%20for%20Assembly%20GRCh38]&retmode=json');
     var clinvar_api_url = clinvar_api_template(window.variant);
 
-    var clinvar_link_template = _.template('https://www.ncbi.nlm.nih.gov/clinvar?term=<%= chr %>[Chromosome]%20AND%20<%= pos %>[Base%20Position%20for%20Assembly%20GRCh37]');
+    var clinvar_link_template = _.template('https://www.ncbi.nlm.nih.gov/clinvar?term=<%= chr %>[Chromosome]%20AND%20<%= pos %>[Base%20Position%20for%20Assembly%20GRCh38]');
     var clinvar_link_url = clinvar_link_template(window.variant);
 
     $.getJSON(clinvar_api_url).done(function(result) {
@@ -352,27 +354,26 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 })();
 
 (function() {
-    if (!window.variant.annotation.annot.rsids) return
-    var rsid = window.variant.annotation.annot.rsids.split(',')[0]
-    $.getJSON('http://grch37.rest.ensembl.org/variation/human/' + rsid + '?content-type=application/json')
+    console.log(variant)
+    var rsid = window.variant.annotation.annot.rsids || window.variant.annotation.rsids
+    if (!rsid) return
+    rsid = rsid.split(',')[0]
+    $.getJSON('https://grch37.rest.ensembl.org/variation/human/' + rsid + '?content-type=application/json')
         .done(function(result) {
             if (result.mappings && result.mappings[0]) {
                 var map = result.mappings[0];
-                var alleles = map.allele_string && map.allele_string.split('/')
-                if (alleles && alleles.length == 2) {
-                    var url = "http://big.stats.ox.ac.uk/variant/" + map.seq_region_name + "-" + map.start + "-" + alleles[0] + "-" + alleles[1]
-                    $('#ukbb-link').html(', <a href=' + url + ' target="_blank">BIG UKbiobank</a>')
-                }
+                var url = "http://pheweb.sph.umich.edu/SAIGE-UKB/variant/" + map.seq_region_name + "-" + map.start + "-" + window.variant.ref + "-" + window.variant.alt
+                $('#ukbb-link').html(', <a href=' + url + ' target="_blank">UMich UK Biobank</a>')
             }
         })
 })();
 
 // Check PubMed for each rsid and render link.
-if (typeof window.variant.annotation.annot.rsids !== "undefined") {
+if (window.variant.annotation.annot.rsids || window.variant.annotation.rsids) {
     (function() {
         var pubmed_api_template = _.template('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&retmode=xml&term=<%= rsid %>');
         var pubmed_link_template = _.template('https://www.ncbi.nlm.nih.gov/pubmed/?term=<%= rsid %>');
-        var rsids = window.variant.annotation.annot.rsids.split(','); // There's usually just one rsid.
+        var rsids = (window.variant.annotation.annot.rsids || window.variant.annotation.rsids).split(','); // There's usually just one rsid.
         rsids.forEach(function(rsid) {
             var pubmed_api_url = pubmed_api_template({rsid: rsid});
             var pubmed_link_url = pubmed_link_template({rsid: rsid});

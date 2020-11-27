@@ -266,6 +266,18 @@ def _ensure_conf():
             },
             'display': 'P-value',
         }),
+        ('mlogp', {
+            'required': True,
+            'type': float,
+            'nullable': True,
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': 'mlog10p-value: <%= d.mlogp %><br>',
+            'tooltip_lztemplate': {
+                'condition': False,
+                'template': ('mlog10p-value: <strong>{{trait:mlogp|scinotation}}</strong><br>')
+            },
+            'display': 'mlog10p-value'
+        }),
         ('beta', {
             'type': float,
             'nullable': True,
@@ -289,46 +301,56 @@ def _ensure_conf():
             'sigfigs': 2,
             'display': 'Odds Ratio',
         }),
+        ('af_alt', {
+            'type': float,
+            'nullable': True,
+            'range': [0, 1],
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': 'AF: <%= d.af_alt.toFixed(4) %><br>',
+            'tooltip_lztemplate': {'transform': '|percent'},
+            'display': 'AF',
+        }),
+        ('af_alt_cases', {
+            'type': float,
+            'range': [0, 1],
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': 'AF cases: <%= d.af_alt_cases.toFixed(4) %><br>',
+            'tooltip_lztemplate': {'transform': '|percent'},
+            'display': 'AF cases',
+        }),
+        ('af_alt_controls', {
+            'aliases': ['af_alt_controls'],
+            'type': float,
+            'range': [0, 1],
+            'sigfigs': 2,
+            'tooltip_underscoretemplate': 'AF controls: <%= d.af_alt_controls.toFixed(4) %><br>',
+            'tooltip_lztemplate': {'transform': '|percent'},
+            'display': 'AF controls',
+        }),
         ('maf', {
             'type': float,
             'nullable': True,
             'range': [0, 1],
             'sigfigs': 2,
-            'tooltip_underscoretemplate': 'MAF: <%= d.maf.toFixed(4) %><br>',
+            'tooltip_underscoretemplate': 'AF: <%= d.maf.toFixed(4) %><br>',
             'tooltip_lztemplate': {'transform': '|percent'},
-            'display': 'MAF',
-        }),
-        ('maf_case', {
-            'type': float,
-            'range': [0, 1],
-            'sigfigs': 2,
-            'tooltip_underscoretemplate': 'MAF cases: <%= d.maf_case.toFixed(4) %><br>',
-            'tooltip_lztemplate': {'transform': '|percent'},
-            'display': 'MAF cases',
-        }),
-        ('maf_control', {
-            'type': float,
-            'range': [0, 1],
-            'sigfigs': 2,
-            'tooltip_underscoretemplate': 'MAF controls: <%= d.maf_control.toFixed(4) %><br>',
-            'tooltip_lztemplate': {'transform': '|percent'},
-            'display': 'MAF controls',
+            'display': 'AF',
         }),
         ('maf_cases', {
             'type': float,
             'range': [0, 1],
             'sigfigs': 2,
-            'tooltip_underscoretemplate': 'MAF cases: <%= d.maf_cases.toFixed(4) %><br>',
+            'tooltip_underscoretemplate': 'AF cases: <%= d.maf_cases.toFixed(4) %><br>',
             'tooltip_lztemplate': {'transform': '|percent'},
-            'display': 'MAF cases',
+            'display': 'AF cases',
         }),
         ('maf_controls', {
             'type': float,
             'range': [0, 1],
             'sigfigs': 2,
-            'tooltip_underscoretemplate': 'MAF controls: <%= d.maf_controls.toFixed(4) %><br>',
+            'tooltip_underscoretemplate': 'AF controls: <%= d.maf_controls.toFixed(4) %><br>',
             'tooltip_lztemplate': {'transform': '|percent'},
-            'display': 'MAF controls',
+            'display': 'AF controls',
         }),
         ('af', {
             'aliases': ['A1FREQ'],
@@ -363,10 +385,16 @@ def _ensure_conf():
         ('n_hom_cases', {
             'type': float
         }),
+        ('n_hom_ref_cases', {
+            'type': float
+        }),
         ('n_het_cases', {
             'type': float
         }),
         ('n_hom_controls', {
+            'type': float
+        }),
+        ('n_hom_ref_controls', {
             'type': float
         }),
         ('n_het_controls', {

@@ -1,4 +1,6 @@
 'use strict';
+import d3Tip from "d3-tip";
+
 
 const create_gwas_plot = function(phenocode, variant_bins, unbinned_variants) {
 
@@ -70,7 +72,7 @@ const create_gwas_plot = function(phenocode, variant_bins, unbinned_variants) {
 
         // Significance Threshold line
         var significance_threshold = 5e-8;
-        var significance_threshold_tooltip = d3.tip()
+        var significance_threshold_tooltip = d3Tip()
             .attr('class', 'd3-tip')
             .html('Significance Threshold: 5E-8')
             .offset([-8,0]);
@@ -144,7 +146,7 @@ const create_gwas_plot = function(phenocode, variant_bins, unbinned_variants) {
 
         // Points & labels
         var tooltip_template = _.template(window.model.tooltip_underscoretemplate);
-        var point_tooltip = d3.tip()
+        var point_tooltip = d3Tip()
             .attr('class', 'd3-tip')
             .html(function(d) {
                 return tooltip_template({d: d});

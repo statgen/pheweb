@@ -9,7 +9,7 @@ import gzip
 import subprocess
 import time
 
-chrord = { "chr"+str(chr):int(chr) for chr in list(range(1,23))}
+chrord = { "chr"+str(chr):int(chr) for chr in list(range(1,26))}
 chrord["X"] = 23
 chrord["chrX"] = 23
 chrord["Y"] = 24
@@ -17,7 +17,7 @@ chrord["chrY"] = 24
 chrord["MT"] = 25
 chrord["chrMT"] = 25
 
-chrord.update({str(chr):int(chr) for chr in list(range(1,23)) } )
+chrord.update({str(chr):int(chr) for chr in list(range(1,26)) } )
 
 def scroll_to_current(variant, phenodat):
 

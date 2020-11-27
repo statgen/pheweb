@@ -11,7 +11,7 @@ import json
 import pandas as pd
 import glob
 
-from typing import List, Tuple
+from typing import List, Dict,Tuple, Union
 
 class ServerJeeves(object):
     '''
@@ -33,6 +33,8 @@ class ServerJeeves(object):
         self.chip_dao = self.dbs_fact.get_chip_dao()
         self.finemapping_dao = self.dbs_fact.get_finemapping_dao()
         self.knownhits_dao = self.dbs_fact.get_knownhits_dao()
+        self.autoreporting_dao = self.dbs_fact.get_autoreporting_dao()
+        self.colocalization = self.dbs_fact.get_colocalization_dao()
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
@@ -290,7 +292,6 @@ class ServerJeeves(object):
                 max_end = region['end']
             data = []
             for i,path in enumerate(region['paths']):
-                print(path)
                 try:
                     with open(path) as f:
                         d = {'id': [], 'varid': [], 'chr': [], 'position': [], 'end': [], 'ref': [], 'alt': [], 'maf': [], 'pvalue': [], 'beta': [], 'sebeta': []}
@@ -335,16 +336,32 @@ class ServerJeeves(object):
             if region['end'] > max_end:
                 max_end = region['end']
             if region['type'] == 'susie':
-                data = pd.read_csv(region['path'], sep='\t', compression='gzip')
-                data.rename(columns={'chromosome': 'chr', 'allele1': 'ref', 'allele2': 'alt'}, inplace=True)
-                data = data[(data.region == 'chr' + str(region['chr']) + ':' + str(region['start']) + '-' + str(region['end'])) & (data.cs > -1) & (data.prob > prob_threshold)]
-                data['chr'] = data['chr'].str.replace('chr', '')
-                data['id'] = data['rsid'].str.replace('chr', '')
-                data['id'] = data['id'].str.replace('_', ':', n=1)
-                data['id'] = data['id'].apply(lambda x: x[::-1]).str.replace('_', '/', n=1).apply(lambda x: x[::-1])
-                data.prob = data.prob.round(3)
-                data = data[['id', 'rsid', 'chr', 'position', 'ref', 'alt', 'maf', 'prob', 'cs']]
-                ret.append({'type': region['type'], 'data': data.reset_index().to_dict(orient='list'), 'lastpage': None})
+                if (self.conf.release in ['R3', 'R4', 'R5']):
+                    data = pd.read_csv(region['path'], sep='\t', compression='gzip')
+                    data.rename(columns={'chromosome': 'chr', 'allele1': 'ref', 'allele2': 'alt'}, inplace=True)
+                    data = data[(data.region == 'chr' + str(region['chr']) + ':' + str(region['start']) + '-' + str(region['end'])) & (data.cs > -1) & (data.prob > prob_threshold)]
+                    data['chr'] = data['chr'].str.replace('chr', '')
+                    data['id'] = data['rsid'].str.replace('chr', '')
+                    data['id'] = data['id'].str.replace('_', ':', n=1)
+                    data['id'] = data['id'].apply(lambda x: x[::-1]).str.replace('_', '/', n=1).apply(lambda x: x[::-1])
+                    data.prob = data.prob.round(3)
+                    data = data[['id', 'rsid', 'chr', 'position', 'ref', 'alt', 'maf', 'prob', 'cs']]
+                    ret.append({'type': region['type'], 'data': data.reset_index().to_dict(orient='list'), 'lastpage': None})
+                else:
+                    # TODO fix - chr X is 0 in the db, everything should be 23
+                    if region['chr'] == 0:
+                        region['chr'] = 'X'
+                    data = pd.read_csv(region['path'], sep='\t')
+                    data.rename(columns={'chromosome': 'chr', 'allele1': 'ref', 'allele2': 'alt', 'v': 'id', 'cs_specific_prob': 'prob'}, inplace=True)
+                    data = data[(data.region == 'chr' + str(region['chr']) + ':' + str(region['start']) + '-' + str(region['end'])) & (data.prob > prob_threshold)]
+                    data['chr'] = data['chr'].str.replace('chr', '')
+                    data['rsid'] = data['id']
+                    data['id'] = data['id'].str.replace(':', '_')
+                    data['id'] = data['id'].str.replace('_', ':', n=1)
+                    data['id'] = data['id'].apply(lambda x: x[::-1]).str.replace('_', '/', n=1).apply(lambda x: x[::-1])
+                    data.prob = data.prob.round(3)
+                    data = data[['id', 'rsid', 'chr', 'position', 'ref', 'alt', 'maf', 'prob', 'cs']]
+                    ret.append({'type': region['type'], 'data': data.reset_index().to_dict(orient='list'), 'lastpage': None})
             elif region['type'] == 'finemap':
                 data = {'id': [], 'chr': [], 'position': [], 'ref': [], 'alt': [], 'prob': [], 'cs': []}
                 with open(region['path']) as f:
@@ -397,10 +414,81 @@ class ServerJeeves(object):
         with open(common_filepaths['best-phenos-by-gene']) as f:
             return json.load(f)
 
-    def get_autoreport(self, phenocode):
-        files = glob.glob('/mnt/nfs/autoreporting/r4/group_reports/finngen_R4_' + phenocode + '.gz.top.out')
-        if len(files) == 1:
-            data = pd.read_csv(files[0], sep='\t').fillna('NA')
-            return data.reset_index().to_dict('records')
-        return None
+    def get_autoreport(self, phenocode) -> List[Dict[str,Union[str,int,float,bool]]] :
+        if (self.autoreporting_dao == None) or (self.ukbb_dao == None):
+            return None
+        data = pd.DataFrame(self.autoreporting_dao.get_group_report(phenocode))
+        #JSON doesn't implement floating point numbers correctly, so no infinite or nan values even though they are available in both python and js... >_<
+        data=data.replace(to_replace={
+            float('inf'): 'inf',
+            float('-inf'):'-inf'
+        })
+        data=data.fillna("NA")
+        if not data.empty:
+            #add ukbb data
+            vars=[]
+            for t in data.itertuples():
+                v=t.locus_id.replace("chr","").split("_")
+                vars.append(Variant(v[0],v[1],v[2],v[3]))
+            ukbbvars = self.ukbb_dao.get_matching_results(phenocode, vars)
+            v_pvals={}
+            v_betas={}
+            for var in ukbbvars.keys():
+                v_pvals["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["pval"]#TODO: If locus_id spec changes, this has to change
+                v_betas["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["beta"]
+            data["ukbb_pval"]="NA"
+            data["ukbb_beta"]="NA"
+            for key in v_pvals:#same key as in betas
+                data.loc[data["locus_id"]==key,"ukbb_pval"] = float(v_pvals[key])
+                data.loc[data["locus_id"]==key,"ukbb_beta"] = float(v_betas[key])
+            return data.to_dict("records")
+        return []
         
+    
+    def get_autoreport_variants(self, phenocode: str, locus_id: str) -> List[Dict[str,Union[str,int,float,bool]]]:
+        abort = [a == None for a in [self.autoreporting_dao,self.gnomad_dao, self.annotation_dao]]
+        if any(abort):
+            return None
+        data=self.autoreporting_dao.get_group_variants(phenocode, locus_id)
+        df=pd.DataFrame(data)
+        agg_dict = dict.fromkeys(df,"first")
+        agg_dict["trait"]=";".join
+        agg_dict["trait_name"]=";".join
+        df=df.groupby('variant').agg(agg_dict).reset_index(drop=True)
+
+        #create list of Variants that is used to get gnomad and finngen annotation data
+        list_of_vars = []
+        variants = list(set([a["variant"] for a in data]))
+        for variant in variants:
+            v=variant.replace("chr","").split("_")
+            if (v[0] in ["X","Y","T"]) :
+                transform = {"X":23,"Y":24,"MT":25}
+                c=transform[v[0]]
+            else:
+                c = int(v[0])
+            list_of_vars.append(Variant(c,v[1],v[2],v[3]))
+
+        # get finngen & gnomad annotations from endpoints
+        fg_data = self.annotation_dao.get_variant_annotations(list_of_vars,True)
+        gnomad_data = self.gnomad_dao.get_variant_annotations(list_of_vars)  
+        # flatten
+        fg_data = [{"variant":a.varid,**a.get_annotations()["annot"]} for a in fg_data]
+        gnomad_data = [{"variant":a["variant"].varid,**a["var_data"]} for a in gnomad_data]
+        #dataframify
+        fg_data = pd.DataFrame(fg_data)
+        gnomad_data = pd.DataFrame(gnomad_data)
+        # C:P:R:A to chrC_P_R_A
+        fg_data["variant"] = "chr"+fg_data["variant"].str.replace(":","_")
+        gnomad_data["variant"] = "chr"+gnomad_data["variant"].str.replace(":","_") 
+        
+        #join that data to autoreporting dataframe
+        output = pd.merge(df,fg_data,on="variant",how="left")
+        output = pd.merge(output,gnomad_data,on="variant",how="left")
+        #and back to dicts :)
+        #JSON doesn't implement floating point numbers correctly, so no infinite or nan values even though they are available in both python and js... >_<
+        output=output.replace(to_replace={
+            float('inf'): "inf",
+            float('-inf'):"-inf"
+        })
+        output=output.fillna("NA")
+        return output.to_dict('records')

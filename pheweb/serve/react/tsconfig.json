@@ -1,0 +1,20 @@
+{ "compilerOptions": {
+    "module": "commonjs",
+    "jsx": "react",
+    "esModuleInterop": true ,
+    /* "noImplicitAny": true, */
+    /* "removeComments": true, */
+    "preserveConstEnums": true,
+    "strictNullChecks" : true,
+    "sourceMap": true,
+  "lib": [
+      "dom",
+      "es6",
+      "scripthost",
+      "es2018.promise",
+      "es2018.RegExp"
+  ]
+},
+  /*"typeRoots": [ "./types", "./node_modules/@types"], */
+  "include": [ "js/**/*" , "types/**/*" ],
+  "exclude": [ "typings", "node_modules", "**/*.spec.ts" ] }

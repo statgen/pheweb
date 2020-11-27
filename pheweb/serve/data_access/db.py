@@ -24,6 +24,9 @@ import time
 import io
 import os
 import subprocess
+import sys
+import glob
+from pheweb_colocalization.model_db import ColocalizationDAO
 
 from pathlib import Path
 
@@ -102,6 +105,7 @@ class PhenoResult(JSONifiable):
         self.phenocode = phenocode
         self.phenostring = phenostring
         self.pval = float(pval) if pval is not None and pval!='NA' else None
+        self.pval = sys.float_info.min * sys.float_info.epsilon if self.pval == 0 else self.pval
         self.beta = float(beta) if beta is not None and beta!='NA' else None
         self.maf = float(maf) if maf is not None and maf!='NA' and maf != '' else None
         self.maf_case = float(maf_case) if maf_case is not None and maf_case!='NA' else None
@@ -243,6 +247,21 @@ class LofDB(object):
             Returns: A list of dictionaries. Dictionary has 2 elements "id" which contains the gene id and "gene_data" containing dictionary with all gene data.
         """
         return
+
+class AutorepVariantDB(object):
+
+    @abc.abstractmethod
+    def get_group_variants(self, phenotype, locus_id):
+        """ Retrieve a given locuses variants for a given phenotype
+            Returns: A list of dictionaries. WIP
+        """
+        return
+
+    @abc.abstractmethod
+    def get_group_report(self, phenotype):
+        """ Retrieve a given phenotype's group report
+            Returns: A list of dictionaries, with the group report columns as dictionary keys and every dictionary representing a row.
+        """
 
 class KnownHitsDB(object):
     @abc.abstractmethod
@@ -556,6 +575,8 @@ class TabixGnomadDao(GnomadDB):
         return annotations
 
     def get_variant_annotations_range(self, chrom, start, end):
+        # gnomAD annotation still has X and not 23
+        chrom = 'X' if str(chrom) == '23' else chrom
         try:
             tabix_iter = self.tabix_handles[threading.get_ident()].fetch(chrom, start-1, end)
         except ValueError:
@@ -616,8 +637,11 @@ class TabixResultDao(ResultDB):
                 pval = split[pheno[1]]
                 beta = split[pheno[1]+self.header_offset['beta']]
                 maf = split[pheno[1]+self.header_offset['maf']] if 'maf' in self.header_offset else None
+                maf = split[pheno[1]+self.header_offset['af_alt']] if 'af_alt' in self.header_offset else maf
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
+                maf_case = split[pheno[1]+self.header_offset['af_alt_cases']] if 'af_alt_cases' in self.header_offset else maf_case
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
+                maf_control = split[pheno[1]+self.header_offset['af_alt_controls']] if 'af_alt_controls' in self.header_offset else maf_control
                 pr = PhenoResult(pheno[0],
                                  self.pheno_map[pheno[0]]['phenostring'],
                                  self.pheno_map[pheno[0]]['category'],
@@ -643,7 +667,7 @@ class TabixResultDao(ResultDB):
             variants = [variants]
         results = []
         for v in variants:
-            res = self.get_variant_results_range('X' if v.chr == 23 else v.chr, v.pos, v.pos)
+            res = self.get_variant_results_range(v.chr, v.pos, v.pos)
             for r in res:
                 if r[0]==v:
                     results.append(r)
@@ -666,8 +690,11 @@ class TabixResultDao(ResultDB):
                 pval = split[pheno[1]]
                 beta = split[pheno[1]+self.header_offset['beta']]
                 maf = split[pheno[1]+self.header_offset['maf']] if 'maf' in self.header_offset else None
+                maf = split[pheno[1]+self.header_offset['af_alt']] if 'af_alt' in self.header_offset else maf
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
+                maf_case = split[pheno[1]+self.header_offset['af_alt_cases']] if 'af_alt_cases' in self.header_offset else maf_case
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
+                maf_control = split[pheno[1]+self.header_offset['af_alt_controls']] if 'af_alt_controls' in self.header_offset else maf_control
                 if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):
                     pr = PhenoResult(pheno[0],
                                      self.pheno_map[pheno[0]]['phenostring'],
@@ -1299,6 +1326,60 @@ class FineMappingMySQLDao(FineMappingDB):
             result = [res for i, res in enumerate(result) if res['type'] != 'finemap' or i == most_probable_finemap]
         return result
 
+class AutoreportingDao(AutorepVariantDB):
+    def __init__(self, authentication_file, group_report_path):
+        self.authentication_file = authentication_file
+        self.group_report_path = group_report_path
+        auth_module = imp.load_source('mysql_auth', self.authentication_file)
+        self.user = getattr(auth_module, 'mysql')['user']
+        self.password = getattr(auth_module, 'mysql')['password']
+        self.host = getattr(auth_module, 'mysql')['host']
+        self.db = getattr(auth_module, 'mysql')['db']
+        self.release = getattr(auth_module, 'mysql')['release']
+
+    def get_connection(self):
+        return pymysql.connect(host=self.host, user=self.user, password=self.password, db=self.db)
+
+    def get_group_variants(self, phenotype, locus_id):
+        try:
+            conn=self.get_connection()
+            with conn.cursor(pymysql.cursors.DictCursor) as cursori:
+                sql =  ("SELECT * FROM autoreporting_variants WHERE rel=%s AND phenotype=%s AND locus_id=%s")
+                cursori.execute(sql,["r{}".format(self.release),phenotype,locus_id])
+                result=cursori.fetchall()
+            return result
+        finally:
+            conn.close()
+
+    def _merge_traits(self, a,b):
+        if a != "NA" and b != "NA":
+            return "{};{}".format(a,b)
+        elif a == "NA" and b != "NA":
+            return b
+        elif a != "NA" and b == "NA":
+            return a
+        else:
+            return "NA"
+
+    def get_group_report(self, phenotype):
+        fpath = self.group_report_path
+        files = glob.glob(fpath + "/" + phenotype + '.top.out')
+        if len(files) == 1:
+            data = pd.read_csv(files[0], sep='\t').fillna('NA')
+            data["phenocode"]=phenotype
+            if "specific_efo_trait_associations_strict" in data.columns:
+                data['all_traits_strict']=data[['specific_efo_trait_associations_strict','found_associations_strict']].apply(
+                    lambda x: self._merge_traits(*x),axis=1
+                )
+                data['all_traits_relaxed']=data[['specific_efo_trait_associations_relaxed','found_associations_relaxed']].apply(
+                    lambda x: self._merge_traits(*x),axis=1
+                )
+            else:
+                data['all_traits_strict']=data['found_associations_strict']
+                data['all_traits_relaxed']=data['found_associations_relaxed']
+            return data.reset_index(drop=True).to_dict("records")
+        return []
+
 class DataFactory(object):
     arg_definitions = {"PHEWEB_PHENOS": lambda _: {pheno['phenocode']: pheno for pheno in get_phenolist()},
                        "MATRIX_PATH": common_filepaths['matrix'],
@@ -1360,8 +1441,14 @@ class DataFactory(object):
     def get_finemapping_dao(self):
         return self.dao_impl["finemapping"] if "finemapping" in self.dao_impl else None
 
+    def get_autoreporting_dao(self):
+        return self.dao_impl["autoreporting"] if "autoreporting" in self.dao_impl else None
+
     def get_UKBB_dao(self, singlematrix=False):
         if singlematrix and "externalresultmatrix" in self.dao_impl:
             return self.dao_impl["externalresultmatrix"]
         else:
             return self.dao_impl["externalresult"]
+
+    def get_colocalization_dao(self):
+        return self.dao_impl["colocalization"] if "colocalization" in self.dao_impl else None
