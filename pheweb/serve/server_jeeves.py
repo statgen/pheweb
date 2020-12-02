@@ -151,7 +151,7 @@ class ServerJeeves(object):
 
     def get_gene_data(self, gene):
         try:
-            gene_data = dbs_fact.get_geneinfo_dao().get_gene_info(gene)
+            gene_data = self.dbs_fact.get_geneinfo_dao().get_gene_info(gene)
         except Exception as exc:
             print("Could not fetch data for gene {!r}. Error: {}".format(gene,traceback.extract_tb(exc.__traceback__).format() ))
             raise
