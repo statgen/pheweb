@@ -29,6 +29,10 @@ export interface Colocalization {
   readonly phenotype1_description : string,
   readonly phenotype2 : string,
   readonly phenotype2_description : string,
+
+  readonly quant1? :string
+  readonly quant2? :string
+
   readonly tissue1? : string,
   readonly tissue2 : string,
 
