@@ -13,14 +13,18 @@ pipeline {
 	}
     stage('Deploy') {
 	    steps {
-		script {
-		    sh(script:"""kubectl delete all --all""")
-		    sh(script:"""kubectl delete pvc --all""")
-                    sh(script:"""kubectl delete ingress --all""")
-
-		    sh(script:"""kubectl apply -f deploy/staging/pv-nfs.yml""")
-		    sh(script:"""kubectl apply -f deploy/staging/deployment.yaml""")
-		    sh(script:"""ubectl apply -f deploy/staging/ingress.yaml""")
+                withCredentials([file(credentialsId: 'jenkins-sa', variable: 'gcp')]) {
+                    sh '''/root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$gcp'''
+                    sh '''/root/google-cloud-sdk/bin/gcloud auth configure-docker'''
+                    sh '''/root/google-cloud-sdk/bin/gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b'''
+                    
+                    sh '''kubectl delete all --all '''
+                    sh '''kubectl delete pvc --all '''
+                    sh '''kubectl delete ingress --all '''
+                    
+                    sh '''kubectl apply -f deploy/staging/pv-nfs.yml '''
+                    sh '''kubectl apply -f deploy/staging/deployment.yaml '''
+                    sh '''kubectl apply -f deploy/staging/ingress.yaml '''
 		}
 	    }
 	}
