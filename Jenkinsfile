@@ -11,5 +11,18 @@ pipeline {
 		}
 	    }
 	}
+    stage('Deploy') {
+	    steps {
+		script {
+		    sh(script:"""kubectl delete all --all""")
+		    sh(script:"""kubectl delete pvc --all""")
+                    sh(script:"""kubectl delete ingress --all""")
+
+		    sh(script:"""kubectl apply -f deploy/staging/pv-nfs.yml""")
+		    sh(script:"""kubectl apply -f deploy/staging/deployment.yaml""")
+		    sh(script:"""ubectl apply -f deploy/staging/ingress.yaml""")
+		}
+	    }
+	}
     }
 }

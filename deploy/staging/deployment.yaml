@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pheweb-front
+  labels:
+    app: pheweb
+    tier: frontend
+spec:
+  serviceName: pheweb-front
+  selector:
+    matchLabels:
+      app: pheweb
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pheweb
+        tier: frontend
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - pheweb
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: pheweb-container
+        image: gcr.io/phewas-development/pheweb:ci-fa8c513504c64d01fa1e8c8b7cbb0674d910aae0
+        env:
+        - name: PHEWEB_DIR
+          value: "/mnt/nfs/pheweb/r6"
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          initialDelaySeconds: 30
+          httpGet:
+            path: /health
+            port: 8080
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          httpGet:
+            path: /health
+            port: 8080
+        volumeMounts:
+        - mountPath: /mnt/nfs
+          name: pheweb-nfs
+      volumes:
+      - name: pheweb-nfs
+        persistentVolumeClaim:
+          claimName: nfs-claim
+          readOnly: false
