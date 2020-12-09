@@ -55,7 +55,7 @@ Modify `deploy/pheweb-ingress-r6.yaml`, `deploy/pheweb-deployment-r6.yaml` and `
 Example of updating the image used in StatefulSet
 `kubectl patch statefulset pheweb-front --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value":"gcr.io/phewas-development/pheweb:r2-2"}]'`
 
-Kubernetes will try to rolling update so that while some pods are updating, the others are serving using the old image. 
+Kubernetes will try to rolling update so that while some pods are updating, the others are serving using the old image.
 In case the new image or settings are not functional Kubernetes will keep on retrying. In this case you need to update settings again first and then delete those pods that keep trying to run with the old settings.
 
 `kubectl delete pod pheweb-front-3`
@@ -84,6 +84,47 @@ kubectl create -f deploy/pheweb-deployment-r6.yaml
 `kubectl get events --sort-by=.metadata.creationTimestamp`
 
 More [here](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
+
+
+# Adding external data to be shown together with FINNGEN phenotype results (UKBB)
+
+## Prepare sumstats
+
+Prepare external summary stat files for each phenotype (tabix indexed, same chr build as FinnGen results) and place them in NFS mount. Currently required column names are: ["achr38","apos38","REF","ALT","beta","pval"] the default after lifting over FinnGen data.
+
+Create a manifest for all of the sumstats and what FinnGen phenotype each matches to.
+
+required columns:
+NAME: matching FinnGen phenotype name
+ncases: number of cases (numeric)
+ncontrols:  number of controls (numeric)
+file: full path to the tabixed summary stats.
+
+## Create external matrix from all sumstats
+
+Run[ external_matrix.py](pheweb/pheweb/load/external_matrix.py) in environment where you have access to the sumstats and config created in previous steps. Store the created matrix and .tbi in suitable location.
+
+## Configure DAOs
+
+Modify config.py and add to the following 2 elements in `data_base` json:
+
+In DAO serving across all phenotypes `externalresultmatrix` set `matrix` to full path to the matrix created above and `metadatafile` to full path to the created metadata. The node name `ExternalMatrixResultDao` refers to the class implementing the DAO and is dynamically loaded. Don't change that string unless you provide custom implementation and create that class in [db.py](pheweb/pheweb/serve/data_access/db/py)
+
+In DAO serving single results `externalresult` set `manifest` to full path to the created metadata file. The node name `ExternalFileResultDao` refers to the class implementing the DAO and is dynamically loaded. Don't change that string unless you provide custom implementation and create that class in [db.py](pheweb/pheweb/serve/data_access/db/py)
+
+Example:
+```
+{
+    "externalresultmatrix": {
+        "ExternalMatrixResultDao": {"matrix":"/mnt/nfs/ukbb_neale/matrix.tsv.gz", "metadatafile":"/mnt/nfs/ukbb_neale/ukbb_r1_match_pheno_dup_correct_ssd.tsv"}
+    }
+}, {
+    "externalresult": {
+        "ExternalFileResultDao": {"manifest":"/mnt/nfs/ukbb_neale/ukbb_r1_match_pheno_dup_correct_ssd.tsv"}
+    }
+}
+```
+
 
 # PheWeb instructions
 
