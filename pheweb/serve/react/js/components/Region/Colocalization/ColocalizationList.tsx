@@ -14,7 +14,11 @@ const SelectTable = selectTableHOC(ReactTable);
 SelectTable.prototype.headSelector = () => null;
 
 export const cell_locus_id1 = (row : Row<Colocalization>) => row.original.locus_id1
+export const cell_locus_id2 = (row : Row<Colocalization>) => row.original.locus_id2
 export const cell_variant = (row : Row<CasualVariant>) => row.original.variant
+export const cell_quant1 = (row : Row<Colocalization>) => row.original.quant1
+
+
 
 interface Metadata { accessor: string
                      label: string
@@ -28,13 +32,18 @@ interface Metadata { accessor: string
 
 const listMetadata : Metadata[] = [
     { title: "source" , accessor: "source2" , label:"Source", flexBasis: "max-content" },
-    { title: "locus id", accessor: "locus_id1" , label:"Locus ID",
+    { title: "locus id 1", accessor: "locus_id1" , label:"Locus ID 1",
       Cell: compose(cell_locus_id1,variantLink) },
+    { title: "locus id 2", accessor: "locus_id1" , label:"Locus ID 2",
+        Cell: compose(cell_locus_id2,variantLink) },
     { title: "code", accessor: "phenotype2", label: "Code" },
     { title: "description", accessor: "phenotype2_description", label: "Description" },
     { title: "tissue", accessor: "tissue2",
         Cell: cellText,
         label: "Tissue" },
+    { title: "cell_quant2", accessor: "quant2",
+        Cell: cellText,
+        label: "Quant" },
     { title: "clpp", accessor: "clpp",
         Cell: cellNumber,
         label: "CLPP",
