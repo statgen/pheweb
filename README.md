@@ -1,3 +1,22 @@
+# Importing summary stats to pheweb
+
+## Cromwell run
+
+Import summary stats using [import.wdl](wdl/import.wdl). Prepare a list of summary stats like in reference configuration file (one summary stat bucket path per line) [import.json](wdl/import.json).
+
+After successful import run, copy generated file to a single bucket using proper file structure using [copy_cromwell_import_to_bucket_puddle.py ](scripts/copy_cromwell_import_to_bucket_puddle.py).
+
+Parameters needed are cromwell hash and path to destination bucket.
+copy_cromwell_import_to_bucket_puddle.py cromwell_hash gs://bucket_for_deployment_pickerupper/v8/
+
+***You need to have a socks5 proxy open in localhost:5000 to cromwell machine to get the metadata.***
+
+Example proxy creation if cromwell runs in google VM: `gcloud compute ssh cromwell-machine-name -- -D localhost:5000 -N`.
+
+Alternatively if direct access available change url with `--cromwell_url yourURL` and remove proxy (--socks_proxy "")
+
+## Copy
+
 # Deploying PheWeb in Google Cloud using Kubernetes
 
 ### 1. Install Docker, Google Cloud SDK, and kubectl
@@ -55,7 +74,7 @@ Modify `deploy/pheweb-ingress-r6.yaml`, `deploy/pheweb-deployment-r6.yaml` and `
 Example of updating the image used in StatefulSet
 `kubectl patch statefulset pheweb-front --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value":"gcr.io/phewas-development/pheweb:r2-2"}]'`
 
-Kubernetes will try to rolling update so that while some pods are updating, the others are serving using the old image. 
+Kubernetes will try to rolling update so that while some pods are updating, the others are serving using the old image.
 In case the new image or settings are not functional Kubernetes will keep on retrying. In this case you need to update settings again first and then delete those pods that keep trying to run with the old settings.
 
 `kubectl delete pod pheweb-front-3`
