@@ -7,12 +7,20 @@ import json
 import os
 import time
 
-output_nodes =["pheweb_import.annotation.bed", "pheweb_import.annotation.gene_trie","pheweb_import.annotation.sites", "pheweb_import.annotation.trie1","pheweb_import.annotation.trie2","pheweb_import.matrix.matrix", "pheweb_import.matrix.matrix_tbi","pheweb_import.matrix.pheno_gene","pheweb_import.matrix.phenolist","pheweb_import.matrix.top_hits_1k","pheweb_import.matrix.top_hits_json","pheweb_import.matrix.top_hits_tsv","pheweb_import.pheno.manhattan","pheweb_import.pheno.pheno_gz","pheweb_import.pheno.pheno_tbi","pheweb_import.pheno.qq"]
+basic_output_nodes =["pheweb_import.matrix.matrix", "pheweb_import.matrix.matrix_tbi",
+    "pheweb_import.matrix.pheno_gene","pheweb_import.matrix.phenolist",
+    "pheweb_import.matrix.top_hits_1k","pheweb_import.matrix.top_hits_json","pheweb_import.matrix.top_hits_tsv",
+    "pheweb_import.pheno.manhattan","pheweb_import.pheno.pheno_gz","pheweb_import.pheno.pheno_tbi","pheweb_import.pheno.qq"]
+
+annot_nodes = ["pheweb_import.annotation.bed", "pheweb_import.annotation.gene_trie",
+    "pheweb_import.annotation.sites","pheweb_import.annotation.trie1","pheweb_import.annotation.trie2"]
 
 def run():
     parser = argparse.ArgumentParser(description="Run x-way meta-analysis")
     parser.add_argument('cromwell_hash', action='store', type=str, help='Configuration file ')
     parser.add_argument('destination_bucket', action='store', type=str, help='Result file')
+
+    parser.add_argument('--skip_annotation', action='store', type=str, help='Result file')
 
     parser.add_argument('--cromwell_url', default="localhost", action='store', type=str, help='Cromwell URL')
     parser.add_argument('--socks_proxy', default="localhost:5000", action='store', type=str, help='Cromwell URL')
@@ -38,6 +46,10 @@ def run():
         raise Exception(f'Error requesting metadata. Cromwell message: {ret["message"]}')
 
     all_files = {}
+
+    if not args.skip_annotation:
+        output_nodes.extend(annot_nodes)
+
     for n in output_nodes:
         d = ret["outputs"][n] if not isinstance(ret["outputs"][n],str) else [ret["outputs"][n]]
         for f in d:
