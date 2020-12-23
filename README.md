@@ -92,13 +92,13 @@ More [here](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
 
 Prepare external summary stat files for each phenotype (tabix indexed, same chr build as FinnGen results) and place them in NFS mount. Currently required column names are: ["achr38","apos38","REF","ALT","beta","pval"] the default after lifting over FinnGen data.
 
-Create a manifest for all of the sumstats and what FinnGen phenotype each matches to.
+Create a manifest for all of the sumstats and what FinnGen phenotype each matches to. Required columns in this order (no header):
+- NAME: matching FinnGen phenotype name (text)
+- pheno description (free text)
+- ncases: number of cases (numeric)
+- ncontrols:  number of controls (numeric)
+- file: full path to the tabixed summary stats.
 
-required columns:
-NAME: matching FinnGen phenotype name
-ncases: number of cases (numeric)
-ncontrols:  number of controls (numeric)
-file: full path to the tabixed summary stats.
 
 ## Create external matrix from all sumstats
 
