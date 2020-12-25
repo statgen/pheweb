@@ -1,16 +1,20 @@
-FROM debian:9
+FROM debian:10
 
 LABEL maintainer="jkarjala@broadinstitute.org"
 
 RUN apt-get update && \
-    apt-get install curl python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev --yes && \
+    apt-get install curl git python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev --yes && \
     curl -LO https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 && \
     tar -xvjf htslib-1.9.tar.bz2 && cd htslib-1.9 && \
-    ./configure && make && make install && cd .. && rm -rf htslib-1.9*
+    ./configure && make && make install && cd .. && rm -rf htslib-1.9* && \
+    
 
 RUN pip3 install cython
 
-ADD pheweb /pheweb
-ADD pheweb/pheweb/load/external_matrix.py /usr/local/bin/
+ADD pheweb/load/external_matrix.py /usr/local/bin/
+ADD . /pheweb
+
 
 RUN pip3 install /pheweb
+
+RUN apt-get purge git --yes

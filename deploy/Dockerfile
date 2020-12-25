@@ -2,6 +2,8 @@ FROM debian:10
 
 # can change this in k8s deployment yaml to serve from another directory
 ENV PHEWEB_DIR /mnt/nfs/pheweb/r6
+ENV CLOUD_SQL_PROXY_CREDENTIAL_FILE /mnt/nfs/pheweb/phewas.sql.credentials.json
+ENV CLOUD_SQL_PROXY_INSTANCES phewas-development:europe-west1:pheweb=tcp:3306
 
 # create and setup the en_US.UTF-8 locale
 RUN apt-get upgrade --yes && apt-get update --yes && apt-get install locales --yes
@@ -42,4 +44,4 @@ RUN cd /pheweb/pheweb/serve/react && \
     rm -r /pheweb
 
 EXPOSE 8080
-CMD cloud_sql_proxy -instances=phewas-development:europe-west1:pheweb=tcp:3306 -credential_file=/mnt/nfs/pheweb/phewas.sql.credentials.json & cd $PHEWEB_DIR && pheweb serve --port 8080 --num-workers 4
+CMD cloud_sql_proxy -instances=$CLOUD_SQL_PROXY_INSTANCES -credential_file=$CLOUD_SQL_PROXY_CREDENTIAL_FILE & cd $PHEWEB_DIR && pheweb serve --port 8080 --num-workers 4
