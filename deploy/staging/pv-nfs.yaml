@@ -4,12 +4,12 @@ metadata:
   name: nfs
 spec:
   capacity:
-      storage: 5T
+      storage: 11T
   accessModes:
     - ReadWriteMany
   nfs:
     path: /vol1
-    server: 10.179.247.250
+    server: 10.233.113.218
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -21,4 +21,4 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 5T
+      storage: 11T
