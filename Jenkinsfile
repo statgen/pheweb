@@ -27,7 +27,7 @@ pipeline {
                     sh '''kubectl delete pvc --all '''
                     sh '''kubectl delete ingress --all '''
                     
-                    sh '''kubectl apply -f deploy/staging/pv-nfs.yml '''
+                    sh '''kubectl apply -f deploy/staging/pv-nfs.yaml '''
                     sh '''kubectl apply -f deploy/staging/deployment.yaml '''
                     sh '''kubectl apply -f deploy/staging/ingress.yaml '''
 
