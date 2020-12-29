@@ -23,7 +23,7 @@ pipeline {
                     sh '''/root/google-cloud-sdk/bin/gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b'''
                     
                     sh '''kubectl delete all --all '''
-		    sh '''kubectl delete pv --all  '''
+		    sh '''kubectl delete pv --all --wait=false'''
                     sh '''kubectl delete pvc --all '''
                     sh '''kubectl delete ingress --all '''
                     
