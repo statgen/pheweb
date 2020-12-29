@@ -31,7 +31,6 @@ pipeline {
                     sh '''kubectl apply -f deploy/staging/deployment.yaml '''
                     sh '''kubectl apply -f deploy/staging/ingress.yaml '''
 
-		    sh '''kubectl config delete-cluster staging-pheweb'''
 		}
 	    }
 	}
