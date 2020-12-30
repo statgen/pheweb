@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "pheweb.fullname" . }}-front
+  labels:
+    app: pheweb
+    tier: frontend
+spec:
+  serviceName: {{ include "pheweb.fullname" . }}-front
+  selector:
+    matchLabels:
+      app: pheweb
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: pheweb
+        tier: frontend
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - pheweb
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: pheweb-container
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+        env:
+        - name: PHEWEB_DIR
+          value: {{ if .Values.pheweb.directory }} "{{ .Values.pheweb.directory }}" {{ else }} "{{ .Values.pheweb.mount }}/pheweb/{{ .Values.pheweb.subdomain }}"  {{ end }}
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          initialDelaySeconds: 30
+          httpGet:
+            path: /health
+            port: 8080
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          httpGet:
+            path: /health
+            port: 8080
+        volumeMounts:
+        - mountPath: "{{ .Values.pheweb.mount }}"
+          name: pheweb-nfs
+      volumes:
+      - name: pheweb-nfs
+        persistentVolumeClaim:
+          claimName: pvc-{{ include "pheweb.fullname" . }}
+          readOnly: false
