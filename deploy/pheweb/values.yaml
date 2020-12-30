@@ -5,10 +5,14 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: gcr.io/phewas-development/pheweb
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: ci-fa8c513504c64d01fa1e8c8b7cbb0674d910aae0
+
+pheweb:
+  mount: /mnt/nfs_dev
+  subdomain: bstaging
 
 imagePullSecrets: []
 nameOverride: ""
@@ -72,8 +76,15 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+persistentVolume:
+  storage: 11T
+  path: /vol1
+  server: 10.233.113.218
+
+
 nodeSelector: {}
 
 tolerations: []
 
 affinity: {}
+

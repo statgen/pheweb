@@ -1,7 +1,7 @@
 apiVersion: v2
 name: pheweb
 description: A Helm chart for Kubernetes
-
+icon: https://www.finngen.fi/themes/custom/finngen/favicon.ico
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives
