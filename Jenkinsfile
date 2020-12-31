@@ -23,7 +23,7 @@ pipeline {
                     sh '''/root/google-cloud-sdk/bin/gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b'''
                     
                     sh '''if helm ls | grep bstaging > /dev/null  ; then COMMAND=upgrade ; else  COMMAND=install ; fi ;'''
-		    sh '''helm ${COMMAND} ${SUBDOMAIN} ./chart --set pheweb.subdomain=${SUBDOMAIN} --set pheweb.mount=${MOUNT}'''
+		    sh '''helm ${COMMAND} ${SUBDOMAIN} ./deploy/pheweb --set pheweb.subdomain=${SUBDOMAIN} --set pheweb.mount=${MOUNT}'''
 		}
 	    }
 	}
