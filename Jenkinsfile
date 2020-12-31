@@ -22,7 +22,7 @@ pipeline {
                     sh '''/root/google-cloud-sdk/bin/gcloud auth configure-docker'''
                     sh '''/root/google-cloud-sdk/bin/gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b'''
                     
-                    sh '''if helm ls | grep bstaging > /dev/null  ; then  helm upgrade ./deploy/pheweb ; else helm install ./deploy/pheweb ; fi ; '''
+                    sh '''if helm ls | grep bstaging > /dev/null  ; then  helm upgrade bstaging ./deploy/pheweb ; else helm install bstaging ./deploy/pheweb ; fi ; '''
 		}
 	    }
 	}
