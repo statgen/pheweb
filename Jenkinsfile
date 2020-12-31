@@ -22,15 +22,8 @@ pipeline {
                     sh '''/root/google-cloud-sdk/bin/gcloud auth configure-docker'''
                     sh '''/root/google-cloud-sdk/bin/gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b'''
                     
-                    sh '''kubectl delete all --all '''
-		    sh '''kubectl delete pv --all --wait=false'''
-                    sh '''kubectl delete pvc --all '''
-                    sh '''kubectl delete ingress --all '''
-                    
-                    sh '''kubectl apply -f deploy/staging/pv-nfs.yaml '''
-                    sh '''kubectl apply -f deploy/staging/deployment.yaml '''
-                    sh '''kubectl apply -f deploy/staging/ingress.yaml '''
-
+                    sh '''if helm ls | grep bstaging > /dev/null  ; then COMMAND=upgrade ; else  COMMAND=install ; fi ;'''
+		    sh '''helm ${COMMAND} ${SUBDOMAIN} ./chart --set pheweb.subdomain=${SUBDOMAIN} --set pheweb.mount=${MOUNT}'''
 		}
 	    }
 	}
