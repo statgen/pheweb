@@ -48,12 +48,12 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources()
         .add("assoc", ["AssociationPheWeb", localBase])
-        .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { source: 2, build: "GRCh37" }}])
+        .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { source: 2, build: "GRCh"+window.model.grch_build_number }}])
         .add("ld", ["LDLZ2", { url: "https://portaldev.sph.umich.edu/ld/",
-            params: { source: '1000G', build: 'GRCh37', population: 'ALL' }
+            params: { source: '1000G', build: 'GRCh'+window.model.grch_build_number, population: 'ALL' }
         }])
-        .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2} }])
-        .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15} }]);
+        .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2, build: 'GRCh'+window.model.grch_build_number} }])
+        .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15, build:'GRCh'+window.model.grch_build_number} }]);
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
@@ -350,6 +350,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     $(function() {
         // Populate the div with a LocusZoom plot using the default layout
         window.plot = LocusZoom.populate("#lz-1", data_sources, layout);
+        window.plot.state.genome_build = 'GRCh'+window.model.grch_build_number;
 
         // Handle double-click on a variant point
         (function() {

@@ -118,6 +118,10 @@ def _ensure_conf():
                         conf[key] = getattr(_conf_module, key)
     _load_config_file()
 
+    conf.set_default_value('hg_build_number', 19)
+    if 'hg_build_number' in conf and conf['hg_build_number'] not in [19, 38]:
+        raise utils.PheWebError("hg_build_number must be either 19 or 38, not {}".format(repr(conf['hg_build_number'])))
+
     conf.set_default_value('lzjs_version', '0.10.2')  # Global setting, rarely needs configuration: which version of LZjs to fetch from the CDN
     conf.set_default_value('lzjs_version_phewas', '0.9.0')
     conf.set_default_value('custom_templates', lambda: os.path.join(conf.data_dir, 'custom_templates'), is_function=True)

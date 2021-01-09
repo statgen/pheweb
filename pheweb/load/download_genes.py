@@ -1,6 +1,7 @@
 
 from ..utils import chrom_order, chrom_aliases, PheWebError
-from ..file_utils import get_generated_path, get_tmp_path, make_basedir, genes_version, common_filepaths, read_gzip
+from ..file_utils import get_tmp_path, make_basedir, genes_version, common_filepaths, read_gzip
+from ..conf_utils import conf
 
 import os
 import re
@@ -28,6 +29,7 @@ bad_genetypes = set('''
 antisense
 bidirectional_promoter_lncRNA
 lincRNA
+lncRNA
 macro_lncRNA
 miRNA
 misc_RNA
@@ -35,14 +37,18 @@ Mt_rRNA
 Mt_tRNA
 non_coding
 processed_transcript
+ribozyme
 rRNA
+scaRNA
 scRNA
 sense_intronic
 sense_overlapping
 snRNA
 snoRNA
+sRNA
 TEC
 vaultRNA
+vault_RNA
 '''.split()).union(good_genetypes)
 
 def get_all_genes(gencode_filepath):
@@ -91,6 +97,7 @@ def get_good_genes(gencode_filepath):
         elif 'pseudogene' in gene['type'] or gene['type'] in bad_genetypes:
             continue
         else:
+            # This genetype is not in the good or bad lists, so raise an exception
             genetype_counts = Counter(g['type'] for g in genes)
             unknown_genetype_counts = {
                 gt:count for gt,count in genetype_counts.items() if gt not in good_genetypes and gt not in bad_genetypes and 'pseudogene' not in gt
@@ -153,19 +160,30 @@ def dedup_symbol(genes):
 
 
 def run(argv):
-    gencode_filepath = get_generated_path('sites/genes/gencode-{}.gtf.gz'.format(genes_version))
-    genes_filepath = common_filepaths['genes']()
+
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--hg', type=int, default=conf.hg_build_number, choices=[19,38])
+    args = parser.parse_args(argv)
+    hg_build_number = args.hg
+
+    raw_gencode_filepath = get_tmp_path('gencode-v{}-hg{}.gtf.gz'.format(genes_version, hg_build_number))
+    genes_filepath = common_filepaths['genes-hg{}'.format(hg_build_number)]()
 
     if not os.path.exists(genes_filepath):
-        print('genes-{}.bed will be stored at {!r}'.format(genes_version, genes_filepath))
-        if not os.path.exists(gencode_filepath):
-            make_basedir(gencode_filepath)
-            wget.download(
-                url="http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_{0}/GRCh37_mapping/gencode.v{0}lift37.annotation.gtf.gz".format(genes_version),
-                out=gencode_filepath
-            )
+        print('genes will be stored at {!r}'.format(genes_filepath))
+        if not os.path.exists(raw_gencode_filepath):
+            # TODO: Tell the user if a newer release is available.
+            if hg_build_number == 19:
+                url = "http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_{0}/GRCh37_mapping/gencode.v{0}lift37.annotation.gtf.gz".format(genes_version)
+            elif hg_build_number == 38:
+                url = "http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_{0}/gencode.v{0}.annotation.gtf.gz".format(genes_version)
+            else: raise Exception()
+            print('Downloading from {}'.format(url))
+            make_basedir(raw_gencode_filepath)
+            wget.download(url=url, out=raw_gencode_filepath)
             print('')
-        genes = get_good_genes(gencode_filepath)
+        genes = get_good_genes(raw_gencode_filepath)
         genes = dedup_ensg(genes)
         genes = list(dedup_symbol(genes))
         for g in genes: g.pop('full_ensg', None)

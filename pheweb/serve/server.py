@@ -31,6 +31,8 @@ if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
     app.config['GOOGLE_ANALYTICS_TRACKING_ID'] = conf['GOOGLE_ANALYTICS_TRACKING_ID']
 if 'SENTRY_DSN' in conf and not os.environ.get('PHEWEB_NO_SENTRY',''):
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
+app.config['HG_BUILD_NUMBER'] = conf['hg_build_number']
+app.config['GRCH_BUILD_NUMBER'] = conf['hg_build_number'] if conf['hg_build_number'] >= 38 else 18 + conf['hg_build_number']
 app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['LZJS_VERSION'] = conf['lzjs_version']  # TODO: True asset mgmt / build system in future
 app.config['LZJS_VERSION_PHEWAS'] = conf['lzjs_version_phewas']

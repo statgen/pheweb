@@ -1,16 +1,16 @@
 
 
 '''
-This script annotates `sites/sites-unannotated.tsv` with rsids (comma-separated) from `sites/dbSNP/rsids.vcf.gz`.  It prints output to `sites-rsids.tsv`.
+This script annotates `sites/sites-unannotated.tsv` with rsids (comma-separated) from `resources/rsids-*.tsv.gz`.  It prints output to `sites-rsids.tsv`.
 
 It relies on both being ordered like [1-22,X,Y,MT] and having positions sorted.
 
 Notes:
 
 `sites/sites-unannotated.tsv` can have multi-allelic positions.
-`sites/dbSNP/rsids.vcf.gz` can have multi-allelic variants and multiple rsids for the same chr-pos-ref-alt.
+`resources/rsids-*.tsv.gz` can have multi-allelic variants and multiple rsids for the same chr-pos-ref-alt.
 
-In `sites/dbSNP/rsids.vcf.gz`, sometimes `alt` contains `N`, which matches any nucleotide I think.
+In `resources/rsids-*.tsv.gz`, sometimes `alt` contains `N`, which matches any nucleotide I think.
 
 We read one full position at a time.  When we have a position-match, we find all rsids that match a variant.
 '''
