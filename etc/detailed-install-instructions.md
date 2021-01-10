@@ -3,6 +3,7 @@
 First, try:
 
 ```bash
+python3 -m pip install cython wheel
 python3 -m pip install pheweb
 pheweb --help
 ```
@@ -40,6 +41,7 @@ Install prerequisites:
 Then run:
 
 ```bash
+sudo python3 -m pip install wheel cython
 sudo python3 -m pip install pheweb
 ```
 
