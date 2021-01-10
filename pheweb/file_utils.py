@@ -12,16 +12,11 @@ import datetime
 from boltons.fileutils import AtomicSaver, mkdir_p
 import pysam
 import itertools
+from pathlib import Path
 
 
 def get_generated_path(*path_parts):
     return os.path.join(conf.data_dir, 'generated-by-pheweb', *path_parts)
-
-def get_cacheable_file_location(default_relative_dir, basename):
-    if conf.cache:
-        return os.path.join(conf.cache, basename)
-    mkdir_p(get_generated_path(default_relative_dir))
-    return get_generated_path(default_relative_dir, basename)
 
 dbsnp_version = '150'
 genes_version = '36'
@@ -67,7 +62,8 @@ common_filepaths = {
 def make_basedir(path):
     mkdir_p(os.path.dirname(path))
 
-def get_tmp_path(arg):
+def get_tmp_path(arg) -> str:
+    if isinstance(arg, Path): arg = str(arg)
     if arg.startswith(get_generated_path()):
         mkdir_p(get_generated_path('tmp'))
         tmp_basename = arg[len(get_generated_path()):].lstrip(os.path.sep).replace(os.path.sep, '-')
