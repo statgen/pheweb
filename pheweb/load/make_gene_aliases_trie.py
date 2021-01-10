@@ -30,7 +30,7 @@ def get_gene_aliases():
     assert len({g['ensg'] for g in genes}) == len(genes)
     assert len({g['canonical'] for g in genes}) == len(genes)
     for g in genes:
-        assert re.match(r'^ENSGR?[0-9]+(?:\.[0-9]+_[0-9]+(?:_PAR_[XY])?)?$', g['ensg']), g
+        assert re.match(r'^ENSGR?[0-9]+(?:\.[0-9]+(?:_[0-9]+)?(?:_PAR_[XY])?)?$', g['ensg']), g
         #assert re.match(r'^[-\._a-zA-Z0-9]+$', g['canonical']), (g['canonical'], [ord(c) for c in g['canonical']], g)
     print('num canonical gene names: {}'.format(len(genes)))
 
