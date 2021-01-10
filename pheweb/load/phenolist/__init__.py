@@ -192,7 +192,7 @@ def _import_phenolist_csv(f, has_header):
     except Exception as exc:
         raise PheWebError("Sniffing csv format failed.  Check that your csv file is well-formed.  If it is, try delimiting with tabs or semicolons.") from exc
     if dialect.delimiter in string.ascii_letters or dialect.delimiter in string.digits:
-        raise PheWebError("Our csv sniffer decided that {!r} looks like the most likely delimiter in your csv file, but that's crazy.")
+        raise PheWebError("Our csv sniffer decided that {!r} looks like the most likely delimiter in your csv file, but that's crazy.".format(dialect.delimiter))
     f.seek(0)
     try:
         rows = list(csv.reader(f, dialect))
