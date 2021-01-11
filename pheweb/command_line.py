@@ -75,6 +75,8 @@ handlers['serve'] = serve
 def configure(argv):
     from .conf_utils import conf
     import json
+    try: conf['cache']  # Trigger _ensure_conf() so that this config will apply AFTER config.py
+    except Exception: pass
     for i, arg in enumerate(argv):
         if '=' not in arg: break
         k,v = arg.split('=', 1)
