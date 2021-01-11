@@ -15,13 +15,13 @@ add_rsids
 add_genes
 make_tries
 augment_phenos
-manhattan
-qq
 matrix
-bgzip_phenos
-top_hits
-phenotypes
 gather_pvalues_for_each_gene
+bgzip_phenos
+manhattan
+top_hits
+qq
+phenotypes
 pheno_correlation
 '''.split('\n')
 scripts = [script for script in scripts if script]
