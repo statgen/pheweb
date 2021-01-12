@@ -193,7 +193,7 @@ def make_variant_iterator(filepath_or_file_or_iterable, chrom_pos_a1_a2_cols=(0,
             line = line.rstrip('\n')
             if i < num_header_lines or comment_char and line.startswith(comment_char): continue
             if limit_num_variants and i >= limit_num_variants + num_header_lines: break
-            parts = line.split('\t')
+            parts = line.split('\t') if line.count('\t') >= 3 else line.split()
             if len(parts) < 4:
                 raise PheWebError("There should be 4 tab-delimited items (chromosome, position, allel1, allele2) but there are only {} on the line {!r}".format(
                     len(parts), line))
