@@ -227,13 +227,13 @@ def _ensure_conf():
             'tooltip_lztemplate': False,
         }),
         ('ref', {
-            'aliases': ['reference', 'allele0', 'A1'],
+            'aliases': ['reference'],
             'required': True,
             'tooltip_underscoretemplate': False,
             'tooltip_lztemplate': False,
         }),
         ('alt', {
-            'aliases': ['alternate', 'allele1', 'A2'],
+            'aliases': ['alternate'],
             'required': True,
             'tooltip_underscoretemplate': False,
             'tooltip_lztemplate': False,
@@ -252,7 +252,7 @@ def _ensure_conf():
 
     default_per_assoc_fields = OrderedDict([
         ('pval', {
-            'aliases': ['PVALUE', 'P'],
+            'aliases': ['PVALUE', 'P', 'P.VALUE'],
             'required': True,
             'type': float,
             'nullable': True,
