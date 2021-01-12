@@ -52,8 +52,8 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         .add("ld", ["LDLZ2", { url: "https://portaldev.sph.umich.edu/ld/",
             params: { source: '1000G', build: 'GRCh'+window.model.grch_build_number, population: 'ALL' }
         }])
-        .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {source: 2, build: 'GRCh'+window.model.grch_build_number} }])
-        .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {source: 15, build:'GRCh'+window.model.grch_build_number} }]);
+        .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {build: 'GRCh'+window.model.grch_build_number} }])
+        .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {build:'GRCh'+window.model.grch_build_number} }]);
 
     LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
         if (x === 0) return 100;
