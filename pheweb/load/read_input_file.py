@@ -30,7 +30,13 @@ class PhenoReader:
 
     def get_info(self):
         infos = [AssocFileReader(filepath, self._pheno).get_info() for filepath in self.filepaths]
-        assert boltons.iterutils.same(infos)
+        for info in infos[1:]:
+            if info != infos[0]:
+                raise PheWebError(
+                    "The pheno info parsed from some lines disagrees.\n" +
+                    "- for the pheno {}\n".format(self._pheno['phenocode']) +
+                    "- parsed from one line:\n    {}\n".format(infos[0]) +
+                    "- parsed another line:\n    {}\n".format(info))
         return infos[0]
 
     def _order_refalt_lexicographically(self, variants):
@@ -93,12 +99,25 @@ class AssocFileReader:
         self._pheno = pheno
 
 
-    def get_variants(self, minimum_maf=0):
-        fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(conf.parse.per_variant_fields.items(), conf.parse.per_assoc_fields.items()) if fieldval['from_assoc_files']}
+    def get_variants(self, minimum_maf=0, use_per_pheno_fields=False):
+        if use_per_pheno_fields:
+            fields_to_check = conf.parse.per_pheno_fields
+        else:
+            fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(conf.parse.per_variant_fields.items(), conf.parse.per_assoc_fields.items()) if fieldval['from_assoc_files']}
 
         with read_maybe_gzip(self.filepath) as f:
 
-            colnames = [colname.strip('"\' ').lower() for colname in next(f).rstrip('\n\r').split('\t')]
+            try:
+                header_line = next(f)
+            except Exception as exc:
+                raise PheWebError("Failed to read from file {} - is it empty?".format(self.filepath)) from exc
+
+            if header_line.count('\t') >= 4: delimiter = '\t'
+            elif header_line.count(' ') >= 4: delimiter = ' '
+            elif header_line.count(',') >= 4: delimiter = ','
+            else: raise PheWebError("Cannot guess what delimiter to use to parse the header line {!r} in file {!r}".format(header_line, self.filepath))
+
+            colnames = [colname.strip('"\' ').lower() for colname in header_line.rstrip('\n\r').split(delimiter)]
             colidx_for_field = self._parse_header(colnames, fields_to_check)
             # Special case for `MARKER_ID`
             if 'marker_id' not in colnames:
@@ -111,63 +130,54 @@ class AssocFileReader:
                 # TODO: maybe we should allow multiple columns to map to each key, and then just assert that they all agree.
             self._assert_all_fields_mapped(colnames, fields_to_check, colidx_for_field)
 
-            for line in f:
-                values = line.rstrip('\n\r').split('\t')
-                variant = self._parse_variant(values, colnames, colidx_for_field)
+            if use_per_pheno_fields:
+                for line in f:
+                    values = line.rstrip('\n\r').split(delimiter)
+                    variant = self._parse_variant(values, colnames, colidx_for_field)
+                    yield variant
 
-                if variant['pval'] == '': continue
+            else:
+                for line in f:
+                    values = line.rstrip('\n\r').split(delimiter)
+                    variant = self._parse_variant(values, colnames, colidx_for_field)
 
-                maf = get_maf(variant, self._pheno) # checks for agreement
-                if maf is not None and maf < minimum_maf:
-                    continue
+                    if variant['pval'] == '': continue
 
-                if marker_id_col is not None:
-                    chrom2, pos2, variant['ref'], variant['alt'] = AssocFileReader.parse_marker_id(values[marker_id_col])
-                    assert variant['chrom'] == chrom2, (values, variant, chrom2)
-                    assert variant['pos'] == pos2, (values, variant, pos2)
+                    maf = get_maf(variant, self._pheno) # checks for agreement
+                    if maf is not None and maf < minimum_maf:
+                        continue
 
-                if variant['chrom'] in chrom_aliases:
-                    variant['chrom'] = chrom_aliases[variant['chrom']]
+                    if marker_id_col is not None:
+                        chrom2, pos2, variant['ref'], variant['alt'] = AssocFileReader.parse_marker_id(values[marker_id_col])
+                        assert variant['chrom'] == chrom2, (values, variant, chrom2)
+                        assert variant['pos'] == pos2, (values, variant, pos2)
 
-                yield variant
+                    if variant['chrom'] in chrom_aliases:
+                        variant['chrom'] = chrom_aliases[variant['chrom']]
+
+                    yield variant
 
     def get_info(self):
-        infos = self._get_infos()
-        first_info = next(infos)
-        for info in infos:
-            if info != first_info:
+        infos = []
+        for linenum, variant in enumerate(itertools.islice(self.get_variants(use_per_pheno_fields=True), 0, 1000)):
+            # Check that num_cases + num_controls == num_samples
+            if all(key in variant for key in ['num_cases', 'num_controls', 'num_samples']):
+                if variant['num_cases'] + variant['num_controls'] != variant['num_samples']:
+                    raise PheWebError(
+                        "The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
+                        "- the filepath: {!r}\n".format(self.filepath) +
+                        "- the line number: {}".format(linenum+1) +
+                        "- parsed line: [{!r}]\n".format(variant))
+                del variant['num_samples'] # don't need it.
+            infos.append(variant)
+        for info in infos[1:]:
+            if info != infos[0]:
                 raise PheWebError(
                     "The pheno info parsed from some lines disagrees.\n" +
                     "- in the file {}".format(self.filepath) +
-                    "- parsed from first line:\n    {}".format(first_info) +
+                    "- parsed from first line:\n    {}".format(infos[0]) +
                     "- parsed from a later line:\n    {}".format(info))
-        return first_info
-
-    def _get_infos(self, limit=1000):
-        # return the per-pheno info for each of the first `limit` variants
-        fields_to_check = conf.parse.per_pheno_fields
-        with read_maybe_gzip(self.filepath) as f:
-            try:
-                header_line = next(f)
-            except Exception as exc:
-                raise PheWebError("Failed to read from file {} - is it empty?".format(self.filepath)) from exc
-            colnames = [colname.strip('"\' ').lower() for colname in header_line.rstrip('\n\r').split('\t')]
-            colidx_for_field = self._parse_header(colnames, fields_to_check)
-            self._assert_all_fields_mapped(colnames, fields_to_check, colidx_for_field)
-            for linenum, line in enumerate(itertools.islice(f, 0, limit)):
-                values = line.rstrip('\n\r').split('\t')
-                variant = self._parse_variant(values, colnames, colidx_for_field)
-                # Check that num_cases + num_controls == num_samples
-                if all(key in variant for key in ['num_cases', 'num_controls', 'num_samples']):
-                    if variant['num_cases'] + variant['num_controls'] != variant['num_samples']:
-                        raise PheWebError(
-                            "The number of cases and controls don't add up to the number of samples on one line in one of your association files.\n" +
-                            "- the filepath: {!r}\n".format(self.filepath) +
-                            "- the line number: {}".format(linenum+1) +
-                            "- parsed line: [{!r}]\n".format(line))
-                    del variant['num_samples'] # don't need it.
-                yield variant
-
+        return infos[0]
 
     def _parse_variant(self, values, colnames, colidx_for_field):
         # `values`: [str]
@@ -215,17 +225,24 @@ class AssocFileReader:
         required_fields = [field for field in possible_fields if possible_fields[field].get('required', False)]
         missing_required_fields = [field for field in required_fields if field not in colidx_for_field]
         if missing_required_fields:
-            raise PheWebError(
+            err_message = (
                 "Some required fields weren't successfully mapped to the columns of an input file.\n" +
                 "The file is {!r}.\n".format(self.filepath) +
                 "The fields that were required but not present are: {!r}\n".format(missing_required_fields) +
                 "Their accepted aliases are:\n" +
                 ''.join("- {}: {!r}\n".format(field, possible_fields[field]['aliases'])
                         for field in missing_required_fields) +
-                "Here are all the column names from that file: {!r}\n".format(colnames) +
-                "Here are the fields that successfully mapped to columns of the file:\n" +
-                ''.join("- {}: {} (column #{})\n".format(field, colnames[colidx], colidx) for field,colidx in colidx_for_field.items())
-            )
+                "Here are all the column names from that file: {!r}\n".format(colnames))
+            if colidx_for_field:
+                err_message += (
+                    "Here are the fields that successfully mapped to columns of the file:\n" +
+                    ''.join("- {}: {} (column #{})\n".format(field, colnames[colidx], colidx) for field,colidx in colidx_for_field.items())
+                )
+            else:
+                err_message += "No fields successfully mapped.\n"
+            err_message += "You need to modify your input files or use set conf_aliases in your `config.py`."
+            raise PheWebError(err_message)
+
 
     @staticmethod
     def parse_marker_id(marker_id):
