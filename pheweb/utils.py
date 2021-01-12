@@ -69,6 +69,8 @@ assert pad_gene(200000, 800000) == (200000, 800000), pad_gene(200000, 800000)
 chrom_order_list = [str(i) for i in range(1,22+1)] + ['X', 'Y', 'MT']
 chrom_order = {chrom: index for index,chrom in enumerate(chrom_order_list)}
 chrom_aliases = {'23': 'X', '24': 'Y', '25': 'MT', 'M': 'MT'}
+for chrom in chrom_order_list: chrom_aliases['chr{}'.format(chrom)] = chrom
+for alias, chrom in list(chrom_aliases.items()): chrom_aliases['chr{}'.format(alias)] = chrom
 
 
 def get_gene_tuples(include_ensg=False):
