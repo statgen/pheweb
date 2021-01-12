@@ -22,6 +22,7 @@ def get_phenolist_with_globs(globs, star_is_phenocode):
     phenolist = []
     with tqdm.tqdm(total=int(1e100), bar_format='Found {n:7} files') as progressbar:
         for g in globs:
+            g = os.path.expanduser(g)
             num_files_in_this_glob = 0
             for filepath in glob.iglob(g):
                 num_files_in_this_glob += 1
