@@ -42,10 +42,10 @@ for submodule in '''
  download_rsids_from_scratch
  download_genes
  download_genes_from_scratch
- make_gene_aliases_trie
+ make_gene_aliases_sqlite3
  add_rsids
  add_genes
- make_tries
+ make_cpras_rsids_sqlite3
  augment_phenos
  pheno_correlation
  manhattan
