@@ -1,12 +1,14 @@
 
 from ..utils import get_gene_tuples, PheWebError
-from ..file_utils import common_filepaths
+from ..file_utils import common_filepaths, get_tmp_path
 
-import os, re, json
+import re, json
+from pathlib import Path
 import urllib.request
-import marisa_trie
+import sqlite3
+from typing import List, Dict, Iterable
 
-def get_genenamesorg_ensg_aliases_map(ensgs_to_consider):
+def get_genenamesorg_ensg_aliases_map(ensgs_to_consider: Iterable[str]) -> Dict[str, List[str]]:
     ensgs_to_consider = set(ensgs_to_consider)
     r = urllib.request.urlopen('http://ftp.ebi.ac.uk/pub/databases/genenames/new/json/non_alt_loci_set.json')
     data = r.read().decode('utf-8')
@@ -24,7 +26,7 @@ def get_genenamesorg_ensg_aliases_map(ensgs_to_consider):
             raise PheWebError('Cannot handle genenames row: {}'.format(row))
     return ensg_to_aliases
 
-def get_gene_aliases():
+def get_gene_aliases() -> Dict[str, str]:
     # NOTE: "canonical" refers to the canonical symbol for a gene
     genes = [{'canonical': canonical, 'ensg':ensg} for _,_,_,canonical,ensg in get_gene_tuples(include_ensg=True)]
     assert len({g['ensg'] for g in genes}) == len(genes)
@@ -55,22 +57,25 @@ def get_gene_aliases():
 def run(argv):
 
     if '-h' in argv or '--help' in argv:
-        print('Make a trie of all gene names for easy searching.')
+        print('Make a database of all gene names and their aliases for easy searching.')
         exit(1)
 
 
-    if not os.path.exists(common_filepaths['genes']()):
+    if not Path(common_filepaths['genes']()).exists():
         print('Downloading genes')
         from . import download_genes
         download_genes.run([])
 
-    aliases_filepath = common_filepaths['gene-aliases-trie']()
-    if not os.path.exists(aliases_filepath):
-        print('gene aliases will be stored at {!r}'.format(aliases_filepath))
-        mapping = get_gene_aliases()
-        mapping = [(a, cs.encode('ascii')) for a,cs in mapping.items()]
-        aliases_trie = marisa_trie.BytesTrie(mapping)
-        aliases_trie.save(aliases_filepath)
+    aliases_filepath = Path(common_filepaths['gene-aliases-sqlite3']())
+    aliases_tmp_filepath = Path(get_tmp_path(aliases_filepath))
+    if not aliases_filepath.exists():
+        print('gene aliases will be stored at {!r}'.format(str(aliases_filepath)))
+        db = sqlite3.connect(aliases_tmp_filepath)
+        with db:
+            db.execute('CREATE TABLE gene_aliases (alias TEXT PRIMARY KEY, canonicals_comma TEXT)')
+            db.executemany('INSERT INTO gene_aliases VALUES (?,?)', sorted(get_gene_aliases().items()))
+        aliases_tmp_filepath.replace(aliases_filepath)
+        print('Done')
 
     else:
-        print('gene aliases are at {!r}'.format(aliases_filepath))
+        print('gene aliases are at {!r}'.format(str(aliases_filepath)))

@@ -6,8 +6,8 @@ from flask import url_for
 
 import itertools
 import re
-import marisa_trie
 import copy
+import sqlite3
 
 # TODO: sort suggestions better.
 # - It's good that hitting enter sends you to the thing with the highest token-ratio.
@@ -24,9 +24,10 @@ class Autocompleter(object):
         self._phenos = copy.deepcopy(phenos)
         self._preprocess_phenos()
 
-        self._cpra_to_rsids_trie = marisa_trie.BytesTrie().load(common_filepaths['cpra-to-rsids-trie']())
-        self._rsid_to_cpra_trie = marisa_trie.BytesTrie().load(common_filepaths['rsid-to-cpra-trie']())
-        self._gene_alias_trie = marisa_trie.BytesTrie().load(common_filepaths['gene-aliases-trie']())
+        self._cpras_rsids_sqlite3 = sqlite3.connect(common_filepaths['cpras-rsids-sqlite3']())
+        self._cpras_rsids_sqlite3.row_factory = sqlite3.Row
+        self._gene_aliases_sqlite3 = sqlite3.connect(common_filepaths['gene-aliases-sqlite3']())
+        self._gene_aliases_sqlite3.row_factory = sqlite3.Row
 
         self._autocompleters = [
             self._autocomplete_variant,
@@ -43,6 +44,7 @@ class Autocompleter(object):
         for autocompleter in self._autocompleters:
             result = list(itertools.islice(autocompleter(query), 0, 10))
             if result: break
+        print(f'{result=}')
         return result
 
     def get_best_completion(self, query):
@@ -78,54 +80,42 @@ class Autocompleter(object):
         if chrom is not None:
             key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
 
-            def f(cpra, rsids):
-                cpra = cpra.replace('-', ':', 1)
-                rsids = rsids.decode('ascii')
-                yield {
-                    "value": cpra,
-                    "display": '{} ({})'.format(cpra, rsids) if rsids else cpra,
-                    "url": url_for('.variant_page', query=cpra),
-                }
-
-            rsids = self._cpra_to_rsids_trie.get(key)
-            if rsids is not None:
-                if len(rsids) != 1: print('Warning: query {} matched {} rsids in cpra_to_rsids_trie: {}'.format(query, len(rsids), rsids))
-                yield from f(key, rsids[0])
-
-            for cpra, rsids in self._cpra_to_rsids_trie.iteritems(key):
-                if cpra != key:
-                    yield from f(cpra, rsids)
+            # In Python's sort, chr1:23-A-T comes before chr1:23-A-TG, so this should always put exact matches first.
+            cpra_rsid_pairs = list(self._cpras_rsids_sqlite3.execute(
+                'SELECT cpra,rsid FROM cpras_rsids WHERE cpra LIKE ? ORDER BY ROWID LIMIT 100',  # Input was sorted by cpra, so ROWID will sort by cpra
+                (key+'%',)
+            ))
+            if cpra_rsid_pairs:
+                for cpra, rows in itertools.groupby(cpra_rsid_pairs, key=lambda row:row['cpra']):
+                    rowlist = list(rows)
+                    cpra_display = cpra.replace('-', ':', 1)
+                    if len(rowlist) == 1 and rowlist[0]['rsid'] is None:
+                        display = cpra_display
+                    else:
+                        display = '{} ({})'.format(cpra_display, ','.join(row['rsid'] for row in rowlist))
+                    yield {
+                        "value": cpra_display,
+                        "display": display,
+                        "url": url_for('.variant_page', query=cpra_display),
+                    }
 
     def _autocomplete_rsid(self, query):
         query = query.lower()
         if query.startswith('rs'):
             key = query
 
-            # In Trie.iteritems, "rs100" comes before "rs1".
-            # So, rsid_to_cpra_trie.iteritems("rs7412")[-1] is "rs7412".
-            # That's unfortunate, and I don't know how to fix it.
-            # I wish we could get a real lexicographic order, where shorter strings come first, but I don't see how.
-            # Even better would be to the 10 shortest children of the current string.
-            # Here's an attempt at being a little better.
-
-            def f(rsid, cpra):
-                cpra = cpra.decode('ascii').replace('-', ':', 1)
+            rsid_cpra_pairs = list(self._cpras_rsids_sqlite3.execute(
+                'SELECT cpra,rsid FROM cpras_rsids WHERE rsid LIKE ? ORDER BY LENGTH(rsid),rsid LIMIT 100',
+                (key+'%',)
+            ))
+            for row in rsid_cpra_pairs:
+                rsid, cpra = row['rsid'], row['cpra']
+                cpra_display = cpra.replace('-', ':', 1)
                 yield {
-                    "value": cpra,
-                    "display": '{} ({})'.format(rsid, cpra),
-                    'url': url_for('.variant_page', query=cpra),
+                    "value": cpra_display,
+                    "display": '{} ({})'.format(rsid, cpra_display),
+                    'url': url_for('.variant_page', query=cpra_display),
                 }
-
-            rsids_to_check = [key] + ["{}{}".format(key, i) for i in range(10)]
-            for rsid in rsids_to_check:
-                cpras = self._rsid_to_cpra_trie.get(rsid)
-                if cpras is not None:
-                    for cpra in cpras:
-                        yield from f(rsid, cpra)
-
-            for rsid, cpra in self._rsid_to_cpra_trie.iteritems(key):
-                if rsid not in rsids_to_check: # don't repeat rsids we already yeld.
-                    yield from f(rsid, cpra)
 
     def _autocomplete_phenocode(self, query):
         query = self._process_string(query)
@@ -151,32 +141,27 @@ class Autocompleter(object):
         key = query.upper()
         if len(key) >= 2:
 
-            def f(alias, canonical_symbol):
-                canonical_symbol = canonical_symbol.decode('ascii')
-                if ',' in canonical_symbol:
+            alias_canonicals_pairs = list(self._gene_aliases_sqlite3.execute(
+                'SELECT alias,canonicals_comma FROM gene_aliases WHERE alias LIKE ? ORDER BY LENGTH(alias),alias LIMIT 10',
+                (key+'%',)
+            ))
+            for row in alias_canonicals_pairs:
+                alias, canonical_symbols = row['alias'], row['canonicals_comma'].split(',')
+                if len(canonical_symbols) > 1:
                     yield {
-                        'value': canonical_symbol.split(',')[0],
-                        'display': '{} (alias for {})'.format(
-                            alias, ' and '.join(canonical_symbol.split(','))),
-                        'url': url_for('.gene_page', genename=canonical_symbol.split('.')[0]),
+                        'value': canonical_symbols[0],
+                        'display': '{} (alias for {})'.format(alias, ' and '.join(canonical_symbols)),
+                        'url': url_for('.gene_page', genename=canonical_symbols[0]),
                     }
-                elif canonical_symbol == alias:
+                elif canonical_symbols[0] == alias:
                     yield {
-                        "value": canonical_symbol,
-                        "display": canonical_symbol,
-                        "url": url_for('.gene_page', genename=canonical_symbol),
+                        "value": canonical_symbols[0],
+                        "display": canonical_symbols[0],
+                        "url": url_for('.gene_page', genename=canonical_symbols[0]),
                     }
                 else:
                     yield {
-                        "value": canonical_symbol,
-                        "display": '{} (alias for {})'.format(alias, canonical_symbol),
-                        "url": url_for('.gene_page', genename=canonical_symbol),
+                        "value": canonical_symbols[0],
+                        "display": '{} (alias for {})'.format(alias, canonical_symbols[0]),
+                        "url": url_for('.gene_page', genename=canonical_symbols[0]),
                     }
-
-            canonical_symbol = self._gene_alias_trie.get(key)
-            if canonical_symbol is not None:
-                yield from f(key, canonical_symbol[0])
-
-            for alias, canonical_symbol in self._gene_alias_trie.iteritems(key):
-                if alias != key:
-                    yield from f(alias, canonical_symbol)

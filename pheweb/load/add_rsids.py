@@ -97,7 +97,7 @@ def run(argv):
         exit(1)
 
     if not os.path.exists(rsids_filepath):
-        print('Downloading rsids from dbSNP')
+        print('Need rsids resource, so fetching it now...')
         from . import download_rsids
         download_rsids.run([])
 

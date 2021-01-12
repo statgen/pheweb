@@ -115,7 +115,6 @@ setup(
         'Flask-Login~=0.5',
         'rauth~=0.7',
         'pysam~=0.16',
-        'marisa-trie~=0.7',
         'intervaltree~=3.1',
         'tqdm~=4.51',
         'openpyxl~=3.0.5',

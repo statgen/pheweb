@@ -73,7 +73,7 @@ def autocomplete():
     query = request.args.get('query', '')
     suggestions = autocompleter.autocomplete(query)
     if suggestions:
-        return jsonify(sorted(suggestions, key=lambda sugg: sugg['display']))
+        return jsonify(suggestions)
     return jsonify([])
 
 @bp.route('/go')
