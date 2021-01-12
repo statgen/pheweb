@@ -33,8 +33,7 @@ pip3 install pheweb
 2. If you want to configure any options, make a file `config.py` in your data directory. Some options you can set are:
 
    - Minor Allele Frequency cutoffs:
-     - `assoc_min_maf`: an association (between a phenotype and variant) will only be included if its MAF is greater than this value.  (default: `0`, but it saves disk space during loading, so I usually use at least `variant_inclusion_maf / 2`)
-     - `variant_inclusion_maf`: a variant will only be included if it has some associations with MAF greater than this value.  That is, if some or all associations for a variant are above `assoc_min_maf`, but none are above `variant_inclusion_maf`, that entire variant (including all of its associations with phenotypes) will be dropped.  If any association's MAF is above `variant_inclusion_maf`, all associations for that variant that are above `assoc_min_maf` will be included. (default: `0`, but I recommend at least `0.005`)
+     - `assoc_min_maf`: an association (between a phenotype and variant) will only be included if its MAF is greater than or equal to this value.  (default: `0`; 10/num\_samples will save some space)
 
    - `cache`: a directory where files common to all datasets can be stored. If you don't want one, set `cache = False`. (default: `cache = "~/.pheweb/cache/"`)
 
