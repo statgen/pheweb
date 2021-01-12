@@ -16,7 +16,9 @@ from pathlib import Path
 
 
 def get_generated_path(*path_parts):
-    return os.path.join(conf.data_dir, 'generated-by-pheweb', *path_parts)
+    path = os.path.join(conf.data_dir, 'generated-by-pheweb', *path_parts)
+    make_basedir(path)
+    return path
 
 dbsnp_version = '150'
 genes_version = '36'
