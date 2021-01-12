@@ -159,7 +159,7 @@ def main():
             f.write(str(exc) + '\n\n')
             f.write('======= Traceback ====\n')
             f.write(traceback.format_exc())
-        if isinstance(exc, PheWebError): print(exc)
+        if isinstance(exc, PheWebError): print('\n\n'); print(exc)
         elif isinstance(exc, KeyboardInterrupt): print('\nInterrupted')
         elif isinstance(exc, SyntaxError): print(repr(exc))
         else: print('\nAn exception occurred')
