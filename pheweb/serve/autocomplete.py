@@ -44,7 +44,6 @@ class Autocompleter(object):
         for autocompleter in self._autocompleters:
             result = list(itertools.islice(autocompleter(query), 0, 10))
             if result: break
-        print(f'{result=}')
         return result
 
     def get_best_completion(self, query):

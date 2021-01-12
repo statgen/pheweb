@@ -29,10 +29,10 @@ def run(argv):
                         yield (cpra, None)
 
         if cpras_rsids_filepath.exists(): cpras_rsids_filepath.unlink()
-        db_conn = sqlite3.connect(cpras_rsids_filepath)
+        db_conn = sqlite3.connect(str(cpras_rsids_filepath))
         with db_conn:
             db_conn.execute('CREATE TABLE cpras_rsids (cpra TEXT, rsid TEXT)')
             db_conn.executemany('INSERT INTO cpras_rsids (cpra, rsid) VALUES (?,?)', get_cpra_rsid_pairs())
             db_conn.execute('CREATE INDEX rsid_idx ON cpras_rsids (rsid)')
 
-        print('Done making cpras-rsids sqlite3 at {}'.format(cpras_rsids_filepath))
+        print('Done making cpras-rsids sqlite3 at {}'.format(str(cpras_rsids_filepath)))

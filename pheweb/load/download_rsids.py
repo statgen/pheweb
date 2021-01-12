@@ -1,5 +1,6 @@
 # This module finds rsid data (wherever it can) and puts a copy in `generated-by-pheweb/resources/`.
 
+from ..utils import PheWebError
 from ..file_utils import common_filepaths, get_tmp_path
 from ..conf_utils import conf
 
@@ -24,7 +25,10 @@ def get_rsids_for_build(hg_build_number: int):
     url = 'https://resources.pheweb.org/{}'.format(dest_filepath.name)
     print('Downloading {} from {}'.format(dest_filepath, url))
     dest_tmp_filepath = Path(get_tmp_path(dest_filepath))
-    wget.download(url=url, out=str(dest_tmp_filepath)); print()
+    try:
+        wget.download(url=url, out=str(dest_tmp_filepath)); print()
+    except Exception as exc:
+        raise PheWebError('Failed to download rsids from {}.  Try `pheweb download-rsids-from-scratch` instead.'.format(url)) from exc
     os.rename(dest_tmp_filepath, dest_filepath)
     if conf.cache and Path(conf.cache).exists():
         print('Cacheing {} at {}'.format(dest_filepath, cache_filepath))

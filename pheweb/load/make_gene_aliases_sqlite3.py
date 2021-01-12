@@ -70,7 +70,7 @@ def run(argv):
     aliases_tmp_filepath = Path(get_tmp_path(aliases_filepath))
     if not aliases_filepath.exists():
         print('gene aliases will be stored at {!r}'.format(str(aliases_filepath)))
-        db = sqlite3.connect(aliases_tmp_filepath)
+        db = sqlite3.connect(str(aliases_tmp_filepath))
         with db:
             db.execute('CREATE TABLE gene_aliases (alias TEXT PRIMARY KEY, canonicals_comma TEXT)')
             db.executemany('INSERT INTO gene_aliases VALUES (?,?)', sorted(get_gene_aliases().items()))
