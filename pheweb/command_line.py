@@ -10,8 +10,8 @@ import math
 if sys.version_info.major <= 2:
     print("Sorry, PheWeb requires Python 3.  Please use Python 3 by installing it with `pip3 install pheweb` or `python3 -m pip install pheweb`.")
     sys.exit(1)
-if sys.version_info < (3, 4):
-    print("Sorry, PheWeb requires Python 3.4 or newer.  Use Miniconda, Linuxbrew, Homebrew, or another solution to install a newer Python.")
+if sys.version_info < (3, 6):
+    print("Sorry, PheWeb requires Python 3.6 or newer.  Use Miniconda or Homebrew or another solution to install a newer Python.")
     sys.exit(1)
 
 # math.inf was introduced in python3.5
