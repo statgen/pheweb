@@ -48,8 +48,12 @@ assert _extract_star('/foo/*/pheno-*.epacts.gz', '/foo/bar/pheno-bar.epacts.gz')
 
 def extract_phenocode_from_filepath(phenolist, regex):
     print("NOTE: working with {} phenos".format(len(phenolist)))
-    if not isinstance(regex, re._pattern_type):
-        regex = re.compile(regex)
+     ## MAKE SURE regex is compiled somehow!
+     try:
+         regex = re.compile(regex)
+     except AttributeError:
+         print(f"{regex} is not a regex")
+
     for pheno in phenolist:
         if 'assoc_files' not in pheno:
             raise PheWebError("ERROR: At least one phenotype doesn't have the key 'assoc_files'.")
