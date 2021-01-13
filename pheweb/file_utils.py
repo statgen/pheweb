@@ -320,8 +320,8 @@ def VariantFileWriter(filepath, allow_extra_fields=False):
     '''
     part_file = get_tmp_path(filepath)
     make_basedir(filepath)
-    with AtomicSaver(filepath, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
-        with gzip.open(f, 'w', compresslevel=2) as f_gzip:
+    with AtomicSaver(filepath, text_mode=False, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
+        with gzip.open(f, 'wt', compresslevel=2) as f_gzip:
             yield _vfw(f_gzip, allow_extra_fields, filepath)
 class _vfw:
     def __init__(self, f, allow_extra_fields, filepath):
