@@ -1,30 +1,44 @@
 
 from ..utils import get_gene_tuples, pad_gene
-from ..file_utils import MatrixReader, write_json, common_filepaths
-from .load_utils import Parallelizer, mtime
+from ..file_utils import MatrixReader, common_filepaths, get_tmp_path
+from .load_utils import Parallelizer
 
-import os
-
+import sqlite3, json
+from pathlib import Path
 
 def run(argv):
     if argv and '-h' in argv:
         print('get info for genes')
         exit(0)
 
-    out_filepath = common_filepaths['best-phenos-by-gene']()
-    matrix_filepath = common_filepaths['matrix']()
-    if os.path.exists(out_filepath) and mtime(matrix_filepath) < mtime(out_filepath):
-        print('{} is up-to-date!'.format(out_filepath))
+    out_filepath = Path(common_filepaths['best-phenos-by-gene-sqlite3']())
+    matrix_filepath = Path(common_filepaths['matrix']())
+    if out_filepath.exists() and matrix_filepath.stat().st_mtime < out_filepath.stat().st_mtime:
+        print('{} is up-to-date!'.format(str(out_filepath)))
         return
 
-    genes = list(get_gene_tuples())
-    gene_results = Parallelizer().run_multiple_tasks(
-        tasks = genes,
-        do_multiple_tasks = process_genes,
-        cmd = 'gather-pvalues-for-each-gene'
-    )
-    data = {k:v for ret in gene_results for k,v in ret['value'].items()}
-    write_json(filepath=out_filepath, data=data)
+    old_filepath = Path(common_filepaths['best-phenos-by-gene-old-json']())
+    if old_filepath.exists() and matrix_filepath.stat().st_mtime < old_filepath.stat().st_mtime:
+        print('Migrating old {} to new {}'.format(str(old_filepath), str(out_filepath)))
+        with open(old_filepath) as f:
+            data = json.load(f)
+
+    else:
+        genes = list(get_gene_tuples())
+        gene_results = Parallelizer().run_multiple_tasks(
+            tasks = genes,
+            do_multiple_tasks = process_genes,
+            cmd = 'gather-pvalues-for-each-gene'
+        )
+        data = {k:v for ret in gene_results for k,v in ret['value'].items()}
+
+    out_tmp_filepath = Path(get_tmp_path(out_filepath))
+    db = sqlite3.connect(str(out_tmp_filepath))
+    with db:
+        db.execute('CREATE TABLE best_phenos_for_each_gene (gene TEXT PRIMARY KEY, json TEXT)')
+        db.executemany('INSERT INTO best_phenos_for_each_gene (gene, json) VALUES (?,?)', ((k,json.dumps(v)) for k,v in data.items()))
+    out_tmp_filepath.replace(out_filepath)
+    print('Done making best-pheno-for-each-gene at {}'.format(str(out_filepath)))
 
 def process_genes(taskq, retq):
     with MatrixReader().context() as matrix_reader:

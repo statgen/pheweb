@@ -18,6 +18,7 @@ import traceback
 import json
 import os
 import os.path
+import sqlite3
 
 
 bp = Blueprint('bp', __name__, template_folder='templates', static_folder='static')
@@ -223,9 +224,15 @@ def get_gene_region_mapping():
     return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
 
 @functools.lru_cache(None)
-def get_best_phenos_by_gene():
-    with open(common_filepaths['best-phenos-by-gene']()) as f:
-        return json.load(f)
+def get_best_phenos_by_gene_db():
+    db = sqlite3.connect(common_filepaths['best-phenos-by-gene-sqlite3']())
+    db.row_factory = sqlite3.Row
+    return db
+def get_best_phenos_for_gene(gene:str) -> list:
+    db = get_best_phenos_by_gene_db()
+    for row in db.execute('SELECT json FROM best_phenos_for_each_gene WHERE gene = ?', (gene,)):
+        return json.loads(row['json'])
+    return []
 
 @bp.route('/region/<phenocode>/gene/<genename>')
 @check_auth
@@ -248,7 +255,7 @@ def gene_phenocode_page(phenocode, genename):
         pheno = phenos[phenocode]
 
         phenos_in_gene = []
-        for pheno_in_gene in get_best_phenos_by_gene().get(genename, []):
+        for pheno_in_gene in get_best_phenos_for_gene(genename):
             phenos_in_gene.append({
                 'pheno': {k:v for k,v in phenos[pheno_in_gene['phenocode']].items() if k not in ['assoc_files', 'colnum']},
                 'assoc': {k:v for k,v in pheno_in_gene.items() if k != 'phenocode'},
@@ -268,7 +275,7 @@ def gene_phenocode_page(phenocode, genename):
 @bp.route('/gene/<genename>')
 @check_auth
 def gene_page(genename):
-    phenos_in_gene = get_best_phenos_by_gene().get(genename, [])
+    phenos_in_gene = get_best_phenos_for_gene(genename)
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype.")
     return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
