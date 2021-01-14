@@ -10,7 +10,8 @@ import time
 output_nodes =["pheweb_import.matrix.matrix", "pheweb_import.matrix.matrix_tbi",
     "pheweb_import.matrix.pheno_gene","pheweb_import.matrix.phenolist",
     "pheweb_import.matrix.top_hits_1k","pheweb_import.matrix.top_hits_json","pheweb_import.matrix.top_hits_tsv",
-    "pheweb_import.pheno.manhattan","pheweb_import.pheno.pheno_gz","pheweb_import.pheno.pheno_tbi","pheweb_import.pheno.qq"]
+    "pheweb_import.pheno.manhattan","pheweb_import.pheno.pheno_gz","pheweb_import.pheno.pheno_tbi",
+    "pheweb_import.pheno.qq","pheweb_import.fix_json.json"]
 
 annot_nodes = ["pheweb_import.annotation.bed", "pheweb_import.annotation.gene_trie",
     "pheweb_import.annotation.sites","pheweb_import.annotation.trie1","pheweb_import.annotation.trie2"]
@@ -56,6 +57,8 @@ def run():
         for f in d:
             bf = os.path.basename(f)
             outpath = f.split("/pheweb/")
+            if (len(outpath)==1):
+                outpath=[""]
             all_files[bf]=(f,f'{dest_bucket}/pheweb/{outpath[-1]}')
 
 
