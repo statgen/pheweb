@@ -334,6 +334,7 @@ def api_region(phenocode):
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
+    chrom = '23' if str(chrom) == 'X' else chrom
     rv = get_pheno_region(phenocode, chrom, pos_start, pos_end, conf.locuszoom_conf['p_threshold'])
     jeeves.add_annotations(chrom, pos_start, pos_end, [rv])
     return jsonify(rv)
