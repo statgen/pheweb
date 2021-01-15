@@ -7,14 +7,19 @@ import json
 import os
 import time
 
-output_nodes =["pheweb_import.matrix.matrix", "pheweb_import.matrix.matrix_tbi",
-    "pheweb_import.matrix.pheno_gene","pheweb_import.matrix.phenolist",
-    "pheweb_import.matrix.top_hits_1k","pheweb_import.matrix.top_hits_json","pheweb_import.matrix.top_hits_tsv",
-    "pheweb_import.pheno.manhattan","pheweb_import.pheno.pheno_gz","pheweb_import.pheno.pheno_tbi",
-    "pheweb_import.pheno.qq","pheweb_import.fix_json.json"]
 
-annot_nodes = ["pheweb_import.annotation.bed", "pheweb_import.annotation.gene_trie",
-    "pheweb_import.annotation.sites","pheweb_import.annotation.trie1","pheweb_import.annotation.trie2"]
+def phef(f):
+    return os.path.dirname(f'/{f.split("/pheweb/")[-1]}/')
+
+output_nodes =[ ("pheweb_import.matrix.matrix",phef), ("pheweb_import.matrix.matrix_tbi",phef),
+    ("pheweb_import.matrix.pheno_gene",phef),("pheweb_import.matrix.phenolist",phef),
+    ("pheweb_import.matrix.top_hits_1k",phef),("pheweb_import.matrix.top_hits_json",phef),("pheweb_import.matrix.top_hits_tsv",phef),
+    ("pheweb_import.pheno.manhattan",phef),("pheweb_import.pheno.pheno_gz",phef),("pheweb_import.pheno.pheno_tbi",phef),
+    ("pheweb_import.pheno.qq",phef),("pheweb_import.fix_json.json",lambda x: f'/pheno-list.json') ]
+
+annot_nodes = [ ("pheweb_import.annotation.bed",lambda x: f'/cache/'),
+    ("pheweb_import.annotation.gene_trie",lambda x: f'/cache/'),("pheweb_import.annotation.sites",phef),
+    ("pheweb_import.annotation.trie1",phef),("pheweb_import.annotation.trie2",phef)]
 
 def run():
     parser = argparse.ArgumentParser(description="Run x-way meta-analysis")
@@ -43,7 +48,6 @@ def run():
 
     ret = json.loads( pr.stdout )
 
-    print(args.skip_annotation)
     if "status" in ret and ret['status']=='fail' :
         raise Exception(f'Error requesting metadata. Cromwell message: {ret["message"]}')
 
@@ -53,28 +57,27 @@ def run():
         output_nodes.extend(annot_nodes)
 
     for n in output_nodes:
-        d = ret["outputs"][n] if not isinstance(ret["outputs"][n],str) else [ret["outputs"][n]]
+        d = ret["outputs"][n[0]] if not isinstance(ret["outputs"][n[0]],str) else [ret["outputs"][n[0]]]
         for f in d:
             bf = os.path.basename(f)
-            outpath = f.split("/pheweb/")
-            if (len(outpath)==1):
-                outpath=[""]
-            all_files[bf]=(f,f'{dest_bucket}/pheweb/{outpath[-1]}')
+            outpath = n[1](f)
+            print(f'copying {f} to {dest_bucket}{outpath} ')
+            all_files[bf]=(f,f'{dest_bucket}{outpath}')
 
-
-    print(f'Starting copying { len(all_files.keys())} file into {dest_bucket}...')
+    print(f'Starting copying { len(all_files.keys())} file(s) into {dest_bucket}...')
     processes = []
     for k,v in all_files.items():
-        processes.append(subprocess.Popen(f'gsutil cp {v[0]} {v[1]}', shell=True))
+        processes.append(subprocess.Popen(f'gsutil cp {v[0]} {v[1]}', shell=True, stderr=subprocess.PIPE))
 
     n_complete = 0
     while n_complete < len(processes):
-        time.sleep(10)
+        time.sleep(5)
         n_complete = 0
         for p in processes:
             p_poll = p.poll()
             if p_poll is not None and p_poll > 0:
-                raise Exception('subprocess returned ' + str(p_poll))
+                outs, errs = p.communicate()
+                raise Exception('subprocess returned ' + str(p_poll) + " " + (str(errs)))
             if p_poll == 0:
                 n_complete = n_complete + 1
         print(f'{n_complete}/{len(processes)} copied')
