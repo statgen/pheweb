@@ -16,7 +16,7 @@
     "pheweb_import.matrix.disk": 8000,
 
 # PHENOJSON
-    "pheweb_import.fix_json.meta_json": "gs://r6_data/pheweb/custom/meta_json.txt",
-    "pheweb_import.fix_json.docker": "eu. gcr.io/finngen-refinery-dev/pheweb_annotation:regex",
-    "pheweb_import.fix_json.fields" : ["num_cases","num_controls","name","category"]
+    "pheweb_import.fix_json.custom_json": "gs://r6_data/pheweb/custom/custom.json",
+    "pheweb_import.fix_json.docker": "eu.gcr.io/finngen-refinery-dev/pheweb_annotation:regex",
+    "pheweb_import.fix_json.fields" : ["num_cases","num_controls","name","category",'description']
 }
