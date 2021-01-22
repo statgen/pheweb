@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: pheweb-front
+  name: {{ include "pheweb.fullname" . }}-front
   labels:
     app: pheweb
     tier: frontend
 spec:
-  serviceName: pheweb-front
+  serviceName: {{ include "pheweb.fullname" . }}-front
   selector:
     matchLabels:
       app: pheweb
-  replicas: 3
+  replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
@@ -29,10 +29,10 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:ci-c0073e6818c2caafa0b6d7e6dc5237b38e2a9b09
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
         - name: PHEWEB_DIR
-          value: "/mnt/nfs/pheweb/r6"
+          value: {{ if .Values.pheweb.directory }} "{{ .Values.pheweb.directory }}" {{ else }} "{{ .Values.pheweb.mount }}/pheweb/{{ .Values.pheweb.subdomain }}"  {{ end }}
         ports:
         - containerPort: 8080
         readinessProbe:
@@ -47,10 +47,10 @@ spec:
             path: /health
             port: 8080
         volumeMounts:
-        - mountPath: /mnt/nfs
+        - mountPath: "{{ .Values.pheweb.mount }}"
           name: pheweb-nfs
       volumes:
       - name: pheweb-nfs
         persistentVolumeClaim:
-          claimName: nfs-claim
+          claimName: pvc-{{ include "pheweb.fullname" . }}
           readOnly: false

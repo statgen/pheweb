@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ig-{{ .Values.pheweb.subdomain }}
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: {{ .Values.pheweb.subdomain }}
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: "gce"
+  labels:
+    app: pheweb
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.pheweb.subdomain }}.finngen.fi
+    secretName: finngen-tls
+  rules:
+  - host: {{ .Values.pheweb.subdomain }}.finngen.fi
+    http:
+      paths:
+      - backend:
+          serviceName: {{ include "pheweb.fullname" . }}-front
+          servicePort: 80
+        path: /*

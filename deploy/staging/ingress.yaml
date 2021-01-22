@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: pheweb
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: bstaging
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: "gce"
+    #ssl-redirect doesn't work yet on gce
+    #ingress.kubernetes.io/ssl-redirect: "true"
+  labels:
+    app: pheweb
+spec:
+  tls:
+  - hosts:
+    - bstaging.finngen.fi
+    secretName: finngen-tls
+  rules:
+  - host: bstaging.finngen.fi
+    http:
+      paths:
+      - backend:
+          serviceName: pheweb-front
+          servicePort: 80
+        path: /*
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pheweb-front
+  labels:
+    app: pheweb
+    tier: frontend
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: pheweb
+    tier: frontend
