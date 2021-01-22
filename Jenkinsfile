@@ -9,10 +9,6 @@ pipeline {
 		  	    docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') { c.push("ci-${env.GIT_COMMIT}") }
 			    docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') { c.push("ci-latest") }
 		}
-		script {    c_import = docker.build("phewas-development/pheweb:ci-import-${env.$GIT_COMMIT}", "-f deploy/Dockerfile ./")
-		  	    docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') { c_import.push("ci-import-${env.GIT_COMMIT}") }
-			    docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') { c_import.push("ci-import-latest") }
-		}
 	    }
 	}
     stage('Deploy') {
@@ -21,7 +17,7 @@ pipeline {
                     sh '''/root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$gcp'''
                     sh '''/root/google-cloud-sdk/bin/gcloud auth configure-docker'''
                     sh '''/root/google-cloud-sdk/bin/gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b'''
-                    sh '''if helm ls | grep bstaging > /dev/null  ; then  helm upgrade bstaging ./deploy/pheweb --set image.tag=ci-${env.GIT_COMMIT} ; else helm install bstaging ./deploy/pheweb --set image.tag=ci-${env.GIT_COMMIT} ; fi ; '''
+                    sh '''if helm ls | grep bstaging > /dev/null  ; then  helm upgrade bstaging ./deploy/pheweb --set image.tag=ci-latest ; else helm install bstaging ./deploy/pheweb --set image.tag=ci-latest ; fi ; '''
 		}
 	    }
 	}
