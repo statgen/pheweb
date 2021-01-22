@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: pheweb-front
@@ -29,7 +29,7 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:5a6fb
+        image: gcr.io/phewas-development/pheweb:ci-ae99dcf60b3a960366af0cf9b4e0a7626b3f8fbb
         env:
         - name: PHEWEB_DIR
           value: "/mnt/nfs/pheweb/r6"
