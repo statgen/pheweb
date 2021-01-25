@@ -245,7 +245,7 @@ hg18[a1:26% a2:24% either:50%] hg19[a1:all a2:0% either:all] hg38[a1:26% a2:23% 
         chrom = parse_chrom(argv[2])
         pos = parse_pos(argv[3])
         base = build.get_bases(chrom, pos, length=1)
-        print('{} {}:{:,} {}'.format(build['hg'], chrom, pos, 'not found' if base is None else base))
+        print('{} {}:{:,} {}'.format(build.hg_name, chrom, pos, 'not found' if base is None else base))
 
     elif len(argv) == 3 and argv[0] == 'get-base':
         chrom = parse_chrom(argv[1])
