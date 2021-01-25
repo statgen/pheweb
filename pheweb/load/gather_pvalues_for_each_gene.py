@@ -1,4 +1,25 @@
 
+# TODO: Don't read any variant more than once.
+#       Right now this reads each 100kb-padded-gene independently, resulting in reading some variants multiple times.
+#       The sum of lengths of all 20k genes is 1400Mbases.
+#       The sum of the padded lengths is 5400Mbases.
+#       The total number of bases in the padded genes (without double-counting overlaps) is: 1200Mbases
+#         intervals = sorted((int(chrom)*1e12+int(start), int(chrom)*1e12+int(stop)) for chrom,start,stop,genename,_  in (line.split() for line in open('genes-v36-hg38.bed')) if chrom.isdigit())
+#         ret = []
+#         for iv in intervals:
+#         if not ret or iv[0] > ret[-1][1]: ret.append(iv)
+#         else: ret[-1] = (ret[-1][0], max(ret[-1][1], iv[1]))
+#         sum(end-start for start,end in ret)
+#       So could this run in 25% of the time if deduped?
+
+# TODO:
+# Make a list of all 15k non-overlapping intervals.
+# Each is a task.
+# For each variant, check what genes it's in.  Add each pheno to each of those genes.
+# Then at the end of the task, trim down the list for each gene according to the normal rules and return it.
+# Then in the main thread, merge all the results and trim them down again.
+
+
 from ..utils import get_gene_tuples, pad_gene
 from ..file_utils import MatrixReader, common_filepaths, get_tmp_path
 from .load_utils import Parallelizer
