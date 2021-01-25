@@ -18,6 +18,7 @@
 # For each variant, check what genes it's in.  Add each pheno to each of those genes.
 # Then at the end of the task, trim down the list for each gene according to the normal rules and return it.
 # Then in the main thread, merge all the results and trim them down again.
+# See <https://github.com/FINNGEN/pheweb/blob/master/pheweb/load/gather_pvalues_for_each_gene.py>
 
 
 from ..utils import get_gene_tuples, pad_gene
