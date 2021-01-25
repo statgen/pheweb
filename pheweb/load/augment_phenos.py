@@ -1,21 +1,25 @@
 
 from ..utils import PheWebError
 from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, with_chrom_idx
-from .load_utils import parallelize_per_pheno
+from .load_utils import parallelize_per_pheno, get_phenos_subset, get_phenolist
 
+import argparse
 
 sites_filepath = common_filepaths['sites']()
 
 def run(argv):
-    if '-h' in argv or '--help' in argv:
-        print('Make copies of the association files with annotation included.')
-        exit(1)
+    parser = argparse.ArgumentParser(description="annotate each phenotype by pulling in information from the combined sites file")
+    parser.add_argument('--phenos', help="Can be like '4,5,6,12' or '4-6,12' to run on only the phenos at those positions (0-indexed) in pheno-list.json (and only if they need to run)")
+    args = parser.parse_args(argv)
+
+    phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
 
     parallelize_per_pheno(
         get_input_filepaths = lambda pheno: common_filepaths['parsed'](pheno['phenocode']),
         get_output_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
         convert = convert,
         cmd = 'augment-pheno',
+        phenos = phenos,
     )
 
 def convert(pheno):

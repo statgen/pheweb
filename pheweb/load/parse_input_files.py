@@ -3,25 +3,18 @@ from ..utils import get_phenolist, PheWebError
 from ..conf_utils import conf
 from ..file_utils import VariantFileWriter, write_json, get_generated_path, common_filepaths
 from .read_input_file import PhenoReader
-from .load_utils import parallelize_per_pheno, indent
+from .load_utils import parallelize_per_pheno, indent, get_phenos_subset
 
 import itertools
 import argparse
 
 
 def run(argv):
-
     parser = argparse.ArgumentParser(description="import input files into a nice format")
-    parser.add_argument('--phenos')
+    parser.add_argument('--phenos', help="Can be like '4,5,6,12' or '4-6,12' to run on only the phenos at those positions (0-indexed) in pheno-list.json (and only if they need to run)")
     args = parser.parse_args(argv)
 
-    phenos = get_phenolist()
-    if args.phenos is not None:
-        try:
-            pheno_idxs_to_include = set(int(x) for x in args.phenos.split(','))
-        except Exception as exc:
-            raise PheWebError("Couldn't parse string {!r}".format(args.phenos)) from exc
-        phenos = [phenos[i] for i in pheno_idxs_to_include]
+    phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
 
     results_by_phenocode = parallelize_per_pheno(
         get_input_filepaths = lambda pheno: pheno['assoc_files'],
@@ -37,7 +30,6 @@ def run(argv):
         write_json(filepath=failed_filepath, data=failed_results, indent=1, sort_keys=True)
         print('\n{} phenotypes failed (saved to {!r})\n'.format(len(failed_results), failed_filepath))
 
-        phenos = get_phenolist()
         succeeded_phenos = [p for p in phenos if p['phenocode'] not in failed_results]
         succeeded_filepath = get_generated_path('tmp', 'pheno-list-successful-only.json')
         write_json(filepath=succeeded_filepath, data=succeeded_phenos, indent=1, sort_keys=True)

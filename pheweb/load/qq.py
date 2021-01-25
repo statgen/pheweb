@@ -19,8 +19,9 @@ This script creates json files which can be used to render QQ plots.
 
 from ..utils import round_sig, approx_equal
 from ..file_utils import VariantFileReader, write_json, common_filepaths
-from .load_utils import get_maf, parallelize_per_pheno
+from .load_utils import get_maf, parallelize_per_pheno, get_phenos_subset, get_phenolist
 
+import argparse
 import boltons.mathutils
 import boltons.iterutils
 import collections
@@ -32,20 +33,44 @@ NUM_MAF_RANGES = 4
 
 
 def run(argv):
-    if '-h' in argv or '--help' in argv:
-        print('Make a QQ plot for each phenotype')
-        exit(1)
+    parser = argparse.ArgumentParser(description="Make a QQ plot for each phenotype.")
+    parser.add_argument('--phenos', help="Can be like '4,5,6,12' or '4-6,12' to run on only the phenos at those positions (0-indexed) in pheno-list.json (and only if they need to run)")
+    parser.add_argument('--from-gz', help="Read from ./generated-by-pheweb/pheno_gz/ instead of the usual ./generated-by-pheweb/pheno/")
+    args = parser.parse_args(argv)
+
+    phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
+
+    if argv.from_gz:
+        def get_input_filepaths(pheno): return common_filepaths['pheno_gz'](pheno['phenocode'])
+        convert = make_json_file_from_gz
+    else:
+        def get_input_filepaths(pheno): return common_filepaths['pheno'](pheno['phenocode'])
+        convert = make_json_file
 
     parallelize_per_pheno(
-        get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
+        get_input_filepaths = get_input_filepaths,
         get_output_filepaths = lambda pheno: common_filepaths['qq'](pheno['phenocode']),
-        convert = make_json_file,
+        convert = convert,
         cmd = 'qq',
+        phenos = phenos,
     )
 
 
 def make_json_file(pheno):
-    with VariantFileReader(common_filepaths['pheno'](pheno['phenocode'])) as variant_dicts:
+    make_json_file_explicit(
+        common_filepaths['pheno'](pheno['phenocode']),
+        common_filepaths['qq'](pheno['phenocode']),
+        pheno
+    )
+def make_json_file_from_gz(pheno):
+    make_json_file_explicit(
+        common_filepaths['pheno_gz'](pheno['phenocode']),
+        common_filepaths['qq'](pheno['phenocode']),
+        pheno
+    )
+
+def make_json_file_explicit(in_filepath, out_filepath, pheno):
+    with VariantFileReader(in_filepath) as variant_dicts:
         variants = list(augment_variants(variant_dicts, pheno))
     rv = {}
     if variants:
@@ -56,7 +81,7 @@ def make_json_file(pheno):
         else:
             rv['overall'] = make_qq_unstratified(variants, include_qq=True)
             rv['ci'] = list(get_confidence_intervals(len(variants)))
-    write_json(filepath=common_filepaths['qq'](pheno['phenocode']), data=rv)
+    write_json(filepath=out_filepath, data=rv)
 
 
 Variant = collections.namedtuple('Variant', ['qval', 'maf'])

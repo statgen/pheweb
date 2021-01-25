@@ -13,32 +13,35 @@ This script creates json files which can be used to render Manhattan plots.
 from ..utils import chrom_order
 from ..conf_utils import conf
 from ..file_utils import VariantFileReader, write_json, common_filepaths
-from .load_utils import MaxPriorityQueue, parallelize_per_pheno
+from .load_utils import MaxPriorityQueue, parallelize_per_pheno, get_phenos_subset, get_phenolist
 
-import math
+import math, argparse
 
 BIN_LENGTH = int(3e6)
 
 
 def run(argv):
-    if '-h' in argv or '--help' in argv:
-        print('Make a Manhattan plot for each phenotype.')
-        exit(1)
+    parser = argparse.ArgumentParser(description="Make a Manhattan plot for each phenotype.")
+    parser.add_argument('--phenos', help="Can be like '4,5,6,12' or '4-6,12' to run on only the phenos at those positions (0-indexed) in pheno-list.json (and only if they need to run)")
+    parser.add_argument('--from-gz', help="Read from ./generated-by-pheweb/pheno_gz/ instead of the usual ./generated-by-pheweb/pheno/")
+    args = parser.parse_args(argv)
 
-    if '--from-gz' in argv:
-        parallelize_per_pheno(
-            get_input_filepaths = lambda pheno: common_filepaths['pheno_gz'](pheno['phenocode']),
-            get_output_filepaths = lambda pheno: common_filepaths['manhattan'](pheno['phenocode']),
-            convert = make_manhattan_json_file_from_gz,
-            cmd = 'manhattan',
-        )
+    phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
+
+    if argv.from_gz:
+        def get_input_filepaths(pheno): return common_filepaths['pheno_gz'](pheno['phenocode'])
+        convert = make_manhattan_json_file_from_gz
     else:
-        parallelize_per_pheno(
-            get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
-            get_output_filepaths = lambda pheno: common_filepaths['manhattan'](pheno['phenocode']),
-            convert = make_manhattan_json_file,
-            cmd = 'manhattan',
-        )
+        def get_input_filepaths(pheno): return common_filepaths['pheno'](pheno['phenocode'])
+        convert = make_manhattan_json_file
+
+    parallelize_per_pheno(
+        get_input_filepaths = get_input_filepaths,
+        get_output_filepaths = lambda pheno: common_filepaths['manhattan'](pheno['phenocode']),
+        convert = convert,
+        cmd = 'manhattan',
+        phenos = phenos,
+    )
 
 
 def make_manhattan_json_file_from_gz(pheno):

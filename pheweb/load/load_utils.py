@@ -13,6 +13,8 @@ import random
 import sys
 import heapq
 from types import GeneratorType
+import typing
+import re
 
 
 def get_maf(variant, pheno):
@@ -303,7 +305,23 @@ class PerPhenoParallelizer(Parallelizer):
 def parallelize_per_pheno(get_input_filepaths, get_output_filepaths, convert, *, cmd=None, phenos=None):
     return PerPhenoParallelizer().run_on_each_pheno(get_input_filepaths, get_output_filepaths, convert, cmd=cmd, phenos=phenos)
 
-
+def get_phenos_subset(pheno_subset_str:str) -> typing.List[dict]:
+    phenos = get_phenolist()
+    idxs_to_include = _get_idxs_from_subset_str(pheno_subset_str)
+    return [phenos[idx] for idx in idxs_to_include]
+def _get_idxs_from_subset_str(subset_str:str) -> typing.Iterator[int]:
+    if not re.match(r'^(\d+(-\d+)?)(,\d+(-\d+)?)*$', subset_str):
+        raise PheWebError("Couldn't parse subset string: {}".format(repr(subset_str)))
+    idxs = set()
+    for part in subset_str.split(','):
+        if '-' in part:
+            start, stop = part.split('-')
+            idxs.update(range(int(start), 1+int(stop)))
+        else:
+            idxs.add(int(part))
+    return sorted(idxs)
+assert list(_get_idxs_from_subset_str('1,3,5-7')) == [1,3,5,6,7]
+assert list(_get_idxs_from_subset_str('5-7,1,3,3-3')) == [1,3,5,6,7]
 
 def indent(string):
     return '\n'.join('   '+line for line in str(string).split('\n'))
