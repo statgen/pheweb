@@ -35,7 +35,7 @@ if 'PHEWEB_DEBUG' in os.environ:
 handlers = {}
 for submodule in '''
  phenolist
- slurm-parse
+ cluster
  parse_input_files
  sites
  download_rsids

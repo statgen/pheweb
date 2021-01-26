@@ -156,7 +156,7 @@ There are four ways to make a `pheno-list.json`:
 
 1. Run `pheweb process`.
 
-   - This step can take hours or days for large datasets.  If you want to use the SLURM cluster scheduler, run `pheweb slurm-parse` for parsing and then `pheweb process --no-parse` for everything else.  To use a different cluster scheduler, modify the file written by `pheweb slurm-parse` to support your scheduler.
+   - This step can take hours or days for large datasets.  If you want to use the SLURM or SGE cluster scheduler, run `pheweb cluster --step=parse` for parsing and then `pheweb process --no-parse` for everything else.  To use another cluster scheduler, modify the output of `pheweb cluster --step=parse --engine=slurm`.
 
 2. If something breaks, read the error message.
 
