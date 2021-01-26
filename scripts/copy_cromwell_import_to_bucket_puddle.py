@@ -21,6 +21,9 @@ annot_nodes = [ ("pheweb_import.annotation.bed",lambda x: f'/cache/'),
     ("pheweb_import.annotation.gene_trie",lambda x: f'/cache/'),("pheweb_import.annotation.sites",phef),
     ("pheweb_import.annotation.trie1",phef),("pheweb_import.annotation.trie2",phef)]
 
+
+output_nodes =[ ("pheweb_import.matrix.matrix",phef)]
+
 def run():
     parser = argparse.ArgumentParser(description="Run x-way meta-analysis")
     parser.add_argument('cromwell_hash', action='store', type=str, help='Cromwell hash ')
@@ -32,6 +35,7 @@ def run():
     parser.add_argument('--socks_proxy', default="localhost:5000", action='store', type=str, help='Cromwell URL')
 
     args = parser.parse_args()
+    print(args)
     workflowID = args.cromwell_hash
 
     cw_url = args.cromwell_url
@@ -41,6 +45,8 @@ def run():
     if args.socks_proxy != "":
         cmd1=f'{cmd1} --socks5 {args.socks_proxy}'
 
+    print(cmd1)
+    
     pr = subprocess.run(shlex.split(cmd1), stdout=subprocess.PIPE, stderr=subprocess.PIPE,encoding="ASCII")
     if pr.returncode!=0:
             print(pr.stderr)
@@ -57,6 +63,7 @@ def run():
         output_nodes.extend(annot_nodes)
 
     for n in output_nodes:
+        
         d = ret["outputs"][n[0]] if not isinstance(ret["outputs"][n[0]],str) else [ret["outputs"][n[0]]]
         for f in d:
             bf = os.path.basename(f)
@@ -66,8 +73,12 @@ def run():
 
     print(f'Starting copying { len(all_files.keys())} file(s) into {dest_bucket}...')
     processes = []
+    command = 'gsutil cp' if dest_bucket.startswith('gs') else "rsync "
+
     for k,v in all_files.items():
-        processes.append(subprocess.Popen(f'gsutil cp {v[0]} {v[1]}', shell=True, stderr=subprocess.PIPE))
+        tmp_command = f'{command} {v[0]} {v[1]}'
+        print(tmp_command)
+        processes.append(subprocess.Popen(f'{tmp_command}', shell=True, stderr=subprocess.PIPE))
 
     n_complete = 0
     while n_complete < len(processes):

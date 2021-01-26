@@ -182,11 +182,11 @@ task pheno {
     }
 
     output {
+        Array[File] tmp = glob("pheweb/generated-by-pheweb/tmp/*")
         File pheno_gz = "pheweb/generated-by-pheweb/pheno_gz/" + base_nogz + ".gz"
         File pheno_tbi = "pheweb/generated-by-pheweb/pheno_gz/" + base_nogz + ".gz.tbi"
         File manhattan = "pheweb/generated-by-pheweb/manhattan/" + base_nogz + ".json"
         File qq = "pheweb/generated-by-pheweb/qq/" + base_nogz + ".json"
-        Array[File] tmp = glob("pheweb/generated-by-pheweb/tmp/*")
     }
 
     runtime {
