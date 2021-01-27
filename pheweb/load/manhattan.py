@@ -10,6 +10,8 @@ This script creates json files which can be used to render Manhattan plots.
 #       - at present, we set qval bin size well for the [0-40] range but not for variants above that.
 # TODO: combine with QQ?
 
+# TODO: keep 10 variants unbinned from each chrom
+
 from ..utils import chrom_order
 from ..conf_utils import conf
 from ..file_utils import VariantFileReader, write_json, common_filepaths
