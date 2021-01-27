@@ -15,6 +15,7 @@
   window.model.urlprefix = {{ config.URLPREFIX|tojson }};
   window.model.hg_build_number = {{ config.HG_BUILD_NUMBER }};
   window.model.grch_build_number = {{ config.GRCH_BUILD_NUMBER }};
+  window.model.fdr_max_maf_pval_bins = {{ config.FDR_MAX_MAF_PVAL_BINS|tojson }};
 </script>
 
 <link href="{{ url_for('.static', filename='common.css') }}" rel="stylesheet" type="text/css">

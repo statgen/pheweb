@@ -321,6 +321,11 @@ def _ensure_conf():
             'nullable': True,
             'display': 'Tstat',
         }),
+        ('fdr', {
+            'type': float,
+            'sigfigs': 2,
+            'display': 'FDR',
+        }),
     ])
 
     default_per_pheno_fields = OrderedDict([
