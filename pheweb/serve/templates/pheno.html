@@ -160,6 +160,11 @@
 </div>
 <div class="row">
     <div class="col-xs-12" id="manhattan">
+        <div style="text-align:right; font-style:italic">
+            FDR≤0.01
+            <div style="display:inline-block; width:5em;height:1em; background:linear-gradient(to right, blue, red)"></div>
+            FDR≥0.99
+        </div>
         <div id="manhattan_plot_container">
         </div>
     </div>
@@ -187,6 +192,7 @@
           <th>Nearest Gene(s)</th>
           <th>MAF</th>
           <th>P-value</th>
+          <th>FDR</th>
         </tr>
       </thead>
       <tbody>
@@ -227,6 +233,7 @@
 <td><i><%= v.nearest_genes.replace(/,/g, ', ') %></i></td>
 <td><%= (v.maf)? v.maf.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %></td>
 <td><%= v.pval.toExponential(1) %></td>
+<td><%= (typeof v.fdr !== "undefined") ? v.fdr.toFixed(2) : "" %></td>
 </tr>
 </script>
 {% endblock %}

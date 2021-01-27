@@ -2,6 +2,7 @@
 from flask import url_for
 
 from ..file_utils import MatrixReader, IndexedVariantFileReader, common_filepaths
+from ..conf_utils import conf
 
 import random
 import re
@@ -30,6 +31,10 @@ class _Get_Pheno_Region:
         variants = []
         with IndexedVariantFileReader(phenocode) as reader:
             for v in reader.get_region(chrom, pos_start, pos_end+1):
+
+                if conf.get('fdr_max_maf_pval_bins'):
+                    v['fdr'] = get_fdr(v['maf'], v['pval'])
+
                 v['id'] = '{chrom}:{pos}_{ref}/{alt}'.format(**v)
                 # TODO: change JS to make these unnecessary
                 v['end'] = v['pos']
@@ -74,10 +79,31 @@ class _GetVariant:
         if v is None: return None
         v['phenos'] = list(v['phenos'].values())
         v['variant_name'] = '{} : {:,} {} / {}'.format(chrom, pos, ref, alt)
+
+        if conf.get('fdr_max_maf_pval_bins'):
+            for p in v['phenos']:
+                p['fdr'] = get_fdr(maf=p['maf'], pval=p['pval'])
+
         return v
 get_variant = _GetVariant().get_variant
 
-
+def get_fdr(maf:float, pval:float) -> float:
+    fdr_max_maf_pval_bins = conf.get('fdr_max_maf_pval_bins')
+    maf_bin = None
+    for maf_bin in fdr_max_maf_pval_bins:
+        if maf <= maf_bin['max_maf']:
+            break
+    else:
+        raise PheWebError("MAF {} is not smaller than any max_maf in {}".format(maf, fdr_max_maf_pval_bins))
+    assert maf_bin, maf
+    pval_bin = None
+    for pval_bin in maf_bin['max_pval_bins']:
+        if pval <= pval_bin['max_pval']:
+            break
+    else:
+        return None  # pval is not smaller than any max_pval
+    assert pval_bin, (maf, pval)
+    return pval_bin['fdr']
 
 
 def get_random_page():
