@@ -49,10 +49,10 @@ assert _extract_star('/foo/*/pheno-*.epacts.gz', '/foo/bar/pheno-bar.epacts.gz')
 def extract_phenocode_from_filepath(phenolist, regex):
     print("NOTE: working with {} phenos".format(len(phenolist)))
      ## MAKE SURE regex is compiled somehow!
-     try:
-         regex = re.compile(regex)
-     except AttributeError:
-         print(f"{regex} is not a regex")
+    try:
+        regex = re.compile(regex)
+    except AttributeError:
+        print(f"{regex} is not a regex")
 
     for pheno in phenolist:
         if 'assoc_files' not in pheno:
