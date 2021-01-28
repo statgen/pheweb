@@ -158,7 +158,7 @@ def import_phenolist(filepath, has_header):
         # 3. try csv.reader() with csv.Sniffer().sniff()
         f.seek(0)
         phenos = _import_phenolist_csv(f, has_header)
-        if phenos is not None:
+         if phenos is not None:
             return phenos
         raise PheWebError("I couldn't figure out how to open the file {!r}, sorry.".format(filepath))
 
