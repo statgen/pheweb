@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: ig-{{ .Values.pheweb.subdomain }}
   annotations:
-    kubernetes.io/ingress.global-static-ip-name: {{ .Values.pheweb.subdomain }}
+    kubernetes.io/ingress.global-static-ip-name: {{ if .Values.pheweb.ipName }} "{{ .Values.pheweb.ipName }}" {{ else }} "{{ .Values.pheweb.subdomain }}"  {{ end }}
     kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: "gce"
   labels:
