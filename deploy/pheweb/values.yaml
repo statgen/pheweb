@@ -1,0 +1,8 @@
+image:
+  repository: gcr.io/phewas-development/pheweb
+  pullPolicy: IfNotPresent
+  tag: ci-fa8c513504c64d01fa1e8c8b7cbb0674d910aae0
+
+service:
+  type: NodePort
+  port: 80

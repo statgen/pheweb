@@ -32,7 +32,7 @@ spec:
         image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
         - name: PHEWEB_DIR
-          value: {{ if .Values.pheweb.directory }} "{{ .Values.pheweb.directory }}" {{ else }} "{{ .Values.pheweb.mount }}/pheweb/{{ .Values.pheweb.subdomain }}"  {{ end }}
+          value: {{- if .Values.pheweb.directory }} "{{ .Values.pheweb.directory }}" {{ else }} "{{ .Values.pheweb.mount }}/pheweb/{{ .Values.pheweb.subdomain }}"  {{- end }}
         ports:
         - containerPort: 8080
         readinessProbe:
