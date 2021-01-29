@@ -351,8 +351,11 @@ def _ensure_conf():
 
     conf.parse.null_values = deepcopy(default_null_values)
     conf.parse.per_variant_fields = deepcopy(default_per_variant_fields)
+    if 'extra_per_variant_fields' in conf: conf.parse.per_variant_fields.update(conf.extra_per_variant_fields)
     conf.parse.per_assoc_fields = deepcopy(default_per_assoc_fields)
+    if 'extra_per_assoc_fields' in conf: conf.parse.per_assoc_fields.update(conf.extra_per_assoc_fields)
     conf.parse.per_pheno_fields = deepcopy(default_per_pheno_fields)
+    if 'extra_per_pheno_fields' in conf: conf.parse.per_pheno_fields.update(conf.extra_per_pheno_fields)
     conf.parse.fields = OrderedDict(itertools.chain(conf.parse.per_variant_fields.items(),
                                                     conf.parse.per_assoc_fields.items(),
                                                     conf.parse.per_pheno_fields.items()))
