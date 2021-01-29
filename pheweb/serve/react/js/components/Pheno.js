@@ -202,6 +202,21 @@ class Pheno extends React.Component {
 	       <tbody><tr><td><b>{pheno.num_samples}</b> samples</td></tr></tbody> :
  	       null)
 	
+	const r5_to_r6 = (c) => {
+	    var { chr , lead_pval , enrichment , lead_AF , most_severe_gene , maf , maf_cases , FG_INFO , GENOME_FI_enrichment_nfe_est , variant_id } = c;
+	    if(chr != undefined && c.chrom == undefined){ c.chrom = chr; }
+	    if(lead_pval != undefined && c.pval == undefined) { c.pval = lead_pval; }
+	    if(enrichment != undefined && c.lead_enrichment == undefined) { c.lead_enrichment = enrichment; }
+	    if(lead_AF != undefined && c.lead_af_alt == undefined) { c.lead_af_alt = lead_AF; }
+	    if(most_severe_gene != undefined && c.lead_most_severe_gene == undefined ) { c.lead_most_severe_gene = most_severe_gene; }
+	    if(maf != undefined && c.af_alt == undefined) { c.af_alt = maf; }
+	    if(maf_cases != undefined && c.af_alt_cases == undefined) { c.af_alt_cases = maf_cases; }
+	    if(FG_INFO != undefined && c.INFO == undefined) { c.INFO = FG_INFO;  }
+	    if(GENOME_FI_enrichment_nfe_est != undefined && c.enrichment_nfsee == undefined) { c.enrichment_nfsee = GENOME_FI_enrichment_nfe_est; }
+	    if(variant_id != undefined && c.variant == undefined) { c.variant = variant_id; }
+	    return c;
+	};
+	
 	const n_cc2 = pheno.cohorts ?
 	      <div>
 	      <h3>{this.state.pheno.cohorts.length} cohorts in meta-analysis</h3>
@@ -211,7 +226,7 @@ class Pheno extends React.Component {
 	      <div>
 	      <ReactTable
 	    ref={(r) => this.cstable = r}
-	data={this.state.credibleSets}
+	data={this.state.credibleSets.map(r5_to_r6)}
 	filterable
 	defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())}
 	columns={this.state.csColumns}
