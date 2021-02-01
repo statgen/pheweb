@@ -52,6 +52,8 @@ const truncateString = (s,l) => {
     return s.split(";").length > l ? s.split(";").slice(0,l).join(";")+"...": s
 }
 
+const optionalFloat = (props) =>  isNaN(+props.value) ? 'NA' : props.value.toPrecision(3)
+
 const regionBuilder = (s,r) => {
     const tmp = s.replace("chr23","chrX").replace("chr","").split("_")
     const chr=tmp[0]
@@ -494,36 +496,36 @@ minWidth: 50,
 Header: () => (<span title="alternate allele frequency (alt. af)" style={{textDecoration: 'underline'}}>alt af</span>),
 accessor: 'af_alt',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
-Cell: props => props.value.toPrecision(3),
+    Cell: optionalFloat ,
 minWidth: 40,
 }, {
 Header: () => (<span title="alt. af (cases)" style={{textDecoration: 'underline'}}>alt af (cases)</span>),
 accessor: 'af_alt_cases',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
-Cell: props => props.value.toPrecision(3),
+Cell: optionalFloat ,
 minWidth: 40,
 }, {
 Header: () => (<span title="alt. af (controls)" style={{textDecoration: 'underline'}}>alt af (controls)</span>),
 accessor: 'af_alt_controls',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
-Cell: props => props.value.toPrecision(3),
+Cell: optionalFloat,
 minWidth: 40,
 }, {
 Header: () => (<span title="INFO" style={{textDecoration: 'underline'}}>INFO</span>),
 accessor: 'INFO',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
-Cell: props => props.value.toPrecision(3),
+Cell: optionalFloat,
 minWidth: 40,
 }, {
 Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish enrichment</span>),
 accessor: 'enrichment_nfsee',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
-Cell: props => props.value.toPrecision(3),
+Cell: optionalFloat ,
 minWidth: 50,
 }, {
 Header: () => (<span title="Credible set PIP" style={{textDecoration: 'underline'}}>CS PIP</span>),
 accessor: 'cs_prob',
-Cell: props => props.value.toPrecision(3),
+Cell: optionalFloat ,
 minWidth: 40
 }, {
 Header: () => (<span title="Functional Category" style={{textDecoration: 'underline'}}>Functional variant</span>),
@@ -588,7 +590,7 @@ const lofTableCols = [{
     accessor: 'beta',
     minWidth: 70,
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
-    Cell: props => props.value.toPrecision(3)
+    Cell: optionalFloat,
 }, {
     Header: () => (<span title="reference allele count in cases" style={{textDecoration: 'underline'}}>ref cases</span>),
     accessor: 'ref_count_cases',

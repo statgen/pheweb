@@ -2,10 +2,13 @@
 
 replicaCount: 2
 
+image:
+  tag: prod_4fd92fd_doc_link4
+
 pheweb:
   mount: /mnt/nfs
-  subdomain: r5
-  ipName: finngen-r5-ip
+  subdomain: r4
+  ipName: finngen-r4-ip
   
 persistentVolume:
   storage: 11T
