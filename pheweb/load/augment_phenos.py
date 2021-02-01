@@ -24,9 +24,11 @@ def run(argv):
 
 def convert(pheno):
 
+    # For now we can't compress the ouput, because `pysam.tabix_compress(filepath)` doesn't know how to handle gzipped input.
+    # TODO: write a temp file, immediately bgzip it, and then delete the temp file.
     with VariantFileReader(sites_filepath) as sites_reader, \
          VariantFileReader(common_filepaths['parsed'](pheno['phenocode'])) as pheno_reader, \
-         VariantFileWriter(common_filepaths['pheno'](pheno['phenocode'])) as writer:
+         VariantFileWriter(common_filepaths['pheno'](pheno['phenocode']), use_gzip=False) as writer:
         sites_variants = with_chrom_idx(iter(sites_reader))
         pheno_variants = with_chrom_idx(iter(pheno_reader))
 

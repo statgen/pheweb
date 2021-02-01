@@ -310,7 +310,7 @@ def read_maybe_gzip(filepath):
 ## Writers
 
 @contextmanager
-def VariantFileWriter(filepath, allow_extra_fields=False):
+def VariantFileWriter(filepath, allow_extra_fields=False, use_gzip=True):
     '''
     Writes variants (represented by dictionaries) to an internal file.
 
@@ -321,9 +321,13 @@ def VariantFileWriter(filepath, allow_extra_fields=False):
     '''
     part_file = get_tmp_path(filepath)
     make_basedir(filepath)
-    with AtomicSaver(filepath, text_mode=False, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
-        with gzip.open(f, 'wt', compresslevel=2) as f_gzip:
-            yield _vfw(f_gzip, allow_extra_fields, filepath)
+    if use_gzip:
+        with AtomicSaver(filepath, text_mode=False, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
+            with gzip.open(f, 'wt', compresslevel=2) as f_gzip:
+                yield _vfw(f_gzip, allow_extra_fields, filepath)
+    else:
+        with AtomicSaver(filepath, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
+            yield _vfw(f, allow_extra_fields, filepath)
 class _vfw:
     def __init__(self, f, allow_extra_fields, filepath):
         self._f = f
