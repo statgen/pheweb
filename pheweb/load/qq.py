@@ -40,7 +40,7 @@ def run(argv):
 
     phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
 
-    if argv.from_gz:
+    if args.from_gz:
         def get_input_filepaths(pheno): return common_filepaths['pheno_gz'](pheno['phenocode'])
         convert = make_json_file_from_gz
     else:
