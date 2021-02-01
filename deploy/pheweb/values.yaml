@@ -1,7 +1,7 @@
 image:
   repository: gcr.io/phewas-development/pheweb
   pullPolicy: IfNotPresent
-  tag: ci-7619f9c0dc743b588f621a9723d481bf00c5cb9d
+  tag: ci-5cecc6181f2ecc2c613679409b044357b4daacf0
 
 service:
   type: NodePort
