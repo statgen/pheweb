@@ -1344,7 +1344,18 @@ class AutoreportingDao(AutorepVariantDB):
         try:
             conn=self.get_connection()
             with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-                sql =  ("SELECT * FROM autoreporting_variants WHERE rel=%s AND phenotype=%s AND locus_id=%s")
+                if self.release == 5:
+                    sql =  ("SELECT * , "
+                            " chrom chr , "
+                            " null af_alt , "
+                            " null af_alt_cases , "
+                            " GENOME_FI_enrichment_nfe_est af_alt_controls , "
+                            " FG_INFO INFO , "
+                            " null enrichment_nfsee "
+                            "FROM autoreporting_variants "
+                            "WHERE rel=%s AND phenotype=%s AND locus_id=%s")
+                else:
+                    sql =  ("SELECT * FROM autoreporting_variants WHERE rel=%s AND phenotype=%s AND locus_id=%s")
                 cursori.execute(sql,["r{}".format(self.release),phenotype,locus_id])
                 result=cursori.fetchall()
             return result
@@ -1366,6 +1377,18 @@ class AutoreportingDao(AutorepVariantDB):
         files = glob.glob(fpath + "/" + phenotype + '.top.out')
         if len(files) == 1:
             data = pd.read_csv(files[0], sep='\t').fillna('NA')
+            print(files[0])
+            # the renaming is support r5 which has diffent names for the fields
+            data = data.rename(columns={ "chr"  : "chrom" ,
+                                         "lead_pval" : "pval" ,
+                                         "enrichment" : "lead_enrichment" ,
+                                         "lead_AF" : "lead_af_alt" ,
+                                         "most_severe_gene" : "lead_most_severe_gene" ,
+                                         "maf" : "af_alt" ,
+                                         "maf_cases" : "af_alt_cases" ,
+                                         "FG_INFO" : "INFO" ,
+                                         "GENOME_FI_enrichment_nfe_est" : "enrichment_nfsee" ,
+                                         "variant_id" : "variant" })
             data["phenocode"]=phenotype
             if "specific_efo_trait_associations_strict" in data.columns:
                 data['all_traits_strict']=data[['specific_efo_trait_associations_strict','found_associations_strict']].apply(

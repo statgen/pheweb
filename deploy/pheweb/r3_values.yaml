@@ -2,10 +2,13 @@
 
 replicaCount: 2
 
+image:
+  tag: r3_terminal_public
+
 pheweb:
   mount: /mnt/nfs
-  subdomain: r5
-  ipName: finngen-r5-ip
+  subdomain: r3
+  ipName: finngen-r3-ip
   
 persistentVolume:
   storage: 11T
