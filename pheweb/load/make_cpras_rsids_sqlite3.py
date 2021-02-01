@@ -30,6 +30,7 @@ def run(argv):
 
         if cpras_rsids_filepath.exists(): cpras_rsids_filepath.unlink()
         cpras_rsids_tmp_filepath = Path(get_tmp_path(cpras_rsids_filepath))
+        if cpras_rsids_tmp_filepath.exists(): cpras_rsids_tmp_filepath.unlink()
         db_conn = sqlite3.connect(str(cpras_rsids_tmp_filepath))
         with db_conn:
             db_conn.execute('CREATE TABLE cpras_rsids (cpra TEXT, rsid TEXT)')
