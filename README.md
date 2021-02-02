@@ -13,8 +13,6 @@ Gagliano Taliun, S.A., VandeHaar, P. et al. Exploring and visualizing large-scal
 
 If any of these steps is incorrect, please open an issue here or email me at <pjvh@umich.edu> and I'll see what I can do to improve things.
 
-*Currently PheWeb only supports GRCh37/hg19, and will show incorrect genes and rsids for other genome builds.  We're working on fixing this.  If you need this to use an older or newer build, email or submit a github issue.*
-
 ### 1. Install PheWeb
 
 ```bash
