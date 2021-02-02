@@ -38,42 +38,43 @@ pip3 install pheweb
 
 ### 3. Prepare your association files
 
-You should have one file for each phenotype. It can be gzipped if you want. It should be **tab-delimited** and have a **header row**. Variants must be sorted by chromosome and position, with chromosomes in the order [1-22,X,Y,MT].
-
-- If you are using EPACTS, your files should work just fine. If they don't, email me. EPACTS files won't have `REF` or `ALT`, but PheWeb will parse their `MARKER_ID` column to get those.
+You need one file for each phenotype, and there are some requirements:
+- It needs a header row.
+- Columns can be delimited by tabs, spaces, or commas.
+- It needs a column for the reference allele (which must always match the reference genome that you specified with `hg_build_number`) and a column for the alternate allele.  If you have a `MARKER_ID` column like `1:234_C/G`, that's okay too.  If you have an allele1 and allele2, and sometimes one or the other is the reference, then you'll need to modify the file.
+- It can be gzipped if you want.
+- Variants must be sorted by chromosome and position, with chromosomes in the order [1-22,X,Y,MT].
 
 The file must have columns for:
 
-| column description | name | other allowed column names | allowed values |
-| --- | --- | --- | --- |
-| chromosome | `chrom` | `#chrom` | integer 1-22, `X`, `Y`, `M`, `MT` |
-| position | `pos` | `beg`, `begin` | integer | a |
-| reference allele | `ref` | | anything |
-| alternate allele | `alt` | | anything |
-| p-value | `pval` | `pvalue` | number in [0,1] |
+| column description | name    | other allowed column names | allowed values |
+| ---                | ---     | ---                        | --- |
+| chromosome         | `chrom` | `#chrom`, `chr`            | 1-22, `X`, `Y`, `M`, `MT` |
+| position           | `pos`   | `beg`, `begin`, `bp`       | integer |
+| reference allele   | `ref`   | `reference`                | must match reference genome |
+| alternate allele   | `alt`   | `alternate`                | anything |
+| p-value            | `pval`  | `pvalue`, `p`, `p.value`   | number in [0,1] |
 
-_Note: column names are case-insensitive._
-
-_Note: any field may be `.` or `NA`.  For required fields, these values will cause the variant to be dropped._
-
-_Note: if your column name is not one of these, you may set `field_aliases = {"column_name": "field_name"}` in `config.py`.  For example, `field_aliases = {'P_BOLT_LMM_INF': 'pval'}`._
-
-_Note: scientific notation is okay._
 
 You may also have columns for:
 
-| column description | name | allowed column names | allowed values |
-| --- | --- | --- | --- |
-| minor allele frequency | `maf` | | number in (0,0.5] |
-| allele frequency | `af` | | number in (0,1) |
-| allele count | `ac` | | integer |
-| effect size | `beta` | | number |
-| standard error of effect size | `sebeta` | | number |
-| odds ratio | `or` | | number |
-| R2 | `r2` | | number |
-| number of samples | `num_samples` | `ns`, `n` | integer, must be the same for every variant in its phenotype |
-| number of controls | `num_controls` | `ns.ctrl`, `n_controls` | integer, must be the same for every variant in its phenotype |
-| number of cases | `num_cases` | `ns.case`, `n_cases` | integer, must be the same for every variant in its phenotype |
+| column description            | name           | other allowed column names | allowed values |
+| ---                           | ---            | ---                        | --- |
+| minor allele frequency        | `maf`          |                            | number in (0,0.5] |
+| allele frequency              | `af`           | `a1freq`, `frq`            | number in (0,1) |
+| allele count                  | `ac`           |                            | integer |
+| effect size                   | `beta`         |                            | number |
+| standard error of effect size | `sebeta`       | `se`                       | number |
+| odds ratio                    | `or`           |                            | number |
+| R2                            | `r2`           |                            | number |
+| number of samples             | `num_samples`  | `ns`, `n`                  | integer, must be the same for every variant in its phenotype |
+| number of controls            | `num_controls` | `ns.ctrl`, `n_controls`    | integer, must be the same for every variant in its phenotype |
+| number of cases               | `num_cases`    | `ns.case`, `n_cases`       | integer, must be the same for every variant in its phenotype |
+
+
+Column names are case-insensitive.  If you used a different column name, set `field_aliases = {"column_name": "field_name"}` in `config.py`.  For example, `field_aliases = {'P_BOLT_LMM_INF': 'pval', 'NSAMPLES': 'num_samples'}`.
+
+Any field can be null if it is one of ['', '.', 'NA', 'N/A', 'n/a', 'nan', '-nan', 'NaN', '-NaN', 'null', 'NULL'].  If a required field is null, the variant gets dropped.
 
 
 ### 4. Make a list of your phenotypes
@@ -83,12 +84,12 @@ Inside of your data directory, you need a file named `pheno-list.json` that look
 ```json
 [
  {
-  "assoc_files": ["/home/watman/ear-length.epacts.gz"],
+  "assoc_files": ["/home/peter/data/ear-length.gz"],
   "phenocode": "ear-length"
  },
  {
-  "assoc_files": ["/home/watman/eats-kimchi.X.epacts.gz","/home/watman/eats-kimchi.autosomal.epacts.gz"],
-  "phenocode": "eats-kimchi"
+  "assoc_files": ["/home/peter/data/a1c.X.gz","/home/watman/a1c.autosomal.gz"],
+  "phenocode": "A1C"
  }
 ]
 ```
@@ -104,53 +105,48 @@ That example file only includes the columns `assoc_files` (a list of paths to as
 
 There are four ways to make a `pheno-list.json`:
 
-1. If you have a csv (or tsv, optionally gzipped) with a header that has EXACTLY the right column names, just import it by running `pheweb phenolist import-phenolist "/path/to/my/pheno-list.csv"`.
+1. If you have a csv (or tsv, optionally gzipped) with a header that has exactly the right column names, just import it by running `pheweb phenolist import-phenolist "/path/to/my/pheno-list.csv"`.
 
    If you have multiple association files for each phenotype, you may put them all into a single column with `|` between them. For example, your file `pheno-list.csv` might look like this:
 
    ```
    phenocode,assoc_files
-   eats-kimchi,/home/watman/eats-kimchi.autosomal.epacts.gz|/home/watman/eats-kimchi.X.epacts.gz
-   ear-length,/home/watman/ear-length.all.epacts.gz
+   a1c,/home/peter/data/a1c.autosomal.gz|/home/peter/data/a1c.X.gz
+   ear-length,/home/peter/data/ear-length.gz
    ```
 
-2. If you have one association file per phenotype, you can use a shell-glob and a regex to get assoc-files and phenocodes for them. Suppose that your assocation files are at paths like:
+2. If you have one association file per phenotype, you can use a shell-glob to get assoc-files. Suppose that your assocation files are at paths like:
 
-   - `/home/watman/eats-kimchi.epacts.gz`
-   - `/home/watman/ear-length.epacts.gz`
+   - `/home/peter/data/a1c.autosomal.gz`
+   - `/home/peter/data/ear-length.gz`
 
-   Then you could run `pheweb phenolist glob-files "/home/watman/*.epacts.gz"` to get `assoc-files`.
+   Then you could run `pheweb phenolist glob-files "/home/peter/data/*.gz"` to get `assoc-files`.
 
-   To get `phenocodes`, you can use a regex that captures the phenocode from the file path. In most cases (including this one), just use:
+   To get `phenocodes`, you can use a regex that captures the phenocode from the file path. This command will take the text after the last `/` and before the next `.`:
 
    ```
    pheweb phenolist extract-phenocode-from-filepath --simple
    ```
+   
+   If that doesn't work, see `pheweb phenolist extract-phenocode-from-filepath -h`.
 
 3. If you have multiple association files for some phenotypes, you can follow the directions in 2 and then run `pheweb phenolist unique-phenocode`.
 
    For example, if your association files are at:
 
-   - `/home/watman/autosomal/eats-kimchi.epacts.gz`
-   - `/home/watman/X/eats-kimchi.epacts.gz`
-   - `/home/watman/all/ear-length.epacts.gz`
+   - `/home/peter/data/ear-length.gz`
+   - `/home/peter/data/a1c.autosomal.gz`
+   - `/home/peter/data/a1c.X.gz`
 
    then you can run:
 
    ```
-   pheweb phenolist glob-files "/home/watman/*/*.epacts.gz"
+   pheweb phenolist glob-files "/home/peter/data/*.gz"
    pheweb phenolist extract-phenocode-from-filepath --simple
    pheweb phenolist unique-phenocode
    ```
 
 4. If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for `pheweb phenolist`.
-
-   No matter what you do, please run `pheweb phenolist verify` when you are done to check that it worked correctly. At any point, you may run `pheweb phenolist view` or `pheweb phenolist print-as-csv` to view the current file.
-
-5. (optional) PheWeb has the ability to display "correlated phenotype" information generated previously by 
-    [another tool](https://github.com/statgen/pheweb-rg-pipeline). To use this feature, set `show_correlations = True` 
-    in your configuration file, and place the output of the rg pipeline as `pheno-correlations.txt` in the same folder 
-    as `pheno-list.json`. 
 
 ### 5. Load your association files
 
@@ -171,7 +167,15 @@ Run `pheweb serve --open`.
 That command should either open a browser to your new PheWeb, or it should give you a URL that you can open in your browser to access your new PheWeb.
 If it doesn't, follow the directions for [hosting a PheWeb and accessing it from your browser](etc/detailed-webserver-instructions.md#hosting-a-pheweb-and-accessing-it-from-your-browser).
 
-To run pheweb through systemd, see sample file [here](etc/pheweb.service). To use Apache2 or Nginx, see instructions [here](etc/detailed-webserver-instructions.md#using-apache2-or-nginx).
+### More options:
+
+To run pheweb through systemd, see sample file [here](etc/pheweb.service).
+To use Apache2 or Nginx, see instructions [here](etc/detailed-webserver-instructions.md#using-apache2-or-nginx).
 To require login via OAuth, see instructions [here](etc/detailed-webserver-instructions.md#using-oauth).
 To track page views with Google Analytics, see instructions [here](etc/detailed-webserver-instructions.md#using-google-analytics).
-To reduce storage use, see instructions [here](etc/detailed-webserver-instructions.md#reducing-storage-use).  To customize page contents, see instructions [here](etc/detailed-webserver-instructions.md#customizing-page-contents).
+To reduce storage use, see instructions [here](etc/detailed-webserver-instructions.md#reducing-storage-use).
+To customize page contents, see instructions [here](etc/detailed-webserver-instructions.md#customizing-page-contents).
+
+PheWeb can display phenotype correlations generated by [another tool](https://github.com/statgen/pheweb-rg-pipeline).
+To use this feature, set `show_correlations = True`  in `config.py` and place the output of the rg pipeline as `pheno-correlations.txt` in the same folder as `pheno-list.json`.
+
