@@ -84,21 +84,16 @@ If you visit your site, you should see the activity at [the Google Analytics web
 
 
 ## Reducing storage use
-To make PheWeb use less space, you can delete many of the files created during the loading process.
-Inside of `generated-by-pheweb/`, `parsed/` is only needed for re-buiding the site with more GWAS, and `pheno/` is only needed if you have enabled summary stat downloads.
+To make PheWeb use less space, you can delete some of the files created during the loading process.
 
-Alternatively, you can replace those files with symlinks to the files in `pheno_gz/`.
-Internally, pheweb always checks if a file is gzipped before reading it, so that won't be a problem (though reading gzipped files takes time when re-loading data).
-Just replace all the files in `parsed/` and `pheno/` with symlinks to their corresponding files in `pheno_gz/`.
+Files in `generated-by-pheweb/parsed/` are only needed for re-buiding the site with more GWAS.  You can replace those files with symlinks to the files in `pheno_gz/`.
+
+Files in `generated-by-pheweb/tmp/` can also be removed.
+
 This should work:
 
 ```bash
-cd generated-by-pheweb/pheno/
-for f in *; do
-  ln -sf ../pheno_gz/$f.gz $f
-done
-
-cd ../parsed/
+cd generated-by-pheweb/parsed/
 for f in *; do
   ln -sf ../pheno_gz/$f.gz $f
 done
