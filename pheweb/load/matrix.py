@@ -1,4 +1,12 @@
 
+# TODO: Parallelize by chromosome.
+#  Spawn a pheweb process to do each chromosome.  Each one must do:
+#  + For every `pheno_gz/*.gz` and `sites/sites.tsv`, find the byte offset to the block that begins our chromosome.
+#  + Now cffi down into a function just like our normal one, but which starts at that offset, discards variants until it hits the target chromosome, merges, and then exits.
+#  + Don't append an empty block in `BgzipWriter:close()`.
+#  When all the child processes are done, the main thread needs to concatenate all the single-chrom matrix files and then append an empty bgzip block to signal EOF.
+
+
 from ..utils import get_phenolist, PheWebError
 from ..file_utils import MatrixReader, get_tmp_path, common_filepaths
 from .cffi._x import ffi, lib
