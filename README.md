@@ -11,7 +11,7 @@ Gagliano Taliun, S.A., VandeHaar, P. et al. Exploring and visualizing large-scal
 
 # How to Build a PheWeb for your Data
 
-If any of these steps is incorrect, please open an issue here or email me at <pjvh@umich.edu> and I'll see what I can do to improve things.
+If any of these steps is incorrect, please [open an issue on github](https://github.com/statgen/pheweb/issues/new) and I'll see what I can do to improve things.
 
 ### 1. Install PheWeb
 
@@ -146,7 +146,7 @@ There are four ways to make a `pheno-list.json`:
    pheweb phenolist unique-phenocode
    ```
 
-4. If you want to do more advanced things, like merging in more information from another file, email <pjvh@umich.edu> and I'll write documentation for `pheweb phenolist`.
+4. If you want to do more advanced things, like merging in more information from another file, [open an issue on github](https://github.com/statgen/pheweb/issues/new) and I can write documentation for `pheweb phenolist`.
 
 ### 5. Load your association files
 
@@ -157,8 +157,8 @@ There are four ways to make a `pheno-list.json`:
 2. If something breaks, read the error message.
 
    - If you can understand the error message, modify your association or config files to avoid it, or drop the problematic phenotypes from `pheno-list.json`.  Then re-run `pheweb process`.
-   - If the problem is something that PheWeb should support by default, feel free to email it to me at <pjvh@umich.edu>.
-   - If you can't understand the error message, please email your error message to <pjvh@umich.edu> and hopefully I can get back to you quickly.
+   - If the problem is something that PheWeb should support by default, [open an issue on github](https://github.com/statgen/pheweb/issues/new) or email me.
+   - If you can't understand the error message, [open an issue on github](https://github.com/statgen/pheweb/issues/new) or email me.
 
 ### 6. Serve the website
 
