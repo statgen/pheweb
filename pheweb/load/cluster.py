@@ -43,7 +43,7 @@ monitor_command = {
 def run(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--engine', choices=['slurm', 'sge'], required=True)
-    parser.add_argument('--step', choices=['parse', 'augment-phenos', 'bgzip-phenos', 'manhattan', 'qq'], required=True)
+    parser.add_argument('--step', choices=['parse', 'augment-phenos', 'manhattan', 'qq'], required=True)
     args = parser.parse_args(argv)
 
     def should_process(pheno):

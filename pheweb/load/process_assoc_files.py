@@ -17,7 +17,6 @@ make_cpras_rsids_sqlite3
 augment_phenos
 matrix
 gather_pvalues_for_each_gene
-bgzip_phenos
 manhattan
 top_hits
 qq

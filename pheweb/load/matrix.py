@@ -15,8 +15,10 @@ def should_run():
     cur_phenocodes = set(pheno['phenocode'] for pheno in get_phenolist())
 
     # Remove files that shouldn't be there (and will confuse the glob in matrixify)
-    for filepath in glob.glob(common_filepaths['pheno']('*')):
-        if os.path.basename(filepath) not in cur_phenocodes:
+    for filepath in glob.glob(common_filepaths['pheno_gz']('*.gz')):
+        name = os.path.basename(filepath)
+        if name[:-3] not in cur_phenocodes:
+            print("Removing {} to help matrix glob".format(filepath))
             os.remove(filepath)
 
     if not os.path.exists(matrix_gz_filepath): return True
@@ -32,7 +34,7 @@ def should_run():
         print('- phenos in matrix.tsv.gz but not pheno-list.json:', ', '.join(repr(p) for p in matrix_phenocodes - cur_phenocodes))
         return True
 
-    infilepaths = [common_filepaths['pheno'](phenocode) for phenocode in cur_phenocodes] + [sites_filepath]
+    infilepaths = [common_filepaths['pheno_gz'](phenocode) for phenocode in cur_phenocodes] + [sites_filepath]
     infile_modtime = max(os.stat(filepath).st_mtime for filepath in infilepaths)
     if infile_modtime > os.stat(matrix_gz_filepath).st_mtime:
         print('rerunning because some input files are newer than matrix.tsv.gz')
@@ -47,7 +49,7 @@ def run(argv):
     if should_run():
         # we don't need `ffi.new('char[]', ...)` because args are `const`
         ret = lib.cffi_make_matrix(sites_filepath.encode('utf8'),
-                                   common_filepaths['pheno']('*').encode('utf8'),
+                                   common_filepaths['pheno_gz']('*.gz').encode('utf8'),
                                    matrix_gz_tmp_filepath.encode('utf8'))
         ret_bytes = ffi.string(ret, maxlen=1000)
         if ret_bytes != b'ok':

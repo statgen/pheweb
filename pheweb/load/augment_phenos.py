@@ -1,9 +1,9 @@
 
 from ..utils import PheWebError
-from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, with_chrom_idx
+from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, with_chrom_idx, get_tmp_path, convert_VariantFile_to_IndexedVariantFile
 from .load_utils import parallelize_per_pheno, get_phenos_subset, get_phenolist
 
-import argparse
+import argparse, os
 
 sites_filepath = common_filepaths['sites']()
 
@@ -16,7 +16,7 @@ def run(argv):
 
     parallelize_per_pheno(
         get_input_filepaths = lambda pheno: common_filepaths['parsed'](pheno['phenocode']),
-        get_output_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
+        get_output_filepaths = lambda pheno: common_filepaths['pheno_gz'](pheno['phenocode']),
         convert = convert,
         cmd = 'augment-pheno',
         phenos = phenos,
@@ -24,11 +24,12 @@ def run(argv):
 
 def convert(pheno):
 
-    # For now we can't compress the ouput, because `pysam.tabix_compress(filepath)` doesn't know how to handle gzipped input.
-    # TODO: write a temp file, immediately bgzip it, and then delete the temp file.
+    pheno_filepath = common_filepaths['pheno_gz'](pheno['phenocode'])
+    pheno_unzipped_filepath = get_tmp_path(pheno_filepath)
+
     with VariantFileReader(sites_filepath) as sites_reader, \
          VariantFileReader(common_filepaths['parsed'](pheno['phenocode'])) as pheno_reader, \
-         VariantFileWriter(common_filepaths['pheno'](pheno['phenocode']), use_gzip=False) as writer:
+         VariantFileWriter(pheno_unzipped_filepath, use_gzip=False) as writer:
         sites_variants = with_chrom_idx(iter(sites_reader))
         pheno_variants = with_chrom_idx(iter(pheno_reader))
 
@@ -57,7 +58,10 @@ def convert(pheno):
                 try:
                     sites_variant = next(sites_variants)
                     pheno_variant = next(pheno_variants)
-                except StopIteration: break
+                except StopIteration: break  # TODO: should this be an exception?
+
+    convert_VariantFile_to_IndexedVariantFile(pheno_unzipped_filepath, pheno_filepath)
+    os.unlink(pheno_unzipped_filepath)
 
 
 def _which_variant_is_bigger(v1, v2):

@@ -11,7 +11,7 @@ import gzip
 import datetime
 from boltons.fileutils import AtomicSaver, mkdir_p
 import pysam
-import itertools
+import itertools, random
 from pathlib import Path
 
 
@@ -51,7 +51,6 @@ common_filepaths = {
     'top-loci-tsv': (lambda: get_generated_path('top_loci.tsv')),
     'phenotypes_summary': (lambda: get_generated_path('phenotypes.json')),
     'parsed':    (lambda phenocode: get_generated_path('parsed', phenocode)),
-    'pheno':     (lambda phenocode: get_generated_path('pheno', phenocode)),
     'pheno_gz':  (lambda phenocode: get_generated_path('pheno_gz', '{}.gz'.format(phenocode) if phenocode else '')),
     'manhattan': (lambda phenocode: get_generated_path('manhattan', '{}.json'.format(phenocode) if phenocode else '')),
     'qq':        (lambda phenocode: get_generated_path('qq', '{}.json'.format(phenocode) if phenocode else '')),
@@ -69,12 +68,16 @@ def get_tmp_path(arg) -> str:
     if arg.startswith(get_generated_path()):
         mkdir_p(get_generated_path('tmp'))
         tmp_basename = arg[len(get_generated_path()):].lstrip(os.path.sep).replace(os.path.sep, '-')
-        return get_generated_path('tmp', tmp_basename)
+        ret = get_generated_path('tmp', tmp_basename)
     elif arg.startswith(os.path.sep):
-        return arg + '.tmp'
+        ret = arg + '.tmp'
     else:
         mkdir_p(get_generated_path('tmp'))
-        return get_generated_path('tmp', arg)
+        ret = get_generated_path('tmp', arg)
+    assert ret != arg, (ret, arg)
+    while os.path.exists(ret):
+        ret = '{}/{}-{}'.format(os.path.dirname(ret), random.choice('123456789'), os.path.basename(ret))
+    return ret
 
 def get_dated_tmp_path(prefix):
     assert '/' not in prefix, prefix
@@ -362,6 +365,7 @@ def write_heterogenous_variantfile(filepath, assocs):
 def convert_VariantFile_to_IndexedVariantFile(vf_path, ivf_path):
     make_basedir(ivf_path)
     tmp_path = get_tmp_path(ivf_path)
+    tmp_path = '{}/cvt-{}'.format(os.path.dirname(tmp_path), os.path.basename(tmp_path))  # Avoid using the same tmp path as augment-phenos
     pysam.tabix_compress(vf_path, tmp_path, force=True)
     os.rename(tmp_path, ivf_path)
 

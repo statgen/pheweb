@@ -35,34 +35,20 @@ NUM_MAF_RANGES = 4
 def run(argv):
     parser = argparse.ArgumentParser(description="Make a QQ plot for each phenotype.")
     parser.add_argument('--phenos', help="Can be like '4,5,6,12' or '4-6,12' to run on only the phenos at those positions (0-indexed) in pheno-list.json (and only if they need to run)")
-    parser.add_argument('--from-gz', help="Read from ./generated-by-pheweb/pheno_gz/ instead of the usual ./generated-by-pheweb/pheno/")
     args = parser.parse_args(argv)
 
     phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
 
-    if args.from_gz:
-        def get_input_filepaths(pheno): return common_filepaths['pheno_gz'](pheno['phenocode'])
-        convert = make_json_file_from_gz
-    else:
-        def get_input_filepaths(pheno): return common_filepaths['pheno'](pheno['phenocode'])
-        convert = make_json_file
-
     parallelize_per_pheno(
-        get_input_filepaths = get_input_filepaths,
+        get_input_filepaths = lambda pheno: common_filepaths['pheno_gz'](pheno['phenocode']),
         get_output_filepaths = lambda pheno: common_filepaths['qq'](pheno['phenocode']),
-        convert = convert,
+        convert = make_json_file,
         cmd = 'qq',
         phenos = phenos,
     )
 
 
 def make_json_file(pheno):
-    make_json_file_explicit(
-        common_filepaths['pheno'](pheno['phenocode']),
-        common_filepaths['qq'](pheno['phenocode']),
-        pheno
-    )
-def make_json_file_from_gz(pheno):
     make_json_file_explicit(
         common_filepaths['pheno_gz'](pheno['phenocode']),
         common_filepaths['qq'](pheno['phenocode']),

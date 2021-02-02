@@ -51,7 +51,6 @@ for submodule in '''
  manhattan
  qq
  matrix
- bgzip_phenos
  top_hits
  phenotypes
  gather_pvalues_for_each_gene
