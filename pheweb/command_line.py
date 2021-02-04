@@ -48,6 +48,7 @@ for submodule in '''
  make_cpras_rsids_sqlite3
  augment_phenos
  pheno_correlation
+ best_of_pheno
  manhattan
  qq
  matrix
