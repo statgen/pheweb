@@ -120,50 +120,13 @@ def get_num_procs(cmd=None):
 
 
 
-# class MaxPriorityQueue:
-#     '''
-#     .pop() returns the item with the largest priority.
-#     .popall() iteratively .pop()s until empty.
-#     priorities must be comparable (duh).
-#     '''
-#     def __init__(self):
-#         import blist, bisect
-#         self._q = blist.blist() # a sorted list of [(priority, idx), ...]
-#         self._items = {} # maps idx -> item
-#         self._counter = itertools.count()
-#     def add(self, item, priority):
-#         idx = next(self._counter)
-#         if self._q and priority > self._q[-1][0]:
-#             # optimization for use case where new item has largest priority
-#             self._q.append((priority, idx))
-#         else:
-#             bisect.insort(self._q, (priority, idx))
-#         self._items[idx] = item
-#     def add_and_keep_size(self, item, priority, size, popped_callback):
-#         if len(self._q) < size:
-#             self.add(item, priority)
-#         else:
-#             if priority > self._q[-1][0]:
-#                 popped_callback(item)
-#             else:
-#                 popped_callback(self.pop())
-#                 self.add(item, priority)
-#     def pop(self):
-#         priority, idx = self._q.pop()
-#         return self._items.pop(idx)
-#     def __len__(self):
-#         return len(self._q)
-#     def pop_all(self):
-#         while self._q:
-#             yield self.pop()
-
 class MaxPriorityQueue:
     # TODO: check if this is slower than blist-based MaxPriorityQueue, for ~500 items
     # Note: `ComparesFalse()` is used to prevent `heapq` from comparing `item`s to eachother.
     #       Even if two priorities are equal, `ComparesFalse() <= ComparesFalse()` will be `False`, so `item`s won't be compared.
     '''
-    .pop() returns the item with the largest priority.
-    .popall() iteratively .pop()s until empty.
+    `.pop()` returns the item with the largest priority.
+    `.popall()` iteratively `.pop()`s until empty.
     priorities must be comparable.
     `item` can be anything.
     '''
