@@ -105,7 +105,7 @@ def VariantFileReader(filepath, only_per_variant_fields=False):
         reader = csv.reader(f, dialect='pheweb-internal-dialect')
         fields = next(reader)
         for field in fields:
-            assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields
+            assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields,f'{field} not found'
         if only_per_variant_fields:
             yield _vfr_only_per_variant_fields(fields, reader)
         else:

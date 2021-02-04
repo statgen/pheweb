@@ -11,6 +11,8 @@ task fix_json {
     Array[File] man_jsons
 
     String docker
+    String? json_docker
+    String? final_docker = if defined(json_docker) then json_docker else docker
     # ned to loop over phenos in pheno_json
     command <<<
         
@@ -60,7 +62,7 @@ task fix_json {
     }
     
    runtime {
-        docker: "${docker}"
+        docker: "${final_docker}"
     	cpu: 1
     	memory: "3 GB"
         disks: "local-disk 5 HDD"
@@ -73,20 +75,24 @@ task annotation {
 
     File phenofile
     String? annotation_docker
-    String docker
+    Map[String,String] header_dict
 
+    File marisa_trie
+    String docker
     String? final_docker = if defined(annotation_docker) then annotation_docker else docker
     String dir = '/cromwell_root/'
     command {
+        python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)}
 	cd ${dir}
         
         mkdir -p pheweb/generated-by-pheweb/parsed && \
         mkdir -p pheweb/generated-by-pheweb/tmp && \
         echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
+        mkdir -p pheweb/generated-by-pheweb/sites/genes  && \
+        mv ${marisa_trie} pheweb/generated-by-pheweb/sites/genes/  && \
         mv ${phenofile} pheweb/generated-by-pheweb/parsed/ && \
         cd pheweb && \
         if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi && \
-        sed -i 's/#chrom/chrom/' generated-by-pheweb/parsed/* && \
         echo '''cache=False''' > ./config.py
 
         df -h 
@@ -131,12 +137,13 @@ task annotation {
     }
 
     output {
+        Array[File] tmp = glob("${dir}pheweb/generated-by-pheweb/tmp/*")
+
         File trie1 = "${dir}pheweb/generated-by-pheweb/sites/cpra_to_rsids_trie.marisa"
         File trie2 = "${dir}pheweb/generated-by-pheweb/sites/rsid_to_cpra_trie.marisa"
         File gene_trie = "${dir}pheweb/generated-by-pheweb/sites/genes/gene_aliases_b38.marisa_trie"
         File bed = "${dir}pheweb/generated-by-pheweb/sites/genes/genes-b38-v25.bed"
         File sites = "${dir}pheweb/generated-by-pheweb/sites/sites.tsv"
-        Array[File] tmp = glob("${dir}pheweb/generated-by-pheweb/tmp/*")
     }
 
     runtime {
@@ -159,9 +166,16 @@ task pheno {
     File trie1
     File trie2
     File sites
+    Map[String,String] header_dict
+    
     String docker
+    String? pheno_docker
+    String? final_docker = if defined(pheno_docker) then pheno_docker else docker
+
 
     command {
+        python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)}
+
         mkdir -p pheweb/generated-by-pheweb/parsed && \
             mkdir -p pheweb/generated-by-pheweb/tmp && \
             echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
@@ -172,7 +186,6 @@ task pheno {
             mv ${sites} pheweb/generated-by-pheweb/sites/ && \
             cd pheweb && \
             if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi && \
-            sed -i 's/#chrom/chrom/' generated-by-pheweb/parsed/* && \
             pheweb phenolist glob generated-by-pheweb/parsed/* && \
             pheweb phenolist extract-phenocode-from-filepath --simple && \
             pheweb augment-phenos && \
@@ -190,7 +203,7 @@ task pheno {
     }
 
     runtime {
-        docker: "${docker}"
+        docker: "${final_docker}"
     	cpu: 1
         memory: "3.75 GB"
         disks: "local-disk 20 HDD"
@@ -202,11 +215,15 @@ task pheno {
 task matrix {
 
     File sites
-    File bed
+    File genes_bed
     Array[File] pheno_gz
     Array[File] manhattan
     String cols
+
+    String? matrix_docker
     String docker
+    String? final_docker = if defined(matrix_docker) then matrix_docker else docker
+
     Int cpu
     Int disk
 
@@ -217,7 +234,7 @@ task matrix {
             mkdir -p pheweb/generated-by-pheweb/pheno_gz && \
             mkdir -p pheweb/generated-by-pheweb/manhattan && \
             mkdir -p /root/.pheweb/cache && \
-            mv ${bed} /root/.pheweb/cache/ && \
+            mv ${genes_bed} /root/.pheweb/cache/ && \
             mv ${sep=" " pheno_gz} pheweb/generated-by-pheweb/pheno_gz/ && \
             mv ${sep=" " manhattan} pheweb/generated-by-pheweb/manhattan/ && \
             cd pheweb && \
@@ -296,7 +313,7 @@ task matrix {
     }
 
     runtime {
-        docker: "${docker}"
+        docker: "${final_docker}"
     	cpu: "${cpu}"
     	memory: "3 GB"
         disks: "local-disk ${disk} HDD"
@@ -310,25 +327,28 @@ workflow pheweb_import {
     File summaryfiles
     Array[String] phenofiles = read_lines(summaryfiles)
     String docker
+    File genes_bed 
+    Map[String,String] header_dict
 
     scatter (phenofile in phenofiles) {
         call pheno {
-            input: phenofile=phenofile, docker=docker
+            input: phenofile=phenofile, docker=docker, header_dict = header_dict
         }
         call annotation {
-            input: phenofile=phenofile, docker=docker
+            input: phenofile=phenofile, docker=docker,header_dict = header_dict
         }   
     }
 
     call matrix {
-        input: pheno_gz=pheno.pheno_gz, manhattan=pheno.manhattan, docker=docker
+        input: pheno_gz=pheno.pheno_gz, manhattan=pheno.manhattan, docker=docker, genes_bed = genes_bed
     }
 
     call fix_json{
         input:
         pheno_json = matrix.phenolist,
         qq_jsons = pheno.qq,
-        man_jsons = pheno.manhattan        
+        man_jsons = pheno.manhattan,
+        docker = docker
         }
 
    
