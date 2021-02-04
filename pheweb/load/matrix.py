@@ -56,8 +56,9 @@ def run(argv):
 
     if should_run():
         # we don't need `ffi.new('char[]', ...)` because args are `const`
+        print('glob:', common_filepaths['pheno_gz']('*').encode('utf8'))
         ret = lib.cffi_make_matrix(sites_filepath.encode('utf8'),
-                                   common_filepaths['pheno_gz']('*.gz').encode('utf8'),
+                                   common_filepaths['pheno_gz']('*').encode('utf8'),
                                    matrix_gz_tmp_filepath.encode('utf8'))
         ret_bytes = ffi.string(ret, maxlen=1000)
         if ret_bytes != b'ok':

@@ -386,6 +386,13 @@ static inline size_t n_fields(std::string str) {
     return 1 + std::count(str.begin(), str.end(), '\t'); // `1+` because there's no trailing \t
 }
 
+bool endsWith (std::string const &str, std::string const &suffix) {
+    if (str.length() >= suffix.length()) {
+        return (0 == str.compare (str.length() - suffix.length(), suffix.length(), suffix));
+    }
+    return false;
+}
+
 
 // ------
 // main
@@ -399,15 +406,18 @@ int make_matrix(const char *sites_filepath, const char *augmented_pheno_glob, co
     std::vector<std::string> aug_filepaths = glob(augmented_pheno_glob);
     size_t N_phenos = aug_filepaths.size();
     std::vector<LineReader> aug_readers(N_phenos);
-    std::vector<std::string> aug_basenames(N_phenos);
+    std::vector<std::string> aug_phenocodes(N_phenos);
     std::vector<unsigned> aug_n_per_assoc_fields(N_phenos); // initialized to 0s.
     set_ulimit_num_files(N_phenos + 100); // are python files still open?
     for (size_t i = 0; i < N_phenos; i++) {
         aug_readers[i].attach(aug_filepaths[i]);
-        aug_basenames[i] = aug_filepaths[i];
-        size_t last_slash_idx = aug_basenames[i].find_last_of("/");
+        aug_phenocodes[i] = aug_filepaths[i];
+        size_t last_slash_idx = aug_phenocodes[i].find_last_of("/");
         if (std::string::npos != last_slash_idx) {
-          aug_basenames[i].erase(0, last_slash_idx + 1);
+            aug_phenocodes[i].erase(0, last_slash_idx + 1);
+        }
+        if (endsWith(aug_phenocodes[i], ".gz")) {
+            aug_phenocodes[i] = aug_phenocodes[i].erase(aug_phenocodes[i].length() - 3);
         }
     }
 
@@ -433,7 +443,7 @@ int make_matrix(const char *sites_filepath, const char *augmented_pheno_glob, co
             writer.write("\t");
             writer.write(field);
             writer.write("@");
-            writer.write(aug_basenames[i]);
+            writer.write(aug_phenocodes[i]);
             aug_n_per_assoc_fields[i]++;
         }
     }
