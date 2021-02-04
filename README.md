@@ -30,9 +30,11 @@ pip3 install pheweb
 
 2. If you want to configure any options, make a file `config.py` in your data directory. Some options you can set are:
 
-   - Genome build: set `hg_build_number = 19` or `hg_build_number = 38`.
+   - Genome build: `hg_build_number = 19` or `hg_build_number = 38`.
 
    - `assoc_min_maf`: an association (between a phenotype and variant) will only be included if its MAF is greater than or equal to this value.  (default: `0`; 10/num\_samples will save some space)
+
+   - `download_pheno_sumstats`: Shows a button to download summary stats for each phenotype.  If you don't want to share full summary stats, you can set `download_pheno_sumstats = "secret"` and set `SECRET_KEY = "random string here"`, which will make a secret page (printed out when you start the server) to share summary stats. (default: `True`)
 
    - `cache`: a directory where files common to all datasets can be stored. If you don't want one, set `cache = False`. (default: `cache = "~/.pheweb/cache/"`)
 
