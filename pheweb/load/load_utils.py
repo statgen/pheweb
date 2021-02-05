@@ -13,7 +13,7 @@ import random
 import sys
 import heapq
 from types import GeneratorType
-import typing
+from typing import Iterator,List,Set
 import re
 
 
@@ -268,14 +268,14 @@ class PerPhenoParallelizer(Parallelizer):
 def parallelize_per_pheno(get_input_filepaths, get_output_filepaths, convert, *, cmd=None, phenos=None):
     return PerPhenoParallelizer().run_on_each_pheno(get_input_filepaths, get_output_filepaths, convert, cmd=cmd, phenos=phenos)
 
-def get_phenos_subset(pheno_subset_str:str) -> typing.List[dict]:
+def get_phenos_subset(pheno_subset_str:str) -> List[dict]:
     phenos = get_phenolist()
     idxs_to_include = _get_idxs_from_subset_str(pheno_subset_str)
     return [phenos[idx] for idx in idxs_to_include]
-def _get_idxs_from_subset_str(subset_str:str) -> typing.Iterator[int]:
+def _get_idxs_from_subset_str(subset_str:str) -> List[int]:
     if not re.match(r'^(\d+(-\d+)?)(,\d+(-\d+)?)*$', subset_str):
         raise PheWebError("Couldn't parse subset string: {}".format(repr(subset_str)))
-    idxs = set()
+    idxs: Set[int] = set()
     for part in subset_str.split(','):
         if '-' in part:
             start, stop = part.split('-')

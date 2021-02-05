@@ -21,6 +21,7 @@ from ..utils import round_sig, approx_equal
 from ..file_utils import VariantFileReader, write_json, common_filepaths
 from .load_utils import get_maf, parallelize_per_pheno, get_phenos_subset, get_phenolist
 
+from typing import Dict,Any,List,Iterator,Optional
 import argparse
 import boltons.mathutils
 import boltons.iterutils
@@ -32,7 +33,7 @@ NUM_BINS = 400
 NUM_MAF_RANGES = 4
 
 
-def run(argv):
+def run(argv:List[str]) -> None:
     parser = argparse.ArgumentParser(description="Make a QQ plot for each phenotype.")
     parser.add_argument('--phenos', help="Can be like '4,5,6,12' or '4-6,12' to run on only the phenos at those positions (0-indexed) in pheno-list.json (and only if they need to run)")
     args = parser.parse_args(argv)
@@ -48,17 +49,17 @@ def run(argv):
     )
 
 
-def make_json_file(pheno):
+def make_json_file(pheno:dict) -> None:
     make_json_file_explicit(
         common_filepaths['pheno_gz'](pheno['phenocode']),
         common_filepaths['qq'](pheno['phenocode']),
         pheno
     )
 
-def make_json_file_explicit(in_filepath, out_filepath, pheno):
+def make_json_file_explicit(in_filepath:str, out_filepath:str, pheno:dict) -> None:
     with VariantFileReader(in_filepath) as variant_dicts:
         variants = list(augment_variants(variant_dicts, pheno))
-    rv = {}
+    rv: Dict[str,Any] = {}
     if variants:
         if variants[0].maf is not None:
             rv['overall'] = make_qq_unstratified(variants, include_qq=False)
@@ -71,20 +72,18 @@ def make_json_file_explicit(in_filepath, out_filepath, pheno):
 
 
 Variant = collections.namedtuple('Variant', ['qval', 'maf'])
-def augment_variants(variants, pheno):
+def augment_variants(variants:Iterator[dict], pheno:dict) -> Iterator[Variant]:
     for v in variants:
-        if v['pval'] == 0:
-            qval = 1000 # TODO: make an option "convert_pval0_to = [num|None]"
-        else:
-            qval = -math.log10(v['pval'])
+        # TODO: make an option "convert_pval0_to = [num|None]"
+        qval: float = 1000 if v['pval']==0 else -math.log10(v['pval'])
         maf = get_maf(v, pheno)
         yield Variant(qval=qval, maf=maf)
 
 
-def make_qq_stratified(variants):
+def make_qq_stratified(variants:List[Variant]) -> List[Dict[str,Any]]:
     variants.sort(key=lambda v: v.maf)  # Sort in-place to save RAM
 
-    def make_strata(idx):
+    def make_strata(idx:int) -> Dict[str,Any]:
         # Note: slice_indices[1] is the same as slice_indices[0] of the next slice.
         # But that's not a problem, because range() ignores the last index.
         slice_indices = (len(variants) * idx//NUM_MAF_RANGES,
@@ -99,9 +98,9 @@ def make_qq_stratified(variants):
 
     return [make_strata(i) for i in range(NUM_MAF_RANGES)]
 
-def make_qq_unstratified(variants, include_qq):
+def make_qq_unstratified(variants:List[Variant], include_qq:bool) -> Dict[str,Any]:
     qvals = sorted((v.qval for v in variants), reverse=True)
-    rv = {}
+    rv: Dict[str,Any] = {}
     if include_qq:
         rv['qq'] = compute_qq(qvals)
     rv['count'] = len(qvals)
@@ -116,17 +115,12 @@ def make_qq_unstratified(variants, include_qq):
 
 
 
-
-def compute_qq(qvals):
+def compute_qq(qvals:List[float]) -> Dict[str,Any]:
     # qvals must be in decreasing order.
     assert all(a >= b for a,b in boltons.iterutils.pairwise(qvals))
 
-    if len(qvals) == 0:
-        return []
-
-    if qvals[0] == 0:
-        print('WARNING: All pvalues are 1! How is that supposed to make a QQ plot?')
-        return []
+    if len(qvals) == 0 or qvals[0] == 0:
+        return {}  # the js detects that the values for each key are undefined
 
     max_exp_qval = -math.log10(0.5 / len(qvals))
     # Our QQ plot will only show `obs_qval` up to `ceil(2*max_exp_pval)`.
@@ -161,19 +155,20 @@ def compute_qq(qvals):
             exp_bin / NUM_BINS * max_exp_qval,
             obs_bin / NUM_BINS * max_obs_qval
         ))
+    bins.sort()
     return {
-        'bins': sorted(bins),
+        'bins': bins,
         'max_exp_qval': max_exp_qval,
     }
 
 
-def gc_value_from_list(qvals, quantile=0.5):
+def gc_value_from_list(qvals:List[float], quantile:float = 0.5) -> float:
     # qvals must be in decreasing order.
     assert all(a >= b for a,b in boltons.iterutils.pairwise(qvals))
     qval = qvals[int(len(qvals) * quantile)]
     pval = 10 ** -qval
     return gc_value(pval, quantile)
-def gc_value(pval, quantile=0.5):
+def gc_value(pval:float, quantile:float = 0.5) -> float:
     # This should be equivalent to this R: `qchisq(median_pval, df=1, lower.tail=F) / qchisq(quantile, df=1, lower.tail=F)`
     return scipy.stats.chi2.ppf(1 - pval, 1) / scipy.stats.chi2.ppf(1 - quantile, 1)
 assert approx_equal(gc_value(0.49), 1.047457) # I computed these using that R code.
@@ -183,7 +178,7 @@ assert approx_equal(gc_value(0.6123), 0.5645607)
 
 
 
-def get_confidence_intervals(num_variants, confidence=0.95):
+def get_confidence_intervals(num_variants:float, confidence:float = 0.95) -> Iterator[Dict[str,float]]:
     one_sided_doubt = (1-confidence) / 2
 
     # `variant_counts` are the numbers of variants at which we'll calculate the confidence intervals
