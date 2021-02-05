@@ -108,30 +108,20 @@ To see more information about a subcommand, run that command followed by `-h`.
 Subcommands:
 
     pheweb phenolist
-        prepare a list of phenotypes
+        Prepare a list of phenotypes.
 
     pheweb process
-        once a phenolist has been prepared, load all data to be ready to run the server.
+        Once a phenolist has been prepared, load all data to be ready to run the server.
 
     pheweb serve
-        host a webserver
-
-    pheweb wsgi
-        make wsgi.py, which can be used with gunicorn or other WSGI-compatible webservers.
-
-    pheweb top-hits
-        make top-hits.tsv, which contains variants that:
-            - have a p-value < 10^-6
-            - have a better p-value than every variant within 500kb in the same phenotype.
-
-    pheweb top-loci
-        make top-loci.tsv, which contains variants that:
-            - have a p-value < 10^-6
-            - have a better p-value than every variant within 500kb
-            - have a better p-value than every variant within 1Mb in the same phenotype.
+        Host a webserver.
 
     pheweb conf key=value ... <subcommand> <arg>...
-        run `pheweb <subcommand> <arg>...` with some configuration changed, overriding values in config.py
+        Run `pheweb <subcommand> <arg>...` with some configuration changed, overriding values in `config.py`.
+
+    pheweb conf
+        Show configuration.
+
 '''.format(version.version))
 
 
