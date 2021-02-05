@@ -120,9 +120,13 @@ def get_num_procs(cmd=None):
 
 
 def set_loading_nice():
-    '''Set `nice` value to give loading lower cpu/io priority.  Higher values get lower priority.'''
-    if 'loading_nice' in conf:
-        os.setpriority(os.PRIO_PROCESS, os.getpid(), conf.loading_nice)
+    '''Set `nice` value to give loading lower cpu/io priority.'''
+    import psutil
+    if 'loading_nice' in conf and conf.loading_nice:
+        os.setpriority(os.PRIO_PROCESS, os.getpid(), 20)
+        # Supposedly if ionice is unset it will act like BestEffort with value = nice/5 .
+        # But I'm setting the extremely careful class=idle which won't even use the disk when others do.
+        psutil.Process().ionice(ioclass=psutil.IOPRIO_CLASS_IDLE)
 set_loading_nice()
 
 

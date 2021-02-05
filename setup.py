@@ -78,6 +78,7 @@ setup(
         'cffi~=1.14', # in both `setup_requires` and `install_requires` as per <https://github.com/pypa/setuptools/issues/391>
         'wget~=3.2',
         'gevent~=21.1',
+        'psutil~=5.8',
     ],
     tests_require=[
         'pytest~=6.2',
