@@ -2,11 +2,10 @@
 This script creates generated-by-pheweb/best-of-pheno/<pheno> which contains the strongest 100k associations for the phenotype.
 '''
 
-from ..conf_utils import conf
 from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths
 from .load_utils import MaxPriorityQueue, parallelize_per_pheno, get_phenos_subset, get_phenolist
 
-import math, argparse
+import argparse
 
 
 NUM_VARIANTS = 100_000

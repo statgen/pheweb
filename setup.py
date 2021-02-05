@@ -45,13 +45,13 @@ if sys.argv[-1] in ['publish', 'pub']:
         print('=> autoincrementing version {} -> {}'.format(version, new_version))
         Path('pheweb/version.py').write_text("version = '{}'\n".format(new_version))
         version = new_version
-        subprocess.run(['git','stage','pheweb/version.py'])
+        subprocess.run(['git','stage','pheweb/version.py'], check=True)
     # commit any staged changes
     git_index_returncode = subprocess.run('git diff-index --quiet --cached HEAD'.split()).returncode
     assert git_index_returncode in [0,1]
     if git_index_returncode == 1:
         print('=> git index has changes')
-        subprocess.run(['git','commit','-m',version])
+        subprocess.run(['git','commit','-m',version], check=True)
     # make sure there's a ~/.pypirc
     if not Path('~/.pypirc').expanduser().exists():
         print('=> warning: you need a ~/.pypirc')

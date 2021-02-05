@@ -13,7 +13,7 @@ import random
 import sys
 import heapq
 from types import GeneratorType
-from typing import Iterator,List,Set
+from typing import List,Set
 import re
 
 

@@ -21,7 +21,7 @@ from ..utils import round_sig, approx_equal
 from ..file_utils import VariantFileReader, write_json, common_filepaths
 from .load_utils import get_maf, parallelize_per_pheno, get_phenos_subset, get_phenolist
 
-from typing import Dict,Any,List,Iterator,Optional
+from typing import Dict,Any,List,Iterator
 import argparse
 import boltons.mathutils
 import boltons.iterutils
