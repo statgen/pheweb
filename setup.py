@@ -58,7 +58,7 @@ setup(
     python_requires=">=3.6",
     setup_requires=[
         'cffi~=1.14',
-        'pytest-runner~=4.4',
+        'pytest-runner~=5.2',
     ],
     install_requires=[
         'Flask~=1.1',
@@ -67,19 +67,19 @@ setup(
         'rauth~=0.7',
         'pysam~=0.16',
         'intervaltree~=3.1',
-        'tqdm~=4.51',
-        'openpyxl~=3.0.5',
-        'scipy~=1.5',
-        'numpy~=1.19',
-        'requests[security]~=2.24',
+        'tqdm~=4.56',
+        'openpyxl~=3.0.6',
+        'scipy~=1.6',
+        'numpy~=1.20',
+        'requests[security]~=2.25',
         'gunicorn~=20.0.4',
         'boltons~=20.2',
         'blist~=1.3.6',
         'cffi~=1.14', # in both `setup_requires` and `install_requires` as per <https://github.com/pypa/setuptools/issues/391>
         'wget~=3.2',
-        'gevent~=20.9',
+        'gevent~=21.1',
     ],
     tests_require=[
-        'pytest~=6.1',
+        'pytest~=6.2',
     ],
 )
