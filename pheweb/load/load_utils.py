@@ -119,6 +119,12 @@ def get_num_procs(cmd=None):
     return n_cpus * 3//4
 
 
+def set_loading_nice():
+    '''Set `nice` value to give loading lower cpu/io priority.  Higher values get lower priority.'''
+    if 'loading_nice' in conf:
+        os.setpriority(os.PRIO_PROCESS, os.getpid(), conf.loading_nice)
+set_loading_nice()
+
 
 class MaxPriorityQueue:
     # TODO: check if this is slower than blist-based MaxPriorityQueue, for ~500 items
