@@ -100,7 +100,7 @@ That example file only includes the columns `assoc_files` (a list of paths to as
 
 - `phenostring` (string): a name for the phenotype. Longer than `phenocode`.  Shown in tables and tooltips and page headers.
 - `category` (string): groups together phenotypes in the PheWAS plot. Shown in tables and tooltips.
-- `num_cases`, `num_controls`, and/or `num_samples` (number): if your input data only has `AC` or `MAC`, this will be used to calculated `AF` or `MAF`.  Shown in tooltips.
+- `num_cases`, `num_controls`, and/or `num_samples` (number): if your input data only has `AC` or `MAC`, this will be used to calculated `AF` or `MAF`.  Shown in tooltips.  If your input data has correctly-named columns for these, you can add them with `pheweb phenolist read-info-from-association-files`.
 - anything else you want, but you'll have to modify templates to show it.
 
 There are four ways to make a `pheno-list.json`:
@@ -122,13 +122,13 @@ There are four ways to make a `pheno-list.json`:
 
    Then you could run `pheweb phenolist glob-files "/home/peter/data/*.gz"` to get `assoc-files`.
 
-   To get `phenocodes`, you can use a regex that captures the phenocode from the file path. This command will take the text after the last `/` and before the next `.`:
+   To get `phenocodes`, you can use this command which will take the text after the last `/` and before the next `.`:
 
    ```
    pheweb phenolist extract-phenocode-from-filepath --simple
    ```
    
-   If that doesn't work, see `pheweb phenolist extract-phenocode-from-filepath -h`.
+   If that doesn't work, see `pheweb phenolist extract-phenocode-from-filepath -h` for how to use a regex capture group.
 
 3. If you have multiple association files for some phenotypes, you can follow the directions in 2 and then run `pheweb phenolist unique-phenocode`.
 
@@ -152,8 +152,8 @@ There are four ways to make a `pheno-list.json`:
 
 1. Run `pheweb process`.
 
-   - This step can take hours or days for large datasets.  If you want to use the SLURM or SGE cluster scheduler, run `pheweb cluster --step=parse` for parsing and then `pheweb process --no-parse` for everything else.  To use another cluster scheduler, modify the output of `pheweb cluster --step=parse --engine=slurm`.
-
+   - To distribute jobs across a cluster, see instructions [here](etc/detailed-loading-instructions.md#cluster).
+   
 2. If something breaks, read the error message.
 
    - If you can understand the error message, modify your association or config files to avoid it, or drop the problematic phenotypes from `pheno-list.json`.  Then re-run `pheweb process`.
