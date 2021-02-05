@@ -152,7 +152,7 @@ There are four ways to make a `pheno-list.json`:
 
 1. Run `pheweb process`.
 
-   - To distribute jobs across a cluster, see instructions [here](etc/detailed-loading-instructions.md#cluster).
+   - To distribute jobs across a cluster, see instructions [here](etc/detailed-loading-instructions.md#distributing-jobs-across-a-cluster).
    
 2. If something breaks, read the error message.
 
