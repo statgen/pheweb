@@ -82,7 +82,7 @@ def augment_variants(variants, pheno):
 
 
 def make_qq_stratified(variants):
-    variants = sorted(variants, key=lambda v: v.maf)
+    variants.sort(key=lambda v: v.maf)  # Sort in-place to save RAM
 
     def make_strata(idx):
         # Note: slice_indices[1] is the same as slice_indices[0] of the next slice.
