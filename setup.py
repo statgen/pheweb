@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-# to install: `pip install -e .`
+# to install: `pip3 install -e .`
 # to install latest from pypi: `pip3 install --upgrade --upgrade-strategy eager --no-cache-dir pheweb`
-# to upload to pypi: have `~/.pypirc`, update `pheweb/version.py`, `rm -r dist && python3 setup.py sdist bdist_wheel && twine upload dist/*`
-# to update dependencies: `./tests/check-for-old-requirements.py`, edit, `pip3 install -U --upgrade-strategy=eager ipython`, test
-# to test: `python3 setup.py test` or `pytest`
-
+# to upload to pypi: `./setup.py publish`
+# to update deps: `kpa pip-find-updates`, edit, `pip3 install -U --upgrade-strategy=eager .`, test
+# to test: `./setup.py test` or `pytest`
 
 from setuptools import setup
 import importlib
-import os.path
 import sys
 
 
@@ -20,60 +18,13 @@ def load_module_by_path(module_name, filepath):
     module = importlib.util.module_from_spec(importlib.util.spec_from_file_location(module_name, filepath))
     module.__spec__.loader.exec_module(module)
     return module
-version = load_module_by_path('pheweb.version', os.path.join('pheweb', 'version.py')).version
+version = load_module_by_path('pheweb.version', 'pheweb/version.py').version
+
 
 if sys.argv[-1] in ['publish', 'pub']:
-    # TODO: use `class UploadCommand(setuptools.Command)` from <https://github.com/kennethreitz/setup.py/blob/master/setup.py#L49>
-    import subprocess, json
-    from pathlib import Path
-    from urllib.request import urlopen
-    # make sure there's no unstaged changess
-    git_workdir_returncode = subprocess.run('git diff-files --quiet'.split()).returncode
-    assert git_workdir_returncode in [0,1]
-    if git_workdir_returncode == 1:
-        print('=> git workdir has changes')
-        print('=> please either revert or stage them')
-        sys.exit(1)
-    # if the local version is the same as the PyPI version, increment it
-    pypi_url = 'https://pypi.python.org/pypi/PheWeb/json'
-    latest_version = json.loads(urlopen(pypi_url).read())['info']['version']
-    # Note: it takes pypi a minute to update the API, so this can be wrong.
-    if latest_version == version:
-        new_version_parts = version.split('.')
-        new_version_parts[2] = str(1+int(new_version_parts[2]))
-        new_version = '.'.join(new_version_parts)
-        print('=> autoincrementing version {} -> {}'.format(version, new_version))
-        Path('pheweb/version.py').write_text("version = '{}'\n".format(new_version))
-        version = new_version
-        subprocess.run(['git','stage','pheweb/version.py'], check=True)
-    # commit any staged changes
-    git_index_returncode = subprocess.run('git diff-index --quiet --cached HEAD'.split()).returncode
-    assert git_index_returncode in [0,1]
-    if git_index_returncode == 1:
-        print('=> git index has changes')
-        subprocess.run(['git','commit','-m',version], check=True)
-    # make sure there's a ~/.pypirc
-    if not Path('~/.pypirc').expanduser().exists():
-        print('=> warning: you need a ~/.pypirc')
-    # delete ./dist/PheWeb-* and repopulate it and upload to PyPI
-    if Path('dist').exists() and list(Path('dist').iterdir()):
-        setuppy = Path('setup.py').absolute() # check that we are where we think we are before unlinking
-        assert setuppy.is_file() and 'pheweb' in setuppy.read_text()
-        for child in Path('dist').absolute().iterdir():
-            assert child.name.startswith('PheWeb-'), child
-            print('=> unlinking', child)
-            child.unlink()
-    subprocess.run('python3 setup.py sdist bdist_wheel'.split(), check=True)
-    try:
-        subprocess.run('twine --version'.split())
-    except FileNotFoundError:
-        print('=> Run `pip3 install twine` and try again')
-        sys.exit(1)
-    subprocess.run('twine upload dist/*'.split(), check=True)
-    if git_index_returncode == 1:
-        print('=> Now do `git push`.')
+    import kpa.pypi_utils
+    kpa.pypi_utils.upload_package('pheweb', version)
     sys.exit(0)
-
 
 
 setup(
