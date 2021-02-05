@@ -30,11 +30,13 @@ pip3 install pheweb
 
 2. If you want to configure any options, make a file `config.py` in your data directory. Some options you can set are:
 
-   - Genome build: `hg_build_number = 19` or `hg_build_number = 38`.
+   - `hg_build_number` (int): either `19` or `38`.
 
-   - `assoc_min_maf`: an association (between a phenotype and variant) will only be included if its MAF is greater than or equal to this value.  (default: `0`; 10/num\_samples will save some space)
+   - `assoc_min_maf` (float): an association (between a phenotype and variant) will only be included if its MAF is greater than or equal to this value.  (default: `0`; 10/num\_samples will save some space)
 
-   - `cache`: a directory where files common to all datasets can be stored. If you don't want one, set `cache = False`. (default: `cache = "~/.pheweb/cache/"`)
+   - `cache` (string or False): a directory where files common to all datasets can be stored. If you don't want one, set `cache = False`. (default: `cache = "~/.pheweb/cache/"`)
+
+   - `num_procs` (int or dict): the number of processes to use for parallel loading steps.  You can also set `num_procs = {'qq':5, '*':30}`. (default: 2/3 of the number of cores on your machine)
 
 ### 3. Prepare your association files
 
