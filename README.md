@@ -98,9 +98,9 @@ Inside of your data directory, you need a file named `pheno-list.json` that look
 
 That example file only includes the columns `assoc_files` (a list of paths to association files) and `phenocode` (a string representing your phenotype that is valid in a URL). If you want, you can also include:
 
-- `phenostring`: a string that is more descriptive than `phenocode` and will be shown in several places
-- `category`: a string that will group together phenotypes in the PheWAS plot and also be shown in several places
-- `num_cases`, `num_controls`, and/or `num_samples`: numbers of strings which will be shown in several places
+- `phenostring` (string): a name for the phenotype. Longer than `phenocode`.  Shown in tables and tooltips and page headers.
+- `category` (string): groups together phenotypes in the PheWAS plot. Shown in tables and tooltips.
+- `num_cases`, `num_controls`, and/or `num_samples` (number): if your input data only has `AC` or `MAC`, this will be used to calculated `AF` or `MAF`.  Shown in tooltips.
 - anything else you want, but you'll have to modify templates to show it.
 
 There are four ways to make a `pheno-list.json`:
