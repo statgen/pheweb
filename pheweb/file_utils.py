@@ -355,12 +355,12 @@ class _vfw:
         for v in variants:
             self.write(v)
 
-def write_heterogenous_variantfile(filepath, assocs):
+def write_heterogenous_variantfile(filepath, assocs, use_gzip=True):
     '''inject all necessary keys into the first association so that the writer will be made correctly'''
     if len(assocs) == 0:
         raise PheWebError("ERROR: tried to write file {!r} but didn't supply any variants")
     assocs[0] = {field:assocs[0].get(field,'') for field in set(itertools.chain.from_iterable(assocs))}
-    with VariantFileWriter(filepath, allow_extra_fields=True) as vfw:
+    with VariantFileWriter(filepath, allow_extra_fields=True, use_gzip=use_gzip) as vfw:
         vfw.write_all(assocs)
 
 def convert_VariantFile_to_IndexedVariantFile(vf_path, ivf_path):

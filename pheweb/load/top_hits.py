@@ -70,5 +70,5 @@ just the top phenotype for each, use `pheweb top-loci`.
     stringify_assocs(hits)
 
     if hits:  # If there are no hits, we can't write a proper tsv
-        write_heterogenous_variantfile(out_filepath_tsv, hits)
+        write_heterogenous_variantfile(out_filepath_tsv, hits, use_gzip=False)
         print("wrote {} hits to {}".format(len(hits), out_filepath_tsv))
