@@ -32,9 +32,9 @@ pip3 install pheweb
 
    - `hg_build_number` (int): either `19` or `38`.
 
-   - `assoc_min_maf` (float): an association (between a phenotype and variant) will only be included if its MAF is greater than or equal to this value.  (default: `0`; 10/num\_samples will save some space)
+   - `assoc_min_maf` (float): an association (between a phenotype and variant) will only be included if its MAF is greater than or equal to this value. (default: `0`)
 
-   - `cache` (string or False): a directory where files common to all datasets can be stored. If you don't want one, set `cache = False`. (default: `cache = "~/.pheweb/cache/"`)
+   - `cache` (string): a directory where files common to all datasets can be stored. (default: `cache = "~/.pheweb/cache/"`)
 
    - `num_procs` (int or dict): the number of processes to use for parallel loading steps.  You can also set `num_procs = {'qq':5, '*':30}`. (default: 2/3 of the number of cores on your machine)
 
@@ -43,7 +43,7 @@ pip3 install pheweb
 You need one file for each phenotype, and there are some requirements:
 - It needs a header row.
 - Columns can be delimited by tabs, spaces, or commas.
-- It needs a column for the reference allele (which must always match the reference genome that you specified with `hg_build_number`) and a column for the alternate allele.  If you have a `MARKER_ID` column like `1:234_C/G`, that's okay too.  If you have an allele1 and allele2, and sometimes one or the other is the reference, then you'll need to modify the file.
+- It needs a column for the reference allele (which must always match the reference genome that you specified with `hg_build_number`) and a column for the alternate allele.  If you have a `MARKER_ID` column like `1:234_C/G`, that's okay too.  If you have an allele1 and allele2, and sometimes one or the other is the reference, then you'll need to modify your files.
 - It can be gzipped if you want.
 - Variants must be sorted by chromosome and position, with chromosomes in the order [1-22,X,Y,MT].
 
@@ -51,7 +51,7 @@ The file must have columns for:
 
 | column description | name    | other allowed column names | allowed values |
 | ---                | ---     | ---                        | --- |
-| chromosome         | `chrom` | `#chrom`, `chr`            | 1-22, `X`, `Y`, `M`, `MT` |
+| chromosome         | `chrom` | `#chrom`, `chr`            | 1-22, `X`, `Y`, `M`, `MT`, `chr1`, etc |
 | position           | `pos`   | `beg`, `begin`, `bp`       | integer |
 | reference allele   | `ref`   | `reference`                | must match reference genome |
 | alternate allele   | `alt`   | `alternate`                | anything |
