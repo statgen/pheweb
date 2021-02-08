@@ -20,7 +20,7 @@ def get_generated_path(*path_parts):
     make_basedir(path)
     return path
 
-dbsnp_version = '150'  # This seems like a good tradeoff with most relevant rsids in 3GB
+dbsnp_version = '154'
 genes_version = '36'
 
 common_filepaths = {
