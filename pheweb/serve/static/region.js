@@ -55,8 +55,8 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {build: 'GRCh'+window.model.grch_build_number} }])
         .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {build:'GRCh'+window.model.grch_build_number} }]);
 
-    LocusZoom.TransformationFunctions.set("neglog10_or_100", function(x) {
-        if (x === 0) return 100;
+    LocusZoom.TransformationFunctions.set("neglog10_or_323", function(x) {
+        if (x === 0) return 323;
         return -Math.log(x) / Math.LN10;
     });
 
@@ -267,7 +267,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                                     "{{namespace[assoc]}}all", // special mock value for the custom source
                                     "{{namespace[assoc]}}id",
                                     "{{namespace[assoc]}}position",
-                                    "{{namespace[assoc]}}pvalue|neglog10_or_100",
+                                    "{{namespace[assoc]}}pvalue|neglog10_or_323",
                                     "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar",
                                     "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
                                 ],
@@ -290,7 +290,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                                 x_axis: { field: "{{namespace[assoc]}}position" },
                                 y_axis: {
                                     axis: 1,
-                                    field: "{{namespace[assoc]}}pvalue|neglog10_or_100",
+                                    field: "{{namespace[assoc]}}pvalue|neglog10_or_323",
                                     floor: 0,
                                     upper_buffer: 0.1,
                                     min_extent: [0, 10]
