@@ -27,12 +27,19 @@
 
 {% block contained %}
 <div class="row">
-    <div class="col-xs-12">
+    <div class="col-xs-12 col-sm-8">
         <h1 style="margin-top:0">Top Hits</h1>
+    </div>
+    <div class="col-xs-12 col-sm-4">
+      <span class="pull-right"><a class="btn btn-default" href="{{ url_for('.download_top_hits') }}">Download</a></span>
+  </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
         <p>This page shows only the peaks with a p-value &lt; 10<span style="vertical-align:super">-6</span>.
           Variants are hidden if any variant within 500kb in the same phenotype has a smaller p-value.
           Only the top 2000 variants of each phenotype are considered.
-          This table is limited to the top 1000 hits, but the button below will download all hits.</p>
+          This table is limited to the top 1000 hits, but the download button includes all hits.</p>
     </div>
 </div>
 <br>
@@ -60,12 +67,6 @@
       <tbody>
       </tbody>
     </table>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-xs-12">
-    <p><a class="btn btn-primary" href="{{ url_for('.download_top_hits') }}">Download All</a></p>
   </div>
 </div>
 
