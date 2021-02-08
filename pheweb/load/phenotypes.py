@@ -1,6 +1,6 @@
 
 from ..utils import get_phenolist
-from ..file_utils import write_json, common_filepaths
+from ..file_utils import write_json, common_filepaths, write_heterogenous_variantfile
 
 import json
 
@@ -31,8 +31,12 @@ def run(argv):
         print('Make a file summarizing information about each phenotype (for use in the phenotypes table)')
         exit(1)
 
-    out_filepath = common_filepaths['phenotypes_summary']()
     data = sorted(get_phenotypes_including_top_variants(), key=lambda p: p['pval'])
-    data.sort(key=lambda p: p['pval'])
+
+    out_filepath = common_filepaths['phenotypes_summary']()
     write_json(filepath=out_filepath, data=data)
     print("wrote {} phenotypes to {}".format(len(data), out_filepath))
+
+    out_filepath_tsv = common_filepaths['phenotypes_summary_tsv']()
+    write_heterogenous_variantfile(out_filepath_tsv, data, use_gzip=False)
+    print("wrote {} phenotypes to {}".format(len(data), out_filepath_tsv))

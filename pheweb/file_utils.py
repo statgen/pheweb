@@ -50,6 +50,7 @@ common_filepaths = {
     'top-loci': (lambda: get_generated_path('top_loci.json')),
     'top-loci-tsv': (lambda: get_generated_path('top_loci.tsv')),
     'phenotypes_summary': (lambda: get_generated_path('phenotypes.json')),
+    'phenotypes_summary_tsv': (lambda: get_generated_path('phenotypes.tsv')),
     'parsed':    (lambda phenocode: get_generated_path('parsed', phenocode)),
     'pheno_gz':  (lambda phenocode: get_generated_path('pheno_gz', '{}.gz'.format(phenocode) if phenocode else '')),
     'best_of_pheno':(lambda phenocode: get_generated_path('best_of_pheno', '{}'.format(phenocode) if phenocode else '')),

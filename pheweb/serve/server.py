@@ -137,6 +137,10 @@ def phenotypes_page():
 @check_auth
 def api_phenotypes():
     return send_file(common_filepaths['phenotypes_summary']())
+@bp.route('/download/phenotypes.tsv')
+@check_auth
+def download_phenotypes():
+    return send_file(common_filepaths['phenotypes_summary_tsv']())
 
 @bp.route('/api/qq/pheno/<phenocode>')
 @check_auth
