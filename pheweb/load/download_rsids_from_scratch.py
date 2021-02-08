@@ -41,7 +41,7 @@ def download_rsids_for_build(hg_build_number: int):
         grep '^NC_0000' |
         perl -pale 's/^NC_0*23\.\d+/X/' |
         perl -pale 's/^NC_0*24\.\d+/Y/' |
-        perl -pale 's/^NC_0*(\d)\.\d+/\1/' |
+        perl -pale 's/^NC_0*([1-9][0-9]*)\.\d+/\1/' |
         gzip > '{rsids_tmp_filepath}'
         '''.format(raw_dbsnp_filepath=raw_dbsnp_filepath, rsids_tmp_filepath=rsids_tmp_filepath))
         os.rename(rsids_tmp_filepath, rsids_filepath)
