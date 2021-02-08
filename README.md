@@ -98,12 +98,12 @@ Inside of your data directory, you need a file named `pheno-list.json` that look
 
 `phenocode` must only contain letters, numbers, or any of `_-~`.
 
-That example file only includes the columns `assoc_files` (a list of paths to association files) and `phenocode` (a string representing your phenotype that is valid in a URL). If you want, you can also include:
+Each phenotype needs `assoc_files` (a list of paths to association files) and `phenocode` (a string representing your phenotype that is valid in a URL). If you want, you can also include:
 
-- `phenostring` (string): a name for the phenotype. Longer than `phenocode`.  Shown in tables and tooltips and page headers.
+- `phenostring` (string): a name for the phenotype. Shown in tables and tooltips and page headers.
 - `category` (string): groups together phenotypes in the PheWAS plot. Shown in tables and tooltips.
-- `num_cases`, `num_controls`, and/or `num_samples` (number): if your input data only has `AC` or `MAC`, this will be used to calculated `AF` or `MAF`.  Shown in tooltips.  If your input data has correctly-named columns for these, you can add them with `pheweb phenolist read-info-from-association-files`.
-- anything else you want, but you'll have to modify templates to show it.
+- `num_cases`, `num_controls`, and/or `num_samples` (number): if your input data only has `AC` or `MAC`, this will be used to calculated `AF` or `MAF`.  Shown in tooltips.  If your input data has correctly-named columns for these, the command `pheweb phenolist read-info-from-association-files` will add them into your existing `pheno-list.json`.
+- anything else you want, but you'll have to modify templates to use it.
 
 There are four ways to make a `pheno-list.json`:
 
@@ -148,7 +148,7 @@ There are four ways to make a `pheno-list.json`:
    pheweb phenolist unique-phenocode
    ```
 
-4. If you want to do more advanced things, like merging in more information from another file, [open an issue on github](https://github.com/statgen/pheweb/issues/new) and I can write documentation for `pheweb phenolist`.
+4. If you want to do more advanced things, like merging in more information from another file, check out the tools in `pheweb phenolist --help`.
 
 ### 5. Load your association files
 
