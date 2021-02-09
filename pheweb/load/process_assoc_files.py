@@ -1,7 +1,9 @@
 
 
 # TODO: color lines with ==> using `colorama`
-# TODO: add a step to verify that the genome build is correct using detect_ref (probably after `sites`)
+# TODO: add a step to verify that the genome build is correct using detect_ref (once on first 10k of each input file, and again on `sites`)
+
+from ..utils import fmt_seconds
 
 import time
 import importlib
@@ -47,7 +49,7 @@ def run(argv):
         try:
             module.run(script_parts[1:])
         except Exception:
-            print('==> failed after {:.0f} seconds'.format(time.time() - start_time))
+            print('==> failed after {}'.format(fmt_seconds(time.time() - start_time)))
             raise
         else:
-            print('==> Completed in {:.0f} seconds'.format(time.time() - start_time), end='\n\n')
+            print('==> Completed in {}'.format(fmt_seconds(time.time() - start_time)), end='\n\n')

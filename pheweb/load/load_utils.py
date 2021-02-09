@@ -1,5 +1,5 @@
 
-from ..utils import round_sig, get_phenolist, PheWebError
+from ..utils import round_sig, get_phenolist, PheWebError, fmt_seconds
 from ..conf_utils import conf
 from ..file_utils import get_dated_tmp_path
 
@@ -340,8 +340,5 @@ class ProgressBar:
             )
             self._last_message_written = message
             self._last_time_written = t or time.time()
-    def fmt_elapsed(self):
-        seconds = time.time() - self._start_time
-        if seconds < 5*60: return '{} seconds'.format(int(seconds))
-        if seconds < 5*60*60: return '{} minutes'.format(int(seconds//60))
-        return '{} hours'.format(int(seconds//60//60))
+    def fmt_elapsed(self) -> str:
+        return fmt_seconds(time.time() - self._start_time)

@@ -27,6 +27,13 @@ def approx_equal(a, b, tolerance=1e-4):
 assert approx_equal(42, 42.0000001)
 assert not approx_equal(42, 42.01)
 
+def fmt_seconds(seconds:float) -> str:
+    if seconds < 5*60: return '{} seconds'.format(int(seconds))
+    if seconds < 5*60*60: return '{} minutes'.format(int(seconds//60))
+    return '{} hours'.format(int(seconds//60//60))
+assert fmt_seconds(9) == '9 seconds'
+assert fmt_seconds(900) == '15 minutes'
+assert fmt_seconds(90000) == '25 hours'
 
 
 def get_phenolist(filepath=None):
