@@ -24,24 +24,25 @@ Method:
 '''
 
 from ..utils import get_gene_tuples, pad_gene
-from ..file_utils import MatrixReader, common_filepaths, get_tmp_path
+from ..file_utils import MatrixReader, get_filepath, get_tmp_path
 from .load_utils import Parallelizer
 
 import sqlite3, json
 from pathlib import Path
+from typing import List,Any,Dict,Tuple
 
-def run(argv):
+def run(argv:List[str]) -> None:
     if argv and '-h' in argv:
         print('get info for genes')
         exit(0)
 
-    out_filepath = Path(common_filepaths['best-phenos-by-gene-sqlite3']())
-    matrix_filepath = Path(common_filepaths['matrix']())
+    out_filepath = Path(get_filepath('best-phenos-by-gene-sqlite3', must_exist=False))
+    matrix_filepath = Path(get_filepath('matrix'))
     if out_filepath.exists() and matrix_filepath.stat().st_mtime < out_filepath.stat().st_mtime:
         print('{} is up-to-date!'.format(str(out_filepath)))
         return
 
-    old_filepath = Path(common_filepaths['best-phenos-by-gene-old-json']())
+    old_filepath = Path(get_filepath('best-phenos-by-gene-old-json', must_exist=False))
     if old_filepath.exists() and matrix_filepath.stat().st_mtime < old_filepath.stat().st_mtime:
         print('Migrating old {} to new {}'.format(str(old_filepath), str(out_filepath)))
         with open(old_filepath) as f:
@@ -64,15 +65,15 @@ def run(argv):
     out_tmp_filepath.replace(out_filepath)
     print('Done making best-pheno-for-each-gene at {}'.format(str(out_filepath)))
 
-def process_genes(taskq, retq):
+def process_genes(taskq, retq) -> None:
     with MatrixReader().context() as matrix_reader:
-        def f(gene): return get_gene_info(gene, matrix_reader)
+        def f(gene:Tuple[str,int,int,str]) -> Dict[str,Any]: return get_gene_info(gene, matrix_reader)
         Parallelizer._make_multiple_tasks_doer(f)(taskq, retq)
 
-def get_gene_info(gene, matrix_reader):
+def get_gene_info(gene:Tuple[str,int,int,str], matrix_reader) -> Dict[str,List[Dict[str,Any]]]:
     chrom, start, end, gene_symbol = gene
     start, end = pad_gene(start, end)
-    best_assoc_for_pheno = {}
+    best_assoc_for_pheno:Dict[str,Dict[str,Any]] = {}
 
     # best_assoc_for_pheno is like:
     # {

@@ -1,11 +1,12 @@
 
 from ..utils import get_phenolist
 from ..conf_utils import conf
-from ..file_utils import get_tmp_path, get_dated_tmp_path, common_filepaths
+from ..file_utils import get_tmp_path, get_dated_tmp_path, get_pheno_filepath
 from .load_utils import PerPhenoParallelizer
 
 import sys, argparse
 from boltons.iterutils import chunked
+from typing import List,Dict,Any
 
 N_AT_A_TIME = 5
 
@@ -40,17 +41,17 @@ monitor_command = {
     'sge': 'qstat -j',
 }
 
-def run(argv):
+def run(argv:List[str]) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--engine', choices=['slurm', 'sge'], required=True)
     parser.add_argument('--step', choices=['parse', 'augment-phenos', 'manhattan', 'qq'], required=True)
     args = parser.parse_args(argv)
 
-    def should_process(pheno):
+    def should_process(pheno:Dict[str,Any]) -> bool:
         return PerPhenoParallelizer().should_process_pheno(
             pheno,
             get_input_filepaths = lambda pheno: pheno['assoc_files'],
-            get_output_filepaths = lambda pheno: common_filepaths['parsed'](pheno['phenocode']),
+            get_output_filepaths = lambda pheno: get_pheno_filepath('parsed', pheno['phenocode'], must_exist=False),
         )
     idxs = [i for i,pheno in enumerate(get_phenolist()) if should_process(pheno)]
     if not idxs:

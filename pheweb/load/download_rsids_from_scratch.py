@@ -1,14 +1,15 @@
 
-from ..file_utils import make_basedir, get_tmp_path, dbsnp_version, common_filepaths
+from ..file_utils import make_basedir, get_tmp_path, dbsnp_version, get_filepath
 from .load_utils import run_script
 from ..conf_utils import conf
 
 import os
 import wget
+from typing import List
 
-def download_rsids_for_build(hg_build_number: int):
+def download_rsids_for_build(hg_build_number:int) -> None:
     raw_dbsnp_filepath = get_tmp_path('dbsnp-b{}-hg{}.gz'.format(dbsnp_version, hg_build_number))
-    rsids_filepath = common_filepaths['rsids-hg{}'.format(hg_build_number)]()
+    rsids_filepath = get_filepath('rsids-hg{}'.format(hg_build_number), must_exist=False)
 
     if not os.path.exists(rsids_filepath):
         print('dbsnp will be stored at {!r}'.format(rsids_filepath))
@@ -48,7 +49,7 @@ def download_rsids_for_build(hg_build_number: int):
 
     print("rsids are at '{rsids_filepath}'".format(rsids_filepath=rsids_filepath))
 
-def run(argv):
+def run(argv:List[str]) -> None:
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--hg', type=int, default=conf.hg_build_number, choices=[19,38])

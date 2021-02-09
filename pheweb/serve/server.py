@@ -1,7 +1,7 @@
 
 from ..utils import get_phenolist, get_gene_tuples, pad_gene, PheWebError
 from ..conf_utils import conf
-from ..file_utils import common_filepaths
+from ..file_utils import get_filepath
 from .server_utils import get_variant, get_random_page, get_pheno_region
 from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
@@ -12,13 +12,14 @@ from flask import Flask, jsonify, render_template, request, redirect, abort, fla
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 
-import functools
+import functools, math
 import re
 import traceback
 import json
 import os
 import os.path
 import sqlite3
+from typing import Dict,Tuple,List,Any
 
 
 bp = Blueprint('bp', __name__, template_folder='templates', static_folder='static')
@@ -40,7 +41,9 @@ app.config['LZJS_VERSION_PHEWAS'] = conf['lzjs_version_phewas']
 app.config['URLPREFIX'] = conf.urlprefix.rstrip('/')
 app.config['USE_WHITELIST'] = 'login' in conf and 'whitelist' in conf.login
 if os.path.isdir(conf.custom_templates):
-    app.jinja_loader.searchpath.insert(0, conf.custom_templates)
+    jinja_searchpath = getattr(app.jinja_loader, 'searchpath', None)
+    if jinja_searchpath is None: raise Exception()
+    jinja_searchpath.insert(0, conf.custom_templates)
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
@@ -90,7 +93,7 @@ def go():
 
 @bp.route('/api/variant/<query>')
 @check_auth
-def api_variant(query):
+def api_variant(query:str):
     variant = get_variant(query)
     resp = jsonify(variant)
     if conf['allow_variant_json_cors']:
@@ -99,7 +102,7 @@ def api_variant(query):
 
 @bp.route('/variant/<query>')
 @check_auth
-def variant_page(query):
+def variant_page(query:str):
     try:
         variant = get_variant(query)
         if variant is None:
@@ -111,10 +114,10 @@ def variant_page(query):
     except Exception as exc:
         die('Oh no, something went wrong', exc)
 
-@bp.route('/api/manhattan/pheno/<phenocode>')
+@bp.route('/api/manhattan/pheno/<phenocode>.json')
 @check_auth
-def api_pheno(phenocode):
-    return send_from_directory(common_filepaths['manhattan'](''), phenocode)
+def api_pheno(phenocode:str):
+    return send_from_directory(get_filepath('manhattan'), '{}.json'.format(phenocode))
 
 @bp.route('/top_hits')
 @check_auth
@@ -123,11 +126,11 @@ def top_hits_page():
 @bp.route('/api/top_hits.json')
 @check_auth
 def api_top_hits():
-    return send_file(common_filepaths['top-hits-1k']())
+    return send_file(get_filepath('top-hits-1k'))
 @bp.route('/download/top_hits.tsv')
 @check_auth
 def download_top_hits():
-    return send_file(common_filepaths['top-hits-tsv']())
+    return send_file(get_filepath('top-hits-tsv'))
 
 @bp.route('/phenotypes')
 @check_auth
@@ -136,16 +139,16 @@ def phenotypes_page():
 @bp.route('/api/phenotypes.json')
 @check_auth
 def api_phenotypes():
-    return send_file(common_filepaths['phenotypes_summary']())
+    return send_file(get_filepath('phenotypes_summary'))
 @bp.route('/download/phenotypes.tsv')
 @check_auth
 def download_phenotypes():
-    return send_file(common_filepaths['phenotypes_summary_tsv']())
+    return send_file(get_filepath('phenotypes_summary_tsv'))
 
-@bp.route('/api/qq/pheno/<phenocode>')
+@bp.route('/api/qq/pheno/<phenocode>.json')
 @check_auth
-def api_pheno_qq(phenocode):
-    return send_from_directory(common_filepaths['qq'](''), phenocode)
+def api_pheno_qq(phenocode:str):
+    return send_from_directory(get_filepath('qq'), '{}.json'.format(phenocode))
 
 
 @bp.route('/random')
@@ -158,7 +161,7 @@ def random_page():
 
 @bp.route('/pheno/<phenocode>')
 @check_auth
-def pheno_page(phenocode):
+def pheno_page(phenocode:str):
     try:
         pheno = phenos[phenocode]
     except KeyError:
@@ -175,7 +178,7 @@ def pheno_page(phenocode):
 
 @bp.route('/region/<phenocode>/<region>')
 @check_auth
-def region_page(phenocode, region):
+def region_page(phenocode:str, region:str):
     try:
         pheno = phenos[phenocode]
     except KeyError:
@@ -189,22 +192,23 @@ def region_page(phenocode, region):
 
 @bp.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
 @check_auth
-def api_region(phenocode):
+def api_region(phenocode:str):
     filter_param = request.args.get('filter')
-    groups = re.match(r".*chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
-    chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
-    rv = get_pheno_region(phenocode, chrom, pos_start, pos_end)
-    return jsonify(rv)
+    if not isinstance(filter_param, str): abort(404)
+    m = re.match(r".*chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param)
+    if not m: abort(404)
+    chrom, pos_start, pos_end = m.group(1), int(m.group(2)), int(m.group(3))
+    return jsonify(get_pheno_region(phenocode, chrom, pos_start, pos_end))
 
 
 @bp.route('/api/pheno/<phenocode>/correlations/')
 @check_auth
-def api_pheno_correlations(phenocode):
+def api_pheno_correlations(phenocode:str):
     """Send information about phenotype correlations. This is an optional feature controlled by configuration."""
     if not conf.show_correlations:
         return jsonify({'error': 'This PheWeb instance does not support the requested endpoint.'}), 400
 
-    annotated_correl_fn = common_filepaths['correlations']()
+    annotated_correl_fn = get_filepath('correlations')
     rows = weetabix.get_indexed_rows(annotated_correl_fn, phenocode, strict=False)
     # TODO: Decouple so that the route doesn't contain assumptions about file format
     # TODO: Check w/Daniel for "edge case" type assumptions- eg underflow on pvalues, weird field values?
@@ -224,15 +228,15 @@ def api_pheno_correlations(phenocode):
 
 
 @functools.lru_cache(None)
-def get_gene_region_mapping():
+def get_gene_region_mapping() -> Dict[str,Tuple[str,int,int]]:
     return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
 
 @functools.lru_cache(None)
 def get_best_phenos_by_gene_db():
-    db = sqlite3.connect(common_filepaths['best-phenos-by-gene-sqlite3']())
+    db = sqlite3.connect(get_filepath('best-phenos-by-gene-sqlite3'))
     db.row_factory = sqlite3.Row
     return db
-def get_best_phenos_for_gene(gene:str) -> list:
+def get_best_phenos_for_gene(gene:str) -> List[Dict[str,Any]]:
     db = get_best_phenos_by_gene_db()
     for row in db.execute('SELECT json FROM best_phenos_for_each_gene WHERE gene = ?', (gene,)):
         return json.loads(row['json'])
@@ -240,7 +244,7 @@ def get_best_phenos_for_gene(gene:str) -> list:
 
 @bp.route('/region/<phenocode>/gene/<genename>')
 @check_auth
-def gene_phenocode_page(phenocode, genename):
+def gene_phenocode_page(phenocode:str, genename:str):
     try:
         gene_region_mapping = get_gene_region_mapping()
         chrom, start, end = gene_region_mapping[genename]
@@ -251,9 +255,9 @@ def gene_phenocode_page(phenocode, genename):
             include_pos = int(include_pos)
             assert include_chrom == chrom
             if include_pos < start:
-                start = include_pos - (end - start) * 0.01
+                start = int(include_pos - (end - start) * 0.01)
             elif include_pos > end:
-                end = include_pos + (end - start) * 0.01
+                end = math.ceil(include_pos + (end - start) * 0.01)
         start, end = pad_gene(start, end)
 
         pheno = phenos[phenocode]
@@ -278,7 +282,7 @@ def gene_phenocode_page(phenocode, genename):
 
 @bp.route('/gene/<genename>')
 @check_auth
-def gene_page(genename):
+def gene_page(genename:str):
     phenos_in_gene = get_best_phenos_for_gene(genename)
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype.")
@@ -292,23 +296,23 @@ if conf.get('download_pheno_sumstats', '') == 'secret':
     class Hasher:
         _hash_length = 15
         @classmethod
-        def get_hash(cls, plaintext):
+        def get_hash(cls, plaintext:str) -> str:
             import hashlib
             return hashlib.blake2b(plaintext.encode('utf8'), digest_size=cls._hash_length, key=app.config['SECRET_KEY'].encode('utf8')).hexdigest()
         @classmethod
-        def check_hash(cls, hash_, plaintext):
+        def check_hash(cls, hash_:str, plaintext:str) -> bool:
             if len(hash_) != cls._hash_length * 2: return False
             import hmac
             return hmac.compare_digest(cls.get_hash(plaintext), hash_)
 
     @bp.route('/download/<phenocode>/<token>')
-    def download_pheno(phenocode, token):
+    def download_pheno(phenocode:str, token:str):
         if phenocode not in phenos:
             die("Sorry, that phenocode doesn't exist")
         if not Hasher.check_hash(token, phenocode):
             die("Sorry, that token is incorrect")
         try:
-            return send_from_directory(common_filepaths['pheno_gz'](''), '{}.gz'.format(phenocode),
+            return send_from_directory(get_filepath('pheno_gz'), '{}.gz'.format(phenocode),
                                        as_attachment=True,
                                        attachment_filename='phenocode-{}.tsv.gz'.format(phenocode))
         except Exception as exc:
@@ -318,7 +322,7 @@ if conf.get('download_pheno_sumstats', '') == 'secret':
     print('download page:', '/download-list/{}'.format(download_list_secret_token))
 
     @bp.route('/download-list/<token>')
-    def download_list(token):
+    def download_list(token:str):
         if token != download_list_secret_token:
             print(url_for('.download_list', token=Hasher.get_hash('download-list'), _external=True))
             die('Wrong token.')
@@ -331,10 +335,10 @@ if conf.get('download_pheno_sumstats', '') == 'secret':
 else:
     app.config['DOWNLOAD_PHENO_SUMSTATS_BUTTON'] = True
     @bp.route('/download/<phenocode>')
-    def download_pheno(phenocode):
+    def download_pheno(phenocode:str):
         if phenocode not in phenos:
             die("Sorry, that phenocode doesn't exist")
-        return send_from_directory(common_filepaths['pheno_gz'](''), '{}.gz'.format(phenocode),
+        return send_from_directory(get_filepath('pheno_gz'), '{}.gz'.format(phenocode),
                                    as_attachment=True,
                                    attachment_filename='phenocode-{}.tsv.gz'.format(phenocode))
 
@@ -356,7 +360,7 @@ def die(message='no message', exception=None):
     abort(404)
 
 @bp.errorhandler(404)
-def error_page(message):
+def error_page(message:str):
     return render_template(
         'error.html',
         message=message

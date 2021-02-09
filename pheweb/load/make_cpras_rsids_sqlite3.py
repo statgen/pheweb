@@ -1,24 +1,25 @@
 
-from ..file_utils import VariantFileReader, common_filepaths, get_tmp_path
+from ..file_utils import VariantFileReader, get_filepath, get_tmp_path
 
 import sqlite3
 from pathlib import Path
+from typing import List,Iterator,Tuple,Optional
 
 
-sites_filepath = Path(common_filepaths['sites']())
-cpras_rsids_filepath = Path(common_filepaths['cpras-rsids-sqlite3']())
-
-def run(argv):
+def run(argv:List[str]) -> None:
 
     if '-h' in argv or '--help' in argv:
         print('Make sqlite3 db for converting between chr-pos-ref-alt and rsid')
         exit(1)
 
+    sites_filepath = Path(get_filepath('sites'))
+    cpras_rsids_filepath = Path(get_filepath('cpras-rsids-sqlite3', must_exist=False))
+
     if cpras_rsids_filepath.exists() and cpras_rsids_filepath.stat().st_mtime >= sites_filepath.stat().st_mtime:
         print('cpras-rsids-sqlite3 is up-to-date!')
 
     else:
-        def get_cpra_rsid_pairs():
+        def get_cpra_rsid_pairs() -> Iterator[Tuple[str,Optional[str]]]:
             with VariantFileReader(sites_filepath) as reader:
                 for v in reader:
                     cpra = '{chrom}-{pos}-{ref}-{alt}'.format(**v)

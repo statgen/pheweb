@@ -7,9 +7,10 @@ This information will be shown on phenotype summary pages. This is an OPTIONAL f
 import logging
 import os
 from boltons.fileutils import AtomicSaver
+from typing import List,Optional
 
 from ..conf_utils import conf
-from ..file_utils import common_filepaths, get_tmp_path
+from ..file_utils import get_filepath, get_tmp_path
 from ..utils import get_phenolist, PheWebError
 from .. import weetabix
 
@@ -17,14 +18,14 @@ from .. import weetabix
 logger = logging.getLogger(__name__)
 
 
-def run(argv):
+def run(argv:List[str]) -> None:
     """Wrap this feature in a command line flag"""
     if argv and argv[0] == '-h':
         print('Generate phenotype correlations data for use in pheweb plots')
         exit(1)
 
-    raw_correl_filepath = common_filepaths['correlations-raw']()
-    annotated_correl_filepath = common_filepaths['correlations']()
+    raw_correl_filepath = get_filepath('correlations-raw', must_exist=False)
+    annotated_correl_filepath = get_filepath('correlations', must_exist=False)
 
     if not os.path.isfile(raw_correl_filepath):
         logger.info('No "pheno-correlations.txt" file was found; processing step cannot be completed.')
@@ -39,7 +40,7 @@ def run(argv):
     main(raw_correl_filepath, annotated_correl_filepath)
 
 
-def main(raw_filepath, annotated_filepath, phenolist_path=None):
+def main(raw_filepath:str, annotated_filepath:str, phenolist_path:Optional[str] = None) -> None:
     """Process a correlations file in the format required for display"""
     symmetric_filepath = get_tmp_path('pheno-correlations-symmetric.tsv')
     make_symmetric(raw_filepath, symmetric_filepath)
@@ -47,7 +48,7 @@ def main(raw_filepath, annotated_filepath, phenolist_path=None):
     weetabix.make_byte_index(annotated_filepath, 1, skip_lines=1, delimiter='\t')
 
 
-def make_symmetric(in_filepath, out_filepath):
+def make_symmetric(in_filepath:str, out_filepath:str) -> None:
     '''
     The output of pheweb-rg-pipeline includes the line
         traitA traitB 0.4 0.1 2 1e-3 ldsc
@@ -79,7 +80,7 @@ def make_symmetric(in_filepath, out_filepath):
             out_f.write(trait1 + '\t' + trait2 + '\t' + rest_of_line)
 
 
-def annotate_trait_descriptions(in_filepath, out_filepath, phenolist_path=None):
+def annotate_trait_descriptions(in_filepath:str, out_filepath:str, phenolist_path:Optional[str] = None) -> None:
     """
     Annotate a phenotype correlation file with an additional "Trait2Label" description (where possible)
     FIXME: This makes simplistic assumptions about file format/contents, and performs no validation

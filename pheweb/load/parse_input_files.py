@@ -1,15 +1,16 @@
 
 from ..utils import get_phenolist, PheWebError
 from ..conf_utils import conf
-from ..file_utils import VariantFileWriter, write_json, get_generated_path, common_filepaths
+from ..file_utils import VariantFileWriter, write_json, get_generated_path, get_filepath, get_pheno_filepath
 from .read_input_file import PhenoReader
 from .load_utils import parallelize_per_pheno, indent, get_phenos_subset
 
 import itertools
 import argparse
+from typing import List,Dict,Any,Iterator
 
 
-def run(argv):
+def run(argv:List[str]) -> None:
     parser = argparse.ArgumentParser(description="import input files into a nice format")
     parser.add_argument('--phenos', help="Can be like '4,5,6,12' or '4-6,12' to run on only the phenos at those positions (0-indexed) in pheno-list.json (and only if they need to run)")
     args = parser.parse_args(argv)
@@ -18,7 +19,7 @@ def run(argv):
 
     results_by_phenocode = parallelize_per_pheno(
         get_input_filepaths = lambda pheno: pheno['assoc_files'],
-        get_output_filepaths = lambda pheno: common_filepaths['parsed'](pheno['phenocode']),
+        get_output_filepaths = lambda pheno: get_pheno_filepath('parsed', pheno['phenocode'], must_exist=False),
         convert = convert,
         cmd = 'parse-input-files',
         phenos = phenos,
@@ -43,15 +44,15 @@ def run(argv):
                 'Some files failed to parse.\n\n' +
                 'A new pheno-list.json with only the {} phenotypes that succeeded (out of {} total) has been written to {!r}.\n'.format(
                     len(succeeded_phenos), len(phenos), succeeded_filepath) +
-                'To continue with only these phenotypes, run:\n'
-                'cp {!r} {!r}\n'.format(succeeded_filepath, common_filepaths['phenolist']()) +
+                'To continue with only these phenotypes, run:\n' +
+                'cp {!r} {!r}\n'.format(succeeded_filepath, get_filepath('phenolist', must_exist=False)) +
                 'Information about the phenotypes that failed is in {!r}\n'.format(failed_filepath)
             )
 
-def convert(pheno):
+def convert(pheno:Dict[str,Any]) -> Iterator[Dict[str,Any]]:
     # suppress Exceptions so that we can report back on which phenotypes succeeded and which didn't.
     try:
-        with VariantFileWriter(common_filepaths['parsed'](pheno['phenocode'])) as writer:
+        with VariantFileWriter(get_pheno_filepath('parsed', pheno['phenocode'], must_exist=False)) as writer:
             pheno_reader = PhenoReader(pheno, minimum_maf=conf.assoc_min_maf)
             variants = pheno_reader.get_variants()
             if conf.limit_num_variants and isinstance(conf.limit_num_variants, int): variants = itertools.islice(variants, 0, conf.limit_num_variants)

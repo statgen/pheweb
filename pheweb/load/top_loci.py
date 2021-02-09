@@ -1,6 +1,6 @@
 
 from ..conf_utils import conf
-from ..file_utils import write_json, write_heterogenous_variantfile, common_filepaths
+from ..file_utils import write_json, write_heterogenous_variantfile, get_filepath
 
 from .top_hits import get_all_hits, stringify_assocs
 
@@ -20,8 +20,8 @@ def get_loci():
 
 
 def run(argv):
-    out_filepath_json = common_filepaths['top-loci']()
-    out_filepath_tsv = common_filepaths['top-loci-tsv']()
+    out_filepath_json = get_filepath('top-loci', must_exist=False)
+    out_filepath_tsv = get_filepath('top-loci-tsv', must_exist=False)
 
     if argv and argv[0] == '-h':
         print('''

@@ -1,5 +1,5 @@
 
-from ..file_utils import common_filepaths
+from ..file_utils import get_filepath
 from .server_utils import parse_variant
 
 from flask import url_for
@@ -8,6 +8,7 @@ import itertools
 import re
 import copy
 import sqlite3
+from typing import List,Dict,Any,Optional,Iterator
 
 # TODO: sort suggestions better.
 # - It's good that hitting enter sends you to the thing with the highest token-ratio.
@@ -20,13 +21,13 @@ import sqlite3
 
 
 class Autocompleter(object):
-    def __init__(self, phenos):
+    def __init__(self, phenos:Dict[str,Dict[str,Any]]):
         self._phenos = copy.deepcopy(phenos)
         self._preprocess_phenos()
 
-        self._cpras_rsids_sqlite3 = sqlite3.connect(common_filepaths['cpras-rsids-sqlite3']())
+        self._cpras_rsids_sqlite3 = sqlite3.connect(get_filepath('cpras-rsids-sqlite3'))
         self._cpras_rsids_sqlite3.row_factory = sqlite3.Row
-        self._gene_aliases_sqlite3 = sqlite3.connect(common_filepaths['gene-aliases-sqlite3']())
+        self._gene_aliases_sqlite3 = sqlite3.connect(get_filepath('gene-aliases-sqlite3'))
         self._gene_aliases_sqlite3.row_factory = sqlite3.Row
 
         self._autocompleters = [
@@ -38,7 +39,7 @@ class Autocompleter(object):
         if any('phenostring' in pheno for pheno in self._phenos.values()):
             self._autocompleters.append(self._autocomplete_phenostring)
 
-    def autocomplete(self, query):
+    def autocomplete(self, query:str) -> List[Dict[str,str]]:
         query = query.strip()
         result = []
         for autocompleter in self._autocompleters:
@@ -46,33 +47,33 @@ class Autocompleter(object):
             if result: break
         return result
 
-    def get_best_completion(self, query):
+    def get_best_completion(self, query:str) -> Optional[Dict[str,str]]:
         # TODO: self.autocomplete() only returns the first 10 for each autocompleter.  Look at more?
         suggestions = self.autocomplete(query)
         if not suggestions:
             return None
         query_tokens = query.strip().lower().split()
-        for suggestion in suggestions:
-            suggestion_tokens = suggestion['display'].lower().split()
-            intersection_tokens = set(query_tokens).intersection(suggestion_tokens)
-            suggestion['match_quality'] = len(intersection_tokens) / len(suggestion_tokens)
-        return max(suggestions, key=lambda sugg: sugg['match_quality'])
+        return max(suggestions, key=lambda sugg: self._get_suggestion_quality(query_tokens, sugg['display']))
+    def _get_suggestion_quality(self, query_tokens:List[str], display:str) -> float:
+        suggestion_tokens = display.lower().split()
+        intersection_tokens = set(query_tokens).intersection(suggestion_tokens)
+        return len(intersection_tokens) / len(suggestion_tokens)
 
 
     _process_string_non_word_regex = re.compile(r"(?ui)[^\w\.]") # Most of the time we want to include periods in words
     @classmethod
-    def _process_string(cls, string):
+    def _process_string(cls, string:str) -> str:
         # Cleaning inspired by <https://github.com/seatgeek/fuzzywuzzy/blob/6353e2/fuzzywuzzy/utils.py#L69>
         return ' ' + cls._process_string_non_word_regex.sub(' ', string).lower().strip()
 
-    def _preprocess_phenos(self):
+    def _preprocess_phenos(self) -> None:
         for phenocode, pheno in self._phenos.items():
             pheno['--spaced--phenocode'] = self._process_string(phenocode)
             if 'phenostring' in pheno:
                 pheno['--spaced--phenostring'] = self._process_string(pheno['phenostring'])
 
 
-    def _autocomplete_variant(self, query):
+    def _autocomplete_variant(self, query:str) -> Iterator[Dict[str,str]]:
         # chrom-pos-ref-alt format
         query = query.replace(',', '')
         chrom, pos, ref, alt = parse_variant(query, default_chrom_pos = False)
@@ -98,7 +99,7 @@ class Autocompleter(object):
                         "url": url_for('.variant_page', query=cpra_display),
                     }
 
-    def _autocomplete_rsid(self, query):
+    def _autocomplete_rsid(self, query:str) -> Iterator[Dict[str,str]]:
         query = query.lower()
         if query.startswith('rs'):
             key = query
@@ -116,7 +117,7 @@ class Autocompleter(object):
                     'url': url_for('.variant_page', query=cpra_display),
                 }
 
-    def _autocomplete_phenocode(self, query):
+    def _autocomplete_phenocode(self, query:str) -> Iterator[Dict[str,str]]:
         query = self._process_string(query)
         for phenocode, pheno in self._phenos.items():
             if query in pheno['--spaced--phenocode']:
@@ -126,7 +127,7 @@ class Autocompleter(object):
                     "url": url_for('.pheno_page', phenocode=phenocode),
                 }
 
-    def _autocomplete_phenostring(self, query):
+    def _autocomplete_phenostring(self, query:str) -> Iterator[Dict[str,str]]:
         query = self._process_string(query)
         for phenocode, pheno in self._phenos.items():
             if query in pheno['--spaced--phenostring']:
@@ -136,7 +137,7 @@ class Autocompleter(object):
                     "url": url_for('.pheno_page', phenocode=phenocode),
                 }
 
-    def _autocomplete_gene(self, query):
+    def _autocomplete_gene(self, query:str) -> Iterator[Dict[str,str]]:
         key = query.upper()
         if len(key) >= 2:
 

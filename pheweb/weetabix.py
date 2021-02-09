@@ -9,16 +9,17 @@ This is useful for, eg, looking up all information associated with a given pheno
 
 import os
 import pickle
+from typing import List,Optional,Dict
 
 
-def _index_name(filename):
+def _index_name(filename:str) -> str:
     # TODO: Replace pickle with another storage mechanism
     return '{}.pickle'.format(filename)
 
 
 def make_byte_index(filename: str, key_col: int,
                     skip_lines: int = 1, delimiter: str = '\t',
-                    index_fn: str = None) -> str:
+                    index_fn: Optional[str] = None) -> str:
     """
     Generate a crude index specifying byte ranges of lines where each value can be found
     :param filename: The file to index
@@ -28,8 +29,7 @@ def make_byte_index(filename: str, key_col: int,
     :param index_fn: (optional) path to the index file
     :return:
     """
-    byte_index = {}
-    last_key = None
+    byte_index:Dict[str,List[int]] = {}
 
     with open(filename, 'r') as f:
         for r in range(skip_lines):
@@ -37,13 +37,11 @@ def make_byte_index(filename: str, key_col: int,
 
         span_start = last_line_end = f.tell()
         line = f.readline()
+        last_key = line.split(delimiter)[key_col - 1]
         while line:  # workaround for python for-loop "telling position disabled by next() call" message
             fields = line.split(delimiter)
             key = fields[key_col - 1]
             position = f.tell()
-
-            if last_key is None:
-                last_key = key
 
             if key != last_key:
                 byte_index[last_key] = [span_start, last_line_end]
@@ -59,14 +57,14 @@ def make_byte_index(filename: str, key_col: int,
             byte_index[last_key] = [span_start, last_line_end]
 
     index_fn = index_fn or _index_name(filename)
-    with open(index_fn, 'wb') as f:
-        pickle.dump(byte_index, f)
+    with open(index_fn, 'wb') as pickle_f:
+        pickle.dump(byte_index, pickle_f)
 
     return index_fn
 
 
-def get_indexed_rows(filename: str, key,
-                     strict=False, index_fn: str = None) -> list:
+def get_indexed_rows(filename: str, key: str,
+                     strict: bool = False, index_fn: Optional[str] = None) -> List[str]:
     """
     Fetch all lines that reference the specified key, from a previously indexed file
     :param filename: The filename to search
@@ -79,8 +77,8 @@ def get_indexed_rows(filename: str, key,
     if not os.path.isfile(index_fn):
         raise FileNotFoundError()
 
-    with open(index_fn, 'rb') as f:
-        byte_index = pickle.load(f)
+    with open(index_fn, 'rb') as pickle_f:
+        byte_index = pickle.load(pickle_f)
 
     if key not in byte_index and not strict:
         # Sometimes the file may not have any information about the user's query, and that is usually ok

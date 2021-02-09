@@ -1,6 +1,6 @@
 
-from ..utils import get_gene_tuples, PheWebError
-from ..file_utils import common_filepaths, get_tmp_path
+from ..utils import get_gene_tuples_with_ensg, PheWebError
+from ..file_utils import get_filepath, get_tmp_path
 
 import re, json
 from pathlib import Path
@@ -28,7 +28,7 @@ def get_genenamesorg_ensg_aliases_map(ensgs_to_consider: Iterable[str]) -> Dict[
 
 def get_gene_aliases() -> Dict[str, str]:
     # NOTE: "canonical" refers to the canonical symbol for a gene
-    genes = [{'canonical': canonical, 'ensg':ensg} for _,_,_,canonical,ensg in get_gene_tuples(include_ensg=True)]
+    genes = [{'canonical': canonical, 'ensg':ensg} for _,_,_,canonical,ensg in get_gene_tuples_with_ensg()]
     assert len({g['ensg'] for g in genes}) == len(genes)
     assert len({g['canonical'] for g in genes}) == len(genes)
     for g in genes:
@@ -46,13 +46,11 @@ def get_gene_aliases() -> Dict[str, str]:
         aliases = list(set(aliases))
         canonical_to_aliases[canonical] = aliases
 
-    alias_to_canonicals = {}
+    alias_to_canonicals:Dict[str,List[str]] = {}
     for canonical, aliases in canonical_to_aliases.items():
         for alias in aliases:
             alias_to_canonicals.setdefault(alias, []).append(canonical)
-    alias_to_canonicals = {alias: ','.join(canonicals) for alias,canonicals in alias_to_canonicals.items()}
-
-    return alias_to_canonicals
+    return {alias: ','.join(canonicals) for alias,canonicals in alias_to_canonicals.items()}
 
 def run(argv):
 
@@ -61,12 +59,12 @@ def run(argv):
         exit(1)
 
 
-    if not Path(common_filepaths['genes']()).exists():
+    if not Path(get_filepath('genes', must_exist=False)).exists():
         print('Downloading genes')
         from . import download_genes
         download_genes.run([])
 
-    aliases_filepath = Path(common_filepaths['gene-aliases-sqlite3']())
+    aliases_filepath = Path(get_filepath('gene-aliases-sqlite3', must_exist=False))
     if not aliases_filepath.exists():
         print('gene aliases will be stored at {!r}'.format(str(aliases_filepath)))
         aliases_tmp_filepath = Path(get_tmp_path(aliases_filepath))

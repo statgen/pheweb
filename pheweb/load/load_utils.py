@@ -13,11 +13,11 @@ import random
 import sys
 import heapq
 from types import GeneratorType
-from typing import List,Set
+from typing import List,Set,Dict,Optional,Any,Callable
 import re
 
 
-def get_maf(variant, pheno):
+def get_maf(variant:Dict[str,Any], pheno:Dict[str,Any]) -> Optional[float]:
     mafs = []
     if 'maf' in variant:
         mafs.append(variant['maf'])
@@ -87,17 +87,17 @@ def star_kwargs(f):
     return f2
 
 
-def run_script(script):
+def run_script(script:str) -> str:
     script = 'set -euo pipefail\n' + script
     try:
         with open(os.devnull) as devnull:
             # is this the right way to block stdin?
-            data = subprocess.check_output(['bash', '-c', script], stderr=subprocess.STDOUT, stdin=devnull)
+            data_bytes = subprocess.check_output(['bash', '-c', script], stderr=subprocess.STDOUT, stdin=devnull)
         status = 0
     except subprocess.CalledProcessError as ex:
-        data = ex.output
+        data_bytes = ex.output
         status = ex.returncode
-    data = data.decode('utf8')
+    data = data_bytes.decode('utf8')
     if status != 0:
         raise PheWebError(
             'FAILED with status {}\n'.format(status) +
@@ -106,7 +106,7 @@ def run_script(script):
     return data
 
 
-def get_num_procs(cmd=None):
+def get_num_procs(cmd:Optional[str] = None) -> int:
     try: return int(conf.num_procs[cmd])
     except Exception: pass
     try: return int(conf.num_procs['*'])
@@ -119,7 +119,7 @@ def get_num_procs(cmd=None):
     return n_cpus * 3//4
 
 
-def set_loading_nice():
+def set_loading_nice() -> None:
     '''Set `nice` value to give loading lower cpu/io priority.'''
     import psutil
     if 'loading_nice' in conf and conf.loading_nice:
@@ -143,9 +143,9 @@ class MaxPriorityQueue:
     class ComparesFalse: __eq__ = __lt__ = __gt__ = lambda s,o: False
     def __init__(self):
         self._q = [] # a heap-property-satisfying list like [(priority, ComparesFalse(), item), ...]
-    def add(self, item, priority):
+    def add(self, item, priority) -> None:
         heapq.heappush(self._q, (-priority, MaxPriorityQueue.ComparesFalse(), item))
-    def add_and_keep_size(self, item, priority, size, popped_callback=None):
+    def add_and_keep_size(self, item, priority, size:int, popped_callback:Optional[Callable] = None) -> None:
         if len(self._q) < size:
             self.add(item, priority)
         else:
@@ -278,7 +278,7 @@ class PerPhenoParallelizer(Parallelizer):
 def parallelize_per_pheno(get_input_filepaths, get_output_filepaths, convert, *, cmd=None, phenos=None):
     return PerPhenoParallelizer().run_on_each_pheno(get_input_filepaths, get_output_filepaths, convert, cmd=cmd, phenos=phenos)
 
-def get_phenos_subset(pheno_subset_str:str) -> List[dict]:
+def get_phenos_subset(pheno_subset_str:str) -> List[Dict[str,Any]]:
     phenos = get_phenolist()
     idxs_to_include = _get_idxs_from_subset_str(pheno_subset_str)
     return [phenos[idx] for idx in idxs_to_include]
@@ -296,17 +296,17 @@ def _get_idxs_from_subset_str(subset_str:str) -> List[int]:
 assert list(_get_idxs_from_subset_str('1,3,5-7')) == [1,3,5,6,7]
 assert list(_get_idxs_from_subset_str('5-7,1,3,3-3')) == [1,3,5,6,7]
 
-def indent(string):
+def indent(string:str) -> str:
     return '\n'.join('   '+line for line in str(string).split('\n'))
 
-def mtime(filepath):
+def mtime(filepath:str) -> float:
     return os.stat(filepath).st_mtime
 
 
 class ProgressBar:
-    def __enter__(self):
+    def __enter__(self) -> "ProgressBar":
         self._start_time = time.time()
-        self._last_time_written = 0
+        self._last_time_written = 0.
         self._last_message_written = ''
         self._last_message_set = ''
         # if we're writing to a log file, just use newlines.
@@ -314,10 +314,10 @@ class ProgressBar:
         # TODO: decide what to do about that.
         self._r = '\r' if sys.stderr.isatty() else '\n'
         return self
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> None:
         self._write_message(self._last_message_set)
         sys.stderr.write('\n')
-    def prepend_message(self, message):
+    def prepend_message(self, message:str) -> None:
         first_line, following_lines = message.split('\n', 1)
         sys.stderr.write(
             self._r + first_line +
@@ -326,12 +326,12 @@ class ProgressBar:
             self._last_message_set
         )
         self._last_time_written = time.time()
-    def set_message(self, message):
+    def set_message(self, message:str) -> None:
         self._last_message_set = message
         t = time.time()
         if t > self._last_time_written + 0.5:
             self._write_message(message, t=t)
-    def _write_message(self, message, t=None):
+    def _write_message(self, message:str, t:Optional[float] = None) -> None:
         # TODO: handle multiline messages
         if message != self._last_message_written:
             sys.stderr.write(

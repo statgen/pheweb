@@ -1,6 +1,6 @@
 
 from ...utils import PheWebError
-from ...file_utils import get_generated_path, make_basedir, common_filepaths, read_maybe_gzip
+from ...file_utils import get_generated_path, make_basedir, get_filepath, read_maybe_gzip
 from ..read_input_file import PhenoReader
 
 import os
@@ -458,7 +458,7 @@ def write_phenolist_to_file(phenolist, f):
     phenolist = sorted(phenolist, key=lambda pheno: pheno.get('phenocode', ''))
     json.dump(phenolist, f, sort_keys=True, indent=1)
 
-default_phenolist_filepath = common_filepaths['phenolist']()
+default_phenolist_filepath = get_filepath('phenolist', must_exist=False)
 
 def run(argv):
     # TODO: replace -f with -p .  That's more clear for import-phenolist.

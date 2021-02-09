@@ -1,32 +1,33 @@
 
 from flask import url_for
 
-from ..file_utils import MatrixReader, IndexedVariantFileReader, common_filepaths
+from ..file_utils import MatrixReader, IndexedVariantFileReader, get_filepath
 
 import random
 import re
 import itertools
 import json
+from typing import Optional,Dict,List,Any
 
 
 class _Get_Pheno_Region:
     @staticmethod
-    def _rename(d, oldkey, newkey):
+    def _rename(d:dict, oldkey, newkey):
         d[newkey] = d[oldkey]
         del d[oldkey]
 
     @staticmethod
-    def _dataframify(list_of_dicts):
+    def _dataframify(list_of_dicts:List[Dict[Any,Any]]) -> Dict[Any,list]:
         '''converts [{a:1,b:2}, {a:11,b:12}] -> {a:[1,11], b:[2,12]}'''
         keys = set(itertools.chain.from_iterable(list_of_dicts))
-        dataframe = {k:[] for k in keys}
+        dataframe: Dict[Any,list] = {k:[] for k in keys}
         for d in list_of_dicts:
             for k,v in d.items():
                 dataframe[k].append(v)
         return dataframe
 
     @staticmethod
-    def get_pheno_region(phenocode, chrom, pos_start, pos_end):
+    def get_pheno_region(phenocode:str, chrom:str, pos_start:int, pos_end:int) -> dict:
         variants = []
         with IndexedVariantFileReader(phenocode) as reader:
             for v in reader.get_region(chrom, pos_start, pos_end+1):
@@ -64,7 +65,7 @@ class _ParseVariant:
 parse_variant = _ParseVariant().parse_variant
 
 class _GetVariant:
-    def get_variant(self, query):
+    def get_variant(self, query:str) -> Optional[Dict[str,Any]]:
         chrom, pos, ref, alt = parse_variant(query)
         assert None not in [chrom, pos, ref, alt]
         if not hasattr(self, '_matrix_reader'):
@@ -80,8 +81,8 @@ get_variant = _GetVariant().get_variant
 
 
 
-def get_random_page():
-    with open(common_filepaths['top-hits-1k']()) as f:
+def get_random_page() -> Optional[str]:
+    with open(get_filepath('top-hits-1k')) as f:
         hits = json.load(f)
     if not hits:
         return None

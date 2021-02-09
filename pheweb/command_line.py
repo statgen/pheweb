@@ -5,6 +5,7 @@ import os
 import importlib
 import functools
 import math
+from typing import List,Dict,Callable
 
 
 if sys.version_info.major <= 2:
@@ -14,12 +15,8 @@ if sys.version_info < (3, 6):
     print("Sorry, PheWeb requires Python 3.6 or newer.  Use Miniconda or Homebrew or another solution to install a newer Python.")
     sys.exit(1)
 
-# math.inf was introduced in python3.5
-try: math.inf
-except AttributeError: math.inf = float('inf')
 
-
-def enable_ipdb():
+def enable_ipdb() -> None:
     # from <http://ipython.readthedocs.io/en/stable/interactive/reference.html#post-mortem-debugging>
     from IPython.core import ultratb
     sys.excepthook = ultratb.FormattedTB(mode='Verbose', color_scheme='Linux', call_pdb=1)
@@ -32,7 +29,7 @@ if 'PHEWEB_DEBUG' in os.environ:
     conf.debug = True
 
 
-handlers = {}
+handlers:Dict[str,Callable[[List[str]],None]] = {}
 for submodule in '''
  phenolist
  cluster
@@ -60,19 +57,21 @@ for submodule in '''
  top_loci
  detect_ref
 '''.split():
-    def f(submodule, argv):
+    def f(submodule:str, argv:List[str]) -> None:
         module = importlib.import_module('.load.{}'.format(submodule), __package__)
-        module.run(argv)
+        module_run = getattr(module, 'run', None)
+        if not module_run: raise Exception("module.run doesn't exist for {}".format(submodule))
+        module_run(argv)
     handlers[submodule.replace('_', '-')] = functools.partial(f, submodule)
 handlers['process'] = handlers['process-assoc-files']
 handlers['parse'] = handlers['parse-input-files']
 
-def serve(argv):
+def serve(argv:List[str]) -> None:
     from pheweb.serve.run import run
     run(argv)
 handlers['serve'] = serve
 
-def configure(argv):
+def configure(argv:List[str]) -> None:
     from .conf_utils import conf
     import json
     try: conf['cache']  # Trigger _ensure_conf() so that this config will apply AFTER config.py
@@ -88,17 +87,17 @@ def configure(argv):
     run(argv[i:])
 handlers['conf'] = configure
 
-def ipdb(argv):
+def ipdb(argv:List[str]) -> None:
     enable_ipdb()
     run(argv)
 handlers['ipdb'] = ipdb
 
-def help(argv):
+def help(argv:List[str]) -> None:
     run(argv[0:1] + ['-h'])
 handlers['help'] = help
 
 
-def print_help_message():
+def print_help_message() -> None:
     from pheweb import version
     print('''\
 PheWeb {}
@@ -125,7 +124,7 @@ Subcommands:
 '''.format(version.version))
 
 
-def run(argv):
+def run(argv:List[str]) -> None:
     subcommand = argv[0] if argv else ''
     if subcommand in ['', '-h', '--help']:
         print_help_message()
@@ -136,7 +135,7 @@ def run(argv):
         handlers[subcommand](argv[1:])
 
 # this is in `entry_points` in setup.py:
-def main():
+def main() -> None:
     from .utils import PheWebError
     try:
         run(sys.argv[1:])

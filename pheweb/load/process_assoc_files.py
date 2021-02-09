@@ -7,6 +7,7 @@ from ..utils import fmt_seconds
 
 import time
 import importlib
+from typing import List
 
 scripts = '''
 phenolist verify
@@ -27,13 +28,13 @@ pheno_correlation
 '''.split('\n')
 scripts = [script for script in scripts if script]
 
-def run(argv):
+def run(argv:List[str]) -> None:
     if any(arg in ['-h', '--help'] for arg in argv):
         print('Run all the steps to go from a prepared phenolist to a ready-to-serve pheweb.')
         print('This is equivalent to running:\n')
         print(' &&\n'.join('    pheweb {}'.format(script.replace('_', '-')) for script in scripts))
         print('')
-        print('Passing `--no-parse` will skip `pheweb parse-input-files`')
+        print("Passing `--no-parse` will skip `pheweb parse-input-files` (so it won't error if input filepaths are missing)")
         exit(1)
 
     if argv == ['--no-parse']:
@@ -46,8 +47,10 @@ def run(argv):
         start_time = time.time()
         script_parts = script.split()
         module = importlib.import_module('.{}'.format(script_parts[0]), __package__)
+        module_run = getattr(module, 'run', None)  # appeases mypy
+        if not callable(module_run): raise Exception("Why isn't module.run callable? {} {} {}".format(repr(script), repr(module), repr(module_run)))
         try:
-            module.run(script_parts[1:])
+            module_run(script_parts[1:])
         except Exception:
             print('==> failed after {}'.format(fmt_seconds(time.time() - start_time)))
             raise

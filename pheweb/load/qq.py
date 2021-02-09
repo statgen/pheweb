@@ -18,7 +18,7 @@ This script creates json files which can be used to render QQ plots.
 # NOTE: `qval` means `-log10(pvalue)`
 
 from ..utils import round_sig, approx_equal
-from ..file_utils import VariantFileReader, write_json, common_filepaths
+from ..file_utils import VariantFileReader, write_json, get_pheno_filepath
 from .load_utils import get_maf, parallelize_per_pheno, get_phenos_subset, get_phenolist
 
 from typing import Dict,Any,List,Iterator
@@ -41,22 +41,22 @@ def run(argv:List[str]) -> None:
     phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
 
     parallelize_per_pheno(
-        get_input_filepaths = lambda pheno: common_filepaths['pheno_gz'](pheno['phenocode']),
-        get_output_filepaths = lambda pheno: common_filepaths['qq'](pheno['phenocode']),
+        get_input_filepaths = lambda pheno: get_pheno_filepath('pheno_gz', pheno['phenocode']),
+        get_output_filepaths = lambda pheno: get_pheno_filepath('qq', pheno['phenocode'], must_exist=False),
         convert = make_json_file,
         cmd = 'qq',
         phenos = phenos,
     )
 
 
-def make_json_file(pheno:dict) -> None:
+def make_json_file(pheno:Dict[str,Any]) -> None:
     make_json_file_explicit(
-        common_filepaths['pheno_gz'](pheno['phenocode']),
-        common_filepaths['qq'](pheno['phenocode']),
+        get_pheno_filepath('pheno_gz', pheno['phenocode']),
+        get_pheno_filepath('qq', pheno['phenocode'], must_exist=False),
         pheno
     )
 
-def make_json_file_explicit(in_filepath:str, out_filepath:str, pheno:dict) -> None:
+def make_json_file_explicit(in_filepath:str, out_filepath:str, pheno:Dict[str,Any]) -> None:
     with VariantFileReader(in_filepath) as variant_dicts:
         variants = list(augment_variants(variant_dicts, pheno))
     rv: Dict[str,Any] = {}
@@ -72,7 +72,7 @@ def make_json_file_explicit(in_filepath:str, out_filepath:str, pheno:dict) -> No
 
 
 Variant = collections.namedtuple('Variant', ['qval', 'maf'])
-def augment_variants(variants:Iterator[dict], pheno:dict) -> Iterator[Variant]:
+def augment_variants(variants:Iterator[Dict[str,Any]], pheno:Dict[str,Any]) -> Iterator[Variant]:
     for v in variants:
         # TODO: make an option "convert_pval0_to = [num|None]"
         qval: float = 1000 if v['pval']==0 else -math.log10(v['pval'])

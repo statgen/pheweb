@@ -20,18 +20,15 @@ We read one full position at a time.  When we have a position-match, we find all
 
 
 from ..utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
-from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, read_maybe_gzip
+from ..file_utils import VariantFileReader, VariantFileWriter, get_filepath, read_maybe_gzip
+from .load_utils import mtime
 
 import os
 import itertools
+from typing import Iterator,Dict,Any,List
 
-in_filepath = common_filepaths['unanno']()
-out_filepath = common_filepaths['sites-rsids']()
-rsids_filepath = common_filepaths['rsids']()
 
-def mod_time(filepath): return os.stat(filepath).st_mtime
-
-def get_rsid_reader(rsids_f):
+def get_rsid_reader(rsids_f:Iterator[str], rsids_filepath:str) -> Iterator[Dict[str,Any]]:
     prev_chrom_idx = -1
     prev_pos = -1
     for line in rsids_f:
@@ -72,7 +69,7 @@ def get_rsid_reader(rsids_f):
                     yield {'chrom':chrom, 'pos':int(pos), 'ref':ref, 'alt':alt, 'rsid':rsid}
 
 
-def get_one_chr_pos_at_a_time(iterator):
+def get_one_chr_pos_at_a_time(iterator:Iterator[Dict[str,Any]]) -> Iterator[List[Dict[str,Any]]]:
     '''Turns
     [{'chr':'1', 'pos':123, 'ref':'A', 'alt':'T'},{'chr':'1', 'pos':123, 'ref':'A', 'alt':'GC'},{'chr':'1', 'pos':128, 'ref':'A', 'alt':'T'},...]
     into:
@@ -82,7 +79,7 @@ def get_one_chr_pos_at_a_time(iterator):
     for k, g in itertools.groupby(iterator, key=lambda cpra: (cpra['chrom'], cpra['pos'])):
         yield list(g)
 
-def are_match(seq1, seq2):
+def are_match(seq1:str, seq2:str) -> bool:
     '''Compares nucleotide sequences.  Eg, "A" == "A", "A" == "N", "A" != "AN".'''
     if seq1 == seq2: return True
     if len(seq1) == len(seq2) and 'N' in seq1 or 'N' in seq2:
@@ -90,18 +87,22 @@ def are_match(seq1, seq2):
     return False
 
 
-def run(argv):
+def run(argv:List[str]) -> None:
 
     if '-h' in argv or '--help' in argv:
         print('Annotate the sites file with rsids. Download the relevant version of dbSNP if not already present.')
         exit(1)
+
+    in_filepath = get_filepath('unanno')
+    out_filepath = get_filepath('sites-rsids', must_exist=False)
+    rsids_filepath = get_filepath('rsids', must_exist=False)
 
     if not os.path.exists(rsids_filepath):
         print('Need rsids resource, so fetching it now...')
         from . import download_rsids
         download_rsids.run([])
 
-    if os.path.exists(out_filepath) and max(mod_time(in_filepath), mod_time(rsids_filepath)) <= mod_time(out_filepath):
+    if os.path.exists(out_filepath) and max(mtime(in_filepath), mtime(rsids_filepath)) <= mtime(out_filepath):
         print('rsid annotation is up-to-date!')
         return
 
@@ -109,7 +110,7 @@ def run(argv):
          read_maybe_gzip(rsids_filepath) as rsids_f, \
          VariantFileWriter(out_filepath) as writer:
 
-        rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))
+        rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f, rsids_filepath))
         cp_group_reader = get_one_chr_pos_at_a_time(in_reader)
 
         rsid_group = next(rsid_group_reader)

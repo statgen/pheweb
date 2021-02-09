@@ -1,7 +1,7 @@
 # This module finds gene data (wherever it can) and puts a copy in `generated-by-pheweb/resources/`.
 
 from ..utils import PheWebError
-from ..file_utils import common_filepaths, get_tmp_path
+from ..file_utils import get_filepath, get_tmp_path
 from ..conf_utils import conf
 
 import shutil, wget, os
@@ -10,7 +10,7 @@ from pathlib import Path
 
 def get_genes_for_build(hg_build_number: int):
 
-    dest_filepath = Path(common_filepaths['genes-hg{}'.format(hg_build_number)]())
+    dest_filepath = Path(get_filepath('genes-hg{}'.format(hg_build_number), must_exist=False))
     if dest_filepath.exists(): return
 
     # Check ~/.pheweb/cache/

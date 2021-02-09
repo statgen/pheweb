@@ -1,16 +1,17 @@
 
 from ..utils import get_phenolist
 from ..conf_utils import conf
-from ..file_utils import write_json, write_heterogenous_variantfile, common_filepaths
+from ..file_utils import write_json, write_heterogenous_variantfile, get_filepath, get_pheno_filepath
 
 import json
+from typing import Dict,Any,List,Iterator
 
 # TODO: It'd be great if each peak also included a list of all the associations that it is masking, so that on-click we could display a variants-under-this-peak table.
 # TODO: Somewhere have a user-extendable whitelist of info that should be copied about each pheno.  Copy all of that stuff.
 
 
-def get_hits(pheno):
-    with open(common_filepaths['manhattan'](pheno['phenocode'])) as f:
+def get_hits(pheno:Dict[str,Any]) -> Iterator[Dict[str,Any]]:
+    with open(get_pheno_filepath('manhattan', pheno['phenocode'])) as f:
         variants = json.load(f)['unbinned_variants']
 
     for v in variants:
@@ -20,25 +21,19 @@ def get_hits(pheno):
             except KeyError: pass
             yield v
 
+def get_all_hits() -> List[Dict[str,Any]]:
+    return sorted((hit for pheno in get_phenolist() for hit in get_hits(pheno)), key=lambda hit:hit['pval'])
 
-def get_all_hits():
-    phenos = get_phenolist()
-    hits = []
-    for pheno in phenos:
-        hits.extend(get_hits(pheno))
-    return sorted(hits, key=lambda hit: hit['pval'])
-
-
-def stringify_assocs(assocs):
+def stringify_assocs(assocs:List[Dict[str,Any]]) -> None:
     for a in assocs:
         if isinstance(a.get('nearest_genes'), list):
             a['nearest_genes'] = ','.join(a['nearest_genes'])
 
 
-def run(argv):
-    out_filepath_json = common_filepaths['top-hits']()
-    out_filepath_1k_json = common_filepaths['top-hits-1k']()
-    out_filepath_tsv = common_filepaths['top-hits-tsv']()
+def run(argv:List[str]) -> None:
+    out_filepath_json = get_filepath('top-hits', must_exist=False)
+    out_filepath_1k_json = get_filepath('top-hits-1k', must_exist=False)
+    out_filepath_tsv = get_filepath('top-hits-tsv', must_exist=False)
 
     if argv and argv[0] == '-h':
         print('''
@@ -67,8 +62,7 @@ just the top phenotype for each, use `pheweb top-loci`.
     write_json(filepath=out_filepath_1k_json, data=hits[:1000], sort_keys=True)
     print("wrote {} hits to {}".format(len(hits[:1000]), out_filepath_1k_json))
 
-    stringify_assocs(hits)
-
     if hits:  # If there are no hits, we can't write a proper tsv
+        stringify_assocs(hits)
         write_heterogenous_variantfile(out_filepath_tsv, hits, use_gzip=False)
         print("wrote {} hits to {}".format(len(hits), out_filepath_tsv))

@@ -1,13 +1,17 @@
 
+import argparse
+from typing import List
+import Flask
 
-def run_flask_dev_server(app, args):
+
+def run_flask_dev_server(app:Flask, args:argparse.Namespace) -> None:
     app.run(
         host=args.host, port=args.port,
         debug=True, use_evalex=False,
         use_reloader=args.use_reloader,
     )
 
-def run_gunicorn(app, args):
+def run_gunicorn(app:Flask, args:argparse.Namespace) -> None:
     import gunicorn.app.base
     class StandaloneGunicornApplication(gunicorn.app.base.BaseApplication):
         # from <http://docs.gunicorn.org/en/stable/custom.html>
@@ -41,7 +45,7 @@ def run_gunicorn(app, args):
     #         print(f'             desc: <<\n{sval.desc}\n>>')
     sga.run()
 
-def gunicorn_is_broken():
+def gunicorn_is_broken() -> bool:
     try:
         import gunicorn.app.base # noqa: F401
     except Exception:
@@ -56,7 +60,7 @@ def gunicorn_is_broken():
             return True
     return False
 
-def print_ip(port, urlprefix):
+def print_ip(port:int, urlprefix:str) -> None:
     ip = get_ip()
     print('If you can open a web browser on this computer (ie, the one running PheWeb), open http://localhost:{}/{} .'.format(port, urlprefix))
     print('')
@@ -70,7 +74,7 @@ def print_ip(port, urlprefix):
     print("  - Either way, open http://localhost:5000 in your web browser")
     print('')
 
-def get_ip():
+def get_ip() -> str:
     import subprocess
     return subprocess.check_output('dig +short myip.opendns.com @resolver1.opendns.com'.split()).strip().decode('ascii')
     # import socket
@@ -83,7 +87,7 @@ def get_ip():
     # data = requests.get('http://checkip.dyndns.com/').text
     # return re.compile(r'Address: (\d+\.\d+\.\d+\.\d+)').search(data).group(1)
 
-def attempt_open(url):
+def attempt_open(url:str) -> bool:
     import os
     import webbrowser
     if 'DISPLAY' not in os.environ:
@@ -100,9 +104,8 @@ def attempt_open(url):
     return False
 
 
-def run(argv):
+def run(argv:List[str]) -> None:
 
-    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default='0.0.0.0', help='the hostname to use to access this server')
     parser.add_argument('--port', type=int, default=5000)

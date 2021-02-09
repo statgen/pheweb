@@ -1,16 +1,17 @@
 # This module finds rsid data (wherever it can) and puts a copy in `generated-by-pheweb/resources/`.
 
 from ..utils import PheWebError
-from ..file_utils import common_filepaths, get_tmp_path
+from ..file_utils import get_filepath, get_tmp_path
 from ..conf_utils import conf
 
 import shutil, wget, os
 from pathlib import Path
+from typing import List
 
 
-def get_rsids_for_build(hg_build_number: int):
+def get_rsids_for_build(hg_build_number: int) -> None:
 
-    dest_filepath = Path(common_filepaths['rsids-hg{}'.format(hg_build_number)]())
+    dest_filepath = Path(get_filepath('rsids-hg{}'.format(hg_build_number), must_exist=False))
     if dest_filepath.exists(): return
 
     # Check ~/.pheweb/cache/
@@ -36,7 +37,7 @@ def get_rsids_for_build(hg_build_number: int):
         try: shutil.copy(dest_filepath, cache_filepath)
         except Exception: pass
 
-def run(argv):
+def run(argv:List[str]) -> None:
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--hg', type=int, default=conf.hg_build_number, choices=[19,38])

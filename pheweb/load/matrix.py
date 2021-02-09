@@ -8,22 +8,23 @@
 
 
 from ..utils import get_phenolist, PheWebError
-from ..file_utils import MatrixReader, get_tmp_path, common_filepaths
+from ..file_utils import MatrixReader, get_tmp_path, get_filepath, get_pheno_filepath
 from .cffi._x import ffi, lib
 
 import os
 import glob
 import pysam
+from typing import List
 
-sites_filepath = common_filepaths['sites']()
-matrix_gz_filepath = common_filepaths['matrix']()
+sites_filepath = get_filepath('sites', must_exist=False)
+matrix_gz_filepath = get_filepath('matrix', must_exist=False)
 matrix_gz_tmp_filepath = get_tmp_path(matrix_gz_filepath)
 
-def should_run():
+def should_run() -> bool:
     cur_phenocodes = set(pheno['phenocode'] for pheno in get_phenolist())
 
     # Remove files that shouldn't be there (and will confuse the glob in matrixify)
-    for filepath in glob.glob(common_filepaths['pheno_gz']('*.gz')):
+    for filepath in glob.glob(get_filepath('pheno_gz')+'/*.gz'):
         name = os.path.basename(filepath)
         if name[:-3] not in cur_phenocodes:
             print("Removing {} to help matrix glob".format(filepath))
@@ -42,13 +43,15 @@ def should_run():
         print('- phenos in matrix.tsv.gz but not pheno-list.json:', ', '.join(repr(p) for p in matrix_phenocodes - cur_phenocodes))
         return True
 
-    infilepaths = [common_filepaths['pheno_gz'](phenocode) for phenocode in cur_phenocodes] + [sites_filepath]
+    infilepaths = [get_pheno_filepath('pheno_gz', phenocode) for phenocode in cur_phenocodes] + [sites_filepath]
     infile_modtime = max(os.stat(filepath).st_mtime for filepath in infilepaths)
     if infile_modtime > os.stat(matrix_gz_filepath).st_mtime:
         print('rerunning because some input files are newer than matrix.tsv.gz')
         return True
 
-def run(argv):
+    return False
+
+def run(argv:List[str]) -> None:
 
     if '-h' in argv or '--help' in argv:
         print('Make a single large tabixed file of all phenotypes data')
@@ -57,7 +60,7 @@ def run(argv):
     if should_run():
         # we don't need `ffi.new('char[]', ...)` because args are `const`
         ret = lib.cffi_make_matrix(sites_filepath.encode('utf8'),
-                                   common_filepaths['pheno_gz']('*').encode('utf8'),
+                                   (get_filepath('pheno_gz') + '/*.gz').encode('utf8'),
                                    matrix_gz_tmp_filepath.encode('utf8'))
         ret_bytes = ffi.string(ret, maxlen=1000)
         if ret_bytes != b'ok':

@@ -1,7 +1,7 @@
 
 from ..utils import chrom_order, get_phenolist, PheWebError
 from ..conf_utils import conf
-from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, make_basedir, get_dated_tmp_path, get_tmp_path
+from ..file_utils import VariantFileReader, VariantFileWriter, get_filepath, get_pheno_filepath, make_basedir, get_dated_tmp_path, get_tmp_path
 from .load_utils import get_num_procs, get_maf, mtime, indent, ProgressBar
 
 import contextlib
@@ -16,7 +16,7 @@ MAX_NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #file
 MIN_NUM_FILES_TO_MERGE_AT_ONCE = 4 # Try to avoid ever merging fewer than this many files at a time.
 
 def run(argv):
-    out_filepath = common_filepaths['unanno']()
+    out_filepath = get_filepath('unanno', must_exist=False)
 
     force = False
     if argv == ['-f']:
@@ -78,8 +78,7 @@ class MergeManager:
         self.n_procs = get_num_procs(cmd='sites')
         self.files = []
         for pheno in get_phenolist():
-            filepath = common_filepaths['parsed'](pheno['phenocode'])
-            assert os.path.exists(filepath), filepath
+            filepath = get_pheno_filepath('parsed', pheno['phenocode'])
             self.files.append({
                 'type': 'input',
                 'filepath': filepath,

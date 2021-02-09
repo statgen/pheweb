@@ -14,15 +14,17 @@ This script creates json files which can be used to render Manhattan plots.
 
 from ..utils import chrom_order
 from ..conf_utils import conf
-from ..file_utils import VariantFileReader, write_json, common_filepaths
+from ..file_utils import VariantFileReader, write_json, get_pheno_filepath
 from .load_utils import MaxPriorityQueue, parallelize_per_pheno, get_phenos_subset, get_phenolist
 
 import math, argparse
+from typing import List,Dict,Any,Tuple
+Variant = Dict[str,Any]
 
 BIN_LENGTH = int(3e6)
 
 
-def run(argv):
+def run(argv:List[str]) -> None:
     parser = argparse.ArgumentParser(description="Make a Manhattan plot for each phenotype.")
     parser.add_argument('--phenos', help="Can be like '4,5,6,12' or '4-6,12' to run on only the phenos at those positions (0-indexed) in pheno-list.json (and only if they need to run)")
     args = parser.parse_args(argv)
@@ -30,18 +32,18 @@ def run(argv):
     phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
 
     parallelize_per_pheno(
-        get_input_filepaths = lambda pheno: common_filepaths['pheno_gz'](pheno['phenocode']),
-        get_output_filepaths = lambda pheno: common_filepaths['manhattan'](pheno['phenocode']),
+        get_input_filepaths = lambda pheno: get_pheno_filepath('pheno_gz', pheno['phenocode']),
+        get_output_filepaths = lambda pheno: get_pheno_filepath('manhattan', pheno['phenocode'], must_exist=False),
         convert = make_manhattan_json_file,
         cmd = 'manhattan',
         phenos = phenos,
     )
 
 
-def make_manhattan_json_file(pheno):
-    make_manhattan_json_file_explicit(common_filepaths['pheno_gz'](pheno['phenocode']),
-                                      common_filepaths['manhattan'](pheno['phenocode']))
-def make_manhattan_json_file_explicit(in_filepath, out_filepath):
+def make_manhattan_json_file(pheno:Dict[str,Any]) -> None:
+    make_manhattan_json_file_explicit(get_pheno_filepath('pheno_gz', pheno['phenocode']),
+                                      get_pheno_filepath('manhattan', pheno['phenocode'], must_exist=False))
+def make_manhattan_json_file_explicit(in_filepath:str, out_filepath:str) -> None:
     binner = Binner()
     with VariantFileReader(in_filepath) as variants:
         for variant in variants:
@@ -61,7 +63,7 @@ class Binner:
         self._num_significant_in_current_peak = 0  # num variants stronger than manhattan_peak_variant_counting_pval_threshold
         assert conf.manhattan_peak_variant_counting_pval_threshold < conf.manhattan_peak_pval_threshold # counting must be stricter than peak-extending
 
-    def process_variant(self, variant):
+    def process_variant(self, variant:Variant) -> None:
         '''
         There are 3 types of variants:
           a) If the variant starts or extends a peak and has a stronger pval than the current `peak_best_variant`:
@@ -103,15 +105,15 @@ class Binner:
         else:
             self._maybe_bin_variant(variant)
 
-    def _maybe_peak_variant(self, variant):
+    def _maybe_peak_variant(self, variant:Variant) -> None:
         self._peak_pq.add_and_keep_size(variant, variant['pval'],
                                         size=conf.manhattan_peak_max_count,
                                         popped_callback=self._maybe_bin_variant)
-    def _maybe_bin_variant(self, variant):
+    def _maybe_bin_variant(self, variant:Variant) -> None:
         self._unbinned_variant_pq.add_and_keep_size(variant, variant['pval'],
                                                     size=conf.manhattan_num_unbinned,
                                                     popped_callback=self._bin_variant)
-    def _bin_variant(self, variant):
+    def _bin_variant(self, variant:Variant) -> None:
         chrom_idx = chrom_order[variant['chrom']]
         if chrom_idx not in self._bins: self._bins[chrom_idx] = {}
         pos_bin_id = variant['pos'] // BIN_LENGTH
@@ -120,8 +122,10 @@ class Binner:
         qval = math.inf if variant['pval'] == 0 else self._rounded(-math.log10(variant['pval']))
         self._bins[chrom_idx][pos_bin_id]["qvals"].add(qval)
 
-    def get_result(self):
-        self.get_result = None # this can only be called once
+    def get_result(self) -> Dict[str,List[Variant]]:
+        # this can only be called once
+        if getattr(self, 'already_got_result', None): raise Exception()
+        self.already_got_result = True
 
         if self._peak_best_variant:
             self._peak_best_variant['num_significant_in_peak'] = self._num_significant_in_current_peak
@@ -148,23 +152,23 @@ class Binner:
             'unbinned_variants': unbinned_variants,
         }
 
-    def _rounded(self, qval):
+    def _rounded(self, qval:float) -> float:
         # round down to the nearest multiple of `self._qval_bin_size`, then add 1/2 of `self._qval_bin_size` to be in the middle of the bin
         x = qval // self._qval_bin_size * self._qval_bin_size + self._qval_bin_size / 2
         return round(x, 3) # trim `0.35000000000000003` to `0.35` for convenience and network request size
 
-    def _get_qvals_and_qval_extents(self, qvals):
+    def _get_qvals_and_qval_extents(self, qvals:List[float]) -> Tuple[List[float],List[Tuple[float,float]]]:
         qvals = sorted(self._rounded(qval) for qval in qvals)
-        extents = [[qvals[0], qvals[0]]]
+        extents = [(qvals[0], qvals[0])]
         for q in qvals:
             if q <= extents[-1][1] + self._qval_bin_size * 1.1:
-                extents[-1][1] = q
+                extents[-1] = (extents[-1][0], q)
             else:
-                extents.append([q,q])
+                extents.append((q,q))
         rv_qvals, rv_qval_extents = [], []
         for (start, end) in extents:
             if start == end:
                 rv_qvals.append(start)
             else:
-                rv_qval_extents.append([start,end])
+                rv_qval_extents.append((start,end))
         return (rv_qvals, rv_qval_extents)
