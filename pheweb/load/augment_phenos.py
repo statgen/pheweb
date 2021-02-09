@@ -23,9 +23,11 @@ def run(argv:List[str]) -> None:
 
 def convert(pheno:Dict[str,Any]) -> None:
 
+    parsed_filepath = get_pheno_filepath('parsed', pheno['phenocode'])
     sites_filepath = get_filepath('sites')
-    pheno_filepath = get_pheno_filepath('pheno_gz', pheno['phenocode'], must_exist=False)
-    pheno_unzipped_filepath = get_tmp_path(pheno_filepath)
+    out_filepath = get_pheno_filepath('pheno_gz', pheno['phenocode'], must_exist=False)
+    pheno_unzipped_filepath = get_tmp_path(out_filepath)
+
 
     with VariantFileReader(sites_filepath) as sites_reader, \
          VariantFileReader(get_pheno_filepath('parsed', pheno['phenocode'])) as pheno_reader, \
@@ -44,23 +46,26 @@ def convert(pheno:Dict[str,Any]) -> None:
         except StopIteration: raise PheWebError("It appears that your sites file (at {!r}) has no variants.".format(sites_filepath))
         while True:
             cmp = _which_variant_is_bigger(pheno_variant, sites_variant)
+            # There's three possibilities:
+            # + pheno variant is bigger --> advance sites variant.
+            # + sites variant is bigger --> something broke.
+            # + they're equal --> output, and then advance both. (pheno first and sites second)
+            # If pheno runs out of variants, we're done.
+            # If sites runs out of variants, something broke.
             if cmp == 1:
                 try: sites_variant = next(sites_variants)
-                except StopIteration: break
+                except StopIteration: raise PheWebError("sites.tsv ({}) ran out of variants while {} still had {}".format(sites_filepath, parsed_filepath, pheno_variant))
             elif cmp == 2:
-                raise PheWebError(("The file {} contained variant {} which was missing from {}."
-                                   "To avoid needless reloading, PheWeb doesn't check the modification timestamp on sites.tsv, so you might need to rebuild it manually using `pheweb sites && pheweb add-rsids && pheweb add-genes").format(
-                                       get_pheno_filepath('parsed', pheno['phenocode'], must_exist=False),
-                                       pheno_variant,
-                                       sites_filepath))
+                raise PheWebError(("The pheno file {} contained variant {} which was missing from the sites file {}."
+                                   "To avoid needless reloading, PheWeb doesn't check the modification timestamp on sites.tsv, so you might need to rebuild it manually using `pheweb sites && pheweb add-rsids && pheweb add-genes").format(parsed_filepath, pheno_variant, sites_filepath))
             else: # equal
                 write_variant(sites_variant, pheno_variant)
-                try:
-                    sites_variant = next(sites_variants)
-                    pheno_variant = next(pheno_variants)
-                except StopIteration: break  # TODO: should this be an exception?
+                try: pheno_variant = next(pheno_variants)
+                except StopIteration: break
+                try: sites_variant = next(sites_variants)
+                except StopIteration: raise PheWebError("sites.tsv ({}) ran out of variants while {} still had {}".format(sites_filepath, parsed_filepath, pheno_variant))
 
-    convert_VariantFile_to_IndexedVariantFile(pheno_unzipped_filepath, pheno_filepath)
+    convert_VariantFile_to_IndexedVariantFile(pheno_unzipped_filepath, out_filepath)
     os.unlink(pheno_unzipped_filepath)
 
 
