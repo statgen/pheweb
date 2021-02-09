@@ -466,7 +466,13 @@ int make_matrix(const char *sites_filepath, const char *augmented_pheno_glob, co
         for (size_t i=0; i<N_phenos; i++) {
             if (!aug_readers[i].eof() && 0 == sites_reader.line.compare(0, pos_after_cpra, aug_readers[i].line, 0, pos_after_cpra)) { // CPRAs match.
                 if (0 != aug_readers[i].line.compare(0, sites_reader.line.size(), sites_reader.line)) {
-                    throw std::runtime_error("[for some pheno, on some variant line, chrom-pos-ref-alt matches sites.tsv but the rest of the sites.tsv line doesn't match.]");
+                    std::ostringstream errstream;
+                    errstream << "[chrom-pos-ref-alt of a pheno matches sites.tsv but the rest of the sites.tsv line doesn't match.]";
+                    errstream << "[bad phenocode = " << aug_phenocodes[i] << "]";
+                    errstream << "[bad pheno line = " << aug_readers[i].line << "]";
+                    errstream << "[bad sites.tsv line = " << sites_reader.line << "]";
+                    throw std::runtime_error(errstream.str().c_str());
+                    // throw std::runtime_error("[for some pheno, on some variant line, chrom-pos-ref-alt matches sites.tsv but the rest of the sites.tsv line doesn't match.]");
                 }
                 if (n_fields(aug_readers[i].line) != n_per_variant_fields + aug_n_per_assoc_fields[i]) { // correct number of fields on line.
                   throw std::runtime_error("[for some pheno, on some variant line, the number of tab-delimited fields doesn't match the header]");
