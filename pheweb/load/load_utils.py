@@ -12,8 +12,9 @@ import multiprocessing
 import random
 import sys
 import heapq
+from pathlib import Path
 from types import GeneratorType
-from typing import List,Set,Dict,Optional,Any,Callable
+from typing import List,Set,Dict,Optional,Any,Callable,Union
 import re
 
 
@@ -299,7 +300,7 @@ assert list(_get_idxs_from_subset_str('5-7,1,3,3-3')) == [1,3,5,6,7]
 def indent(string:str) -> str:
     return '\n'.join('   '+line for line in str(string).split('\n'))
 
-def mtime(filepath:str) -> float:
+def mtime(filepath:Union[str,Path]) -> float:
     return os.stat(filepath).st_mtime
 
 

@@ -13,9 +13,20 @@ def run(argv:List[str]) -> None:
 
     phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
 
+    def get_input_filepaths(pheno:dict) -> List[str]:
+        return [
+            get_pheno_filepath('parsed', pheno['phenocode']),
+            get_filepath('sites'),
+        ]
+    def get_output_filepaths(pheno:dict) -> List[str]:
+        return [
+            get_pheno_filepath('pheno_gz', pheno['phenocode'], must_exist=False),
+            get_pheno_filepath('pheno_gz_tbi', pheno['phenocode'], must_exist=False),
+        ]
+
     parallelize_per_pheno(
-        get_input_filepaths = lambda pheno: get_pheno_filepath('parsed', pheno['phenocode']),
-        get_output_filepaths = lambda pheno: get_pheno_filepath('pheno_gz_tbi', pheno['phenocode'], must_exist=False),  # Check that tbi exists
+        get_input_filepaths = get_input_filepaths,
+        get_output_filepaths = get_output_filepaths,
         convert = convert,
         cmd = 'augment-pheno',
         phenos = phenos,
@@ -26,12 +37,12 @@ def convert(pheno:Dict[str,Any]) -> None:
     parsed_filepath = get_pheno_filepath('parsed', pheno['phenocode'])
     sites_filepath = get_filepath('sites')
     out_filepath = get_pheno_filepath('pheno_gz', pheno['phenocode'], must_exist=False)
-    pheno_unzipped_filepath = get_tmp_path(out_filepath)
+    out_unzipped_filepath = get_tmp_path(out_filepath)
 
 
     with VariantFileReader(sites_filepath) as sites_reader, \
-         VariantFileReader(get_pheno_filepath('parsed', pheno['phenocode'])) as pheno_reader, \
-         VariantFileWriter(pheno_unzipped_filepath, use_gzip=False) as writer:
+         VariantFileReader(parsed_filepath) as pheno_reader, \
+         VariantFileWriter(out_unzipped_filepath, use_gzip=False) as writer:
         sites_variants = with_chrom_idx(iter(sites_reader))
         pheno_variants = with_chrom_idx(iter(pheno_reader))
 
@@ -43,30 +54,23 @@ def convert(pheno:Dict[str,Any]) -> None:
         try: pheno_variant = next(pheno_variants)
         except StopIteration: raise PheWebError("It appears that the phenotype {!r} has no variants.".format(pheno['phenocode']))
         try: sites_variant = next(sites_variants)
-        except StopIteration: raise PheWebError("It appears that your sites file (at {!r}) has no variants.".format(sites_filepath))
+        except StopIteration: raise PheWebError("It appears that your sites file ({!r}) has no variants.".format(sites_filepath))
         while True:
             cmp = _which_variant_is_bigger(pheno_variant, sites_variant)
-            # There's three possibilities:
-            # + pheno variant is bigger --> advance sites variant.
-            # + sites variant is bigger --> something broke.
-            # + they're equal --> output, and then advance both. (pheno first and sites second)
-            # If pheno runs out of variants, we're done.
-            # If sites runs out of variants, something broke.
-            if cmp == 1:
+            if cmp == 1:  # pheno variant is ahead, so advance sites variant
                 try: sites_variant = next(sites_variants)
-                except StopIteration: raise PheWebError("sites.tsv ({}) ran out of variants while {} still had {}".format(sites_filepath, parsed_filepath, pheno_variant))
-            elif cmp == 2:
-                raise PheWebError(("The pheno file {} contained variant {} which was missing from the sites file {}."
-                                   "To avoid needless reloading, PheWeb doesn't check the modification timestamp on sites.tsv, so you might need to rebuild it manually using `pheweb sites && pheweb add-rsids && pheweb add-genes").format(parsed_filepath, pheno_variant, sites_filepath))
-            else: # equal
+                except StopIteration: raise PheWebError("The sites file ({}) ran out of variants while {} still had {}".format(sites_filepath, parsed_filepath, pheno_variant))
+            elif cmp == 2:  # sites variant is ahead, so something went wrong.
+                raise PheWebError("The sites file ({}) is missing a variant that's present in {}: {}.".format(sites_filepath, parsed_filepath, pheno_variant))
+            else:  # they're equal, so write out the match and then advance both. (pheno first and sites second)
                 write_variant(sites_variant, pheno_variant)
                 try: pheno_variant = next(pheno_variants)
-                except StopIteration: break
+                except StopIteration: break  # done.
                 try: sites_variant = next(sites_variants)
-                except StopIteration: raise PheWebError("sites.tsv ({}) ran out of variants while {} still had {}".format(sites_filepath, parsed_filepath, pheno_variant))
+                except StopIteration: raise PheWebError("The sites file ({}) ran out of variants while {} still had {}".format(sites_filepath, parsed_filepath, pheno_variant))
 
-    convert_VariantFile_to_IndexedVariantFile(pheno_unzipped_filepath, out_filepath)
-    os.unlink(pheno_unzipped_filepath)
+    convert_VariantFile_to_IndexedVariantFile(out_unzipped_filepath, out_filepath)
+    os.unlink(out_unzipped_filepath)
 
 
 def _which_variant_is_bigger(v1:Dict[str,Any], v2:Dict[str,Any]) -> int:
