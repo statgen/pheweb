@@ -53,6 +53,7 @@ common_filepaths = {
     'phenotypes_summary_tsv': (lambda: get_generated_path('phenotypes.tsv')),
     'parsed':    (lambda phenocode: get_generated_path('parsed', phenocode)),
     'pheno_gz':  (lambda phenocode: get_generated_path('pheno_gz', '{}.gz'.format(phenocode) if phenocode else '')),
+    'pheno_gz_tbi':(lambda phenocode: get_generated_path('pheno_gz', '{}.gz.tbi'.format(phenocode) if phenocode else '')),
     'best_of_pheno':(lambda phenocode: get_generated_path('best_of_pheno', '{}'.format(phenocode) if phenocode else '')),
     'manhattan': (lambda phenocode: get_generated_path('manhattan', '{}.json'.format(phenocode) if phenocode else '')),
     'qq':        (lambda phenocode: get_generated_path('qq', '{}.json'.format(phenocode) if phenocode else '')),

@@ -16,7 +16,7 @@ def run(argv):
 
     parallelize_per_pheno(
         get_input_filepaths = lambda pheno: common_filepaths['parsed'](pheno['phenocode']),
-        get_output_filepaths = lambda pheno: common_filepaths['pheno_gz'](pheno['phenocode']),
+        get_output_filepaths = lambda pheno: common_filepaths['pheno_gz_tbi'](pheno['phenocode']),  # Check that tbi exists
         convert = convert,
         cmd = 'augment-pheno',
         phenos = phenos,
