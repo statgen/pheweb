@@ -1,8 +1,9 @@
 
 from ..utils import get_gene_tuples_with_ensg, PheWebError
 from ..file_utils import get_filepath, get_tmp_path
+from .. import conf
 
-import re, json
+import re, json, shutil
 from pathlib import Path
 import urllib.request
 import sqlite3
@@ -52,29 +53,50 @@ def get_gene_aliases() -> Dict[str, str]:
             alias_to_canonicals.setdefault(alias, []).append(canonical)
     return {alias: ','.join(canonicals) for alias,canonicals in alias_to_canonicals.items()}
 
-def run(argv):
+def download_gene_aliases() -> None:
+    aliases_filepath = Path(get_filepath('gene-aliases-sqlite3', must_exist=False))
+    aliases_tmp_filepath = Path(get_tmp_path(aliases_filepath))
+    print('gene aliases will be stored at {!r}'.format(str(aliases_filepath)))
+    if aliases_tmp_filepath.exists(): aliases_tmp_filepath.unlink()
+    db = sqlite3.connect(str(aliases_tmp_filepath))
+    with db:
+        db.execute('CREATE TABLE gene_aliases (alias TEXT PRIMARY KEY, canonicals_comma TEXT)')
+        db.executemany('INSERT INTO gene_aliases VALUES (?,?)', sorted(get_gene_aliases().items()))
+    aliases_tmp_filepath.replace(aliases_filepath)
 
+def run(argv:List[str]) -> None:
     if '-h' in argv or '--help' in argv:
         print('Make a database of all gene names and their aliases for easy searching.')
         exit(1)
 
-
+    # This needs genes for filtering
     if not Path(get_filepath('genes', must_exist=False)).exists():
         print('Downloading genes')
         from . import download_genes
         download_genes.run([])
 
-    aliases_filepath = Path(get_filepath('gene-aliases-sqlite3', must_exist=False))
-    if not aliases_filepath.exists():
-        print('gene aliases will be stored at {!r}'.format(str(aliases_filepath)))
-        aliases_tmp_filepath = Path(get_tmp_path(aliases_filepath))
-        if aliases_tmp_filepath.exists(): aliases_tmp_filepath.unlink()
-        db = sqlite3.connect(str(aliases_tmp_filepath))
-        with db:
-            db.execute('CREATE TABLE gene_aliases (alias TEXT PRIMARY KEY, canonicals_comma TEXT)')
-            db.executemany('INSERT INTO gene_aliases VALUES (?,?)', sorted(get_gene_aliases().items()))
-        aliases_tmp_filepath.replace(aliases_filepath)
-        print('Done')
+    dest_filepath = Path(get_filepath('gene-aliases-sqlite3', must_exist=False))
+    if dest_filepath.exists(): return
 
-    else:
-        print('gene aliases are at {!r}'.format(str(aliases_filepath)))
+    # Check cache_dir
+    cache_dir = conf.get_cache_dir()
+    if cache_dir:
+        cache_filepath = Path(cache_dir) / dest_filepath.name
+        if cache_filepath.exists():
+            print('Copying {} to {}'.format(cache_filepath, dest_filepath))
+            shutil.copy(cache_filepath, dest_filepath)
+            return
+
+    if not conf.is_allowed_to_download():
+        raise PheWebError("PheWeb is set to disallow downloading files, but couldn't pull {!r} from cache_dir {!r}".format(
+            dest_filepath, conf.get_cache_dir()))
+
+    download_gene_aliases()
+
+    if cache_dir:
+        print('Cacheing {} at {}'.format(dest_filepath, cache_filepath))
+        # It's okay if this doesn't work
+        try: shutil.copy(dest_filepath, cache_filepath)
+        except Exception: pass
+
+    print('Done')

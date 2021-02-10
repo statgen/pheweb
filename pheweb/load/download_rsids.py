@@ -14,7 +14,7 @@ def get_rsids_for_build(hg_build_number: int) -> None:
     dest_filepath = Path(get_filepath('rsids-hg{}'.format(hg_build_number), must_exist=False))
     if dest_filepath.exists(): return
 
-    # Check ~/.pheweb/cache/
+    # Check cache_dir
     cache_dir = conf.get_cache_dir()
     if cache_dir:
         cache_filepath = Path(cache_dir) / dest_filepath.name
