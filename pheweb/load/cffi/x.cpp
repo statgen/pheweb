@@ -429,7 +429,12 @@ int make_matrix(const char *sites_filepath, const char *augmented_pheno_glob, co
     if(0 != sites_reader.line.compare(0, cpra_header.size(), cpra_header)) { throw std::runtime_error("[sites.tsv header doesn't begin with \"chrom\tpos\tref\talt\t\"]"); }
     for (size_t i=0; i < N_phenos; i++) {
         if(0 != aug_readers[i].line.compare(0, sites_reader.line.size(), sites_reader.line)) {
-          throw std::runtime_error("[one of the pheno input files' header doesn't begin with the header of sites.tsv]");
+            std::ostringstream errstream;
+            errstream << "[One of the pheno files has a header that doesn't begin with the header of sites.tsv.]";
+            errstream << "[bad phenocode = " << aug_phenocodes[i] << "]";
+            errstream << "[bad pheno header = " << aug_readers[i].line << "]";
+            errstream << "[sites.tsv header = " << sites_reader.line << "]";
+            throw std::runtime_error(errstream.str().c_str());
         }
     }
     writer.write("#"); // tabix needs the header commented.
@@ -467,15 +472,20 @@ int make_matrix(const char *sites_filepath, const char *augmented_pheno_glob, co
             if (!aug_readers[i].eof() && 0 == sites_reader.line.compare(0, pos_after_cpra, aug_readers[i].line, 0, pos_after_cpra)) { // CPRAs match.
                 if (0 != aug_readers[i].line.compare(0, sites_reader.line.size(), sites_reader.line)) {
                     std::ostringstream errstream;
-                    errstream << "[chrom-pos-ref-alt of a pheno matches sites.tsv but the rest of the sites.tsv line doesn't match.]";
+                    errstream << "[There's a variant in a pheno file that has different information from that same variant in sites.tsv.]";
                     errstream << "[bad phenocode = " << aug_phenocodes[i] << "]";
                     errstream << "[bad pheno line = " << aug_readers[i].line << "]";
                     errstream << "[bad sites.tsv line = " << sites_reader.line << "]";
                     throw std::runtime_error(errstream.str().c_str());
-                    // throw std::runtime_error("[for some pheno, on some variant line, chrom-pos-ref-alt matches sites.tsv but the rest of the sites.tsv line doesn't match.]");
                 }
                 if (n_fields(aug_readers[i].line) != n_per_variant_fields + aug_n_per_assoc_fields[i]) { // correct number of fields on line.
-                  throw std::runtime_error("[for some pheno, on some variant line, the number of tab-delimited fields doesn't match the header]");
+                    std::ostringstream errstream;
+                    errstream << "[a pheno has a line with a different number of tab-delimited fields than its header]";
+                    errstream << "[bad phenocode = " << aug_phenocodes[i] << "]";
+                    errstream << "[bad pheno line = " << aug_readers[i].line << "]";
+                    errstream << "[num fields on line = " << n_fields(aug_readers[i].line) << "]";
+                    errstream << "[num fields in header = " << n_per_variant_fields + aug_n_per_assoc_fields[i] << "]";
+                    throw std::runtime_error(errstream.str().c_str());
                 }
                 writer.write(aug_readers[i].line.c_str() + sites_reader.line.size(), aug_readers[i].line.size() - sites_reader.line.size()); //write per-assoc fields
                 aug_readers[i].next();
