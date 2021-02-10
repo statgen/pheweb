@@ -48,7 +48,7 @@ def run(argv:List[str]) -> None:
         script_parts = script.split()
         module = importlib.import_module('.{}'.format(script_parts[0]), __package__)
         module_run = getattr(module, 'run', None)  # appeases mypy
-        if not callable(module_run): raise Exception("Why isn't module.run callable? {} {} {}".format(repr(script), repr(module), repr(module_run)))
+        if not callable(module_run): raise Exception("module.run ({!r}) isn't callable for module {!r} for script {!r}".format(module_run, module, script))
         try:
             module_run(script_parts[1:])
         except Exception:

@@ -1,7 +1,7 @@
 
 from ..file_utils import make_basedir, get_tmp_path, dbsnp_version, get_filepath
 from .load_utils import run_script
-from ..conf_utils import conf
+from .. import conf
 
 import os
 import wget
@@ -52,6 +52,6 @@ def download_rsids_for_build(hg_build_number:int) -> None:
 def run(argv:List[str]) -> None:
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--hg', type=int, default=conf.hg_build_number, choices=[19,38])
+    parser.add_argument('--hg', type=int, default=conf.get_hg_build_number(), choices=[19,38])
     args = parser.parse_args(argv)
     download_rsids_for_build(args.hg)

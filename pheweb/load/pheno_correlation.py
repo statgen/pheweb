@@ -9,7 +9,7 @@ import os
 from boltons.fileutils import AtomicSaver
 from typing import List,Optional
 
-from ..conf_utils import conf
+from .. import conf
 from ..file_utils import get_filepath, get_tmp_path
 from ..utils import get_phenolist, PheWebError
 from .. import weetabix
@@ -29,7 +29,7 @@ def run(argv:List[str]) -> None:
 
     if not os.path.isfile(raw_correl_filepath):
         logger.info('No "pheno-correlations.txt" file was found; processing step cannot be completed.')
-        if conf.show_correlations:
+        if conf.should_show_correlations():
             # This is an optional feature, so don't fail unless config file specifies to do so
             raise PheWebError(
                 'You have requested phenotype correlations, but the required input file could not be found: {}'.format(

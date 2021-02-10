@@ -13,7 +13,7 @@ This script creates json files which can be used to render Manhattan plots.
 # TODO: keep 10 variants unbinned from each chrom
 
 from ..utils import chrom_order
-from ..conf_utils import conf
+from .. import conf
 from ..file_utils import VariantFileReader, write_json, get_pheno_filepath
 from .load_utils import MaxPriorityQueue, parallelize_per_pheno, get_phenos_subset, get_phenolist
 
@@ -61,7 +61,7 @@ class Binner:
         self._bins = {} # like {<chrom>: {<pos // bin_length>: [{chrom, startpos, qvals}]}}
         self._qval_bin_size = 0.05 # this makes 200 bins for the minimum-allowed y-axis covering 0-10
         self._num_significant_in_current_peak = 0  # num variants stronger than manhattan_peak_variant_counting_pval_threshold
-        assert conf.manhattan_peak_variant_counting_pval_threshold < conf.manhattan_peak_pval_threshold # counting must be stricter than peak-extending
+        assert conf.get_manhattan_peak_variant_counting_pval_threshold() < conf.get_manhattan_peak_pval_threshold() # counting must be stricter than peak-extending
 
     def process_variant(self, variant:Variant) -> None:
         '''
@@ -71,8 +71,8 @@ class Binner:
              2) make the current variant the new `peak_best_variant`.
           b) If the variant ends a peak, push `peak_best_variant` into `peak_pq` and push the current variant into `unbinned_variant_pq`.
           c) Otherwise, just push the variant into `unbinned_variant_pq`.
-        Whenever `peak_pq` exceeds the size `conf.manhattan_peak_max_count`, push its member with the weakest pval into `unbinned_variant_pq`.
-        Whenever `unbinned_variant_pq` exceeds the size `conf.manhattan_num_unbinned`, bin its member with the weakest pval.
+        Whenever `peak_pq` exceeds the size `conf.get_manhattan_peak_max_count()`, push its member with the weakest pval into `unbinned_variant_pq`.
+        Whenever `unbinned_variant_pq` exceeds the size `conf.get_manhattan_num_unbinned()`, bin its member with the weakest pval.
         So, at the end, we'll have `peak_pq`, `unbinned_variant_pq`, and `bins`.
         '''
 
@@ -83,13 +83,13 @@ class Binner:
             elif qval > 20:
                 self._qval_bin_size = 0.1 # this makes 200-400 bins for a y-axis extending up to 20-40.
 
-        if variant['pval'] < conf.manhattan_peak_pval_threshold: # part of a peak
+        if variant['pval'] < conf.get_manhattan_peak_pval_threshold(): # part of a peak
             if self._peak_best_variant is None: # open a new peak
                 self._peak_best_variant = variant
                 self._peak_last_chrpos = (variant['chrom'], variant['pos'])
-                self._num_significant_in_current_peak = 1 if variant['pval'] < conf.manhattan_peak_variant_counting_pval_threshold else 0
-            elif self._peak_last_chrpos[0] == variant['chrom'] and self._peak_last_chrpos[1] + conf.manhattan_peak_sprawl_dist > variant['pos']: # extend current peak
-                if variant['pval'] < conf.manhattan_peak_variant_counting_pval_threshold: self._num_significant_in_current_peak += 1
+                self._num_significant_in_current_peak = 1 if variant['pval'] < conf.get_manhattan_peak_variant_counting_pval_threshold() else 0
+            elif self._peak_last_chrpos[0] == variant['chrom'] and self._peak_last_chrpos[1] + conf.get_manhattan_peak_sprawl_dist() > variant['pos']: # extend current peak
+                if variant['pval'] < conf.get_manhattan_peak_variant_counting_pval_threshold(): self._num_significant_in_current_peak += 1
                 self._peak_last_chrpos = (variant['chrom'], variant['pos'])
                 if variant['pval'] >= self._peak_best_variant['pval']:
                     self._maybe_bin_variant(variant)
@@ -98,7 +98,7 @@ class Binner:
                     self._peak_best_variant = variant
             else: # close old peak and open new peak
                 self._peak_best_variant['num_significant_in_peak'] = self._num_significant_in_current_peak
-                self._num_significant_in_current_peak = 1 if variant['pval'] < conf.manhattan_peak_variant_counting_pval_threshold else 0
+                self._num_significant_in_current_peak = 1 if variant['pval'] < conf.get_manhattan_peak_variant_counting_pval_threshold() else 0
                 self._maybe_peak_variant(self._peak_best_variant)
                 self._peak_best_variant = variant
                 self._peak_last_chrpos = (variant['chrom'], variant['pos'])
@@ -107,11 +107,11 @@ class Binner:
 
     def _maybe_peak_variant(self, variant:Variant) -> None:
         self._peak_pq.add_and_keep_size(variant, variant['pval'],
-                                        size=conf.manhattan_peak_max_count,
+                                        size=conf.get_manhattan_peak_max_count(),
                                         popped_callback=self._maybe_bin_variant)
     def _maybe_bin_variant(self, variant:Variant) -> None:
         self._unbinned_variant_pq.add_and_keep_size(variant, variant['pval'],
-                                                    size=conf.manhattan_num_unbinned,
+                                                    size=conf.get_manhattan_num_unbinned(),
                                                     popped_callback=self._bin_variant)
     def _bin_variant(self, variant:Variant) -> None:
         chrom_idx = chrom_order[variant['chrom']]

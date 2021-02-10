@@ -1,5 +1,5 @@
 
-from ..conf_utils import conf
+from .. import conf
 
 from flask import url_for, redirect, request
 from rauth import OAuth2Service
@@ -16,8 +16,8 @@ class GoogleSignIn(object):
         google_params = self._get_google_info()
         self.service = OAuth2Service(
             name='google',
-            client_id=conf.login['GOOGLE_LOGIN_CLIENT_ID'],
-            client_secret=conf.login['GOOGLE_LOGIN_CLIENT_SECRET'],
+            client_id=conf.get_login_google_id_and_secret()[0],
+            client_secret=conf.get_login_google_id_and_secret()[1],
             authorize_url=google_params.get('authorization_endpoint'),
             base_url=google_params.get('userinfo_endpoint'),
             access_token_url=google_params.get('token_endpoint')

@@ -1,5 +1,5 @@
 
-from ..conf_utils import conf
+from .. import conf
 from ..file_utils import write_json, write_heterogenous_variantfile, get_filepath
 
 from .top_hits import get_all_hits, stringify_assocs
@@ -16,7 +16,7 @@ def get_loci():
         while hits:
             best_assoc = min(hits, key=lambda assoc: assoc['pval'])
             yield best_assoc
-            hits = [h for h in hits if abs(h['pos'] - best_assoc['pos']) > conf.between_pheno_mask_around_peak]
+            hits = [h for h in hits if abs(h['pos'] - best_assoc['pos']) > conf.get_between_pheno_mask_around_peak()]
 
 
 def run(argv):
@@ -38,10 +38,10 @@ Even if this loci also contains significant hits for other phenotypes, they won'
 shown.  If you want all hits, use `pheweb top-hits`.
 '''.format(out_filepath_json,
            out_filepath_tsv,
-           '{:0.0e}'.format(conf.top_hits_pval_cutoff).replace('e-0', 'e-'),
-           conf.manhattan_num_unbinned,
-           conf.within_pheno_mask_around_peak,
-           conf.between_pheno_mask_around_peak,
+           '{:0.0e}'.format(conf.get_top_hits_pval_cutoff()).replace('e-0', 'e-'),
+           conf.get_manhattan_num_unbinned(),
+           conf.get_within_pheno_mask_around_peak(),
+           conf.get_between_pheno_mask_around_peak(),
 ))
         exit(1)
 

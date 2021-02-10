@@ -1,6 +1,7 @@
 
 from ..utils import get_phenolist, get_gene_tuples, pad_gene, PheWebError
-from ..conf_utils import conf
+from .. import conf
+from .. import parse_utils
 from ..file_utils import get_filepath
 from .server_utils import get_variant, get_random_page, get_pheno_region
 from .autocomplete import Autocompleter
@@ -26,24 +27,24 @@ bp = Blueprint('bp', __name__, template_folder='templates', static_folder='stati
 app = Flask(__name__)
 Compress(app)
 app.config['COMPRESS_LEVEL'] = 2 # Since we don't cache, faster=better
-app.config['SECRET_KEY'] = conf.SECRET_KEY if hasattr(conf, 'SECRET_KEY') else 'nonsecret key'
+app.config['SECRET_KEY'] = conf.get_secret_key()
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 9
-if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
-    app.config['GOOGLE_ANALYTICS_TRACKING_ID'] = conf['GOOGLE_ANALYTICS_TRACKING_ID']
-if 'SENTRY_DSN' in conf and not os.environ.get('PHEWEB_NO_SENTRY',''):
-    app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
-app.config['HG_BUILD_NUMBER'] = conf['hg_build_number']
-app.config['GRCH_BUILD_NUMBER'] = conf['hg_build_number'] if conf['hg_build_number'] >= 38 else 18 + conf['hg_build_number']
+if conf.get_google_analytics_id():
+    app.config['GOOGLE_ANALYTICS_TRACKING_ID'] = conf.get_google_analytics_id()
+if conf.get_sentry_id() and not os.environ.get('PHEWEB_NO_SENTRY',''):
+    app.config['SENTRY_DSN'] = conf.get_sentry_id()
+app.config['HG_BUILD_NUMBER'] = conf.get_hg_build_number()
+app.config['GRCH_BUILD_NUMBER'] = conf.get_grch_build_number()
 app.config['PHEWEB_VERSION'] = pheweb_version
-app.config['LZJS_VERSION'] = conf['lzjs_version']  # TODO: True asset mgmt / build system in future
-app.config['LZJS_VERSION_PHEWAS'] = conf['lzjs_version_phewas']
-app.config['URLPREFIX'] = conf.urlprefix.rstrip('/')
-app.config['USE_WHITELIST'] = 'login' in conf and 'whitelist' in conf.login
-if os.path.isdir(conf.custom_templates):
+app.config['LZJS_VERSION'] = conf.get_lzjs_version()
+app.config['LZJS_VERSION_PHEWAS'] = conf.get_lzjs_version_phewas()
+app.config['URLPREFIX'] = conf.get_urlprefix()
+app.config['USE_WHITELIST'] = conf.is_login_required() and bool(conf.get_login_allowlist())
+if conf.get_custom_templates_dir():
     jinja_searchpath = getattr(app.jinja_loader, 'searchpath', None)
     if jinja_searchpath is None: raise Exception()
-    jinja_searchpath.insert(0, conf.custom_templates)
+    jinja_searchpath.insert(0, conf.get_custom_templates_dir())
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
@@ -54,7 +55,7 @@ def check_auth(func):
     If they haven't, their intended destination is stored and they're sent to get authorized.
     It has to be placed AFTER @bp.route() so that it can capture `request.path`.
     """
-    if 'login' not in conf:
+    if not conf.is_login_required():
         return func
     # inspired by <https://flask-login.readthedocs.org/en/latest/_modules/flask_login.html#login_required>
     @functools.wraps(func)
@@ -64,8 +65,8 @@ def check_auth(func):
             session['original_destination'] = request.path
             return redirect(url_for('.get_authorized'))
         print('{} visited {!r}'.format(current_user.email, request.path))
-        if 'whitelist' in conf.login:
-            assert current_user.email.lower() in conf.login['whitelist'], current_user
+        if conf.get_login_allowlist():
+            assert current_user.email.lower() in conf.get_login_allowlist(), current_user
         return func(*args, **kwargs)
     return decorated_view
 
@@ -96,7 +97,7 @@ def go():
 def api_variant(query:str):
     variant = get_variant(query)
     resp = jsonify(variant)
-    if conf['allow_variant_json_cors']:
+    if conf.should_allow_variant_json_cors():
         resp.headers.add('Access-Control-Allow-Origin', '*')
     return resp
 
@@ -109,7 +110,7 @@ def variant_page(query:str):
             die("Sorry, I couldn't find the variant {}".format(query))
         return render_template('variant.html',
                                variant=variant,
-                               tooltip_lztemplate=conf.parse.tooltip_lztemplate,
+                               tooltip_lztemplate=parse_utils.tooltip_lztemplate,
         )
     except Exception as exc:
         die('Oh no, something went wrong', exc)
@@ -167,13 +168,12 @@ def pheno_page(phenocode:str):
     except KeyError:
         die("Sorry, I couldn't find the pheno code {!r}".format(phenocode))
     return render_template('pheno.html',
-                           show_correlations=conf.show_correlations,
-                           pheno_correlations_pvalue_threshold=conf.pheno_correlations_pvalue_threshold,
+                           show_correlations=conf.should_show_correlations(),
+                           pheno_correlations_pvalue_threshold=conf.get_pheno_correlations_pvalue_threshold(),
                            phenocode=phenocode,
                            pheno=pheno,
-                           tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
+                           tooltip_underscoretemplate=parse_utils.tooltip_underscoretemplate,
     )
-
 
 
 @bp.route('/region/<phenocode>/<region>')
@@ -187,7 +187,7 @@ def region_page(phenocode:str, region:str):
     return render_template('region.html',
                            pheno=pheno,
                            region=region,
-                           tooltip_lztemplate=conf.parse.tooltip_lztemplate,
+                           tooltip_lztemplate=parse_utils.tooltip_lztemplate,
     )
 
 @bp.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
@@ -205,7 +205,7 @@ def api_region(phenocode:str):
 @check_auth
 def api_pheno_correlations(phenocode:str):
     """Send information about phenotype correlations. This is an optional feature controlled by configuration."""
-    if not conf.show_correlations:
+    if not conf.should_show_correlations():
         return jsonify({'error': 'This PheWeb instance does not support the requested endpoint.'}), 400
 
     annotated_correl_fn = get_filepath('correlations')
@@ -274,7 +274,7 @@ def gene_phenocode_page(phenocode:str, genename:str):
                                significant_phenos=phenos_in_gene,
                                gene_symbol=genename,
                                region='{}:{}-{}'.format(chrom, start, end),
-                               tooltip_lztemplate=conf.parse.tooltip_lztemplate,
+                               tooltip_lztemplate=parse_utils.tooltip_lztemplate,
         )
     except Exception as exc:
         die("Sorry, your region request for phenocode {!r} and gene {!r} didn't work".format(phenocode, genename), exception=exc)
@@ -290,7 +290,7 @@ def gene_page(genename:str):
 
 
 
-if conf.get('download_pheno_sumstats', '') == 'secret':
+if conf.is_secret_download_pheno_sumstats():
     if app.config['SECRET_KEY'] == 'nonsecret key':
         raise PheWebError('you must set a SECRET_KEY in config.py to use download_pheno_sumstats = "secret"')
     class Hasher:
@@ -374,7 +374,7 @@ def apply_caching(response):
 
 
 ### OAUTH2
-if 'login' in conf:
+if conf.is_login_required():
     google_sign_in = GoogleSignIn(app)
 
 
@@ -393,7 +393,7 @@ if 'login' in conf:
 
     @lm.user_loader
     def load_user(id):
-        if 'whitelist' in conf.login and id not in conf.login['whitelist']:
+        if conf.get_login_allowlist() and id not in conf.get_login_allowlist():
             return None
         return User(email=id)
 
@@ -441,7 +441,7 @@ if 'login' in conf:
             flash('Authentication failed by failing to get an email address.  Please email pjvh@umich.edu')
             return redirect(url_for('.homepage'))
 
-        if 'whitelist' in conf.login and email.lower() not in conf.login['whitelist']:
+        if conf.get_login_allowlist() and email.lower() not in conf.get_login_allowlist():
             flash('Your email, {!r}, is not in the list of allowed emails.'.format(email))
             return redirect(url_for('.homepage'))
 

@@ -1,6 +1,6 @@
 
 from ..utils import get_phenolist
-from ..conf_utils import conf
+from .. import conf
 from ..file_utils import write_json, write_heterogenous_variantfile, get_filepath, get_pheno_filepath
 
 import json
@@ -15,7 +15,7 @@ def get_hits(pheno:Dict[str,Any]) -> Iterator[Dict[str,Any]]:
         variants = json.load(f)['unbinned_variants']
 
     for v in variants:
-        if v['pval'] <= conf.top_hits_pval_cutoff and 'peak' in v:
+        if v['pval'] <= conf.get_top_hits_pval_cutoff() and 'peak' in v:
             v['phenocode'] = pheno['phenocode']
             try: v['phenostring'] = pheno['phenostring']
             except KeyError: pass
@@ -48,9 +48,9 @@ Some loci may have hits for multiple phenotypes.  If you want a list of loci wit
 just the top phenotype for each, use `pheweb top-loci`.
 '''.format(out_filepath_json,
            out_filepath_tsv,
-           '{:0.0e}'.format(min(conf.top_hits_pval_cutoff, conf.manhattan_peak_pval_threshold)).replace('e-0', 'e-'),
-           conf.manhattan_num_unbinned,
-           conf.within_pheno_mask_around_peak,
+           '{:0.0e}'.format(min(conf.get_top_hits_pval_cutoff(), conf.get_manhattan_peak_pval_threshold())).replace('e-0', 'e-'),
+           conf.get_manhattan_num_unbinned(),
+           conf.get_within_pheno_mask_around_peak(),
 ))
         exit(1)
 

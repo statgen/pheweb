@@ -1,7 +1,7 @@
 
 import argparse
 from typing import List
-import Flask
+from flask import Flask
 
 
 def run_flask_dev_server(app:Flask, args:argparse.Namespace) -> None:
@@ -117,18 +117,18 @@ def run(argv:List[str]) -> None:
     parser.add_argument('--urlprefix', default='', help='sub-path at which to host this server')
     args = parser.parse_args(argv)
 
-    from ..conf_utils import conf
-    conf.urlprefix = args.urlprefix.rstrip('/')
+    from .. import conf
+    conf.set_override('urlprefix', args.urlprefix.rstrip('/'))
 
     if args.open:
-        if not attempt_open('http://localhost:{}/{}'.format(args.port, conf.urlprefix)) and not args.guess_address:
-            print_ip(args.port, conf.urlprefix)
+        if not attempt_open('http://localhost:{}/{}'.format(args.port, conf.get_urlprefix())) and not args.guess_address:
+            print_ip(args.port, conf.get_urlprefix())
 
     if args.host != '0.0.0.0':
-        print('http://{}:{}/{}'.format(args.host, args.port, conf.urlprefix))
+        print('http://{}:{}/{}'.format(args.host, args.port, conf.get_urlprefix()))
 
     if args.guess_address:
-        print_ip(args.port, conf.urlprefix)
+        print_ip(args.port, conf.get_urlprefix())
 
     import gevent.monkey
     gevent.monkey.patch_all() # this must happen before `import requests`.

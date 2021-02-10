@@ -65,10 +65,13 @@ def run(argv:List[str]) -> None:
     out_tmp_filepath.replace(out_filepath)
     print('Done making best-pheno-for-each-gene at {}'.format(str(out_filepath)))
 
-def process_genes(taskq, retq) -> None:
+def process_genes(taskq, retq, parent_overrides) -> None:
+    from .. import conf
+    assert not conf.overrides
+    conf.overrides.update(parent_overrides)
     with MatrixReader().context() as matrix_reader:
         def f(gene:Tuple[str,int,int,str]) -> Dict[str,Any]: return get_gene_info(gene, matrix_reader)
-        Parallelizer._make_multiple_tasks_doer(f)(taskq, retq)
+        Parallelizer._make_multiple_tasks_doer(f)(taskq, retq, parent_overrides)
 
 def get_gene_info(gene:Tuple[str,int,int,str], matrix_reader) -> Dict[str,List[Dict[str,Any]]]:
     chrom, start, end, gene_symbol = gene

@@ -1,14 +1,12 @@
 
 from ..utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
-from ..conf_utils import conf
+from .. import parse_utils
 from ..file_utils import read_maybe_gzip
 from .load_utils import get_maf
 
 import itertools
 import re
 import boltons.iterutils
-
-
 
 
 class PhenoReader:
@@ -20,7 +18,7 @@ class PhenoReader:
 
     def __init__(self, pheno, minimum_maf=0):
         self._pheno = pheno
-        self._minimum_maf = minimum_maf
+        self._minimum_maf = minimum_maf or 0
         self.fields, self.filepaths = self._get_fields_and_filepaths(pheno['assoc_files'])
 
     def get_variants(self):
@@ -101,9 +99,9 @@ class AssocFileReader:
 
     def get_variants(self, minimum_maf=0, use_per_pheno_fields=False):
         if use_per_pheno_fields:
-            fields_to_check = conf.parse.per_pheno_fields
+            fields_to_check = parse_utils.per_pheno_fields
         else:
-            fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(conf.parse.per_variant_fields.items(), conf.parse.per_assoc_fields.items()) if fieldval['from_assoc_files']}
+            fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(parse_utils.per_variant_fields.items(), parse_utils.per_assoc_fields.items()) if fieldval['from_assoc_files']}
 
         with read_maybe_gzip(self.filepath) as f:
 
@@ -194,14 +192,14 @@ class AssocFileReader:
         variant = {}
         for field, colidx in colidx_for_field.items():
             if colidx is not None:
-                parse = conf.parse.fields[field]['_parse']
+                parse = parse_utils.fields[field]['_parse']
                 value = values[colidx]
                 try:
                     variant[field] = parse(value)
                 except Exception as exc:
                     raise PheWebError(
                         "failed on field {!r} attempting to convert value {!r} to type {!r} with constraints {!r} in {!r} on line with values {!r}".format(
-                            field, values[colidx], conf.parse.fields[field]['type'], conf.parse.fields[field], self.filepath, values)) from exc
+                            field, values[colidx], parse_utils.fields[field]['type'], parse_utils.fields[field], self.filepath, values)) from exc
 
         return variant
 
@@ -240,7 +238,7 @@ class AssocFileReader:
                 )
             else:
                 err_message += "No fields successfully mapped.\n"
-            err_message += "You need to modify your input files or use set conf_aliases in your `config.py`."
+            err_message += "You need to modify your input files or set field_aliases in your `config.py`."
             raise PheWebError(err_message)
 
 

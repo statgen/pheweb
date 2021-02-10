@@ -1,7 +1,7 @@
 
 from ..utils import chrom_order, chrom_aliases, PheWebError
 from ..file_utils import get_tmp_path, make_basedir, genes_version, get_filepath, read_gzip
-from ..conf_utils import conf
+from .. import conf
 
 import os
 import re
@@ -204,6 +204,6 @@ def download_genes_for_build(hg_build_number:int) -> None:
 def run(argv:List[str]) -> None:
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--hg', type=int, default=conf.hg_build_number, choices=[19,38])
+    parser.add_argument('--hg', type=int, default=conf.get_hg_build_number(), choices=[19,38])
     args = parser.parse_args(argv)
     download_genes_for_build(args.hg)

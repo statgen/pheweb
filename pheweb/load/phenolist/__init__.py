@@ -142,47 +142,19 @@ def import_phenolist(filepath, has_header):
     # It'd be great to use pandas for this.
     if not os.path.exists(filepath):
         raise PheWebError("ERROR: unable to import {!r} because it doesn't exist".format(filepath))
-    # 1. try openpyxl.
-    phenos = _import_phenolist_xlsx(filepath, has_header)
-    if phenos is not None:
-        return phenos
     with read_maybe_gzip(filepath) as f:
-        # 2. try json.load(f)
+        # Try json.load(f)
         try:
             return json.load(f)
         except ValueError:
             if filepath.endswith('.json'):
                 raise PheWebError("The filepath {!r} ends with '.json' but reading it as json failed.".format(filepath))
-        # 3. try csv.reader() with csv.Sniffer().sniff()
+        # Try csv.reader() with csv.Sniffer().sniff()
         f.seek(0)
         phenos = _import_phenolist_csv(f, has_header)
         if phenos is not None:
             return phenos
         raise PheWebError("I couldn't figure out how to open the file {!r}, sorry.".format(filepath))
-
-def _import_phenolist_xlsx(filepath, has_header):
-    import openpyxl
-    try:
-        wb = openpyxl.load_workbook(filepath)
-        assert len(wb.worksheets) == 1
-        sheet = wb.worksheets[0]
-        rows = [[cell.value for cell in row] for row in sheet.rows]
-        num_cols = len(rows[0])
-        if has_header:
-            fieldnames, rows = rows[0], rows[1:]
-            if any(fieldname is None or fieldname == '' for fieldname in fieldnames):
-                if has_header == 'augment':
-                    fieldnames = [i if fieldname is None else fieldname for i, fieldname in enumerate(fieldnames)]
-                else:
-                    raise PheWebError('bad xlsx header')
-            assert len(set(fieldnames)) == len(fieldnames), fieldnames
-        else:
-            fieldnames = list(range(num_cols))
-        return [{fieldnames[i]: row[i] for i in range(num_cols)} for row in rows]
-    except openpyxl.utils.exceptions.InvalidFileException:
-        if filepath.endswith('.xlsx'):
-            raise PheWebError("The filepath {!r} ends with '.xlsx' but reading it as an excel file failed.".format(filepath))
-        return None
 
 def _import_phenolist_csv(f, has_header):
     # Note: If a csv (1) contains commas in quoted cells and (2) doesn't have any line that starts with a quoted cell,
@@ -584,7 +556,7 @@ def run(argv):
         phenolist = listify_assoc_files(phenolist)
         phenolist = numify_numeric_cols(phenolist)
         save_phenolist(phenolist, filepath)
-    p = subparsers.add_parser('import-phenolist', help='read a csv, tsv, gzipped csv, gzipped tsv, or xlsx file and produce a json file')
+    p = subparsers.add_parser('import-phenolist', help='read a csv or tsv, optionally gzipped, and produce a json file')
     p.add_argument('input_filepath', help="input filepath")
     p.add_argument('-f', dest="filepath", help="output filepath (default: {!r})".format(default_phenolist_filepath))
     p.add_argument('--no-header', dest="no_header", action="store_true", help="whether input_filepath has no header, in which case columns will just be numbered")

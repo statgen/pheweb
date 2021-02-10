@@ -1,6 +1,6 @@
 
 from ..utils import get_phenolist
-from ..conf_utils import conf
+from .. import conf
 from ..file_utils import get_tmp_path, get_dated_tmp_path, get_pheno_filepath
 from .load_utils import PerPhenoParallelizer
 
@@ -67,7 +67,7 @@ def run(argv:List[str]) -> None:
         for job in jobs:
             f.write(','.join(map(str,job)) + '\n')
         f.write(')\n\n')
-        f.write('export PHEWEB_DATADIR={!r}\n'.format(conf.data_dir))
+        f.write('export PHEWEB_DATADIR={!r}\n'.format(conf.get_data_dir()))
         f.write(sys.argv[0] + ' conf num_procs=1 ' + args.step +' --phenos=${jobs[$' + array_id_variable[args.engine] + ']}\n')
     print('Run:\n{} {}\n'.format(submit_command[args.engine], batch_filepath))
     print('Monitor with `{} <jobid>`\n'.format(monitor_command[args.engine]))

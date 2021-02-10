@@ -1,6 +1,7 @@
 
 from ..utils import round_sig, get_phenolist, PheWebError, fmt_seconds
-from ..conf_utils import conf
+from .. import conf
+from .. import parse_utils
 from ..file_utils import get_dated_tmp_path
 
 import functools
@@ -40,8 +41,9 @@ def get_maf(variant:Dict[str,Any], pheno:Dict[str,Any]) -> Optional[float]:
             raise PheWebError(
                 "Error: the variant {} in pheno {} has two ways of computing maf, resulting in the mafs {}, which differ by more than 0.05.".format(
                     variant, pheno, mafs))
-        return round_sig(sum(mafs)/len(mafs), conf.parse.fields['maf']['sigfigs'])
-
+        maf_sigfigs = parse_utils.fields['maf']['sigfigs']
+        if not isinstance(maf_sigfigs, int): raise Exception()
+        return round_sig(sum(mafs)/len(mafs), maf_sigfigs)
 
 
 def exception_printer(f):
@@ -107,26 +109,14 @@ def run_script(script:str) -> str:
     return data
 
 
-def get_num_procs(cmd:Optional[str] = None) -> int:
-    try: return int(conf.num_procs[cmd])
-    except Exception: pass
-    try: return int(conf.num_procs['*'])
-    except Exception: pass
-    try: return int(conf.num_procs)
-    except Exception: pass
-    n_cpus = multiprocessing.cpu_count()
-    if n_cpus == 1: return 1
-    if n_cpus < 4: return n_cpus - 1
-    return n_cpus * 3//4
-
 
 def set_loading_nice() -> None:
     '''Set `nice` value to give loading lower cpu/io priority.'''
-    import psutil
-    if 'loading_nice' in conf and conf.loading_nice:
+    if conf.overrides.get('load_nice'):
         os.setpriority(os.PRIO_PROCESS, os.getpid(), 20)
         # Supposedly if ionice is unset it will act like BestEffort with value = nice/5 .
         # But I'm setting the extremely careful class=idle which won't even use the disk when others do.
+        import psutil
         psutil.Process().ionice(ioclass=psutil.IOPRIO_CLASS_IDLE)
 set_loading_nice()
 
@@ -165,14 +155,20 @@ class MaxPriorityQueue:
 
 class Parallelizer:
     def run_multiple_tasks(self, tasks, do_multiple_tasks, cmd=None):
-        # yields things like: {type:"result", ...}
+        '''
+        Make a task queue and a return queue.
+        Spawn child processes `do_multiple_tasks(taskq, retq, overrides)` to pop taskq and push retq.
+        We manually pass `overrides` down to the child, because otherwise multiprocessing won't pickle it and pass it down.
+        Watch for results, exceptions, and task-completion in retq.
+        Yields things like: {type:"result", ...}
+        '''
         if not tasks: return
-        n_procs = min(get_num_procs(cmd), len(tasks))
+        n_procs = min(conf.get_num_procs(cmd), len(tasks))
         taskq = multiprocessing.Queue()
         for task in tasks: taskq.put(task)
         for _ in range(n_procs): taskq.put({"exit":True})
         retq = multiprocessing.Queue()
-        procs = [multiprocessing.Process(target=do_multiple_tasks, args=(taskq, retq), daemon=True) for _ in range(n_procs)]
+        procs = [multiprocessing.Process(target=do_multiple_tasks, args=(taskq, retq, conf.overrides), daemon=True) for _ in range(n_procs)]
         for p in procs: p.start()
         with ProgressBar() as progressbar:
             n_tasks_complete = 0
@@ -223,7 +219,9 @@ class Parallelizer:
         # See <https://stackoverflow.com/a/14550773/1166306> for more info.
         return functools.partial(Parallelizer._partialable_multiple_tasks_doer, do_single_task)
     @staticmethod
-    def _partialable_multiple_tasks_doer(do_single_task, taskq, retq):
+    def _partialable_multiple_tasks_doer(do_single_task, taskq, retq, parent_overrides):
+        assert not conf.overrides or conf.overrides == parent_overrides, repr(conf.overrides)
+        conf.overrides.update(parent_overrides)
         for task in iter(taskq.get, {'exit':True}):
             try:
                 x = do_single_task(task)

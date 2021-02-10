@@ -17,22 +17,20 @@ import glob
 import pysam
 from typing import List
 
-sites_filepath = get_filepath('sites', must_exist=False)
-pheno_gz_glob = get_filepath('pheno_gz')+'/*.gz'
-matrix_gz_filepath = get_filepath('matrix', must_exist=False)
-matrix_tbi_filepath = matrix_gz_filepath + '.tbi'
-matrix_gz_tmp_filepath = get_tmp_path(matrix_gz_filepath)
 
 def clear_out_junk() -> None:
     # Remove files that shouldn't be there (and will confuse the glob in matrixify)
     cur_phenocodes = set(pheno['phenocode'] for pheno in get_phenolist())
-    for filepath in glob.glob(pheno_gz_glob):
+    for filepath in glob.glob(get_filepath('pheno_gz')+'/*.gz'):
         name = os.path.basename(filepath)
         if name[:-3] not in cur_phenocodes:
             print("Removing {} to help matrix glob".format(filepath))
             os.remove(filepath)
 
 def should_run() -> bool:
+    sites_filepath = get_filepath('sites')
+    matrix_gz_filepath = get_filepath('matrix', must_exist=False)
+
     if not os.path.exists(matrix_gz_filepath): return True
 
     # If the matrix's columns don't match the phenos in pheno-list, rebuild.
@@ -65,6 +63,11 @@ def run(argv:List[str]) -> None:
     if should_run():
         clear_out_junk()
 
+        sites_filepath = get_filepath('sites')
+        pheno_gz_glob = get_filepath('pheno_gz')+'/*.gz'
+        matrix_gz_filepath = get_filepath('matrix', must_exist=False)
+        matrix_gz_tmp_filepath = get_tmp_path(matrix_gz_filepath)
+
         # we don't need `ffi.new('char[]', ...)` because args are `const`
         ret = lib.cffi_make_matrix(sites_filepath.encode('utf8'),
                                    pheno_gz_glob.encode('utf8'),
@@ -76,6 +79,7 @@ def run(argv:List[str]) -> None:
     else:
         print('matrix is up-to-date!')
 
+    matrix_tbi_filepath = matrix_gz_filepath + '.tbi'
     if not os.path.exists(matrix_tbi_filepath) or mtime(matrix_tbi_filepath) < mtime(matrix_gz_filepath):
         print('tabixing matrix')
         pysam.tabix_index(

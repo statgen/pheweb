@@ -1,6 +1,7 @@
 
 from .utils import PheWebError, get_phenolist, chrom_order
-from .conf_utils import conf
+from . import conf
+from . import parse_utils
 
 import io
 import os
@@ -17,9 +18,7 @@ from typing import List, Callable, Dict, Union, Iterator, Optional, Any
 
 
 def get_generated_path(*path_parts:str) -> str:
-    data_dir = conf.data_dir
-    if not isinstance(data_dir, str): raise PheWebError("conf.data_dir is of type {}: {}".format(type(data_dir), repr(data_dir)))
-    path = os.path.join(data_dir, 'generated-by-pheweb', *path_parts)
+    path = os.path.join(conf.get_data_dir(), 'generated-by-pheweb', *path_parts)
     make_basedir(path)
     return path
 
@@ -34,13 +33,13 @@ def get_filepath(kind:str, *, must_exist:bool = True) -> str:
     return filepath
 _single_filepaths: Dict[str,Callable[[],str]] = {
     # in data_dir:
-    'correlations-raw': (lambda: os.path.join(conf.data_dir, 'pheno-correlations.txt')),
-    'phenolist': (lambda: os.path.join(conf.data_dir, 'pheno-list.json')),
+    'correlations-raw': (lambda: os.path.join(conf.get_data_dir(), 'pheno-correlations.txt')),
+    'phenolist': (lambda: os.path.join(conf.get_data_dir(), 'pheno-list.json')),
     # depend on hg_build_number, dbsnp_version, genes_version:
-    'rsids': (lambda: get_generated_path('resources/rsids-v{}-hg{}.tsv.gz'.format(dbsnp_version, conf.hg_build_number))),
+    'rsids': (lambda: get_generated_path('resources/rsids-v{}-hg{}.tsv.gz'.format(dbsnp_version, conf.get_hg_build_number()))),
     'rsids-hg19': (lambda: get_generated_path('resources/rsids-v{}-hg19.tsv.gz'.format(dbsnp_version))),
     'rsids-hg38': (lambda: get_generated_path('resources/rsids-v{}-hg38.tsv.gz'.format(dbsnp_version))),
-    'genes': (lambda: get_generated_path('resources/genes-v{}-hg{}.bed'.format(genes_version, conf.hg_build_number))),
+    'genes': (lambda: get_generated_path('resources/genes-v{}-hg{}.bed'.format(genes_version, conf.get_hg_build_number()))),
     'genes-hg19': (lambda: get_generated_path('resources/genes-v{}-hg19.bed'.format(genes_version))),
     'genes-hg38': (lambda: get_generated_path('resources/genes-v{}-hg38.bed'.format(genes_version))),
     'gene-aliases-sqlite3': (lambda: get_generated_path('resources/gene_aliases-v{}.sqlite3'.format(genes_version))),
@@ -135,14 +134,14 @@ def VariantFileReader(filepath:Union[str,Path], only_per_variant_fields:bool = F
     '''
     with read_maybe_gzip(filepath) as f:
         reader:Iterator[List[str]] = csv.reader(f, dialect='pheweb-internal-dialect')
-        limit_num_variants:Optional[int] = conf.limit_num_variants if isinstance(conf.limit_num_variants,int) and conf.limit_num_variants else None
-        if limit_num_variants is not None: reader = itertools.islice(reader, 0, limit_num_variants)
+        debugging_limit_num_variants = conf.get_debugging_limit_num_variants()
+        if debugging_limit_num_variants is not None: reader = itertools.islice(reader, 0, debugging_limit_num_variants)
         try: fields = next(reader)
         except StopIteration: raise PheWebError("It looks like the file {} is empty".format(filepath))
         if fields[0].startswith('#'): # This won't happen in normal use but it's convenient for temporary internal re-routing
             fields[0] = fields[0][1:]
         for field in fields:
-            assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields, field
+            assert field in parse_utils.per_variant_fields or field in parse_utils.per_assoc_fields, field
         if only_per_variant_fields:
             yield _vfr_only_per_variant_fields(fields, reader)
         else:
@@ -154,7 +153,7 @@ class _vfr:
     def __iter__(self) -> Iterator[Dict[str,Any]]:
         return self._get_variants()
     def _get_variants(self) -> Iterator[Dict[str,Any]]:
-        parsers = [conf.parse.fields[field]['_read'] for field in self.fields]
+        parsers: List[Callable[[str],Any]] = [parse_utils.reader_for_field[field] for field in self.fields]
         for unparsed_variant in self._reader:
             assert len(unparsed_variant) == len(self.fields), (unparsed_variant, self.fields)
             variant = {field: parser(value) for parser,field,value in zip(parsers, self.fields, unparsed_variant)}
@@ -162,7 +161,7 @@ class _vfr:
 class _vfr_only_per_variant_fields:
     def __init__(self, fields:List[str], reader:Iterator[List[str]]):
         self._all_fields = fields
-        self._extractors = [(conf.parse.fields[field]['_read'], field, colidx) for colidx,field in enumerate(fields) if field in conf.parse.per_variant_fields]
+        self._extractors = [(parse_utils.reader_for_field[field], field, colidx) for colidx,field in enumerate(fields) if field in parse_utils.per_variant_fields]
         self.fields = [e[1] for e in self._extractors]
         self._reader = reader
     def __iter__(self) -> Iterator[Dict[str,Any]]:
@@ -183,7 +182,7 @@ def IndexedVariantFileReader(phenocode:str):
     if fields[0].startswith('#'): # previous version of PheWeb commented the header line
         fields[0] = fields[0][1:]
     for field in fields:
-        assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields, field
+        assert field in parse_utils.per_variant_fields or field in parse_utils.per_assoc_fields, field
     colidxs = {field: idx for idx, field in enumerate(fields)}
     with pysam.TabixFile(filepath, parser=None) as tabix_file:
         yield _ivfr(tabix_file, colidxs)
@@ -196,7 +195,7 @@ class _ivfr:
         variant = {}
         for field in self._colidxs:
             val = variant_row[self._colidxs[field]]
-            parser = conf.parse.fields[field]['_read']
+            parser = parse_utils.reader_for_field[field]
             try:
                 variant[field] = parser(val)
             except Exception as exc:
@@ -237,9 +236,9 @@ class _ivfr:
 
 
 class MatrixReader:
-    _filepath = get_generated_path('matrix.tsv.gz')
-
     def __init__(self):
+        self._filepath = get_generated_path('matrix.tsv.gz')
+
         phenos:List[Dict[str,Any]] = get_phenolist()
         phenocodes:List[str] = [pheno['phenocode'] for pheno in phenos]
         self._info_for_pheno = {
@@ -260,12 +259,12 @@ class MatrixReader:
                 x = colname.split('@')
                 assert len(x) == 2, x
                 field, phenocode = x
-                assert field in conf.parse.fields, field
+                assert field in parse_utils.fields, field
                 assert phenocode in phenocodes, phenocode
                 self._colidxs_for_pheno.setdefault(phenocode, {})[field] = colnum
             else:
                 field = colname
-                assert field in conf.parse.fields, (field)
+                assert field in parse_utils.fields, (field)
                 self._colidxs[field] = colnum
 
     def get_phenocodes(self) -> List[str]:
@@ -285,9 +284,9 @@ class _mr(_ivfr):
     def _parse_field(self, variant_row:List[str], field:str, phenocode:Optional[str] = None) -> Any:
         colidx = self._colidxs[field] if phenocode is None else self._colidxs_for_pheno[phenocode][field]
         val = variant_row[colidx]
-        parser = conf.parse.fields[field]['_read']
+        parser = parse_utils.fields[field]['_read']
         try:
-            return parser(val)
+            return parser(val)  # type: ignore
         except Exception as exc:
             error_message = 'ERROR: Failed to parse the value {!r} for field {!r}'.format(val, field)
             if phenocode is not None: error_message += ' and phenocode {!r}'.format(phenocode)
@@ -366,7 +365,7 @@ class _vfw:
     def write(self, variant:Dict[str,Any]) -> None:
         if not hasattr(self, '_writer'):
             fields:List[str] = []
-            for field in conf.parse.fields:
+            for field in parse_utils.fields:
                 if field in variant: fields.append(field)
             extra_fields = list(set(variant.keys()) - set(fields))
             if extra_fields:

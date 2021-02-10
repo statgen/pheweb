@@ -1,5 +1,4 @@
 
-#TODO: use subprocess to eliminate conf_utils state?
 #TODO: split into multiple tests that share tmpdir and run in order
 
 import os
@@ -7,34 +6,35 @@ import os
 
 
 def test_all(tmpdir, capsys):
-    p = tmpdir.realpath()
-    with capsys.disabled(): print('\n{}'.format(p))
-    indir = os.path.join(os.path.dirname(__file__), 'input_files/')
-    conf = ['conf', 'data_dir="{}"'.format(p), 'cache="{}/fake-cache"'.format(indir)]
-
-    # with capsys.disabled():
-    #     print('tmpdir:', repr(p))
-    #     print('__file__:', repr(__file__))
-    #     print('indir:', repr(indir))
-    #     print('conf:', repr(conf))
-    #     print('fake-cache:', repr(os.listdir(indir+'/fake-cache')))
-
+    data_dir = tmpdir.realpath()
+    with capsys.disabled(): print('\n{}'.format(data_dir))
+    indir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'input_files/'))
+    fake_cache = os.path.join(indir, 'fake-cache')
+    conf = ['conf', 'data_dir="{}"'.format(data_dir), 'cache="{}"'.format(fake_cache), 'disallow_downloads=true']
 
     from pheweb.command_line import run as cl_run
+
+    with capsys.disabled():
+        print()
+        print('data_dir:', repr(data_dir), '\n')
+        print('__file__:', repr(__file__), '\n')
+        print('indir:', repr(indir), '\n')
+        print('fake-cache:', repr(fake_cache), '\n')
+        print('conf:', repr(conf), '\n')
+        cl_run(conf+['conf'])
+        print()
+
     cl_run(conf+['-h'])
+    cl_run(conf+['conf'])
     cl_run(conf+['phenolist', 'glob', '--simple-phenocode', '{}/assoc-files/*'.format(indir)])
     cl_run(conf+['phenolist', 'unique-phenocode'])
     cl_run(conf+['phenolist', 'read-info-from-association-files'])
     cl_run(conf+['phenolist', 'filter-phenotypes', '--minimum-num-cases', '20', '--minimum-num-controls', '20', '--minimum-num-samples', '20'])
     cl_run(conf+['phenolist', 'hide-small-numbers-of-samples', '--minimum-visible-number', '50'])
     cl_run(conf+['phenolist', 'hide-small-numbers-of-samples', '--minimum-visible-number', '50'])
-    cl_run(conf+['phenolist', 'import-phenolist', '-f', '{}/pheno-list-categories.json'.format(p), '{}/categories.csv'.format(indir)])
-    cl_run(conf+['phenolist', 'merge-in-info', '{}/pheno-list-categories.json'.format(p)])
+    cl_run(conf+['phenolist', 'import-phenolist', '-f', '{}/pheno-list-categories.json'.format(data_dir), '{}/categories.csv'.format(indir)])
+    cl_run(conf+['phenolist', 'merge-in-info', '{}/pheno-list-categories.json'.format(data_dir)])
     cl_run(conf+['phenolist', 'verify', '--required-columns', 'category'])
-    # with capsys.disabled(): print(1)
-    # with capsys.disabled():
-    #     import pheweb.conf_utils
-    #     print(pheweb.conf_utils.conf)
     # TODO: verify that `dbsnp-{latest}.tsv` exists (so that it won't be downloaded/parsed)
     # TODO: replace `process` with each sub-step.
     cl_run(conf+['process'])
@@ -47,7 +47,7 @@ def test_all(tmpdir, capsys):
     app.testing = True # makes application exception propogate up to `client`
     with app.test_client() as client:
         assert client.get('/').status_code == 200
-        assert client.get('/variant/15-55447871-C-T').status_code == 200
+        assert client.get('/variant/1-869334-G-A').status_code == 200
         assert client.get('/static/variant.js').status_code == 200
         assert client.get('/pheno/snowstorm').status_code == 200
         assert client.get('/api/manhattan/pheno/snowstorm.json').status_code == 200

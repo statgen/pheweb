@@ -1,8 +1,8 @@
 
 from ..utils import chrom_order, get_phenolist, PheWebError
-from ..conf_utils import conf
+from .. import conf
 from ..file_utils import VariantFileReader, VariantFileWriter, get_filepath, get_pheno_filepath, make_basedir, get_dated_tmp_path, get_tmp_path
-from .load_utils import get_num_procs, get_maf, mtime, indent, ProgressBar
+from .load_utils import get_maf, mtime, indent, ProgressBar
 
 import contextlib
 import os
@@ -23,7 +23,7 @@ def run(argv):
         force = True
     elif argv:
         print(
-            '1. Extract all variants that have MAF >= conf.variant_inclusion_maf from each phenotype\n' +
+            '1. Extract all variants from each phenotype\n' +
             '2. Union them.\n' +
             '3. Write to {}\n\n'.format(out_filepath) +
             'Usage:\n'
@@ -75,7 +75,7 @@ def run(argv):
 class MergeManager:
     '''Keeps track of what needs to get merged next.'''
     def __init__(self):
-        self.n_procs = get_num_procs(cmd='sites')
+        self.n_procs = conf.get_num_procs(cmd='sites')
         self.files = []
         for pheno in get_phenolist():
             filepath = get_pheno_filepath('parsed', pheno['phenocode'])
@@ -161,9 +161,6 @@ def merge(files_to_merge, out_filepath):
         vlm = VariantListMerger()
         for file_to_merge in files_to_merge:
             reader = iter(exit_stack.enter_context(VariantFileReader(file_to_merge['filepath'], only_per_variant_fields=True)))
-            if file_to_merge['type'] == 'input' and conf.variant_inclusion_maf:
-                pheno = file_to_merge['pheno']
-                reader = apply_maf_cutoff(reader, pheno)
             reader_id = len(readers)
             readers.append(reader)
             _reader_info.append(file_to_merge)
@@ -199,12 +196,6 @@ def merge(files_to_merge, out_filepath):
         if file_to_merge['type'] == 'merged':
             os.remove(file_to_merge['filepath'])
     #print('{:8} variants in {} <- {}'.format(n_variants, os.path.basename(out_filepath), [os.path.basename(f['filepath']) for f in files_to_merge]))
-
-def apply_maf_cutoff(variants, pheno):
-    for v in variants:
-        maf = get_maf(v, pheno)
-        if maf is None: yield v
-        elif maf > conf.variant_inclusion_maf: yield v
 
 class VariantListMerger:
     '''

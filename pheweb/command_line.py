@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-import sys
+from . import conf
+from .utils import PheWebError
+
+import sys, json
 import os
 import importlib
 import functools
@@ -16,17 +19,10 @@ if sys.version_info < (3, 6):
     sys.exit(1)
 
 
-def enable_ipdb() -> None:
+if 'PHEWEB_IPDB' in os.environ:
     # from <http://ipython.readthedocs.io/en/stable/interactive/reference.html#post-mortem-debugging>
     from IPython.core import ultratb
     sys.excepthook = ultratb.FormattedTB(mode='Verbose', color_scheme='Linux', call_pdb=1)
-
-# handle environ
-if 'PHEWEB_IPDB' in os.environ:
-    enable_ipdb()
-if 'PHEWEB_DEBUG' in os.environ:
-    from .conf_utils import conf
-    conf.debug = True
 
 
 handlers:Dict[str,Callable[[List[str]],None]] = {}
@@ -60,7 +56,7 @@ for submodule in '''
     def f(submodule:str, argv:List[str]) -> None:
         module = importlib.import_module('.load.{}'.format(submodule), __package__)
         module_run = getattr(module, 'run', None)
-        if not module_run: raise Exception("module.run doesn't exist for {}".format(submodule))
+        if not callable(module_run): raise Exception("module.run ({!r}) isn't callable for module {!r}".format(module_run, module))
         module_run(argv)
     handlers[submodule.replace('_', '-')] = functools.partial(f, submodule)
 handlers['process'] = handlers['process-assoc-files']
@@ -72,29 +68,17 @@ def serve(argv:List[str]) -> None:
 handlers['serve'] = serve
 
 def configure(argv:List[str]) -> None:
-    from .conf_utils import conf
-    import json
-    try: conf['cache']  # Trigger _ensure_conf() so that this config will apply AFTER config.py
-    except Exception: pass
     for i, arg in enumerate(argv):
         if '=' not in arg: break
         k,v = arg.split('=', 1)
-        try: conf[k] = json.loads(v)
-        except json.JSONDecodeError: conf[k] = v
+        try: v = json.loads(v)
+        except json.JSONDecodeError: pass
+        conf.set_override(k, v)
     else:
-        print(conf)
-        exit(1)
+        print(conf.overrides)
+        return
     run(argv[i:])
 handlers['conf'] = configure
-
-def ipdb(argv:List[str]) -> None:
-    enable_ipdb()
-    run(argv)
-handlers['ipdb'] = ipdb
-
-def help(argv:List[str]) -> None:
-    run(argv[0:1] + ['-h'])
-handlers['help'] = help
 
 
 def print_help_message() -> None:
@@ -129,14 +113,18 @@ def run(argv:List[str]) -> None:
     if subcommand in ['', '-h', '--help']:
         print_help_message()
     elif subcommand not in handlers:
-        print('Unknown subcommand {!r}'.format(subcommand))
+        print('Unknown subcommand {!r}\n'.format(subcommand))
         print_help_message()
     else:
         handlers[subcommand](argv[1:])
 
 # this is in `entry_points` in setup.py:
 def main() -> None:
-    from .utils import PheWebError
+    # Load config.py
+    config_filepath = os.path.join(conf.get_data_dir(), 'config.py')
+    if os.path.isfile(config_filepath):
+        conf.load_overrides_from_file(config_filepath)
+    # Run
     try:
         run(sys.argv[1:])
     except (KeyboardInterrupt, Exception) as exc:

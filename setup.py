@@ -68,7 +68,6 @@ setup(
         'pysam~=0.16',
         'intervaltree~=3.1',
         'tqdm~=4.56',
-        'openpyxl~=3.0.6',
         'scipy~=1.5',
         'numpy~=1.19',
         'requests[security]~=2.25',
