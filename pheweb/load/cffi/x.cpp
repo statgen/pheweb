@@ -430,8 +430,9 @@ int make_matrix(const char *sites_filepath, const char *augmented_pheno_glob, co
     for (size_t i=0; i < N_phenos; i++) {
         if(0 != aug_readers[i].line.compare(0, sites_reader.line.size(), sites_reader.line)) {
             std::ostringstream errstream;
-            errstream << "[One of the pheno files has a header that doesn't begin with the header of sites.tsv.]";
+            errstream << "[One of the pheno files has a header that doesn't begin with the header of sites.tsv (or it failed to read).]";
             errstream << "[bad phenocode = " << aug_phenocodes[i] << "]";
+            errstream << "[bad pheno file = " << aug_filepaths[i] << "]";
             errstream << "[bad pheno header = " << aug_readers[i].line << "]";
             errstream << "[sites.tsv header = " << sites_reader.line << "]";
             throw std::runtime_error(errstream.str().c_str());
