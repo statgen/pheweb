@@ -3,7 +3,7 @@
 First, try:
 
 ```bash
-python3 -m pip install cython wheel
+python3 -m pip install -U cython wheel pip setuptools
 python3 -m pip install pheweb
 pheweb --help
 ```
