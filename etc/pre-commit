@@ -1,7 +1,7 @@
 #!/bin/bash
 
-flake8 --show-source --ignore=E501,E302,E251,E701,E226,E305,E225,E261,E231,E301,E306,E402,E704,E265,E201,E202,E303,E124,E241,E127,E266,E221,E126,E129,F811,E222,E401,E702,E203,E116,E228,W504,B007,E271,F401 *py pheweb/ &&
-mypy --pretty --ignore-missing-imports . &&
-htmlhint -r id-unique,csslint,src-not-empty,tag-pair,title-require pheweb/serve/template/
+flake8 --show-source --ignore=E501,E302,E251,E701,E226,E305,E225,E261,E231,E301,E306,E402,E704,E265,E201,E202,E303,E124,E241,E127,E266,E221,E126,E129,F811,E222,E401,E702,E203,E116,E228,W504,B007,E271,F401 *py tests/ pheweb/ &&
+mypy --pretty --ignore-missing-imports *py tests/ pheweb/
+#npx htmlhint -r id-unique,csslint,src-not-empty,tag-pair,title-require pheweb/serve/template/
 
 # TODO: add eslint with just enough rules to catch bugs
