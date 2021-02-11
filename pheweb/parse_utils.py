@@ -120,6 +120,22 @@ per_assoc_fields = OrderedDict([
         'tooltip_lztemplate': {'transform': '|percent'},
         'display': 'AF',
     }),
+    ('case_af', {
+        'aliases': ['af.cases'],
+        'type': float,
+        'range': [0, 1],
+        'proportion_sigfigs': 2,
+        'tooltip_lztemplate': {'transform': '|percent'},
+        'display': 'Case AF',
+    }),
+    ('control_af', {
+        'aliases': ['af.controls'],
+        'type': float,
+        'range': [0, 1],
+        'proportion_sigfigs': 2,
+        'tooltip_lztemplate': {'transform': '|percent'},
+        'display': 'Control AF',
+    }),
     ('ac', {
         'type': float,
         'range': [0, None],
