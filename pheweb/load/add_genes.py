@@ -83,7 +83,7 @@ def annotate_genes(in_filepath:str, out_filepath:str) -> None:
 def run(argv:List[str]) -> None:
 
     if '-h' in argv or '--help' in argv:
-        print('Annotate the sites file with nearest genes.  Download the relevant version of Gencode if not already present.')
+        print('Annotate the sites file with nearest genes.  Fetches the relevant version of Gencode if not already present.')
         exit(1)
 
     input_filepath = get_filepath('sites-rsids')
@@ -91,7 +91,7 @@ def run(argv:List[str]) -> None:
     out_filepath = get_filepath('sites', must_exist=False)
 
     if not os.path.exists(genes_filepath):
-        print('Downloading genes from GENCODE')
+        print('Fetching genes...')
         from . import download_genes
         download_genes.run([])
 

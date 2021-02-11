@@ -99,7 +99,7 @@ def run(argv:List[str]) -> None:
     rsids_filepath = get_filepath('rsids', must_exist=False)
 
     if not os.path.exists(rsids_filepath):
-        print('Need rsids resource, so fetching it now...')
+        print('Fetching rsids...')
         from . import download_rsids
         download_rsids.run([])
 
