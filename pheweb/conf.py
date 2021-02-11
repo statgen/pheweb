@@ -97,7 +97,6 @@ def get_cache_dir() -> Optional[str]:
         print("Warning: caching is disabled because PheWeb either can't create or can't read {!r}.  To avoid this message, set `{} = False` in your config.py".format(cache_dir, key))
         overrides[key] = False
         return None
-    print(f'{cache_dir=}')
     return cache_dir
 
 

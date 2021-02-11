@@ -27,7 +27,7 @@ from ..utils import get_gene_tuples, pad_gene
 from ..file_utils import MatrixReader, get_filepath, get_tmp_path
 from .load_utils import Parallelizer
 
-import sqlite3, json
+import sqlite3, json, traceback
 from pathlib import Path
 from typing import List,Any,Dict,Tuple
 
@@ -66,9 +66,13 @@ def run(argv:List[str]) -> None:
     print('Done making best-pheno-for-each-gene at {}'.format(str(out_filepath)))
 
 def process_genes(taskq, retq, parent_overrides) -> None:
-    from .. import conf
-    assert not conf.overrides
-    conf.overrides.update(parent_overrides)
+    try:
+        from .. import conf
+        assert not conf.overrides or conf.overrides == parent_overrides, (conf.overrides, parent_overrides)
+        conf.overrides.update(parent_overrides)
+    except Exception as exc:
+        retq.put({'type':'exception', 'task':None, 'exception_str':str(exc), 'exception_tb':traceback.format_exc()})
+        raise
     with MatrixReader().context() as matrix_reader:
         def f(gene:Tuple[str,int,int,str]) -> Dict[str,Any]: return get_gene_info(gene, matrix_reader)
         Parallelizer._make_multiple_tasks_doer(f)(taskq, retq, parent_overrides)

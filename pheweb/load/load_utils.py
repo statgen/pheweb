@@ -9,7 +9,7 @@ import traceback
 import time
 import os
 import subprocess
-import multiprocessing
+import multiprocessing, queue
 import random
 import sys
 import heapq
@@ -174,7 +174,13 @@ class Parallelizer:
             n_tasks_complete = 0
             self._update_progressbar(progressbar, n_tasks_complete, n_procs, len(tasks))
             while True:
-                ret = retq.get()
+                try:
+                    ret = retq.get(block=True, timeout=10)
+                except queue.Empty:
+                    if not any(p.is_alive() for p in procs):
+                        raise PheWebError("No living children remain and retq is empty, but n_procs={} and taskq.get_nowait()={!r}".format(n_procs, taskq.get_nowait()))
+                    continue
+
                 if ret['type'] == 'result':
                     yield ret
                 elif ret['type'] == 'task-completion':
@@ -183,7 +189,7 @@ class Parallelizer:
                 elif ret['type'] == 'exception':
                     for p in procs:
                         if p.is_alive():
-                            p.terminate() # is this a good choice?  I dunno.
+                            p.terminate()
                     exc_filepath = get_dated_tmp_path('exception')
                     with open(exc_filepath, 'wt') as f:
                         f.write(
@@ -195,12 +201,12 @@ class Parallelizer:
                     n_procs -= 1
                     if n_procs == 0:
                         self._update_progressbar(progressbar, n_tasks_complete, n_procs, len(tasks))
+                        for p in procs:
+                            p.join()
+                            if p.exitcode != 0: raise PheWebError("A child process exited with status {}".format(p.exitcode))
                         return
                 else:
                     raise PheWebError("Unknown type of ret: {}".format(ret))
-            for p in procs:
-                p.join()
-                assert p.exitcode == 0
     def run_single_tasks(self, tasks, do_single_task, cmd=None):
         do_multiple_tasks = self._make_multiple_tasks_doer(do_single_task)
         for ret in self.run_multiple_tasks(tasks, do_multiple_tasks, cmd=cmd):
@@ -220,7 +226,10 @@ class Parallelizer:
         return functools.partial(Parallelizer._partialable_multiple_tasks_doer, do_single_task)
     @staticmethod
     def _partialable_multiple_tasks_doer(do_single_task, taskq, retq, parent_overrides):
-        assert not conf.overrides or conf.overrides == parent_overrides, repr(conf.overrides)
+        if conf.overrides and conf.overrides != parent_overrides:
+            err = 'Tried to pass parent_overrides {!r} down to child process that already had overrides {!r}'.format(parent_overrides, conf.overrides)
+            retq.put({'type': 'exception', 'task': None, 'exception_str': err, 'exception_tb': err})
+            raise Exception(err)
         conf.overrides.update(parent_overrides)
         for task in iter(taskq.get, {'exit':True}):
             try:
