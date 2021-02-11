@@ -134,8 +134,6 @@ def VariantFileReader(filepath:Union[str,Path], only_per_variant_fields:bool = F
     '''
     with read_maybe_gzip(filepath) as f:
         reader:Iterator[List[str]] = csv.reader(f, dialect='pheweb-internal-dialect')
-        debugging_limit_num_variants = conf.get_debugging_limit_num_variants()
-        if debugging_limit_num_variants is not None: reader = itertools.islice(reader, 0, debugging_limit_num_variants)
         try: fields = next(reader)
         except StopIteration: raise PheWebError("It looks like the file {} is empty".format(filepath))
         if fields[0].startswith('#'): # This won't happen in normal use but it's convenient for temporary internal re-routing
