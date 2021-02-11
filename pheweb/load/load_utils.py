@@ -112,7 +112,7 @@ def run_script(script:str) -> str:
 
 def set_loading_nice() -> None:
     '''Set `nice` value to give loading lower cpu/io priority.'''
-    if conf.overrides.get('load_nice'):
+    if conf.overrides.get('loading_nice'):
         os.setpriority(os.PRIO_PROCESS, os.getpid(), 20)
         # Supposedly if ionice is unset it will act like BestEffort with value = nice/5 .
         # But I'm setting the extremely careful class=idle which won't even use the disk when others do.
