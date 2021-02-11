@@ -21,6 +21,7 @@ We read one full position at a time.  When we have a position-match, we find all
 
 from ..utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
 from ..file_utils import VariantFileReader, VariantFileWriter, get_filepath, read_maybe_gzip
+from .. import conf
 from .load_utils import mtime
 
 import os
@@ -112,6 +113,9 @@ def run(argv:List[str]) -> None:
 
         rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f, rsids_filepath))
         cp_group_reader = get_one_chr_pos_at_a_time(in_reader)
+
+        debugging_limit_num_variants = conf.get_debugging_limit_num_variants()
+        if debugging_limit_num_variants: rsid_group_reader = itertools.islice(rsid_group_reader, 0, debugging_limit_num_variants)
 
         rsid_group = next(rsid_group_reader)
         for cp_group in cp_group_reader:
