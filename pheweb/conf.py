@@ -1,5 +1,6 @@
 
 from .utils import PheWebError, load_module_from_filepath
+from . import parse_utils
 
 import os, boltons.fileutils
 from typing import Optional,Any,Dict,Tuple,List
@@ -29,8 +30,14 @@ def set_override(key:str, value:Any) -> None:
         overrides['login_GOOGLE_LOGIN_CLIENT_ID'] = value['GOOGLE_LOGIN_CLIENT_ID']
         overrides['login_GOOGLE_LOGIN_CLIENT_SECRET'] = value['GOOGLE_LOGIN_CLIENT_SECRET']
         overrides['login_allowlist'] = [email.lower() for email in value.get('whitelist', [])]
-    elif key in ['extra_per_variant_fields', 'extra_per_assoc_fields', 'extra_per_pheno_fields', 'field_aliases', 'null_values']:
-        raise PheWebError("parse_utils customization isn't implemented yet.")
+    elif key in ['extra_per_variant_fields', 'extra_per_assoc_fields', 'extra_per_pheno_fields', 'null_values']:
+        print("Ignoring config for {} because it's not implemented.".format(key))
+        #raise PheWebError("parse_utils customization isn't implemented yet.")
+    elif key == 'field_aliases':
+        if not isinstance(value, dict): raise PheWebError("field_aliases should be dict, not {!r}".format(value))
+        if any(field_name not in parse_utils.fields for alias,field_name in parse_utils.default_field_aliases.items()): raise PheWebError("Some of the field_names in {} don't exist".format(value))
+        if any(not isinstance(alias,str) for alias,field_name in parse_utils.default_field_aliases.items()): raise PheWebError("Unacceptable field_names")
+        overrides[key] = {**parse_utils.default_field_aliases, **value}
     else:
         overrides[key] = value
 
@@ -132,6 +139,8 @@ def get_num_procs(cmd:Optional[str] = None) -> int:
 
 ## Parsing config
 def get_assoc_min_maf() -> float: return _get_config_float('assoc_min_maf', 0)
+def get_field_aliases() -> Dict[str,str]:
+    return overrides.get('field_aliases', parse_utils.default_field_aliases)
 
 
 ## Manhattan / top-hits / top-loci config

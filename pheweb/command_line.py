@@ -75,7 +75,7 @@ def configure(argv:List[str]) -> None:
         except json.JSONDecodeError: pass
         conf.set_override(k, v)
     else:
-        print(conf.overrides)
+        print(json.dumps(conf.overrides, indent=2))
         return
     run(argv[i:])
 handlers['conf'] = configure

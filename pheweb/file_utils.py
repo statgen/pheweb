@@ -282,7 +282,7 @@ class _mr(_ivfr):
     def _parse_field(self, variant_row:List[str], field:str, phenocode:Optional[str] = None) -> Any:
         colidx = self._colidxs[field] if phenocode is None else self._colidxs_for_pheno[phenocode][field]
         val = variant_row[colidx]
-        parser = parse_utils.fields[field]['_read']
+        parser = parse_utils.reader_for_field[field]
         try:
             return parser(val)  # type: ignore
         except Exception as exc:

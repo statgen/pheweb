@@ -220,22 +220,32 @@ class Field:
             return ''  # TODO: should this be None?
         return self._d['type'](value)
 
-# make all aliases lowercase and add parsers
-parser_for_field: ty.Dict[str,ty.Callable[[str],ty.Any]] = {}
-reader_for_field: ty.Dict[str,ty.Callable[[str],ty.Any]] = {}
+# Check that field_names are lowercase
+if any(not field_name.islower() for field_name in fields):
+    raise PheWebError("All field names must be lowercase, but these aren't: {}".format([fn for fn in fields if not fn.islower()]))
+
+# Add defaults
 for field_name, field_dict in fields.items():
     for k,v in default_field.items():
         field_dict.setdefault(k, v)
-    field_dict['aliases'] = list(set([field_name.lower()] + [alias.lower() for alias in field_dict['aliases']]))  # type: ignore
-    field_dict['_obj'] = obj = Field(field_dict)
-    parser_for_field[field_name] = field_dict['_parse'] = obj.parse
-    reader_for_field[field_name] = field_dict['_read'] = obj.read
 
+# Collect field_aliases
+default_field_aliases: ty.Dict[str,str] = {field_name.lower(): field_name.lower() for field_name in fields}
+for field_name, field_dict in fields.items():
+    for alias in field_dict['aliases']: # type: ignore
+        alias = alias.lower()
+        if alias in default_field_aliases and default_field_aliases[alias] != field_name:
+            raise PheWebError('The field_alias {!r} points to two fields: {!r} and {!r}'.format(alias, field_name, default_field_aliases[alias]))
+        default_field_aliases[alias] = field_name
 
-_alias_counts = Counter(alias for fd in fields.values() for alias in fd['aliases'])  # type: ignore
-_repeated_aliases = [alias for alias,count in _alias_counts.most_common() if count > 1]
-if _repeated_aliases:
-    raise PheWebError('The following aliases appear for multiple fields: {}'.format(_repeated_aliases))
+# Build readers/parsers
+parser_for_field: ty.Dict[str,ty.Callable[[str],ty.Any]] = {}
+reader_for_field: ty.Dict[str,ty.Callable[[str],ty.Any]] = {}
+for field_name, field_dict in fields.items():
+    obj = Field(field_dict)
+    parser_for_field[field_name] = obj.parse
+    reader_for_field[field_name] = obj.read
+
 
 
 def get_tooltip_underscoretemplate():

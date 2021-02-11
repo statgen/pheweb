@@ -1,6 +1,7 @@
 
 from ..utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
 from .. import parse_utils
+from .. import conf
 from ..file_utils import read_maybe_gzip
 from .load_utils import get_maf
 
@@ -99,9 +100,9 @@ class AssocFileReader:
 
     def get_variants(self, minimum_maf=0, use_per_pheno_fields=False):
         if use_per_pheno_fields:
-            fields_to_check = parse_utils.per_pheno_fields
+            fieldnames_to_check = [fieldname for fieldname,fieldval in parse_utils.per_pheno_fields.items() if fieldval['from_assoc_files']]
         else:
-            fields_to_check = {fieldname: fieldval for fieldname,fieldval in itertools.chain(parse_utils.per_variant_fields.items(), parse_utils.per_assoc_fields.items()) if fieldval['from_assoc_files']}
+            fieldnames_to_check = [fieldname for fieldname,fieldval in itertools.chain(parse_utils.per_variant_fields.items(), parse_utils.per_assoc_fields.items()) if fieldval['from_assoc_files']]
 
         with read_maybe_gzip(self.filepath) as f:
 
@@ -116,7 +117,7 @@ class AssocFileReader:
             else: raise PheWebError("Cannot guess what delimiter to use to parse the header line {!r} in file {!r}".format(header_line, self.filepath))
 
             colnames = [colname.strip('"\' ').lower() for colname in header_line.rstrip('\n\r').split(delimiter)]
-            colidx_for_field = self._parse_header(colnames, fields_to_check)
+            colidx_for_field = self._parse_header(colnames, fieldnames_to_check)
             # Special case for `MARKER_ID`
             if 'marker_id' not in colnames:
                 marker_id_col = None
@@ -126,7 +127,7 @@ class AssocFileReader:
                 colidx_for_field['alt'] = None
                 # TODO: this sort of provides a mapping for chrom and pos, but those are usually doubled anyways.
                 # TODO: maybe we should allow multiple columns to map to each key, and then just assert that they all agree.
-            self._assert_all_fields_mapped(colnames, fields_to_check, colidx_for_field)
+            self._assert_all_fields_mapped(colnames, fieldnames_to_check, colidx_for_field)
 
             if use_per_pheno_fields:
                 for line in f:
@@ -192,7 +193,7 @@ class AssocFileReader:
         variant = {}
         for field, colidx in colidx_for_field.items():
             if colidx is not None:
-                parse = parse_utils.fields[field]['_parse']
+                parse = parse_utils.parser_for_field[field]
                 value = values[colidx]
                 try:
                     variant[field] = parse(value)
@@ -203,33 +204,30 @@ class AssocFileReader:
 
         return variant
 
-    def _parse_header(self, colnames, possible_fields):
+    def _parse_header(self, colnames, fieldnames_to_check):
         colidx_for_field = {} # which column (by number, not name) holds the value for the field (the key)
-
-        for field in possible_fields:
-            for field_alias in possible_fields[field]['aliases']:
-                if field_alias in colnames:
-                    # Check that we haven't already mapped this field to a header column.
-                    if field in colidx_for_field:
-                        raise PheWebError(
-                            "Wait, what?  We found two different ways of mapping the field {!r} to the columns {!r}.\n".format(field, colnames) +
-                            "For reference, the field {!r} can come from columns by any of these aliases: {!r}.\n".format(
-                                field, possible_fields[field]['aliases']) +
-                            "File: {}\n".format(self.filepath))
-                    colidx_for_field[field] = colnames.index(field_alias)
+        field_aliases = conf.get_field_aliases()  # {alias: field_name}
+        for colidx, colname in enumerate(colnames):
+            if colname in field_aliases and field_aliases[colname] in fieldnames_to_check:
+                field_name = field_aliases[colname]
+                if field_name in colidx_for_field:
+                    raise PheWebError(
+                        "PheWeb found two different ways of mapping the field_name {!r} to the columns {!r}.\n".format(field_name, colnames) +
+                        "field_aliases = {!r}.\n".format(field_aliases) +
+                        "File = {}\n".format(self.filepath))
+                colidx_for_field[field_name] = colidx
         return colidx_for_field
 
-    def _assert_all_fields_mapped(self, colnames, possible_fields, colidx_for_field):
-        required_fields = [field for field in possible_fields if possible_fields[field].get('required', False)]
-        missing_required_fields = [field for field in required_fields if field not in colidx_for_field]
-        if missing_required_fields:
+    def _assert_all_fields_mapped(self, colnames, fieldnames_to_check, colidx_for_field):
+        fields = parse_utils.fields
+        required_fieldnames = [fieldname for fieldname in fieldnames_to_check if fields[fieldname]['required']]
+        missing_required_fieldnames = [fieldname for fieldname in required_fieldnames if fieldname not in colidx_for_field]
+        if missing_required_fieldnames:
             err_message = (
                 "Some required fields weren't successfully mapped to the columns of an input file.\n" +
                 "The file is {!r}.\n".format(self.filepath) +
-                "The fields that were required but not present are: {!r}\n".format(missing_required_fields) +
-                "Their accepted aliases are:\n" +
-                ''.join("- {}: {!r}\n".format(field, possible_fields[field]['aliases'])
-                        for field in missing_required_fields) +
+                "The fields that were required but not present are: {!r}\n".format(missing_required_fieldnames) +
+                "field_aliases = {}:\n".format(conf.get_field_aliases()) +
                 "Here are all the column names from that file: {!r}\n".format(colnames))
             if colidx_for_field:
                 err_message += (
