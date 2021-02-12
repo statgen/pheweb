@@ -7,19 +7,15 @@ This script creates json files which can be used to render QQ plots.
 # TODO: make gc_lambda for maf strata, and show them if they're >1.1?
 # TODO: copy some changes from <https://github.com/statgen/encore/blob/master/plot-epacts-output/make_qq_json.py>
 
-# TODO: reduce QQ memory using Counter(v.qval for v in variants).
-#      - but we still need to split into 4 strata using MAF. Can that be done efficiently?
-#          a) we could keep balanced lists for the 4 strata, but we can only be confidently start processing variants once we've read 3/4 of all variants
-#          b) we could assume that, since we're sorted by chr-pos-ref-alt, MAF should be pretty randomly ordered.
-#               - then we could start processing variants after reading only 10% of all variants
-#               - if we're wrong, `raise StrataGuessingFailed()` and try again with sorting.
-#          c) we could run manhattan before this, and make it track Counter(rounded(v.maf,2) for v in variants).
+# TODO: Reduce memory usage by binning the (twosigfigs(maf), rounded(neglogpval,2)) for all variants with neglogpval<2.
+#       If manhattan and qq were computed together, we could re-use some information from the first pass.
+
 
 # NOTE: `qval` means `-log10(pvalue)`
 
-from ..utils import round_sig, approx_equal
+from ..utils import round_sig, approx_equal, get_phenolist
 from ..file_utils import VariantFileReader, write_json, get_pheno_filepath
-from .load_utils import get_maf, parallelize_per_pheno, get_phenos_subset, get_phenolist
+from .load_utils import get_maf, parallelize_per_pheno, get_phenos_subset
 
 from typing import Dict,Any,List,Iterator
 import argparse
@@ -58,7 +54,7 @@ def make_json_file(pheno:Dict[str,Any]) -> None:
 
 def make_json_file_explicit(in_filepath:str, out_filepath:str, pheno:Dict[str,Any]) -> None:
     with VariantFileReader(in_filepath) as variant_dicts:
-        variants = list(augment_variants(variant_dicts, pheno))
+        variants: List[Variant] = list(augment_variants(variant_dicts, pheno))
     rv: Dict[str,Any] = {}
     if variants:
         if variants[0].maf is not None:
