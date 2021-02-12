@@ -15,13 +15,13 @@ task fix_json {
     String? final_docker = if defined(json_docker) then json_docker else docker
     # ned to loop over phenos in pheno_json
     command <<<
-        
+    set -euxo pipefail
     python3 <<CODE
     DATA_DIR = '/cromwell_root/'
     PHENO_JSON = '${pheno_json}'
     CUSTOM_JSON = '${custom_json}'
     print(DATA_DIR,PHENO_JSON)
-    
+
     import json,os
     with open(PHENO_JSON) as f:phenolist = json.load(f)
     with open(CUSTOM_JSON) as f: custom_jsons = {elem['name']:elem for elem in json.load(f)}
@@ -41,7 +41,7 @@ task fix_json {
         # FIND QQ PLOT
         p_qq = find(pheno +".json",DATA_DIR,'qq')
         with open(p_qq) as f: qq = json.load(f)
-        # FIND MANAHTTAN PLOT 
+        # FIND MANAHTTAN PLOT
         p_m = find(pheno +".json",DATA_DIR,'manhattan')
         with open(p_m) as f: manha = json.load(f)
 
@@ -51,16 +51,16 @@ task fix_json {
         for key in fields: p_dict[key] = custom_jsons[pheno][key]
 
         final_json.append(p_dict)
-    
+
     with open('./new_pheno.json', 'a') as outfile: json.dump(final_json, outfile, indent=2)
-    
+
     CODE
     >>>
-        
+
     output {
         File json ='/cromwell_root/new_pheno.json'
     }
-    
+
    runtime {
         docker: "${final_docker}"
     	cpu: 1
@@ -71,7 +71,7 @@ task fix_json {
     }
 }
 
-task annotation {	
+task annotation {
 
     File phenofile
     String? annotation_docker
@@ -82,9 +82,10 @@ task annotation {
     String? final_docker = if defined(annotation_docker) then annotation_docker else docker
     String dir = '/cromwell_root/'
     command {
+        set -euxo pipefail
         python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)}
 	cd ${dir}
-        
+
         mkdir -p pheweb/generated-by-pheweb/parsed && \
         mkdir -p pheweb/generated-by-pheweb/tmp && \
         echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
@@ -95,18 +96,18 @@ task annotation {
         if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi && \
         echo '''cache=False''' > ./config.py
 
-        df -h 
+        df -h
         echo "dirs created"
         echo "-----------------------------------------------"
         echo "phenolist glob"
         echo "-----------------------------------------------"
-        
+
         df -h && pheweb phenolist glob generated-by-pheweb/parsed/*
         echo "-----------------------------------------------"
         echo "phenolist extract"
         echo "-----------------------------------------------"
         df -h &&  pheweb phenolist extract-phenocode-from-filepath --simple
-        
+
         echo "-----------------------------------------------"
         echo "phenolist sites"
         echo "-----------------------------------------------"
@@ -116,24 +117,24 @@ task annotation {
         echo "gene aliases"
         echo "-----------------------------------------------"
         df -h && pheweb make-gene-aliases-trie
-        
+
         echo "-----------------------------------------------"
         echo "rsids"
         echo "-----------------------------------------------"
         df -h && pheweb add-rsids
-        
+
         echo "-----------------------------------------------"
         echo "genes"
         echo "-----------------------------------------------"
         df -h && pheweb add-genes
-        
+
         echo "-----------------------------------------------"
         echo "tries"
         echo "-----------------------------------------------"
-        df -h && pheweb make-tries 
+        df -h && pheweb make-tries
 
         ls
-        
+
     }
 
     output {
@@ -167,13 +168,14 @@ task pheno {
     File trie2
     File sites
     Map[String,String] header_dict
-    
+
     String docker
     String? pheno_docker
     String? final_docker = if defined(pheno_docker) then pheno_docker else docker
 
 
     command {
+        set -euxo pipefail
         python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)}
 
         mkdir -p pheweb/generated-by-pheweb/parsed && \
@@ -228,7 +230,7 @@ task matrix {
     Int disk
 
     command <<<
-
+        set -euxo pipefail
         mkdir -p pheweb/generated-by-pheweb/tmp && \
             echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
             mkdir -p pheweb/generated-by-pheweb/pheno_gz && \
@@ -327,7 +329,7 @@ workflow pheweb_import {
     File summaryfiles
     Array[String] phenofiles = read_lines(summaryfiles)
     String docker
-    File genes_bed 
+    File genes_bed
     Map[String,String] header_dict
 
     scatter (phenofile in phenofiles) {
@@ -336,7 +338,7 @@ workflow pheweb_import {
         }
         call annotation {
             input: phenofile=phenofile, docker=docker,header_dict = header_dict
-        }   
+        }
     }
 
     call matrix {
@@ -349,8 +351,8 @@ workflow pheweb_import {
         qq_jsons = pheno.qq,
         man_jsons = pheno.manhattan,
         docker = docker
-        }
+    }
 
-   
+
 
 }
