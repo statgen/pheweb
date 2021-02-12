@@ -70,7 +70,6 @@ setup(
         'tqdm~=4.56',
         'scipy~=1.5',
         'numpy~=1.19',
-        'pandas>=1.1',
         'requests[security]~=2.25',
         'gunicorn~=20.0.4',
         'boltons~=20.2',

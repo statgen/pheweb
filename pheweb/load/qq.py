@@ -24,7 +24,6 @@ import boltons.iterutils
 import math
 import scipy.stats
 import numpy as np
-import pandas as pd
 
 NUM_BINS = 400
 NUM_MAF_RANGES = 4
@@ -57,61 +56,64 @@ def make_json_file_explicit(in_filepath:str, out_filepath:str, pheno:Dict[str,An
     # Store all variants in a dataframe with columns (qval, maf) or just (qval)
     variants = get_variants_df(in_filepath, pheno)
     rv: Dict[str,Any] = {}
-    if 'maf' in variants.columns:
-        rv['overall'] = make_qq_unstratified(variants, include_qq=False)
+    if 'maf' in variants.dtype.fields:  # type:ignore
         rv['by_maf'] = make_qq_stratified(variants)
+        rv['overall'] = make_qq_unstratified(variants, include_qq=False)  # Must run AFTER `_stratified()`, because it sorts by qval, which could bias the maf_range strata.
         rv['ci'] = list(get_confidence_intervals(len(variants) / len(rv['by_maf'])))
     else:
         rv['overall'] = make_qq_unstratified(variants, include_qq=True)
         rv['ci'] = list(get_confidence_intervals(len(variants)))
     write_json(filepath=out_filepath, data=rv)
 
-def get_variants_df(in_filepath:str, pheno:Dict[str,Any]) -> pd.DataFrame:
+def get_variants_df(in_filepath:str, pheno:Dict[str,Any]) -> np.ndarray:
     # I'm making a dataframe with either the columns [qval maf] or just [qval], depending on whether we can calculate maf from the fields we have.
-    # I use float32 because I have no use for more precision, and I'd like to be store 100M variants in <1GB.  (ie, <10bytes/variant)
-    # pd.DataFrame() allows passing in an iterator, but then it just calls list() on it, so it temporarily uses python's list overhead.
-    # Instead, I'm using np.fromiter() and passing it (as a two-column matrix) to pd.DataFrame().
-    # In a few more lines I could avoid wasting space allocating the maf column when not has_maf, but I don't care enough.
+    # I use float32 because I have no use for more precision, and I want to 100M variants in <1GB.  (ie, <10bytes/variant)
+    # I'm avoid pandas because it's a little fragile and magic and it was broken on my mac.
+    # And anyways pd.DataFrame() allows passing in an iterator, but then it just calls list() on it, so it temporarily uses python's list overhead.
+    # Instead, I'm using np.fromiter() to make a "structured array".
     with VariantFileReader(in_filepath) as variant_dicts:
         try: first_variant = next(iter(variant_dicts))
         except StopIteration: raise PheWebError("No variants found in {}".format(in_filepath))
     has_maf = get_maf(first_variant, pheno) is not None
-    x = np.fromiter(itertools.chain.from_iterable(get_qval_maf_pairs(in_filepath, pheno)), dtype=np.float32)
-    x = x.reshape((len(x)//2, 2))
-    df = pd.DataFrame(x, columns=['qval','maf'])
-    if not has_maf: df.drop(columns=['maf'])
-    return df
-def get_qval_maf_pairs(in_filepath:str, pheno:Dict[str,Any]) -> Iterator[Tuple[float,float]]:
+    if has_maf:
+        return np.fromiter(get_maf_qval_pairs(in_filepath, pheno), dtype=[('maf',np.float32),('qval',np.float32)])
+    else:
+        return np.fromiter((qval for maf,qval in get_maf_qval_pairs(in_filepath, pheno)), dtype=[('qval',np.float32)])
+def get_maf_qval_pairs(in_filepath:str, pheno:Dict[str,Any]) -> Iterator[Tuple[float,float]]:
     with VariantFileReader(in_filepath) as variant_dicts:
         for v in variant_dicts:
-            qval: float = 1000 if v['pval']==0 else -math.log10(v['pval'])
             maf: float = get_maf(v, pheno) or 0
-            yield (qval, maf)
+            qval: float = 1000 if v['pval']==0 else -math.log10(v['pval'])
+            yield (maf, qval)
 
 
-def make_qq_stratified(variants:pd.DataFrame) -> List[Dict[str,Any]]:
-    variants.sort_values(by="maf", inplace=True, ignore_index=True)
+def make_qq_stratified(variants:np.ndarray) -> List[Dict[str,Any]]:
+    # `variants.sort(order=['maf'])` breaks ties with remaining column 'qval', which biases the qq for the different maf slices.  Unacceptable.
+    # We could fix that by shuffling all the tied rows at maf_range borders.
+    # `sorted_mafs = np.sort(variants['maf'])` would require us to deal with ties.  Inconvenient.
+    # I want the behavior of `pd.sort_values(by='mf', inplace=True, ignore_index=True)` but without requiring pandas.
+    # This is the only way I could find to sort by only one column in numpy, and it's quite inefficient:
+    variants = variants[np.argsort(variants['maf'])]
 
     def make_strata(idx:int) -> Dict[str,Any]:
         # Note: slice_indices[1] is the same as slice_indices[0] of the next slice.
         # But that's not a problem, because range() ignores the last index.
         slice_indices = (len(variants) * idx//NUM_MAF_RANGES,
                          len(variants) * (idx+1)//NUM_MAF_RANGES)
-        # np.ndarray[float32] uses 4bytes/item, whereas list[float] is 40bytes/item.
-        qvals = variants.qval.iloc[slice_indices[0]:slice_indices[1]].to_numpy(copy=True)
+        qvals = variants['qval'][slice_indices[0]:slice_indices[1]].copy()  # Make sure to copy so we don't modify `variants`.
         qvals *= -1; qvals.sort(); qvals *= -1  # lol, sort descending
         return {
-            'maf_range': (variants.maf.iloc[slice_indices[0]],
-                          variants.maf.iloc[slice_indices[1]-1]),
+            'maf_range': (variants['maf'][slice_indices[0]],
+                          variants['maf'][slice_indices[1]-1]),
             'count': len(qvals),
             'qq': compute_qq(qvals),
         }
 
     return [make_strata(i) for i in range(NUM_MAF_RANGES)]
 
-def make_qq_unstratified(variants:pd.DataFrame, include_qq:bool) -> Dict[str,Any]:
-    qvals = variants.qval.to_numpy(copy=True)
-    qvals *= -1; qvals.sort(); qvals *= -1  # lol, sort descending
+def make_qq_unstratified(variants:np.ndarray, include_qq:bool) -> Dict[str,Any]:
+    variants[::-1].sort(order=['qval'])  # Sort descending.
+    qvals = variants['qval']
     rv: Dict[str,Any] = {}
     if include_qq:
         rv['qq'] = compute_qq(qvals)
@@ -124,7 +126,6 @@ def make_qq_unstratified(variants:pd.DataFrame, include_qq:bool) -> Dict[str,Any
         else:
             rv['gc_lambda'][perc] = round_sig(gc, 5)
     return rv
-
 
 
 def compute_qq(qvals:np.ndarray) -> Dict[str,Any]:
