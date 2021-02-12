@@ -60,12 +60,12 @@ def run(argv:List[str]) -> None:
         print('Make a single large tabixed file of all phenotypes data')
         exit(1)
 
+    matrix_gz_filepath = get_filepath('matrix', must_exist=False)
     if should_run():
         clear_out_junk()
 
         sites_filepath = get_filepath('sites')
         pheno_gz_glob = get_filepath('pheno_gz')+'/*.gz'
-        matrix_gz_filepath = get_filepath('matrix', must_exist=False)
         matrix_gz_tmp_filepath = get_tmp_path(matrix_gz_filepath)
 
         # we don't need `ffi.new('char[]', ...)` because args are `const`
