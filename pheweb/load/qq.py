@@ -13,18 +13,18 @@ This script creates json files which can be used to render QQ plots.
 
 # NOTE: `qval` means `-log10(pvalue)`
 
-from ..utils import round_sig, approx_equal, get_phenolist
+from ..utils import round_sig, approx_equal, get_phenolist, PheWebError
 from ..file_utils import VariantFileReader, write_json, get_pheno_filepath
 from .load_utils import get_maf, parallelize_per_pheno, get_phenos_subset
 
-from typing import Dict,Any,List,Iterator,Set,Tuple
+from typing import Dict,Any,List,Iterator,Set,Tuple,NamedTuple
 import argparse
 import boltons.mathutils
 import boltons.iterutils
-import collections
 import math
 import scipy.stats
 import numpy as np
+import pandas as pd
 
 NUM_BINS = 400
 NUM_MAF_RANGES = 4
@@ -54,31 +54,38 @@ def make_json_file(pheno:Dict[str,Any]) -> None:
     )
 
 def make_json_file_explicit(in_filepath:str, out_filepath:str, pheno:Dict[str,Any]) -> None:
+    # Store all variants in a dataframe with columns (qval, maf).
+    # If we don't have maf, then we're wasting a bunch of memory storing zeros, but oh well.
     with VariantFileReader(in_filepath) as variant_dicts:
-        variants: List[Variant] = list(augment_variants(variant_dicts, pheno))
+        variants = pd.DataFrame(augment_variants(variant_dicts, pheno), dtype=np.float32)
+    if not len(variants):
+        raise PheWebError("No variants found in {}".format(in_filepath))
+    with VariantFileReader(in_filepath) as variant_dicts:
+        has_maf = next(iter(variant_dicts)).get('maf') is not None
     rv: Dict[str,Any] = {}
-    if variants:
-        if variants[0].maf is not None:
-            rv['overall'] = make_qq_unstratified(variants, include_qq=False)
-            rv['by_maf'] = make_qq_stratified(variants)
-            rv['ci'] = list(get_confidence_intervals(len(variants) / len(rv['by_maf'])))
-        else:
-            rv['overall'] = make_qq_unstratified(variants, include_qq=True)
-            rv['ci'] = list(get_confidence_intervals(len(variants)))
+    if has_maf:
+        rv['overall'] = make_qq_unstratified(variants, include_qq=False)
+        rv['by_maf'] = make_qq_stratified(variants)
+        rv['ci'] = list(get_confidence_intervals(len(variants) / len(rv['by_maf'])))
+    else:
+        rv['overall'] = make_qq_unstratified(variants, include_qq=True)
+        rv['ci'] = list(get_confidence_intervals(len(variants)))
     write_json(filepath=out_filepath, data=rv)
 
 
-Variant = collections.namedtuple('Variant', ['qval', 'maf'])
+class Variant(NamedTuple):
+    qval: float
+    maf: float
 def augment_variants(variants:Iterator[Dict[str,Any]], pheno:Dict[str,Any]) -> Iterator[Variant]:
     for v in variants:
         # TODO: make an option "convert_pval0_to = [num|None]"
         qval: float = 1000 if v['pval']==0 else -math.log10(v['pval'])
-        maf = get_maf(v, pheno)
+        maf: float = get_maf(v, pheno) or 0
         yield Variant(qval=qval, maf=maf)
 
 
-def make_qq_stratified(variants:List[Variant]) -> List[Dict[str,Any]]:
-    variants.sort(key=lambda v: v.maf)  # Sort in-place to save RAM
+def make_qq_stratified(variants:pd.DataFrame) -> List[Dict[str,Any]]:
+    variants.sort_values(by="maf", inplace=True, ignore_index=True)
 
     def make_strata(idx:int) -> Dict[str,Any]:
         # Note: slice_indices[1] is the same as slice_indices[0] of the next slice.
@@ -86,19 +93,19 @@ def make_qq_stratified(variants:List[Variant]) -> List[Dict[str,Any]]:
         slice_indices = (len(variants) * idx//NUM_MAF_RANGES,
                          len(variants) * (idx+1)//NUM_MAF_RANGES)
         # np.ndarray[float32] uses 4bytes/item, whereas list[float] is 40bytes/item.
-        qvals = np.fromiter((variants[i].qval for i in range(*slice_indices)), dtype=np.float32, count=slice_indices[1]-slice_indices[0])
+        qvals = variants.qval.iloc[slice_indices[0]:slice_indices[1]].to_numpy(copy=True)
         qvals *= -1; qvals.sort(); qvals *= -1  # lol, sort descending
         return {
-            'maf_range': (variants[slice_indices[0]].maf,
-                          variants[slice_indices[1]-1].maf),
+            'maf_range': (variants.maf.iloc[slice_indices[0]],
+                          variants.maf.iloc[slice_indices[1]-1]),
             'count': len(qvals),
             'qq': compute_qq(qvals),
         }
 
     return [make_strata(i) for i in range(NUM_MAF_RANGES)]
 
-def make_qq_unstratified(variants:List[Variant], include_qq:bool) -> Dict[str,Any]:
-    qvals = np.fromiter((v.qval for v in variants), dtype=np.float32, count=len(variants))
+def make_qq_unstratified(variants:pd.DataFrame, include_qq:bool) -> Dict[str,Any]:
+    qvals = variants.qval.to_numpy(copy=True)
     qvals *= -1; qvals.sort(); qvals *= -1  # lol, sort descending
     rv: Dict[str,Any] = {}
     if include_qq:

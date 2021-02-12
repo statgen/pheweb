@@ -406,4 +406,9 @@ def write_json(*, filepath:Optional[str] = None, data=None, indent:Optional[int]
     part_file = get_tmp_path(filepath)
     make_basedir(filepath)
     with AtomicSaver(filepath, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
-        json.dump(data, f, indent=indent, sort_keys=sort_keys)
+        json.dump(data, f, indent=indent, sort_keys=sort_keys, default=_json_writer_default)
+def _json_writer_default(obj:Any) -> Any:
+    import numpy as np
+    if isinstance(obj, np.float32):
+        return float(obj)
+    raise TypeError('Object {!r} of type {} is not JSON serializable!'.format(obj, obj.__class__.__name__))
