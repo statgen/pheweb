@@ -301,45 +301,6 @@ def merge_in_info(phenolist, more_info_rows):
             pheno[key] = row[key]
     return phenolist
 
-# def merge_in_info(phenos, more_info_rows):
-#     # TODO: do some special-casing for category and phenostring, since we have to have exactly one of each.
-#     keys_that_cant_be_lists = {'category_string', 'phenostring'}
-#     keys_to_add = {key for row in more_info_rows for key in row} - {key for row in phenos for key in row}
-#     keys_to_add_that_are_dicts = {key for key in keys_to_add if any(isinstance(row[key], dict) for row in more_info_rows)}
-#     for key in keys_to_add_that_are_dicts:
-#         assert all(isinstance(row[key], dict) for row in more_info_rows)
-#     phenos_by_phenocode = {pheno['phenocode']: pheno for pheno in phenos}
-#     for more_info_row in more_info_rows:
-#         pheno = phenos_by_phenocode.get(more_info_row['phenocode'], None)
-#         if pheno is not None:
-#             for key in more_info_row:
-#                 if key in keys_that_cant_be_lists:
-#                     if key in pheno:
-#                         assert pheno[key] == more_info_row[key], (key, pheno, more_info_row)
-#                     else:
-#                         pheno[key] = more_info_row[key]
-#                 elif key in keys_to_add:
-#                     if key in keys_to_add_that_are_dicts:
-#                         pheno.setdefault(key, set()).add(_hashabledict(more_info_row[key]))
-#                     else:
-#                         pheno.setdefault(key, set()).add(more_info_row[key])
-#                 elif key in pheno:
-#                     assert pheno[key] == more_info_row[key]
-#                 else:
-#                     print("wat?")
-#     keys_with_multiple_items = set(key for key in keys_to_add-keys_that_cant_be_lists if any(key not in pheno or len(pheno[key]) != 1 for pheno in phenos))
-#     for pheno in phenos:
-#         for key in keys_to_add:
-#             if key in keys_with_multiple_items:
-#                 try:
-#                     pheno[key] = sorted(pheno[key])
-#                 except:
-#                     pheno[key] = list(pheno.get(key, []))
-#             elif key not in keys_that_cant_be_lists:
-#                 assert len(pheno[key]) == 1
-#                 pheno[key] = next(iter(pheno[key]))
-
-
 def unique_phenocode(phenolist, new_column_name):
     # if new_column_name is None, that means that we want to keep all the columns independent.
     # so, for example, [{LDL, a, 5}, {LDL, b, 2}] -> [{LDL, [a,b], [2,5]}]

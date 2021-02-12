@@ -90,7 +90,7 @@ Inside of your data directory, you need a file named `pheno-list.json` that look
   "phenocode": "ear-length"
  },
  {
-  "assoc_files": ["/home/peter/data/a1c.X.gz","/home/watman/a1c.autosomal.gz"],
+  "assoc_files": ["/home/peter/data/a1c.X.gz","/home/peter/a1c.autosomal.gz"],
   "phenocode": "A1C"
  }
 ]

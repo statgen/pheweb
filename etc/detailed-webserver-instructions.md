@@ -16,9 +16,9 @@ Run `pheweb serve --open`.  That command should either open a browser to your ne
 
   2. Run PheWeb with the default settings, then use an SSH tunnel to connect to it from your computer.
 
-     For example, if you normally ssh in with `ssh watman@x.example.com`, then the command you should run (on the computer you're sitting at) is `ssh -N -L localhost:5000:localhost:5000 watman@x.example.com`.
+     For example, if you normally ssh with `ssh me@example.com`, then the command you should run (on the computer you're sitting at) is `ssh -N -L localhost:5000:localhost:5000 me@example.com`.
 
-     Then open <http://localhost:5000> in your web browser.  It should connect straight to port 5000 on the server through your ssh server, allowing you to access your PheWeb.
+     Then open <http://localhost:5000> in your web browser.  It should connect straight to port 5000 on the server through your ssh server, allowing you to access your site.
 
 
 
