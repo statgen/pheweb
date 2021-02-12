@@ -17,8 +17,8 @@ from ..utils import round_sig, approx_equal, get_phenolist, PheWebError
 from ..file_utils import VariantFileReader, write_json, get_pheno_filepath
 from .load_utils import get_maf, parallelize_per_pheno, get_phenos_subset
 
-from typing import Dict,Any,List,Iterator,Set,Tuple,NamedTuple
-import argparse
+from typing import Dict,Any,List,Iterator,Set,Tuple
+import argparse, itertools
 import boltons.mathutils
 import boltons.iterutils
 import math
@@ -54,16 +54,10 @@ def make_json_file(pheno:Dict[str,Any]) -> None:
     )
 
 def make_json_file_explicit(in_filepath:str, out_filepath:str, pheno:Dict[str,Any]) -> None:
-    # Store all variants in a dataframe with columns (qval, maf).
-    # If we don't have maf, then we're wasting a bunch of memory storing zeros, but oh well.
-    with VariantFileReader(in_filepath) as variant_dicts:
-        variants = pd.DataFrame(augment_variants(variant_dicts, pheno), dtype=np.float32)
-    if not len(variants):
-        raise PheWebError("No variants found in {}".format(in_filepath))
-    with VariantFileReader(in_filepath) as variant_dicts:
-        has_maf = next(iter(variant_dicts)).get('maf') is not None
+    # Store all variants in a dataframe with columns (qval, maf) or just (qval)
+    variants = get_variants_df(in_filepath, pheno)
     rv: Dict[str,Any] = {}
-    if has_maf:
+    if 'maf' in variants.columns:
         rv['overall'] = make_qq_unstratified(variants, include_qq=False)
         rv['by_maf'] = make_qq_stratified(variants)
         rv['ci'] = list(get_confidence_intervals(len(variants) / len(rv['by_maf'])))
@@ -72,16 +66,27 @@ def make_json_file_explicit(in_filepath:str, out_filepath:str, pheno:Dict[str,An
         rv['ci'] = list(get_confidence_intervals(len(variants)))
     write_json(filepath=out_filepath, data=rv)
 
-
-class Variant(NamedTuple):
-    qval: float
-    maf: float
-def augment_variants(variants:Iterator[Dict[str,Any]], pheno:Dict[str,Any]) -> Iterator[Variant]:
-    for v in variants:
-        # TODO: make an option "convert_pval0_to = [num|None]"
-        qval: float = 1000 if v['pval']==0 else -math.log10(v['pval'])
-        maf: float = get_maf(v, pheno) or 0
-        yield Variant(qval=qval, maf=maf)
+def get_variants_df(in_filepath:str, pheno:Dict[str,Any]) -> pd.DataFrame:
+    # I'm making a dataframe with either the columns [qval maf] or just [qval], depending on whether we can calculate maf from the fields we have.
+    # I use float32 because I have no use for more precision, and I'd like to be store 100M variants in <1GB.  (ie, <10bytes/variant)
+    # pd.DataFrame() allows passing in an iterator, but then it just calls list() on it, so it temporarily uses python's list overhead.
+    # Instead, I'm using np.fromiter() and passing it (as a two-column matrix) to pd.DataFrame().
+    # In a few more lines I could avoid wasting space allocating the maf column when not has_maf, but I don't care enough.
+    with VariantFileReader(in_filepath) as variant_dicts:
+        try: first_variant = next(iter(variant_dicts))
+        except StopIteration: raise PheWebError("No variants found in {}".format(in_filepath))
+    has_maf = get_maf(first_variant, pheno) is not None
+    x = np.fromiter(itertools.chain.from_iterable(get_qval_maf_pairs(in_filepath, pheno)), dtype=np.float32)
+    x = x.reshape((len(x)//2, 2))
+    df = pd.DataFrame(x, columns=['qval','maf'])
+    if not has_maf: df.drop(columns=['maf'])
+    return df
+def get_qval_maf_pairs(in_filepath:str, pheno:Dict[str,Any]) -> Iterator[Tuple[float,float]]:
+    with VariantFileReader(in_filepath) as variant_dicts:
+        for v in variant_dicts:
+            qval: float = 1000 if v['pval']==0 else -math.log10(v['pval'])
+            maf: float = get_maf(v, pheno) or 0
+            yield (qval, maf)
 
 
 def make_qq_stratified(variants:pd.DataFrame) -> List[Dict[str,Any]]:
