@@ -13,7 +13,7 @@ ln -s -f "$script_dir/input_files/custom_templates" "$data_dir/"
 if ! [[ -f "$data_dir/pheno-list.json" ]]; then ln -s -f "$script_dir/pheno-list.json" "$data_dir/"; fi
 for f in "$script_dir"/generated-by-pheweb/*; do ln -s -f "$f" "$data_dir/generated-by-pheweb/"; done;
 
-echo "http://localhost:8000/test/"
+echo "http://localhost:8000/"
 
 cd "$data_dir"
 python3 "$(which gunicorn)" --error-logfile=- --access-logfile=- --access-logformat="%(s)s | %(L)ss | %(f)s | %(m)s %(U)s %(q)s" -w4 --reload --pythonpath "$script_dir/.." pheweb.serve.server:app

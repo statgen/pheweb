@@ -17,13 +17,14 @@ from ..utils import round_sig, approx_equal, get_phenolist
 from ..file_utils import VariantFileReader, write_json, get_pheno_filepath
 from .load_utils import get_maf, parallelize_per_pheno, get_phenos_subset
 
-from typing import Dict,Any,List,Iterator
+from typing import Dict,Any,List,Iterator,Set,Tuple
 import argparse
 import boltons.mathutils
 import boltons.iterutils
 import collections
 import math
 import scipy.stats
+import numpy as np
 
 NUM_BINS = 400
 NUM_MAF_RANGES = 4
@@ -84,7 +85,9 @@ def make_qq_stratified(variants:List[Variant]) -> List[Dict[str,Any]]:
         # But that's not a problem, because range() ignores the last index.
         slice_indices = (len(variants) * idx//NUM_MAF_RANGES,
                          len(variants) * (idx+1)//NUM_MAF_RANGES)
-        qvals = sorted((variants[i].qval for i in range(*slice_indices)), reverse=True)
+        # np.ndarray[float32] uses 4bytes/item, whereas list[float] is 40bytes/item.
+        qvals = np.fromiter((variants[i].qval for i in range(*slice_indices)), dtype=np.float32, count=slice_indices[1]-slice_indices[0])
+        qvals *= -1; qvals.sort(); qvals *= -1  # lol, sort descending
         return {
             'maf_range': (variants[slice_indices[0]].maf,
                           variants[slice_indices[1]-1].maf),
@@ -95,7 +98,8 @@ def make_qq_stratified(variants:List[Variant]) -> List[Dict[str,Any]]:
     return [make_strata(i) for i in range(NUM_MAF_RANGES)]
 
 def make_qq_unstratified(variants:List[Variant], include_qq:bool) -> Dict[str,Any]:
-    qvals = sorted((v.qval for v in variants), reverse=True)
+    qvals = np.fromiter((v.qval for v in variants), dtype=np.float32, count=len(variants))
+    qvals *= -1; qvals.sort(); qvals *= -1  # lol, sort descending
     rv: Dict[str,Any] = {}
     if include_qq:
         rv['qq'] = compute_qq(qvals)
@@ -111,8 +115,9 @@ def make_qq_unstratified(variants:List[Variant], include_qq:bool) -> Dict[str,An
 
 
 
-def compute_qq(qvals:List[float]) -> Dict[str,Any]:
+def compute_qq(qvals:np.ndarray) -> Dict[str,Any]:
     # qvals must be in decreasing order.
+    # Decreasing order (from strongest pvalue to weakest) works well because we it lets us use `(idx+0.5)/len(qvals)` as the expected pvalue.
     assert all(a >= b for a,b in boltons.iterutils.pairwise(qvals))
 
     if len(qvals) == 0 or qvals[0] == 0:
@@ -133,7 +138,7 @@ def compute_qq(qvals:List[float]) -> Dict[str,Any]:
                 max_obs_qval = qval
                 break
 
-    occupied_bins = set()
+    occupied_bins: Set[Tuple[int,int]] = set()
     for i, obs_qval in enumerate(qvals):
         if obs_qval > max_obs_qval: continue
         exp_qval = -math.log10( (i+0.5) / len(qvals))
