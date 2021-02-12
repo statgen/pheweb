@@ -31,8 +31,8 @@ class Autocompleter(object):
         self._gene_aliases_sqlite3.row_factory = sqlite3.Row
 
         self._autocompleters = [
-            self._autocomplete_variant,
-            self._autocomplete_rsid,
+            self._autocomplete_rsid,  # Check rsid first, because it only runs if query.startswith('rs')
+            self._autocomplete_variant,  # Check variant next, because it only runs if query starts with a chrom alias.
             self._autocomplete_phenocode,
             self._autocomplete_gene,
         ]
