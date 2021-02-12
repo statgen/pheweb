@@ -50,21 +50,7 @@ If this doesn't work, email me or try the miniconda3 approach instead.
 
 ### Installing on Linux or Mac with Miniconda3:
 
-To install miniconda3,
-
-- if you're on macOS, run:
-
-   ```bash
-   curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > install-miniconda3.sh
-   bash install-miniconda3.sh
-   ```
-
-- if you're on Linux, run:
-
-   ```bash
-   curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > install-miniconda3.sh
-   bash install-miniconda3.sh
-   ```
+To install miniconda3, follow the instructions [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/).
 
 Type &lt;enter&gt; to view the terms & conditions.
 When you're done with them, type "q" to close them, and then "yes" &lt;enter&gt; to accept them.
