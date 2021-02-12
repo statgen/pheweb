@@ -118,7 +118,7 @@ def make_qq_unstratified(variants:List[Variant], include_qq:bool) -> Dict[str,An
 def compute_qq(qvals:np.ndarray) -> Dict[str,Any]:
     # qvals must be in decreasing order.
     # Decreasing order (from strongest pvalue to weakest) works well because we it lets us use `(idx+0.5)/len(qvals)` as the expected pvalue.
-    assert all(a >= b for a,b in boltons.iterutils.pairwise(qvals))
+    assert all(a >= b for a,b in boltons.iterutils.pairwise_iter(qvals))
 
     if len(qvals) == 0 or qvals[0] == 0:
         return {}  # the js detects that the values for each key are undefined
@@ -165,7 +165,7 @@ def compute_qq(qvals:np.ndarray) -> Dict[str,Any]:
 
 def gc_value_from_list(qvals:List[float], quantile:float = 0.5) -> float:
     # qvals must be in decreasing order.
-    assert all(a >= b for a,b in boltons.iterutils.pairwise(qvals))
+    assert all(a >= b for a,b in boltons.iterutils.pairwise_iter(qvals))
     qval = qvals[int(len(qvals) * quantile)]
     pval = 10 ** -qval
     return gc_value(pval, quantile)
