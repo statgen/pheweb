@@ -36,7 +36,7 @@ pip3 install pheweb
 
    - `cache` (string): a directory where files common to all datasets can be stored. (default: `cache = "~/.pheweb/cache/"`)
 
-   - `num_procs` (int or dict): the number of processes to use for parallel loading steps.  You can also set `num_procs = {'qq':5, '*':30}`. (default: 2/3 of the number of cores on your machine)
+   - `num_procs` (int): the number of processes to use for parallel loading steps.  (default: 2/3 of the number of cores on your machine)
 
 ### 3. Prepare your association files
 
