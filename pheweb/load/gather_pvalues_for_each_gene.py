@@ -53,7 +53,6 @@ def run(argv:List[str]) -> None:
 
     else:
         regions_on_chrom = get_regions_on_chrom()
-        print('regions_on_chrom[22] =', regions_on_chrom['22'])
         regions: List[Tuple[str,int,int]] = [(chrom,start,end) for chrom,regions in regions_on_chrom.items() for (start,end) in regions]
         task_results = Parallelizer().run_multiple_tasks(
             tasks = regions,
