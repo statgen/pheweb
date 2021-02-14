@@ -96,3 +96,7 @@ def get_gene_tuples_with_ensg() -> ty.Iterator[ty.Tuple[str,int,int,str,str]]:
 def get_gene_tuples() -> ty.Iterator[ty.Tuple[str,int,int,str]]:
     for chrom,start,end,genename,ensg in get_gene_tuples_with_ensg():
         yield (chrom,start,end,genename)
+def get_padded_gene_tuples() -> ty.Iterator[ty.Tuple[str,int,int,str]]:
+    for chrom,start,end,genename,ensg in get_gene_tuples_with_ensg():
+        start,end = pad_gene(start,end)
+        yield (chrom,start,end,genename)

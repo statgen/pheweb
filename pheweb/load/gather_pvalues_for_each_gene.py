@@ -23,7 +23,7 @@ Method:
  Then in the main thread, merge all the results and trim them down again.
 '''
 
-from ..utils import get_gene_tuples, pad_gene
+from ..utils import get_padded_gene_tuples
 from ..file_utils import MatrixReader, get_filepath, get_tmp_path
 from .load_utils import Parallelizer
 
@@ -78,8 +78,7 @@ def run(argv:List[str]) -> None:
 
 def get_regions_on_chrom() -> Dict[str,List[Tuple[int,int]]]:
     gene_ranges_on_chrom: Dict[str,List[Tuple[int,int]]] = {}
-    for chrom,start,end,_ in get_gene_tuples():
-        start,end = pad_gene(start,end)
+    for chrom,start,end,_ in get_padded_gene_tuples():
         gene_ranges_on_chrom.setdefault(chrom,[]).append((start,end))
     return {chrom:merged_intervals(gene_ranges) for chrom,gene_ranges in gene_ranges_on_chrom.items()}
 def merged_intervals(intervals:List[Tuple[int,int]]) -> List[Tuple[int,int]]:
@@ -134,8 +133,7 @@ def get_region_info(matrix_reader, tree_for_chrom:Dict[str,IntervalTree], region
 @functools.lru_cache(None)
 def get_gene_intervaltree_for_chrom() -> Dict[str,IntervalTree]:
     tree_for_chrom = {}
-    for chrom,start,end,genename in get_gene_tuples():
-        start, end = pad_gene(start, end)
+    for chrom,start,end,genename in get_padded_gene_tuples():
         if chrom not in tree_for_chrom:
             tree_for_chrom[chrom] = IntervalTree()
         tree_for_chrom[chrom].add(Interval(start,end,genename))
