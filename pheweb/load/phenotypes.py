@@ -3,6 +3,7 @@ from ..utils import get_phenolist
 from ..file_utils import write_json, get_filepath, get_pheno_filepath, write_heterogenous_variantfile
 
 import json
+from pathlib import Path
 from typing import Iterator,Dict,Any,List
 
 def get_phenotypes_including_top_variants() -> Iterator[Dict[str,Any]]:
@@ -27,10 +28,25 @@ def get_phenotypes_including_top_variants() -> Iterator[Dict[str,Any]]:
         if isinstance(ret['nearest_genes'], list): ret['nearest_genes'] = ','.join(ret['nearest_genes'])
         yield ret
 
+def should_run() -> bool:
+    output_filepaths = [Path(get_filepath(name, must_exist=False)) for name in ['phenotypes_summary', 'phenotypes_summary_tsv']]
+    if not all(fp.exists() for fp in output_filepaths):
+        return True
+    oldest_output_mtime = min(fp.stat().st_mtime for fp in output_filepaths)
+    input_filepaths = [Path(get_pheno_filepath('manhattan', pheno['phenocode'])) for pheno in get_phenolist()]
+    newest_input_mtime = max(fp.stat().st_mtime for fp in input_filepaths)
+    if newest_input_mtime > oldest_output_mtime:
+        return True
+    return False
+
 def run(argv:List[str]) -> None:
     if '-h' in argv or '--help' in argv:
         print('Make a file summarizing information about each phenotype (for use in the phenotypes table)')
         exit(1)
+
+    if not should_run():
+        print('Already up-to-date!')
+        return
 
     data = sorted(get_phenotypes_including_top_variants(), key=lambda p: p['pval'])
 

@@ -4,6 +4,7 @@ from .. import conf
 from ..file_utils import write_json, write_heterogenous_variantfile, get_filepath, get_pheno_filepath
 
 import json
+from pathlib import Path
 from typing import Dict,Any,List,Iterator
 
 # TODO: It'd be great if each peak also included a list of all the associations that it is masking, so that on-click we could display a variants-under-this-peak table.
@@ -29,6 +30,16 @@ def stringify_assocs(assocs:List[Dict[str,Any]]) -> None:
         if isinstance(a.get('nearest_genes'), list):
             a['nearest_genes'] = ','.join(a['nearest_genes'])
 
+def should_run() -> bool:
+    output_filepaths = [Path(get_filepath(name, must_exist=False)) for name in ['top-hits', 'top-hits-1k', 'top-hits-tsv']]
+    if not all(fp.exists() for fp in output_filepaths):
+        return True
+    oldest_output_mtime = min(fp.stat().st_mtime for fp in output_filepaths)
+    input_filepaths = [Path(get_pheno_filepath('manhattan', pheno['phenocode'])) for pheno in get_phenolist()]
+    newest_input_mtime = max(fp.stat().st_mtime for fp in input_filepaths)
+    if newest_input_mtime > oldest_output_mtime:
+        return True
+    return False
 
 def run(argv:List[str]) -> None:
     out_filepath_json = get_filepath('top-hits', must_exist=False)
@@ -53,6 +64,10 @@ just the top phenotype for each, use `pheweb top-loci`.
            conf.get_within_pheno_mask_around_peak(),
 ))
         exit(1)
+
+    if not should_run():
+        print('Already up-to-date!')
+        return
 
     hits = get_all_hits()
 
