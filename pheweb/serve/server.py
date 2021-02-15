@@ -130,7 +130,7 @@ def api_pheno_filtered(phenocode):
     if indel: assert indel in ['true', 'false'], indel
     min_maf = float(request.args['min_maf']) if request.args.get('min_maf','') else None
     max_maf = float(request.args['max_maf']) if request.args.get('max_maf','') else None
-    filtered_variants = []  # TODO: stream straight from VariantFileReader() -> Binner() without this intermediate list
+    chosen_variants = []  # TODO: stream straight from VariantFileReader() -> Binner() without this intermediate list
     weakest_pval_seen = 0
     num_variants = 0
     filepath = get_pheno_filepath('best_of_pheno', phenocode)
@@ -144,14 +144,14 @@ def api_pheno_filtered(phenocode):
                 v_maf = get_maf(v, pheno)
                 if min_maf is not None and v_maf < min_maf: continue
                 if max_maf is not None and v_maf > max_maf: continue
-            filtered_variants.append(v)
+            chosen_variants.append(v)
     from pheweb.load.manhattan import Binner
     binner = Binner()
-    for variant in filtered_variants:
+    for variant in chosen_variants:
         binner.process_variant(variant)
     manhattan_data = binner.get_result()
     manhattan_data['weakest_pval'] = weakest_pval_seen
-    #print(f'indel={indel} maf={min_maf}-{max_maf} #filtered={len(filtered_variants)} #bins={len(manhattan_data["variant_bins"])} #unbinned={len(manhattan_data["unbinned_variants"])} weakest_pval={weakest_pval_seen}')
+    #print(f'indel={indel} maf={min_maf}-{max_maf} #chosen={len(chosen_variants)} #bins={len(manhattan_data["variant_bins"])} #unbinned={len(manhattan_data["unbinned_variants"])} weakest_pval={weakest_pval_seen}')
     return jsonify(manhattan_data)
 
 

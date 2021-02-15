@@ -496,8 +496,15 @@ var variant_table = {
 function refilter() {
     manhattan_filter_view.clear();
     variant_table.clear();
-    var url = fmt(window.model.urlprefix + "/api/manhattan-filtered/pheno/{0}.json?min_maf={1}&max_maf={2}",
-                  window.pheno, $('#min_maf_input').val(), $('#max_maf_input').val());
+    var url_base = window.model.urlprefix + fmt("/api/manhattan-filtered/pheno/{0}.json?", window.pheno);
+    var get_params = [];
+    get_params.push(fmt("min_maf={0}", $('#min_maf_input').val()));
+    get_params.push(fmt("max_maf={0}", $('#max_maf_input').val()));
+    var snp_indel_value = $('#snp_indel input:radio:checked').val();
+    if (snp_indel_value=='snp' || snp_indel_value=='indel') {
+        get_params.push(fmt("indel={0}", (snp_indel_value=='indel')?'true':'false'));
+    }
+    var url = url_base + get_params.join('&');
     $.getJSON(url).done(function(data) {
         manhattan_filter_view.set_variants(data.variant_bins || [], data.unbinned_variants || [], data.weakest_pval || 1);
         variant_table.set_variants(data.unbinned_variants || []);

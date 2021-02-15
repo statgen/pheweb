@@ -113,15 +113,15 @@
         Minor Allele Freq Range:
         <input id=min_maf_input type=text value=0 style="width:4em"> -
         <input id=max_maf_input type=text value=0.5 style="width:4em">
-        <div id=snp_indel class="btn-group btn-group-toggle" data-toggle="buttons">
+        <div id="snp_indel" class="btn-group btn-group-toggle" data-toggle="buttons">
           <label class="btn btn-primary">
-            <input type="radio" name="options" id="option1" autocomplete="off"> SNP
+            <input type="radio" name="options" value="snp" autocomplete="off"> SNP
           </label>
           <label class="btn btn-primary">
-            <input type="radio" name="options" id="option2" autocomplete="off"> Indel
+            <input type="radio" name="options" value="indel" autocomplete="off"> Indel
           </label>
           <label class="btn btn-primary active">
-            <input type="radio" name="options" id="option3" autocomplete="off" checked> Both
+            <input type="radio" name="options" value="both" autocomplete="off" checked> Both
           </label>
         </div>
 
