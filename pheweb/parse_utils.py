@@ -65,6 +65,9 @@ per_variant_fields = OrderedDict([
         'tooltip_underscoretemplate': 'nearest gene<%= _.contains(d.nearest_genes, ",")? "s":"" %>: <%= d.nearest_genes %><br>',
         'tooltip_lztemplate': False,
     }),
+    ('consequence', {
+        'from_assoc_files': False,
+    }),
 ])
 
 per_assoc_fields = OrderedDict([
