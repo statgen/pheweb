@@ -1,6 +1,6 @@
 
 from ..load.load_utils import get_maf
-from ..utils import get_phenolist, get_gene_tuples, pad_gene, PheWebError
+from ..utils import get_phenolist, get_gene_tuples, pad_gene, PheWebError, vep_consqeuence_category
 from .. import conf
 from .. import parse_utils
 from ..file_utils import get_filepath, get_pheno_filepath, VariantFileReader
@@ -128,6 +128,8 @@ def api_pheno_filtered(phenocode):
     indel = request.args.get('indel', '')
     # TODO: replace these exceptions with abort(404)
     if indel: assert indel in ['true', 'false'], indel
+    consequence_category = request.args.get('csq', '')
+    if consequence_category: assert consequence_category in ['lof', 'nonsyn'], consequence_category
     min_maf = float(request.args['min_maf']) if request.args.get('min_maf','') else None
     max_maf = float(request.args['max_maf']) if request.args.get('max_maf','') else None
     chosen_variants = []  # TODO: stream straight from VariantFileReader() -> Binner() without this intermediate list
@@ -144,6 +146,10 @@ def api_pheno_filtered(phenocode):
                 v_maf = get_maf(v, pheno)
                 if min_maf is not None and v_maf < min_maf: continue
                 if max_maf is not None and v_maf > max_maf: continue
+            if consequence_category:
+                csq = vep_consqeuence_category.get(v.get('consequence',''))
+                if consequence_category == 'lof' and csq != 'lof': continue
+                if consequence_category == 'nonsyn' and not csq: continue
             chosen_variants.append(v)
     from pheweb.load.manhattan import Binner
     binner = Binner()
@@ -222,6 +228,7 @@ def pheno_filter_page(phenocode):
                            phenocode=phenocode,
                            pheno=pheno,
                            tooltip_underscoretemplate=parse_utils.tooltip_underscoretemplate,
+                           show_manhattan_filter_consequence=conf.should_show_manhattan_filter_consequence(),
     )
 
 

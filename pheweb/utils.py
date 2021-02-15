@@ -7,6 +7,7 @@ import boltons.mathutils
 import urllib.parse
 import types
 import typing as ty
+from typing import Dict
 
 
 class PheWebError(Exception):
@@ -100,3 +101,25 @@ def get_padded_gene_tuples() -> ty.Iterator[ty.Tuple[str,int,int,str]]:
     for chrom,start,end,genename,ensg in get_gene_tuples_with_ensg():
         start,end = pad_gene(start,end)
         yield (chrom,start,end,genename)
+
+
+# From <https://m.ensembl.org/info/genome/variation/prediction/predicted_data.html>
+_lof_csqs = [
+    "transcript_ablation",
+    "frameshift_variant",
+    "stop_gained",
+    "stop_lost",
+    "start_lost",
+    "splice_acceptor_variant",
+    "splice_donor_variant",
+    "transcript_amplification",
+]
+_nonsyn_csqs = [
+    "inframe_insertion",
+    "inframe_deletion",
+    "missense_variant",
+    "protein_altering_variant",
+]
+vep_consqeuence_category: Dict[str,str] = {}
+for csq in _lof_csqs: vep_consqeuence_category[csq] = 'lof'
+for csq in _nonsyn_csqs: vep_consqeuence_category[csq] = 'nonsyn'

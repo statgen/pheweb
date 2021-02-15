@@ -496,6 +496,7 @@ var variant_table = {
 function refilter() {
     manhattan_filter_view.clear();
     variant_table.clear();
+
     var url_base = window.model.urlprefix + fmt("/api/manhattan-filtered/pheno/{0}.json?", window.pheno);
     var get_params = [];
     get_params.push(fmt("min_maf={0}", $('#min_maf_input').val()));
@@ -504,7 +505,12 @@ function refilter() {
     if (snp_indel_value=='snp' || snp_indel_value=='indel') {
         get_params.push(fmt("indel={0}", (snp_indel_value=='indel')?'true':'false'));
     }
+    var csq_value = $('#csq input:radio:checked').val();
+    if (csq_value=='lof' || csq_value=='nonsyn') {
+        get_params.push(fmt("csq={0}", csq_value));
+    }
     var url = url_base + get_params.join('&');
+
     $.getJSON(url).done(function(data) {
         manhattan_filter_view.set_variants(data.variant_bins || [], data.unbinned_variants || [], data.weakest_pval || 1);
         variant_table.set_variants(data.unbinned_variants || []);
