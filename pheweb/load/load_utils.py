@@ -41,7 +41,7 @@ def get_maf(variant:Dict[str,Any], pheno:Dict[str,Any]) -> Optional[float]:
             raise PheWebError(
                 "Error: the variant {} in pheno {} has two ways of computing maf, resulting in the mafs {}, which differ by more than 0.05.".format(
                     variant, pheno, mafs))
-        maf_sigfigs = parse_utils.fields['maf']['sigfigs']
+        maf_sigfigs = parse_utils.fields['maf']['sigfigs']  # type:ignore
         if not isinstance(maf_sigfigs, int): raise Exception()
         return round_sig(sum(mafs)/len(mafs), maf_sigfigs)
 

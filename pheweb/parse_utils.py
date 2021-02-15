@@ -5,6 +5,7 @@ from . import conf
 import itertools
 from collections import OrderedDict,Counter
 import typing as ty
+from typing import Dict,Any
 
 
 def scientific_int(s:str) -> int:
@@ -28,50 +29,51 @@ default_field = {
     'from_assoc_files': True, # if this is False, then the field will not be parsed from input files, because annotation will add it.
 }
 
-per_variant_fields = OrderedDict([
-    ('chrom', {
+# Note; key order in these dicts is the order of columns in VariantFileWriter
+per_variant_fields: Dict[str,Dict[str,Any]] = {
+    'chrom': {
         'aliases': ['#CHROM', 'chr'],
         'required': True,
         'tooltip_underscoretemplate': '<b><%= d.chrom %>:<%= d.pos.toLocaleString() %> <%= d.ref %> / <%= d.alt %></b><br>',
         'tooltip_lztemplate': False,
-    }),
-    ('pos', {
+    },
+    'pos': {
         'aliases': ['BEG', 'BEGIN', 'BP'],
         'required': True,
         'type': scientific_int,
         'range': [0, None],
         'tooltip_underscoretemplate': False,
         'tooltip_lztemplate': False,
-    }),
-    ('ref', {
+    },
+    'ref': {
         'aliases': ['reference'],
         'required': True,
         'tooltip_underscoretemplate': False,
         'tooltip_lztemplate': False,
-    }),
-    ('alt', {
+    },
+    'alt': {
         'aliases': ['alternate'],
         'required': True,
         'tooltip_underscoretemplate': False,
         'tooltip_lztemplate': False,
-    }),
-    ('rsids', {
+    },
+    'rsids': {
         'from_assoc_files': False,
         'tooltip_underscoretemplate': '<% _.each(_.filter((d.rsids||"").split(",")), function(rsid) { %>rsid: <%= rsid %><br><% }) %>',
         'tooltip_lztemplate': {'condition': 'rsid', 'template': '<strong>{{rsid}}</strong><br>'},
-    }),
-    ('nearest_genes', {
+    },
+    'nearest_genes': {
         'from_assoc_files': False,
         'tooltip_underscoretemplate': 'nearest gene<%= _.contains(d.nearest_genes, ",")? "s":"" %>: <%= d.nearest_genes %><br>',
         'tooltip_lztemplate': False,
-    }),
-    ('consequence', {
+    },
+    'consequence': {
         'from_assoc_files': False,
-    }),
-])
+    },
+}
 
-per_assoc_fields = OrderedDict([
-    ('pval', {
+per_assoc_fields: Dict[str,Dict[str,Any]] = {
+    'pval': {
         'aliases': ['PVALUE', 'P', 'P.VALUE'],
         'required': True,
         'type': float,
@@ -84,111 +86,108 @@ per_assoc_fields = OrderedDict([
                          '{{#if pval}}P-value: <strong>{{pval|scinotation}}</strong><br>{{/if}}'),
         },
         'display': 'P-value',
-    }),
-    ('beta', {
+    },
+    'beta': {
         'type': float,
         'nullable': True,
         'sigfigs': 2,
         'tooltip_underscoretemplate': 'Beta: <%= d.beta %><% if(_.has(d, "sebeta")){ %> (<%= d.sebeta %>)<% } %><br>',
         'tooltip_lztemplate': 'Beta: <strong>{{beta}}</strong>{{#if sebeta}} ({{sebeta}}){{/if}}<br>',
         'display': 'Beta',
-    }),
-    ('sebeta', {
+    },
+    'sebeta': {
         'aliases': ['se'],
         'type': float,
         'nullable': True,
         'sigfigs': 2,
         'tooltip_underscoretemplate': False,
         'tooltip_lztemplate': False,
-    }),
-    ('or', {
+    },
+    'or': {
         'type': float,
         'nullable': True,
         'range': [0, None],
         'sigfigs': 2,
         'display': 'Odds Ratio',
-    }),
-    ('maf', {
+    },
+    'maf': {
         'type': float,
         'range': [0, 0.5],
         'sigfigs': 2,
         'tooltip_lztemplate': {'transform': '|percent'},
         'display': 'MAF',
-    }),
-    ('af', {
+    },
+    'af': {
         'aliases': ['A1FREQ', 'FRQ'],
         'type': float,
         'range': [0, 1],
         'proportion_sigfigs': 2,
         'tooltip_lztemplate': {'transform': '|percent'},
         'display': 'AF',
-    }),
-    ('case_af', {
+    },
+    'case_af': {
         'aliases': ['af.cases'],
         'type': float,
         'range': [0, 1],
         'proportion_sigfigs': 2,
         'tooltip_lztemplate': {'transform': '|percent'},
         'display': 'Case AF',
-    }),
-    ('control_af', {
+    },
+    'control_af': {
         'aliases': ['af.controls'],
         'type': float,
         'range': [0, 1],
         'proportion_sigfigs': 2,
         'tooltip_lztemplate': {'transform': '|percent'},
         'display': 'Control AF',
-    }),
-    ('ac', {
+    },
+    'ac': {
         'type': float,
         'range': [0, None],
         'decimals': 1,
         'display': 'AC',
-    }),
-    ('r2', {
+    },
+    'r2': {
         'type': float,
         'proportion_sigfigs': 2,
         'nullable': True,
         'display': 'R2',
-    }),
-    ('tstat', {
+    },
+    'tstat': {
         'type': float,
         'sigfigs': 2,
         'nullable': True,
         'display': 'Tstat',
-    }),
-])
+    },
+}
 
-per_pheno_fields = OrderedDict([
-    ('num_cases', {
+per_pheno_fields: Dict[str,Dict[str,Any]] = {
+    'num_cases': {
         'aliases': ['NS.CASE', 'N_cases'],
         'type': int,
         'nullable': True,
         'range': [0, None],
         'display': '#cases',
-    }),
-    ('num_controls', {
+    },
+    'num_controls': {
         'aliases': ['NS.CTRL', 'N_controls'],
         'type': int,
         'nullable': True,
         'range': [0, None],
         'display': '#controls',
-    }),
-    ('num_samples', {
+    },
+    'num_samples': {
         'aliases': ['NS', 'N'],
         'type': int,
         'nullable': True,
         'range': [0, None],
         'display': '#samples',
-    }),
+    },
     # TODO: phenocode, phenostring, category, &c?
     # TODO: include `assoc_files` with {never_send: True}?
-])
+}
 
-fields = dict(itertools.chain(
-    per_variant_fields.items(),
-    per_assoc_fields.items(),
-    per_pheno_fields.items()))
+fields: Dict[str,Dict[str,Any]] = {**per_variant_fields, **per_assoc_fields, **per_pheno_fields}
 
 class Field:
     def __init__(self, d):
