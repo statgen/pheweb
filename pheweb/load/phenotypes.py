@@ -8,10 +8,12 @@ from typing import Iterator,Dict,Any,List
 
 def get_phenotypes_including_top_variants() -> Iterator[Dict[str,Any]]:
     for pheno in get_phenolist():
+        with open(get_pheno_filepath('qq', pheno['phenocode'])) as f:
+            gc_lambda_hundred = json.load(f)['overall']['gc_lambda']['0.01']
         with open(get_pheno_filepath('manhattan', pheno['phenocode'])) as f:
             variants = json.load(f)['unbinned_variants']
         top_variant = min(variants, key=lambda v: v['pval'])
-        num_peaks = sum(variant.get('peak',False) for variant in variants)
+        num_peaks = sum(variant.get('peak',False) and variant['pval']<=5e-8 for variant in variants)
         ret = {
             'phenocode': pheno['phenocode'],
             'pval': top_variant['pval'],
@@ -22,9 +24,10 @@ def get_phenotypes_including_top_variants() -> Iterator[Dict[str,Any]]:
             'alt': top_variant['alt'],
             'rsids': top_variant['rsids'],
             'num_peaks': num_peaks,
+            'gc_lambda_hundred': gc_lambda_hundred,  # numbers in keys break streamtable
         }
-        if 'category' in pheno: ret['category'] = pheno['category']
-        if 'phenostring' in pheno: ret['phenostring'] = pheno['phenostring']
+        for key in ['num_samples', 'num_controls', 'num_cases', 'category', 'phenostring']:
+            if key in pheno: ret[key] = pheno[key]
         if isinstance(ret['nearest_genes'], list): ret['nearest_genes'] = ','.join(ret['nearest_genes'])
         yield ret
 
