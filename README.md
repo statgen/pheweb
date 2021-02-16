@@ -26,7 +26,6 @@ pip3 install pheweb
 1. `mkdir ~/my-new-pheweb && cd ~/my-new-pheweb`
 
    - This directory will store all data for the pheweb your are building. All `pheweb ...` commands should be run in this directory.
-   - You can put it wherever you want and name it whatever you want.
 
 2. If you want to configure any options, make a file `config.py` in your data directory. Some options you can set are:
 
@@ -64,6 +63,8 @@ You may also have columns for:
 | ---                           | ---            | ---                        | --- |
 | minor allele frequency        | `maf`          |                            | number in (0,0.5] |
 | allele frequency              | `af`           | `a1freq`, `frq`            | number in (0,1) |
+| AF among cases                | `af_case`      |                            | number in (0,1) |
+| AF among controls             | `af_control`   |                            | number in (0,1) |
 | allele count                  | `ac`           |                            | integer |
 | effect size                   | `beta`         |                            | number |
 | standard error of effect size | `sebeta`       | `se`                       | number |
