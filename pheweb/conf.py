@@ -133,9 +133,7 @@ def get_num_procs(cmd:Optional[str] = None) -> int:
     try: return int(overrides[key])
     except Exception: pass
     n_cpus = multiprocessing.cpu_count()
-    if n_cpus == 1: return 1
-    if n_cpus < 4: return n_cpus - 1
-    return n_cpus * 3//4
+    return 1 if n_cpus==1 else int(n_cpus * 3/4)
 
 
 
