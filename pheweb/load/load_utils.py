@@ -216,8 +216,8 @@ class Parallelizer:
             progressbar.set_message('Completed {:4} tasks in {}'.format(
                 n_tasks_complete, progressbar.fmt_elapsed()))
         else:
-            progressbar.set_message('Completed {:4} tasks in {} ({} currently in progress, {} remain)'.format(
-                n_tasks_complete, progressbar.fmt_elapsed(), n_procs, num_tasks-n_tasks_complete))
+            progressbar.set_message('Completed {:4} tasks in {} ({} currently in progress, {} queued)'.format(
+                n_tasks_complete, progressbar.fmt_elapsed(), n_procs, num_tasks-n_tasks_complete-n_procs))
 
     @staticmethod
     def _make_multiple_tasks_doer(do_single_task):
