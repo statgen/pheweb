@@ -29,7 +29,7 @@ mkdir ~/my-new-pheweb && cd ~/my-new-pheweb
 
 This directory will store all data for the pheweb your are building. All `pheweb ...` commands should be run in this directory.
 
-Make `config.py` in this directory. In it, either set `hg_build_number = 19` or `hg_build_number = 38`.  Other options you can set are listed [here](etc/detailed-loading-instructions.md).
+Make `config.py` in this directory. In it, either set `hg_build_number = 19` or `hg_build_number = 38`.  Other options you can set are listed [here](etc/detailed-loading-instructions.md#configuration-options).
 
 ### 3. Prepare your association files
 
@@ -113,7 +113,7 @@ or you can make one from scratch by running:
 pheweb phenolist glob-files --star-is-phenocode "/home/peter/data/*.gz"
 ```
 
-For advanced options, see instructions [here](etc/detailed-loading-instructions.md).
+For advanced options, see instructions [here](etc/detailed-loading-instructions.md#making-pheno-listjson).
 
 
 ### 5. Load your association files
@@ -121,7 +121,7 @@ For advanced options, see instructions [here](etc/detailed-loading-instructions.
 Run `pheweb process`.
 
 To distribute jobs across a cluster, see instructions [here](etc/detailed-loading-instructions.md#distributing-jobs-across-a-cluster).
-   
+
 If something breaks and you can't understand the error message or it's something that PheWeb should support by default, [open an issue on github](https://github.com/statgen/pheweb/issues/new) or email me.
 
 ### 6. Serve the website
