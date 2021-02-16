@@ -2,7 +2,7 @@
 
 - `assoc_min_maf` (float): an association (between a phenotype and variant) will only be included if its MAF is greater than or equal to this value. (default: `0`)
 
-- `cache` (string): a directory where files common to all datasets can be stored. (default: `cache = "~/.pheweb/cache/"`)
+- `cache` (string): a directory where files shared by all datasets can be cached. (default: `cache = "~/.pheweb/cache/"`)
 
 - `num_procs` (int): the number of processes to use for parallel loading steps.  (default: 2/3 of the number of cores on your machine)
 
