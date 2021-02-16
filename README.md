@@ -21,13 +21,13 @@ pip3 install pheweb
 
 - If that doesn't work, follow [the detailed install instructions](etc/detailed-install-instructions.md#detailed-install-instructions).
 
-### 2. Create a directory for your new dataset
+### 2. Create a directory and `config.py` for your new dataset
 
 ```
 mkdir ~/my-new-pheweb && cd ~/my-new-pheweb
 ```
 
-This directory will store all data for the pheweb your are building. All `pheweb ...` commands should be run in this directory.
+This directory will store all the files pheweb makes for your dataset. All `pheweb ...` commands should be run in this directory.
 
 Make `config.py` in this directory. In it, either set `hg_build_number = 19` or `hg_build_number = 38`.  Other options you can set are listed [here](etc/detailed-loading-instructions.md#configuration-options).
 
@@ -37,7 +37,7 @@ You need one file for each phenotype, and there are some requirements:
 
 - It needs a header row.
 - Columns can be delimited by tabs, spaces, or commas.
-- It needs a column for the reference allele (which must always match the reference genome that you specified with `hg_build_number`) and a column for the alternate allele.  If you have a `MARKER_ID` column like `1:234_C/G`, that's okay too.  If you have an allele1 and allele2, and sometimes one or the other is the reference, then you'll need to modify your files.
+- It needs a column for the reference allele (which must always match the bases on the reference genome that you specified with `hg_build_number`) and a column for the alternate allele.  If you have a `MARKER_ID` column like `1:234_C/G`, that's okay too.  If you have an allele1 and allele2, and sometimes one or the other is the reference, then you'll need to modify your files.
 - It can be gzipped if you want.
 - Variants must be sorted by chromosome and position, with chromosomes in the order [1-22,X,Y,MT].
 
@@ -58,8 +58,8 @@ You may also have columns for:
 | ---                           | ---            | ---                        | --- |
 | minor allele frequency        | `maf`          |                            | number in (0,0.5] |
 | allele frequency              | `af`           | `a1freq`, `frq`            | number in (0,1) |
-| AF among cases                | `af_case`      |                            | number in (0,1) |
-| AF among controls             | `af_control`   |                            | number in (0,1) |
+| AF among cases                | `case_af`      | `af.cases`                 | number in (0,1) |
+| AF among controls             | `control_af`   | `af.controls`              | number in (0,1) |
 | allele count                  | `ac`           |                            | integer |
 | effect size                   | `beta`         |                            | number |
 | standard error of effect size | `sebeta`       | `se`                       | number |
@@ -92,7 +92,7 @@ Inside of your data directory, you need a file named `pheno-list.json` that look
 ]
 ```
 
-Each phenotype needs `assoc_files` (a list of paths to association files) and `phenocode` (a string representing your phenotype that is used in filenamess and URLs, comprised of `[A-Za-z0-9_~-]`).
+Each phenotype needs `assoc_files` (a list of paths to association files) and `phenocode` (a string representing your phenotype that is used in filenames and URLs, comprised of `[A-Za-z0-9_~-]`).
 
 If you want, you can also include:
 
@@ -113,7 +113,7 @@ or you can make one from scratch by running:
 pheweb phenolist glob-files --star-is-phenocode "/home/peter/data/*.gz"
 ```
 
-For advanced options, see instructions [here](etc/detailed-loading-instructions.md#making-pheno-listjson).
+You can see other methods [here](etc/detailed-loading-instructions.md#making-pheno-listjson).
 
 
 ### 5. Load your association files
@@ -129,7 +129,7 @@ If something breaks and you can't understand the error message or it's something
 Run `pheweb serve --open`.
 
 That command should either open a browser to your new PheWeb, or it should give you a URL that you can open in your browser to access your new PheWeb.
-If it doesn't, follow the directions for [hosting a PheWeb and accessing it from your browser](etc/detailed-webserver-instructions.md#hosting-a-pheweb-and-accessing-it-from-your-browser).
+If it doesn't, follow [the directions for hosting a PheWeb and accessing it from your browser](etc/detailed-webserver-instructions.md#hosting-a-pheweb-and-accessing-it-from-your-browser).
 
 ### More options:
 
