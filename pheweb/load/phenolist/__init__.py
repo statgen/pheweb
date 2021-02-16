@@ -111,6 +111,13 @@ def check_that_all_phenotypes_have_assoc_files(phenolist):
         if not isinstance(pheno['assoc_files'], list): raise PheWebError("Assoc_files is not a list for some phenotypes.  I don't know how that happened but it's bad.")
         if any(not isinstance(s, str) for s in pheno['assoc_files']): raise PheWebError("assoc_files contains things other than strings for some phenotypes.")
 
+def check_that_num_samples_controls_cases_agree(phenolist):
+    for pheno in phenolist:
+        if all(key in pheno for key in ['num_samples', 'num_cases', 'num_controls']):
+            total_samples = pheno['num_cases'] + pheno['num_controls']
+            if pheno['num_samples'] != total_samples:
+                raise PheWebError("The pheno {} has num_samples={} but num_cases+num_controls={}: {}".format(pheno['phenocode'], pheno['num_samples'], total_samples, pheno))
+
 def extract_info_from_assoc_files(phenolist):
     for pheno in tqdm.tqdm(phenolist, bar_format='Read {n:7} files'):
         pheno.update(PhenoReader(pheno).get_info())
@@ -474,6 +481,7 @@ def run(argv):
         check_that_columns_are_present(phenolist, ['phenocode', 'assoc_files'] + args.required_columns)
         check_that_phenocode_is_unique(phenolist)
         check_that_all_phenotypes_have_assoc_files(phenolist)
+        check_that_num_samples_controls_cases_agree(phenolist)
         print("The {} phenotypes in {!r} look good.".format(len(phenolist), filepath))
     p = subparsers.add_parser('verify', help='check that pheno-list is well-formed and could plausibly be used to make a pheweb')
     p.add_argument('-f', dest="filepath", help="pheno-list filepath to check (default: {!r})".format(default_phenolist_filepath))
