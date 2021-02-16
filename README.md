@@ -183,4 +183,4 @@ To use this feature, set `show_correlations = True`  in `config.py` and place th
 
 To hide the button for downloading summary stats, add `download_pheno_sumstats = "secret"` and `SECRET_KEY = "random string here"` in `config.py`.  That will make a secret page (printed to the console when you start the server) to share summary stats.
 
-To allow dynamically filtering the manhattan plot, set `show_manhattan_filter_button=True` in `config.py`.
+To allow dynamically filtering the manhattan plot, run `pheweb best-of-pheno` and set `show_manhattan_filter_button=True` in `config.py`.
