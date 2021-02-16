@@ -24,6 +24,7 @@
 </script>
 <style type="text/css">
 .d3-tip {
+  z-index:5; /* show above bootstrap selected radio-buttons */
   line-height: 1.4;
   padding: 12px;
   background: rgba(0, 0, 0, 0.8);
@@ -116,26 +117,26 @@
 
         <div id="snp_indel" class="btn-group btn-group-toggle" data-toggle="buttons">
           <label class="btn btn-primary">
-            <input type="radio" name="options" value="snp" autocomplete="off"> SNP
+            <input type="radio" name="snp_indel" value="snp" autocomplete="off"> SNP
           </label>
           <label class="btn btn-primary">
-            <input type="radio" name="options" value="indel" autocomplete="off"> Indel
+            <input type="radio" name="snp_indel" value="indel" autocomplete="off"> Indel
           </label>
           <label class="btn btn-primary active">
-            <input type="radio" name="options" value="both" autocomplete="off" checked> Both
+            <input type="radio" name="snp_indel" value="both" autocomplete="off" checked> Both
           </label>
         </div>
 
         {% if show_manhattan_filter_consequence %}
         <div id="csq" class="btn-group btn-group-toggle" data-toggle="buttons">
           <label class="btn btn-primary">
-            <input type="radio" name="options" value="lof" autocomplete="off"> LoF
+            <input type="radio" name="csq" value="lof" autocomplete="off"> LoF
           </label>
           <label class="btn btn-primary">
-            <input type="radio" name="options" value="nonsyn" autocomplete="off"> Non-synonymous
+            <input type="radio" name="csq" value="nonsyn" autocomplete="off"> Non-synonymous
           </label>
           <label class="btn btn-primary active">
-            <input type="radio" name="options" value="all" autocomplete="off" checked> All
+            <input type="radio" name="csq" value="all" autocomplete="off" checked> All
           </label>
         </div>
         {% endif %}

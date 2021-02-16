@@ -147,7 +147,7 @@ def api_pheno_filtered(phenocode):
                 if min_maf is not None and v_maf < min_maf: continue
                 if max_maf is not None and v_maf > max_maf: continue
             if consequence_category:
-                csq = vep_consqeuence_category.get(v.get('consequence',''))
+                csq = vep_consqeuence_category.get(v.get('consequence',''), '')
                 if consequence_category == 'lof' and csq != 'lof': continue
                 if consequence_category == 'nonsyn' and not csq: continue
             chosen_variants.append(v)
