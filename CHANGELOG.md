@@ -1,16 +1,15 @@
 *This file only includes changes that are relevant to people running a pheweb site.*
 
 ## 1.3.7
+- Updated to gencode v37
+- Show GClambda and num_samples/num_cases/num_controls and num_loci<5e8 on /phenotypes
+- Supports custom_templates/ again
+
 Changes needed to data:
 
 - Re-run `pheweb download-genes`
 - Re-run `pheweb make-gene-aliases-sqlite3`
 - Re-run `pheweb phenotypes`
-
-Improvements:
-
-- Updated to gencode v37
-- Show GClambda and num_samples/num_cases/num_controls and num_loci<5e8 on /phenotypes
 
 ## 1.3.6
 - Speeds up `pheweb gather-pvalues-for-each-gene` ~2x by avoiding reading any variant twice.  (Thanks to finngen for this suggestion.)
@@ -30,7 +29,7 @@ Improvements:
 - Rewrites configuration management, losing the ability to customize `extra_per_*_fields` and `null_values` and `field_aliases`.
 - Fixes bug where config wasn't passed to child processes when using `PHEWEB_DATADIR` or `pheweb conf key=value <subcommand>`.
 
-bug:
+Bugs:
 
 - `pheweb matrix` breaks when `matrix.tsv.gz` is already up-to-date.
 
@@ -41,13 +40,6 @@ bug:
 - Uses dbSNP v154 (the latest!) with way more rsids.
 
 ## 1.2.1
-Changes needed to data:
-
-- Re-run `pheweb gather-pvalues-for-each-gene` (which should quickly upgrade the old json to the new sqlite3)
-- Re-run `pheweb make_cpras_rsids_sqlite3`
-
-Improvements:
-
 - Allows hg38 via `hg_build_number=38`
 - Downloads resources from <https://resources.pheweb.org> instead of processing raw data from EBI, dbSNP, etc.
 - Replaces marisa-trie with sqlite3 to remove a flaky dependency and improve the order of autocomplete suggestions.
@@ -56,8 +48,16 @@ Improvements:
 - Gets rid of `generated-by-pheweb/pheno/`, relying on `generated-by-pheweb/pheno_gz/` instead.
 - Allows `chr1`-`chr25` in input files.
 
+Changes needed to data:
+
+- Re-run `pheweb download-genes`
+- Re-run `pheweb make-gene-aliases-sqlite3`
+- Re-run `pheweb phenotypes`
+
 ## 1.2.0 (broken)
-(`pheweb matrix` fails to match filenames to columns.)
+Bugs:
+
+- `pheweb matrix` fails to match filenames to columns.
 
 ## 1.1.28
 - Allows selecting which phenotypes to run in most steps via `pheweb <subcommand> --phenos=5-10`.
