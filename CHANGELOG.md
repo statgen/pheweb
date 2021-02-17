@@ -1,5 +1,14 @@
 *This file only includes changes that are relevant to people running a pheweb site.*
 
+## 1.3.7
+Changes needed to data:
+
+- Re-run `pheweb download-genes`
+- Re-run `pheweb make-gene-aliases-sqlite3`
+
+Improvements:
+
+- Updated to gencode v37
 
 ## 1.3.6
 - Speeds up `pheweb gather-pvalues-for-each-gene` ~2x by avoiding reading any variant twice.  (Thanks to finngen for this suggestion.)
@@ -19,7 +28,7 @@
 - Rewrites configuration management, losing the ability to customize `extra_per_*_fields` and `null_values` and `field_aliases`.
 - Fixes bug where config wasn't passed to child processes when using `PHEWEB_DATADIR` or `pheweb conf key=value <subcommand>`.
 
-bug: 
+bug:
 
 - `pheweb matrix` breaks when `matrix.tsv.gz` is already up-to-date.
 
