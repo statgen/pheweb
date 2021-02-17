@@ -6,6 +6,9 @@
 
 - `num_procs` (int): the number of processes to use for parallel loading steps.  (default: 2/3 of the number of cores on your machine)
 
+- `loading_nice = True`: sets nice=19 (reducing cpu priority) and sets ionice to class "Idle" (reducing IO when anything else is using disk)
+
+- `debugging_limit_num_variants` (int): only parses this many variants from each input association file and from the rsids file.  This is convenient for quickly loading part of a dataset to check that it works as expected.
 
 
 ## Making pheno-list.json
