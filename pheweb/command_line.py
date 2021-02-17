@@ -11,11 +11,13 @@ import math
 from typing import List,Dict,Callable
 
 
+if sys.platform.startswith('win'):
+    raise Exception("PheWeb doesn't support Windows, because pysam doesn't support windows.")
 if sys.version_info.major <= 2:
-    print("Sorry, PheWeb requires Python 3.  Please use Python 3 by installing it with `pip3 install pheweb` or `python3 -m pip install pheweb`.")
+    print("PheWeb requires Python 3.  Please use Python 3 by installing it with `pip3 install pheweb` or `python3 -m pip install pheweb`.")
     sys.exit(1)
 if sys.version_info < (3, 6):
-    print("Sorry, PheWeb requires Python 3.6 or newer.  Use Miniconda or Homebrew or another solution to install a newer Python.")
+    print("PheWeb requires Python 3.6 or newer.  Use Miniconda or Homebrew or another solution to install a newer Python.")
     sys.exit(1)
 
 

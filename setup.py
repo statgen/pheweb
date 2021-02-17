@@ -12,6 +12,12 @@ import sys
 
 if sys.platform.startswith('win'):
     raise Exception("PheWeb doesn't support Windows, because pysam doesn't support windows.")
+if sys.version_info.major <= 2:
+    print("PheWeb requires Python 3.  Please use Python 3 by installing it with `pip3 install pheweb` or `python3 -m pip install pheweb`.")
+    sys.exit(1)
+if sys.version_info < (3, 6):
+    print("PheWeb requires Python 3.6 or newer.  Use Miniconda or Homebrew or another solution to install a newer Python.")
+    sys.exit(1)
 
 
 def load_module_by_path(module_name, filepath):
