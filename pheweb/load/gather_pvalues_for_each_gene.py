@@ -1,26 +1,9 @@
 
 '''
 This avoids reading any variant more than once.
- Right now this reads each 100kb-padded-gene independently, resulting in reading some variants multiple times.
  The sum of unpadded lengths of all 20k genes is 1400Mbases.
  The sum of the padded lengths is 5400Mbases.
- The total number of bases in the padded genes (without double-counting overlaps) is 2100Mbases (40%) (in 16k intervals):
-   from pheweb.utils import chrom_order
-   trips = [(chrom_order[chrom], int(start), int(end)) for chrom,start,end,_,_ in (line.split() for line in open('genes-v36-hg38.bed'))]
-   intervals = sorted((chrom_idx*1e12+start-100e3, chrom_idx*1e12+stop+100e3) for chrom_idx,start,stop  in trips)
-   ret = []
-   for iv in intervals:
-     if not ret or iv[0] > ret[-1][1]: ret.append(iv)
-     else: ret[-1] = (ret[-1][0], max(ret[-1][1], iv[1]))
-   sum(end-start for start,end in ret)/1e6
-So could this run in 40% of the time if deduped?
-Method:
- Make a list of all 16k regions to read.
- Each is a task.
- Maybe make a little intervaltree of genes that touch the current region (because we'll need to query for overlapping genes for every variant).
- For each variant, check what genes it's in.  For each gene, for each pheno, update the gene/pheno pair.
- Then at the end of the task, trim down the list for each gene according to the normal rules and return it.
- Then in the main thread, merge all the results and trim them down again.
+ The total number of bases in the padded genes (without double-counting overlaps) is 2100Mbases (40%) (in 16k intervals)
 '''
 
 from ..utils import get_padded_gene_tuples
