@@ -9,10 +9,10 @@ import csv
 from collections import Counter
 import wget
 import boltons.iterutils
-from typing import List,Dict,Any,Iterator,Tuple
+from typing import List,Dict,Any,Iterator,Tuple,Match
 
 
-def re_search(pattern:str, string:str) -> re.Match:
+def re_search(pattern:str, string:str) -> Match[str]:
     m = re.search(pattern, string)
     if not m: raise Exception("re.search({}, {}) is None".format(repr(pattern), repr(string)))
     return m
