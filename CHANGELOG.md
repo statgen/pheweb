@@ -1,5 +1,4 @@
-This file includes changes relevant to people running a pheweb site, but doesn't include changes for people modifying pheweb itself.
-
+*This file only includes changes that are relevant to people running a pheweb site.*
 
 
 ## 1.3.6
