@@ -5,10 +5,12 @@ Changes needed to data:
 
 - Re-run `pheweb download-genes`
 - Re-run `pheweb make-gene-aliases-sqlite3`
+- Re-run `pheweb phenotypes`
 
 Improvements:
 
 - Updated to gencode v37
+- Show GClambda and num_samples/num_cases/num_controls and num_loci<5e8 on /phenotypes
 
 ## 1.3.6
 - Speeds up `pheweb gather-pvalues-for-each-gene` ~2x by avoiding reading any variant twice.  (Thanks to finngen for this suggestion.)

@@ -166,11 +166,11 @@ def should_allow_variant_json_cors() -> bool: return _get_config_bool('allow_var
 def get_urlprefix() -> str: return _get_config_str('urlprefix', '').rstrip('/')
 def get_custom_templates_dir() -> Optional[str]:
     key = 'custom_templates'
-    custom_templates_dir = _get_config_optional_str(key)
-    if not custom_templates_dir: return None
+    custom_templates_dir = _get_config_str(key, 'custom_templates')
+    custom_templates_dir = os.path.abspath(os.path.expanduser(custom_templates_dir))
     if not _is_readable(custom_templates_dir):
-        raise PheWebError("custom_templates directory {!r} is not readable".format(custom_templates_dir))
-    return os.path.join(get_data_dir(), custom_templates_dir)
+        return None
+    return custom_templates_dir
 def is_login_required() -> bool: return bool(overrides.get('login'))
 def get_login_google_id_and_secret() -> Tuple[str,str]:
     if not overrides.get('login'): raise PheWebError("Missing login config")
