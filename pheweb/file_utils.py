@@ -23,7 +23,7 @@ def get_generated_path(*path_parts:str) -> str:
     return path
 
 dbsnp_version = '154'
-genes_version = '36'
+genes_version = '37'
 
 def get_filepath(kind:str, *, must_exist:bool = True) -> str:
     if kind not in _single_filepaths: raise Exception("Unknown kind of filepath: {}".format(repr(kind)))
