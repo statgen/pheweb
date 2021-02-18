@@ -7,9 +7,9 @@
 
 Changes needed to data:
 
-- Re-run `pheweb download-genes`
-- Re-run `pheweb make-gene-aliases-sqlite3`
-- Re-run `pheweb phenotypes`
+- Run `pheweb download-genes`
+- Run `pheweb make-gene-aliases-sqlite3`
+- Run `rm generated-by-pheweb/phenotypes.json; pheweb phenotypes`
 
 ## 1.3.6
 - Speeds up `pheweb gather-pvalues-for-each-gene` ~2x by avoiding reading any variant twice.  (Thanks to finngen for this suggestion.)
@@ -37,7 +37,7 @@ Bugs:
 - Makes sure that `pheno_gz/<phenocode>.gz.tbi` gets created, and re-runs traits that don't have it.
 
 ## 1.2.3
-- Uses dbSNP v154 (the latest!) with way more rsids.
+- Uses dbSNP v154 (the latest!) with way more rsids.  To use them, run `rm generated-by-pheweb/sites/sites-rsids.tsv && pheweb process`.
 
 ## 1.2.1
 - Allows hg38 via `hg_build_number=38`
@@ -50,9 +50,10 @@ Bugs:
 
 Changes needed to data:
 
-- Re-run `pheweb download-genes`
-- Re-run `pheweb make-gene-aliases-sqlite3`
-- Re-run `pheweb phenotypes`
+- Run `pheweb download-genes`
+- Run `pheweb make-gene-aliases-sqlite3`
+- Run `rm generated-by-pheweb/phenotypes.json; pheweb phenotypes`
+- Run `pheweb gather-pvalues-for-each-gene`
 
 ## 1.2.0 (broken)
 Bugs:
