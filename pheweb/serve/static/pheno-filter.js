@@ -233,7 +233,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
                 return color_by_chrom_dim(d.chrom);
             });
 
-        gwas_plot.append('line')
+        gwas_plot.insert('line', ":first-child")  /* prepend */
             .attr('x1', 0)
             .attr('x2', plot_width)
             .attr('y1', y_scale(-Math.log10(significance_threshold)))
@@ -286,33 +286,6 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
                     return d.nearest_genes.split(',').slice(0,2).join(',')+',...';
                 }
             });
-
-        function pp1() {
-        d3.select('g#variant_hover_rings')
-            .selectAll('a.variant_hover_ring')
-            .data(unbinned_variants)
-            .enter()
-            .append('a')
-            .attr('class', 'variant_hover_ring')
-            .attr('xlink:href', get_link_to_LZ)
-            .append('circle')
-            .attr('cx', function(d) {
-                return x_scale(get_genomic_position(d));
-            })
-            .attr('cy', function(d) {
-                return y_scale(-Math.log10(d.pval));
-            })
-            .attr('r', 7)
-            .style('opacity', 0)
-            .style('stroke-width', 1)
-            .on('mouseover', function(d) {
-                //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
-                var target_node = document.getElementById(fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
-                point_tooltip.show(d, target_node);
-            })
-            .on('mouseout', point_tooltip.hide);
-        }
-        pp1();
 
         function pp2() {
         d3.select('#variant_points')
@@ -394,6 +367,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
 var manhattan_filter_view = {
     clear: function() {
         d3.select('#filtered_variant_points').selectAll('a.variant_point').data([]).exit().remove();
+        d3.select('#filtered_variant_hover_rings').selectAll('a.variant_hover_ring').data([]).exit().remove();
         d3.select('#filtered_variant_bins').selectAll('g.bin').data([]).exit().remove();
         d3.select('#unchecked_variants_mask').attr('y', 0).attr('height', 0);
     },
@@ -444,6 +418,31 @@ var manhattan_filter_view = {
             })
             .on('mouseout', point_tooltip.hide);
 
+        var hover_ring_selection = d3.select('#filtered_variant_hover_rings')
+            .selectAll('a.variant_hover_ring')
+            .data(unbinned_variants)
+        hover_ring_selection.exit().remove();
+        hover_ring_selection.enter()
+            .append('a')
+            .attr('class', 'variant_hover_ring')
+            .attr('xlink:href', get_link_to_LZ)
+            .append('circle')
+            .attr('cx', function(d) {
+                return x_scale(get_genomic_position(d));
+            })
+            .attr('cy', function(d) {
+                return y_scale(-Math.log10(d.pval));
+            })
+            .attr('r', 7)
+            .style('opacity', 0)
+            .style('stroke-width', 1) /* why? */
+            .on('mouseover', function(d) {
+                //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
+                var target_node = document.getElementById(fmt('filtered-variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt));
+                point_tooltip.show(d, target_node);
+            })
+            .on('mouseout', point_tooltip.hide);
+
         var bin_selection = d3.select('#filtered_variant_bins')
             .selectAll('g.bin')
             .data(variant_bins);
@@ -473,7 +472,7 @@ var manhattan_filter_view = {
                 // return this.parentNode.__data__.color;
                 return variant_bins[parent_i].color;
             });
-        bins.selectAll('circle.binned_variant_line')
+        bins.selectAll('line.binned_variant_line')
             .data(_.property('qval_extents'))
             .enter()
             .append('line')
@@ -517,6 +516,7 @@ function refilter() {
     });
 }
 $(function() {
+    refilter();
     $('#min_maf_input, #max_maf_input').change(refilter);
     $('#filter_button').click(refilter);
 });
