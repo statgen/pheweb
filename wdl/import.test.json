@@ -1,25 +1,25 @@
 {
     "pheweb_import.summaryfiles":"gs://r6_data/pheno/extra/test_phenos.txt",
-    "pheweb_import.docker": "eu.gcr.io/finngen-refinery-dev/pheweb_annotation:import.test.4",
+    "pheweb_import.docker": "eu.gcr.io/phewas-development/pheweb_annotation:0.1",
     "pheweb_import.genes_bed": "gs://r6_data/pheweb/full/genes-b38-v25.bed",
     "pheweb_import.header_dict":  {"#chrom": "chrom"} ,
-    
+
     #DOCKERS
     #"pheweb_import.annotation.annotation_docker": "eu.gcr.io/finngen-refinery-dev/pheweb_annotation:import.test.4",
     #"pheweb_import.pheno.pheno_docker": "eu.gcr.io/finngen-refinery-dev/pheweb_annotation:import.test.4",
-    "pheweb_import.matrix.matrix_docker": "eu.gcr.io/finngen-refinery-dev/pheweb_annotation:import.test.5",
+    #"pheweb_import.matrix.matrix_docker": "eu.gcr.io/finngen-refinery-dev/pheweb_annotation:import.test.5",
     #"pheweb_import.fix_json.json_docker": "eu.gcr.io/finngen-refinery-dev/pheweb_annotation:import.test.4",
 
     #ANNOTATION
-    
+
     "pheweb_import.annotation.marisa_trie":"gs://r6_data/pheweb/gene_aliases_b38.marisa_trie",
-    
+
     #PHENO
     "pheweb_import.pheno.replace_prefix": "finngen_R6_",
     "pheweb_import.pheno.trie1": "gs://r6_data/pheweb/full/cpra_to_rsids_trie.marisa",
     "pheweb_import.pheno.trie2": "gs://r6_data/pheweb/full/rsid_to_cpra_trie.marisa",
     "pheweb_import.pheno.sites": "gs://r6_data/pheweb/full/sites.tsv",
-    
+
     #MATRIX
     "pheweb_import.matrix.sites": "gs://r6_data/pheweb/full/sites.tsv.23",
     "pheweb_import.matrix.cols": "pval,mlogp,beta,sebeta,af_alt,af_alt_cases,af_alt_controls,n_hom_cases,n_het_cases,n_hom_ref_cases,n_hom_controls,n_het_controls,n_hom_ref_controls",
@@ -28,5 +28,5 @@
 
     # PHENOJSON
     "pheweb_import.fix_json.custom_json": "gs://r6_data/pheweb/custom/custom.json",
-    "pheweb_import.fix_json.fields" : ["num_cases","num_controls","name","category","description"]
+    "pheweb_import.fix_json.fields" : ["num_cases","num_controls","name","category","description","phenostring"]
 }

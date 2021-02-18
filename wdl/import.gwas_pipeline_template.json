@@ -3,6 +3,9 @@
     "pheweb_import.docker": "eu.gcr.io/phewas-development/pheweb_annotation:0.1",
     "pheweb_import.genes_bed": "gs://r6_data_green/custom_gwas_resources/genes-b38-v25.bed",
     "pheweb_import.header_dict":  {"#chrom": "chrom"} ,
+    "pheweb_import.pre_annot_sumfile":"gs://finngen-production-library-green/finngen_R6/sandbox_custom_gwas/G6_AD_WIDE_YOUNG/G6_AD_WIDE_YOUNG.gz",
+    ## remove pre_annot_sumfile from template if not want to use feature
+    ## that this file will be used the first time and all subsequent annotations will be call cached
 
     #DOCKERS
     #"pheweb_import.annotation.annotation_docker": "eu.gcr.io/phewas-development/pheweb_annotation:import.test.4",
