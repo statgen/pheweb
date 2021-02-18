@@ -59,12 +59,12 @@ per_variant_fields: Dict[str,Dict[str,Any]] = {
     },
     'rsids': {
         'from_assoc_files': False,
-        'tooltip_underscoretemplate': '<% _.each(_.filter((d.rsids||"").split(",")), function(rsid) { %>rsid: <%= rsid %><br><% }) %>',
+        'tooltip_underscoretemplate': '<% _.each(_.filter((d.rsids||"").split(",")), function(rsid) { %>rsid: <b><%= rsid %></b><br><% }) %>',
         'tooltip_lztemplate': {'condition': 'rsid', 'template': '<strong>{{rsid}}</strong><br>'},
     },
     'nearest_genes': {
         'from_assoc_files': False,
-        'tooltip_underscoretemplate': 'nearest gene<%= _.contains(d.nearest_genes, ",")? "s":"" %>: <%= d.nearest_genes %><br>',
+        'tooltip_underscoretemplate': 'nearest gene<%= _.contains(d.nearest_genes, ",")? "s":"" %>: <b><%= d.nearest_genes %></b><br>',
         'tooltip_lztemplate': False,
     },
     'consequence': {
@@ -91,8 +91,8 @@ per_assoc_fields: Dict[str,Dict[str,Any]] = {
         'type': float,
         'nullable': True,
         'sigfigs': 2,
-        'tooltip_underscoretemplate': 'Beta: <%= d.beta %><% if(_.has(d, "sebeta")){ %> (<%= d.sebeta %>)<% } %><br>',
-        'tooltip_lztemplate': 'Beta: <strong>{{beta}}</strong>{{#if sebeta}} ({{sebeta}}){{/if}}<br>',
+        'tooltip_underscoretemplate': 'Beta: <b><%= d.beta %></b><% if(_.has(d, "sebeta")){ %> (se:<b><%= d.sebeta %></b>)<% } %><br>',
+        'tooltip_lztemplate': 'Beta: <strong>{{beta}}</strong>{{#if sebeta}} (se:<strong>{{sebeta}}</strong>){{/if}}<br>',
         'display': 'Beta',
     },
     'sebeta': {
@@ -257,7 +257,7 @@ def get_tooltip_underscoretemplate():
         if ust is False:
             continue
         elif ust is None:
-            template += '<% if(_.has(d, ' + repr(fieldname) + ')) { %>' + field.get('display', fieldname) + ': <%= d[' + repr(fieldname) + '] %><br><% } %>\n'
+            template += '<% if(_.has(d, ' + repr(fieldname) + ')) { %>' + field.get('display', fieldname) + ': <b><%= d[' + repr(fieldname) + '] %></b><br><% } %>\n'
         else:
             template += '<% if(_.has(d, ' + repr(fieldname) + ')) { %>' + ust + '<% } %>\n'
     return template
