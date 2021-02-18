@@ -1,8 +1,8 @@
 *This file only includes changes that are relevant to people running a pheweb site.*
 
 ## 1.3.7
-- Updated to gencode v37
-- Show GClambda and num_samples/num_cases/num_controls and num_loci<5e8 on /phenotypes
+- Uses gencode v37 (released 2021-Feb)
+- Shows GClambda and num_samples/num_cases/num_controls and num_loci<5e8 on /phenotypes
 - Supports custom_templates/ again
 
 Changes needed to data:
