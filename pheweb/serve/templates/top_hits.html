@@ -57,11 +57,12 @@
     <table id="stream_table" class="table table-striped table-bordered">
       <thead>
         <tr>
-          <th>Top variant in loci</th>
+          <th>Category</th>
           <th>Phenotype</th>
-          <th class="nearest_genes_col">Nearest Gene(s)</th>
-          <th>MAF</th>
+          <th>Top variant in locus</th>
           <th>P-value</th>
+          <th>MAF</th>
+          <th class="nearest_genes_col">Nearest Gene(s)</th>
         </tr>
       </thead>
       <tbody>
@@ -72,21 +73,22 @@
 
 <script type="text/template" id="streamtable-template">
   <tr>
+    <td><%= h.category %></td>
+    <td><a style="color:black" href="{{ url_for('.pheno_page', phenocode='').rstrip('/') }}/<%= h.phenocode %>">
+        <%= h.phenostring || h.phenocode %>
+    </a></td>
     <td><a style="color:black" href="{{ url_for('.variant_page', query='').rstrip('/') }}/<%= h.chrom %>-<%= h.pos %>-<%= h.ref %>-<%= h.alt %>">
         <%= h.chrom %>:<%= h.pos.toLocaleString() %> <%= h.ref %> / <%= h.alt %>
         <% if (h.rsids) { %>(<%= h.rsids.replace(/,/g, ', ') %>)<% } %>
     </a></td>
-    <td><a style="color:black" href="{{ url_for('.pheno_page', phenocode='').rstrip('/') }}/<%= h.phenocode %>">
-        <%= h.phenostring || h.phenocode %>
-    </a></td>
+    <td><%= (h.pval == 0) ? '~0' : h.pval.toExponential(1) %></td>
+    <td><%= (h.maf)? h.maf.toPrecision(2) : (h.af)? Math.min(h.af, 1-h.af).toPrecision(2) : (h.ac)? h.ac : "" %></td>
     <td class="nearest_genes_col">
       <% var ngs = h.nearest_genes.split(","); ngs.forEach(function(g, i) { %>
       <a style="color:black" href="{{ url_for('.region_page', phenocode='', region='').rstrip('/') }}/<%= h.phenocode %>/gene/<%= g %>?include=<%= h.chrom %>-<%= h.pos %>">
         <i><%= g %></i></a><%= (i+1 !== ngs.length)?',':'' %>
       <% }) %>
     </td>
-    <td><%= (h.maf)? h.maf.toPrecision(2) : (h.af)? Math.min(h.af, 1-h.af).toPrecision(2) : (h.ac)? h.ac : "" %></td>
-    <td><%= (h.pval == 0) ? '~0' : h.pval.toExponential(1) %></td>
   </tr>
 </script>
 
