@@ -1,5 +1,14 @@
 *This file only includes changes that are relevant to people running a pheweb site.*
 
+## 1.3.9
+- Improves hovering on the filtered manhattan plots
+- Includes code for annotating with VEP
+- Shows category on /top_hits
+
+Changes needed to data:
+
+- Run `rm generated-by-pheweb/top_hits.json; pheweb top-hits`
+
 ## 1.3.7
 - Uses gencode v37 (released 2021-Feb)
 - Shows GClambda and num_samples/num_cases/num_controls and num_loci<5e8 on /phenotypes
