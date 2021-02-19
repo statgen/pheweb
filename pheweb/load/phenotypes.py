@@ -9,7 +9,8 @@ from typing import Iterator,Dict,Any,List
 def get_phenotypes_including_top_variants() -> Iterator[Dict[str,Any]]:
     for pheno in get_phenolist():
         with open(get_pheno_filepath('qq', pheno['phenocode'])) as f:
-            gc_lambda_hundred = json.load(f)['overall']['gc_lambda']['0.01']
+            # GC lambda 0.01 isn't set if it was infinite or otherwise broken.
+            gc_lambda_hundred = json.load(f)['overall']['gc_lambda'].get('0.01', None)
         with open(get_pheno_filepath('manhattan', pheno['phenocode'])) as f:
             variants = json.load(f)['unbinned_variants']
         top_variant = min(variants, key=lambda v: v['pval'])
