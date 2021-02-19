@@ -84,3 +84,9 @@ pheweb cluster --engine=slurm --step=manhattan
 pheweb cluster --engine=slurm --step=qq
 pheweb process  # This won't re-create any files that are already up-to-date.
 ```
+
+
+## Annotating with VEP
+
+Run the code in `etc/annotate_vep/run.sh`.  It requires docker (and thus sudo) and only works on hg38.
+Read the comments at the top of that script.

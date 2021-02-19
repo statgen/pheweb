@@ -120,7 +120,9 @@ You can see other methods [here](etc/detailed-loading-instructions.md#making-phe
 
 Run `pheweb process`.
 
-To distribute jobs across a cluster, see instructions [here](etc/detailed-loading-instructions.md#distributing-jobs-across-a-cluster).
+To distribute jobs across a cluster, follow [these instructions](etc/detailed-loading-instructions.md#distributing-jobs-across-a-cluster).
+
+To include VEP annotations, follow [these instructions](etc/detailed-loading-instructions.md#annotating-with-vep).
 
 If something breaks and you can't understand the error message or it's something that PheWeb should support by default, [open an issue on github](https://github.com/statgen/pheweb/issues/new) or email me.
 
