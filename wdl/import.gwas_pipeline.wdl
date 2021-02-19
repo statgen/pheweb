@@ -334,9 +334,11 @@ workflow pheweb_import {
 
     ## as annotation step needs to be ran only once but needs a single sumstat containing all variants
     ## this file can be given and annotation step will be call cached in subsequent steps
+    ## in case of call caching, e.g. the dbsnp annotation won't be refreshed but the old ones will be used.
+    ## might get call cached even without this file if the first pheno in phenofiles has been used in annotation before.
     File? pre_annot_sumfile
 
-    File annot_sumstat = if defined(pre_annot_sumfile) then pre_annot_sumfile else phenofiles[0]
+    String? annot_sumstat = if defined(pre_annot_sumfile) then pre_annot_sumfile else phenofiles[0]
 
     call annotation {
         input: phenofile=annot_sumstat, docker=docker,header_dict = header_dict

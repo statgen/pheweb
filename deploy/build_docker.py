@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 
 import shlex
 from subprocess import Popen, PIPE,call,check_output
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     parser.add_argument("--args",type = str,default = '')
     args = parser.parse_args()
 
-    
+
     basic_cmd = f'docker build -t eu.gcr.io/{args.project}/' + args.image +':' +args.version
     cmd = basic_cmd + f' -f {args.docker}  .' + ' ' + args.args
     print(cmd)
@@ -32,5 +32,3 @@ if __name__ == "__main__":
         cmd = f' docker -- push eu.gcr.io/{args.project}/' + args.image +':' + args.version
         print(cmd)
         call(shlex.split(cmd))
-
-       

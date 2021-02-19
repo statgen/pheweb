@@ -331,7 +331,7 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
     },
     Cell: props => props.value.toPrecision(3),
     minWidth: 110
-}, ...phenoTableCommonCols[1]],			
+}, ...phenoTableCommonCols[1]],
     'FINNGEN_UKB': [...phenoTableCommonCols[0],{
     Header: () => (<span title="INFO score in FinnGen" style={{textDecoration: 'underline'}}>INFO FG</span>),
     accessor: 'info',
@@ -463,7 +463,7 @@ const csInsideTableCols = [
 //accessor: 'locus_id',
 //Cell: props => props.value,
 //minWidth: 60,
-//}, 
+//},
 {Header: () => (<span title="Variant ID" style={{textDecoration: 'underline'}}>Variant ID</span>),
 accessor: 'variant',
 Cell: props => (<a href={"/variant/" +props.value.replace("chr","").replace(/_/g,"-")} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),

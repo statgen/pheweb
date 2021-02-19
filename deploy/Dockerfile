@@ -13,6 +13,9 @@ ENV LC_CTYPE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
+RUN apt-get install make gcc cmake \
+    libz-dev libbz2-dev liblzma-dev zlib1g-dev libcurl4-openssl-dev --yes
+
 # install nodejs
 RUN apt-get update && apt-get install curl software-properties-common --yes && \
     curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
@@ -23,13 +26,10 @@ RUN apt-get update && apt-get install --no-install-recommends texlive wget --yes
     wget --no-check-certificate https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/local/bin/cloud_sql_proxy && \
     chmod +x /usr/local/bin/cloud_sql_proxy
 
-curl -LO https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 && \
+RUN curl -LO https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 && \
     tar -xvjf htslib-1.9.tar.bz2 && cd htslib-1.9 && \
     ./configure && make && make install && cd .. && rm -rf htslib-1.9*
 
-
-# copy pheweb source
-ADD . /pheweb
 
 
 # install python packages and perquisites
@@ -46,9 +46,9 @@ RUN cd /pheweb/pheweb/serve/react && \
     mv /pheweb/pheweb/serve/static/bundle.js /usr/local/lib/python3.7/dist-packages/pheweb/serve/static/ && \
     rm -r /pheweb
 
-EXPOSE 8080
-CMD cloud_sql_proxy -instances=phewas-development:europe-west1:pheweb=tcp:3306 -credential_file=/mnt/nfs/pheweb/phewas.sql.credentials.json & cd $PHEWEB_DIR && pheweb serve --port 8080 --num-workers 4
 
 ADD . /pheweb
 ADD pheweb/load/external_matrix.py /usr/local/bin/
 
+EXPOSE 8080
+CMD cloud_sql_proxy -instances=phewas-development:europe-west1:pheweb=tcp:3306 -credential_file=/mnt/nfs/pheweb/phewas.sql.credentials.json & cd $PHEWEB_DIR && pheweb serve --port 8080 --num-workers 4
