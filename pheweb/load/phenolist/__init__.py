@@ -290,7 +290,7 @@ def _get_hashable(obj):
     assert hasattr(obj, '__hash__')
     return obj
 
-def merge_in_info(phenolist, more_info_rows):
+def merge_in_info(phenolist, more_info_rows, allow_missing_fields=False):
     "This function assumes that every pheno in phenolist has exactly one match (ie, same phenocode) in more_info_rows"
     # TODO: rename "more_info_rows" something else.
     for t in [phenolist, more_info_rows]:
@@ -305,7 +305,10 @@ def merge_in_info(phenolist, more_info_rows):
         if row is None:
             raise PheWebError("ERROR: there's no row in your info-to-merge file with the phenocode {!r}".format(pheno['phenocode']))
         for key in keys_to_add:
-            pheno[key] = row[key]
+            if not allow_missing_fields and key not in row:
+                raise PheWebError("Trying to pull in the keys {}, but the row {} doesn't have them".format(keys_to_add, row))
+            if key in row:
+                pheno[key] = row[key]
     return phenolist
 
 def unique_phenocode(phenolist, new_column_name):
@@ -568,10 +571,11 @@ def run(argv):
     @modifies_phenolist
     def f(args, phenolist):
         more_info_file = load_phenolist(args.file_with_more_info) # TODO: maybe import_phenolist?
-        phenolist = merge_in_info(phenolist, more_info_file)
+        phenolist = merge_in_info(phenolist, more_info_file, allow_missing_fields=args.allow_missing_fields)
         return phenolist
     p = subparsers.add_parser('merge-in-info', help='')
     p.add_argument('-f', dest="filepath", help="pheno-list filepath, used for both input and output (default: {!r})".format(default_phenolist_filepath))
+    p.add_argument('--allow-missing-fields',  action='store_true', help="Allow some fields to be missing on some phenotypes (unlike the default, which requires all phenotypes to have the same fields)")
     p.add_argument('file_with_more_info', help="a pheno-list file with more information to add to the main pheno-list file")
 
     args = parser.parse_args(argv)
