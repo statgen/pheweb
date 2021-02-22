@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
-import gzip
+import gzip, sys
 
-in_filepath = Path('generated-by-pheweb/sites/sites.tsv')
-out_filepath = Path('input.vcf.gz')
+in_filepath = Path(sys.argv[1])
+out_filepath = Path(sys.argv[2])
 
 with gzip.open(in_filepath, 'rt') as in_f, gzip.open(out_filepath,'wt') as out_f:
     def write(line:str): out_f.write(line); out_f.write('\n')

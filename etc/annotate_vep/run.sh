@@ -1,29 +1,37 @@
 #!/bin/bash
 set -euo pipefail
+readlinkf() { perl -MCwd -le 'print Cwd::abs_path shift' "$1"; }
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-## This script should get run from the directory containing `generated-by-pheweb`.
+set -x
+
+## This script should get run from the directory that contains `generated-by-pheweb`.
 ## It needs `generated-by-pheweb/sites/sites.tsv`, so it should get run after `pheweb add-genes` and its preceeding steps.
 ## You can see the list of steps with `pheweb process -h`.
 ## Then you should be able to continue with the rest of the steps.  I think `pheweb process` should pick up at the right spot.
-
-## This script only works on hg38.
-## If It will probably work on hg19 if you replace GRCh38 with GRCh37.
-
-## This script installs VEP in docker.
-
 ## To use these VEP consequences to filter the filterable manhattan plot, set `show_manhattan_filter_consequence = True` in `config.py`.
+
+## Uncomment your build:
+#build="GRCh38"
+build="GRCh37"
 
 ## Setting parallel="yes" splits the input into chunks of 3 million variants and annotates them in parallel.
 ## None of this is super robust, and parallel is even less.
 parallel="no"
 
+# This script needs a version of python that has pheweb installed.
+python_exe="/data/pheweb/pheweb-installs/pheweb1.3/venv/bin/python3"
+#python_exe="python3"
+
 
 mkdir -p vep_data/input
 chmod a+rwx vep_data
-python3 make_vcf.py
+if ! [[ -e input.vcf.gz ]]; then
+   "$python_exe" "$SCRIPTDIR/make_vcf.py" generated-by-pheweb/sites/sites.tsv input.vcf.gz
+fi
 
 if ! [[ $parallel = "yes" ]]; then
-   mv input.vcf.gz vep_data/input/
+   cp input.vcf.gz vep_data/input/
 else
     zcat input.vcf|grep -v '^##'| split --lines=$((3*1000*1000)) - split_
     for file in split_*; do
@@ -33,26 +41,26 @@ else
     done
 fi
 
-docker pull ensemblorg/ensembl-vep
-docker run -t -i -v vep_data:/opt/vep/.vep ensemblorg/ensembl-vep
-sudo docker run -t -i -v $PWD/vep_data:/opt/vep/.vep ensemblorg/ensembl-vep perl INSTALL.pl -a cfp -s homo_sapiens -y GRCh38 -g all
-
+sudo docker pull ensemblorg/ensembl-vep
+sudo docker run -v "$PWD/vep_data":/opt/vep/.vep ensemblorg/ensembl-vep perl INSTALL.pl -a cfp -s homo_sapiens -y "$build" -g all  # Do we really need `-g all`?
 
 if ! [[ $parallel = "yes" ]]; then
-    sudo docker run -v $PWD/vep_data:/opt/vep/.vep ensemblorg/ensembl-vep ./vep --input_file=/opt/vep/.vep/input/input.vcf.gz --output_file=/opt/vep/.vep/output-$name.tsv --force_overwrite --compress_output=gzip --cache --offline --assembly=GRCh38 --regulatory --most_severe --check_existing
+    sudo docker run -v "$PWD/vep_data":/opt/vep/.vep ensemblorg/ensembl-vep ./vep --input_file=/opt/vep/.vep/input/input.vcf.gz --output_file=/opt/vep/.vep/output.tsv --force_overwrite --compress_output=gzip --cache --offline --assembly="$build" --regulatory --most_severe --check_existing
+    mv vep_data/output.tsv out-raw-vep.tsv
 
 else
     for f in vep_data/input/split_*; do
         name=$(basename "$f")
-        sudo docker run -v $PWD/vep_data:/opt/vep/.vep ensemblorg/ensembl-vep ./vep --input_file=/opt/vep/.vep/input/$name --output_file=/opt/vep/.vep/output-$name.tsv --force_overwrite --compress_output=gzip --cache --offline --assembly=GRCh38 --regulatory --most_severe --check_existing &
+        sudo docker run -v "$PWD/vep_data":/opt/vep/.vep ensemblorg/ensembl-vep ./vep --input_file=/opt/vep/.vep/input/$name --output_file=/opt/vep/.vep/output-$name.tsv --force_overwrite --compress_output=gzip --cache --offline --assembly="$build" --regulatory --most_severe --check_existing &
     done
+    wait  # Wait for child processes to exit (hopefully sucessfully)
     zcat vep_data/output-split_aa.tsv | grep '^#' | gzip > out-raw-vep.tsv
     for f in $(echo vep_data/output-split_a*tsv|tr " " "\n"|sort); do
         zcat $f | grep -v '^#' | gzip >> out-raw-vep.tsv
     done
 fi
 
-python3 merge.py
+"$python_exe" "$SCRIPTDIR/merge.py" generated-by-pheweb/sites/sites.tsv out-raw-vep.tsv sites-vep.tsv
 
 
 echo "Now check that sites-vep.tsv looks good."

@@ -5,15 +5,13 @@ from pathlib import Path
 import gzip, itertools, csv, sys
 import more_itertools
 
-# If pheweb isn't installed globally, either use this line or change the #! to point to venv/bin/python3 .
-sys.path.append('/data/pheweb/pheweb-installs/pheweb1.3/pheweb/')
-
 import pheweb
 from pheweb.file_utils import VariantFileReader, read_maybe_gzip
 
-sites_filepath = Path('generated-by-pheweb/sites/sites.tsv')
-vep_filepath = Path('out-raw-vep.tsv')
-out_filepath = Path('sites-vep.tsv')
+
+sites_filepath = Path(sys.argv[1])
+vep_filepath = Path(sys.argv[2])
+out_filepath = Path(sys.argv[3])
 
 def sites_reader():
     with VariantFileReader(sites_filepath) as vfr:
