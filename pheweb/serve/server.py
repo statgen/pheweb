@@ -409,9 +409,9 @@ def about_page():
 
 def die(message='no message', exception=None):
     if exception is not None:
-        print(exception)
+        print('Exception:', exception)
         traceback.print_exc()
-    print(message)
+    print(message, flush=True)
     flash(message)
     abort(404)
 

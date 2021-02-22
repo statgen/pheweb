@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-if __name__ == '__main__': import kpa.dev_utils; kpa.dev_utils.run(__file__)
 
 from pathlib import Path
 import gzip, itertools, csv, sys
-import more_itertools
 
 import pheweb
 from pheweb.file_utils import VariantFileReader, read_maybe_gzip
@@ -15,18 +13,19 @@ out_filepath = Path(sys.argv[3])
 
 def sites_reader():
     with VariantFileReader(sites_filepath) as vfr:
-        variants = more_itertools.peekable(iter(vfr))
-        first_variant = variants.peek()
+        variants = iter(vfr)
+        first_variant = next(variants)
         assert sorted(first_variant.keys()) == sorted(['chrom', 'pos', 'ref', 'alt', 'rsids', 'nearest_genes']), first_variant
-        yield from variants
+        yield from itertools.chain([first_variant], variants)
 
 def vep_reader():
     with read_maybe_gzip(vep_filepath) as sites_f:
         reader = csv.DictReader((line.lstrip('#') for line in sites_f if not line.startswith('##')), delimiter='\t')
         first_row = next(reader)
         required_cols = {'Uploaded_variation', 'Consequence'}
-        if (missing_cols := required_cols - first_row.keys()):
-            raise Exception(f'{missing_cols=} {first_row=}')
+        missing_cols = required_cols - first_row.keys()
+        if missing_cols:
+            raise Exception(f'missing_cols={missing_cols} first_row={first_row}')
         for row in itertools.chain([first_row], reader):
             chrom, pos, ref, alt = row['Uploaded_variation'].split(':')
             pos = int(pos)
