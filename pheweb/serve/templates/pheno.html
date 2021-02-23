@@ -193,6 +193,7 @@
           <th>Nearest Gene(s)</th>
           <th>MAF</th>
           <th>P-value</th>
+          <th>Effect Size (se)</th>
         </tr>
       </thead>
       <tbody>
@@ -233,6 +234,7 @@
 <td><i><%= v.nearest_genes.replace(/,/g, ', ') %></i></td>
 <td><%= (v.maf)? v.maf.toPrecision(2) : (v.af)? Math.min(v.af, 1-v.af).toPrecision(2) : (v.ac)? v.ac : "" %></td>
 <td><%= v.pval.toExponential(1) %></td>
+<td><%= (v.beta) ? v.beta.toPrecision(2) : "" %><%= (v.sebeta) ? " ("+v.sebeta.toPrecision(2)+")" : "" %></td>
 </tr>
 </script>
 {% endblock %}
