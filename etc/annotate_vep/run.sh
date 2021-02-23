@@ -64,6 +64,6 @@ fi
 
 
 echo "Now check that sites-vep.tsv looks good."
-echo "It should have the same variants as `generated-by-pheweb/sites/sites.tsv`."
+echo 'It should have the same variants as `generated-by-pheweb/sites/sites.tsv`.'
 echo "It should have the same columns, plus 'consequence'."
-echo "Then run `mv sites-vep.tsv generated-by-pheweb/sites/sites.tsv`."
+echo 'Then run `mv sites-vep.tsv generated-by-pheweb/sites/sites.tsv`.'
