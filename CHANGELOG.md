@@ -16,9 +16,7 @@ Changes needed to data:
 
 Changes needed to data:
 
-- Run `pheweb download-genes`
-- Run `pheweb make-gene-aliases-sqlite3`
-- Run `rm generated-by-pheweb/phenotypes.json; pheweb phenotypes`
+- Run `rm generated-by-pheweb/sites/sites.tsv && pheweb process` (because gene names must agree beween autocompletion and the pre-processed data)
 
 ## 1.3.6
 - Speeds up `pheweb gather-pvalues-for-each-gene` ~2x by avoiding reading any variant twice.  (Thanks to finngen for this suggestion.)
