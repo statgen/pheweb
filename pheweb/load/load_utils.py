@@ -199,6 +199,8 @@ class Parallelizer:
                     raise PheWebError('Child process had exception, info dumped to {}'.format(exc_filepath))
                 elif ret['type'] == 'exit':
                     n_procs -= 1
+                    self._update_progressbar(progressbar, n_tasks_complete, n_procs, len(tasks))
+                    for p in procs: p.is_alive()  # This cleans up zombies
                     if n_procs == 0:
                         self._update_progressbar(progressbar, n_tasks_complete, n_procs, len(tasks))
                         for p in procs:
