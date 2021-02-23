@@ -5,7 +5,7 @@
 - Includes code for annotating with VEP
 - Shows category on /top_hits
 
-Changes needed to data:
+**Changes needed to data:**
 
 - Run `rm generated-by-pheweb/top_hits.json; pheweb top-hits`
 
@@ -14,7 +14,7 @@ Changes needed to data:
 - Shows GClambda and num_samples/num_cases/num_controls and num_loci<5e8 on /phenotypes
 - Supports custom_templates/ again
 
-Changes needed to data:
+**Changes needed to data:**
 
 - Run `rm generated-by-pheweb/sites/sites.tsv && pheweb process` (because gene names must agree beween autocompletion and the pre-processed data)
 
@@ -55,7 +55,7 @@ Bugs:
 - Gets rid of `generated-by-pheweb/pheno/`, relying on `generated-by-pheweb/pheno_gz/` instead.
 - Allows `chr1`-`chr25` in input files.
 
-Changes needed to data:
+**Changes needed to data:**
 
 - Run `pheweb download-genes`
 - Run `pheweb make-gene-aliases-sqlite3`
