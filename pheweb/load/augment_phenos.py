@@ -47,9 +47,10 @@ def convert(pheno:Dict[str,Any]) -> None:
         pheno_variants = with_chrom_idx(iter(pheno_reader))
 
         def write_variant(sites_variant:Dict[str,Any], pheno_variant:Dict[str,Any]) -> None:
-            sites_variant.update(pheno_variant)
-            del sites_variant['chrom_idx']
-            writer.write(sites_variant)
+            # Sometimes I use copy files from pheno_gz/ into parsed/, and I want the new sites info to take precendence.
+            pheno_variant.update(sites_variant)
+            del pheno_variant['chrom_idx']
+            writer.write(pheno_variant)
 
         try: pheno_variant = next(pheno_variants)
         except StopIteration: raise PheWebError("It appears that the phenotype {!r} has no variants.".format(pheno['phenocode']))
