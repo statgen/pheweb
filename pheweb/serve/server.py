@@ -547,13 +547,17 @@ if 'login' in conf:
     def logout():
         print(current_user.email, 'logged out')
         logout_user()
-        return redirect(url_for('homepage'))
+        return redirect(url_for('homepage',
+                                _scheme='https',
+                                _external=True))
 
     @app.route('/login_with_google')
     @is_public
     def login_with_google():
         "this route is for the login button"
-        session['original_destination'] = url_for('homepage')
+        session['original_destination'] = url_for('homepage',
+                                                  _scheme='https',
+                                                  _external=True)
         return redirect(url_for('get_authorized',
                                 _scheme='https',
                                 _external=True))
@@ -569,14 +573,18 @@ if 'login' in conf:
                 orig_dest = session['original_destination']
                 del session['original_destination'] # We don't want old destinations hanging around.  If this leads to problems with re-opening windows, disable this line.
             else:
-                orig_dest = url_for('homepage')
+                orig_dest = url_for('homepage',
+                                    _scheme='https',
+                                    _external=True)
             return redirect(orig_dest)
 
     @app.route('/callback/google')
     @is_public
     def oauth_callback_google():
         if not current_user.is_anonymous and verify_membership(current_user.email):
-            return redirect(url_for('homepage'))
+            return redirect(url_for('homepage',
+                                    _scheme='https',
+                                    _external=True))
         try:
             username, email = google_sign_in.callback() # oauth.callback reads request.args.
         except Exception as exc:
@@ -584,15 +592,21 @@ if 'login' in conf:
             print(exc)
             print(traceback.format_exc())
             flash('Something is wrong with authentication. Please contact humgen-servicedesk@helsinki.fi')
-            return redirect(url_for('auth'))
+            return redirect(url_for('auth',
+                                    _scheme='https',
+                                    _external=True))
         if email is None:
             # I need a valid email address for my user identification
             flash('Authentication failed by failing to get an email address.')
-            return redirect(url_for('auth'))
+            return redirect(url_for('auth',
+                                    _scheme='https',
+                                    _external=True))
 
         if not verify_membership(email):
             flash('{!r} is not allowed to access FinnGen results. If you think this is an error, please contact humgen-servicedesk@helsinki.fi'.format(email))
-            return redirect(url_for('auth'))
+            return redirect(url_for('auth',
+                                    _scheme='https',
+                                    _external=True))
 
         # Log in the user, by default remembering them for their next visit.
         user = User(username, email)
