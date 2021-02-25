@@ -554,7 +554,9 @@ if 'login' in conf:
     def login_with_google():
         "this route is for the login button"
         session['original_destination'] = url_for('homepage')
-        return redirect(url_for('get_authorized'))
+        return redirect(url_for('get_authorized',
+                                _scheme='https',
+                                _external=True))
 
     @app.route('/get_authorized')
     @is_public
@@ -597,4 +599,6 @@ if 'login' in conf:
         login_user(user, remember=True)
 
         print(user.email, 'logged in')
-        return redirect(url_for('get_authorized'))
+        return redirect(url_for('get_authorized',
+                                _scheme='https',
+                                _external=True))
