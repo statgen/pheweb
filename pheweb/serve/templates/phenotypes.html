@@ -73,7 +73,7 @@
     </a></td>
     <td>
       <% if (h.num_cases && h.num_controls) { %>
-        <%= h.num_cases.toLocaleString() %> / <%= h.num_controls.toLocaleString() %>
+        <%= h.num_cases.toLocaleString() %> + <%= h.num_controls.toLocaleString() %>
       <% } else if (h.num_samples) { %>
         <%= h.num_samples.toLocaleString() %>
       <% } %>
