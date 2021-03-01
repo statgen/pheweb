@@ -3,6 +3,11 @@ set -euo pipefail
 _readlinkf() { perl -MCwd -le 'print Cwd::abs_path shift' "$1"; }
 script_dir="$(cd "$(dirname "$(_readlinkf "${BASH_SOURCE[0]}")")" && echo "$PWD")"
 
+# This script runs a pheweb server.
+# It uses the data loaded when you ran `pytest` (or `./setup.py test`) last.
+# It's useful for modifying the server code and immediately seeing the results.
+# It should use the local files instead of the globally installed pheweb, but who knows.
+
 data_dir="$TMPDIR/pytest-of-$USER/pytest-$USER/"
 if ! [[ -d "$data_dir" ]]; then
    data_dir="$TMPDIR/pytest-of-$USER/pytest-current/test_all0/" # I've seen this format but I'm not sure where

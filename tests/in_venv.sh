@@ -5,6 +5,10 @@ SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPTDIR/.."
 pwd
 
+# This script installs pheweb in a venv and runs tests there.
+# It's helpful for checking that there aren't any un-checked-in files I guess.
+# Or for testing a version of pheweb that isn't installed globally.
+
 f() {
 # 0. Run pre-commit checks
 ./etc/pre-commit
