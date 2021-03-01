@@ -1,0 +1,27 @@
+name: Python application
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.6
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+    - name: Lint with flake8
+      run: |
+        python3 -m pip install flake8 mypy
+        # stop the build if there are Python syntax errors or undefined names
+        ./etc/pre-commit
+    - name: Test wheel with pytest
+      run: |
+        python3 -m pip install wheel # for bdist_wheel
+        python3 -m pip install pytest
+        python3 setup.py sdist bdist_wheel
+        sh -c "cd /tmp && python3 -m pip install $PWD/dist/*.whl" # must be in a new dir to avoid finding build artifacts
+        sh -c "cd /tmp && pytest $PWD/tests" # must be in a new dir to avoid finding source code
