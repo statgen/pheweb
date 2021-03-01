@@ -26,5 +26,5 @@ echo "Try http://localhost:5000/variant/1:869334-G-A"
 echo "Try http://localhost:5000/pheno/snowstorm"
 echo "Try http://localhost:5000/gene/SAMD11"
 
-pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true serve
+pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true custom_templates="$indir/custom_templates" serve
 }; f
