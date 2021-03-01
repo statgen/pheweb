@@ -3,6 +3,9 @@ set -euo pipefail
 readlinkf() { perl -MCwd -le 'print Cwd::abs_path shift' "$1"; }
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# This script loads data and runs a server using the globally installed `pheweb`.
+# It's helpful when you're modifying the code and want to quick see the results.
+
 f() {
 data_dir=$(mktemp -d)
 indir="$SCRIPTDIR/input_files"
