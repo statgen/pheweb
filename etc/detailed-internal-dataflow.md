@@ -1,46 +1,53 @@
 # Internal Data-Handling
 ```
-                 input-association-files (epacts, plink, snptest, &c)
+                 input-association-files
                       │         │
+                      |     [phenolist]
+                      |         │
                       │         v
                       │  pheno-list.json
+                      │   │           │
+                     [parse]          │
                       │   │           │
                       v   v           │
                      parsed/*         │
                         │ └──────┐    │
+                     [sites]     │    │
+                        |        │    │
                         v        │    │
-                       unanno    │    │
-               genes.bed │       │    │
-             rsids.tsv │ │       │    │
-                     │ │ │       │    │
-                     v v v       │    │
-                  sites.tsv      │    │
-                  │   │   │      v    v
-                  │   │   └────> pheno_gz/*
-                  v   │          │ │ │ │
-  cpras-rsids-sqlite3 │          │ │ │ v
-                      v          v │ │ best_of_pheno/*
-                     matrix.tsv.gz │ v
-                      │    │       │ manhattan/*
-                      v    │       v         │
-       matrix.tsv.gz.tbi   │      qq/*       v
-                      │    │                top_{loci,hits{,_1k}}.{json,tsv}
-                      v    v                phenotypes.json
-         best-phenos-by-gene.json
+                     unanno      │    │
+                        │        │    │
+   rsids.tsv.gz -> [add-rsids]   │    │
+      genes.bed -> [add-genes]   │    │
+                       │         │    │
+                       v     [augment-phenos]
+                  sites.tsv         |
+                  │   │   │         v
+          [make-...]  │   └────> pheno_gz/*
+                  |   │          │  │  │  |
+                  |   │          │  │  │  v
+                  v   └>[matrix]<┘  │  v [best-of-pheno] -> best_of_pheno/*
+  cpras-rsids-sqlite3      │        v [qq] -> qq/*  
+                           v       [manhattan] -> manhattan/* -> [phenotypes] -> phenotypes.json
+                     matrix.tsv.gz                   |
+                      │    │                         v
+           [gather-pvalues-for-each-gene]        [top-hits] -> top_hits.json
+                      │    │                
+                      v    v   
+         best-phenos-by-gene.sqlite3
 ```
 
-- `parsed/*` have all per-variant and per-assoc fields from the input files
-- `unanno` (unannotated) has all per-variant fields from `parsed/*`
-- `sites.tsv` has `unanno`'s fields and also `rsids` and `nearest_genes` and (optionally) `consequence`.
-- `pheno_gz/*` have `parsed/*`'s fields and also `rsids` and `nearest_genes` and (optionally) `consequence`.
-    - every phenotype must include the same optional per-variant fields, and every per-variant field must be in the same order, due to the implemention of the `pheweb matrix`
+Square brackets show `pheweb <step>` subcommands.
+Filenames are in `generated-by-pheweb/` or its subdirectories (except `pheno-list.json` which is its sibling).
+
+Reference this diagram against the filepaths listed in `file_utils.py` and the steps in `pheweb process -h`.
+You can see all of the per-variant fields, per-association fields, and per-phenotype fields in `parse_utils.py`.
+
+- `parsed/*` have the per-variant and per-association fields from the input files.
+- `unanno` (unannotated) has all per-variant fields from `parsed/*`.
+- `sites.tsv` has `unanno`'s fields plus `rsids` and `nearest_genes` and (optionally) `consequence`.
+- `pheno_gz/*` is like `parsed/*`'s plus `rsids` and `nearest_genes` and (optionally) `consequence`.
+    - Every line in these files must begin with a line from `sites.tsv` in order for `pheweb matrix` to work.  ie, they've got to have the same per-variant fields.
 - `cpras-rsid-sqlite3` is for autocomplete suggestions.
-- `matrix.tsv.gz` contains all per-variant fields at the beginning (confirmed to EXACTLY match every file among \[pheno\_pheno/\* , sites.tsv\]) and all per-assoc fields (with header format `<per-assoc-field>@<pheno-id>`).
-- `top_hits.json` contains variants (and their per-variant and per-assoc fields) that passed this algorithm:
-   - start with all variants with pval<1e-6
-   - iteratively take the association with the most-significant pval, and mask all variants within 500kb in its phenotype
-- `top_loci.json` contains variants (and their per-variant and per-assoc fields) that passed this algorithm:
-   - start with all variants with pval<1e-6
-   - iteratively take the association with the most-significant pval, and mask all variants within 1Mb in its phenotype or within 500kb in any phenotype
-   - this might not be a subset of top_hits.
+- `matrix.tsv.gz` contains all the per-variant fields (ie, an exact copy of `sites.tsv` in its left few columns, and all per-assoc fields (with header format `<fieldname>@<phenocode>`, eg `maf@a1c`).
 - `best-phenos-by-gene.json` includes the best phenos in/near a gene, and the best association for each.
