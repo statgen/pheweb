@@ -2,8 +2,8 @@
 ```
                  input-association-files
                       │         │
-                      |     [phenolist]
-                      |         │
+                      │     [phenolist]
+                      │         │
                       │         v
                       │  pheno-list.json
                       │   │           │
@@ -13,7 +13,7 @@
                      parsed/*         │
                         │ └──────┐    │
                      [sites]     │    │
-                        |        │    │
+                        │        │    │
                         v        │    │
                      unanno      │    │
                         │        │    │
@@ -21,17 +21,17 @@
       genes.bed -> [add-genes]   │    │
                         │        │    │
                         v    [augment-phenos]
-                  sites.tsv         |
+                  sites.tsv         │
                   │   │   │         v
           [make-...]  │   └────> pheno_gz/*
-                  |   │          │  │  │  └─[best-of-pheno]─> best_of_pheno/*
+                  │   │          │  │  │  └─[best-of-pheno]─> best_of_pheno/*
                   v   └─[matrix]─┘  │  └─[qq]-> qq/*  
-  cpras-rsids-sqlite3      │        |  
+  cpras-rsids-sqlite3      │        │  
                            v        └─[manhattan]-> manhattan/*
-                     matrix.tsv.gz                   |      |
-                      │    │                         |      |
+                     matrix.tsv.gz                   │      │
+                      │    │                         │      │
            [gather-pvalues-for-each-gene]     [top-hits]  [phenotypes]
-                      │    │                         |      |
+                      │    │                         │      │
                       v    v                         v      v
          best-phenos-by-gene.sqlite3       top_hits.json  phenotypes.json
 ```
