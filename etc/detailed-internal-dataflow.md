@@ -19,22 +19,21 @@
                         │        │    │
    rsids.tsv.gz -> [add-rsids]   │    │
       genes.bed -> [add-genes]   │    │
-                       │         │    │
-                       v     [augment-phenos]
+                        │        │    │
+                        v    [augment-phenos]
                   sites.tsv         |
                   │   │   │         v
           [make-...]  │   └────> pheno_gz/*
-                  |   │          │  │  │  |
-                  |   │          │  │  │  v
-                  v   └>[matrix]<┘  │  v [best-of-pheno] -> best_of_pheno/*
-  cpras-rsids-sqlite3      │        v [qq] -> qq/*  
-                           v       [manhattan] -> manhattan/* -> [phenotypes] -> phenotypes.json
-                     matrix.tsv.gz                   |
-                      │    │                         v
-           [gather-pvalues-for-each-gene]        [top-hits] -> top_hits.json
-                      │    │                
-                      v    v   
-         best-phenos-by-gene.sqlite3
+                  |   │          │  │  │  └─[best-of-pheno]─> best_of_pheno/*
+                  v   └─[matrix]─┘  │  └─[qq]-> qq/*  
+  cpras-rsids-sqlite3      │        |  
+                           v        └─[manhattan]-> manhattan/*
+                     matrix.tsv.gz                   |      |
+                      │    │                         |      |
+           [gather-pvalues-for-each-gene]     [top-hits]  [phenotypes]
+                      │    │                         |      |
+                      v    v                         v      v
+         best-phenos-by-gene.sqlite3       top_hits.json  phenotypes.json
 ```
 
 Square brackets show `pheweb <step>` subcommands.
