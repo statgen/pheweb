@@ -11,29 +11,26 @@
                       │   │           │
                       v   v           │
                      parsed/*         │
-                        │ └──────┐    │
-                     [sites]     │    │
-                        │        │    │
-                        v        │    │
-                     unanno      │    │
-                        │        │    │
-   rsids.tsv.gz -> [add-rsids]   │    │
-      genes.bed -> [add-genes]   │    │
-                        │        │    │
-                        v    [augment-phenos]
-                  sites.tsv         │
-                  │   │   │         v
-          [make-...]  │   └────> pheno_gz/*
-                  │   │          │  │  │  └─[best-of-pheno]─> best_of_pheno/*
-                  v   └─[matrix]─┘  │  └─[qq]-> qq/*  
-  cpras-rsids-sqlite3      │        │  
+                      │   └──────┐    │
+                   [sites]       │    │
+   rsids.tsv.gz--[add-rsids]     │    │
+      genes.bed--[add-genes]     │    │
+                      │          │    │
+                      v          │    │
+                  sites.tsv      │    │
+                  │   │   └──[augment-phenos]
+          [make-...]  │             │
+                  │   │             v
+                  v   │          pheno_gz/*
+ cpras-rsids-sqlite3  └─[matrix]─┘  │  │  └─[best-of-pheno]─> best_of_pheno/*
+                           │        │  └─[qq]-> qq/*  
                            v        └─[manhattan]-> manhattan/*
                      matrix.tsv.gz                   │      │
-                      │    │                         │      │
-           [gather-pvalues-for-each-gene]     [top-hits]  [phenotypes]
-                      │    │                         │      │
-                      v    v                         v      v
-         best-phenos-by-gene.sqlite3       top_hits.json  phenotypes.json
+                      │    │                  [top-hits]  [phenotypes]
+           [gather-pvalues-for-each-gene]            │      │
+                      │    │                         v      v
+                      v    v               top_hits.json  phenotypes.json
+         best-phenos-by-gene.sqlite3
 ```
 
 Square brackets show `pheweb <step>` subcommands.
