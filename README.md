@@ -152,3 +152,4 @@ To allow dynamically filtering the manhattan plot, run `pheweb best-of-pheno` an
 # Modifying PheWeb
 
 See instructions [here](etc/detailed-development-instructions.md).
+See documentation about the files in `generated-by-pheweb/` [here](etc/detailed-internal-dataflow.md).
