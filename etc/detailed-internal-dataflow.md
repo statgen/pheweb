@@ -16,26 +16,26 @@
                      v v v       │    │
                   sites.tsv      │    │
                   │   │   │      v    v
-                  │   │   └────> pheno/*
+                  │   │   └────> pheno_gz/*
                   v   │          │ │ │ │
-    cpra-rsids-tries  │          │ │ │ v
-                      v          v │ │ augmented_pheno_gz/*
+  cpras-rsids-sqlite3 │          │ │ │ v
+                      v          v │ │ best_of_pheno/*
                      matrix.tsv.gz │ v
                       │    │       │ manhattan/*
                       v    │       v         │
        matrix.tsv.gz.tbi   │      qq/*       v
                       │    │                top_{loci,hits{,_1k}}.{json,tsv}
-                      v    v
+                      v    v                phenotypes.json
          best-phenos-by-gene.json
 ```
 
 - `parsed/*` have all per-variant and per-assoc fields from the input files
 - `unanno` (unannotated) has all per-variant fields from `parsed/*`
-- `sites.tsv` has `unanno`'s fields and also `rsids` and `nearest_genes`
-- `pheno/*` have `parsed/*`'s fields and also `rsids` and `nearest_genes`
-    - all must include the same optional per-variant fields, and all per-variant fields must be in the same order, due to the implemention of the `matrix.tsv.gz`-maker
-- cpra-rsid-tries are for autocomplete suggestions.
-- `matrix.tsv.gz` contains all per-variant fields at the beginning (confirmed to EXACTLY match any file among \[augmented\_pheno/\* , sites.tsv\] where they exist) and all per-assoc fields (with header format `<per-assoc-field>@<pheno-id>`).
+- `sites.tsv` has `unanno`'s fields and also `rsids` and `nearest_genes` and (optionally) `consequence`.
+- `pheno_gz/*` have `parsed/*`'s fields and also `rsids` and `nearest_genes` and (optionally) `consequence`.
+    - every phenotype must include the same optional per-variant fields, and every per-variant field must be in the same order, due to the implemention of the `pheweb matrix`
+- `cpras-rsid-sqlite3` is for autocomplete suggestions.
+- `matrix.tsv.gz` contains all per-variant fields at the beginning (confirmed to EXACTLY match every file among \[pheno\_pheno/\* , sites.tsv\]) and all per-assoc fields (with header format `<per-assoc-field>@<pheno-id>`).
 - `top_hits.json` contains variants (and their per-variant and per-assoc fields) that passed this algorithm:
    - start with all variants with pval<1e-6
    - iteratively take the association with the most-significant pval, and mask all variants within 500kb in its phenotype
