@@ -24,7 +24,7 @@ function custom_LocusZoom_Layouts_get(layout_type, layout_name, customizations) 
     return layout;
 }
 
-LocusZoom.TransformationFunctions.set("percent", function(x) {
+LocusZoom.TransformationFunctions.add("percent", function(x) {
     if (x === 1) { return "100%"; }
     x = (x * 100).toPrecision(2);
     if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }

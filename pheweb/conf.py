@@ -160,8 +160,8 @@ def get_pheno_correlations_pvalue_threshold() -> float: return _get_config_float
 
 
 ## Serving config
-def get_lzjs_version() -> str: return _get_config_str('lzjs_version', '0.10.2')
-def get_lzjs_version_phewas() -> str: return _get_config_str('lzjs_version_phewas', '0.9.0')
+def get_lzjs_version() -> str: return _get_config_str('lzjs_version', '0.13.0')
+def get_lzjs_version_phewas() -> str: return _get_config_str('lzjs_version_phewas', '0.13.0')
 def should_allow_variant_json_cors() -> bool: return _get_config_bool('allow_variant_json_cors', True)
 def get_urlprefix() -> str: return _get_config_str('urlprefix', '').rstrip('/')
 def get_custom_templates_dir() -> Optional[str]:

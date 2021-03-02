@@ -1,6 +1,6 @@
 'use strict';
 
-LocusZoom.KnownDataSources.extend("AssociationLZ", "AssociationPheWeb", {
+LocusZoom.Adapters.extend("AssociationLZ", "AssociationPheWeb", {
     getURL: function (state, chain, fields) {
         return this.url + "results/?filter=chromosome in  '" + state.chr + "'" +
             " and position ge " + state.start +
@@ -30,11 +30,11 @@ LocusZoom.KnownDataSources.extend("AssociationLZ", "AssociationPheWeb", {
                 }
             });
         }
-        return LocusZoom.Data.AssociationSource.prototype.extractFields.call(this, data, fields, outnames, trans);
+        return LocusZoom.Adapters.get('AssociationLZ').prototype.extractFields.call(this, data, fields, outnames, trans);
     }
 });
 
-LocusZoom.TransformationFunctions.set("percent", function(x) {
+LocusZoom.TransformationFunctions.add("percent", function(x) {
     if (x === 1) { return "100%"; }
     x = (x * 100).toPrecision(2);
     if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }
@@ -47,71 +47,50 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     var localBase = window.model.urlprefix + "/api/region/" + window.pheno.phenocode + "/lz-";
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources()
-        .add("assoc", ["AssociationPheWeb", localBase])
-        .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { source: 2, build: "GRCh"+window.model.grch_build_number }}])
-        .add("ld", ["LDLZ2", { url: "https://portaldev.sph.umich.edu/ld/",
+        .add("assoc", ["AssociationPheWeb", {url: localBase }])
+        .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { build: "GRCh"+window.model.grch_build_number }}])
+        .add("ld", ["LDServer", { url: "https://portaldev.sph.umich.edu/ld/",
             params: { source: '1000G', build: 'GRCh'+window.model.grch_build_number, population: 'ALL' }
         }])
         .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {build: 'GRCh'+window.model.grch_build_number} }])
         .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {build:'GRCh'+window.model.grch_build_number} }]);
 
-    LocusZoom.TransformationFunctions.set("neglog10_or_323", function(x) {
+    LocusZoom.TransformationFunctions.add("neglog10_or_323", function(x) {
         if (x === 0) return 323;
         return -Math.log(x) / Math.LN10;
     });
 
-    // dashboard components
-    LocusZoom.Dashboard.Components.add("region", function(layout){
-        LocusZoom.Dashboard.Component.apply(this, arguments);
-        this.update = function(){
-            if (!isNaN(this.parent_plot.state.chr) && !isNaN(this.parent_plot.state.start) && !isNaN(this.parent_plot.state.end)
-                && this.parent_plot.state.chr != null && this.parent_plot.state.start != null && this.parent_plot.state.end != null){
-                this.selector.style("display", null);
-                this.selector.text(
-                    'chr' + this.parent_plot.state.chr.toString() + ': ' +
-                    LocusZoom.positionIntToString(this.parent_plot.state.start, 6, true).replace(' ','') + ' - ' +
-                    LocusZoom.positionIntToString(this.parent_plot.state.end, 6, true).replace(' ', ''));
-            } else {
-                this.selector.style("display", "none");
-            }
-            if (layout.class){ this.selector.attr("class", layout.class); }
-            if (layout.style){ this.selector.style(layout.style); }
-            return this;
-        };
-    });
-
-    function add_dashboard_button(name, func) {
-        LocusZoom.Dashboard.Components.add(name, function(layout){
-            LocusZoom.Dashboard.Component.apply(this, arguments);
-            this.update = function(){
+    // Toolbar Widgets
+    function add_toolbar_button(name, click_handler) {
+        LocusZoom.Widgets.extend('BaseWidget', name, {
+            update() {
                 if (this.button)
                     return this;
-                this.button = new LocusZoom.Dashboard.Component.Button(this)
-                    .setColor(layout.color).setHtml(layout.text).setTitle(layout.title)
-                    .setOnclick(func(layout).bind(this));
+                this.button = new (LocusZoom.Widgets.get('_Button'))(this)
+                    .setColor(this.layout.color)
+                    .setHtml(this.layout.text)
+                    .setTitle(this.layout.title)
+                    .setOnclick(click_handler.bind(this));
                 this.button.show();
                 return this.update();
-            };
+            }
         });
     }
 
-    add_dashboard_button('link', function(layout) {
-        return function() {
-            window.location.href = layout.url;
-        };
+    add_toolbar_button('link', function() {
+        window.location.href = this.layout.url;
     });
-    add_dashboard_button('move', function(layout) {
-        // see also the default component `shift_region`
-        return function() {
-            var start = this.parent_plot.state.start;
-            var end = this.parent_plot.state.end;
-            var shift = Math.floor(end - start) * layout.direction;
-            this.parent_plot.applyState({
-                chr: this.parent_plot.state.chr,
-                start: start + shift,
-                end: end + shift
-            });
-        }
+
+    add_toolbar_button('move', function() {
+        // FIXME: Replace with the LocusZoom widget`shift_region` (after adding a stepsize mode for relative region widths)
+        var start = this.parent_plot.state.start;
+        var end = this.parent_plot.state.end;
+        var shift = Math.floor(end - start) * this.layout.direction;
+        this.parent_plot.applyState({
+            chr: this.parent_plot.state.chr,
+            start: start + shift,
+            end: end + shift
+        });
     });
 
     // Define the layout, then fetch it via the LZ machinery responsible for namespacing
@@ -121,80 +100,92 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
         // height: 550,
         responsive_resize: 'width_only',
         max_region_scale: 500e3,
-        dashboard: {
-            components: [{
+        toolbar: {
+            widgets: [{
                 type: 'link',
                 title: 'Go to Manhattan Plot',
                 text:' Manhattan Plot',
-                url: window.model.urlprefix + '/pheno/' + window.pheno.phenocode
-            },{
+                url: window.model.urlprefix + '/pheno/' + window.pheno.phenocode,
+                position: 'left',
+            }, {
                 type: 'move',
                 text: '<<',
                 title: 'Shift view 1/4 to the left',
                 direction: -0.75,
                 group_position: "start"
-            },{
+            }, {
                 type: 'move',
                 text: '<',
                 title: 'Shift view 1/4 to the left',
                 direction: -0.25,
                 group_position: "middle"
-            },{
+            }, {
                 type: 'zoom_region',
                 button_html: 'z+',
                 title: 'zoom in 2x',
                 step: -0.5,
                 group_position: "middle"
-            },{
+            }, {
                 type: 'zoom_region',
                 button_html: 'z-',
                 title: 'zoom out 2x',
                 step: 1,
                 group_position: "middle"
-            },{
+            }, {
                 type: 'move',
                 text: '>',
                 title: 'Shift view 1/4 to the right',
                 direction: 0.25,
                 group_position: "middle"
-            },{
+            }, {
                 type: 'move',
                 text: '>>',
                 title: 'Shift view 3/4 to the right',
                 direction: 0.75,
                 group_position: "end"
-            },{
-                "type": "download",
-                "position": "right"
-            }, LocusZoom.Layouts.get('dashboard_components', 'ldlz2_pop_selector')]
+            }, {
+                type: 'download',
+                position: 'right',
+            }, {
+                type: 'download_png',
+                position: 'right',
+            }, LocusZoom.Layouts.get('toolbar_widgets', 'ldlz2_pop_selector')]
         },
         panels: [
             function() {
-                var l = LocusZoom.Layouts.get("panel", "annotation_catalog", {
+                var base = LocusZoom.Layouts.get("panel", "annotation_catalog", {
                     unnamespaced: true,
                     height: 52, min_height: 52,
                     margin: { top: 30, bottom: 13 },
-                    dashboard: { components: [] },
+                    toolbar: { widgets: [] },
+                    axes: {
+                        // FIXME: Can be removed after 0.13.1 bugfix release (render: false was missing)
+                        x: { render: false, extent: 'state' }
+                    },
                     title: {
                         text: 'Hits in GWAS Catalog',
                         style: {'font-size': '14px'},
                         x: 50,
                     },
                 });
-                l.data_layers[0].fields = [  // Tell annotation track the field names as used by PheWeb
+                var anno_layer = base.data_layers[0];
+                anno_layer.id_field = "{{namespace[assoc]}}id";
+                anno_layer.fields = [  // Tell annotation track the field names as used by PheWeb
+                    "{{namespace[assoc]}}id",
                     "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
                     "{{namespace[catalog]}}variant", "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
                 ];
-                l.data_layers[0].hit_area_width = 50;
-                return l;
+                anno_layer.hit_area_width = 50;
+                return base;
             }(),
             function() {
-                var l = LocusZoom.Layouts.get("panel", "association_catalog", {
+                // FIXME: The only customization here is to make the legend button green and hide the "move panel" buttons; displayn options doesn't need to be copy-pasted
+                var base = LocusZoom.Layouts.get("panel", "association_catalog", {
                     unnamespaced: true,
                     height: 200, min_height: 200,
                     margin: { top: 10 },
-                    dashboard: {
-                        components: [
+                    toolbar: {
+                        widgets: [
                             {
                                 type: "toggle_legend",
                                 position: "right",
@@ -304,14 +295,14 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
                         }()
                     ],
                 });
-                l.legend.origin.y = 15;
-                return l;
+                base.legend.origin.y = 15;
+                return base;
             }(),
             LocusZoom.Layouts.get("panel", "genes", {
                 unnamespaced: true,
                 // proportional_height: 0.5,
-                dashboard: {
-                    components: [{
+                toolbar: {
+                    widgets: [{
                         type: "resize_to_data",
                         position: "right",
                         color: "blue"
