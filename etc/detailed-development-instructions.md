@@ -1,64 +1,32 @@
-## Detailed developer instructions
+## Detailed development instructions
 
-This document contains information useful for those looking to modify and develop PheWeb source code. 
-Some familiarity with Python and basic commands is assumed.
+This document contains information useful for those looking to modify and develop the PheWeb source code. 
+It requires some familiarity with Python and terminal.
 
-### Installing the package
+### Installing PheWeb
 In order to reflect code changes as you work, PheWeb should be installed in "editable" mode.
 
 1. Clone the repository to a new folder.
-2. Create and active a new virtual environment (for example, based on Python 3). For example, in the checked-out 
-    PheWeb directory: `python3 -m venv .venv && source .venv/bin/activate` (if you prefer to manage your virtualenv 
-    some other way, that is ok)
+2. Create and active a new virtual environment. For example, in the checked-out PheWeb directory: `python3 -m venv .venv && source .venv/bin/activate` (if you prefer to manage your virtualenv some other way, that is ok)
 3. With the virtualenv activated, install the package in "editable" mode: `pip3 install -e .`
 4. When complete, verify that PheWeb is installed and working correctly: `pheweb -h`
 
+### Running static analysis
+
+You can do simple static analysis by running `./etc/pre-commit`.  It requires `pip3 install flake8 mypy`. If it is broken, it might not be a problem, but it can be a good way to catch bugs.
+
 ### Running the unit tests
-Tests may take several minutes to run. The test suite is intended to exercise the entire PheWeb codebase from start to 
-finish. In the future, more granular test filtering may be provided.
+The tests take a minute or two. PheWeb loads a sample dataset, runs a local server, and then queries some pages on that server.  It doesn't test everything in PheWeb, but it gets most of it.
 
 `pytest`
 
 
-### Creating a working instance with sample data
-The data used for unit tests can also provide the basis for a persistent local demonstration PheWeb site.  
+### Running a local server with sample data
+Run `./tests/run-all.sh`, and then open <http://localhost:5000/> to view your site.  
 
-First, generate a working *pheno-list.json* file:
+This uses the same data as the unit tests to serve a website you can browse.
 
-```bash
-$ pheweb phenolist glob --simple-phenocode 'tests/input_files/assoc-files/*'
-$ pheweb phenolist unique-phenocode
-$ pheweb phenolist read-info-from-association-files
-$ pheweb phenolist import-phenolist -f pheno-list-categories.json tests/input_files/categories.csv
-$ pheweb phenolist merge-in-info pheno-list-categories.json
-$ pheweb phenolist verify --required-columns category
-```
+The homepage links to some good pages.  Most of the other pages aren't very useful because the data is so sparse.
 
-To activate an optional "correlated phenotypes" feature, you will need to copy some pre-made test data to the same 
-folder as your `pheno-list.json`:
+If you are only modifying the server code, you can quickly re-run just `pheweb serve` without re-running all the loading steps.  Use the line like `+ pheweb conf ... serve` that is printed to your console.
 
-```bash
-$ cp tests/input_files/correlations/pheno-correlations.txt .
-```
-
-Then process the data. The first iteration will typically take much longer than future iterations, due to the 
-one-time need to download an updated copy of dbSNP.
-
-`pheweb process`
-
-Finally, the processed data can be served in a web browser, using the local development server:
-
-`pheweb serve`
-
-If you would like the manhattan plot page to also show the table of correlated phenotypes, you may need to set 
-`show_correlations = True` in your config.py file. This is an optional feature, and hidden by default.
-
-#### Alternative process
-An alternative way to run this process would be to run the static unit tests once, then run the script 
-`./tests/run-gunicorn.sh` to serve generated assets from the system temp directory. This approach relies on serving 
-leftover data from a specific test run, and is not ideal if you plan to rerun unit tests often or in parts.
-
-## Sample regions of interest
-The test data has very limited coverage, so plots in many regions will appear sparse. 
-See `<base_url>/pheno/EAR-LENGTH` for a sample manhattan/ QQ plot page, and `<base_url>/gene/SAMD11` for a sample 
-association plot with data.

@@ -7,11 +7,13 @@ SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # It's helpful when you're modifying the code and want to quick see the results.
 
 f() {
+set -x
 data_dir=$(mktemp -d)
 indir="$SCRIPTDIR/input_files"
 cache_dir="$indir/fake-cache"
 echo "data_dir = $data_dir"
 
+cp "$indir/correlations/pheno-correlations.txt" "$data_dir/pheno-correlations.txt"
 pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true -h
 pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true conf
 pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true phenolist glob --simple-phenocode "$indir/assoc-files/*"
@@ -29,5 +31,5 @@ echo "Try http://localhost:5000/variant/1:869334-G-A"
 echo "Try http://localhost:5000/pheno/snowstorm"
 echo "Try http://localhost:5000/gene/SAMD11"
 
-pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true custom_templates="$indir/custom_templates" serve
+pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true custom_templates="$indir/custom_templates" show_correlations=true serve
 }; f
