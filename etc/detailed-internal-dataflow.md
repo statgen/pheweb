@@ -26,11 +26,11 @@
                            │        │  └─[qq]-> qq/*  
                            v        └─[manhattan]-> manhattan/*
                      matrix.tsv.gz                   │      │
-                      │    │                  [top-hits]  [phenotypes]
+                           │                  [top-hits]  [phenotypes]
            [gather-pvalues-for-each-gene]            │      │
-                      │    │                         v      v
-                      v    v               top_hits.json  phenotypes.json
-         best-phenos-by-gene.sqlite3
+                           │                         v      v
+                           v               top_hits.json  phenotypes.json
+              best-phenos-by-gene.sqlite3
 ```
 
 Square brackets show `pheweb <step>` subcommands.
