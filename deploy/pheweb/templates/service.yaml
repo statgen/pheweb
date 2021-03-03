@@ -5,6 +5,8 @@ metadata:
   labels:
     app: pheweb
     tier: frontend
+  annotations:
+    beta.cloud.google.com/backend-config: '{"ports": {"80":"serviceproxy-backendconfig"}}'
 spec:
   type: {{ .Values.service.type }}
   ports:
