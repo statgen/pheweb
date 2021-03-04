@@ -98,7 +98,7 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
         unnamespaced: true,
         width: 800,
         // height: 550,
-        responsive_resize: 'width_only',
+        responsive_resize: true,
         max_region_scale: 500e3,
         toolbar: {
             widgets: [{
@@ -276,7 +276,7 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                                         "<br>" +
                                         "<a href=\"" + window.model.urlprefix+ "/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}\"" + ">Go to PheWAS</a>" +
                                         "{{#if {{namespace[catalog]}}rsid}}<br><a href=\"https://www.ebi.ac.uk/gwas/search?query={{{{namespace[catalog]}}rsid}}\" target=\"_new\">See hits in GWAS catalog</a>{{/if}}" +
-                                        "<br><a href=\"javascript:void(0);\" onclick=\"LocusZoom.getToolTipDataLayer(this).makeLDReference(LocusZoom.getToolTipData(this));\">Make LD Reference</a>"
+                                        "<br>{{#if {{namespace[ld]}}isrefvar}}<strong>LD Reference Variant</strong>{{#else}}<a href=\"javascript:void(0);\" onclick=\"var data = this.parentNode.__data__;data.getDataLayer().makeLDReference(data);\">Make LD Reference</a>{{/if}}<br>"
                                 },
                                 x_axis: { field: "{{namespace[assoc]}}position" },
                                 y_axis: {
@@ -306,30 +306,20 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                         type: "resize_to_data",
                         position: "right",
                         color: "blue"
-                    }]
+                    }, LocusZoom.Layouts.get('toolbar_widgets', 'gene_selector_menu')]
                 },
                 data_layers: [
-                    LocusZoom.Layouts.get("data_layer", "genes", {
+                    LocusZoom.Layouts.get("data_layer", "genes_filtered", {
                         unnamespaced: true,
                         fields: ["{{namespace[gene]}}all"],
                         tooltip: {
-                            closable: true,
-                            show: {
-                                or: ["highlighted", "selected"]
-                            },
-                            hide: {
-                                and: ["unhighlighted", "unselected"]
-                            },
                             html: ("<h4><strong><i>{{gene_name}}</i></strong></h4>" +
                                    "<div>Gene ID: <strong>{{gene_id}}</strong></div>" +
                                    "<div>Transcript ID: <strong>{{transcript_id}}</strong></div>" +
                                    "<div style=\"clear: both;\"></div>" +
                                    "<table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://gnomad.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on gnomAD/ExAC</a> and <a href=\"http://bravo.sph.umich.edu/freeze5/hg38/gene/{{gene_id}}\" target=\"_new\">Bravo</a></td></tr></table>")
                         },
-                        label_exon_spacing: 3,
-                        exon_height: 8,
-                        bounding_box_padding: 5,
-                        track_vertical_spacing: 5
+
                     })
                 ],
             })
