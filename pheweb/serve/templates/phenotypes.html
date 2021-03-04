@@ -77,7 +77,7 @@
       <% } else if (h.num_samples) { %>
         <%= h.num_samples.toLocaleString() %>
       <% } %>
-    <td><%= h.gc_lambda_hundred.toFixed(2) %></td>
+    <td><%= (h.gc_lambda_hundred !== null) ? h.gc_lambda_hundred.toFixed(2) : '' %></td>
     <td><%= h.num_peaks %></td>
     <td><a style="color:black" href="{{ url_for('.variant_page', query='').rstrip('/') }}/<%= h.chrom %>-<%= h.pos %>-<%= h.ref %>-<%= h.alt %>">
         <%= h.chrom %>:<%= h.pos.toLocaleString() %> <%= h.ref %> / <%= h.alt %>
