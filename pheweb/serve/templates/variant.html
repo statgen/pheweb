@@ -9,9 +9,9 @@
 <script src="{{ url_for('.static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
 
 {# Includes for LocusZoom.js (from CDN) #}
-<link href="https://unpkg.com/locuszoom@{{ config.LZJS_VERSION_PHEWAS }}/dist/locuszoom.css" rel="stylesheet" type="text/css">
-<script src="https://unpkg.com/locuszoom@{{ config.LZJS_VERSION_PHEWAS }}/dist/locuszoom.vendor.min.js" type="text/javascript"></script>
-<script src="https://unpkg.com/locuszoom@{{ config.LZJS_VERSION_PHEWAS }}/dist/locuszoom.app.min.js" type="text/javascript"></script>
+<link href="https://cdn.jsdelivr.net/npm/locuszoom@{{ config.LZJS_VERSION }}/dist/locuszoom.css" rel="stylesheet" type="text/css" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/d3@^5.16.0" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/locuszoom@{{ config.LZJS_VERSION }}/dist/locuszoom.app.min.js" type="text/javascript"></script>
 
 <script src="{{ url_for('.static', filename='variant.js') }}" type="text/javascript"></script>
 <style type="text/css">
@@ -36,7 +36,7 @@
         <span id="maf-range"></span>
 {#        {% if variant.ac %}<p>AC: {{ variant.ac }}</p>{% endif %} #}
         <p>View on
-          <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg{{ config.HG_BUILD_NUMBER }}&highlight=hg{{ config.HG_BUILD_NUMBER }}.chr{{ variant.chrom }}%3A{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>
+          <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg{{ config.HG_BUILD_NUMBER }}&highlight=hg{{ config.HG_BUILD_NUMBER }}.chr{{ variant.chrom }}%3A{{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chrom }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>
           {% with rsids = (variant.rsids.split(',') if variant.rsids else []) %}
             {% if rsids|length == 1 %}
               , <a href="https://www.ebi.ac.uk/gwas/search?query={{ rsids[0] }}">GWAS Catalog</a>

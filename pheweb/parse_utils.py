@@ -82,8 +82,8 @@ per_assoc_fields: Dict[str,Dict[str,Any]] = {
         'sigfigs': 2,
         'tooltip_lztemplate': {
             'condition': False,
-            'template': ('{{#if pvalue}}P-value: <strong>{{pvalue|scinotation}}</strong><br>{{/if}}\n' +
-                         '{{#if pval}}P-value: <strong>{{pval|scinotation}}</strong><br>{{/if}}'),
+            'template': ('{{#if pvalue|is_numeric}}P-value: <strong>{{pvalue|scinotation}}</strong><br>{{/if}}\n' +
+                         '{{#if pval|is_numeric}}P-value: <strong>{{pval|scinotation}}</strong><br>{{/if}}'),
         },
         'display': 'P-value',
     },
@@ -92,7 +92,7 @@ per_assoc_fields: Dict[str,Dict[str,Any]] = {
         'nullable': True,
         'sigfigs': 2,
         'tooltip_underscoretemplate': 'Beta: <b><%= d.beta %></b><% if(_.has(d, "sebeta")){ %> (se:<b><%= d.sebeta %></b>)<% } %><br>',
-        'tooltip_lztemplate': 'Beta: <strong>{{beta}}</strong>{{#if sebeta}} (se:<strong>{{sebeta}}</strong>){{/if}}<br>',
+        'tooltip_lztemplate': 'Beta: <strong>{{beta}}</strong>{{#if sebeta|is_numeric}} (se:<strong>{{sebeta}}</strong>){{/if}}<br>',
         'display': 'Beta',
     },
     'sebeta': {

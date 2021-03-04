@@ -24,7 +24,7 @@ function custom_LocusZoom_Layouts_get(layout_type, layout_name, customizations) 
     return layout;
 }
 
-LocusZoom.TransformationFunctions.set("percent", function(x) {
+LocusZoom.TransformationFunctions.add("percent", function(x) {
     if (x === 1) { return "100%"; }
     x = (x * 100).toPrecision(2);
     if (x.indexOf('.') !== -1) { x = x.replace(/0+$/, ''); }
@@ -81,7 +81,7 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
         return category_order[d.category];
     });
     window.unique_categories = d3.set(window.variant.phenos.map(_.property('category'))).values();
-    window.color_by_category = ((unique_categories.length>10) ? d3.scale.category20() : d3.scale.category10())
+    window.color_by_category = d3.scaleOrdinal((unique_categories.length > 10) ? d3.schemeCategory20 : d3.schemeCategory10)
         .domain(unique_categories);
 
     window.variant.phenos.forEach(function(d, i) {
@@ -101,29 +101,33 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
         if (x === 0) return best_neglog10_pval * 1.1;
         return -Math.log(x) / Math.LN10;
     };
-    LocusZoom.TransformationFunctions.set("neglog10_handle0", neglog10_handle0);
+    LocusZoom.TransformationFunctions.add("neglog10_handle0", neglog10_handle0);
 
     // Define data sources object
-    LocusZoom.Data.PheWASSource.prototype.getData = function(state, fields, outnames, trans) {
-        // Override all parsing, namespacing, and field extraction mechanisms, and load data embedded within the page
-        trans = trans || [];
+    // TODO: Can this be replaced with StaticSource + deepcopy?
+    LocusZoom.Adapters.extend('PheWASLZ', 'PheWebSource', {
+        getData: function(state, fields, outnames, trans) {
+            // Override all parsing, namespacing, and field extraction mechanisms, and load data embedded within the page
+            trans = trans || [];
 
-        var data = deepcopy(window.variant.phenos); //otherwise LZ adds attributes I don't want to the original data.
-        data.forEach(function(d, i) {
-            data[i].x = i;
-            data[i].id = i.toString();
-            trans.forEach(function(transformation, t){
-                if (typeof transformation === "function"){
-                    data[i][outnames[t]] = transformation(data[i][fields[t]]);
-                }
+            var data = deepcopy(window.variant.phenos); //otherwise LZ adds attributes I don't want to the original data.
+            data.forEach(function(d, i) {
+                data[i].x = i;
+                data[i].id = i.toString();
+                trans.forEach(function(transformation, t){
+                    if (typeof transformation === "function"){
+                        data[i][outnames[t]] = transformation(data[i][fields[t]]);
+                    }
+                });
             });
-        });
-        return function(chain) {
-            return {header: chain.header || {}, body: data};
-        }.bind(this);
-    };
+            return function(chain) {
+                return {header: chain.header || {}, body: data};
+            }.bind(this);
+        }
+    });
+
     var data_sources = new LocusZoom.DataSources()
-      .add("phewas", ["PheWASLZ", {url: '/this/is/not/used'}]);
+      .add("phewas", ["PheWebSource", {url: '/this/is/not/used'}]);
 
     var neglog10_significance_threshold = -Math.log10(0.05 / window.variant.phenos.length);
 
@@ -132,10 +136,13 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
             variant: ['chrom', 'pos', 'ref', 'alt'].map(function(d) { return window.variant[d];}).join("-"),
         },
         dashboard: {
-            components: [{type: "download", position: "right"}],
+            components: [
+                {type: "download", position: "right"},
+                {type: "download_png", position: "right"},
+            ],
         },
         min_height: 400,
-        responsive_resize: "width_only",
+        responsive_resize: true,
         mouse_guide: false,
         panels: [custom_LocusZoom_Layouts_get('panel', 'phewas', {
             min_width: 640, // feels reasonable to me
@@ -148,6 +155,7 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
                 custom_LocusZoom_Layouts_get('data_layer', 'phewas_pvalues', {
                     unnamespaced: true,
                     id_field: 'idx',
+                    type: 'scatter',
                     color: {
                         field: "category_name",
                         scale_function: "categorical_bin",
@@ -160,8 +168,8 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
                         {
                             scale_function: 'effect_direction',
                             parameters: {
-                                '+': 'triangle-up',
-                                '-': 'triangle-down'
+                                '+': 'triangle',
+                                '-': 'triangledown'
                             }
                         },
                         'circle'

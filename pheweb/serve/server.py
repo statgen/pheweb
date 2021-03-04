@@ -39,7 +39,6 @@ app.config['HG_BUILD_NUMBER'] = conf.get_hg_build_number()
 app.config['GRCH_BUILD_NUMBER'] = conf.get_grch_build_number()
 app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['LZJS_VERSION'] = conf.get_lzjs_version()
-app.config['LZJS_VERSION_PHEWAS'] = conf.get_lzjs_version_phewas()
 app.config['URLPREFIX'] = conf.get_urlprefix()
 app.config['USE_WHITELIST'] = conf.is_login_required() and bool(conf.get_login_allowlist())
 if conf.get_custom_templates_dir():
