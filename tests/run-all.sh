@@ -26,10 +26,11 @@ pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true phen
 pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true phenolist verify --required-columns=category
 pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true process
 pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true top-loci
+pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true best-of-pheno
 
 echo "Try http://localhost:5000/variant/1:869334-G-A"
 echo "Try http://localhost:5000/pheno/snowstorm"
 echo "Try http://localhost:5000/gene/SAMD11"
 
-pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true custom_templates="$indir/custom_templates" show_correlations=true serve
+pheweb conf data_dir="$data_dir" cache="$cache_dir" disallow_downloads=true custom_templates="$indir/custom_templates" show_correlations=true show_manhattan_filter_button=true serve
 }; f
