@@ -81,7 +81,8 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
         return category_order[d.category];
     });
     window.unique_categories = d3.set(window.variant.phenos.map(_.property('category'))).values();
-    window.color_by_category = d3.scaleOrdinal((unique_categories.length > 10) ? d3.schemeCategory20 : d3.schemeCategory10)
+    const category20 = d3.schemeCategory10.concat(d3.schemeCategory10);  /* d3 removed category20, so I make this terrible version */
+    window.color_by_category = d3.scaleOrdinal((unique_categories.length > 10) ? category20 : d3.schemeCategory10)
         .domain(unique_categories);
 
     window.variant.phenos.forEach(function(d, i) {
