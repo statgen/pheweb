@@ -124,18 +124,26 @@ def api_pheno(phenocode:str):
 @bp.route('/api/manhattan-filtered/pheno/<phenocode>.json')
 @check_auth
 def api_pheno_filtered(phenocode):
-    pheno = phenos[phenocode]
+    # Parse parameters from URL
+    try: pheno = phenos[phenocode]
+    except KeyError: abort(404, description="That phenocode wasn't found for this dataset.")
     indel = request.args.get('indel', '')
-    # TODO: replace these exceptions with abort(404)
-    if indel: assert indel in ['true', 'false'], indel
+    if indel not in ['', 'true', 'false']: abort(404, description="Invalid value for GET parameter `indel=`.  Valid values are ['', 'true', 'false'].")
     consequence_category = request.args.get('csq', '')
-    if consequence_category: assert consequence_category in ['lof', 'nonsyn'], consequence_category
-    min_maf = float(request.args['min_maf']) if request.args.get('min_maf','') else None
-    max_maf = float(request.args['max_maf']) if request.args.get('max_maf','') else None
+    if consequence_category not in ['', 'lof', 'nonsyn']: abort(404, description="Invalid value for GET parameter `csq=`.  Valid values are ['', 'lof', 'nonsyn'].")
+    min_maf, max_maf = None, None
+    if request.args.get('min_maf'):
+        try: min_maf = float(request.args['min_maf'])
+        except Exception: abort(404, description="Failed to parse GET parameter `min_maf=`.")
+    if request.args.get('max_maf'):
+        try: max_maf = float(request.args['max_maf'])
+        except Exception: abort(404, description="Failed to parse GET parameter `max_maf=`.")
+    # Get variants according to filter
     chosen_variants = []  # TODO: stream straight from VariantFileReader() -> Binner() without this intermediate list
     weakest_pval_seen = 0
     num_variants = 0
-    filepath = get_pheno_filepath('best_of_pheno', phenocode)
+    try: filepath = get_pheno_filepath('best_of_pheno', phenocode)
+    except Exception: abort(404, description="Failed to find a best_of_pheno file.  Perhaps `pheweb best-of-pheno` wasn't run.")
     with VariantFileReader(filepath) as vfr:
         for v in vfr:
             num_variants += 1
