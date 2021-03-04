@@ -31,6 +31,16 @@ LocusZoom.Adapters.extend("AssociationLZ", "AssociationPheWeb", {
             });
         }
         return LocusZoom.Adapters.get('AssociationLZ').prototype.extractFields.call(this, data, fields, outnames, trans);
+    },
+
+    normalizeResponse(data) {
+        // The PheWeb region API has a fun quirk where if there is no data, there are also no keys
+        //   (eg data = {} instead of  {assoc:[]} etc. Explicitly detect and handle the edge case in PheWeb;
+        //   we won't handle this in LZ core because we don't want squishy-blob API schemas to catch on.
+        if (!Object.keys(data).length) {
+            return [];
+        }
+        return LocusZoom.Adapters.get('AssociationLZ').prototype.normalizeResponse.call(this, data);
     }
 });
 
