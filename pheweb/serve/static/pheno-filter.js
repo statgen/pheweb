@@ -92,7 +92,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         var max_plot_qval = ticks[ticks.length-1];
         // If we have any qval=inf (pval=0) variants, leave space for them.
         if (includes_pval0) { max_plot_qval *= 1.1 }
-        var scale = d3.scale.linear().clamp(true);
+        var scale = d3.scaleLinear().clamp(true);
         if (max_plot_qval <= 40) {
             scale = scale
                 .domain([max_plot_qval, 0])
@@ -146,7 +146,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             return d3.extent(extent1.concat(extent2));
         })();
 
-        window.x_scale = d3.scale.linear()
+        window.x_scale = d3.scaleLinear()
             .domain(genomic_position_extent)
             .range([0, plot_width]);
 
@@ -168,9 +168,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
         window.y_scale = y_axis_config.scale;
 
         // TODO: draw a small y-axis-break at 20 if `y_axis_config.draw_break_at_20`
-        window.y_axis = d3.svg.axis()
-            .scale(y_scale)
-            .orient("left")
+        window.y_axis = d3.axisLeft(y_scale)
             .tickFormat(d3.format("d"))
             .tickValues(y_axis_config.ticks)
         gwas_plot.append("g")
@@ -210,7 +208,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             });
         })();
 
-        var color_by_chrom_dim = d3.scale.ordinal()
+        var color_by_chrom_dim = d3.scaleOrdinal()
             .domain(get_chrom_offsets().chroms)
             .range(['rgb(221,221,237)', 'rgb(191,191,208)']);
         //colors to maybe sample from later:
@@ -324,6 +322,7 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .enter()
             .append('g')
             .attr('class', 'bin')
+            .attr('data-index', function(d, i) { return i; }) // make parent index available from DOM
             .each(function(d) { //todo: do this in a forEach
                 d.x = x_scale(get_genomic_position(d));
                 d.color = color_by_chrom_dim(d.chrom);
@@ -333,17 +332,16 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .enter()
             .append('circle')
             .attr('class', 'binned_variant_point')
-            .attr('cx', function(d, i, parent_i) {
+            .attr('cx', function(d, i) {
+                var parent_i = +this.parentNode.getAttribute('data-index');
                 return variant_bins[parent_i].x;
             })
             .attr('cy', function(qval) {
                 return y_scale(qval);
             })
             .attr('r', point_radius)
-            .style('fill', function(d, i, parent_i) {
-                // return color_by_chrom(d3.select(this.parentNode).datum().chrom); //slow
-                // return color_by_chrom(this.parentNode.__data__.chrom); //slow?
-                // return this.parentNode.__data__.color;
+            .style('fill', function(d, i) {
+                var parent_i = +this.parentNode.getAttribute('data-index');
                 return variant_bins[parent_i].color;
             });
         bins.selectAll('circle.binned_variant_line')
@@ -351,11 +349,20 @@ function create_gwas_plot(variant_bins, unbinned_variants) {
             .enter()
             .append('line')
             .attr('class', 'binned_variant_line')
-            .attr('x1', function(d, i, parent_i) { return variant_bins[parent_i].x; })
-            .attr('x2', function(d, i, parent_i) { return variant_bins[parent_i].x; })
+            .attr('x1', function(d, i) {
+                const parent_i = +this.parentNode.getAttribute('data-index');
+                return variant_bins[parent_i].x;
+            })
+            .attr('x2', function(d, i) {
+                const parent_i = +this.parentNode.getAttribute('data-index');
+                return variant_bins[parent_i].x;
+            })
             .attr('y1', function(d) { return y_scale(d[0]); })
             .attr('y2', function(d) { return y_scale(d[1]); })
-            .style('stroke', function(d, i, parent_i) { return variant_bins[parent_i].color; })
+            .style('stroke', function(d, i) {
+                var parent_i = +this.parentNode.getAttribute('data-index');
+                return variant_bins[parent_i].color;
+            })
             .style('stroke-width', 4.6)
             .style('stroke-linecap', 'round');
         }
@@ -375,7 +382,7 @@ var manhattan_filter_view = {
 
         d3.select('#unchecked_variants_mask')
         d3.select('#unchecked_variants_mask')
-            .attr('transform', 'translate(-point_radius,0)') // move left by the radius of the variant points (3px)
+            .attr('transform', `translate(${-point_radius},0)`) // move left by the radius of the variant points (3px)
             .attr('width', window.plot_width+point_radius*2) // widen by 2x the radius of the variant points
             .attr('y', y_scale(-Math.log10(weakest_pval))+point_radius)
             .attr('height', Math.abs(y_scale(-Math.log10(weakest_pval))-y_scale(0)));
@@ -383,10 +390,8 @@ var manhattan_filter_view = {
         // Order from weakest to strongest pvalue, so that the strongest variant will be on top (z-order) and easily hoverable
         // In the DOM, later siblings are displayed over top of (and occluding) earlier siblings.
         unbinned_variants = _.sortBy(unbinned_variants, function(d){return -d.pval});
-
-        console.log(variant_bins, unbinned_variants, weakest_pval);
         var gwas_plot = d3.select('#gwas_plot');
-        var color_by_chrom = d3.scale.ordinal()
+        var color_by_chrom = d3.scaleOrdinal()
             .domain(get_chrom_offsets().chroms)
             .range(['rgb(120,120,186)', 'rgb(0,0,66)']);
 
@@ -450,6 +455,7 @@ var manhattan_filter_view = {
         var bins = bin_selection.enter()
             .append('g')
             .attr('class', 'bin')
+            .attr('data-index', function(d, i) { return i; }) // make parent index available from DOM
             .each(function(d) { //todo: do this in a forEach
                 d.x = x_scale(get_genomic_position(d));
                 d.color = color_by_chrom(d.chrom);
@@ -459,17 +465,16 @@ var manhattan_filter_view = {
             .enter()
             .append('circle')
             .attr('class', 'binned_variant_point')
-            .attr('cx', function(d, i, parent_i) {
+            .attr('cx', function(d, i) {
+                var parent_i = +this.parentNode.getAttribute('data-index');
                 return variant_bins[parent_i].x;
             })
             .attr('cy', function(qval) {
                 return y_scale(qval);
             })
             .attr('r', point_radius)
-            .style('fill', function(d, i, parent_i) {
-                // return color_by_chrom(d3.select(this.parentNode).datum().chrom); //slow
-                // return color_by_chrom(this.parentNode.__data__.chrom); //slow?
-                // return this.parentNode.__data__.color;
+            .style('fill', function(d, i) {
+                var parent_i = +this.parentNode.getAttribute('data-index');
                 return variant_bins[parent_i].color;
             });
         bins.selectAll('line.binned_variant_line')
@@ -477,11 +482,20 @@ var manhattan_filter_view = {
             .enter()
             .append('line')
             .attr('class', 'binned_variant_line')
-            .attr('x1', function(d, i, parent_i) { return variant_bins[parent_i].x; })
-            .attr('x2', function(d, i, parent_i) { return variant_bins[parent_i].x; })
+            .attr('x1', function(d, i) {
+                var parent_i = +this.parentNode.getAttribute('data-index');
+                return variant_bins[parent_i].x;
+            })
+            .attr('x2', function(d, i) {
+                var parent_i = +this.parentNode.getAttribute('data-index');
+                return variant_bins[parent_i].x;
+            })
             .attr('y1', function(d) { return y_scale(d[0]); })
             .attr('y2', function(d) { return y_scale(d[1]); })
-            .style('stroke', function(d, i, parent_i) { return variant_bins[parent_i].color; })
+            .style('stroke', function(d, i) {
+                var parent_i = +this.parentNode.getAttribute('data-index');
+                return variant_bins[parent_i].color;
+            })
             .style('stroke-width', 4.6)
             .style('stroke-linecap', 'round');
     }
