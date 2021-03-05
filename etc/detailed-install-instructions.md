@@ -50,15 +50,13 @@ If this doesn't work, email me or try the miniconda3 approach instead.
 
 ### Installing on Linux or Mac with Miniconda3:
 
+You should install XCode Developer Tools with `xcode-select --install`.
+
 To install miniconda3, follow the instructions [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/).
 
-Type &lt;enter&gt; to view the terms & conditions.
-When you're done with them, type "q" to close them, and then "yes" &lt;enter&gt; to accept them.
-
-Type &lt;enter&gt; to agree to use the directory `~/miniconda3`.
-
-Type "yes" and &lt;enter&gt; to let miniconda modify `$PATH` in your `~/.bash_profile` or `~/.bashrc`.
-*(This allows you to type just `pheweb` instead of `~/miniconda/bin/pheweb` on the command line.)*
+In that installation, you can close the terms & conditions with "q".
+You should install into the default directory of `~/miniconda3`.
+You should let miniconda modify `$PATH` in your `~/.bash_profile` or `~/.bashrc`, so that you'll be able to run just `pheweb` instead of `~/miniconda/bin/pheweb` on the command line.
 
 Miniconda3 makes `python` an alias for `python3` and `pip` an alias for `pip3`.
 That's likely to cause problems, so I recommend running:
