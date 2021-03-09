@@ -81,7 +81,7 @@
         <%= h.chrom %>:<%= h.pos.toLocaleString() %> <%= h.ref %> / <%= h.alt %>
         <% if (h.rsids) { %>(<%= h.rsids.replace(/,/g, ', ') %>)<% } %>
     </a></td>
-    <td><%= (h.pval == 0) ? '~0' : h.pval.toExponential(1) %></td>
+    <td><%= (h.pval == 0) ? '≤1e-320' : h.pval.toExponential(1) %></td>
     <td><%= (h.maf)? h.maf.toPrecision(2) : (h.af)? Math.min(h.af, 1-h.af).toPrecision(2) : (h.ac)? h.ac : "" %></td>
     <td class="nearest_genes_col">
       <% var ngs = h.nearest_genes.split(","); ngs.forEach(function(g, i) { %>

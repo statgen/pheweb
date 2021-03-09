@@ -128,7 +128,7 @@ OR: <%= d.or.toExponential(1) %><br>
       <%= d.category %>
     </td>
     <td><a style="color:black" href="{{ url_for('.pheno_page', phenocode='').rstrip('/') }}/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
-    <td><%= d.pval.toExponential(1) %></td>
+    <td><%= (d.pval==0) ? '≤1e-320' : d.pval.toExponential(1) %></td>
     <td><% if (d.num_cases) { %>
       <%= d.num_cases %> / <%= d.num_controls %>
       <% } else if (d.num_samples) { %>
