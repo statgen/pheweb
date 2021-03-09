@@ -1,7 +1,7 @@
 
 import argparse
 from typing import List
-import Flask
+from flask import Flask
 
 
 def run_flask_dev_server(app:Flask, args:argparse.Namespace) -> None:
