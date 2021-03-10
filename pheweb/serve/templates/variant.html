@@ -78,6 +78,7 @@
           <th>Category</th>
           <th>Phenotype</th>
           <th>P-value</th>
+          <th>Effect Size (se)</th>
           <th>Number of samples</th>
         </tr>
       </thead>
@@ -87,39 +88,6 @@
   </div>
 </div>
 
-<!--
-<script type="text/template" id="tooltip-template">
-
-<%= d.phenostring || d.phenocode %><br>
-
-<% if (d.category) { %>
-<span style="color:<%= color_by_category(d.category) %>">
-<%= d.category %>
-</span><br>
-<% } %>
-
-pval: <%= d.pval.toExponential(1) %><br>
-
-<% if (d.beta) { %>
-beta: <%= d.beta.toExponential(1) %><br>
-<% } %>
-
-<% if (d.sebeta) { %>
-sebeta: <%= d.sebeta.toExponential(1) %><br>
-<% } %>
-
-<% if (d.or) { %>
-OR: <%= d.or.toExponential(1) %><br>
-<% } %>
-
-<% if (d.num_cases && d.num_controls) { %>
-#cases: <%= d.num_cases %><br>
-#controls: <%= d.num_controls %><br>
-<% } else if (d.num_samples) { %>
-#samples: <%= d.num_samples %><br>
-<% } %>
-
-</script> -->
 
 <script type="text/template" id="streamtable-template">
   <tr>
@@ -128,6 +96,7 @@ OR: <%= d.or.toExponential(1) %><br>
     </td>
     <td><a style="color:black" href="{{ url_for('.pheno_page', phenocode='').rstrip('/') }}/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
     <td><%= (d.pval==0) ? '≤1e-320' : d.pval.toExponential(1) %></td>
+    <td><%= (d.beta!==undefined) ? d.beta.toPrecision(2) : "" %><%= (d.sebeta!==undefined) ? " ("+d.sebeta.toPrecision(2)+")" : "" %></td>
     <td><% if (d.num_cases) { %>
       <%= d.num_cases %> / <%= d.num_controls %>
       <% } else if (d.num_samples) { %>
