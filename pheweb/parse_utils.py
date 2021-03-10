@@ -131,7 +131,7 @@ per_assoc_fields: Dict[str,Dict[str,Any]] = {
         'range': [0, 1],
         'proportion_sigfigs': 2,
         'tooltip_lztemplate': {'transform': '|percent'},
-        'display': 'Case AF',
+        'display': 'AF among cases',
     },
     'control_af': {
         'aliases': ['af.controls'],
@@ -139,7 +139,7 @@ per_assoc_fields: Dict[str,Dict[str,Any]] = {
         'range': [0, 1],
         'proportion_sigfigs': 2,
         'tooltip_lztemplate': {'transform': '|percent'},
-        'display': 'Control AF',
+        'display': 'AF among controls',
     },
     'ac': {
         'type': float,
