@@ -223,30 +223,43 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
 })();
 
 
-// Check MAF/AF/AC and render
-(function() {
-    var isnum = function(d) { return typeof d === "number"; };
+// Check MAF/AF/MAC/AC and render
+// If every pheno has AF, show that.  Otherwise, show MAF for the phenos that have it.
+// If every pheno is the same (when rendered with two sigfigs), show the single value.  Otherwise, the range.
+$(function() {
+    function isnum(d) { return typeof d === "number"; }
+    function minor(frac) { return Math.min(frac, 1-frac); }
+    var afs = window.variant.phenos.map(function(v) {
+        if (isnum(v.af)) { return v.af; }
+        else if (isnum(v.ac) && isnum(v.num_samples)) { return v.ac / (2*v.num_samples); }
+        else { return undefined; }
+    }).filter(isnum);
+    if (afs.length == window.variant.phenos.length) {
+        // Every pheno has AF
+        let af_range = d3.extent(afs).map(two_digit_format);
+        if (af_range[0] === af_range[1]) { $('#maf-range').html(fmt('AF: {0}', af_range[0])); }
+        else { $('#maf-range').html(fmt('AF ranges from {0} to {1}', af_range[0], af_range[1])); }
+        return;
+    }
     var mafs = window.variant.phenos.map(function(v) {
         if (isnum(v.maf))  { return v.maf; }
-        else if (isnum(v.af)) { return Math.min(v.af, 1-v.af); }
-        else if (isnum(v.ac) && isnum(v.num_samples)) { var af = v.ac / (2*v.num_samples); return Math.min(af,1-af); }
+        else if (isnum(v.af)) { return minor(v.af); }
+        else if (isnum(v.mac) && isnum(v.num_samples)) { return v.mac / (2*v.num_samples) }
+        else if (isnum(v.ac) && isnum(v.num_samples)) { return minor(v.ac / (2*v.num_samples)); }
         else { return undefined; }
-    });
-    var num_phenos_with_maf = _.filter(mafs, function(d) { return isnum(d) }).length;
-    if (num_phenos_with_maf === mafs.length) {
-        var range = d3.extent(mafs);
-        $(function() {
-            $('#maf-range').html('<p>MAF ranges from ' + two_digit_format(range[0]) + ' to ' + two_digit_format(range[1]) + '</p>');
-            $('#maf-range p').css('margin-bottom', '0');
-        });
-    } else if (num_phenos_with_maf > 0) {
-        var range = d3.extent(mafs);
-        $(function() {
-            $('#maf-range').html('<p>MAF ranges from ' + two_digit_format(range[0]) + ' to ' + two_digit_format(range[1]) + ' for phenotypes where it is defined</p>');
-            $('#maf-range p').css('margin-bottom', '0');
-        });
+    }).filter(isnum);
+    if (mafs.length === window.variant.phenos.length) {
+        // Every pheno has a MAF
+        let maf_range = d3.extent(mafs).map(two_digit_format);
+        if (maf_range[0] === maf_range[1]) { $('#maf-range').html(fmt('MAF: {0}', maf_range[0])); }
+        else { $('#maf-range').html(fmt('MAF ranges from {0} to {1}', maf_range[0], maf_range[1])); }
+    } else if (mafs.length) {
+        // Show the range of MAFs for the phenotypes that have a MAF
+        var maf_range = d3.extent(mafs).map(two_digit_format);
+        if (maf_range[0] === maf_range[1]) { $('#maf-range').html(fmt('MAF: {0} for phenotypes where it is defined', maf_range[0])); }
+        else { $('#maf-range').html(fmt('MAF ranges from {0} to {1} for phenotypes where it is defined', maf_range[0], maf_range[1])); }
     }
-})();
+});
 
 
 // Check Clinvar and render link.
