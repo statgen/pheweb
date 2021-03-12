@@ -174,34 +174,56 @@ task pheno {
     String? final_docker = if defined(pheno_docker) then pheno_docker else docker
 
 
-    command {
-        set -euxo pipefail
-        python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)}
+    String dollar = "$"
+    String tmp_gz = "pheweb/generated-by-pheweb/pheno_gz/" + base_nogz + ".gz"
+    String tmp_tbi = "pheweb/generated-by-pheweb/pheno_gz/" + base_nogz + ".gz.tbi"
+    String tmp_manhattan = "pheweb/generated-by-pheweb/manhattan/" + base_nogz + ".json"
+    String tmp_qq = "pheweb/generated-by-pheweb/qq/" + base_nogz + ".json"
 
+    Array[String] outputs = [tmp_gz,tmp_tbi,tmp_manhattan,tmp_qq]
+    command <<<
+        set -euxo pipefail
+
+        echo "-----------------------------------------------"
+        echo "CREATE DIRS"
+        echo "-----------------------------------------------"
+
+        while read f; do mkdir -p ${dollar}{f%/*} && touch ${dollar}f ; done < ${write_lines(outputs)}
         mkdir -p pheweb/generated-by-pheweb/parsed && \
-            mkdir -p pheweb/generated-by-pheweb/tmp && \
-            echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
-            mkdir -p pheweb/generated-by-pheweb/sites && \
-            mv ${phenofile} pheweb/generated-by-pheweb/parsed/${base} && \
-            mv ${trie1} pheweb/generated-by-pheweb/sites/ && \
-            mv ${trie2} pheweb/generated-by-pheweb/sites/ && \
-            mv ${sites} pheweb/generated-by-pheweb/sites/ && \
-            cd pheweb && \
-            if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi && \
-            pheweb phenolist glob generated-by-pheweb/parsed/* && \
-            pheweb phenolist extract-phenocode-from-filepath --simple && \
-            pheweb augment-phenos && \
-            pheweb manhattan && \
-            pheweb qq && \
-            pheweb bgzip-phenos
-    }
+        mkdir -p pheweb/generated-by-pheweb/tmp && \
+        echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
+        mkdir -p pheweb/generated-by-pheweb/sites
+
+        echo "-----------------------------------------------"
+        echo "COPY AND FIX FILES TO DIR"
+        echo "-----------------------------------------------"
+
+        python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)}        
+        mv ${phenofile} pheweb/generated-by-pheweb/parsed/${base} && \
+        mv ${trie1} pheweb/generated-by-pheweb/sites/ && \
+        mv ${trie2} pheweb/generated-by-pheweb/sites/ && \
+        mv ${sites} pheweb/generated-by-pheweb/sites/ && \
+        cd pheweb && \
+        if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi 
+
+        echo "-----------------------------------------------"
+        echo "PHEWEB TIME!"
+        echo "-----------------------------------------------"
+
+        pheweb phenolist glob generated-by-pheweb/parsed/* && \
+        pheweb phenolist extract-phenocode-from-filepath --simple && \
+        pheweb augment-phenos && \
+        pheweb manhattan && \
+        pheweb qq && \
+        pheweb bgzip-phenos
+    >>>
 
     output {
         Array[File] tmp = glob("pheweb/generated-by-pheweb/tmp/*")
-        File pheno_gz = "pheweb/generated-by-pheweb/pheno_gz/" + base_nogz + ".gz"
-        File pheno_tbi = "pheweb/generated-by-pheweb/pheno_gz/" + base_nogz + ".gz.tbi"
-        File manhattan = "pheweb/generated-by-pheweb/manhattan/" + base_nogz + ".json"
-        File qq = "pheweb/generated-by-pheweb/qq/" + base_nogz + ".json"
+        File pheno_gz = tmp_gz
+        File pheno_tbi = tmp_tbi
+        File manhattan = tmp_manhattan
+        File qq = tmp_qq
     }
 
     runtime {

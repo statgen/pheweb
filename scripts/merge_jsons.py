@@ -6,9 +6,13 @@ import shlex
 import json
 import os
 
+from utils import progressBar,mapcount
+
 
 def localize_files(gpath,file_list):
-
+    """
+    Get list of jsons to merge
+    """
     with open(file_list,'wt') as f:
         if not gpath.endswith('/'): gpath += '/'
         gpath = (f"{gpath}**/*json")
@@ -17,19 +21,24 @@ def localize_files(gpath,file_list):
         subprocess.call(shlex.split(command),stdout = f)
         
 def merge_files(out_json,file_list):
-
+    """
+    Localizes each json as tmp file and reads it into memory
+    """
     tmp_json = os.path.join(os.path.dirname(file_list),'tmp.json')
     json_list = []
+    jsons = mapcount(file_list)
+    
     with open(file_list) as i:
-        for line in i:
+        for idx,line in enumerate(i):
+            progressBar(idx,jsons)
             gfile = line.strip()
             command = f"gsutil cp {gfile} {tmp_json}"
-            print(command)
-            subprocess.call(shlex.split(command))
+            subprocess.call(shlex.split(command),stdout =subprocess.DEVNULL,stderr = subprocess.DEVNULL)
 
-            with open(tmp_json) as f: j = json.load(f)
+            with open(tmp_json) as f: j = json.load(f) 
             json_list.append(j)
-                
+
+    print('\ndone.')
     with open(out_json,'wt') as out:
         json.dump(json_list,out,indent = 2)
 

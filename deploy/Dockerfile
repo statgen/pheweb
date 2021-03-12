@@ -13,8 +13,8 @@ ENV LC_CTYPE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
-RUN apt-get install make gcc cmake \
-    libz-dev libbz2-dev liblzma-dev zlib1g-dev libcurl4-openssl-dev --yes
+RUN apt-get install make gcc libz-dev libbz2-dev liblzma-dev zlib1g-dev --yes
+RUN apt-get update &&  apt-get install cmake libcurl4-openssl-dev  --yes
 
 # install nodejs
 RUN apt-get update && apt-get install curl software-properties-common --yes && \
@@ -31,9 +31,10 @@ RUN curl -LO https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9
     ./configure && make && make install && cd .. && rm -rf htslib-1.9*
 
 
+ADD . /pheweb
 
 # install python packages and perquisites
-RUN apt-get update && apt-get install default-libmysqlclient-dev git python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev --yes --fix-missing && \
+RUN apt-get update && apt-get install default-libmysqlclient-dev git python3-pip libffi-dev libz-dev  libbz2-dev liblzma-dev libssl-dev --yes --fix-missing && \
      python3 -m pip install cython && \
      python3 -m pip install pip==20.1.1 --upgrade && \
      python3 -m pip install /pheweb && \
