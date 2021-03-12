@@ -6,6 +6,8 @@ from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
 
+from flask import Blueprint
+
 from .data_access.db import Variant 
 
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
@@ -35,7 +37,6 @@ from .group_based_auth  import verify_membership
 from .server_auth import before_request
 
 from pheweb_colocalization.view import colocalization
-
 
 app = Flask(__name__)
 
@@ -111,6 +112,14 @@ jeeves = ServerJeeves( conf )
 
 app.jeeves = jeeves
 app.register_blueprint(colocalization)
+
+if "data_dir" in conf:
+    path=conf['data_dir'] + "resources"
+    static_resources = Blueprint('static_resources',
+                                 __name__,
+                                 static_url_path='/static/resources',
+                                 static_folder=path)
+    app.register_blueprint(static_resources)
 
 # see discussion
 # https://stackoverflow.com/questions/13428708/best-way-to-make-flask-logins-login-required-the-default
