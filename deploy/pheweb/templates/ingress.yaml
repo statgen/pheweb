@@ -1,12 +1,4 @@
 ---
-apiVersion: cloud.google.com/v1beta1
-kind: BackendConfig
-metadata:
-  name: serviceproxy-backendconfig
-spec:
-  timeoutSec: 7200
-
----
 apiVersion: networking.gke.io/v1beta1
 kind: FrontendConfig
 metadata:
@@ -22,8 +14,8 @@ kind: Ingress
 metadata:
   name: ig-{{ .Values.pheweb.subdomain }}
   annotations:
+    networking.gke.io/v1beta1.FrontendConfig: "frontend-config"
     FrontConfig: "frontend-config"
-    #kubernetes.io/ingress.allow-http: "false"    
     kubernetes.io/ingress.global-static-ip-name: {{ if .Values.pheweb.ipName }} "{{ .Values.pheweb.ipName }}" {{ else }} "{{ .Values.pheweb.subdomain }}"  {{ end }}
     kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: "gce"
