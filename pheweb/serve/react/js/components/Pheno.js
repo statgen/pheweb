@@ -191,7 +191,7 @@ class Pheno extends React.Component {
 	
 
 	const pheno = this.state.pheno
-	const ukbb = window.show_ukbb ? (this.state.ukbb_n ?
+	const ukbb = window.show_ukbb == 'True' ? (this.state.ukbb_n ?
 	      <div>UKBB: <strong>{this.state.ukbb_n[0]}</strong> cases, <strong>{this.state.ukbb_n[1]}</strong> controls</div> :
 						    <div>Phenotype not found in UKBB results</div>) : null
 	const n_cc1 = pheno.cohorts ?

@@ -220,7 +220,9 @@ export const association_layout: (region: Region) => Layout = (region: Region) =
 				  // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
 				  id_field: "association:id",
 				  behaviors: { onmouseover: [{ action: "set", status: "selected" }],
-					       onmouseout: [{ action: "unset", status: "selected" }] },
+					           onmouseout: [{ action: "unset", status: "selected" }],
+					           onclick: [{action: "link", href:"/variant/{{association:chr}}-{{association:position}}-{{association:ref}}-{{association:alt}}"}]
+				  },
 				  tooltip: { closable: false,
 					     "show": { "or": ["highlighted", "selected"] },
 					     "hide": { "and": ["unhighlighted", "unselected"] },

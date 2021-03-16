@@ -108,7 +108,7 @@
           <th>af cases</th>
           <th>af controls</th>
           <th>number of samples</th>
-	  {% if config.browser == 'FINNGEN' %}
+	  {% if config.browser == 'FINNGEN' and 'show_ukbb' in config and config['show_ukbb'] %}
           <th>UKBB</th>
           <th>UKBB N samples</th>
 	  {% endif %}
@@ -231,7 +231,7 @@ OR: <%= d.or.toExponential(1) %><br>
       <%= d.n_sample %>
       <% } %>
     </td>
-    {% if config.browser == 'FINNGEN' %}
+    {% if config.browser == 'FINNGEN' and 'show_ukbb' in config and config['show_ukbb'] %}
     <td style="width: 6%"> <%= (d.matching_results.ukbb?_.template($('#beta-template-dir').html())({assoc: d.matching_results.ukbb}):"NA") %> </td>
     <td style="width: 6%"> <%= (d.matching_results.ukbb? d.matching_results.ukbb.n_cases + " / " + d.matching_results.ukbb.n_controls :"NA") %> </td>
     {% endif %}

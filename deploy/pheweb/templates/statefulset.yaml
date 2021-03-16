@@ -33,6 +33,16 @@ spec:
         env:
         - name: PHEWEB_DIR
           value: {{- if .Values.pheweb.directory }} "{{ .Values.pheweb.directory }}" {{ else }} "{{ .Values.pheweb.mount }}/pheweb/{{ .Values.pheweb.subdomain }}"  {{- end }}
+        {{- if .Values.pheweb.cloudSQLCredentialFile }}
+        - name: CLOUD_SQL_PROXY_CREDENTIAL_FILE
+          value: {{ .Values.pheweb.cloudSQLCredentialFile }}
+        {{- end }}
+        {{- if .Values.pheweb.cloudSQLProxyInstances }}
+        - name: CLOUD_SQL_PROXY_INSTANCES
+          value: {{ .Values.pheweb.cloudSQLProxyInstances }}
+        {{- end }}
+
+        
         ports:
         - containerPort: 8080
         readinessProbe:
