@@ -15,6 +15,9 @@
 
     #ANNOTATION
     "pheweb_import.annotation.marisa_trie":"gs://r6_data_green/custom_gwas_resources/gene_aliases_b38.marisa_trie",
+    "pheweb_import.annotation.rsids_gz" : "gs://r6_data/pheweb/full/rsids-b38-151.vcf.gz",
+
+    
 
     #PHENO
     "pheweb_import.pheno.replace_prefix": "finngen_R6_",

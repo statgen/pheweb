@@ -56,7 +56,7 @@ def process_json(input_json,description_dict):
     description,category = description_dict[pheno].values
 
     # create new json
-    new_json = {'phenostring':pheno,'num_cases':cases,'num_controls':controls,'uk_file':uk_name,'name':pheno,'description':description,'category':category}
+    new_json = {'phenostring':description,'num_cases':cases,'num_controls':controls,'uk_file':uk_name,'name':pheno,'description':description,'category':category}
     
     out_json =  os.path.join('./json',json_file)
     with open(out_json,'wt') as out:

@@ -74,10 +74,11 @@ task fix_json {
 task annotation {
 
     File phenofile
+    File rsids_gz
     String? annotation_docker
     Map[String,String] header_dict
     Boolean filter_na
-    
+    File genes_bed
     File marisa_trie
     String docker
     String? final_docker = if defined(annotation_docker) then annotation_docker else docker
@@ -87,12 +88,16 @@ task annotation {
         python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)} ${if filter_na then "--filter-na" else ""}
 	cd ${dir}
 
-        mkdir -p pheweb/generated-by-pheweb/parsed && \
-        mkdir -p pheweb/generated-by-pheweb/tmp && \
-        echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
+        mkdir -p pheweb/generated-by-pheweb/parsed	 && \
+	mkdir -p pheweb/generated-by-pheweb/tmp && \
+	echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
         mkdir -p pheweb/generated-by-pheweb/sites/genes  && \
         mv ${marisa_trie} pheweb/generated-by-pheweb/sites/genes/  && \
-        mv ${phenofile} pheweb/generated-by-pheweb/parsed/ && \
+        mv ${genes_bed} pheweb/generated-by-pheweb/sites/genes/  && \
+        mv ${phenofile} pheweb/generated-by-pheweb/parsed/
+        mkdir -p pheweb/generated-by-pheweb/sites/dbSNP/ && \
+        mv ${rsids_gz} pheweb/generated-by-pheweb/sites/dbSNP/
+
         cd pheweb && \
         if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi && \
         echo '''cache=False''' > ./config.py
@@ -281,11 +286,8 @@ task matrix {
         import glob
         import subprocess
         FNULL = open(os.devnull, 'w')
-        processes = set()
         for file in glob.glob("*pheno_piece"):
-            processes.add(subprocess.Popen(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "${cols}", "--no_require_match", "--no_tabix"], stdout=FNULL))
-        for p in processes:
-            p.wait()
+            subprocess.call(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "${cols}", "--no_require_match", "--no_tabix"], stdout=FNULL)
         EOF
 
         cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
@@ -341,7 +343,7 @@ task matrix {
     runtime {
         docker: "${final_docker}"
     	cpu: "${cpu}"
-    	memory: "3 GB"
+    	memory: "64 GB"
         disks: "local-disk ${disk} HDD"
         zones: "europe-west1-b"
         preemptible: 0
@@ -367,7 +369,7 @@ workflow pheweb_import {
     String? annot_sumstat = if defined(pre_annot_sumfile) then pre_annot_sumfile else phenofiles[0]
 
     call annotation {
-        input: phenofile=annot_sumstat, docker=docker,header_dict = header_dict,filter_na = filter_na
+        input: phenofile=annot_sumstat, docker=docker,header_dict = header_dict,filter_na = filter_na,genes_bed=genes_bed
     }
 
     scatter (phenofile in phenofiles) {

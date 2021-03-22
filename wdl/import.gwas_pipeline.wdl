@@ -74,6 +74,7 @@ task fix_json {
 task annotation {
 
     File phenofile
+    File rsids_gz
     String? annotation_docker
     Map[String,String] header_dict
 
@@ -91,7 +92,10 @@ task annotation {
         echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
         mkdir -p pheweb/generated-by-pheweb/sites/genes  && \
         mv ${marisa_trie} pheweb/generated-by-pheweb/sites/genes/  && \
-        mv ${phenofile} pheweb/generated-by-pheweb/parsed/ && \
+        mv ${phenofile} pheweb/generated-by-pheweb/parsed/ 
+        mkdir -p pheweb/generated-by-pheweb/sites/dbSNP/ && \
+        mv ${rsids_gz} pheweb/generated-by-pheweb/sites/dbSNP/
+
         cd pheweb && \
         if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi && \
         echo '''cache=False''' > ./config.py
@@ -279,11 +283,8 @@ task matrix {
         import glob
         import subprocess
         FNULL = open(os.devnull, 'w')
-        processes = set()
         for file in glob.glob("*pheno_piece"):
-            processes.add(subprocess.Popen(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "${cols}", "--no_require_match", "--no_tabix"], stdout=FNULL))
-        for p in processes:
-            p.wait()
+            subprocess.call(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "${cols}", "--no_require_match", "--no_tabix"], stdout=FNULL)
         EOF
 
         cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
