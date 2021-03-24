@@ -39,7 +39,8 @@ class GoogleSignIn(object):
 
     def get_callback_url(self):
         return url_for('.oauth_callback_google',
-                        _external=True)
+                       _external=True,
+                       _scheme='https')  # Google only allows HTTPS callbacks, so assume https.  I don't know why flask didn't see X-SCHEME header or whatever.
 
     def callback(self):
         if 'code' not in request.args:
