@@ -1,5 +1,13 @@
 *This file only includes changes that are relevant to people running a pheweb site.*
 
+## 1.3.11
+- Adds beta/sebeta columns to the tables on /pheno/ and /variant/
+- Shows AF range or MAF range better on /variant/
+- Shows pvalue=0 as p<1e-320 in most places.
+- Improves error-handling on /pheno-filter/
+- Upgrades to LocusZoom.js 0.13, including new PNG downloads
+- Fixes bugs in OAuth and WSGI
+
 ## 1.3.9
 - Improves hovering on the filtered manhattan plots
 - Includes code for annotating with VEP
