@@ -204,7 +204,6 @@ def api_pheno_qq(phenocode:str):
 @check_auth
 def random_page():
     url = get_random_page()
-    print('RANDOM URL = ', repr(url))
     if url is None:
         die("Sorry, it looks like no hits in this pheweb reached the significance threshold.")
     return relative_redirect(url)
