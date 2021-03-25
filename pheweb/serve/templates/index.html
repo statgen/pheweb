@@ -23,11 +23,11 @@ $(function() { $('.typeahead').focus(); }); // autofocus attribute doesn't work 
       {% if not config['USE_WHITELIST'] %}
       <p>Please register to view this data.</p>
       <br>
-      <p><a class="btn-lg btn-primary" role="button" href="{{ url_for('.login_with_google') }}">Click here register with a Google account</a></p>
+      <p><a class="btn-lg btn-primary" role="button" href="{{ url_for('.login_with_google') }}">Click here to register with a Google account</a></p>
       {% else %}
       <p>Please log in to view this data.</p>
       <br>
-      <p><a class="btn-lg btn-primary" role="button" href="{{ url_for('.login_with_google') }}">Click here log in with a Google account</a></p>
+      <p><a class="btn-lg btn-primary" role="button" href="{{ url_for('.login_with_google') }}">Click here to log in with a Google account</a></p>
       <br>
       <p style="margin-bottom:0">
         If your email address is on the whitelist but is not connected to a Google account, please
