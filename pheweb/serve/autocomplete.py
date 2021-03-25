@@ -4,6 +4,7 @@ from .server_utils import parse_variant
 
 from flask import url_for
 
+import urllib.parse
 import itertools
 import re
 import copy
@@ -20,14 +21,18 @@ from typing import List,Dict,Any,Optional,Iterator
 #         - but, stringy things should just be in a streamtable anyways.
 
 
+def get_sqlite3_readonly_connection(filepath:str):
+    # `check_same_thread=False` lets WSGI work. Readonly makes me feel better about disabling `check_same_thread`.
+    return sqlite3.connect('file:{}?mode=ro'.format(urllib.parse.quote(filepath)), uri=True, check_same_thread=False)
+
 class Autocompleter(object):
     def __init__(self, phenos:Dict[str,Dict[str,Any]]):
         self._phenos = copy.deepcopy(phenos)
         self._preprocess_phenos()
 
-        self._cpras_rsids_sqlite3 = sqlite3.connect(get_filepath('cpras-rsids-sqlite3'))
+        self._cpras_rsids_sqlite3 = get_sqlite3_readonly_connection(get_filepath('cpras-rsids-sqlite3'))
         self._cpras_rsids_sqlite3.row_factory = sqlite3.Row
-        self._gene_aliases_sqlite3 = sqlite3.connect(get_filepath('gene-aliases-sqlite3'))
+        self._gene_aliases_sqlite3 = get_sqlite3_readonly_connection(get_filepath('gene-aliases-sqlite3'))
         self._gene_aliases_sqlite3.row_factory = sqlite3.Row
 
         self._autocompleters = [
