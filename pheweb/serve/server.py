@@ -4,13 +4,13 @@ from ..utils import get_phenolist, get_gene_tuples, pad_gene, PheWebError, vep_c
 from .. import conf
 from .. import parse_utils
 from ..file_utils import get_filepath, get_pheno_filepath, VariantFileReader
-from .server_utils import get_variant, get_random_page, get_pheno_region
+from .server_utils import get_variant, get_random_page, get_pheno_region, relative_redirect
 from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
 from ..import weetabix
 
-from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for, Blueprint
+from flask import Flask, jsonify, render_template, request, abort, flash, send_from_directory, send_file, session, url_for, Blueprint
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 
@@ -63,7 +63,7 @@ def check_auth(func):
         if current_user.is_anonymous:
             print('unauthorized user visited {!r}'.format(request.path))
             session['original_destination'] = request.path
-            return redirect(url_for('.get_authorized'))
+            return relative_redirect(url_for('.get_authorized'))
         print('{} visited {!r}'.format(current_user.email, request.path))
         if conf.get_login_allowlist():
             assert current_user.email.lower() in conf.get_login_allowlist(), current_user
@@ -89,7 +89,7 @@ def go():
         die("How did you manage to get a null query?")
     best_suggestion = autocompleter.get_best_completion(query)
     if best_suggestion:
-        return redirect(best_suggestion['url'])
+        return relative_redirect(best_suggestion['url'])
     die("Couldn't find page for {!r}".format(query))
 
 @bp.route('/api/variant/<query>')
@@ -204,9 +204,10 @@ def api_pheno_qq(phenocode:str):
 @check_auth
 def random_page():
     url = get_random_page()
+    print('RANDOM URL = ', repr(url))
     if url is None:
         die("Sorry, it looks like no hits in this pheweb reached the significance threshold.")
-    return redirect(url)
+    return relative_redirect(url)
 
 @bp.route('/pheno/<phenocode>')
 @check_auth
@@ -466,13 +467,13 @@ if conf.is_login_required():
     def logout():
         print(current_user.email, 'logged out')
         logout_user()
-        return redirect(url_for('.homepage'))
+        return relative_redirect(url_for('.homepage'))
 
     @bp.route('/login_with_google')
     def login_with_google():
         "this route is for the login button"
         session['original_destination'] = url_for('.homepage')
-        return redirect(url_for('.get_authorized'))
+        return relative_redirect(url_for('.get_authorized'))
 
     @bp.route('/get_authorized')
     def get_authorized():
@@ -485,12 +486,12 @@ if conf.is_login_required():
                 del session['original_destination'] # We don't want old destinations hanging around.  If this leads to problems with re-opening windows, disable this line.
             else:
                 orig_dest = url_for('.homepage')
-            return redirect(orig_dest)
+            return relative_redirect(orig_dest)
 
     @bp.route('/callback/google')
     def oauth_callback_google():
         if not current_user.is_anonymous:
-            return redirect(url_for('.homepage'))
+            return relative_redirect(url_for('.homepage'))
         try:
             username, email = google_sign_in.callback() # oauth.callback reads request.args.
         except Exception as exc:
@@ -498,21 +499,21 @@ if conf.is_login_required():
             print(exc)
             print(traceback.format_exc())
             flash('Something is wrong with authentication.  Please email pjvh@umich.edu')
-            return redirect(url_for('.homepage'))
+            return relative_redirect(url_for('.homepage'))
         if email is None:
             # I need a valid email address for my user identification
             flash('Authentication failed by failing to get an email address.  Please email pjvh@umich.edu')
-            return redirect(url_for('.homepage'))
+            return relative_redirect(url_for('.homepage'))
 
         if conf.get_login_allowlist() and email.lower() not in conf.get_login_allowlist():
             flash('Your email, {!r}, is not in the list of allowed emails.'.format(email))
-            return redirect(url_for('.homepage'))
+            return relative_redirect(url_for('.homepage'))
 
         # Log in the user, by default remembering them for their next visit.
         user = User(username, email)
         login_user(user, remember=True)
 
         print(user.email, 'logged in')
-        return redirect(url_for('.get_authorized'))
+        return relative_redirect(url_for('.get_authorized'))
 
 app.register_blueprint(bp, url_prefix = app.config['URLPREFIX'])

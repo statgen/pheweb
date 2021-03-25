@@ -1,5 +1,5 @@
 
-from flask import url_for
+from flask import url_for, Response, redirect
 
 from ..file_utils import MatrixReader, IndexedVariantFileReader, get_filepath
 
@@ -101,3 +101,12 @@ def get_random_page() -> Optional[str]:
                        phenocode=hit['phenocode'],
                        region='{}:{}-{}'.format(hit['chrom'], hit['pos']-offset, hit['pos']+offset))
     # TODO: check if this hit is inside a gene. if so, include that page.
+
+def relative_redirect(url:str) -> Response:
+    # `flask.redirect(url)` turns relative URLs into absolute.
+    # But modern browsers allow relative location header.
+    # And I want relative to avoid thinking about http/https and hostname.
+    # Only a few places in pheweb need absolute URLs (eg, auth), and everywhere else can just use relative.
+    return redirect(url, Response=RelativeResponse)
+class RelativeResponse(Response):
+    autocorrect_location_header = False
