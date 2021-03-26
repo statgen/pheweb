@@ -1,4 +1,9 @@
 Assuming your are starting off with a new cluster
+0. Check version of gcloud
+   gcloud --version
+
+   Requires at least : beta 2020.01.31
+
 1. install helm
    https://helm.sh/docs/intro/install/
 2. get gcloud credentials for your cluster
@@ -12,7 +17,8 @@ Assuming your are starting off with a new cluster
 ```
 	gcloud beta secrets list
 	
-	gcloud beta secrets versions access latest --secret=<cert name> > cert.pem
+	gvalues.yaml
+cloud beta secrets versions access latest --secret=<cert name> > cert.pem
 	gcloud beta secrets versions access latest --secret=<key name> > cert_key.pem
 	
 ```
@@ -39,7 +45,6 @@ pheweb:
   ipName: finngen-r6-ip  # name of ip
   
 persistentVolume:
-  storage: 11T           # storage size
   path: /vol1            # nfs path
   server: 10.179.247.250 # nfs server
 ```
@@ -50,6 +55,10 @@ is ${pheweb.mount}/pheweb/${pheweb.subdomain}
 Setup you pheweb directory
 
 ${pheweb.mount}/pheweb/${pheweb.subdomain}
+
+You can override using
+
+${pheweb.directory}
 
 6. install
 
@@ -78,8 +87,8 @@ If you have to install
 
 # Configure 
 
-Additional configuration variables
-if needed.
+Don't use these variables 
+Additional configuration variables if needed.
 
 Pheweb image :
 image.repository # repository image
@@ -96,6 +105,7 @@ replicaCount:    # replica count
 Pheweb properties:
 pheweb.mount     # mount point 
 pheweb.subdomain # subdomain of finngen
+pheweb.directory # directory of pheweb
 
 NFS
 persistentVolume.storage # nfs size
