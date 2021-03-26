@@ -1,5 +1,8 @@
 *This file only includes changes that are relevant to people running a pheweb site.*
 
+## 1.3.13
+- Speeds up autocomplete
+
 ## 1.3.12
 - Adds beta/sebeta columns to the tables on /pheno/ and /variant/
 - Shows AF range or MAF range better on /variant/
