@@ -4,7 +4,7 @@ Assuming your are starting off with a new cluster
 2. get gcloud credentials for your cluster
 
 ```
-	
+	gcloud container clusters get-credentials <clustername> --zone europe-west1-b
 ```
 
 3. get certificates
@@ -12,8 +12,8 @@ Assuming your are starting off with a new cluster
 ```
 	gcloud beta secrets list
 	
-	gcloud beta secrets versions access latest --secret=<secret_name> > cert.pem
-	gcloud beta secrets versions access latest --secret=<secret_name> > cert_key.pem
+	gcloud beta secrets versions access latest --secret=<cert name> > cert.pem
+	gcloud beta secrets versions access latest --secret=<key name> > cert_key.pem
 	
 ```
 
