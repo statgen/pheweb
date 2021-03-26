@@ -105,22 +105,20 @@ class Autocompleter(object):
                     }
 
     def _autocomplete_rsid(self, query:str) -> Iterator[Dict[str,str]]:
-        query = query.lower()
+        key = query.lower()
         if query.startswith('rs'):
-            key = query
-
-            rsid_cpra_pairs = list(self._cpras_rsids_sqlite3.execute(
-                'SELECT cpra,rsid FROM cpras_rsids WHERE rsid LIKE ? ORDER BY LENGTH(rsid),rsid LIMIT 100',
-                (key+'%',)
-            ))
-            for row in rsid_cpra_pairs:
-                rsid, cpra = row['rsid'], row['cpra']
-                cpra_display = cpra.replace('-', ':', 1)
-                yield {
-                    "value": cpra_display,
-                    "display": '{} ({})'.format(rsid, cpra_display),
-                    'url': url_for('.variant_page', query=cpra_display),
-                }
+            ## <https://sqlite.org/np1queryprob.html> recommends doing lots of small queries, and it's fast:
+            for suffix_length in [0,1,2]:
+                for suffix in (''.join(digits) for digits in itertools.product('0123456789', repeat=suffix_length)):
+                    rows = list(self._cpras_rsids_sqlite3.execute('SELECT cpra,rsid FROM cpras_rsids WHERE rsid=?', (key+suffix,)))
+                    for row in rows:
+                        rsid, cpra = row['rsid'], row['cpra']
+                        cpra_display = cpra.replace('-', ':', 1)
+                        yield {
+                            "value": cpra_display,
+                            "display": '{} ({})'.format(rsid, cpra_display),
+                            'url': url_for('.variant_page', query=cpra_display),
+                        }
 
     def _autocomplete_phenocode(self, query:str) -> Iterator[Dict[str,str]]:
         query = self._process_string(query)
