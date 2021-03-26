@@ -81,35 +81,42 @@ ${pheweb.directory}
 If you have to install
 
 ```
-	helm install ${pheweb.subdomain}_pheweb . -f ${pheweb.subdomain}_values.yaml
+	helm upgrade ${pheweb.subdomain}_pheweb . -f ${pheweb.subdomain}_values.yaml
 ```
+
 
 
 # Configure 
 
-Don't use these variables 
-Additional configuration variables if needed.
+Below is the full configuration will all fields specified
 
-Pheweb image :
-image.repository # repository image
-image.pullPolicy # pull policy
-image.tag:       # tag to use
+```
+# Default values are found in values.yaml                                                                                                                                                                          
 
-Service :
-service.type     # type of service
-service.port     # port to bind on
+replicaCount: 3                  # (required) replica count                                                                                                                                                        
 
-Replica count :
-replicaCount:    # replica count
+pheweb:
+  mount: /mnt/nfs                # (required) nfs mount point                                                                                                                                                      
+  subdomain: r6                  # (required) sub domain name                                                                                                                                                      
+  ipName: finngen-r6-ip          # (required) ip address name                                                                                                                                                      
 
-Pheweb properties:
-pheweb.mount     # mount point 
-pheweb.subdomain # subdomain of finngen
-pheweb.directory # directory of pheweb
+  # (optional) pheweb directory this defaults to                                                                                                                                                                   
+  # ${pheweb.mount}/pheweb/{pheweb.subdomain}                                                                                                                                                                      
+  directory : /mnt/nfs/pheweb/r6
 
-NFS
-persistentVolume.storage # nfs size
-persistentVolume.path    # nfs path
-persistentVolume.server  # nfs server
+persistentVolume:
+  path: /vol1                    # (required) nfs path                                                                                                                                                             
+  server: 10.179.247.250         # (required) nfs server                                                                                                                                                           
+  storage: 11T                   # (optional)                                                                                                                                                                      
 
+image: # pheweb image                                                                                                                                                                                              
+  repository: gcr.io/phewas-development/pheweb     # (optional) docker repository                                                                                                                                  
+  pullPolicy: IfNotPresent                         # (optional)                                                                                                                                                    
 
+  # (optional) tag defaults to the current release set                                                                                                                                                             
+  # in values.yaml                                                                                                                                                                                                 
+  tag: ci-bc3e2881d43ad7ff4c2820c58a68bbaf128a0d60
+
+service:
+  type: NodePort # (optional)                                                                                                                                                                                      
+  port: 80       # (optional)                                 ```
