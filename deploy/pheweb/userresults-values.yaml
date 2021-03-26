@@ -1,0 +1,13 @@
+# Default values are found in values.yaml
+
+pheweb:
+  mount: /mnt/nfs_dev
+  subdomain: userresults
+  cloudSQLCredentialFile: /mnt/nfs_dev/pheweb/phewas.sql.credentials.json
+  cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
+  ipName: sandbox-gwas
+  
+persistentVolume:
+  storage: 11T
+  path: /vol1
+  server: 10.233.113.218

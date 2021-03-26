@@ -331,7 +331,7 @@ $(function() {
     }
 
     if (!window.gene_symbol) return
-    $.getJSON('http://mygene.info/v3/query?q=' +  window.gene_symbol + '&fields=symbol%2Cname%2Centrezgene%2Censembl.gene%2CMIM%2Csummary&species=human')
+    $.getJSON('https://mygene.info/v3/query?q=' +  window.gene_symbol + '&fields=symbol%2Cname%2Centrezgene%2Censembl.gene%2CMIM%2Csummary&species=human')
         .done(function(result) {
             var mygene = {symbol:window.gene_symbol}
             if (result.hits && result.hits.length > 0) {

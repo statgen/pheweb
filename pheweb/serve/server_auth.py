@@ -9,11 +9,15 @@ def before_request():
         print('anonymous visited {!r}'.format(request.path))
         return None
     elif current_user is None or not hasattr(current_user, 'email'):
-        return redirect(url_for('get_authorized'))
+        return redirect(url_for('get_authorized',
+                                _scheme='https',
+                                _external=True))
     elif not verify_membership(current_user.email):
         print('{} is unauthorized and visited {!r}'.format(current_user.email, request.path))
         session['original_destination'] = request.path
-        return redirect(url_for('get_authorized'))
+        return redirect(url_for('get_authorized',
+                                _scheme='https',
+                                _external=True))
     else:
         print('{} visited {!r}'.format(current_user.email, request.path))
         return None
