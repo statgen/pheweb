@@ -24,7 +24,7 @@ def get_hits(pheno:Dict[str,Any]) -> Iterator[Dict[str,Any]]:
             yield v
 
 def get_all_hits() -> List[Dict[str,Any]]:
-    return sorted((hit for pheno in get_phenolist() for hit in get_hits(pheno)), key=lambda hit:hit['pval'])
+    return sorted((hit for pheno in get_phenolist() for hit in get_hits(pheno)), key=lambda hit:hit['neglog10pval'], reverse=True)
 
 def stringify_assocs(assocs:List[Dict[str,Any]]) -> None:
     for a in assocs:

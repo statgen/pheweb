@@ -80,12 +80,21 @@ per_assoc_fields: Dict[str,Dict[str,Any]] = {
         'nullable': True,
         'range': [0, 1],
         'sigfigs': 2,
+        'display': 'P-value',
+        'tooltip_underscoretemplate': False,
+        'tooltip_lztemplate': False,
+    },
+    'neglog10pval': {
+        'from_assoc_files': False,
+        'required': True,
+        'type': float,
+        'range': [0, None],
+        'decimals': 1,
+        'display': '-log10(pval)',
         'tooltip_lztemplate': {
             'condition': False,
-            'template': ('{{#if pvalue|is_numeric}}P-value: <strong>{{pvalue|scinotation}}</strong><br>{{/if}}\n' +
-                         '{{#if pval|is_numeric}}P-value: <strong>{{pval|scinotation}}</strong><br>{{/if}}'),
+            'template': '{{#if neglog10pval|is_numeric}}P-value: <strong>{{neglog10pval|logtoscinotation}}</strong><br>{{/if}}\n',
         },
-        'display': 'P-value',
     },
     'beta': {
         'type': float,

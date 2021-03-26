@@ -8,6 +8,8 @@ from .load_utils import get_maf
 import itertools
 import re
 import boltons.iterutils
+import math
+from decimal import Decimal
 
 
 class PhenoReader:
@@ -145,6 +147,17 @@ class AssocFileReader:
                     maf = get_maf(variant, self._pheno) # checks for agreement
                     if maf is not None and maf < minimum_maf:
                         continue
+
+                    pval_str = values[colidx_for_field['pval']]
+                    pval_float = float(pval_str)
+                    if pval_str == '0':
+                        neglog10pval = 321  # Yes, this is terrible.
+                    elif pval_float > 0:
+                        neglog10pval = -math.log10(pval_float)
+                    else:
+                        neglog10pval = float(-Decimal(pval_str).log10())
+                    assert 0 <= neglog10pval
+                    variant['neglog10pval'] = round(neglog10pval, 1)
 
                     if marker_id_col is not None:
                         chrom2, pos2, variant['ref'], variant['alt'] = AssocFileReader.parse_marker_id(values[marker_id_col])

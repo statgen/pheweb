@@ -83,12 +83,12 @@
 <script type="text/template" id="streamtable-template">
   <% if (p.pheno.phenocode === pheno.phenocode) { %>
   <tr style="background-color:lightblue">
-    <td><%= (p.assoc.pval == 0) ? '≤1e-320' : p.assoc.pval.toExponential(1) %></td>
+    <td><%= (p.assoc.pval>0) ? p.assoc.pval.toExponential(1) : '1e-'+p.assoc.neglog10pval.toFixed(0) %></td>
     <td><%= p.pheno.phenostring || p.pheno.phenocode %></td>
   </tr>
   <% } else { %>
   <tr onclick="window.location='{{ url_for('.region_page', phenocode='', region='').rstrip('/') }}/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>'" style="cursor:pointer">
-    <td><%= (p.assoc.pval == 0) ? '≤1e-320' : p.assoc.pval.toExponential(1) %></td>
+    <td><%= (p.assoc.pval>0) ? p.assoc.pval.toExponential(1) : '1e-'+p.assoc.neglog10pval.toFixed(0) %></td>
     <td><a style="color:black" href="{{ url_for('.region_page', phenocode='', region='').rstrip('/') }}/<%= p.pheno.phenocode %>/gene/<%= gene_symbol %>">
         <%= p.pheno.phenostring || p.pheno.phenocode %>
     </a></td>

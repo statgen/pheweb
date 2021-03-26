@@ -83,7 +83,7 @@
         <%= h.chrom %>:<%= h.pos.toLocaleString() %> <%= h.ref %> / <%= h.alt %>
         <% if (h.rsids) { %>(<%= h.rsids.replace(/,/g, ', ') %>)<% } %>
     </a></td>
-    <td><%= (h.pval == 0) ? '≤1e-320' : h.pval.toExponential(1) %></td>
+    <td>1e-<%= h.neglog10pval.toFixed(0) %></td>
     <td class="nearest_genes_col">
       <% var ngs = h.nearest_genes.split(","); ngs.forEach(function(g, i) { %>
       <a style="color:black" href="{{ url_for('.region_page', phenocode='', region='').rstrip('/') }}/<%= h.phenocode %>/gene/<%= g %>?include=<%= h.chrom %>-<%= h.pos %>">

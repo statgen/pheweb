@@ -13,11 +13,12 @@ def get_phenotypes_including_top_variants() -> Iterator[Dict[str,Any]]:
             gc_lambda_hundred = json.load(f)['overall']['gc_lambda'].get('0.01', None)
         with open(get_pheno_filepath('manhattan', pheno['phenocode'])) as f:
             variants = json.load(f)['unbinned_variants']
-        top_variant = min(variants, key=lambda v: v['pval'])
+        top_variant = max(variants, key=lambda v: v['neglog10pval'])
         num_peaks = sum(variant.get('peak',False) and variant['pval']<=5e-8 for variant in variants)
         ret = {
             'phenocode': pheno['phenocode'],
             'pval': top_variant['pval'],
+            'neglog10pval': top_variant['neglog10pval'],
             'nearest_genes': top_variant['nearest_genes'],
             'chrom': top_variant['chrom'],
             'pos': top_variant['pos'],
@@ -52,7 +53,7 @@ def run(argv:List[str]) -> None:
         print('Already up-to-date!')
         return
 
-    data = sorted(get_phenotypes_including_top_variants(), key=lambda p: p['pval'])
+    data = sorted(get_phenotypes_including_top_variants(), key=lambda p:p['neglog10pval'], reverse=True)
 
     out_filepath = get_filepath('phenotypes_summary', must_exist=False)
     write_json(filepath=out_filepath, data=data)

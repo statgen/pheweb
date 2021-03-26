@@ -97,12 +97,7 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
 
 (function() { // Create PheWAS plot.
 
-    var best_neglog10_pval = d3.max(window.variant.phenos.map(function(x) { return LocusZoom.TransformationFunctions.get('neglog10')(x.pval); }));
-    var neglog10_handle0 = function(x) {
-        if (x === 0) return best_neglog10_pval * 1.1;
-        return -Math.log(x) / Math.LN10;
-    };
-    LocusZoom.TransformationFunctions.add("neglog10_handle0", neglog10_handle0);
+    var best_neglog10pval = d3.max(window.variant.phenos.map(function(x) { return x.neglog10pval; }));
 
     // Define data sources object
     // TODO: Can this be replaced with StaticSource + deepcopy?
@@ -175,9 +170,8 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
                         },
                         'circle'
                     ],
-                    "y_axis.field": 'pval|neglog10_handle0',  // handles pval=0 a little better
-                    "y_axis.upper_buffer": 0.1,
-                    "y_axis.min_extent": [0, neglog10_significance_threshold*1.05], // always show sig line
+                    "y_axis.field": 'neglog10pval',
+                    "y_axis.min_extent": [0, 1.1*Math.max(neglog10_significance_threshold, best_neglog10pval)], // always show sig line
 
                     "x_axis.min_extent": [-1, window.variant.phenos.length], // a little x-padding so that no points intersect the edge
 
@@ -190,11 +184,11 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
                     "label.text": "{{phewas_string}}",
                     "label.filters": (function() {
                         var ret = [
-                            {field:"pval|neglog10_handle0", operator:">", value:neglog10_significance_threshold * 3/4},
-                            {field:"pval|neglog10_handle0", operator:">", value:best_neglog10_pval / 4}
+                            {field:"neglog10pval", operator:">", value:neglog10_significance_threshold * 3/4},
+                            {field:"neglog10pval", operator:">", value:best_neglog10pval / 4}
                         ];
                         if (window.variant.phenos.length > 10) {
-                            ret.push({field:"pval", operator:"<", value:_.sortBy(window.variant.phenos.map(_.property('pval')))[10]});
+                            ret.push({field:"neglog10pval", operator:">", value:-_.sortBy(-window.variant.phenos.map(_.property('neglog10pval')))[10]});
                         }
                         return ret;
                     })(),
@@ -319,7 +313,7 @@ if (typeof window.variant.rsids !== "undefined") {
 // Populate StreamTable
 $(function() {
     // This is mostly copied from <https://michigangenomics.org/health_data.html>.
-    var data = _.sortBy(window.variant.phenos, function(pheno) { return pheno.pval; });
+    var data = _.sortBy(window.variant.phenos, function(pheno) { return -pheno.neglog10pval; });
     var template = _.template($('#streamtable-template').html());
     var view = function(phenotype) {
         return template({d: phenotype});

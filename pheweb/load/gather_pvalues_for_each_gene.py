@@ -102,7 +102,7 @@ def get_region_info(matrix_reader, tree_for_chrom:Dict[str,IntervalTree], region
             assert isinstance(pheno['pval'], float)
             for genename in genenames:
                 pheno_gene_pair = (phenocode, genename)
-                if pheno_gene_pair not in best_assoc_for_pheno_gene_pair or pheno['pval'] < best_assoc_for_pheno_gene_pair[pheno_gene_pair]['pval']:
+                if pheno_gene_pair not in best_assoc_for_pheno_gene_pair or pheno['neglog10pval'] > best_assoc_for_pheno_gene_pair[pheno_gene_pair]['neglog10pval']:
                     best_assoc_for_pheno_gene_pair[pheno_gene_pair] = pheno
 
     phenos_in_gene: Dict[str,List[Dict[str,Any]]] = {}
@@ -127,7 +127,7 @@ def order_and_truncate_phenos(phenos: List[Dict[str,Any]]) -> List[Dict[str,Any]
     #  - Always show all significant phenotypes (with pvalue < 5e-8).
     #  - Always show the three strongest phenotypes (even if none are significant).
     #  - Look at the p-values of the 4th to 10th strongest phenotypes to decide how many of them to show.
-    phenos.sort(key=lambda a:a['pval'])
+    phenos.sort(key=lambda a:a['neglog10pval'], reverse=True)
     biggest_idx_to_include = 2
     for idx in range(biggest_idx_to_include, len(phenos)):
         if phenos[idx]['pval'] < 5e-8:

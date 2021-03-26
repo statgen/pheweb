@@ -268,7 +268,7 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                                     "{{namespace[assoc]}}all", // special mock value for the custom source
                                     "{{namespace[assoc]}}id",
                                     "{{namespace[assoc]}}position",
-                                    "{{namespace[assoc]}}pvalue|neglog10_or_323",
+                                    "{{namespace[assoc]}}neglog10pval",
                                     "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar",
                                     "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
                                 ],
@@ -291,7 +291,7 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                                 x_axis: { field: "{{namespace[assoc]}}position" },
                                 y_axis: {
                                     axis: 1,
-                                    field: "{{namespace[assoc]}}pvalue|neglog10_or_323",
+                                    field: "{{namespace[assoc]}}neglog10pval",
                                     floor: 0,
                                     upper_buffer: 0.1,
                                     min_extent: [0, 10]
