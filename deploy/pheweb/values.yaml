@@ -6,3 +6,6 @@ image: # pheweb image
 service:
   type: NodePort
   port: 80
+
+persistentVolume:
+  storage: 11T
