@@ -1,0 +1,7 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: certificate-{{ .Values.pheweb.subdomain }}
+spec:
+  domains:
+    - {{ .Values.pheweb.subdomain }}.finngen.fi
