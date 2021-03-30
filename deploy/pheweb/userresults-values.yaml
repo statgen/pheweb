@@ -1,5 +1,7 @@
 # Default values are found in values.yaml
 
+replicaCount: 2
+
 pheweb:
   mount: /mnt/nfs_dev
   subdomain: userresults
