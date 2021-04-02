@@ -57,6 +57,7 @@
         <span id="info-range"></span>
 	<span id="hom"></span>
         <p>View in
+          <a href="https://genetics.opentargets.org/variant/{{ variant.chr }}_{{ variant.pos }}_{{ variant.ref }}_{{ variant.alt }}">Open Targets</a> ,
           <a href="https://gnomad.broadinstitute.org/variant/{{ variant.chr }}-{{ variant.pos }}-{{ variant.ref }}-{{ variant.alt }}?dataset=gnomad_r3">gnomAD</a> , 
           <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&highlight=hg38.chr{{ variant.chr }}%3A{{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chr }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>
           {% with rsids = (variant.get_annotation("rsids").split(',') if (variant.get_annotation("rsids")) else []) %}
@@ -78,6 +79,7 @@
           <span id="ukbb-link"></span>
           <span id="pubmed-link"></span>
           <span id="clinvar-link"></span>
+
         </p>
 	<div id="loglog-note" style="display: none;">
 	</div>
