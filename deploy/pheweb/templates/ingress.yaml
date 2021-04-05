@@ -1,3 +1,4 @@
+{{ if .Values.pheweb.ssl }}
 ---
 apiVersion: networking.gke.io/v1beta1
 kind: FrontendConfig
@@ -7,26 +8,24 @@ spec:
   redirectToHttps:
     enabled: true
     responseCodeName: "308"
-
+{{ end }}
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: ig-{{ .Values.pheweb.subdomain }}
   annotations:
+{{ if .Values.pheweb.ssl }}
     networking.gke.io/v1beta1.FrontendConfig: "frontend-config"
     FrontConfig: "frontend-config"
-    kubernetes.io/ingress.global-static-ip-name: {{ if .Values.pheweb.ipName }} "{{ .Values.pheweb.ipName }}" {{ else }} "{{ .Values.pheweb.subdomain }}"  {{ end }}
     networking.gke.io/managed-certificates: certificate-{{ .Values.pheweb.subdomain }}
     kubernetes.io/tls-acme: "true"
+{{ end }}
+    kubernetes.io/ingress.global-static-ip-name: {{ if .Values.pheweb.ipName }} "{{ .Values.pheweb.ipName }}" {{ else }} "{{ .Values.pheweb.subdomain }}"  {{ end }}
     kubernetes.io/ingress.class: "gce"
   labels:
     app: pheweb
 spec:
-  #tls:
-  #- hosts:
-  #  - {{ .Values.pheweb.subdomain }}.finngen.fi
-  #  secretName: finngen-tls
   rules:
   - host: {{ .Values.pheweb.subdomain }}.finngen.fi
     http:

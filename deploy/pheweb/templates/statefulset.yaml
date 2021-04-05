@@ -45,6 +45,7 @@ spec:
         
         ports:
         - containerPort: 8080
+        {{- if .Values.pheweb.health }}          
         readinessProbe:
           initialDelaySeconds: 30
           httpGet:
@@ -56,6 +57,7 @@ spec:
           httpGet:
             path: /health
             port: 8080
+        {{- end }}
         volumeMounts:
         - mountPath: "{{ .Values.pheweb.mount }}"
           name: pheweb-nfs
