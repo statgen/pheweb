@@ -2,6 +2,7 @@
 
 replicaCount: 2
 
+
 image:
   tag: r3_terminal_public
 
@@ -9,7 +10,8 @@ pheweb:
   mount: /mnt/nfs
   subdomain: r3
   ipName: finngen-r3-ip
-  
+  health: false
+
 persistentVolume:
   storage: 11T
   path: /vol1

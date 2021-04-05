@@ -1,3 +1,5 @@
+{{ if .Values.pheweb.ssl }}
+---
 apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
 metadata:
@@ -5,3 +7,4 @@ metadata:
 spec:
   domains:
     - {{ .Values.pheweb.subdomain }}.finngen.fi
+{{ end }}
