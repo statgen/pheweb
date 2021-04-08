@@ -1,4 +1,9 @@
-Assuming your are starting off with a new cluster
+Assuming your are starting off with a new cluster created with e.g.
+
+```
+gcloud container clusters create <clustername> --num-nodes=1 --machine-type=n1-standard-1 --zone=europe-west1-b --project phewas-development
+```
+
 0. Check version of gcloud
    gcloud --version
 
@@ -17,8 +22,7 @@ Assuming your are starting off with a new cluster
 ```
 	gcloud beta secrets list
 	
-	gvalues.yaml
-cloud beta secrets versions access latest --secret=<cert name> > cert.pem
+	gcloud beta secrets versions access latest --secret=<cert name> > cert.pem
 	gcloud beta secrets versions access latest --secret=<key name> > cert_key.pem
 	
 ```
@@ -32,7 +36,7 @@ cloud beta secrets versions access latest --secret=<cert name> > cert.pem
 5. create configuration
 
 
-in this folder create
+From the root of this repo `cd deploy/pheweb` and create
 
 ${subdomain name}_values.yml
 
