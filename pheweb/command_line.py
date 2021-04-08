@@ -73,9 +73,12 @@ def configure(argv:List[str]) -> None:
     for i, arg in enumerate(argv):
         if '=' not in arg: break
         k,v = arg.split('=', 1)
-        try: v = json.loads(v)
-        except json.JSONDecodeError: pass
-        conf.set_override(k, v)
+        if v == '':
+            del conf.overrides[k]
+        else:
+            try: v = json.loads(v)
+            except json.JSONDecodeError: pass
+            conf.set_override(k, v)
     else:
         print(json.dumps(conf.overrides, indent=2))
         return
