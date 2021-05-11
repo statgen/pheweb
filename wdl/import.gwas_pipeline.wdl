@@ -92,7 +92,7 @@ task annotation {
         echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
         mkdir -p pheweb/generated-by-pheweb/sites/genes  && \
         mv ${marisa_trie} pheweb/generated-by-pheweb/sites/genes/  && \
-        mv ${phenofile} pheweb/generated-by-pheweb/parsed/ 
+        mv ${phenofile} pheweb/generated-by-pheweb/parsed/
         mkdir -p pheweb/generated-by-pheweb/sites/dbSNP/ && \
         mv ${rsids_gz} pheweb/generated-by-pheweb/sites/dbSNP/
 
@@ -202,13 +202,13 @@ task pheno {
         echo "COPY AND FIX FILES TO DIR"
         echo "-----------------------------------------------"
 
-        python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)}        
+        python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)}
         mv ${phenofile} pheweb/generated-by-pheweb/parsed/${base} && \
         mv ${trie1} pheweb/generated-by-pheweb/sites/ && \
         mv ${trie2} pheweb/generated-by-pheweb/sites/ && \
         mv ${sites} pheweb/generated-by-pheweb/sites/ && \
         cd pheweb && \
-        if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi 
+        if [ -f generated-by-pheweb/parsed/*.gz ]; then gunzip generated-by-pheweb/parsed/*.gz; fi
 
         echo "-----------------------------------------------"
         echo "PHEWEB TIME!"
@@ -275,16 +275,25 @@ task matrix {
         done
         n_pheno=$(wc -l pheno_config.txt | cut -d' ' -f1)
         n_batch=$((n_pheno/${cpu}+1))
-        split -l $n_batch --additional-suffix pheno_piece pheno_config.txt
+        split -d -l $n_batch --additional-suffix pheno_piece pheno_config.txt
 
         tail -n+2 ${sites} > ${sites}.noheader
         python3 <<EOF
-        import os
-        import glob
-        import subprocess
-        FNULL = open(os.devnull, 'w')
-        for file in glob.glob("*pheno_piece"):
-            subprocess.call(["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "${cols}", "--no_require_match", "--no_tabix"], stdout=FNULL)
+        import os,glob,subprocess,time
+        files = glob.glob("*pheno_piece")
+        for i,file in enumerate(files):
+            cmd = ["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "${cols}", "--no_require_match", "--no_tabix"]
+            print(cmd)
+            start = time.time()
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out,err = [elem.decode("utf-8").strip() for elem in p.communicate()]
+            out = out.split('\n')
+            for j in range(100): print(out[j*len(out)//100])
+            print(out[-1])
+            print(file)
+            print(f"{i+1}/{len(files)}")
+            print("ERR: ",err)
+            print(f"It took {time.time() - start} seconds.")
         EOF
 
         cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
