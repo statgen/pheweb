@@ -63,6 +63,7 @@ for submodule in '''
  detect_ref
  export_data
  map_fields
+ external_matrix
 '''.split():
     def f(submodule, argv):
         module = importlib.import_module('.load.{}'.format(submodule), __package__)

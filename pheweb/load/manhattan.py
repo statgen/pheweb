@@ -82,9 +82,11 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
                    "startpos": pos_bin * bin_length,
                    "neglog10_pvals": set()}
             bins[(chrom_key, pos_bin)] = bin
-        #TODO
-        bin["neglog10_pvals"].add(round(variant['mlogp'] // neglog10_pval_bin_size * neglog10_pval_bin_size, neglog10_pval_bin_digits))
-        #bin["neglog10_pvals"].add(rounded_neglog10(variant['pval'], neglog10_pval_bin_size, neglog10_pval_bin_digits))
+        #TODO review with juha
+        if 'mlogp' in variant:
+            bin["neglog10_pvals"].add(round(variant['mlogp'] // neglog10_pval_bin_size * neglog10_pval_bin_size, neglog10_pval_bin_digits))
+        else:
+            bin["neglog10_pvals"].add(rounded_neglog10(variant['pval'], neglog10_pval_bin_size, neglog10_pval_bin_digits))
 
     # put most-significant variants into the priorityqueue and bin the rest
     hla_variant_pq =MaxPriorityQueue()

@@ -18,7 +18,7 @@ def convert(pheno):
 
     with VariantFileReader(sites_filepath) as sites_reader, \
          VariantFileReader(common_filepaths['parsed'](pheno['phenocode'])) as pheno_reader, \
-         VariantFileWriter(common_filepaths['pheno'](pheno['phenocode'])) as writer:
+         VariantFileWriter(common_filepaths['pheno'](pheno['phenocode']), allow_extra_fields=True) as writer:
         sites_variants = with_chrom_idx(iter(sites_reader))
         pheno_variants = with_chrom_idx(iter(pheno_reader))
 
