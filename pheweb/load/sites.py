@@ -80,7 +80,7 @@ class MergeManager:
         self.files = []
         for pheno in get_phenolist():
             filepath = common_filepaths['parsed'](pheno['phenocode'])
-            assert os.path.exists(filepath)
+            assert os.path.exists(filepath), "missing file : {}".format(filepath)
             self.files.append({
                 'type': 'input',
                 'filepath': filepath,
