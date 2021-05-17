@@ -27,6 +27,7 @@
 "pheweb_import.matrix.sites": "gs://r6_data/pheweb/full/sorted/sites.tsv.23",
 "pheweb_import.matrix.cols": "pval,mlogp,beta,sebeta,af_alt,af_alt_cases,af_alt_controls",
 "pheweb_import.matrix.cpu": 80,
+"pheweb_import.matrix.mem": 64,
 "pheweb_import.matrix.disk": 8000,
 
 # PHENOJSON

@@ -254,7 +254,7 @@ task matrix {
 
     Int cpu
     Int disk
-
+    Int mem
     command <<<
         set -euxo pipefail
         mkdir -p pheweb/generated-by-pheweb/tmp && \
@@ -280,20 +280,24 @@ task matrix {
         tail -n+2 ${sites} > ${sites}.noheader
         python3 <<EOF
         import os,glob,subprocess,time
-        files = glob.glob("*pheno_piece")
-        for i,file in enumerate(files):
+        files = sorted(glob.glob("*pheno_piece"))
+        import multiprocessing
+        def multiproc(i):
+            file = sorted(glob.glob("*pheno_piece"))[i]
+            print(file)
             cmd = ["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--other_fields", "${cols}", "--no_require_match", "--no_tabix"]
-            print(cmd)
             start = time.time()
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             out,err = [elem.decode("utf-8").strip() for elem in p.communicate()]
-            out = out.split('\n')
-            for j in range(100): print(out[j*len(out)//100])
-            print(out[-1])
-            print(file)
-            print(f"{i+1}/{len(files)}")
+            print(f"{i}: file done.")
             print("ERR: ",err)
             print(f"It took {time.time() - start} seconds.")
+
+        cpus = multiprocessing.cpu_count()
+        pools = multiprocessing.Pool(cpus - 1)
+        pools.map(multiproc,range(len(files)))
+        pools.close()
+
         EOF
 
         cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
@@ -309,13 +313,26 @@ task matrix {
         python3 <<EOF
         import glob
         import subprocess
-        import json
+        import json,time
+        import multiprocessing
         # get gene-to-pheno json per piece
-        processes = set()
-        for file in glob.glob("*pheno_piece.matrix.tsv"):
-            processes.add(subprocess.Popen(["pheweb", "gather-pvalues-for-each-gene", file]))
-        for p in processes:
-            p.wait()
+        files =  glob.glob("*pheno_piece.matrix.tsv")
+        def multiproc(i):
+            file = sorted(glob.glob("*pheno_piece.matrix.tsv"))[i]
+            print(file)
+            cmd = ["pheweb", "gather-pvalues-for-each-gene", file]
+            start = time.time()
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out,err = [elem.decode("utf-8").strip() for elem in p.communicate()]
+            print(f"{i}: file done.")
+            print("ERR: ",err)
+            print(f"It took {time.time() - start} seconds.")
+
+        cpus = multiprocessing.cpu_count()
+        pools = multiprocessing.Pool(cpus - 1)
+        pools.map(multiproc,range(len(files)))
+        pools.close()
+
         # collect jsons
         gene2phenos = {}
         for file in glob.glob("*pheno_piece.matrix.tsv_best-phenos-by-gene.json"):
@@ -349,7 +366,7 @@ task matrix {
     runtime {
         docker: "${final_docker}"
     	cpu: "${cpu}"
-    	memory: "3 GB"
+    	memory: "${mem} GB"
         disks: "local-disk ${disk} HDD"
         zones: "europe-west1-b"
         preemptible: 0
@@ -386,13 +403,7 @@ workflow pheweb_import {
         input: pheno_gz=pheno.pheno_gz, manhattan=pheno.manhattan, docker=docker, genes_bed = genes_bed
     }
 
-    call fix_json{
-        input:
-        pheno_json = matrix.phenolist,
-        qq_jsons = pheno.qq,
-        man_jsons = pheno.manhattan,
-        docker = docker
-    }
+    #call fix_json{input: pheno_json = matrix.phenolist,  qq_jsons = pheno.qq, man_jsons = pheno.manhattan, docker = docker }
 
 
 
