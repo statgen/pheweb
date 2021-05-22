@@ -37,8 +37,11 @@ def set_override(key:str, value:Any) -> None:
         #raise PheWebError("parse_utils customization isn't implemented yet.")
     elif key == 'field_aliases':
         if not isinstance(value, dict): raise PheWebError("field_aliases should be dict, not {!r}".format(value))
-        if any(field_name not in parse_utils.fields for alias,field_name in parse_utils.default_field_aliases.items()): raise PheWebError("Some of the field_names in {} don't exist".format(value))
-        if any(not isinstance(alias,str) for alias,field_name in parse_utils.default_field_aliases.items()): raise PheWebError("Unacceptable field_names")
+        for alias,field_name in value.items():
+            if not isinstance(alias, str): raise PheWebError("alias {!r} should be str.".format(alias))
+            if field_name not in parse_utils.fields:
+                raise PheWebError("The field_name {!r} (for alias {!r}) isn't a real field.  Add it or use one of {}.".format(field_name, alias, list(parse_utils.fields)))
+        value = {alias.lower(): field_name.lower() for alias,field_name in value.items()}
         overrides[key] = {**parse_utils.default_field_aliases, **value}
     else:
         overrides[key] = value

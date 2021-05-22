@@ -27,8 +27,9 @@ def run(argv:List[str]) -> None:
 
     failed_results = {phenocode:value for phenocode,value in results_by_phenocode.items() if not value['succeeded']}
     if failed_results:
-        failed_filepath = get_generated_path('tmp', 'parse-failures.json')
-        write_json(filepath=failed_filepath, data=failed_results, indent=1, sort_keys=True)
+        failed_filepath = get_generated_path('tmp', 'parse-failures.txt')
+        write_json(filepath=failed_filepath+'.json', data=failed_results, indent=1, sort_keys=True)
+        write_failures(failed_filepath, failed_results)
         print('\n{} phenotypes failed (saved to {!r})\n'.format(len(failed_results), failed_filepath))
 
         succeeded_phenos = [p for p in phenos if p['phenocode'] not in failed_results]
@@ -36,8 +37,8 @@ def run(argv:List[str]) -> None:
         write_json(filepath=succeeded_filepath, data=succeeded_phenos, indent=1, sort_keys=True)
         if len(succeeded_phenos) == 0:
             raise PheWebError(
-                'PheWeb was unable to parse the input files for all {} phenotypes.\n\n'.format(len(phenos)) +
-                'Information about the phenotypes that failed is in {!r}\n'.format(failed_filepath)
+                'PheWeb was unable to parse the input files.  All {} phenotypes failed.\n\n'.format(len(phenos)) +
+                'The errors for each phenotype are in {!r}\n'.format(failed_filepath)
             )
         else:
             raise PheWebError(
@@ -46,8 +47,15 @@ def run(argv:List[str]) -> None:
                     len(succeeded_phenos), len(phenos), succeeded_filepath) +
                 'To continue with only these phenotypes, run:\n' +
                 'cp {!r} {!r}\n'.format(succeeded_filepath, get_filepath('phenolist', must_exist=False)) +
-                'Information about the phenotypes that failed is in {!r}\n'.format(failed_filepath)
+                'The errors for each failed phenotype are in {!r}\n'.format(failed_filepath)
             )
+
+
+def write_failures(filepath:str, failed_results:Dict[str,Any]):
+    with open(filepath, 'w') as f:
+        for phenocode,d in failed_results.items():
+            f.write('=== Error for phenocode {} ===\n{}\n\n'.format(phenocode, d['exception_tb']))
+
 
 def convert(pheno:Dict[str,Any]) -> Iterator[Dict[str,Any]]:
     # suppress Exceptions so that we can report back on which phenotypes succeeded and which didn't.
