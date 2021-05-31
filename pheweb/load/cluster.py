@@ -11,16 +11,16 @@ from typing import List,Dict,Any
 N_AT_A_TIME = 5
 
 header_template = {
-    'slurm': '''
-#!/bin/bash
+    'slurm':
+'''#!/bin/bash
 #SBATCH --array=0-{n_jobs}
 #SBATCH --mem=4G
 #SBATCH --time=5-0:0
 #SBATCH --output={tmp_path}/slurm-%j.out
 #SBATCH --error={tmp_path}/slurm-%j.out
 ''',
-    'sge': '''
-#!/bin/bash
+    'sge':
+'''#!/bin/bash
 #$ -t 0-{n_jobs}
 #$ -l h_vmem=4G
 #$ -l h_rt=120:00:00
