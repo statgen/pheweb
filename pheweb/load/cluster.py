@@ -61,9 +61,8 @@ def run(argv:List[str]) -> None:
 
     jobs = chunked(idxs, N_AT_A_TIME)
     batch_filepath = get_dated_tmp_path('{}-{}'.format(args.engine, args.step)) + '.sh'
-    tmp_path = get_tmp_path('')
+    tmp_path = get_tmp_path(args.step)
     mkdir_p(tmp_path)
-
     with open(batch_filepath, 'w') as f:
         f.write(header_template[args.engine].format(n_jobs = len(jobs)-1, tmp_path=tmp_path))
         f.write('\n\njobs=(\n')
