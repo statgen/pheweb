@@ -49,10 +49,19 @@ def run(argv:List[str]) -> None:
     args = parser.parse_args(argv)
 
     def should_process(pheno:Dict[str,Any]) -> bool:
+        stepfile = ""
+        if (args.step == "parse"):
+            stepfile = "parsed"
+        elif (args.step == "augment-phenos"):
+            stepfile = "pheno_gz"
+        elif (args.step == "manhattan"):
+            stepfile = "manhattan"
+        else :
+            stepfile = "qq"
         return PerPhenoParallelizer().should_process_pheno(
             pheno,
             get_input_filepaths = lambda pheno: pheno['assoc_files'],
-            get_output_filepaths = lambda pheno: get_pheno_filepath('parsed', pheno['phenocode'], must_exist=False),
+            get_output_filepaths = lambda pheno: get_pheno_filepath(stepfile, pheno['phenocode'], must_exist=False),
         )
     idxs = [i for i,pheno in enumerate(get_phenolist()) if should_process(pheno)]
     if not idxs:
