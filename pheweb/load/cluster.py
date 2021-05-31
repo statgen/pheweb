@@ -3,6 +3,7 @@ from ..utils import get_phenolist
 from .. import conf
 from ..file_utils import get_tmp_path, get_dated_tmp_path, get_pheno_filepath
 from .load_utils import PerPhenoParallelizer
+from boltons.fileutils import mkdir_p # to make tmp directory
 
 import sys, argparse
 from boltons.iterutils import chunked
@@ -61,6 +62,8 @@ def run(argv:List[str]) -> None:
     jobs = chunked(idxs, N_AT_A_TIME)
     batch_filepath = get_dated_tmp_path('{}-{}'.format(args.engine, args.step)) + '.sh'
     tmp_path = get_tmp_path('')
+    mkdir_p(tmp_path)
+
     with open(batch_filepath, 'w') as f:
         f.write(header_template[args.engine].format(n_jobs = len(jobs)-1, tmp_path=tmp_path))
         f.write('\n\njobs=(\n')
