@@ -3,6 +3,7 @@ from ..utils import get_phenolist
 from .. import conf
 from ..file_utils import get_tmp_path, get_dated_tmp_path, get_pheno_filepath
 from .load_utils import PerPhenoParallelizer
+from boltons.fileutils import mkdir_p # to make tmp directory
 
 import sys, argparse
 from boltons.iterutils import chunked
@@ -11,16 +12,16 @@ from typing import List,Dict,Any
 N_AT_A_TIME = 5
 
 header_template = {
-    'slurm': '''
-#!/bin/bash
+    'slurm':
+'''#!/bin/bash
 #SBATCH --array=0-{n_jobs}
 #SBATCH --mem=4G
 #SBATCH --time=5-0:0
 #SBATCH --output={tmp_path}/slurm-%j.out
 #SBATCH --error={tmp_path}/slurm-%j.out
 ''',
-    'sge': '''
-#!/bin/bash
+    'sge':
+'''#!/bin/bash
 #$ -t 0-{n_jobs}
 #$ -l h_vmem=4G
 #$ -l h_rt=120:00:00
@@ -48,10 +49,19 @@ def run(argv:List[str]) -> None:
     args = parser.parse_args(argv)
 
     def should_process(pheno:Dict[str,Any]) -> bool:
+        stepfile = ""
+        if (args.step == "parse"):
+            stepfile = "parsed"
+        elif (args.step == "augment-phenos"):
+            stepfile = "pheno_gz"
+        elif (args.step == "manhattan"):
+            stepfile = "manhattan"
+        else :
+            stepfile = "qq"
         return PerPhenoParallelizer().should_process_pheno(
             pheno,
             get_input_filepaths = lambda pheno: pheno['assoc_files'],
-            get_output_filepaths = lambda pheno: get_pheno_filepath('parsed', pheno['phenocode'], must_exist=False),
+            get_output_filepaths = lambda pheno: get_pheno_filepath(stepfile, pheno['phenocode'], must_exist=False),
         )
     idxs = [i for i,pheno in enumerate(get_phenolist()) if should_process(pheno)]
     if not idxs:
@@ -60,7 +70,8 @@ def run(argv:List[str]) -> None:
 
     jobs = chunked(idxs, N_AT_A_TIME)
     batch_filepath = get_dated_tmp_path('{}-{}'.format(args.engine, args.step)) + '.sh'
-    tmp_path = get_tmp_path('')
+    tmp_path = get_tmp_path(args.step)
+    mkdir_p(tmp_path)
     with open(batch_filepath, 'w') as f:
         f.write(header_template[args.engine].format(n_jobs = len(jobs)-1, tmp_path=tmp_path))
         f.write('\n\njobs=(\n')
