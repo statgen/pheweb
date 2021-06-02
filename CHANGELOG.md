@@ -1,5 +1,11 @@
 *This file only includes changes that are relevant to people running a pheweb site.*
 
+## 1.3.15
+- Fixes `pheweb cluster`.
+
+## 1.3.14
+- Fixes uppercase `field_aliases` in `config.py`.  Column names are case-insensitive now.
+
 ## 1.3.13
 - Speeds up autocomplete
 
