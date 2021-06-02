@@ -49,19 +49,28 @@ def run(argv:List[str]) -> None:
     args = parser.parse_args(argv)
 
     def should_process(pheno:Dict[str,Any]) -> bool:
-        stepfile = ""
-        if (args.step == "parse"):
-            stepfile = "parsed"
-        elif (args.step == "augment-phenos"):
-            stepfile = "pheno_gz"
-        elif (args.step == "manhattan"):
-            stepfile = "manhattan"
-        else :
-            stepfile = "qq"
+        if args.step == "parse":
+            from . import parse_input_files
+            get_input_filepaths = parse_input_files.get_input_filepaths
+            get_output_filepaths = parse_input_files.get_output_filepaths
+        elif args.step == "augment-phenos":
+            from . import augment_phenos
+            get_input_filepaths = augment_phenos.get_input_filepaths
+            get_output_filepaths = augment_phenos.get_output_filepaths
+        elif args.step == "manhattan":
+            from . import manhattan
+            get_input_filepaths = manhattan.get_input_filepaths
+            get_output_filepaths = manhattan.get_output_filepaths
+        elif args.step == "qq":
+            from . import qq
+            get_input_filepaths = qq.get_input_filepaths
+            get_output_filepaths = qq.get_output_filepaths
+        else:
+            raise Exception("No implementation for step {}".format(args.step))
         return PerPhenoParallelizer().should_process_pheno(
             pheno,
-            get_input_filepaths = lambda pheno: pheno['assoc_files'],
-            get_output_filepaths = lambda pheno: get_pheno_filepath(stepfile, pheno['phenocode'], must_exist=False),
+            get_input_filepaths = get_input_filepaths,
+            get_output_filepaths = get_output_filepaths,
         )
     idxs = [i for i,pheno in enumerate(get_phenolist()) if should_process(pheno)]
     if not idxs:

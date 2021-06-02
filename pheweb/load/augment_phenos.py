@@ -13,17 +13,6 @@ def run(argv:List[str]) -> None:
 
     phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
 
-    def get_input_filepaths(pheno:dict) -> List[str]:
-        return [
-            get_pheno_filepath('parsed', pheno['phenocode']),
-            get_filepath('sites'),
-        ]
-    def get_output_filepaths(pheno:dict) -> List[str]:
-        return [
-            get_pheno_filepath('pheno_gz', pheno['phenocode'], must_exist=False),
-            get_pheno_filepath('pheno_gz_tbi', pheno['phenocode'], must_exist=False),
-        ]
-
     parallelize_per_pheno(
         get_input_filepaths = get_input_filepaths,
         get_output_filepaths = get_output_filepaths,
@@ -31,6 +20,17 @@ def run(argv:List[str]) -> None:
         cmd = 'augment-pheno',
         phenos = phenos,
     )
+
+def get_input_filepaths(pheno:dict) -> List[str]:
+    return [
+        get_pheno_filepath('parsed', pheno['phenocode']),
+        get_filepath('sites'),
+    ]
+def get_output_filepaths(pheno:dict) -> List[str]:
+    return [
+        get_pheno_filepath('pheno_gz', pheno['phenocode'], must_exist=False),
+        get_pheno_filepath('pheno_gz_tbi', pheno['phenocode'], must_exist=False),
+    ]
 
 def convert(pheno:Dict[str,Any]) -> None:
 

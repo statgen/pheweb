@@ -18,8 +18,8 @@ def run(argv:List[str]) -> None:
     phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
 
     results_by_phenocode = parallelize_per_pheno(
-        get_input_filepaths = lambda pheno: pheno['assoc_files'],
-        get_output_filepaths = lambda pheno: get_pheno_filepath('parsed', pheno['phenocode'], must_exist=False),
+        get_input_filepaths = get_input_filepaths,
+        get_output_filepaths = get_output_filepaths,
         convert = convert,
         cmd = 'parse-input-files',
         phenos = phenos,
@@ -50,6 +50,8 @@ def run(argv:List[str]) -> None:
                 'The errors for each failed phenotype are in {!r}\n'.format(failed_filepath)
             )
 
+def get_input_filepaths(pheno:dict) -> List[str]: return pheno['assoc_files']
+def get_output_filepaths(pheno:dict)-> List[str]: return [get_pheno_filepath('parsed', pheno['phenocode'], must_exist=False)]
 
 def write_failures(filepath:str, failed_results:Dict[str,Any]):
     with open(filepath, 'w') as f:

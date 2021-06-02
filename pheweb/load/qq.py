@@ -37,13 +37,15 @@ def run(argv:List[str]) -> None:
     phenos = get_phenos_subset(args.phenos) if args.phenos else get_phenolist()
 
     parallelize_per_pheno(
-        get_input_filepaths = lambda pheno: get_pheno_filepath('pheno_gz', pheno['phenocode']),
-        get_output_filepaths = lambda pheno: get_pheno_filepath('qq', pheno['phenocode'], must_exist=False),
+        get_input_filepaths = get_input_filepaths,
+        get_output_filepaths = get_output_filepaths,
         convert = make_json_file,
         cmd = 'qq',
         phenos = phenos,
     )
 
+def get_input_filepaths(pheno:dict) -> List[str]: return [get_pheno_filepath('pheno_gz', pheno['phenocode'])]
+def get_output_filepaths(pheno:dict) -> List[str]: return [get_pheno_filepath('qq', pheno['phenocode'], must_exist=False)]
 
 def make_json_file(pheno:Dict[str,Any]) -> None:
     make_json_file_explicit(
