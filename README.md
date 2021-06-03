@@ -33,7 +33,7 @@ Make `config.py` in this directory. In it, either set `hg_build_number = 19` or 
 
 ### 3. Prepare your association files
 
-You need one file for each phenotype, and there are some requirements:
+You need one file for each phenotype.  Most common GWAS file formats should work.  Here are the requirements:
 
 - It needs a header row.
 - Columns can be delimited by tabs, spaces, or commas.
@@ -70,7 +70,7 @@ You may also have columns for:
 | number of cases               | `num_cases`    | `ns.case`, `n_cases`       | integer, must be the same for every variant in its phenotype |
 
 
-Column names are case-insensitive.  If you used a different column name, set `field_aliases = {"column_name": "field_name"}` in `config.py`.  For example, `field_aliases = {'P_BOLT_LMM_INF': 'pval', 'NSAMPLES': 'num_samples'}`.
+Column names are case-insensitive.  If your file has a different column name, set `field_aliases = {"column_name": "field_name"}` in `config.py`.  For example, `field_aliases = {'P_BOLT_LMM_INF': 'pval', 'NSAMPLES': 'num_samples'}`.
 
 Any field can be null if it is one of ['', '.', 'NA', 'N/A', 'n/a', 'nan', '-nan', 'NaN', '-NaN', 'null', 'NULL'].  If a required field is null, the variant gets dropped.
 
