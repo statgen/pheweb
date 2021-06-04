@@ -1,4 +1,6 @@
 # This module finds gene data (wherever it can) and puts a copy in `generated-by-pheweb/resources/`.
+# It downloads resources from <https://resources.pheweb.org/>.  To populate that site, I run `pheweb download-genes-from-scratch` and `cp generated-by-pheweb/resources/* ...`.
+# `pheweb download-genes-from-scratch` _should_ always work, so it's always a fallback, but it should only happen when explicitly chosen.
 
 from ..utils import PheWebError
 from ..file_utils import get_filepath, get_tmp_path
