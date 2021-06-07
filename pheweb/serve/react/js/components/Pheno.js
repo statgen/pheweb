@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import ReactTable from 'react-table'
 import { CSVLink } from 'react-csv'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
-import { phenoTableCols, csTableCols, csInsideTableCols } from '../tables.js'
+import { phenoTableCols, csTableCols, csInsideTableCols , pval_sentinel } from '../tables.js'
 import { create_gwas_plot, create_qq_plot } from '../pheno.js'
 
 class Pheno extends React.Component {
@@ -110,7 +110,6 @@ class Pheno extends React.Component {
 		)
 	    .catch(this.error_alert)
     }
-
     getManhattan(phenocode) {
 	fetch(`/api/manhattan/pheno/${phenocode}`)
             .then(this.resp_json)
@@ -120,7 +119,7 @@ class Pheno extends React.Component {
                     variant.most_severe = variant.annotation.most_severe ? variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '') : ''
                     variant.info = variant.annotation.INFO
 		})
-		data.unbinned_variants.forEach(variant => { if (variant.pval == 0) variant.pval = 5e-324 })
+		data.unbinned_variants.forEach(variant => { if (variant.pval == 0) variant.pval = pval_sentinel })
 		//TODO server side
 		data.unbinned_variants.forEach(variant => {
 		    // TODO naming af maf quickly
@@ -201,7 +200,7 @@ class Pheno extends React.Component {
 	       pheno.num_samples ?
 	       <tbody><tr><td><b>{pheno.num_samples}</b> samples</td></tr></tbody> :
  	       null)
-	
+	const debug = (x) => { console.log(x); return x; }
 	const n_cc2 = pheno.cohorts ?
 	      <div>
 	      <h3>{this.state.pheno.cohorts.length} cohorts in meta-analysis</h3>
@@ -259,12 +258,13 @@ class Pheno extends React.Component {
 	ref={(r) => this.csvLink = r}
 	target="_blank" />
 	    </div> :
-	<div>loading</div>
+	    <div>loading</div>
+	    
 	const var_table = this.state.data ?
 	      <div>
 	    <ReactTable
 	    ref={(r) => this.vartable = r}
-	data={this.state.data.unbinned_variants.filter(v => !!v.peak)}
+	data={ debug(this.state.data.unbinned_variants.filter(v => !!v.peak))}
 	filterable
 	defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())}
 	columns={this.state.columns}
