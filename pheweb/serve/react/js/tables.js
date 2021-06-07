@@ -1,6 +1,8 @@
 import React from 'react'
 import matchSorter from 'match-sorter'
 
+const pval_sentinel = 5e-324
+
 const maxTableWidth = 1600
 
 const variantSorter = (a, b) => {
@@ -60,6 +62,14 @@ const regionBuilder = (s,r) => {
     const pos_min=Math.max( parseInt( tmp[1] ) - r,1 ) //pos starts from 1
     const pos_max=parseInt( tmp[1] ) + r
     return `${chr}:${pos_min}-${pos_max}`
+}
+
+const pval_column = {
+    Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
+    accessor: 'pval',
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+    Cell: props => (props.value == pval_sentinel)?` << ${pval_sentinel}`:props.value.toExponential(1),
+    minWidth: 80
 }
 
 const phenolistTableCols = {'FINNGEN': [{
@@ -238,13 +248,8 @@ const phenoTableCommonCols = [[{
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
     Cell: props => Math.exp(props.value).toFixed(2),
     minWidth: 80
-}, {
-    Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
-    accessor: 'pval',
-    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
-    Cell: props => props.value.toExponential(1),
-    minWidth: 80
-}]]
+}, pval_column ]]
+
 
 const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommonCols[1], {
     Header: () => (<span title="allele frequency in UKBB" style={{textDecoration: 'underline'}}>af ukbb</span>),
@@ -259,7 +264,9 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
     Cell: props => +props.value,
     minWidth: 80
 }],
-			'FINNGEN': [...phenoTableCommonCols[0],{
+			'FINNGEN': [...phenoTableCommonCols[0],
+
+				    {
     Header: () => (<span title="INFO score" style={{textDecoration: 'underline'}}>INFO</span>),
     accessor: 'info',
     filterMethod: (filter, row) => row[filter.id] >= +filter.value,
@@ -296,6 +303,13 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
     Cell: props => props.value.toPrecision(3),
     minWidth: 110
 }, ...phenoTableCommonCols[1],
+{
+    Header: () => (<span title="mlog" style={{textDecoration: 'underline'}}>-log10(p)</span>),
+    accessor: 'mlogp',
+    filterMethod: (filter, row) => row[filter.id] >= +filter.value,
+    Cell: props => isNaN(+props.value) ? 'NA' : props.value.toPrecision(3),
+    minWidth: 80
+},
    ...(window.show_ukbb == 'True' ?[
 {
     Header: () => (<span title="UKBB Neale lab result" style={{textDecoration: 'underline'}}>UKBB</span>),
@@ -392,12 +406,7 @@ const csTableCols = [{
     accessor: 'chrom',
     Cell: props => props.value,
     minWidth: 50,
-}, {
-    Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
-    accessor: 'pval',
-    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
-    Cell: props => props.value.toExponential(1),
-    minWidth: 50,
+}, { ... pval_column , minWidth: 50,
 }, {
     Header: () => (<span title="effect size (beta)" style={{textDecoration: 'underline'}}>effect size (beta)</span>),
     accessor: 'lead_beta',
@@ -475,12 +484,7 @@ const csInsideTableCols = [
 accessor: 'variant',
 Cell: props => (<a href={"/variant/" +props.value.replace("chr","").replace(/_/g,"-")} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
 minWidth: 60,
-}, {
-Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
-accessor: 'pval',
-filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
-Cell: props => props.value.toExponential(1),
-minWidth: 50,
+}, { ... pval_column , minWidth: 50,
 }, {
 Header: () => (<span title="effect size" style={{textDecoration: 'underline'}}>effect size</span>),
 accessor: 'beta',
@@ -584,12 +588,7 @@ const lofTableCols = [{
     accessor: 'variants',
     Cell: props => props.value.split(',').map(v => v.trim().replace(/^chr/, '').replace(/_/g, ':')).join(', '),
     minWidth: 200
-}, {
-    Header: () => (<span title="p-value" style={{textDecoration: 'underline'}}>p-value</span>),
-    accessor: 'p_value',
-    filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    minWidth: 70,
-    Cell: props => props.value.toExponential(1)
+}, { ... pval_column , minWidth: 70,
 }, {
     Header: () => (<span title="effect size beta" style={{textDecoration: 'underline'}}>beta</span>),
     accessor: 'beta',
@@ -1021,4 +1020,4 @@ const codingTableCols = [{
     }
 }]
 
-export { phenolistTableCols, lofTableCols, chipTableCols, codingTableCols, regionTableCols, phenoTableCols, csTableCols, csInsideTableCols }
+export { phenolistTableCols, lofTableCols, chipTableCols, codingTableCols, regionTableCols, phenoTableCols, csTableCols, csInsideTableCols, pval_sentinel }

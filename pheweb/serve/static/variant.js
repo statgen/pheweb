@@ -1,5 +1,16 @@
 'use strict';
 
+const pval_sentinel = 5e-324
+
+function formatPValue(pval){
+    if(pval == pval_sentinel){
+	return `<< ${pval_sentinel}`
+    } else {
+	return pval ? pval.toExponential(1) : "";
+    }
+    
+}
+
 function deepcopy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
@@ -11,6 +22,15 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     if (x.endsWith('.')) { x = x.substr(0, x.length-1); }
     return x + '%';
 });
+
+LocusZoom.TransformationFunctions.set("formatPValue", function(x){
+    if (x == "4.94 × 10^-324"){
+	return `<< ${pval_sentinel}`;
+    } else { 
+	return x;
+    }
+});
+
 
 (function() {
     // sort phenotypes
@@ -62,7 +82,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 (function() { // Create PheWAS plot.
 
     window.results.forEach(function(pheno) {
-	pheno.pScaled = -Math.log10(pheno.pval)
+	pheno.pScaled = pheno.mlogp? pheno.mlogp : -Math.log10(pheno.pval)
 	if (pheno.pScaled > window.vis_conf.loglog_threshold) {
 	    pheno.pScaled = window.vis_conf.loglog_threshold * Math.log10(pheno.pScaled) / Math.log10(window.vis_conf.loglog_threshold)
 	}
@@ -152,7 +172,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     ];
     if (window.results.length > 10) {
         pval_data_layer.label.filters.push(
-            {field:"pval", operator:"<", value:_.sortBy(window.results.map(_.property('pval')))[10]});
+            {field:"mlogp", operator:"<", value:_.sortBy(window.results.map(_.property('mlogp')))[10]});
     }
 
     // Color points by category.
