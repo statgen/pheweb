@@ -304,7 +304,7 @@
                 behaviors: {
                     onmouseover: [{action: "set", status:"selected"}],
                     onmouseout: [{action: "unset", status:"selected"}],
-                    onclick: [{action: "link", href:"/variant/{{chr}}-{{position}}-{{ref}}-{{alt}}"}],
+                    onclick: [{action: "link", href:"/variant/{{association:chr}}-{{association:position}}-{{association:ref}}-{{association:alt}}"}],
                 },
                 tooltip: {
                     closable: false,
