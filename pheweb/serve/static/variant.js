@@ -1,5 +1,16 @@
 'use strict';
 
+const pval_sentinel = 5e-324
+
+function formatPValue(pval){
+    if(pval == pval_sentinel){
+	return `<< ${pval_sentinel}`
+    } else {
+	return pval ? pval.toExponential(1) : "";
+    }
+    
+}
+
 function deepcopy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
@@ -62,7 +73,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
 (function() { // Create PheWAS plot.
 
     window.results.forEach(function(pheno) {
-	pheno.pScaled = -Math.log10(pheno.pval)
+	pheno.pScaled = pheno.mlogp? pheno.mlogp : -Math.log10(pheno.pval)
 	if (pheno.pScaled > window.vis_conf.loglog_threshold) {
 	    pheno.pScaled = window.vis_conf.loglog_threshold * Math.log10(pheno.pScaled) / Math.log10(window.vis_conf.loglog_threshold)
 	}
