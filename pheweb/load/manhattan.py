@@ -10,8 +10,24 @@ from ..conf_utils import conf
 from ..file_utils import VariantFileReader, write_json, common_filepaths
 from .load_utils import MaxPriorityQueue, parallelize_per_pheno
 
-import math
 
+import numpy as np
+import math,time
+
+def timeit(f):
+
+    def timed(*args, **kw):
+
+        ts = time.time()
+        result = f(*args, **kw)
+        te = time.time()
+
+        print(f"func:{f.__name__}  took: {round(te-ts,4)} sec")
+        return result
+
+    return timed
+
+@timeit
 def run(argv):
     parallelize_per_pheno(
         get_input_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
@@ -21,9 +37,11 @@ def run(argv):
     )
 
 
+@timeit
 def create_manhattan(pheno):
     make_json_file(common_filepaths['pheno'](pheno['phenocode']), common_filepaths['manhattan'](pheno['phenocode']))
 
+@timeit
 def make_json_file(result_file, output_file, write_as_given=False):
     BIN_LENGTH = int(3e6)
     NEGLOG10_PVAL_BIN_SIZE = 0.05 # Use 0.05, 0.1, 0.15, etc
@@ -35,13 +53,13 @@ def make_json_file(result_file, output_file, write_as_given=False):
             NEGLOG10_PVAL_BIN_SIZE,
             NEGLOG10_PVAL_BIN_DIGITS
         )
-    label_peaks(unbinned_variants)
+    np_label(unbinned_variants)
+
     rv = {
         'variant_bins': variant_bins,
         'unbinned_variants': unbinned_variants,
     }
     write_json(filepath=output_file, data=rv, write_as_given=write_as_given)
-
 
 def rounded_neglog10(pval, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     return round(-math.log10(pval) // neglog10_pval_bin_size * neglog10_pval_bin_size, neglog10_pval_bin_digits)
@@ -65,6 +83,7 @@ def get_pvals_and_pval_extents(pvals, neglog10_pval_bin_size):
 
 
 # TODO: convert bins from {(chrom, pos): []} to {chrom:{pos:[]}}?
+@timeit
 def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_pval_bin_digits):
     bins = {}
     unbinned_variant_pq = MaxPriorityQueue()
@@ -125,12 +144,60 @@ def bin_variants(variant_iterator, bin_length, neglog10_pval_bin_size, neglog10_
     return binned_variants, unbinned_variants
 
 
-def label_peaks(variants):
+@timeit
+def np_label(variants,check = False):
+
     chroms = {}
+    print(len(variants))
     for v in variants:
+    #kind of like a defaultdict. if it's the first variant of the chromosome it initalizes an empty list.
+    #Now that the value must be a list, we can just append the variant to the chrom specific variant list
         chroms.setdefault(v['chrom'], []).append(v)
+
+    peak_variants = []
     for vs in chroms.values():
+        print(f"chrom:{vs[0]['chrom']}")
+
+        #iniitalize pval,pos array
+        var_array = np.zeros((len(vs),2))
+        pos_dict = {}
+        for i,v in enumerate(vs):
+            var_array[i] = v['pos'],v['pval']
+            pos_dict[v['pos']] = v
+        while len(var_array):
+            # work with arrays to check results are identical
+            #returns best hit?
+            min_pval_idx = np.argmin(var_array[:,1])
+            pos = var_array[min_pval_idx][0]
+            # filter variants based on pos of best hit
+            filter_mask = np.abs(var_array[:,0] - pos) > conf.within_pheno_mask_around_peak
+            var_array = var_array[filter_mask]
+            # return variant from that position
+            best_assoc = pos_dict[pos]
+            best_assoc['peak'] = True
+            peak_variants.append(best_assoc)
+
+    if check or len(variants) < 1000:
+        assert label_peaks(variants) == peak_variants
+        print('new method works')
+
+def label_peaks(variants):
+
+    chroms = {}
+    print(len(variants))
+    peak_variants = []
+    for v in variants:
+        #kind of like a defaultdict. if it's the first variant of the chromosome it initalizes an empty list.
+        #Now that the value must be a list, we can just append the variant to the chrom specific variant list
+        chroms.setdefault(v['chrom'], []).append(v)
+
+
+    for vs in chroms.values():
+        print(f"chrom:{vs[0]['chrom']}")
         while vs:
             best_assoc = min(vs, key=lambda assoc: assoc['pval'])
-            best_assoc['peak'] = True
+            #best_assoc['peak'] = True
             vs = [v for v in vs if abs(v['pos'] - best_assoc['pos']) > conf.within_pheno_mask_around_peak]
+            peak_variants.append(best_assoc)
+
+    return peak_variants

@@ -7,6 +7,7 @@ from .load_utils import parallelize_per_pheno
 sites_filepath = common_filepaths['sites']
 
 def run(argv):
+    
     parallelize_per_pheno(
         get_input_filepaths = lambda pheno: [common_filepaths['parsed'](pheno['phenocode']), sites_filepath],
         get_output_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
@@ -15,7 +16,6 @@ def run(argv):
     )
 
 def convert(pheno):
-
     with VariantFileReader(sites_filepath) as sites_reader, \
          VariantFileReader(common_filepaths['parsed'](pheno['phenocode'])) as pheno_reader, \
          VariantFileWriter(common_filepaths['pheno'](pheno['phenocode'])) as writer:

@@ -22,8 +22,6 @@ annot_nodes = [ ("pheweb_import.annotation.bed",lambda x: f'/cache/'),
     ("pheweb_import.annotation.trie1",phef),("pheweb_import.annotation.trie2",phef)]
 
 
-output_nodes =[ ("pheweb_import.matrix.matrix",phef)]
-
 def run():
     parser = argparse.ArgumentParser(description="Run x-way meta-analysis")
     parser.add_argument('cromwell_hash', action='store', type=str, help='Cromwell hash ')
@@ -46,7 +44,7 @@ def run():
         cmd1=f'{cmd1} --socks5 {args.socks_proxy}'
 
     print(cmd1)
-    
+
     pr = subprocess.run(shlex.split(cmd1), stdout=subprocess.PIPE, stderr=subprocess.PIPE,encoding="ASCII")
     if pr.returncode!=0:
             print(pr.stderr)
@@ -63,7 +61,7 @@ def run():
         output_nodes.extend(annot_nodes)
 
     for n in output_nodes:
-        
+
         d = ret["outputs"][n[0]] if not isinstance(ret["outputs"][n[0]],str) else [ret["outputs"][n[0]]]
         for f in d:
             bf = os.path.basename(f)

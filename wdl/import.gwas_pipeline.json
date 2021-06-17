@@ -1,9 +1,9 @@
 {
-"pheweb_import.summaryfiles":"gs://r7_data/pheweb/r7_sumstats.txt",
+"pheweb_import.summaryfiles":"gs://r7_data/pheweb/r7_sumstats_test.txt",
 "pheweb_import.docker": "eu.gcr.io/finngen-refinery-dev/pheweb_annotation:import.test.6",
 "pheweb_import.genes_bed": "gs://r6_data/pheweb/full/genes-b38-v25.bed",
 "pheweb_import.header_dict":  {"#chrom": "chrom"} ,
-"pheweb_import.pre_annot_sumfile":"gs://finngen-production-library-green/finngen_R6/sandbox_custom_gwas/G6_AD_WIDE_YOUNG/G6_AD_WIDE_YOUNG.gz",
+"pheweb_import.pre_annot_sumfile":"gs://r7_data/pheweb/R7_annotation.txt",
 ## remove pre_annot_sumfile from template if not want to use feature
 ## that this file will be used the first time and all subsequent annotations will be call cached
 

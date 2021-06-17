@@ -84,7 +84,7 @@ task annotation {
     String dir = '/cromwell_root/'
     command {
         set -euxo pipefail
-        python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)}
+        #python3 /pheweb/scripts/filter_sumstats.py ${phenofile} ${write_map(header_dict)}
 	cd ${dir}
 
         mkdir -p pheweb/generated-by-pheweb/parsed && \

@@ -9,14 +9,12 @@ from pathlib import Path
 script_path = os.path.realpath(__file__)
 pheweb_path = Path(script_path).parent.parent
 spec = importlib.util.spec_from_file_location("module.name", os.path.join(pheweb_path,'pheweb','conf_utils.py'))
-print(spec)                                         
+print(spec)
 conf = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(conf)
 
 variant_fields = conf.conf.parse.per_variant_fields
 assoc_fields = conf.conf.parse.per_assoc_fields
-
-
 
 def replace_header(sumstats,word_dict = {"#chrom":'chrom'} ):
     '''
@@ -26,10 +24,9 @@ def replace_header(sumstats,word_dict = {"#chrom":'chrom'} ):
     open_func = return_open_func(sumstats)
     header = return_header(sumstats)
     sep = identify_separator(sumstats)
-    print(open_func,header,sep)
-    
 
-    # fix header 
+
+    # fix header
     for i,elem in enumerate(header):
         if elem in word_dict:
             header[i] = word_dict[elem]
@@ -45,13 +42,13 @@ def replace_header(sumstats,word_dict = {"#chrom":'chrom'} ):
 
 def edit_file(sumstats,header,columns,filter_na,test):
     '''
-    Function that loops the original file, keeping only the required columns. 
+    Function that loops the original file, keeping only the required columns.
     It also filters out lines with NA values if required.
     '''
     path,basename,extension = get_path_info(sumstats)
     tmp_file = os.path.join(path,'tmp.gz')
     print(tmp_file)
- 
+
     sep = identify_separator(sumstats)
 
     with gzip.open(tmp_file,'wt') as o:
@@ -89,10 +86,10 @@ def main(args):
     print(header,columns)
 
     edit_file(args.sumstats,header,columns,args.filter_na,args.test)
-        
+
 
 if __name__=='__main__':
-    
+
     parser=argparse.ArgumentParser(description="Filter sumstats to match pheweb")
     parser.add_argument('inputs', nargs=2)
     parser.add_argument('--filter-na',action='store_true',default = False)
@@ -102,8 +99,3 @@ if __name__=='__main__':
 
     args.sumstats,args.word_dict = args.inputs
     main(args)
-
-
-    
-
-    
