@@ -6,6 +6,7 @@ pheweb:
   mount: /mnt/nfs
   subdomain: r7
   ipName: finngen-r7-ip
+  cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
   
 persistentVolume:
   path: /vol1
