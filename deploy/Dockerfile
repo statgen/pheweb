@@ -15,6 +15,9 @@ ENV LC_CTYPE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
+RUN apt-get install make gcc libz-dev libbz2-dev liblzma-dev zlib1g-dev --yes
+RUN apt-get update &&  apt-get install cmake libcurl4-openssl-dev  --yes
+
 # install nodejs
 RUN apt-get update && apt-get install curl software-properties-common --yes && \
     curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
@@ -25,12 +28,15 @@ RUN apt-get update && apt-get install --no-install-recommends texlive wget --yes
     wget --no-check-certificate https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/local/bin/cloud_sql_proxy && \
     chmod +x /usr/local/bin/cloud_sql_proxy
 
-# copy pheweb source
+RUN curl -LO https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 && \
+    tar -xvjf htslib-1.9.tar.bz2 && cd htslib-1.9 && \
+    ./configure && make && make install && cd .. && rm -rf htslib-1.9*
+
+
 ADD . /pheweb
 
-
 # install python packages and perquisites
-RUN apt-get update && apt-get install default-libmysqlclient-dev git python3-pip libffi-dev libz-dev libssl-dev libbz2-dev liblzma-dev --yes --fix-missing && \
+RUN apt-get update && apt-get install default-libmysqlclient-dev git python3-pip libffi-dev libz-dev  libbz2-dev liblzma-dev libssl-dev --yes --fix-missing && \
      python3 -m pip install cython && \
      python3 -m pip install pip==20.1.1 --upgrade && \
      python3 -m pip install /pheweb && \
@@ -42,6 +48,10 @@ RUN cd /pheweb/pheweb/serve/react && \
     npm install && node_modules/webpack/bin/webpack.js --config webpack.prod.js && \
     mv /pheweb/pheweb/serve/static/bundle.js /usr/local/lib/python3.7/dist-packages/pheweb/serve/static/ && \
     rm -r /pheweb
+
+
+ADD . /pheweb
+ADD pheweb/load/external_matrix.py /usr/local/bin/
 
 EXPOSE 8080
 CMD cloud_sql_proxy -instances=$CLOUD_SQL_PROXY_INSTANCES -credential_file=$CLOUD_SQL_PROXY_CREDENTIAL_FILE & cd $PHEWEB_DIR && pheweb serve --port 8080 --num-workers 4

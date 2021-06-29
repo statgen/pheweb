@@ -11,9 +11,8 @@ RUN apt-get update && \
 
 RUN pip3 install cython
 
+ADD pheweb /pheweb
 ADD pheweb/load/external_matrix.py /usr/local/bin/
-ADD . /pheweb
-
 
 RUN pip3 install /pheweb
 
