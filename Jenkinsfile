@@ -11,5 +11,16 @@ pipeline {
 		}
 	    }
 	}
+    stage('Deploy') {
+	    steps {
+                withCredentials([file(credentialsId: 'jenkins-sa', variable: 'gcp')]) {
+                    sh '''/root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$gcp'''
+                    sh '''/root/google-cloud-sdk/bin/gcloud auth configure-docker'''
+                    sh '''/root/google-cloud-sdk/bin/gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b'''
+                    sh '''if helm ls | grep pheweb > /dev/null  ; then  helm upgrade staging-pheweb ./deploy/pheweb -f ./deploy/pheweb/staging-values.yaml --set image.tag=ci-latest ; else helm install staging-pheweb ./deploy/pheweb  -f ./deploy/pheweb/staging-values.yaml --set image.tag=ci-latest ; fi ; '''
+                    sh '''kubectl delete pods --all --wait=false'''
+		}
+	    }
+	}
     }
 }

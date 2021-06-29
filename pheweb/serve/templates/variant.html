@@ -57,6 +57,7 @@
         <span id="info-range"></span>
 	<span id="hom"></span>
         <p>View in
+          <a href="https://genetics.opentargets.org/variant/{{ variant.chr }}_{{ variant.pos }}_{{ variant.ref }}_{{ variant.alt }}">Open Targets</a> ,
           <a href="https://gnomad.broadinstitute.org/variant/{{ variant.chr }}-{{ variant.pos }}-{{ variant.ref }}-{{ variant.alt }}?dataset=gnomad_r3">gnomAD</a> , 
           <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&highlight=hg38.chr{{ variant.chr }}%3A{{ variant.pos }}-{{ variant.pos }}&position=chr{{ variant.chr }}%3A{{ variant.pos - 200000 }}-{{ variant.pos + 200000 }}">UCSC</a>
           {% with rsids = (variant.get_annotation("rsids").split(',') if (variant.get_annotation("rsids")) else []) %}
@@ -78,6 +79,7 @@
           <span id="ukbb-link"></span>
           <span id="pubmed-link"></span>
           <span id="clinvar-link"></span>
+
         </p>
 	<div id="loglog-note" style="display: none;">
 	</div>
@@ -105,10 +107,11 @@
           <th>phenotype</th>
           <th>beta (se)</th>
           <th>p-value</th>
+	  <th>-log10(p)</th>
           <th>af cases</th>
           <th>af controls</th>
           <th>number of samples</th>
-	  {% if config.browser == 'FINNGEN' %}
+	  {% if config.browser == 'FINNGEN' and 'show_ukbb' in config and config['show_ukbb'] %}
           <th>UKBB</th>
           <th>UKBB N samples</th>
 	  {% endif %}
@@ -172,39 +175,6 @@
   </div>
 </script>
 
-<!--
-<script type="text/template" id="tooltip-template">
-
-<%= d.phenostring || d.phenocode %><br>
-
-<% if (d.category) { %>
-<span style="color:<%= color_by_category(d.category) %>">
-<%= d.category %>
-</span><br>
-<% } %>
-
-pval: <%= d.pval.toExponential(1) %><br>
-
-<% if (d.beta) { %>
-beta: <%= d.beta.toExponential(1) %><br>
-<% } %>
-
-<% if (d.sebeta) { %>
-sebeta: <%= d.sebeta.toExponential(1) %><br>
-<% } %>
-
-<% if (d.or) { %>
-OR: <%= d.or.toExponential(1) %><br>
-<% } %>
-
-<% if (d.num_cases && d.num_controls) { %>
-#cases: <%= d.num_cases %><br>
-#controls: <%= d.num_controls %><br>
-<% } else if (d.num_samples) { %>
-#samples: <%= d.num_samples %><br>
-<% } %>
-
-</script> -->
 <script type="text/template" id="beta-template-dir">
     <%=
     ((Number(assoc.beta) >= 0) ?
@@ -222,16 +192,17 @@ OR: <%= d.or.toExponential(1) %><br>
     </td>
     <td style="width:15%"><a style="color:black" href="/pheno/<%= d.phenocode %>"><%= d.phenostring || d.phenocode %></a></td>
     <td style="width: 6%"><%= d.beta ? (d.beta.toPrecision(2) + (d.sebeta ? " (" + d.sebeta.toPrecision(2) + ")" : "")) : "" %></td>
-    <td style="width: 6%"><%= d.pval ? d.pval.toExponential(1) : "" %></td>
+    <td style="width: 6%"><%= formatPValue(d.pval) %></td>
+    <td style="width: 6%"><%= d.mlogp ? d.mlogp.toPrecision(3) : "" %></td>
     <td style="width: 6%"><%= d.maf_case ? d.maf_case.toExponential(1) : "" %></td>
-    <td style="width: 6%"><%= d.maf_control ? d.maf_control.toExponential(1) : "" %></td>
+    <td style="width: 6%"><%= d.maf_control ? d.maf_control.toExponential(1) : "" %> </td>
     <td style="width: 6%"><% if (d.n_case) { %>
       <%= d.n_case %> / <%= d.n_control %>
       <% } else if (d.n_sample) { %>
       <%= d.n_sample %>
       <% } %>
     </td>
-    {% if config.browser == 'FINNGEN' %}
+    {% if config.browser == 'FINNGEN' and 'show_ukbb' in config and config['show_ukbb'] %}
     <td style="width: 6%"> <%= (d.matching_results.ukbb?_.template($('#beta-template-dir').html())({assoc: d.matching_results.ukbb}):"NA") %> </td>
     <td style="width: 6%"> <%= (d.matching_results.ukbb? d.matching_results.ukbb.n_cases + " / " + d.matching_results.ukbb.n_controls :"NA") %> </td>
     {% endif %}

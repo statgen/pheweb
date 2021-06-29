@@ -101,7 +101,7 @@ class Variant(JSONifiable):
 
 class PhenoResult(JSONifiable):
 
-    def __init__(self, phenocode,phenostring, category_name, category_index, pval,beta, maf, maf_case,maf_control, n_case, n_control, n_sample=None):
+    def __init__(self, phenocode,phenostring, category_name, category_index, pval,beta, maf, maf_case,maf_control, n_case, n_control, n_sample=None, mlogp=None):
         self.phenocode = phenocode
         self.phenostring = phenostring
         self.pval = float(pval) if pval is not None and pval!='NA' else None
@@ -119,7 +119,15 @@ class PhenoResult(JSONifiable):
              self.n_sample = n_case + n_control
         else:
              self.n_sample = n_sample
-
+        self.mlogp = float(mlogp) if mlogp is not None and mlogp != 'NA' else None
+        if self.mlogp is None:
+            if self.pval is None:
+                None
+            elif self.pval == 0:
+                self.mlogp = 324
+            else:
+                self.mlogp = -math.log10(self.pval)
+        
     def add_matching_result(self, resultname, result):
         self.matching_results[resultname] = result
 
@@ -626,7 +634,6 @@ class TabixResultDao(ResultDB):
 
         result = []
         for variant_row in tabix_iter:
-
             split = variant_row.split('\t')
             chrom = split[0].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25")
             v = Variant( chrom,split[1],split[2],split[3])
@@ -634,6 +641,7 @@ class TabixResultDao(ResultDB):
             v.add_annotation('nearest_gene', split[5])
             phenores = []
             for pheno in self.phenos:
+
                 pval = split[pheno[1]]
                 beta = split[pheno[1]+self.header_offset['beta']]
                 maf = split[pheno[1]+self.header_offset['maf']] if 'maf' in self.header_offset else None
@@ -641,6 +649,7 @@ class TabixResultDao(ResultDB):
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
                 maf_case = split[pheno[1]+self.header_offset['af_alt_cases']] if 'af_alt_cases' in self.header_offset else maf_case
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
+                mlogp = split[pheno[1]+self.header_offset['mlogp']] if 'mlogp' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['af_alt_controls']] if 'af_alt_controls' in self.header_offset else maf_control
                 pr = PhenoResult(pheno[0],
                                  self.pheno_map[pheno[0]]['phenostring'],
@@ -649,7 +658,8 @@ class TabixResultDao(ResultDB):
                                  pval, beta, maf, maf_case, maf_control,
                                  self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0,
                                  self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0,
-                                 self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
+                                 self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA',
+                                 mlogp=mlogp)
                 phenores.append(pr)
             result.append((v,phenores))
         return result
@@ -1344,7 +1354,18 @@ class AutoreportingDao(AutorepVariantDB):
         try:
             conn=self.get_connection()
             with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-                sql =  ("SELECT * FROM autoreporting_variants WHERE rel=%s AND phenotype=%s AND locus_id=%s")
+                if self.release == 5:
+                    sql =  ("SELECT * , "
+                            " chrom chr , "
+                            " null af_alt , "
+                            " null af_alt_cases , "
+                            " GENOME_FI_enrichment_nfe_est af_alt_controls , "
+                            " FG_INFO INFO , "
+                            " null enrichment_nfsee "
+                            "FROM autoreporting_variants "
+                            "WHERE rel=%s AND phenotype=%s AND locus_id=%s")
+                else:
+                    sql =  ("SELECT * FROM autoreporting_variants WHERE rel=%s AND phenotype=%s AND locus_id=%s")
                 cursori.execute(sql,["r{}".format(self.release),phenotype,locus_id])
                 result=cursori.fetchall()
             return result
@@ -1366,6 +1387,18 @@ class AutoreportingDao(AutorepVariantDB):
         files = glob.glob(fpath + "/" + phenotype + '.top.out')
         if len(files) == 1:
             data = pd.read_csv(files[0], sep='\t').fillna('NA')
+            print(files[0])
+            # the renaming is support r5 which has diffent names for the fields
+            data = data.rename(columns={ "chr"  : "chrom" ,
+                                         "lead_pval" : "pval" ,
+                                         "enrichment" : "lead_enrichment" ,
+                                         "lead_AF" : "lead_af_alt" ,
+                                         "most_severe_gene" : "lead_most_severe_gene" ,
+                                         "maf" : "af_alt" ,
+                                         "maf_cases" : "af_alt_cases" ,
+                                         "FG_INFO" : "INFO" ,
+                                         "GENOME_FI_enrichment_nfe_est" : "enrichment_nfsee" ,
+                                         "variant_id" : "variant" })
             data["phenocode"]=phenotype
             if "specific_efo_trait_associations_strict" in data.columns:
                 data['all_traits_strict']=data[['specific_efo_trait_associations_strict','found_associations_strict']].apply(

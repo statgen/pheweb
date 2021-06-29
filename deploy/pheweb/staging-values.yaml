@@ -1,0 +1,15 @@
+# Default values are found in values.yaml
+
+replicaCount: 1
+
+pheweb:
+  mount: /mnt/nfs
+  subdomain: bstaging
+  cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
+  
+persistentVolume:
+  path: /vol1
+  server: 10.179.247.250
+
+image: # pheweb image
+  tag: ci-c4308beb74d0f7c58290bfbcdf07b7ea953fc094

@@ -264,8 +264,8 @@ def _ensure_conf():
             'tooltip_underscoretemplate': 'p-value: <%= pValueToReadable(d.pval) %><br>',
             'tooltip_lztemplate': {
                 'condition': False,
-                'template': ('{{#if trait:pvalue}}p-value: <strong>{{trait:pvalue|scinotation}}</strong><br>{{/if}}\n' +
-                             '{{#if trait:pval}}p-value: <strong>{{trait:pval|scinotation}}</strong><br>{{/if}}'),
+                'template': ('{{#if trait:pvalue}}p-value: <strong>{{trait:pvalue|scinotation|formatPValue}}</strong><br>{{/if}}\n' +
+                             '{{#if trait:pval}}p-value: <strong>{{trait:pval|scinotation|formatPValue}}</strong><br>{{/if}}'),
             },
             'display': 'P-value',
         }),

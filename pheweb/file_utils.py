@@ -117,7 +117,7 @@ class _vfr:
     def __iter__(self):
         return self._get_variants()
     def _get_variants(self):
-        parsers = [conf.parse.fields[field]['_read'] for field in self.fields]
+        parsers = [conf.parse.fields[field]['_read'] if field in conf.parse.fields else lambda x : x for field in self.fields]
         for unparsed_variant in self._reader:
             assert len(unparsed_variant) == len(self.fields)
             variant = {field: parser(value) for parser,field,value in zip(parsers, self.fields, unparsed_variant)}

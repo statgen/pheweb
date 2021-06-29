@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: pheweb
   annotations:
-    kubernetes.io/ingress.global-static-ip-name: finngen-r5-ip
+    kubernetes.io/ingress.global-static-ip-name: bstaging
     kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: "gce"
     #ssl-redirect doesn't work yet on gce
@@ -13,10 +13,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - r5.finngen.fi
+    - bstaging.finngen.fi
     secretName: finngen-tls
   rules:
-  - host: r5.finngen.fi
+  - host: bstaging.finngen.fi
     http:
       paths:
       - backend:

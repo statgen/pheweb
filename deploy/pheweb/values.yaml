@@ -1,0 +1,15 @@
+pheweb:
+  ssl: true
+  health: true
+  
+image: # pheweb image
+  repository: gcr.io/phewas-development/pheweb
+  pullPolicy: IfNotPresent
+  tag: ci-59abc6c175fd5139af2b7dcd1a9738fdee9a2609
+
+service:
+  type: NodePort
+  port: 80
+
+persistentVolume:
+  storage: 11T

@@ -87,8 +87,10 @@
                 <th style="width: 6%;">OR</th>
                 <th style="width: 7%;">p-value</th>
                 <th style="width: 7%;">number of cases</th>
+		{% if 'show_ukbb' in config and config['show_ukbb']  %}
                 <th style="width: 9%;">UKBB</th>
                 <th style="width: 7%;">UKBB number of cases</th>
+		{% endif %}
               </tr>
             </thead>
             <tbody>
@@ -181,7 +183,9 @@
           <th style="width: 6%; cursor: pointer; user-select: none;" data-sort="fin_enrichment:desc:mixed">FIN enrichment</th>
           <th style="width: 7%; cursor: pointer; user-select: none;" data-sort="maf:desc:number">maf</th>
           <th style="user-select: none;">FinnGen phenotypes p < {{ "{:.0E}".format(func_var_report_p_threshold) }}</th>
-          <th style="user-select: none;">UKBB results</th>
+  	  {% if 'show_ukbb' in config and config['show_ukbb']  %}
+             <th style="user-select: none;">UKBB results</th>
+          {% endif %}
 	</tr>
       </thead>
       <tbody>
@@ -250,8 +254,10 @@
     <td><%= _.template($('#beta-template-dir').html())({assoc: p.assoc}) + Math.exp(p.assoc.beta).toFixed(2) %></td>
     <td><%= p.assoc.pval.toExponential(1) %></td>
     <td style="text-align: right;"><%= p.pheno.num_cases %></td>
-    <td><%= p.assoc.matching_results.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.matching_results.ukbb}) + '<span>' + Number(p.assoc.matching_results.ukbb.pval).toExponential(1) + '</span>'  : 'NA' %></td>
-    <td><%= p.assoc.matching_results.ukbb ? p.assoc.matching_results.ukbb.n_cases:"NA"  %></td>
+     {% if 'show_ukbb' in config and config['show_ukbb']  %}
+        <td><%= p.assoc.matching_results.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.matching_results.ukbb}) + '<span>' + Number(p.assoc.matching_results.ukbb.pval).toExponential(1) + '</span>'  : 'NA' %></td>
+        <td><%= p.assoc.matching_results.ukbb ? p.assoc.matching_results.ukbb.n_cases:"NA"  %></td>
+     {% endif %}
   </tr>
   <% } else { %>
   <tr>
@@ -268,8 +274,10 @@
     <td><%= _.template($('#beta-template-dir').html())({assoc: p.assoc}) +  Math.exp(p.assoc.beta).toPrecision(2) %></td>
     <td><%= p.assoc.pval.toExponential(1) %></td>
     <td style="text-align: right;"><%= p.pheno.num_cases %></td>
-    <td><%= p.assoc.matching_results.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.matching_results.ukbb}) + '<span>p:' + Number(p.assoc.matching_results.ukbb.pval).toExponential(1) +'</span>' : 'NA' %></td>
-    <td><%= p.assoc.matching_results.ukbb ? p.assoc.matching_results.ukbb.n_cases:"NA"  %></td>
+     {% if 'show_ukbb' in config and config['show_ukbb']  %}
+        <td><%= p.assoc.matching_results.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.matching_results.ukbb}) + '<span>p:' + Number(p.assoc.matching_results.ukbb.pval).toExponential(1) +'</span>' : 'NA' %></td>
+        <td><%= p.assoc.matching_results.ukbb ? p.assoc.matching_results.ukbb.n_cases:"NA"  %></td>
+     {% endif %}
   </tr>
   <% } %>
 </script>
@@ -288,23 +296,42 @@
 
 <script type="text/template" id="streamtable-functional-variants-template">
   <tr>
-    <td><a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(v.var.varid) %>">
+    <!-- variant -->
+    <td> 
+      <a style="color:black" href="/variant/<%= variant_id_to_pheweb_format(v.var.varid) %>">
 	<%= v.var.annotation.rsids || v.var.varid %>
-    </a></td>
-    <td><%= v.most_severe.replace(/_/g, ' ').replace(' variant', '') %></td>
-    <td><%= Number(v.var.annotation.annot.INFO).toPrecision(3) %></td>
+      </a>
+    </td>
+
+    <!-- consequence -->
+    <td> 
+      <%= v.most_severe.replace(/_/g, ' ').replace(' variant', '') %>
+    </td>
+
+    <!-- info -->
+    <td>
+      <%= Number(v.var.annotation.annot.INFO).toPrecision(3) %>
+    </td>
+
+    <!-- FIN enrichment -->
     <td style="width: 6%;" title="<%= _.template($('#enrichment-tooltip-template').html())({v: v.var}) %>" data-toggle="tooltip">
       <%= $.isNumeric(v.var.fin_enrichment) ? v.var.fin_enrichment.toPrecision(3) : v.var.fin_enrichment %>
     </td>
+
+    <!-- maf -->
     <td><%= v.var.annotation.annot.AF < 0.01 ?  v.var.annotation.annot.AF.toExponential(1) :  v.var.annotation.annot.AF.toPrecision(2) %></td>
+    <!-- finngen phenotypes -->	    
     <td><table> <%= v.significant_phenos
 	    .sort(function(pheno1, pheno2) { return pheno1.pval - pheno2.pval })
 	    .map(function(pheno) {
             return '<tr class="gene_func_var_tab"> <tr> <td class="gene_func_var_row" width="100px"> OR ' + _.template($('#beta-template-dir').html())({assoc:pheno}) + Math.exp(pheno.beta).toPrecision(2) + '<br> p-val ' + pheno.pval.toExponential(1) +
-                ' </td> <td> <a style="color:black" href="/pheno/' + pheno.phenocode + '">' +  (pheno.phenostring!="" ? pheno.phenostring: pheno.phenocode!=""? pheno.phenocode: "NA") + ' </td> </tr>'
+                ' </td> <td> <a style="color:black" href="/pheno/' + pheno.phenocode + '">' +  (pheno.phenostring!="" ? pheno.phenostring: pheno.phenocode!=""? pheno.phenocode: "NA") + '</td> </tr>'
 	    }).join(" ") %>
         </table>
     </td>
+
+    {% if 'show_ukbb' in config and config['show_ukbb']  %}
+    <!-- ukbb -->
     <td><table> <%= v.significant_phenos
 	    .sort(function(pheno1, pheno2) { return pheno1.pval - pheno2.pval })
 	    .map(function(pheno) {
@@ -313,6 +340,8 @@
 	    }).join(" ") %>
         </table>
     </td>
+    {% endif %}
+    
   </tr>
 </script>
 

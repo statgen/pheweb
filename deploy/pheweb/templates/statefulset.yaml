@@ -1,16 +1,16 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: pheweb-front
+  name: {{ include "pheweb.fullname" . }}-front
   labels:
     app: pheweb
     tier: frontend
 spec:
-  serviceName: pheweb-front
+  serviceName: {{ include "pheweb.fullname" . }}-front
   selector:
     matchLabels:
       app: pheweb
-  replicas: 3
+  replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
@@ -29,12 +29,23 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
       - name: pheweb-container
-        image: gcr.io/phewas-development/pheweb:5a6fb
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
         - name: PHEWEB_DIR
-          value: "/mnt/nfs/pheweb/r6"
+          value: {{- if .Values.pheweb.directory }} "{{ .Values.pheweb.directory }}" {{ else }} "{{ .Values.pheweb.mount }}/pheweb/{{ .Values.pheweb.subdomain }}"  {{- end }}
+        {{- if .Values.pheweb.cloudSQLCredentialFile }}
+        - name: CLOUD_SQL_PROXY_CREDENTIAL_FILE
+          value: {{ .Values.pheweb.cloudSQLCredentialFile }}
+        {{- end }}
+        {{- if .Values.pheweb.cloudSQLProxyInstances }}
+        - name: CLOUD_SQL_PROXY_INSTANCES
+          value: {{ .Values.pheweb.cloudSQLProxyInstances }}
+        {{- end }}
+
+        
         ports:
         - containerPort: 8080
+        {{- if .Values.pheweb.health }}          
         readinessProbe:
           initialDelaySeconds: 30
           httpGet:
@@ -46,11 +57,12 @@ spec:
           httpGet:
             path: /health
             port: 8080
+        {{- end }}
         volumeMounts:
-        - mountPath: /mnt/nfs
+        - mountPath: "{{ .Values.pheweb.mount }}"
           name: pheweb-nfs
       volumes:
       - name: pheweb-nfs
         persistentVolumeClaim:
-          claimName: nfs-claim
+          claimName: pvc-{{ include "pheweb.fullname" . }}
           readOnly: false

@@ -1,0 +1,13 @@
+# Default values are found in values.yaml
+
+replicaCount: 3
+
+pheweb:
+  mount: /mnt/nfs
+  subdomain: r7
+  ipName: finngen-r7-ip
+  cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
+  
+persistentVolume:
+  path: /vol1
+  server: 10.179.247.250

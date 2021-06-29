@@ -20,10 +20,10 @@ class Index extends React.Component {
 		{label: 'phenocode', key: 'phenocode'},
 		{label: 'category', key: 'category'},
 		{label: 'number of cases', key: 'num_cases'},
-		{label: 'number of cases R3', key: 'num_cases_prev'},
+		{label: `number of cases ${window.release_prev}`, key: 'num_cases_prev'},
 		{label: 'number of controls', key: 'num_controls'},
 		{label: 'genome-wide sig loci', key: 'num_gw_significant'},
-		{label: 'genome-wide sig loci R3', key: 'num_gw_significant_prev'},
+		{label: `genome-wide sig loci ${window.release_prev}`, key: 'num_gw_significant_prev'},
 		{label: 'genomic control lambda', key: 'lambda'}
 	    ]
 	}
