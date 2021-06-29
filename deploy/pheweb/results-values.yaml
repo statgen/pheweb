@@ -6,6 +6,7 @@ pheweb:
   mount: /mnt/nfs
   subdomain: results
   ipName: finngen-results-ip
+  cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
   
 persistentVolume:
   storage: 11T
