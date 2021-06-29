@@ -3,12 +3,13 @@
 replicaCount: 1
 
 pheweb:
-  mount: /mnt/nfs_dev
+  mount: /mnt/nfs
   subdomain: bstaging
-  cloudSQLCredentialFile: /mnt/nfs_dev/pheweb/phewas.sql.credentials.json
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
   
 persistentVolume:
-  storage: 11T
   path: /vol1
-  server: 10.233.113.218
+  server: 10.179.247.250
+
+image: # pheweb image
+  tag: ci-c4308beb74d0f7c58290bfbcdf07b7ea953fc094

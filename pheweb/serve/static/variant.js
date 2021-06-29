@@ -23,6 +23,15 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     return x + '%';
 });
 
+LocusZoom.TransformationFunctions.set("formatPValue", function(x){
+    if (x == "4.94 × 10^-324"){
+	return `<< ${pval_sentinel}`;
+    } else { 
+	return x;
+    }
+});
+
+
 (function() {
     // sort phenotypes
 
@@ -163,7 +172,7 @@ LocusZoom.TransformationFunctions.set("percent", function(x) {
     ];
     if (window.results.length > 10) {
         pval_data_layer.label.filters.push(
-            {field:"pval", operator:"<", value:_.sortBy(window.results.map(_.property('pval')))[10]});
+            {field:"mlogp", operator:"<", value:_.sortBy(window.results.map(_.property('mlogp')))[10]});
     }
 
     // Color points by category.
