@@ -69,7 +69,8 @@ const pval_column = {
     accessor: 'pval',
     filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
     Cell: props => (props.value == pval_sentinel)?` << ${pval_sentinel}`:props.value.toExponential(1),
-    minWidth: 80
+    minWidth: 80,
+    id: 'pval'
 };
 
 const mlogp_column = {
