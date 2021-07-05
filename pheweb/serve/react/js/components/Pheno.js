@@ -200,7 +200,6 @@ class Pheno extends React.Component {
 	       pheno.num_samples ?
 	       <tbody><tr><td><b>{pheno.num_samples}</b> samples</td></tr></tbody> :
  	       null)
-	const debug = (x) => { console.log(x); return x; }
 	const n_cc2 = pheno.cohorts ?
 	      <div>
 	      <h3>{this.state.pheno.cohorts.length} cohorts in meta-analysis</h3>
@@ -258,13 +257,13 @@ class Pheno extends React.Component {
 	ref={(r) => this.csvLink = r}
 	target="_blank" />
 	    </div> :
-	    <div>loading</div>
+	<div>loading</div>
 	    
 	const var_table = this.state.data ?
 	      <div>
 	    <ReactTable
 	    ref={(r) => this.vartable = r}
-	data={ debug(this.state.data.unbinned_variants.filter(v => !!v.peak))}
+	data={ this.state.data.unbinned_variants.filter(v => !!v.peak)}
 	filterable
 	defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())}
 	columns={this.state.columns}
