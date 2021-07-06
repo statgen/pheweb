@@ -703,6 +703,7 @@ class TabixResultDao(ResultDB):
                 maf = split[pheno[1]+self.header_offset['af_alt']] if 'af_alt' in self.header_offset else maf
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
                 maf_case = split[pheno[1]+self.header_offset['af_alt_cases']] if 'af_alt_cases' in self.header_offset else maf_case
+                mlogp = split[pheno[1]+self.header_offset['mlogp']] if 'mlogp' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['af_alt_controls']] if 'af_alt_controls' in self.header_offset else maf_control
                 if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):
@@ -713,7 +714,8 @@ class TabixResultDao(ResultDB):
                                      pval , beta, maf, maf_case, maf_control,
                                      self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0,
                                      self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0,
-                                     self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
+                                     self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA',
+                                     mlogp=mlogp)
                     v = Variant( split[0].replace('X', '23'), split[1], split[2], split[3])
                     if split[4]!='':  v.add_annotation("rsids",split[4])
                     v.add_annotation('nearest_gene', split[5])
