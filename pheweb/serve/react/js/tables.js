@@ -82,6 +82,7 @@ const mlogp_column = {
     id: 'mlogp'
 };
 
+
 const phenolistTableCols = {'FINNGEN': [{
     Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
     accessor: 'phenostring',
