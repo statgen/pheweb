@@ -101,7 +101,7 @@ class Variant(JSONifiable):
 
 class PhenoResult(JSONifiable):
 
-    def __init__(self, phenocode,phenostring, category_name, category_index, pval,beta, maf, maf_case,maf_control, n_case, n_control, n_sample=None, mlogp=None):
+    def __init__(self, phenocode,phenostring, category_name, category_index, pval,beta, maf, maf_case,maf_control, n_case, n_control, mlogp, n_sample=None):
         self.phenocode = phenocode
         self.phenostring = phenostring
         self.pval = float(pval) if pval is not None and pval!='NA' else None
@@ -120,11 +120,22 @@ class PhenoResult(JSONifiable):
         else:
              self.n_sample = n_sample
         self.mlogp = float(mlogp) if mlogp is not None and mlogp != 'NA' else None
+        # issue #126 : use log10 p-values 
+        # handle the case where mlogp is missing
         if self.mlogp is None:
+            # if pval is missing there is nothing we can do
             if self.pval is None:
                 None
+            # special case if pval is zero
+            # as it could be a tiny number
+            # that gets rounded to zero
+            # the ui interprets this as
+            # mlogp >> 324
+            # this is problematic and will be
+            # addressed in issue #137
             elif self.pval == 0:
                 self.mlogp = 324
+            # default to calculating from the pval
             else:
                 self.mlogp = -math.log10(self.pval)
         
@@ -658,8 +669,8 @@ class TabixResultDao(ResultDB):
                                  pval, beta, maf, maf_case, maf_control,
                                  self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0,
                                  self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0,
-                                 self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA',
-                                 mlogp=mlogp)
+                                 mlogp,
+                                 self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
                 phenores.append(pr)
             result.append((v,phenores))
         return result
@@ -714,8 +725,8 @@ class TabixResultDao(ResultDB):
                                      pval , beta, maf, maf_case, maf_control,
                                      self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0,
                                      self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0,
-                                     self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA',
-                                     mlogp=mlogp)
+                                     mlogp,
+                                     self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
                     v = Variant( split[0].replace('X', '23'), split[1], split[2], split[3])
                     if split[4]!='':  v.add_annotation("rsids",split[4])
                     v.add_annotation('nearest_gene', split[5])
