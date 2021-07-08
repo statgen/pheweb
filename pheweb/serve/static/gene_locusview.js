@@ -323,7 +323,7 @@
                 },
                 "y_axis": {
                     "axis": 1,
-                    "field": "association:pvalue|neglog10_or_100",
+		    "field" : "association:mlogp",
                     "floor": 0,
                     "upper_buffer": 0.1,
                     "min_extent": [0, 10]

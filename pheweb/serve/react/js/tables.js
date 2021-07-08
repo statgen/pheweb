@@ -69,8 +69,19 @@ const pval_column = {
     accessor: 'pval',
     filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
     Cell: props => (props.value == pval_sentinel)?` << ${pval_sentinel}`:props.value.toExponential(1),
-    minWidth: 80
-}
+    minWidth: 80,
+    id: 'pval'
+};
+
+const mlogp_column = {
+    Header: () => (<span title="mlog" style={{textDecoration: 'underline'}}>-log10(p)</span>),
+    accessor: 'mlogp',
+    filterMethod: (filter, row) => row[filter.id] >= +filter.value,
+    Cell: props => isNaN(+props.value) ? 'NA' : props.value.toPrecision(3),
+    minWidth: 80,
+    id: 'mlogp'
+};
+
 
 const phenolistTableCols = {'FINNGEN': [{
     Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
@@ -407,6 +418,7 @@ const csTableCols = [{
     Cell: props => props.value,
     minWidth: 50,
 }, { ... pval_column , minWidth: 50,
+}, { ... mlogp_column, accessor: 'lead_mlogp',  minWidth: 50, 
 }, {
     Header: () => (<span title="effect size (beta)" style={{textDecoration: 'underline'}}>effect size (beta)</span>),
     accessor: 'lead_beta',
@@ -485,6 +497,7 @@ accessor: 'variant',
 Cell: props => (<a href={"/variant/" +props.value.replace("chr","").replace(/_/g,"-")} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
 minWidth: 60,
 }, { ... pval_column , minWidth: 50,
+}, { ... mlogp_column, minWidth: 50, 
 }, {
 Header: () => (<span title="effect size" style={{textDecoration: 'underline'}}>effect size</span>),
 accessor: 'beta',

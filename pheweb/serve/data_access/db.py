@@ -101,7 +101,7 @@ class Variant(JSONifiable):
 
 class PhenoResult(JSONifiable):
 
-    def __init__(self, phenocode,phenostring, category_name, category_index, pval,beta, maf, maf_case,maf_control, n_case, n_control, n_sample=None, mlogp=None):
+    def __init__(self, phenocode,phenostring, category_name, category_index, pval,beta, maf, maf_case,maf_control, n_case, n_control, mlogp, n_sample=None):
         self.phenocode = phenocode
         self.phenostring = phenostring
         self.pval = float(pval) if pval is not None and pval!='NA' else None
@@ -120,11 +120,22 @@ class PhenoResult(JSONifiable):
         else:
              self.n_sample = n_sample
         self.mlogp = float(mlogp) if mlogp is not None and mlogp != 'NA' else None
+        # issue #126 : use log10 p-values 
+        # handle the case where mlogp is missing
         if self.mlogp is None:
+            # if pval is missing there is nothing we can do
             if self.pval is None:
                 None
+            # special case if pval is zero
+            # as it could be a tiny number
+            # that gets rounded to zero
+            # the ui interprets this as
+            # mlogp >> 324
+            # this is problematic and will be
+            # addressed in issue #137
             elif self.pval == 0:
                 self.mlogp = 324
+            # default to calculating from the pval
             else:
                 self.mlogp = -math.log10(self.pval)
         
@@ -658,8 +669,8 @@ class TabixResultDao(ResultDB):
                                  pval, beta, maf, maf_case, maf_control,
                                  self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0,
                                  self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0,
-                                 self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA',
-                                 mlogp=mlogp)
+                                 mlogp,
+                                 self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
                 phenores.append(pr)
             result.append((v,phenores))
         return result
@@ -703,9 +714,19 @@ class TabixResultDao(ResultDB):
                 maf = split[pheno[1]+self.header_offset['af_alt']] if 'af_alt' in self.header_offset else maf
                 maf_case = split[pheno[1]+self.header_offset['maf_cases']] if 'maf_cases' in self.header_offset else None
                 maf_case = split[pheno[1]+self.header_offset['af_alt_cases']] if 'af_alt_cases' in self.header_offset else maf_case
+                mlogp = split[pheno[1]+self.header_offset['mlogp']] if 'mlogp' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['af_alt_controls']] if 'af_alt_controls' in self.header_offset else maf_control
-                if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):
+                # Pick the smaller of values.  First try using mlog which
+                # maybe absent in earlier releases.  In this case fall back
+                # to using pval to order.
+                if mlogp is not None and mlogp is not '' and mlogp != 'NA':
+                    # have mlogp compare mlog
+                    is_less_than = pheno[0] not in top or (float(mlogp)) > top[pheno[0]][1].mlogp
+                else:
+                    # we don't have mlogp use pval
+                    is_less_than = pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval )
+                if is_less_than:
                     pr = PhenoResult(pheno[0],
                                      self.pheno_map[pheno[0]]['phenostring'],
                                      self.pheno_map[pheno[0]]['category'],
@@ -713,15 +734,21 @@ class TabixResultDao(ResultDB):
                                      pval , beta, maf, maf_case, maf_control,
                                      self.pheno_map[pheno[0]]['num_cases'] if 'num_cases' in self.pheno_map[pheno[0]] else 0,
                                      self.pheno_map[pheno[0]]['num_controls'] if 'num_controls' in self.pheno_map[pheno[0]] else 0,
+                                     mlogp,
                                      self.pheno_map[pheno[0]]['num_samples'] if 'num_samples' in self.pheno_map[pheno[0]] else 'NA')
                     v = Variant( split[0].replace('X', '23'), split[1], split[2], split[3])
                     if split[4]!='':  v.add_annotation("rsids",split[4])
                     v.add_annotation('nearest_gene', split[5])
                     top[pheno[0]] = (v,pr)
 
+
         print(str(n_vars) + " variants iterated")
         top = [ PhenoResults(pheno=self.pheno_map[pheno], assoc=dat, variant=v ) for pheno,(v,dat) in top.items()]
+        # A hack to handle missing mlogp
+        # as sort is stable it should return
+        # with the the pval order.
         top.sort(key=lambda pheno: pheno.assoc.pval)
+        top.sort(key=lambda pheno: pheno.assoc.mlogp, reverse = True)
 
         return top
 

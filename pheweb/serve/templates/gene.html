@@ -86,6 +86,7 @@
                 <th>category</th>
                 <th style="width: 6%;">OR</th>
                 <th style="width: 7%;">p-value</th>
+                <th style="width: 7%;">-log10(p)</th>		
                 <th style="width: 7%;">number of cases</th>
 		{% if 'show_ukbb' in config and config['show_ukbb']  %}
                 <th style="width: 9%;">UKBB</th>
@@ -253,6 +254,7 @@
     <td><%= p.pheno.category || 'Unknown' %></td>
     <td><%= _.template($('#beta-template-dir').html())({assoc: p.assoc}) + Math.exp(p.assoc.beta).toFixed(2) %></td>
     <td><%= p.assoc.pval.toExponential(1) %></td>
+    <td><%= p.assoc.mlogp.toFixed(1) %></td>
     <td style="text-align: right;"><%= p.pheno.num_cases %></td>
      {% if 'show_ukbb' in config and config['show_ukbb']  %}
         <td><%= p.assoc.matching_results.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.matching_results.ukbb}) + '<span>' + Number(p.assoc.matching_results.ukbb.pval).toExponential(1) + '</span>'  : 'NA' %></td>
@@ -273,6 +275,7 @@
     <td><%= p.pheno.category || 'Unknown' %></td>
     <td><%= _.template($('#beta-template-dir').html())({assoc: p.assoc}) +  Math.exp(p.assoc.beta).toPrecision(2) %></td>
     <td><%= p.assoc.pval.toExponential(1) %></td>
+    <td><%= p.assoc.mlogp.toFixed(1) %></td>	      
     <td style="text-align: right;"><%= p.pheno.num_cases %></td>
      {% if 'show_ukbb' in config and config['show_ukbb']  %}
         <td><%= p.assoc.matching_results.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.matching_results.ukbb}) + '<span>p:' + Number(p.assoc.matching_results.ukbb.pval).toExponential(1) +'</span>' : 'NA' %></td>
