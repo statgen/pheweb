@@ -717,7 +717,16 @@ class TabixResultDao(ResultDB):
                 mlogp = split[pheno[1]+self.header_offset['mlogp']] if 'mlogp' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['maf_controls']] if 'maf_controls' in self.header_offset else None
                 maf_control = split[pheno[1]+self.header_offset['af_alt_controls']] if 'af_alt_controls' in self.header_offset else maf_control
-                if pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval ):
+                # Pick the smaller of values.  First try using mlog which
+                # maybe absent in earlier releases.  In this case fall back
+                # to using pval to order.
+                if mlogp is not None and mlogp is not '' and mlogp != 'NA':
+                    # have mlogp compare mlog
+                    is_less_than = pheno[0] not in top or (float(mlogp)) > top[pheno[0]][1].mlogp
+                else:
+                    # we don't have mlogp use pval
+                    is_less_than = pval is not '' and pval != 'NA' and ( pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval )
+                if is_less_than:
                     pr = PhenoResult(pheno[0],
                                      self.pheno_map[pheno[0]]['phenostring'],
                                      self.pheno_map[pheno[0]]['category'],
@@ -732,9 +741,14 @@ class TabixResultDao(ResultDB):
                     v.add_annotation('nearest_gene', split[5])
                     top[pheno[0]] = (v,pr)
 
+
         print(str(n_vars) + " variants iterated")
         top = [ PhenoResults(pheno=self.pheno_map[pheno], assoc=dat, variant=v ) for pheno,(v,dat) in top.items()]
+        # A hack to handle missing mlogp
+        # as sort is stable it should return
+        # with the the pval order.
         top.sort(key=lambda pheno: pheno.assoc.pval)
+        top.sort(key=lambda pheno: pheno.assoc.mlogp, reverse = True)
 
         return top
 
