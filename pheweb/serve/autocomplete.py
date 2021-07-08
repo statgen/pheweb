@@ -48,8 +48,9 @@ class Autocompleter(object):
         query = query.strip()
         result = []
         for autocompleter in self._autocompleters:
-            result = list(itertools.islice(autocompleter(query), 0, 10))
-            if result: break
+            current_result = list(itertools.islice(autocompleter(query), 0, 1000))
+            if current_result:
+                result.extend(current_result)
         return result
 
     def get_best_completion(self, query:str) -> Optional[Dict[str,str]]:
