@@ -48,7 +48,8 @@ setup(
     install_requires=[
         'finngen_common_data_model@git+https://github.com/FINNGEN/finngen-common-data-model.git@e73e6e19a6bfda2e3e893e3dd5252aaf66ccb8f5#egg=finngen_common_data_model',
         'pheweb_colocalization@git+https://github.com/FINNGEN/pheweb-colocalization.git@622398c180dd2c59e8f43137755c858a1bf17bb9#egg=pheweb_colocalization',
-        'Flask>=0.12',
+        'Jinja2~=2.11.3',
+        'Flask~=1.1.2',
         'Flask-Compress~=1.4',
         'Flask-Login~=0.4',
         'pyasn1~=0.4.6',
