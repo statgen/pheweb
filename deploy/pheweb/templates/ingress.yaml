@@ -24,8 +24,8 @@ metadata:
     kubernetes.io/ingress.class: "gce"
   labels:
     app: pheweb
-    product : pheweb-production-{{ release }}
-    release: r6
+    product : pheweb-{{ .Values.pheweb.deployment }}-{{ .Values.pheweb.release }}
+    release: {{ .Values.pheweb.release }}
 spec:
   rules:
   - host: {{ .Values.pheweb.subdomain }}.finngen.fi

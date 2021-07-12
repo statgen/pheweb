@@ -5,6 +5,8 @@ metadata:
   labels:
     app: pheweb
     tier: frontend
+    product : pheweb-{{ .Values.pheweb.deployment }}-{{ .Values.pheweb.release }}
+    release: {{ .Values.pheweb.release }}
 spec:
   serviceName: {{ include "pheweb.fullname" . }}-front
   selector:
@@ -16,6 +18,8 @@ spec:
       labels:
         app: pheweb
         tier: frontend
+        product : pheweb-{{ .Values.pheweb.deployment }}-{{ .Values.pheweb.release }}
+        release: {{ .Values.pheweb.release }}
     spec:
       affinity:
         podAntiAffinity:
@@ -42,10 +46,10 @@ spec:
           value: {{ .Values.pheweb.cloudSQLProxyInstances }}
         {{- end }}
 
-        
+
         ports:
         - containerPort: 8080
-        {{- if .Values.pheweb.health }}          
+        {{- if .Values.pheweb.health }}
         readinessProbe:
           initialDelaySeconds: 30
           httpGet:

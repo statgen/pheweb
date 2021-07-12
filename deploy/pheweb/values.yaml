@@ -1,6 +1,7 @@
 pheweb:
   ssl: true
   health: true
+  deployment: production
   
 image: # pheweb image
   repository: gcr.io/phewas-development/pheweb

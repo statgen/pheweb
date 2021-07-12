@@ -6,6 +6,8 @@ pheweb:
   mount: /mnt/nfs
   subdomain: bstaging
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
+  deployment: staging
+  release: r7
   
 persistentVolume:
   path: /vol1
