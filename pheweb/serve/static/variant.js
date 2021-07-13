@@ -3,7 +3,7 @@
 const pval_sentinel = 5e-324
 
 function formatPValue(pval){
-    if(pval == pval_sentinel){
+    if(pval == pval_sentinel || pval == 0){
 	return `<< ${pval_sentinel}`
     } else {
 	return pval ? pval.toExponential(1) : "";
@@ -429,7 +429,7 @@ if (window.variant.annotation.annot.rsids || window.variant.annotation.rsids) {
 $(function() {
     // This is mostly copied from <https://michigangenomics.org/health_data.html>.
     var data = _.filter(window.results, function(pheno) { return true; /* !!pheno.pval */ });
-    data = _.sortBy(data, function(pheno) { return pheno.pval; });
+    data = _.sortBy(data, function(pheno) { return -pheno.mlogp; });
     var template = _.template($('#streamtable-template').html());
 
     var view = function(phenotype) {
