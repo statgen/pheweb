@@ -428,7 +428,7 @@ if (window.variant.annotation.annot.rsids || window.variant.annotation.rsids) {
 // Populate StreamTable
 $(function() {
     // This is mostly copied from <https://michigangenomics.org/health_data.html>.
-    var data = _.filter(window.results, function(pheno) { return !!pheno.pval });
+    var data = _.filter(window.results, function(pheno) { return true; /* !!pheno.pval */ });
     data = _.sortBy(data, function(pheno) { return pheno.pval; });
     var template = _.template($('#streamtable-template').html());
 
