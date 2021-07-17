@@ -259,9 +259,11 @@ def api_region(phenocode:str):
     filter_param = request.args.get('filter')
     if not isinstance(filter_param, str): abort(404)
     m = re.match(r".*chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param)
-    if not m: abort(404)
-    chrom, pos_start, pos_end = m.group(1), int(m.group(2)), int(m.group(3))
-    return jsonify(get_pheno_region(phenocode, chrom, pos_start, pos_end))
+    if not m:
+        abort(404)
+    else:
+        chrom, pos_start, pos_end = m.group(1), int(m.group(2)), int(m.group(3))
+        return jsonify(get_pheno_region(phenocode, chrom, pos_start, pos_end))
 
 
 @bp.route('/api/pheno/<phenocode>/correlations/')

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# type: ignore
 
 '''
 $ wget https://github.com/PheWAS/PheWAS/blob/master/data/phemap.rda

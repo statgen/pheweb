@@ -21,7 +21,9 @@ if sys.version_info < (3, 6):
 
 
 def load_module_by_path(module_name, filepath):
-    module = importlib.util.module_from_spec(importlib.util.spec_from_file_location(module_name, filepath))
+    spec = importlib.util.spec_from_file_location(module_name, filepath)
+    if not spec: raise Exception(module_name, filepath, spec)
+    module = importlib.util.module_from_spec(spec)
     module.__spec__.loader.exec_module(module)
     return module
 version = load_module_by_path('pheweb.version', 'pheweb/version.py').version

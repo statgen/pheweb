@@ -14,7 +14,9 @@ class PheWebError(Exception):
     '''implies that an exception is being handled by PheWeb, so its message should just be printed.'''
 
 def load_module_from_filepath(module_name:str, filepath:str) -> types.ModuleType:
-    module = importlib.util.module_from_spec(importlib.util.spec_from_file_location(module_name, filepath))
+    spec = importlib.util.spec_from_file_location(module_name, filepath)
+    if not spec: raise Exception(module_name, filepath, spec)
+    module = importlib.util.module_from_spec(spec)
     module.__spec__.loader.exec_module(module)  # type: ignore
     return module
 
