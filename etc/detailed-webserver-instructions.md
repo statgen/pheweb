@@ -6,7 +6,7 @@ Run `pheweb serve --open`.  That command should either open a browser to your ne
 
 - If the server works but you can't open it in a web browser, you have two options:
 
-  1. Run PheWeb on the open internet.
+  1. Option 1: Run PheWeb on the open internet.
 
      You need a port that can get through your firewall. 80 or 5000 probably work.
 
@@ -14,11 +14,11 @@ Run `pheweb serve --open`.  That command should either open a browser to your ne
 
      Then run `pheweb serve --guess-address` and open the two URLs it provides.
 
-  2. Run PheWeb with the default settings, then use an SSH tunnel to connect to it from your computer.
+  2. Option 2: Run PheWeb with the default settings, then use an SSH tunnel to connect to it from your computer.
 
      For example, if you normally ssh with `ssh me@example.com`, then the command you should run (on the computer you're sitting at) is `ssh -N -L localhost:5000:localhost:5000 me@example.com`.
 
-     Then open <http://localhost:5000> in your web browser.  It should connect straight to port 5000 on the server through your ssh server, allowing you to access your site.
+     Then open <http://localhost:5000> in your web browser.  It should connect straight to port 5000 on the server through your ssh tunnel, allowing you to access your site.
 
 
 
