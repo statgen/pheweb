@@ -115,4 +115,4 @@ Here are some templates that are intended to be modified:
 - `custom_templates/region/h1.html`: the large text at the top of the region (LocusZoom Region Plot) page
 - `custom_templates/title.html`: the title of the window, usually shown in the tab bar
 
-You can also override any template found in [pheweb/serve/templates](https://github.com/statgen/pheweb/tree/master/pheweb/serve/templates).  It'll work best if you copy the original version and modify it.  If you update Pheweb after overriding entire pages like this, those pages might be broken.
+You can also override any template found in [pheweb/serve/templates](https://github.com/statgen/pheweb/tree/master/pheweb/serve/templates).  It'll work best if you copy the original version and modify it.  If you update Pheweb after overriding entire pages like this, those pages might be broken.  The templating language is Jinja2 and you can see what variables are available by looking at `route`s with `render_template` in [pheweb/serve/server.py](https://github.com/statgen/pheweb/tree/master/pheweb/serve/server.py).
