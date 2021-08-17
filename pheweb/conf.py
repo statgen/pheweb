@@ -102,11 +102,12 @@ def get_data_dir() -> str:
     return data_dir
 def get_cache_dir() -> Optional[str]:
     key = 'cache_dir'
-    if overrides.get(key) is False: return None
+    if not overrides.get(key):
+        return None
     cache_dir = _get_config_str(key, '~/.pheweb/cache')
     cache_dir = os.path.abspath(os.path.expanduser(cache_dir))
     if not _mkdir_and_check_readable(cache_dir):
-        print("Warning: caching is disabled because PheWeb either can't create or can't read {!r}.  To avoid this message, set `{} = False` in your config.py".format(cache_dir, key))
+        print("Warning: caching is disabled because PheWeb either can't create or can't read {!r}.".format(cache_dir))
         overrides[key] = False
         return None
     return cache_dir
