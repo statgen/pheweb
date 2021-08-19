@@ -2,7 +2,7 @@
 
 ## Cromwell run
 
-Import summary stats using [import.wdl](wdl/import.wdl). Prepare a list of summary stats like in reference configuration file (one summary stat bucket path per line) [import.json](wdl/import.json).
+Import summary stats using [import.wdl](wdl/import.gwas_pipeline.wdl). Prepare a list of summary stats like in reference configuration file (one summary stat bucket path per line) [import.json](wdl/import.gwas_pipeline.json).
 
 After successful import run, copy generated file to a single bucket using proper file structure using [copy_cromwell_import_to_bucket_puddle.py ](scripts/copy_cromwell_import_to_bucket_puddle.py).
 
@@ -15,6 +15,18 @@ Example proxy creation if cromwell runs in google VM: `gcloud compute ssh cromwe
 
 Alternatively if direct access available change url with `--cromwell_url yourURL` and remove proxy (--socks_proxy "")
 
+## Cromwell run (meta-analysis results)
+
+Use [import.ukbb.wdl](wdl/import.ukbb.wdl).
+
+Use [import.ukbb.json](wdl/import.ukbb.json) as a config template. Most of the variables/files don't need to be changed, but two input files need to be generated:
+
+1. `pheweb_import.summaryfiles`: list of meta-analysis result summary stats (one summary stat bucket path per line)
+2. `pheweb_import.fix_json.custom_json`: file providing additional information per phenotype (n_cases/n_controls, phenotype name, description)
+
+You can use scripts [ukbb_json.py](scripts/ukbb_json.py) and [merge_jsons.py](scripts/merge_jsons.py), or [create_custom_json.py](scripts/create_custom_json.py) to generate the custom json.
+
+Also check that the variable `pheweb_import.pre_annot_sumfile` points to as broad as possible variant list (preferrably generated from the most recent Finngen variant annotation file). The file needs to have columns `chrom`, `pos`, `ref` and `alt`.
 ## Copy
 
 # Deploying PheWeb in Google Cloud using Kubernetes
