@@ -5,7 +5,7 @@
     "pheweb_import.genes_bed": "gs://phewas-development/pheweb/import/full/genes-b38-v25.bed",
     "pheweb_import.header_dict":  {"#CHR": "chrom",'POS':'pos','REF':'ref','ALT':'alt','all_inv_var_meta_sebeta':'sebeta','all_inv_var_meta_beta':'beta','all_inv_var_meta_p':'pval','FINNGEN_af_alt':'af_alt','FINNGEN_af_alt_cases':'af_alt_cases','FINNGEN_af_alt_controls':'af_alt_controls'} ,
     "pheweb_import.filter_na":True,
-    "pheweb_import.pre_annot_sumfile":"gs://phewas-development/pheweb/import/annotation_sumstats.gz",
+    "pheweb_import.pre_annot_sumfile":"gs://finngen-data-green/r7/R7_variants.gz",
 
     
     #DOCKERS
