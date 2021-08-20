@@ -59,7 +59,7 @@ You should install into the default directory of `~/miniconda3`.
 You should let miniconda modify `$PATH` in your `~/.bash_profile` or `~/.bashrc`, so that you'll be able to run just `pheweb` instead of `~/miniconda/bin/pheweb` on the command line.
 
 Miniconda3 makes `python` an alias for `python3` and `pip` an alias for `pip3`.
-That might cause problems, so I recommend running:
+If you don't like that, run:
 
 ```bash
 rm ~/miniconda3/bin/python
