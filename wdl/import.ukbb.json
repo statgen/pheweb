@@ -1,11 +1,11 @@
 {
     #### UKBB #####
-    "pheweb_import.summaryfiles":"gs://phewas-development/pheweb/import/test_ukbb_phenos.txt",
+    "pheweb_import.summaryfiles": "gs://phewas-development/pheweb/import/test_ukbb_phenos.txt",
     "pheweb_import.docker": "eu.gcr.io/phewas-development/pheweb_annotation:ukbb.test.4",
     "pheweb_import.genes_bed": "gs://phewas-development/pheweb/import/full/genes-b38-v25.bed",
-    "pheweb_import.header_dict":  {"#CHR": "chrom",'POS':'pos','REF':'ref','ALT':'alt','all_inv_var_meta_sebeta':'sebeta','all_inv_var_meta_beta':'beta','all_inv_var_meta_p':'pval','FINNGEN_af_alt':'af_alt','FINNGEN_af_alt_cases':'af_alt_cases','FINNGEN_af_alt_controls':'af_alt_controls'} ,
-    "pheweb_import.filter_na":True,
-    "pheweb_import.pre_annot_sumfile":"gs://finngen-data-green/r7/R7_variants.gz",
+    "pheweb_import.header_dict": {"#CHR":"chrom", "POS":"pos", "REF":"ref", "ALT":"alt", "all_inv_var_meta_sebeta":"sebeta", "all_inv_var_meta_beta":"beta", "all_inv_var_meta_p":"pval", "FINNGEN_af_alt":"af_alt", "FINNGEN_af_alt_cases":"af_alt_cases", "FINNGEN_af_alt_controls":"af_alt_controls"},
+    "pheweb_import.filter_na": True,
+    "pheweb_import.pre_annot_sumfile": "gs://finngen-data-green/r7/R7_variants.gz",
 
     
     #DOCKERS
@@ -15,8 +15,8 @@
     #"pheweb_import.fix_json.json_docker": "eu.gcr.io/phewas-development/pheweb_annotation:import.test.4",
 
     #ANNOTATION
-    "pheweb_import.annotation.marisa_trie":"gs://phewas-development/pheweb/import/full/gene_aliases_b38.marisa_trie",
-    "pheweb_import.annotation.rsids_gz" : "gs://phewas-development/pheweb/import/full/rsids-b38-151.vcf.gz",
+    "pheweb_import.annotation.marisa_trie": "gs://phewas-development/pheweb/import/full/gene_aliases_b38.marisa_trie",
+    "pheweb_import.annotation.rsids_gz": "gs://phewas-development/pheweb/import/full/rsids-b38-151.vcf.gz",
     
     #PHENO
     "pheweb_import.pheno.replace_prefix": "_meta_out.tsv",
@@ -32,6 +32,6 @@
 
     #PHENOJSON
     "pheweb_import.fix_json.custom_json": "gs://phewas-development/pheweb/import/custom/ukbb.json",
-    "pheweb_import.fix_json.fields" : ["phenostring","num_cases","num_controls","name","uk_file","description",'category'],
+    "pheweb_import.fix_json.fields": ["phenostring","num_cases","num_controls","name","uk_file","description","category"]
 
 }

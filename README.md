@@ -6,8 +6,7 @@ Import summary stats using [import.wdl](wdl/import.gwas_pipeline.wdl). Prepare a
 
 After successful import run, copy generated file to a single bucket using proper file structure using [copy_cromwell_import_to_bucket_puddle.py ](scripts/copy_cromwell_import_to_bucket_puddle.py).
 
-Parameters needed are cromwell hash and path to destination bucket.
-copy_cromwell_import_to_bucket_puddle.py cromwell_hash gs://bucket_for_deployment_pickerupper/v8/
+Parameters needed are cromwell hash and path to destination bucket: `copy_cromwell_import_to_bucket_puddle.py cromwell_hash gs://bucket_for_deployment_pickerupper/v8/`
 
 ***You need to have a socks5 proxy open in localhost:5000 to cromwell machine to get the metadata.***
 
@@ -27,7 +26,6 @@ Use [import.ukbb.json](wdl/import.ukbb.json) as a config template. Most of the v
 You can use scripts [ukbb_json.py](scripts/ukbb_json.py) and [merge_jsons.py](scripts/merge_jsons.py), or [create_custom_json.py](scripts/create_custom_json.py) to generate the custom json.
 
 Also check that the variable `pheweb_import.pre_annot_sumfile` points to as broad as possible variant list (preferrably generated from the most recent Finngen variant annotation file). The file needs to have columns `chrom`, `pos`, `ref` and `alt`.
-## Copy
 
 # Deploying PheWeb in Google Cloud using Kubernetes
 
