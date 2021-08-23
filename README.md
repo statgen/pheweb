@@ -21,7 +21,7 @@ Use [import.ukbb.wdl](wdl/import.ukbb.wdl).
 Use [import.ukbb.json](wdl/import.ukbb.json) as a config template. Most of the variables/files don't need to be changed, but two input files need to be generated:
 
 1. `pheweb_import.summaryfiles`: list of meta-analysis result summary stats (one summary stat bucket path per line)
-2. `pheweb_import.fix_json.custom_json`: file providing additional information per phenotype (n_cases/n_controls, phenotype name, description)
+2. `pheweb_import.fix_json.custom_json`: file providing additional information per phenotype (n_cases/n_controls, phenotype name, description). Required fields are defined in the variable `"pheweb_import.fix_json.fields"`.
 
 You can use scripts [ukbb_json.py](scripts/ukbb_json.py) and [merge_jsons.py](scripts/merge_jsons.py), or [create_custom_json.py](scripts/create_custom_json.py) to generate the custom json.
 
