@@ -1,41 +1,63 @@
 'use strict';
 
-function populate_streamtable(phenotypes) {
+function populate_table(phenotypes) {
     $(function() {
-        // This is mostly copied from <https://michigangenomics.org/health_data.html>.
-        var data = phenotypes;
-        // data = _.sortBy(data, _.property('pval'));
-        var template = _.template($('#streamtable-template').html());
-        var view = function(pheno) {
-            return template({h: pheno});
-        };
-        var $found = $('#streamtable-found');
-        $found.text(data.length + " phenotypes");
 
-        var callbacks = {
-            pagination: function(summary){
-                if ($.trim($('#search').val()).length > 0){
-                    $found.text(summary.total + " matching phenotypes");
+        var table = new Tabulator('#table', {
+            data: phenotypes,
+            pagination: 'local',
+            paginationSize: 100,
+            initialSort: [ { column: 'pval', dir: 'asc' } ],
+            columns: [
+                {title:'Category', field:'category', headerFilter:true},
+                {title:'Phenotype', field:'phenocode', headerFilter:true, /* TODO: filter on phenostring */
+                 //widthGrow: 5,
+                 formatter:'link',
+                 formatterParams: {
+                     label: function(cell){
+                         var d = cell.getData();
+                         return d.phenocode + (d.phenostring ? ': ' + d.phenostring : '');
+                     },
+                     urlPrefix: window.model.urlprefix + '/pheno/',
+                 }
+                },
+                {title:'Samples', field:'num_samples'},  /* TODO: {num_cases} + {num_controls}, toLocaleString */
+                {title:'GCλ0.01', field:'gc_lambda_hundred'}, /* TODO: toFixed(2) */
+                {title:'Loci<5e-8', field:'num_peaks'},
+                {title:'Top Variant', field:'chrom',
+                 formatter:'link',
+                 formatterParams: {
+                     label: function(cell){
+                         var d = cell.getData();
+                         return fmt('{0}:{1} {2} / {3}', d.chrom, d.pos.toLocaleString(), d.ref, d.alt) +
+                             (d.rsids ? d.rsids.replace(/,/g, ', '): '');
+                     },
+                     /* TODO: url */
+                 }
+                },
+                {title:'Top P-value', field:'pval'},  /* TODO: handle 0, toExponential(1) */
+                {title:'Nearest Gene(s)', field:'nearest_genes', headerFilter:true},  /* TODO: link each */
+            ],
+            tooltipGenerationMode: 'hover', // generate tooltips just-in-time when the data is hovered
+            tooltips: function(cell) {
+                // this function attempts to check whether an ellipsis ('...') is hiding part of the data.
+                // to do so, I compare element.clientWidth against element.scrollWidth;
+                // when scrollWidth is bigger, that means we're hiding part of the data.
+                // unfortunately, the ellipsis sometimes activates too early, meaning that even with clientWidth == scrollWidth some data is hidden by the ellipsis.
+                // fortunately, these tooltips are just a convenience so I don't mind if they fail to show.
+                // I don't know whether clientWidth or offsetWidth is better. clientWidth was more convenient in Chrome74.
+                var e = cell.getElement();
+                //return '' + e.offsetWidth + ' || ' + e.scrollWidth + ' || ' + e.clientWidth;
+                if (e.clientWidth >= e.scrollWidth) {
+                    return false; // all the text is shown, so there is no '...', so no tooltip is needed
+                } else if (cell.getColumn().getField() === 'phenocode') {
+                    return e.innerText;
                 } else {
-                    $found.text(data.length + " phenotypes");
+                    return cell.getValue();
                 }
             }
-        }
+        });
 
-        var options = {
-            view: view,
-            search_box: '#search',
-            callbacks: callbacks,
-            pagination: {
-                span: 5,
-                next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
-                prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
-                per_page_select: false,
-                per_page_opts: [100], // this is the best way I've found to control the number of rows
-            }
-        }
-
-        $('#stream_table').stream_table(options, data);
 
     });
 }
