@@ -43,7 +43,6 @@ RUN python3 -m pip install cython
 RUN python3 -m pip install pip==20.1.1 --upgrade
 RUN python3 -m pip install /pheweb
 RUN python3 -m pip freeze
-RUN apt-get purge git --yes
 
 # create react js bundle
 RUN cd /pheweb/pheweb/serve/react && \
@@ -51,9 +50,11 @@ RUN cd /pheweb/pheweb/serve/react && \
     mv /pheweb/pheweb/serve/static/bundle.js /usr/local/lib/python3.7/dist-packages/pheweb/serve/static/ && \
     rm -r /pheweb
 
-
 ADD . /pheweb
 ADD pheweb/load/external_matrix.py /usr/local/bin/
+
+# remove build tools
+RUN apt-get purge git gcc cmake --yes
 
 EXPOSE 8080
 CMD cloud_sql_proxy -instances=$CLOUD_SQL_PROXY_INSTANCES -credential_file=$CLOUD_SQL_PROXY_CREDENTIAL_FILE & cd $PHEWEB_DIR && pheweb serve --port 8080 --num-workers 4
