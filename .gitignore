@@ -73,3 +73,13 @@ flycheck_*.el
 coverage
 finngen_common_data_model
 pheweb_colocalization
+
+# git ignore
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*

@@ -10,16 +10,6 @@ pipeline {
 			    docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') { c.push("ci-latest") }
 		}
 
-		script {    c_import = docker.build("phewas-development/pheweb:ci-import-${env.$GIT_COMMIT}", "-f deploy/Dockerfile_import ./")
-                            docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') { c_import.push("ci-import-${env.GIT_COMMIT}") }
-                            docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') { c_import.push("ci-import-latest") }
-                }
-
-		script {    c_meta = docker.build("phewas-development/pheweb:ci-import-${env.$GIT_COMMIT}", "-f deploy/Dockerfile_meta ./")
-                            docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') { c_meta.push("ci-import-${env.GIT_COMMIT}") }
-                            docker.withRegistry('http://gcr.io/phewas-development', 'gcr:phewas-development') { c_meta.push("ci-import-latest") }
-                }
-
 	    }
 	}
     stage('Deploy') {

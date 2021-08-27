@@ -1,7 +1,7 @@
 FROM debian:10
 
 # can change this in k8s deployment yaml to serve from another directory
-ENV PHEWEB_DIR /mnt/nfs/pheweb/r6
+ENV PHEWEB_DIR /mnt/nfs/pheweb/r7
 ENV CLOUD_SQL_PROXY_CREDENTIAL_FILE /mnt/nfs/pheweb/phewas.sql.credentials.json
 ENV CLOUD_SQL_PROXY_INSTANCES phewas-development:europe-west1:pheweb=tcp:3306
 
@@ -21,7 +21,6 @@ RUN apt-get install cmake libcurl4-openssl-dev  --yes
 
 # install nodejs
 RUN apt-get install curl software-properties-common gnupg --yes
-RUN sudo apt-get clean
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -x -
 RUN apt-get install nodejs --yes
 
