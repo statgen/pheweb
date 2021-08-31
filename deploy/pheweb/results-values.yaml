@@ -7,8 +7,8 @@ pheweb:
   subdomain: results
   ipName: finngen-results-ip
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
+  release: r7
   
 persistentVolume:
-  storage: 11T
   path: /vol1
   server: 10.179.247.250

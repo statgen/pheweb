@@ -3,7 +3,7 @@
 replicaCount: 1
 
 pheweb:
-  mount: /mnt/nfs_dev
+  mount: /mnt/nfs
   subdomain: bstaging
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
   deployment: staging
@@ -11,9 +11,5 @@ pheweb:
   
 persistentVolume:
   path: /vol1
-  server: 10.233.113.218
-
-image: # pheweb image
-  tag: ci-f4c761bcc7b94e2023933ca6bb4b923c34c74e5d
-
+  server: 10.179.247.250
 

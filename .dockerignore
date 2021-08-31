@@ -12,3 +12,5 @@
 .\#*
 .dir-locals.el
 
+# excluded pheweb directories
+pheweb/deploy
