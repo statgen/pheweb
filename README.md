@@ -110,7 +110,7 @@ pheweb phenolist import-phenolist "/path/to/pheno-list.csv"
 or you can make one from scratch by running:
 
 ```
-pheweb phenolist glob-files --star-is-phenocode "/home/peter/data/*.gz"
+pheweb phenolist glob --star-is-phenocode "/home/peter/data/*.gz"
 ```
 
 You can see other methods [here](etc/detailed-loading-instructions.md#making-pheno-listjson).
