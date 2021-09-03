@@ -199,8 +199,8 @@ class AssocFileReader:
                     variant[field] = parse(value)
                 except Exception as exc:
                     raise PheWebError(
-                        "failed on field {!r} attempting to convert value {!r} to type {!r} with constraints {!r} in {!r} on line with values {!r}".format(
-                            field, values[colidx], parse_utils.fields[field]['type'], parse_utils.fields[field], self.filepath, values)) from exc
+                        "failed on field {!r} attempting to convert value {!r} to type {!r} with constraints {!r} in {!r} on line with values {!r} given colnames {!r} and field mapping {!r}".format(
+                            field, values[colidx], parse_utils.fields[field]['type'], parse_utils.fields[field], self.filepath, values, colnames, colidx_for_field)) from exc
 
         return variant
 
