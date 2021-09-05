@@ -15,6 +15,33 @@ Example proxy creation if cromwell runs in google VM: `gcloud compute ssh cromwe
 
 Alternatively if direct access available change url with `--cromwell_url yourURL` and remove proxy (--socks_proxy "")
 
+## Updating phenotype meta data in phenolist-json (R7 from Juha)
+
+create UTF-8 TSV file from Aki's Excel, I've found this to be the best way to avoid double quotes around pheno names and correctly encode weird characters.
+open Endpoints_Controls_FINNGEN_ENDPOINTS_DF7_Final_2021-03-05.xlsx in Excel and save as UTF-8 CSV
+-install csvkit (terrible deps)
+
+`csvformat -T Endpoints_Controls_FINNGEN_ENDPOINTS_DF7_Final_2021-03-05.csv > Endpoints_Controls_FINNGEN_ENDPOINTS_DF7_Final_2021-03-05.tsv`
+
+in refinery get numbers of cases and controls from cov/pheno file:
+E.g in R:
+```
+cov_pheno <- fread("gunzip -c /mnt/nfs/r7/R7_COV_PHENO_V2.FID.txt.gz")
+first_pheno_index <- match("DEATH", names(cov_pheno))[1]
+cs <- colSums(cov_pheno[,first_pheno_index:length(cov_pheno)], na.rm=T)
+mcs <- colSums(1-cov_pheno[,first_pheno_index:length(cov_pheno)], na.rm=T)
+fwrite(data.table(cbind(pheno=names(cs), cases=cs, ctrls=mcs, n_eff=2/(1/cs+1/mcs))), "n_eff.txt", quote=F, sep="\t")
+```
+
+in /mnt/nfs/pheweb/r7/phenolist
+-copy Aki's files and the above created TSV and the above created n_eff.txt there
+`gsutil cp gs://fg-cromwell_fresh/pheweb_import/e4792246-6efb-4b2e-a155-7f0dbbc00380/call-matrix/pheweb/pheno-list.json /mnt/nfs/pheweb/r7/pheno-list.json.orig`
+
+`python3 phenolist.py /mnt/nfs/pheweb/r7/pheno-list.json.orig /mnt/nfs/pheweb/r6/pheno-list.json TAGLIST_DF7.txt Pheweb_FINNGEN
+_ENDPOINTS_DF7_Final_2021-03-05.names_tagged_ordered.txt Endpoints_Controls_FINNGEN_ENDPOINTS_DF7_Final_2021-03-05.tsv n_eff.txt /mnt/nfs/
+pheweb/r7/generated-by-pheweb | python -m json.tool > /mnt/nfs/pheweb/r7/pheno-list.json`
+
+
 ## Copy
 
 # Deploying PheWeb in Google Cloud using Kubernetes
