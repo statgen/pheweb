@@ -2,38 +2,48 @@
 
 import argparse
 import json
+from os import sep
 import pandas as pd
 import subprocess
 import shlex
-
-REQUIRED_COLS = ['name', 'category', 'fg_phenotype', 'ukbb_link', 'fg_n_cases', 'ukbb_n_cases', 'estbb_n_cases', 'fg_n_controls', 'ukbb_n_controls', 'estbb_n_controls']
-
 
 def run():
 
     parser = argparse.ArgumentParser(description='Create the custom json required by pheweb import')
     parser.add_argument('in_mapping_file', action='store', type=str, help='A tab-delimited text file with phenotype mapping information between studies')
-    parser.add_argument('--out_json', action='store', type=str, default='pheweb_import.custom.json', help='Output json name')
+    parser.add_argument('--out_json', action='store', type=str, default='pheweb_import.custom.json', help='Output json name. Default: "pheweb_import.custom.json"')
     parser.add_argument('--bucket', action='store', type=str, help='GCS bucket path')
+    parser.add_argument('--sep', action='store', type=str, default='\t', help='in_mapping_file field separator. Default: "\\t"')
+    parser.add_argument('--study_prefixes', action='store', type=str, default='fg,ukbb,estbb', help='Study identifiers in column names as prefixes. Separate multiple identifiers by comma. Default: "fg,ukbb,estbb"')
+    parser.add_argument('--phenotype_col', action='store', type=str, default='\t', help='Phenotype column in in_mapping_file. Default: "phenotype"')
+    parser.add_argument('--link_col', action='store', type=str, default='\t', help='Sumstat link column in in_mapping_file. Default: "link"')
 
     args = parser.parse_args()
 
+    # Generate lists of required columns from input arguments
+    REQUIRED_COLS = ['name', 'category', args.phenotype_col, args.link_col]
+    studies = args.study_prefixes.strip().split(',')
+    n_cases_cols = [s + '_n_cases' for s in studies]
+    n_controls_cols = [s + '_n_controls' for s in studies]
+    REQUIRED_COLS.extend(n_cases_cols)
+    REQUIRED_COLS.extend(n_controls_cols)
+
     # Check mapping is ok and filter
     print('Checking mapping...')
-    mapping = pd.read_csv(args.in_mapping_file, sep='\t')
+    mapping = pd.read_csv(args.in_mapping_file, sep=args.sep)
     missing_cols = [col for col in REQUIRED_COLS if col not in mapping.columns]
     if len(missing_cols) > 0:
         raise Exception('Missing required columns: ' + ', '.join(missing_cols))
     mapping.dropna(axis=0, how='any', inplace=True)
-    mapping['n_cases'] = mapping['fg_n_cases'] + mapping['ukbb_n_cases'] + mapping['estbb_n_cases']
-    mapping['n_controls'] = mapping['fg_n_controls'] + mapping['ukbb_n_controls'] + mapping['estbb_n_controls']
+    mapping['n_cases'] = mapping[n_cases_cols].sum(axis=1)
+    mapping['n_controls'] = mapping[n_controls_cols].sum(axis=1)
 
     # Replace gs prefix with cromwell_root for cromwell run
-    mapping['ukbb_link'] = mapping['ukbb_link'].replace('^gs:/', '/cromwell_root', regex=True)
+    mapping[args.link_col] = mapping[args.link_col].replace('^gs:/', '/cromwell_root', regex=True)
 
     # Generate json configs for meta-analysis
     print('Generating custom json...')
-    custom_json_list = [{'phenostring':name,'num_cases':cases,'num_controls':controls,'uk_file':link,'name':pheno,'description':name,'category':category} for (name,category,pheno,cases,controls,link) in zip(mapping['name'],mapping['category'],mapping['fg_phenotype'],mapping['n_cases'],mapping['n_controls'],mapping['ukbb_link'])]
+    custom_json_list = [{'phenostring':name,'num_cases':cases,'num_controls':controls,'uk_file':link,'name':pheno,'description':name,'category':category} for (name,category,pheno,cases,controls,link) in zip(mapping['name'],mapping['category'],mapping[args.phenotype_col],mapping['n_cases'],mapping['n_controls'],mapping[args.link_col])]
     with open(args.out_json, 'w') as out_file:
         json.dump(custom_json_list, out_file, indent=4)
 
