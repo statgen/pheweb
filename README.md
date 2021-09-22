@@ -4,13 +4,26 @@
 
 Import summary stats using [import.wdl](wdl/import.gwas_pipeline.wdl). Prepare a list of summary stats like in reference configuration file (one summary stat bucket path per line) [import.json](wdl/import.gwas_pipeline.json).
 
-After successful import run, copy generated file to a single bucket using proper file structure using [copy_cromwell_import_to_bucket_puddle.py ](scripts/copy_cromwell_import_to_bucket_puddle.py).
+Also, you need to generate a custom json (`pheweb_import.fix_json.custom_json`) with additional information per sumstat (n_cases/n_controls, phenotype name, description). Example how to generate that json from R7 with the help of [create_custom_json.py](scripts/create_custom_json.py):
 
-Parameters needed are cromwell hash and path to destination bucket: `copy_cromwell_import_to_bucket_puddle.py cromwell_hash gs://bucket_for_deployment_pickerupper/v8/`
+```sh
+gsutil cp gs://finngen-production-library-green/finngen_R7/finngen_R7_analysis_data/finngen_R7_pheno_n.tsv .
+python3 create_custom_json.py --phenotype_col phenocode --n_cases_col num_cases --n_controls_col num_controls --out_json R7_custom.json finngen_R7_pheno_n.tsv
+```
+
+After successful import run, copy generated file to a single bucket using proper file structure using [copy_cromwell_import_to_bucket_puddle.py](scripts/copy_cromwell_import_to_bucket_puddle.py). Parameters needed are cromwell hash and path to destination bucket:
+
+```sh
+copy_cromwell_import_to_bucket_puddle.py cromwell_hash gs://bucket_for_deployment_pickerupper/v8/
+```
 
 ***You need to have a socks5 proxy open in localhost:5000 to cromwell machine to get the metadata.***
 
-Example proxy creation if cromwell runs in google VM: `gcloud compute ssh cromwell-machine-name -- -D localhost:5000 -N`.
+Example proxy creation if cromwell runs in google VM:
+
+```sh
+gcloud compute ssh cromwell-machine-name -- -D localhost:5000 -N
+```
 
 Alternatively if direct access available change url with `--cromwell_url yourURL` and remove proxy (--socks_proxy "")
 
@@ -25,7 +38,34 @@ Use [import.ukbb.json](wdl/import.ukbb.json) as a config template. Most of the v
 
 You can use scripts [ukbb_json.py](scripts/ukbb_json.py) and [merge_jsons.py](scripts/merge_jsons.py), or [create_custom_json.py](scripts/create_custom_json.py) to generate the custom json.
 
-Also check that the variable `pheweb_import.pre_annot_sumfile` points to as broad as possible variant list (preferrably generated from the most recent Finngen variant annotation file). The file needs to have columns `chrom`, `pos`, `ref` and `alt`.
+[create_custom_json.py](scripts/create_custom_json.py) requires a "mapping" file as input with columns describing phenotype name, description, category, and number of cases/controls per study.
+
+Example of such mapping file:
+
+```sh
+(base) jmehton@lm0-945-22724 r7 % head FinnGen_pan-UKBB_EstBB_mapping.tsv | column -t -s $'\t'
+name                                                  category                                                fg_phenotype                       ukbb_phenotype  estbb_phenotype  fg_n_cases  ukbb_n_cases  estbb_n_cases  fg_n_controls  ukbb_n_controls  estbb_n_controls
+Malignant neoplasm of breast                          II Neoplasms, from cancer register (ICD-O-3)            C3_BREAST                          174.11          c03              13178       11807         1686           160568         205913           127984
+Malignant neoplasm of prostate                        II Neoplasms, from cancer register (ICD-O-3)            C3_PROSTATE                        185             c04              10414       7691          1470           124994         169762           66507
+Malignant neoplasm                                    II Neoplasms, from cancer register (ICD-O-3)            C3_CANCER                          204             c37              60459       65783         11047          248695         414840           180604
+Leiomyoma of uterus (controls excluding all cancers)  II Neoplasms from hospital discharges (CD2_)            CD2_BENIGN_LEIOMYOMA_UTERI_EXALLC  218.1           c42              25716       11274         25244          122697         209602           94880
+Hypothyroidism, strict autoimmune                     IV Endocrine, nutritional and metabolic diseases (E4_)  E4_HYTHY_AI_STRICT                 244             c05              33422       26966         11209          227415         370312           179726
+Type1 diabetes, definitions combined                  Diabetes endpoints                                      T1D                                250.1           c06              3711        3250          293            255449         396181           173673
+Proliferative diabetic retinopathy                    VII Diseases of the eye and adnexa (H7_)                H7_RETINOPATHYDIAB_PROLIF          250.7           c08              2025        1709          1961           284826         404535           197039
+Polycystic ovarian syndrome                           IV Endocrine, nutritional and metabolic diseases (E4_)  E4_PCOS                            256.4           c09              994         245           4125           165817         224884           113030
+Gout, strict definition                               Rheuma endpoints                                        GOUT_STRICT                        274.1           c32              3290        4509          2578           304399         415559           192600
+```
+
+To create the custom json from a mapping file with these columns and studies (fg, ukbb, est):
+
+```sh
+python3 create_custom_json.py --study_prefixes fg,ukbb,estbb --phenotype_col fg_phenotype FinnGen_pan-UKBB_EstBB_mapping.tsv
+```
+
+Also make sure the following are correct in the config (most likely you should not need to change these):
+
+* `pheweb_import.pre_annot_sumfile` points to as broad as possible variant list (preferrably generated from the most recent FinnGen variant annotation file). The file needs to have columns `chrom`, `pos`, `ref` and `alt`.
+* The key values in the dict defined in `pheweb_import.header_dict` are valid column names found from the sumstat files to be imported.
 
 # Deploying PheWeb in Google Cloud using Kubernetes
 
