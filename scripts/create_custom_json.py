@@ -14,17 +14,23 @@ def run():
     parser.add_argument('--out_json', action='store', type=str, default='pheweb_import.custom.json', help='Output json name. Default: "pheweb_import.custom.json"')
     parser.add_argument('--bucket', action='store', type=str, help='GCS bucket path')
     parser.add_argument('--sep', action='store', type=str, default='\t', help='in_mapping_file field separator. Default: "\\t"')
-    parser.add_argument('--study_prefixes', action='store', type=str, default='fg,ukbb,estbb', help='Study identifiers in column names as prefixes. Separate multiple identifiers by comma. Default: "fg,ukbb,estbb"')
+    parser.add_argument('--study_prefixes', action='store', type=str, help='Study identifiers in column names as prefixes. Separate multiple identifiers by comma.')
     parser.add_argument('--phenotype_col', action='store', type=str, default='\t', help='Phenotype column in in_mapping_file. Default: "phenotype"')
     parser.add_argument('--link_col', action='store', type=str, default='\t', help='Sumstat link column in in_mapping_file. Default: "link"')
+    parser.add_argument('--n_cases_col', action='store', type=str, default='n_cases', help='n_cases column in in_mapping_file. Default: "n_cases"')
+    parser.add_argument('--n_controls_col', action='store', type=str, default='n_controls', help='n_controls column in in_mapping_file. Default: "n_controls"')
 
     args = parser.parse_args()
 
     # Generate lists of required columns from input arguments
     REQUIRED_COLS = ['name', 'category', args.phenotype_col, args.link_col]
-    studies = args.study_prefixes.strip().split(',')
-    n_cases_cols = [s + '_n_cases' for s in studies]
-    n_controls_cols = [s + '_n_controls' for s in studies]
+    if args.study_prefixes is None:
+        n_cases_cols = [args.n_cases_col]
+        n_controls_cols = [args.n_controls_col]
+    else:
+        studies = args.study_prefixes.strip().split(',')
+        n_cases_cols = [s + '_' + args.n_cases_col for s in studies]
+        n_controls_cols = [s + '_' + args.n_controls_col for s in studies]
     REQUIRED_COLS.extend(n_cases_cols)
     REQUIRED_COLS.extend(n_controls_cols)
 
