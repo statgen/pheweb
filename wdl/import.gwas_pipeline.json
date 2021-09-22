@@ -32,5 +32,5 @@
 
 # PHENOJSON
 "pheweb_import.fix_json.custom_json": "gs://r6_data/pheweb/custom/meta_json.txt",
-"pheweb_import.fix_json.fields" : []
+"pheweb_import.fix_json.fields" : ["phenostring","num_cases","num_controls","name","uk_file","description","category"]
 }
