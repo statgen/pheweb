@@ -25,7 +25,7 @@
     "dts-gen": "^0.6.0",
     "locuszoom": "^0.11.0",
     "match-sorter": "^1.8.1",
-    "npm-install-all": "^1.1.21",
+    "npm-install-all": "^1.1.6",
     "q": "^1.5.1",
     "react": "^16.8.3",
     "react-csv": "^1.1.1",
@@ -56,9 +56,9 @@
     "standardx": "^5.0.0",
     "style-loader": "^1.2.1",
     "ts-jest": "^26.4.0",
-    "uglifyjs-webpack-plugin": "^2.2.0",
+    "uglifyjs-webpack-plugin": "^1.1.2",
     "unminified-webpack-plugin": "^2.0.0",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-dev-server": "^4.0.0"
   },
   "scripts": {
     "test": "jest"

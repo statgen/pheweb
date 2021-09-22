@@ -1,0 +1,16 @@
+**/.git
+**/node_modules
+**/.envrc
+.direnv
+.git
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+.\#*
+.dir-locals.el
+
+# excluded pheweb directories
+pheweb/deploy

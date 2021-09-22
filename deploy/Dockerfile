@@ -1,7 +1,7 @@
 FROM debian:10
 
 # can change this in k8s deployment yaml to serve from another directory
-ENV PHEWEB_DIR /mnt/nfs/pheweb/r6
+ENV PHEWEB_DIR /mnt/nfs/pheweb/r7
 ENV CLOUD_SQL_PROXY_CREDENTIAL_FILE /mnt/nfs/pheweb/phewas.sql.credentials.json
 ENV CLOUD_SQL_PROXY_INSTANCES phewas-development:europe-west1:pheweb=tcp:3306
 
@@ -15,17 +15,19 @@ ENV LC_CTYPE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
-RUN apt-get update &&  apt-get install make gcc libz-dev libbz2-dev liblzma-dev zlib1g-dev --yes
-RUN apt-get update &&  apt-get install cmake libcurl4-openssl-dev  --yes
+RUN apt-get update
+RUN apt-get install make gcc libz-dev libbz2-dev liblzma-dev zlib1g-dev --yes
+RUN apt-get install cmake libcurl4-openssl-dev  --yes
 
 # install nodejs
-RUN apt-get update && apt-get install curl software-properties-common --yes && \
-    curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
-    apt-get install nodejs --yes
+RUN apt-get install curl software-properties-common gnupg --yes
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -x -
+RUN apt-get install nodejs --yes
 
+
+RUN apt-get update && apt-get install --no-install-recommends texlive wget --yes
 # install cloudsql
-RUN apt-get update && apt-get install --no-install-recommends texlive wget --yes && \
-    wget --no-check-certificate https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/local/bin/cloud_sql_proxy && \
+RUN wget --no-check-certificate https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/local/bin/cloud_sql_proxy && \
     chmod +x /usr/local/bin/cloud_sql_proxy
 
 RUN curl -LO https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 && \
@@ -36,12 +38,11 @@ RUN curl -LO https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9
 ADD . /pheweb
 
 # install python packages and perquisites
-RUN apt-get update && apt-get install default-libmysqlclient-dev git python3-pip libffi-dev libz-dev  libbz2-dev liblzma-dev libssl-dev --yes --fix-missing && \
-     python3 -m pip install cython && \
-     python3 -m pip install pip==20.1.1 --upgrade && \
-     python3 -m pip install /pheweb && \
-     python3 -m pip freeze && \
-     apt-get purge git --yes
+RUN apt-get update && apt-get install default-libmysqlclient-dev git python3-pip libffi-dev libz-dev  libbz2-dev liblzma-dev libssl-dev --yes --fix-missing
+RUN python3 -m pip install cython
+RUN python3 -m pip install pip==20.1.1 --upgrade
+RUN python3 -m pip install /pheweb
+RUN python3 -m pip freeze
 
 # create react js bundle
 RUN cd /pheweb/pheweb/serve/react && \
@@ -49,9 +50,11 @@ RUN cd /pheweb/pheweb/serve/react && \
     mv /pheweb/pheweb/serve/static/bundle.js /usr/local/lib/python3.7/dist-packages/pheweb/serve/static/ && \
     rm -r /pheweb
 
-
 ADD . /pheweb
 ADD pheweb/load/external_matrix.py /usr/local/bin/
+
+# remove build tools
+RUN apt-get purge git gcc cmake --yes
 
 EXPOSE 8080
 CMD cloud_sql_proxy -instances=$CLOUD_SQL_PROXY_INSTANCES -credential_file=$CLOUD_SQL_PROXY_CREDENTIAL_FILE & cd $PHEWEB_DIR && pheweb serve --port 8080 --num-workers 4
