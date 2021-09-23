@@ -1,6 +1,6 @@
 {
     #### UKBB #####
-    "pheweb_import.summaryfiles": "gs://phewas-development/pheweb/import/test_ukbb_phenos.txt",
+    "pheweb_import.summaryfiles": "gs://phewas-development/pheweb/import/custom/r7_ukbb_estb_meta/r7_ukb_est_metas",
     "pheweb_import.docker": "eu.gcr.io/phewas-development/pheweb_annotation:ukbb.test.4",
     "pheweb_import.genes_bed": "gs://phewas-development/pheweb/import/full/genes-b38-v25.bed",
     "pheweb_import.header_dict": {"#CHR":"chrom", "POS":"pos", "REF":"ref", "ALT":"alt", "all_inv_var_meta_sebeta":"sebeta", "all_inv_var_meta_beta":"beta", "all_inv_var_meta_p":"pval", "FINNGEN_af_alt":"af_alt", "FINNGEN_af_alt_cases":"af_alt_cases", "FINNGEN_af_alt_controls":"af_alt_controls"},
@@ -31,7 +31,7 @@
     "pheweb_import.matrix.disk": 8000,
 
     #PHENOJSON
-    "pheweb_import.fix_json.custom_json": "gs://phewas-development/pheweb/import/custom/ukbb.json",
-    "pheweb_import.fix_json.fields": ["phenostring","num_cases","num_controls","name","uk_file","description","category"]
+    "pheweb_import.fix_json.custom_json": "gs://phewas-development/pheweb/import/custom/r7_ukbb_estb_meta/pheweb_import.custom.json",
+    "pheweb_import.fix_json.fields" : ["phenostring","num_cases","num_controls","name","uk_file","description","category"]
 
 }
