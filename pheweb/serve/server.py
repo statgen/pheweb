@@ -8,7 +8,7 @@ from ..version import version as pheweb_version
 
 from flask import Blueprint
 
-from .data_access.db import Variant 
+from .data_access.db import Variant
 
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
 from flask_compress import Compress
@@ -60,6 +60,8 @@ app.config['PREFERRED_URL_SCHEME'] = 'https'
 
 if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
     app.config['GOOGLE_ANALYTICS_TRACKING_ID'] = conf['GOOGLE_ANALYTICS_TRACKING_ID']
+if 'GLOBAL_SITE_TAG_ID' in conf:
+    app.config['GLOBAL_SITE_TAG_ID'] = conf['GLOBAL_SITE_TAG_ID']
 if 'SENTRY_DSN' in conf:
     app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
 app.config['PHEWEB_VERSION'] = pheweb_version
@@ -80,7 +82,7 @@ if 'genome_build' in conf:
     app.config['genome_build'] = conf['genome_build']
 else:
     app.config['genome_build'] = 38
-    
+
 app.config['release_prev'] = conf['release_prev']
 app.config['title'] = conf['title']
 app.config['page_title'] = conf['page_title']
