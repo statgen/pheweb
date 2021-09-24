@@ -45,6 +45,18 @@
     ga('send', 'pageview');
   </script>
 {% endif %}
+
+{% if config['GLOBAL_SITE_TAG_ID'] %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ config['GLOBAL_SITE_TAG_ID'] }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', '{{ config['GLOBAL_SITE_TAG_ID'] }}');
+  </script>
+{% endif %}
+
 {% block in_head %}{% endblock %}
 </head>
 
