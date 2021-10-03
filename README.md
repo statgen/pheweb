@@ -63,7 +63,7 @@ You may also have columns for:
 | allele count                           | `ac`           |                            | integer |
 | effect size (of alternate allele)      | `beta`         |                            | number |
 | standard error of effect size          | `sebeta`       | `se`                       | number |
-| odds ratio                             | `or`           |                            | number |
+| odds ratio (of alternate allele)       | `or`           |                            | number |
 | R2                                     | `r2`           |                            | number |
 | number of samples                      | `num_samples`  | `ns`, `n`                  | integer, must be the same for every variant in its phenotype |
 | number of controls                     | `num_controls` | `ns.ctrl`, `n_controls`    | integer, must be the same for every variant in its phenotype |
