@@ -54,20 +54,20 @@ The file must have columns for:
 
 You may also have columns for:
 
-| column description            | name           | other allowed column names | allowed values |
-| ---                           | ---            | ---                        | --- |
-| minor allele frequency        | `maf`          |                            | number in (0,0.5] |
-| allele frequency              | `af`           | `a1freq`, `frq`            | number in (0,1) |
-| AF among cases                | `case_af`      | `af.cases`                 | number in (0,1) |
-| AF among controls             | `control_af`   | `af.controls`              | number in (0,1) |
-| allele count                  | `ac`           |                            | integer |
-| effect size                   | `beta`         |                            | number |
-| standard error of effect size | `sebeta`       | `se`                       | number |
-| odds ratio                    | `or`           |                            | number |
-| R2                            | `r2`           |                            | number |
-| number of samples             | `num_samples`  | `ns`, `n`                  | integer, must be the same for every variant in its phenotype |
-| number of controls            | `num_controls` | `ns.ctrl`, `n_controls`    | integer, must be the same for every variant in its phenotype |
-| number of cases               | `num_cases`    | `ns.case`, `n_cases`       | integer, must be the same for every variant in its phenotype |
+| column description                     | name           | other allowed column names | allowed values |
+| ---                                    | ---            | ---                        | --- |
+| minor allele frequency                 | `maf`          |                            | number in (0,0.5] |
+| allele frequency (of alternate allele) | `af`           | `a1freq`, `frq`            | number in (0,1) |
+| AF among cases                         | `case_af`      | `af.cases`                 | number in (0,1) |
+| AF among controls                      | `control_af`   | `af.controls`              | number in (0,1) |
+| allele count                           | `ac`           |                            | integer |
+| effect size (of alternate allele)      | `beta`         |                            | number |
+| standard error of effect size          | `sebeta`       | `se`                       | number |
+| odds ratio                             | `or`           |                            | number |
+| R2                                     | `r2`           |                            | number |
+| number of samples                      | `num_samples`  | `ns`, `n`                  | integer, must be the same for every variant in its phenotype |
+| number of controls                     | `num_controls` | `ns.ctrl`, `n_controls`    | integer, must be the same for every variant in its phenotype |
+| number of cases                        | `num_cases`    | `ns.case`, `n_cases`       | integer, must be the same for every variant in its phenotype |
 
 
 Column names are case-insensitive.  If your file has a different column name, set `field_aliases = {"column_name": "field_name"}` in `config.py`.  For example, `field_aliases = {'P_BOLT_LMM_INF': 'pval', 'NSAMPLES': 'num_samples'}`.
