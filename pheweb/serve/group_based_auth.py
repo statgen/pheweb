@@ -43,7 +43,7 @@ def get_all_members(group_names):
     members = []
     for name in group_names:
         all = services[threading.get_ident()].members().list(groupKey=name).execute()
-        memebers.extend(all["members"])
+        members.extend(all["members"])
     return members
 
 
