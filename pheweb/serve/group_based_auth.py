@@ -7,16 +7,7 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
 if conf["authentication"]:
-    group_names = []
-    # get group names from either the "GROUP"
-    # attribute containing a single group name
-    # (to support legacy configurations) or get
-    # a list from "GROUPS"
-    if "GROUP" in conf.group_auth:
-        group_names.append(conf.group_auth["GROUP"])
-    elif "GROUPS":
-        group_names.extend(conf.group_auth["GROUPS"])
-
+    group_names = conf.group_auth["GROUPS"]
     service_account_file = conf.group_auth["SERVICE_ACCOUNT_FILE"]
     delegated_account = conf.group_auth["DELEGATED_ACCOUNT"]
 
