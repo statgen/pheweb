@@ -1,24 +1,20 @@
-import React, { createContext,  useState , useEffect } from 'react';
+import React, { createContext,  useState , useEffect } from "react";
+import {ConfigurationMetaData, ConfigurationState, ConfigurationUserInterface} from "./ConfigurationModel";
+import {getConfigurationMetaData, getConfigurationUserInterface} from "./ConfigurationAPI";
 
 interface Props { children: React.ReactNode }
 
-export interface ConfigurationUI {}
-export interface ConfigurationMetaData {}
+export const ConfigurationContext = createContext<Partial<ConfigurationState>>({});
 
-export interface ConfigurationState {
-       userInterface : ConfigurationUserInterface ;
-       metaData : ConfigurationMetaData ;
-}
-
-export const ConfigurationContext = createContext<Partial<ColocalizationState>>({});
 
 const ConfigurationContextProvider = (props : Props) => {
-      const [ userInterface , setUserInterface ] = useState<ConfigurationUI|undefined>(undefined);
-      const [ metadata , setMetadata ] = useState<ConfigurationMetaData|undefined>(undefined);
+      const [ userInterface , setUserInterface ] = useState<ConfigurationUserInterface|undefined>(undefined);
+      const [ metaData , setMetadata ] = useState<ConfigurationMetaData|undefined>(undefined);
 
-      useEffect(() => { getRegion(parameter,setRegion); },[]);
+      useEffect(() => { getConfigurationUserInterface(setUserInterface); },[]);
+      useEffect(() => { getConfigurationMetaData(setMetadata); },[]);
 
-      return (<ConfigurationContext.Provider value={{ ui , metadata }}>
+      return (<ConfigurationContext.Provider value={{ userInterface , metaData }}>
               {props.children}
 	      </ConfigurationContext.Provider>);
 }
