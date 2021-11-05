@@ -8,10 +8,12 @@ import Coding from './components/Coding'
 import Variant from './components/Variant'
 import Pheno from './components/Pheno'
 import Region from './components/Region/RegionIndex'
+import ConfigurationContextProvider from "./components/Region/RegionContext";
 
 var element = document.getElementById('reactEntry')
 if (typeof (element) !== 'undefined' && element != null) {
-  ReactDOM.render(
+    ReactDOM.render(
+	<ConfigurationContextProvider>
     <BrowserRouter>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <div style={{ flex: 1, height: '100%', padding: '10px', display: 'flex', flexFlow: 'row nowrap', justifyContent: 'flex-start' }}>
@@ -24,6 +26,7 @@ if (typeof (element) !== 'undefined' && element != null) {
           <Route path='/region/:region' component={Region} />
         </div>
       </div>
-    </BrowserRouter>
+	    </BrowserRouter>
+	</ConfigurationContextProvider>	    
     , document.getElementById('reactEntry'))
 }
