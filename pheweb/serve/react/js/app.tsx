@@ -10,7 +10,7 @@ import Pheno from './components/Pheno'
 import Region from './components/Region/RegionIndex'
 import ConfigurationContextProvider from "./components/Region/RegionContext";
 
-var element = document.getElementById('reactEntry')
+const element = document.getElementById('reactEntry')
 if (typeof (element) !== 'undefined' && element != null) {
     ReactDOM.render(
 	<ConfigurationContextProvider>
