@@ -2,6 +2,23 @@
 
 window.debug = window.debug || {};
 
+const match_url = (m) => {
+    const { variant , pheno , gene , error } = m;
+    var url = `/error/${m}`;
+    if(variant != null){
+	url = `/variant/${variant}`;
+    } else if (pheno != null){
+	url = `/pheno/${pheno}`;
+    } else if (gene != null){
+	url = `/gene/${gene}`;
+    } else if (error != null){
+	throw Error(`failure to parse : '${m}'`);
+	url = `/error/${error}`;
+    }
+    return url;
+
+}
+
 (function() {
     // It's unfortunate that these are hard-coded, but it works pretty great, so I won't change it now.
     var autocomplete_bloodhound = new Bloodhound({
@@ -20,6 +37,9 @@ window.debug = window.debug || {};
                 // This especially happens while I'm typing a chrom-pos-ref-alt.  If what I'm typing agrees with something being suggested, it shouldn't disappear!
                 // So, I'm just adding everything to the local index. (Note: NOT localstorage.)
                 // Bloodhound appears to perform deduping.
+		data = data.map((d) => {
+		    const url = match_url(d);
+		    return {...d, url }; } );
                 autocomplete_bloodhound.add(data);
                 return data;
             },
@@ -188,3 +208,34 @@ function CreateReqPromise(method, url, body, headers, timeout) {
     }
     return response.promise;
 };
+
+/* Search box 
+ * when the user hit enter send a request
+ * to /api/go=${query}
+ * if null is returned send them to to not
+ * found other wise navigate to the match
+ * returned.
+ */
+const handler = (element) => {
+    const submitSearch = (event) => {
+	event.preventDefault();
+	const query = event.target.query.value;
+	const handler = (queryResult) => {
+	    const url
+	    if (queryResult == null){
+		url = `/notfound?query=${escape(query)}`
+	    } else {
+		url = match_url(queryResult);
+	    }
+	    window.location.href = url;
+	};
+	fetch(`/api/go`, { query })
+	    .then(response => response.json())
+	    .then(match_url)
+	    .then(handler);
+	return false;
+    };
+    element.addEventListener('submit',submitSearch);
+};
+
+$( document ).ready(function() { Array.from(document.getElementsByClassName("searchbox-form")).forEach(handler); });

@@ -2,7 +2,6 @@ from ..utils import get_phenolist, get_use_phenos, get_gene_tuples, pad_gene
 from ..conf_utils import conf
 from ..file_utils import common_filepaths
 from .server_utils import get_variant, get_random_page, get_pheno_region
-from .autocomplete import Autocompleter
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
 
@@ -37,6 +36,8 @@ from .group_based_auth  import verify_membership
 from .server_auth import before_request
 
 from pheweb_colocalization.view import colocalization
+from .components.config_ui.service import config_ui
+from .components.autocomplete.service import autocomplete
 
 app = Flask(__name__)
 
@@ -107,6 +108,7 @@ if os.path.isdir(conf.custom_templates):
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 use_phenos = {phenocode: phenos[phenocode] for phenocode in get_use_phenos()}
+app.use_phenos = use_phenos
 
 threadpool = ThreadPoolExecutor(max_workers=4)
 
@@ -114,6 +116,9 @@ jeeves = ServerJeeves( conf )
 
 app.jeeves = jeeves
 app.register_blueprint(colocalization)
+app.register_blueprint(config_ui)
+app.register_blueprint(autocomplete)
+
 
 if "data_dir" in conf:
     path=conf['data_dir'] + "resources"
@@ -156,6 +161,8 @@ def homepage(path):
                            tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
                            vis_conf=conf.vis_conf)
 
+
+
 @app.route('/api/autoreport/<phenocode>')
 def autoreport(phenocode):
     return jsonify(jeeves.get_autoreport(phenocode))
@@ -183,25 +190,7 @@ def pheno(phenocode):
 def phenolist():
     return jsonify([pheno for pheno in get_phenolist() if pheno['phenocode'] in use_phenos])
 
-autocompleter = Autocompleter(use_phenos)
-@app.route('/api/autocomplete')
-def autocomplete():
-    query = request.args.get('query', '')
-    suggestions = autocompleter.autocomplete(query)
-    if suggestions:
-        return jsonify(sorted(suggestions, key=lambda sugg: sugg['display']))
-    return jsonify([])
-
-@app.route('/go')
-def go():
-    query = request.args.get('query', None)
-    if query is None:
-        die("How did you manage to get a null query?")
-    best_suggestion = autocompleter.get_best_completion(query)
-    if best_suggestion:
-        return redirect(best_suggestion['url'])
-    die("Couldn't find page for {!r}".format(query))
-
+    
 @app.route('/api/variant/<query>')
 def api_variant(query):
     variant = get_variant(query)

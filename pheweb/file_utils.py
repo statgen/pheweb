@@ -62,6 +62,20 @@ common_filepaths = {
 def make_basedir(path):
     mkdir_p(os.path.dirname(path))
 
+def get_filepath(kind: str, *, must_exist: bool = True) -> str:
+    if kind not in common_filepaths:
+        raise Exception("Unknown kind of filepath: {}".format(repr(kind)))
+    filepath: str = common_filepaths[kind]
+    print(filepath)
+    if must_exist and not os.path.exists(filepath):
+        raise PheWebError(
+            "Filepath {} of kind {} was requested but doesn't exist".format(
+                filepath, kind
+            )
+        )
+    return filepath
+
+    
 def get_tmp_path(arg):
     if arg.startswith(get_generated_path()):
         mkdir_p(get_generated_path('tmp'))

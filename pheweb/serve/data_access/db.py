@@ -27,7 +27,7 @@ import subprocess
 import sys
 import glob
 from pheweb_colocalization.model_db import ColocalizationDAO
-
+from ..components.config_ui.dao import ConfigUIDAO
 from pathlib import Path
 
 
@@ -1512,3 +1512,6 @@ class DataFactory(object):
 
     def get_colocalization_dao(self):
         return self.dao_impl["colocalization"] if "colocalization" in self.dao_impl else None
+
+    def get_config_ui_dao(self):
+        return self.dao_impl["config_ui"] if "config_ui" in self.dao_impl else None

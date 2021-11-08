@@ -2,6 +2,7 @@
 import d3Tip from "d3-tip";
 
 
+
 const create_gwas_plot = function(phenocode, variant_bins, unbinned_variants) {
 
     var get_chrom_offsets = _.memoize(function() {
