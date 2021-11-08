@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter, Route } from 'react-router-dom'
-import NotFound from './components/NotFound'
+import NotFound from './components/NotFound/NotFound'
 import Index from './components/Index'
 import LoF from './components/LoF'
 import Chip from './components/Chip'
