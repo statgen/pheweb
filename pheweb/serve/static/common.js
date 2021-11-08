@@ -2,7 +2,7 @@
 
 window.debug = window.debug || {}
 
-const match_url = (m) => {
+const matchURL = (m) => {
   const { variant, pheno, gene, error } = m
   var url = `/error/${m}`
   if (variant != null) {
@@ -12,8 +12,8 @@ const match_url = (m) => {
   } else if (gene != null) {
     url = `/gene/${gene}`
   } else if (error != null) {
-    throw Error(`failure to parse : '${m}'`)
     url = `/error/${error}`
+    throw Error(`failure to parse : '${m}'`)
   }
   return url
 
@@ -21,7 +21,7 @@ const match_url = (m) => {
 
 (function () {
   // It's unfortunate that these are hard-coded, but it works pretty great, so I won't change it now.
-  var autocomplete_bloodhound = new Bloodhound({
+  var autocompleteBloodhound = new Bloodhound({
     datumTokenizer: Bloodhound.tokenizers.obj.whitespace('display'),
     queryTokenizer: Bloodhound.tokenizers.whitespace,
     identify: function (sugg) { return sugg.display }, // maybe allows Bloodhound to `.get()`  objects
@@ -38,10 +38,10 @@ const match_url = (m) => {
         // So, I'm just adding everything to the local index. (Note: NOT localstorage.)
         // Bloodhound appears to perform deduping.
         data = data.map((d) => {
-          const url = match_url(d)
+          const url = matchURL(d)
           return { ...d, url }
         })
-        autocomplete_bloodhound.add(data)
+        autocompleteBloodhound.add(data)
         return data
       },
     },
@@ -55,7 +55,7 @@ const match_url = (m) => {
       minLength: 1,
     }, {
       name: 'autocomplete',
-      source: autocomplete_bloodhound,
+      source: autocompleteBloodhound,
       display: 'value',
       limit: 100,
       templates: {
@@ -80,7 +80,7 @@ function fmt (format) {
 
 // deal with IE11 problems
 if (!Math.log10) { Math.log10 = function (x) { return Math.log(x) / Math.LN10 } }
-if (!!window.MSInputMethodContext && !!document.documentMode) { /*ie11*/
+if (!!window.MSInputMethodContext && !!document.documentMode) { /* ie11 */
   $('<style type=text/css>.lz-locuszoom {height: 400px;}</style>').appendTo($('head'))
 }
 
@@ -105,17 +105,17 @@ function pValueToReadable (p) {
   return pReadable
 }
 
-function exportTableToCSV ($table, filename, export_cols = null, prefix_cols = null) {
+function exportTableToCSV ($table, filename, exportCols = null, prefixCols = null) {
   var sTableData = $table.data('st').getData()
   var colDelim = '\t'
   var rowDelim = '\r\n'
 
-  function get_data (row, export_cols, prefix_cols) {
+  function getData (row, exportCols, prefixCols) {
     var ret = []
-    if (prefix_cols != null) {
-      ret = Object.keys(prefix_cols).sort().map(key => prefix_cols[key])
+    if (prefixCols != null) {
+      ret = Object.keys(prefixCols).sort().map(key => prefixCols[key])
     }
-    return ret.concat(export_cols.map(col => {
+    return ret.concat(exportCols.map(col => {
       var s = col.split('.')
       var val = row
       s.forEach(s => {
@@ -125,7 +125,7 @@ function exportTableToCSV ($table, filename, export_cols = null, prefix_cols = n
     }))
   }
 
-  function get_fields (object, values = true, gather_name = []) {
+  function getFields (object, values = true, gather_name = []) {
     var result = []
     Object.keys(object).sort().forEach(function (prop) {
       var element = object[prop]
@@ -135,38 +135,38 @@ function exportTableToCSV ($table, filename, export_cols = null, prefix_cols = n
         if (values) { result.push(element) } else { result.push(prop) }
       } else {
         gather_name.push(prop)
-        result = result.concat(get_fields(element, values, gather_name))
+        result = result.concat(getFields(element, values, gather_name))
         gather_name.pop()
       }
     })
     return result
   }
 
-  var headers = export_cols
-  console.log(get_fields(sTableData[0], false))
-  if (export_cols == null) {
-    var header = get_fields(sTableData[0], false)
-    var acceptInd = export_cols != null ? export_cols.map(function (elem) { return header.indexOf(elem) }).filter(function (ind) { return ind >= 0}) : null
+  var headers = exportCols
+  console.log(getFields(sTableData[0], false))
+  if (exportCols == null) {
+    var header = getFields(sTableData[0], false)
+    var acceptInd = exportCols != null ? exportCols.map(function (elem) { return header.indexOf(elem) }).filter(function (ind) { return ind >= 0}) : null
     headers = acceptInd.map(function (elem) { return header[elem] })
   }
 
   var csv
-  if (prefix_cols != null) {
-    csv = Object.keys(prefix_cols).sort().concat(headers).join(colDelim)
+  if (prefixCols != null) {
+    csv = Object.keys(prefixCols).sort().concat(headers).join(colDelim)
   } else {
     csv = headers.join(colDelim)
   }
   csv += rowDelim
-  csv += sTableData.map(function (row) { return get_data(row, headers, prefix_cols).join(colDelim) }).join(rowDelim)
+  csv += sTableData.map(function (row) { return getData(row, headers, prefixCols).join(colDelim) }).join(rowDelim)
 
   var createObjectURL = (window.URL || window.webkitURL || {}).createObjectURL || function () {}
   var csvFile = new Blob([csv], { type: 'text/csv' })
   var csvData = createObjectURL(csvFile)
   $(this)
     .attr({
-      'download': filename ,
-      'href': csvData
-      //,'target' : '_blank' //if you want it to open in a new window
+      download: filename,
+      href: csvData
+      // ,'target' : '_blank' //if you want it to open in a new window
     })
 }
 
@@ -225,13 +225,13 @@ const handler = (element) => {
       if (queryResult == null) {
         url = `/notfound?query=${escape(query)}`
       } else {
-        url = match_url(queryResult)
+        url = matchURL(queryResult)
       }
       window.location.href = url
     }
     fetch(`/api/go`, { query })
       .then(response => response.json())
-      .then(match_url)
+      .then(matchURL)
       .then(handler)
     return false
   }
