@@ -200,7 +200,8 @@ def go():
     best_suggestion = autocompleter.get_best_completion(query)
     if best_suggestion:
         return redirect(best_suggestion['url'])
-    die("Couldn't find page for {!r}".format(query))
+    return render_template('not_found.html',query = query)
+
 
 @app.route('/api/variant/<query>')
 def api_variant(query):
