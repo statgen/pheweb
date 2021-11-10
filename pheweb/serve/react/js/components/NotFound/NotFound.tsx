@@ -1,5 +1,5 @@
 import React , { useState, useEffect , useContext } from 'react';
-import {mustache_div} from "../../common/Utilities";
+import {mustacheDiv} from "../../common/Utilities";
 import {useLocation} from "react-router-dom";
 import {RegionContext, RegionState} from "../Region/RegionContext";
 import {ConfigurationState} from "../Configuration/ConfigurationModel";
@@ -20,7 +20,7 @@ const NotFound = (props : Props) => {
       const message_template : string = userInterface?.notFound?.message || default_message_template;
       const parameters = { query };
       const loading = <div>loading ... </div>;
-      return userInterface?loading:mustache_div(message_template, parameters);
+      return userInterface?loading:mustacheDiv(message_template, parameters);
 }
 
 export default NotFound

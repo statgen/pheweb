@@ -5,6 +5,17 @@ import { CSVLink } from 'react-csv'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import { phenoTableCols, csTableCols, csInsideTableCols, pval_sentinel } from '../tables.js'
 import { create_gwas_plot, create_qq_plot } from '../pheno.js'
+import { mustacheText } from '../common/Utilities'
+
+const defaultErrorMessagesTemplate = { 400: 'The phenotype {{phenocode}} does not exist' }
+
+const formatEror = (templates, state) => {
+  if (state?.error?.status in templates) {
+    return mustacheText(templates[state?.error?.status],state)
+  } else {
+    return null
+  }
+}
 
 class Pheno extends React.Component {
 
@@ -189,8 +200,10 @@ class Pheno extends React.Component {
 
   render () {
     if (this.state.error) {
-      return <div>{this.state.error.statusText || this.state.error}</div>
-    }
+      return <div>{formatEror(defaultErrorMessagesTemplate, this.state)
+                   || this.state.error.statusText
+                   || this.state.error}</div>
+    } 
 
     if (!this.state.pheno) {
       return <div>loading</div>
