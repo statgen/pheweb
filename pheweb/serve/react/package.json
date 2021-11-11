@@ -34,6 +34,7 @@
     "react-csv": "^1.1.1",
     "react-dom": "^16.14.0",
     "react-router-dom": "^4.3.1",
+    "react-scripts": "^3.3.0",
     "react-table": "^6.8.6",
     "react-tabs": "^2.2.2",
     "ts-loader": "^8.0.11",
