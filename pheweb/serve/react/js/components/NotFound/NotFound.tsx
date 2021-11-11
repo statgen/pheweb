@@ -5,18 +5,19 @@ import {RegionContext, RegionState} from "../Region/RegionContext";
 import {ConfigurationUserInterface , ConfigurationWindow} from "../Configuration/ConfigurationModel";
 
 
-interface Props {};
+interface Props { location : { search : string } };
 interface QueryResult {};
 
 declare let window : ConfigurationWindow;
 
 const NotFound = (props : Props) => {
       const { config } = window;
-      const search = useLocation().search;
-      const query = new URLSearchParams(search).get('query');
+      const query = new URLSearchParams(props.location.search).get('query');
       const default_message_template : string = `
-      {{#query}}Could not found page for '${query}'{{/query}} 
-      {{^query}}An empty query '${query}' was supplied; therefore, a page could not be found.{{/query}}
+      <p>
+      {{#query}}Could not find page for <i>'{{query}}'</i>{{/query}} 
+      {{^query}}An empty query <i>'${query}'</i> was supplied;<br> therefore, a page could not be found.{{/query}}
+      </p>
       `
       const message_template : string = config?.userInterface?.notFound?.message_template || default_message_template;
       const parameters = { query };
