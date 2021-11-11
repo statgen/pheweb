@@ -232,7 +232,6 @@ const handler = (element) => {
     }
     fetch(`/api/go?${args}`)
       .then(response => response.json())
-      .then(matchURL)
       .then(handler)
     return false
   }

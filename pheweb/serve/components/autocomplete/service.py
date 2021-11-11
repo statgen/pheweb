@@ -30,7 +30,7 @@ def get_autocomplete():
         return jsonify(sorted(suggestions, key=lambda sugg: sugg['display']))
     return jsonify([])
 
-@autocomplete.route('/api/go/<query>', methods=["GET"])
+@autocomplete.route('/api/go', methods=["GET"])
 def api_go():
     query = request.args.get('query', '')
     best_suggestion = create_autocompleter().get_best_completion(query)
