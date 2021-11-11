@@ -53,6 +53,13 @@ common_filepaths = {
     'pheno_gz':  (lambda phenocode: get_generated_path('pheno_gz', '{}.gz'.format(phenocode))),
     'manhattan': (lambda phenocode: get_generated_path('manhattan', '{}.json'.format(phenocode) if phenocode else '')),
     'qq':        (lambda phenocode: get_generated_path('qq', '{}.json'.format(phenocode) if phenocode else '')),
+    'cpras-rsids-sqlite3': get_generated_path("sites/cpras-rsids.sqlite3"),
+    'gene-aliases-sqlite3': (
+        lambda: get_generated_path(
+            f'resources/gene_aliases-v{genes_version}.sqlite3'.format(genes_version)
+        )
+    ),
+    
 }
 
 # TODO: make a standard function for getting file names that checks that they exist.

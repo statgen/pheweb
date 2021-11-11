@@ -214,5 +214,9 @@ def create_autocompleter(phenos):
         autocompleter.autocomplete("2a593769-f25f-4658-a21d-aa372d52a6ae")
         return autocompleter
     except Exception as e:
+        print("attempted creating tries autocomplete and failed ...")
+        import sys
+        import traceback
+        print(traceback.format_exc(), file=sys.stderr)
         return None
 
