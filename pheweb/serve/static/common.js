@@ -220,16 +220,17 @@ const handler = (element) => {
   const submitSearch = (event) => {
     event.preventDefault()
     const query = event.target.query.value
+    const args = new URLSearchParams({ query }).toString()
     const handler = (queryResult) => {
       let url
       if (queryResult == null) {
-        url = `/notfound?query=${escape(query)}`
+        url = `/notfound?${args}`
       } else {
         url = matchURL(queryResult)
       }
       window.location.href = url
     }
-    fetch(`/api/go`, { query })
+    fetch(`/api/go?${args}`)
       .then(response => response.json())
       .then(matchURL)
       .then(handler)

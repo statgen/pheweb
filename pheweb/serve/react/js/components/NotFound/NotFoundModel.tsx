@@ -1,2 +1,2 @@
 
-export interface NotFoundConfiguration { message? : string };
+export interface NotFoundConfiguration { message_template? : string };

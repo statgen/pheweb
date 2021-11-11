@@ -5,8 +5,7 @@ export interface ConfigurationUserInterface {
 }
 export interface ConfigurationMetaData {}
 
-export interface ConfigurationState {
-    userInterface : ConfigurationUserInterface ;
-    metaData : ConfigurationMetaData ;
+export interface ConfigurationWindow extends  Window {
+    config? : { userInterface? : ConfigurationUserInterface ;
+                metaData? : ConfigurationMetaData ; }
 }
-
