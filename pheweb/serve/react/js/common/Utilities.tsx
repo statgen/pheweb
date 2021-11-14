@@ -1,3 +1,6 @@
+import React from "react";
+import * as Handlebars from 'handlebars';
+
 /**
  * Compose fuction
  *
@@ -28,4 +31,12 @@ export const get : <X>(url: string,
                            .then(sink)
                            .catch(console.error)
 
+export const mustacheDiv : <X>(template : string, content : X) => JSX.Element = (template , content) =>
+    <div dangerouslySetInnerHTML={{ __html: Handlebars.compile(template)(content) }}></div>
 
+
+export const mustacheSpan : <X>(template : string, content : X) => JSX.Element = (template , content) =>
+    <span dangerouslySetInnerHTML={{ __html: Handlebars.compile(template)(content) }}></span>
+
+export const mustacheText : <X>(template : string, content : X) => string = (template , content) =>
+    Handlebars.compile(template)(content)

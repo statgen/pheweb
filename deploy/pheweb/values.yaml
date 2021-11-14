@@ -4,7 +4,7 @@ pheweb:
   deployment: production
   
 image: # pheweb image
-  repository: gcr.io/phewas-development/pheweb
+  repository: eu.gcr.io/phewas-development/pheweb
   pullPolicy: IfNotPresent
   tag: ci-f4c761bcc7b94e2023933ca6bb4b923c34c74e5d
 
