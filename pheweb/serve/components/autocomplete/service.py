@@ -9,9 +9,9 @@ def createAutocompleter(phenos):
     """
     result = None
     if result is None:
-        result = tries_dao_create_autocompleter(phenos)
-    if result is None:
         result = sqlite_dao_create_autocompleter(phenos)
+    if result is None:
+        result = tries_dao_create_autocompleter(phenos)
     return result
     
 autocomplete = Blueprint('autocomplete', __name__)
