@@ -49,6 +49,19 @@ if conf.get_custom_templates_dir():
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
 
+def email_is_allowed(user_email:str = None) -> bool:
+    if user_email is None: user_email = current_user.email
+    user_email = user_email.lower()
+    if not conf.get_login_allowlist():  # anybody gets in!
+        return True
+    if user_email in conf.get_login_allowlist():  # their email is on the allowlist!
+        return True
+    allowed_domains = tuple(email for email in conf.get_login_allowlist() if email.startswith('@'))  # just domains, like @umich.edu
+    if user_email.endswith(allowed_domains):  # their email is at an allowed domain!
+        return True
+    return False
+
+
 def check_auth(func):
     """
     This decorator for routes checks that the user is authorized (or that no login is required).
@@ -65,8 +78,7 @@ def check_auth(func):
             session['original_destination'] = request.path
             return relative_redirect(url_for('.get_authorized'))
         print('{} visited {!r}'.format(current_user.email, request.path))
-        if conf.get_login_allowlist():
-            assert current_user.email.lower() in conf.get_login_allowlist(), current_user
+        assert email_is_allowed()
         return func(*args, **kwargs)
     return decorated_view
 
@@ -458,7 +470,7 @@ if conf.is_login_required():
 
     @lm.user_loader
     def load_user(id):
-        if conf.get_login_allowlist() and id not in conf.get_login_allowlist():
+        if not email_is_allowed(id):
             return None
         return User(email=id)
 
@@ -506,7 +518,7 @@ if conf.is_login_required():
             flash('Authentication failed by failing to get an email address.  Please email pjvh@umich.edu')
             return relative_redirect(url_for('.homepage'))
 
-        if conf.get_login_allowlist() and email.lower() not in conf.get_login_allowlist():
+        if not email_is_allowed(email):
             flash('Your email, {!r}, is not in the list of allowed emails.'.format(email))
             return relative_redirect(url_for('.homepage'))
 
