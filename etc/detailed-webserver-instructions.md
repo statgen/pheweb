@@ -60,6 +60,7 @@ At this point your PheWeb should be working how you want it to, except maybe the
        'user1@example.com',
        'user2@example.com',
        'user3@gmail.com',
+       '@umich.edu',  # Allows any email @umich.edu
      ]
    }
    ```
