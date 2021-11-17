@@ -10,6 +10,10 @@
 
 - `debugging_limit_num_variants` (int): only parses this many variants from each input association file and from the rsids file.  This is convenient for quickly loading part of a dataset to check that it works as expected.
 
+- `download_pheno_sumstats`: explained in [README](../README.md)
+
+- `show_correlations`: explained in [README](../README.md)
+
 
 ## Making pheno-list.json
 
