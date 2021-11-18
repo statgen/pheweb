@@ -69,6 +69,7 @@ export interface Region {
     readonly pheno: Phenotype,
     readonly cond_fm_regions: CondFMRegions [] | undefined | null;
     readonly lz_conf : LzConf | undefined | null,
+    readonly ld_panel_version : string,
     readonly vis_conf : VisConf,
     readonly genome_build : number,
     readonly region: string,

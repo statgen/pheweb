@@ -213,9 +213,13 @@ FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
     chain.header.ldrefvar = topvar
     if (this.params.region.lz_conf.ld_service.toLowerCase() == 'finngen') {
 	var windowSize = Math.min(state.end - state.start + 10000, this.params.region.lz_conf.ld_max_window)
-	return this.url + "?variant=" + topvar['association:chr'] + ':' + topvar['association:position'] + ':' + topvar['association:ref'] + ':' + topvar['association:alt'] + "&window=" + windowSize + "&panel=sisu3"
+	return `${this.url}?variant=${topvar['association:chr']}:${topvar['association:position']}:${topvar['association:ref']}:${topvar['association:alt']}&window=${windowSize}&panel=${this.params.region.ld_panel_version}`
+
     } else {
-	return refvar ? this.url + refvar + "/" + this.params.region.lz_conf.ld_ens_pop + "?window_size=" + this.params.region.lz_conf.ld_ens_window : this.url + ' lead variant has no rsid, could not get LD'
+	return refvar ?
+	`${this.url}${refvar}/${this.params.region.lz_conf.ld_ens_pop}?window_size=${this.params.region.lz_conf.ld_ens_window}`
+	:
+	`${this.url} lead variant has no rsid, could not get LD`
     }
 
 };

@@ -323,6 +323,7 @@ def api_region_page(phenocode, region):
              'cond_fm_regions' : cond_fm_regions ,
              'tooltip_lztemplate' : conf.parse.tooltip_lztemplate,
              'lz_conf' : conf.locuszoom_conf,
+             'ld_panel_version' : conf.ld_panel_version,
              'vis_conf' : conf.vis_conf ,
              'genome_build' : app.config['genome_build'] ,
              'browser' : app.config['browser'] }
@@ -395,6 +396,7 @@ def gene_phenocode_page(phenocode, genename):
                                region='{}:{}-{}'.format(chrom, start, end),
                                tooltip_lztemplate=conf.parse.tooltip_lztemplate,
                                lz_conf=conf.locuszoom_conf,
+                               ld_panel_version=conf.ld_panel_version,
                                gene_pheno_export_fields=conf.gene_pheno_export_fields,
                                drug_export_fields=conf.drug_export_fields,
                                lof_export_fields=conf.lof_export_fields,
