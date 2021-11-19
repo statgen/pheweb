@@ -2,11 +2,14 @@
 
 const pval_sentinel = 5e-324
 
+const optionalShortFloat = (props, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toPrecision(1)
+const optionalExponential = (props, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toExponential(1)
+
 function formatPValue(pval){
     if(pval == pval_sentinel || pval == 0){
 	return `<< ${pval_sentinel}`
     } else {
-	return pval ? pval.toExponential(1) : "";
+	return optionalExponential(pval);
     }
     
 }
@@ -270,14 +273,18 @@ LocusZoom.TransformationFunctions.set("formatPValue", function(x){
         $(function() {
             $('#maf-range').html('<p style="text-decoration: underline;" title="' +
 				 _.template($('#af-tooltip-template').html())({v:window.variant}) +
-				 '" data-toggle="tooltip">AF ' + (window.variant.annotation.annot.AF && window.variant.annotation.annot.AF.toExponential(1)) +
-				 ' (ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ' across all phenotypes)</p>');
+				 '" data-toggle="tooltip">AF ' + (window.variant.annotation.annot.AF && optionalExponential(window.variant.annotation.annot.AF)) +
+				 `(ranges from ${optionalExponential(range[0])} to ${optionalExponential(range[1])} across all phenotypes)</p>`);
             $('#maf-range p').css('margin-bottom', '0');
         });
     } else if (num_phenos_with_maf > 0) {
         var range = d3.extent(mafs);
         $(function() {
-            $('#maf-range').html('<p style="text-decoration: underline;" title="' + _.template($('#af-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF ' + (window.variant.annotation.annot && window.variant.annotation.annot.AF && window.variant.annotation.annot.AF.toExponential(1)) + ' (ranges from ' + range[0].toExponential(1) + ' to ' + range[1].toExponential(1) + ') for phenotypes where it is defined</p>');
+            $('#maf-range').html('<p style="text-decoration: underline;" title="' +
+				 _.template($('#af-tooltip-template').html())({v:window.variant}) +
+				 '" data-toggle="tooltip">AF ' +
+				 (window.variant.annotation.annot && window.variant.annotation.annot.AF && optionalExponential(window.variant.annotation.annot.AF)) +
+				 ` (ranges from ${optionalExponential(range[0])} to ${optionalExponential(range[1])} ) for phenotypes where it is defined</p>`);
             $('#maf-range p').css('margin-bottom', '0');
         });
     }
@@ -299,15 +306,18 @@ $(function() {
     }
     var af_fin = window.variant.annotation.gnomad.AF_fin
     if (af_fin && !isNaN(parseFloat(af_fin)) && isFinite(af_fin)) {
-	af_fin = af_fin.toExponential(1)
+	af_fin = optionalExponential(af_fin.toExponential)
     }
     var af_popmax = window.variant.annotation.gnomad.AF_popmax
     if (af_popmax && !isNaN(parseFloat(af_popmax)) && isFinite(af_popmax)) {
-	af_popmax = af_popmax.toExponential(1)
+	af_popmax = optionalExponential(af_popmax)
     }
     if (window.browser.startsWith('FINNGEN')) {
 	if (af_fin !== undefined) {
-	    $('#gnomad').html('<p style="text-decoration: underline;" title="' + _.template($('#gnomad-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' + window.variant.annotation.gnomad.fin_enrichment + '</p>')
+	    $('#gnomad').html('<p style="text-decoration: underline;" title="' +
+			      _.template($('#gnomad-tooltip-template').html())({v:window.variant}) +
+			      '" data-toggle="tooltip">AF in gnomAD genomes 2.1: FIN ' + af_fin + ', POPMAX ' + af_popmax + ', FIN enrichment vs. NFEE: ' +
+			      window.variant.annotation.gnomad.fin_enrichment + '</p>')
 	} else {
 	    $('#gnomad').html('<p>No data found in gnomAD 2.1.1</p>')
 	}
