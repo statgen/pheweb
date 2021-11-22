@@ -2,8 +2,9 @@
 
 const pval_sentinel = 5e-324
 
-const optionalShortFloat = (props, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toPrecision(1)
-const optionalExponential = (props, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toExponential(1)
+const optionalShortFloat = (value, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toPrecision(1)
+const optionalExponential = (value, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toExponential(1)
+const optionalFixed = (value, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toFixed(3)
 
 function formatPValue(pval){
     if(pval == pval_sentinel || pval == 0){
@@ -302,11 +303,11 @@ $(function() {
 	    ( (+variant.annotation.gnomad['AC_nfe_nwe'] + +variant.annotation.gnomad['AC_nfe_onf'] + +variant.annotation.gnomad['AC_nfe_seu']) / (+variant.annotation.gnomad['AN_nfe_nwe'] + +variant.annotation.gnomad['AN_nfe_onf'] + +variant.annotation.gnomad['AN_nfe_seu']) )
     }
     if (!isNaN(parseFloat(variant.annotation.gnomad.fin_enrichment)) && isFinite(variant.annotation.gnomad.fin_enrichment)) {
-	variant.annotation.gnomad.fin_enrichment = variant.annotation.gnomad.fin_enrichment.toFixed(3)
+	variant.annotation.gnomad.fin_enrichment = optionalFixed(variant.annotation.gnomad.fin_enrichment)
     }
     var af_fin = window.variant.annotation.gnomad.AF_fin
     if (af_fin && !isNaN(parseFloat(af_fin)) && isFinite(af_fin)) {
-	af_fin = optionalExponential(af_fin.toExponential)
+	af_fin = optionalExponential(af_fin)
     }
     var af_popmax = window.variant.annotation.gnomad.AF_popmax
     if (af_popmax && !isNaN(parseFloat(af_popmax)) && isFinite(af_popmax)) {
@@ -337,9 +338,12 @@ $(function() {
     });
     var range = d3.extent(infos);
     $(function() {
-	var info_html = '<p style="text-decoration: underline;" title="' + _.template($('#info-tooltip-template').html())({v:window.variant}) + '" data-toggle="tooltip">INFO ' + (window.variant.annotation.annot && window.variant.annotation.annot.INFO && window.variant.annotation.annot.INFO.toFixed(3)) || 'NA'
+	var info_html = '<p style="text-decoration: underline;" title="' +
+	    _.template($('#info-tooltip-template').html())({v:window.variant}) +
+	    '" data-toggle="tooltip">INFO ' +
+	    (window.variant.annotation.annot && window.variant.annotation.annot.INFO && optionalFixed(window.variant.annotation.annot.INFO)) || 'NA'
 	if (range[1] !== undefined) {
-	    info_html += ' (ranges in genotyping batches from ' + range[0].toFixed(3) + ' to ' + range[1].toFixed(3) + ')</p>'
+	    info_html += ` (ranges in genotyping batches from ${optionalFixed(range[0])} to ${optionalFixed(range[1])} )</p>`
 	} else {
 	    info_html += '</p>'
 	}
@@ -384,7 +388,6 @@ $(function() {
 })();
 
 (function() {
-    console.log(variant)
     var rsid = window.variant.annotation.annot.rsids || window.variant.annotation.rsids
     if (!rsid) return
     rsid = rsid.split(',')[0]

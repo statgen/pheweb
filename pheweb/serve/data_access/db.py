@@ -3,6 +3,7 @@ import attr
 from importlib import import_module
 from collections import defaultdict
 from elasticsearch import Elasticsearch
+import json
 import pysam
 import re
 import math
@@ -409,31 +410,65 @@ class DrugDao(DrugDB):
     def __init__(self):
         pass
 
-    def get_drugs(self, gene):
-        r = requests.get("http://rest.ensembl.org/xrefs/symbol/human/" + gene + "?content-type=application/json")
+    def get_drugs(self, gene_name):
+        # see : https://platform-docs.opentargets.org/data-access/graphql-api
+        # Build query string                                                                                                                                                                           
+
+        query_string = """
+            query search($gene_name: String!) {
+              search( queryString : $gene_name , entityNames:["target"] ) {
+                hits {
+                  score
+                  name
+                  object {
+                    __typename ... on Target { id
+                    approvedSymbol
+                        approvedName
+                        knownDrugs { rows {
+                                            # evidence.drug2clinic.clinical_trial_phase.label
+                                            phase
+                                            # target.target_class
+                                            targetClass
+                                            # evidence.target2drug.action_type
+                                            drugType
+                                            drugId
+                                            prefName
+                                            approvedName
+                                            mechanismOfAction
+                                            # disease.efo_info.label
+                                            disease { dbXRefs }
+                                            drug {
+                                                   # evidence.drug2clinic.max_phase_for_disease.label
+                                                   maximumClinicalTrialPhase ,
+                                                   # drug
+                                                   name
+
+                        } } }
+                    }
+
+                  }
+                }
+              }
+            }
+        """
+
+        variables = {"gene_name": gene_name}
+        # Set base URL of GraphQL API endpoint
+        base_url = "https://api.platform.opentargets.org/api/v4/graphql"
+
+        # Perform POST request and check status code of response
+        r = requests.post(base_url, json={"query": query_string, "variables": variables})
         print(r)
-        dat = r.json()
-        if len(dat)==0:
-            return []
-        ensg = dat[0]['id']
-        drugfields = ['target.gene_info.symbol',
-                      'target.target_class',
-                      'evidence.target2drug.action_type',
-                      'evidence.drug2clinic.max_phase_for_disease.label',
-                    'evidence.drug2clinic.clinical_trial_phase.label',
-                      'disease.efo_info.label',
-                      'drug']
-        payload = {'target':[ensg], 'datatype':['known_drug'], 'fields':drugfields}
-
-        r = requests.post('https://api.opentargets.io/v3/platform/public/evidence/filter',
-                          json=payload)
-        data = r.json()['data']
-        for d in data:
-            d['disease']['efo_info']['label'] = d['disease']['efo_info']['label'].capitalize()
-            d['drug']['molecule_type'] = d['drug']['molecule_type'].capitalize()
-            d['evidence']['target2drug']['action_type'] = d['evidence']['target2drug']['action_type'].capitalize()
-
-        return data
+        print(r.text)
+        assert r.status_code == 200 , f"failed fetching drugs : ${r}"
+        response = json.loads(r.text)
+        data = response['data'] if 'data' in response else {}
+        search = data['search'] if 'search' in data else {}
+        hits = search['hits'] if 'hits' in search else []
+        hits = sorted(hits, key=lambda x : x['score'], reverse=True)
+        hit = next((h for h in hits if h['name'] == gene_name),{})
+        target = hit['object'] if 'object' in hit else {}
+        return target
 
 class ElasticAnnotationDao(AnnotationDB):
 
