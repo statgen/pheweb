@@ -137,8 +137,8 @@
     <%= Object.keys(v.annotation.annot)
     .filter(function(key) {
       return key.indexOf('INFO_') === 0
-	}).map(function(key) {
-	var val = v.annotation.annot[key].toFixed(3)
+    }).map(function(key) {
+	var val = (+v.annotation.annot[key]).toFixed(3)
 	var color = val < window.vis_conf.info_tooltip_threshold ? '#FF8C00' : '#ffffff'
       return '<div style=\'padding-right: 5px; color: ' + color + '\'><span style=\'text-align: left; float: left; padding-right: 10px;\'>' + val + '</span>' +
         '<span style=\'text-align: left; float: left;\'>' + key.replace(/INFO_|\.calls|_Drem|_R[1-9]/g, '').replace(/_V2(P2)?/, '') + '</span></div>'
@@ -152,7 +152,7 @@
     <%= Object.keys(v.annotation.gnomad)
     .filter(function(key) {
       return key.indexOf('AF_') === 0
-	}).map(function(key) {
+    }).map(function(key) {
 	var val = !isNaN(parseFloat(v.annotation.gnomad[key])) && isFinite(v.annotation.gnomad[key]) ? v.annotation.gnomad[key].toExponential(2) : v.annotation.gnomad[key]
       return '<div><span style=\'text-align: left; float: left; padding-right: 10px;\'>' + val + '</span>' +
         '<span style=\'text-align: left; float: left;\'>' + key.replace(/AF_/g, '') + '</span></div>'
@@ -166,8 +166,8 @@
     <%= Object.keys(v.annotation.annot)
     .filter(function(key) {
       return key.indexOf('AF_') === 0
-	}).map(function(key) {
-	var val = v.annotation.annot[key].toExponential(2)
+    }).map(function(key) {
+	var val = (+v.annotation.annot[key]).toExponential(2)
       return '<div><span style=\'text-align: left; float: left; padding-right: 10px;\'>' + val + '</span>' +
         '<span style=\'text-align: left; float: left;\'>' + key.replace(/AF_|\.calls|_Drem|_R[1-9]/g, '') + '</span></div>'
     }).join('')

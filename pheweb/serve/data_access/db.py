@@ -3,6 +3,7 @@ import attr
 from importlib import import_module
 from collections import defaultdict
 from elasticsearch import Elasticsearch
+import json
 import pysam
 import re
 import math
@@ -393,7 +394,6 @@ class NCBIGeneInfoDao(GeneInfoDB):
         ## chr stop seems to be missing from top level annotation
         loc = list(filter( lambda x: x["annotationrelease"]=="109", data["locationhist"]))[0]
         return { "description":data["description"], "summary":data["summary"], "start":data["chrstart"], "stop":loc["chrstop"], "maploc":data["maplocation"]   }
-
     
 class ElasticAnnotationDao(AnnotationDB):
 

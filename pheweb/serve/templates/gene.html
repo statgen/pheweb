@@ -15,6 +15,16 @@
   window.lof_export_fields = {{ lof_export_fields|tojson }};
   window.func_var_report_p_threshold = {{ func_var_report_p_threshold|tojson }};
 </script>
+<script type="text/javascript">
+  const optionalShortFloat = (value, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toPrecision(1)
+  const optionalExponential = (value, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toExponential(1)
+  const optionalFixed = (value, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toFixed(3)
+  const optionalFixedShort = (value, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toFixed(1)
+  const optionalPrecision = (value, nan = 'NA') =>  isNaN(+value) ? nan : (+value).toPrecision(2)
+
+</script>
+
+
 <link href="https://cdn.jsdelivr.net/npm/locuszoom@0.10.2/dist/locuszoom.css" rel="stylesheet" type="text/css">
 <script src="https://cdn.jsdelivr.net/npm/locuszoom@0.10.2/dist/locuszoom.app.min.js" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='vendor/stream_table-1.1.1.min.js') }}" type="text/javascript"></script>
@@ -275,8 +285,8 @@
     </a></td>
     <td><%= p.pheno.category || 'Unknown' %></td>
     <td><%= _.template($('#beta-template-dir').html())({assoc: p.assoc}) +  Math.exp(p.assoc.beta).toPrecision(2) %></td>
-    <td><%= p.assoc.pval.toExponential(1) %></td>
-    <td><%= p.assoc.mlogp.toFixed(1) %></td>	      
+    <td><%= optionalExponential(p.assoc.pval) %></td>
+    <td><%= optionalFixedShort(p.assoc.mlogp) %></td>	      
     <td style="text-align: right;"><%= p.pheno.num_cases %></td>
      {% if 'show_ukbb' in config and config['show_ukbb']  %}
         <td><%= p.assoc.matching_results.ukbb ? _.template($('#beta-template-dir').html())({assoc: p.assoc.matching_results.ukbb}) + '<span>p:' + Number(p.assoc.matching_results.ukbb.pval).toExponential(1) +'</span>' : 'NA' %></td>
@@ -287,15 +297,16 @@
 </script>
 
 <script type="text/template" id="enrichment-tooltip-template">
-  <span><strong>AF</strong></span>
-  <table>
+    <span><strong>AF</strong></span>
+<table>
     <tr><th style='text-align: right; padding-right: 5px;'>FIN</th><th style='text-align: right; padding-right: 5px;'>NFE</th><th style='text-align: right; padding-right: 5px;'>POPMAX</th></tr>
     <tr>
-      <td style='text-align: right; padding-right: 5px;'><%= v.gnomad ? $.isNumeric(v.gnomad.AF_fin) ? v.gnomad.AF_fin < 0.01 ? v.gnomad.AF_fin.toExponential(1) : v.gnomad.AF_fin.toPrecision(2) : "N/A" : "N/A" %></td>
-      <td style='text-align: right; padding-right: 5px;'><%= v.gnomad ? $.isNumeric(v.gnomad.AF_nfe) ? v.gnomad.AF_nfe < 0.01 ? v.gnomad.AF_nfe.toExponential(1) : v.gnomad.AF_nfe.toPrecision(2) : "N/A" : "N/A" %></td>
-      <td style='text-align: right; padding-right: 5px;'><%= v.gnomad ? $.isNumeric(v.gnomad.AF_popmax) ? v.gnomad.AF_popmax < 0.01 ? v.gnomad.AF_popmax.toExponential(1) : v.gnomad.AF_popmax.toPrecision(2) : "N/A" : "N/A" %></td>
+      <td style='text-align: right; padding-right: 5px;'><%= v.gnomad ? $.isNumeric(v.gnomad.AF_fin) ? v.gnomad.AF_fin < 0.01 ? optionalExponential(v.gnomad.AF_fin) : optionalPrecision(v.gnomad.AF_fin) : "N/A" : "N/A" %></td>
+      <td style='text-align: right; padding-right: 5px;'><%= v.gnomad ? $.isNumeric(v.gnomad.AF_nfe) ? v.gnomad.AF_nfe < 0.01 ? optionalExponential(v.gnomad.AF_nfe) : optionalPrecision(v.gnomad.AF_nfe) : "N/A" : "N/A" %></td>
+      <td style='text-align: right; padding-right: 5px;'><%= v.gnomad ? $.isNumeric(v.gnomad.AF_popmax) ? v.gnomad.AF_popmax < 0.01 ? optionalExponential(v.gnomad.AF_popmax) : optionalPrecision(v.gnomad.AF_popmax) : "N/A" : "N/A" %></td>
     </tr>
   </table>
+  
 </script>
 
 <script type="text/template" id="streamtable-functional-variants-template">
@@ -323,7 +334,7 @@
     </td>
 
     <!-- maf -->
-    <td><%= v.var.annotation.annot.AF < 0.01 ?  v.var.annotation.annot.AF.toExponential(1) :  v.var.annotation.annot.AF.toPrecision(2) %></td>
+    <td><%= v.var.annotation.annot.AF < 0.01 ?  optionalExponential(v.var.annotation.annot.AF) :  optionalPrecision(v.var.annotation.annot.AF) %></td>
     <!-- finngen phenotypes -->	    
     <td><table> <%= v.significant_phenos
 	    .sort(function(pheno1, pheno2) { return pheno1.pval - pheno2.pval })
