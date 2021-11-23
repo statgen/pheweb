@@ -11,6 +11,15 @@ gsutil cp gs://finngen-production-library-green/finngen_R7/finngen_R7_analysis_d
 python3 create_custom_json.py --phenotype_col phenocode --n_cases_col num_cases --n_controls_col num_controls --out_json R7_custom.json finngen_R7_pheno_n.tsv
 ```
 
+***In case you need to update genes and their coordinates (used for gene page to gather best associations for each pheno and thus generally used as the set of gene names )***
+
+Get bed file e.g. v38 gene annotations from gencode and upload to a bucket and change bed gene annotation to point to this file
+```
+curl https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz | zcat |  awk ' BEGIN{FS=OFS="\t"} $3=="gene"{ gsub("chr","",$1); split($9,a,";"); for(e in a) { split(a[e],b,"=");elems[b[1]]=b[2] }; print $1,$4,$5,elems["gene_name"],elems["gene_id"]; }' > gencode.v38.genes.bed
+```
+
+***Copy imported data to destination***
+
 After successful import run, copy generated file to a single bucket using proper file structure using [copy_cromwell_import_to_bucket_puddle.py](scripts/copy_cromwell_import_to_bucket_puddle.py). Parameters needed are cromwell hash and path to destination bucket:
 
 ```sh
