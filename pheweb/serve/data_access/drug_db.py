@@ -53,11 +53,11 @@ def copy_attribute(name, src, dst):
     @param name: field name
     @param src: source object
     @param dst: destination object
-    @return: None
+    @return: destination object
     """
     if src and name in src:
-        src[name] = dst[name]
-
+        dst[name] = src[name] 
+    return dst
 
 def extract_rows(response, gene_name):
     """
