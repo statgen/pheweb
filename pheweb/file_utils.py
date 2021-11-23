@@ -1,6 +1,5 @@
-
-from .utils import PheWebError, get_phenolist, chrom_order
-from .conf_utils import conf
+from typing import List, Union
+from pathlib import Path
 
 import io
 import os
@@ -12,9 +11,14 @@ import datetime
 from boltons.fileutils import AtomicSaver, mkdir_p
 import pysam
 
+from .utils import PheWebError, get_phenolist, chrom_order
+from .conf_utils import conf, get_field_parser, validate_fields
+
+
 
 def get_generated_path(*path_parts):
-    return os.path.join(conf.data_dir, 'generated-by-pheweb', *path_parts)
+    return os.path.join(conf.data_dir, "generated-by-pheweb", *path_parts)
+
 
 def get_cacheable_file_location(default_relative_dir, basename):
     if conf.cache:
@@ -22,44 +26,65 @@ def get_cacheable_file_location(default_relative_dir, basename):
     mkdir_p(get_generated_path(default_relative_dir))
     return get_generated_path(default_relative_dir, basename)
 
-genome_build = '38'
-if genome_build not in ['37', '38']:
-    raise('genome build needs to be 37 or 38')
-dbsnp_version = '151'
-genes_version = 'v25'
+
+genome_build = "38"
+if genome_build not in ["37", "38"]:
+    raise ("genome build needs to be 37 or 38")
+dbsnp_version = "151"
+genes_version = "v25"
 
 common_filepaths = {
-    'phenolist': os.path.join(conf.data_dir, 'pheno-list.json'),
-    'use_phenos': os.path.join(conf.data_dir, 'use_phenos.txt'),
-    'genes': get_cacheable_file_location('sites/genes', 'genes-b38-{}.bed'.format(genes_version)),
-    'gene-aliases-trie': get_cacheable_file_location('sites/genes', 'gene_aliases_b38.marisa_trie'),
-    'rsids': get_cacheable_file_location('sites/dbSNP', 'rsids-b38-{}.vcf.gz'.format(dbsnp_version)),
-    'unanno': get_generated_path('sites/sites-unannotated.tsv'),
-    'sites-rsids': get_generated_path('sites/sites-rsids.tsv'),
-    'sites': get_generated_path('sites/sites.tsv'),
-    'best-phenos-by-gene': get_generated_path('best-phenos-by-gene.json'),
-    'cpra-to-rsids-trie': get_generated_path('sites/cpra_to_rsids_trie.marisa'),
-    'rsid-to-cpra-trie': get_generated_path('sites/rsid_to_cpra_trie.marisa'),
-    'matrix': get_generated_path('matrix.tsv.gz'),
-    'annotation-matrix': os.path.join(conf.data_dir, 'annotations/finngen/annotated_variants.gz'),
-    'gnomad-matrix': os.path.join(conf.data_dir, 'annotations/gnomad/gnomad.genomes.r2.1.sites.liftover.b38.finngen.r2pos.af.ac.an.tsv.gz'),
-    'top-hits': get_generated_path('top_hits.json'),
-    'top-hits-1k': get_generated_path('top_hits_1k.json'),
-    'top-hits-tsv': get_generated_path('top_hits.tsv'),
-    'top-loci': get_generated_path('top_loci.json'),
-    'top-loci-tsv': get_generated_path('top_loci.tsv'),
-    'parsed':    (lambda phenocode: get_generated_path('parsed', phenocode)),
-    'pheno':     (lambda phenocode: get_generated_path('pheno', phenocode)),
-    'pheno_gz':  (lambda phenocode: get_generated_path('pheno_gz', '{}.gz'.format(phenocode))),
-    'manhattan': (lambda phenocode: get_generated_path('manhattan', '{}.json'.format(phenocode) if phenocode else '')),
-    'qq':        (lambda phenocode: get_generated_path('qq', '{}.json'.format(phenocode) if phenocode else '')),
-    'cpras-rsids-sqlite3': get_generated_path("sites/cpras-rsids.sqlite3"),
-    'gene-aliases-sqlite3': (
-        lambda: get_generated_path(
-            f'resources/gene_aliases-v{genes_version}.sqlite3'.format(genes_version)
+    "phenolist": os.path.join(conf.data_dir, "pheno-list.json"),
+    "use_phenos": os.path.join(conf.data_dir, "use_phenos.txt"),
+    "genes": get_cacheable_file_location(
+        "sites/genes", "genes-b38-{}.bed".format(genes_version)
+    ),
+    "gene-aliases-trie": get_cacheable_file_location(
+        "sites/genes", "gene_aliases_b38.marisa_trie"
+    ),
+    "rsids": get_cacheable_file_location(
+        "sites/dbSNP", "rsids-b38-{}.vcf.gz".format(dbsnp_version)
+    ),
+    "unanno": get_generated_path("sites/sites-unannotated.tsv"),
+    "sites-rsids": get_generated_path("sites/sites-rsids.tsv"),
+    "sites": get_generated_path("sites/sites.tsv"),
+    "best-phenos-by-gene": get_generated_path("best-phenos-by-gene.json"),
+    "cpra-to-rsids-trie": get_generated_path("sites/cpra_to_rsids_trie.marisa"),
+    "rsid-to-cpra-trie": get_generated_path("sites/rsid_to_cpra_trie.marisa"),
+    "matrix": get_generated_path("matrix.tsv.gz"),
+    "annotation-matrix": os.path.join(
+        conf.data_dir, "annotations/finngen/annotated_variants.gz"
+    ),
+    "gnomad-matrix": os.path.join(
+        conf.data_dir,
+        "annotations/gnomad/gnomad.genomes.r2.1.sites.liftover.b38.finngen.r2pos.af.ac.an.tsv.gz",
+    ),
+    "top-hits": get_generated_path("top_hits.json"),
+    "top-hits-1k": get_generated_path("top_hits_1k.json"),
+    "top-hits-tsv": get_generated_path("top_hits.tsv"),
+    "top-loci": get_generated_path("top_loci.json"),
+    "top-loci-tsv": get_generated_path("top_loci.tsv"),
+    "parsed": (lambda phenocode: get_generated_path("parsed", phenocode)),
+    "pheno": (lambda phenocode: get_generated_path("pheno", phenocode)),
+    "pheno_gz": (
+        lambda phenocode: get_generated_path("pheno_gz", "{}.gz".format(phenocode))
+    ),
+    "manhattan": (
+        lambda phenocode: get_generated_path(
+            "manhattan", "{}.json".format(phenocode) if phenocode else ""
         )
     ),
-    
+    "qq": (
+        lambda phenocode: get_generated_path(
+            "qq", "{}.json".format(phenocode) if phenocode else ""
+        )
+    ),
+    "cpras-rsids-sqlite3": get_generated_path("sites/cpras-rsids.sqlite3"),
+    "gene-aliases-sqlite3": (
+        lambda: get_generated_path(
+            "resources/gene_aliases-v{}.sqlite3".format(genes_version)
+        )
+    ),
 }
 
 # TODO: make a standard function for getting file names that checks that they exist.
@@ -68,6 +93,7 @@ common_filepaths = {
 
 def make_basedir(path):
     mkdir_p(os.path.dirname(path))
+
 
 def get_filepath(kind: str, *, must_exist: bool = True) -> str:
     if kind not in common_filepaths:
@@ -82,30 +108,36 @@ def get_filepath(kind: str, *, must_exist: bool = True) -> str:
         )
     return filepath
 
-    
-def get_tmp_path(arg):
+
+def get_tmp_path(arg: Union[Path, str]) -> str:
+    arg = str(arg)
     if arg.startswith(get_generated_path()):
-        mkdir_p(get_generated_path('tmp'))
-        tmp_basename = arg[len(get_generated_path()):].lstrip(os.path.sep).replace(os.path.sep, '-')
-        return get_generated_path('tmp', tmp_basename)
+        mkdir_p(get_generated_path("tmp"))
+        tmp_basename = (
+            arg[len(get_generated_path()) :]
+            .lstrip(os.path.sep)
+            .replace(os.path.sep, "-")
+        )
+        return get_generated_path("tmp", tmp_basename)
     elif arg.startswith(os.path.sep):
-        return arg + '.tmp'
+        return arg + ".tmp"
     else:
-        mkdir_p(get_generated_path('tmp'))
-        return get_generated_path('tmp', arg)
+        mkdir_p(get_generated_path("tmp"))
+        return get_generated_path("tmp", arg)
+
 
 def get_dated_tmp_path(prefix):
-    assert '/' not in prefix
-    time_str = datetime.datetime.isoformat(datetime.datetime.now()).replace(':', '-')
-    return get_tmp_path(prefix + '-' + time_str)
+    assert "/" not in prefix
+    time_str = datetime.datetime.isoformat(datetime.datetime.now()).replace(":", "-")
+    return get_tmp_path(prefix + "-" + time_str)
 
 
 csv.register_dialect(
-    'pheweb-internal-dialect',
-    delimiter='\t',
+    "pheweb-internal-dialect",
+    delimiter="\t",
     doublequote=False,
-    escapechar='\\',
-    lineterminator='\n',
+    escapechar="\\",
+    lineterminator="\n",
     quotechar='"',
     skipinitialspace=False,
     strict=True,
@@ -114,137 +146,175 @@ csv.register_dialect(
 
 ## Readers
 
+
 @contextmanager
 def VariantFileReader(filepath, only_per_variant_fields=False):
-    '''
+    """
     Reads variants (as dictionaries) from an internal file.  Iterable.  Exposes `.fields`.
 
         with VariantFileReader('a.tsv') as reader:
             print(list(reader.values()))
-    '''
-    with open(filepath, 'rt') as f:
-        reader = csv.reader(f, dialect='pheweb-internal-dialect')
+    """
+    with open(filepath, "rt") as f:
+        reader = csv.reader(f, dialect="pheweb-internal-dialect")
         fields = next(reader)
-        for field in fields:
-            assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields,f'{field} not found'
+        validate_fields(fields)
         if only_per_variant_fields:
             yield _vfr_only_per_variant_fields(fields, reader)
         else:
             yield _vfr(fields, reader)
+
+
 class _vfr:
     def __init__(self, fields, reader):
         self.fields = fields
         self._reader = reader
+
     def __iter__(self):
         return self._get_variants()
+
     def _get_variants(self):
-        parsers = [conf.parse.fields[field]['_read'] if field in conf.parse.fields else lambda x : x for field in self.fields]
+        parsers = [
+            conf.parse.fields[field]["_read"]
+            if field in conf.parse.fields
+            else lambda x: x
+            for field in self.fields
+        ]
         for unparsed_variant in self._reader:
             assert len(unparsed_variant) == len(self.fields)
-            variant = {field: parser(value) for parser,field,value in zip(parsers, self.fields, unparsed_variant)}
+            variant = {
+                field: parser(value)
+                for parser, field, value in zip(parsers, self.fields, unparsed_variant)
+            }
             yield variant
+
+
 class _vfr_only_per_variant_fields:
     def __init__(self, fields, reader):
         self._all_fields = fields
-        self._extractors = [(conf.parse.fields[field]['_read'], field, colidx) for colidx,field in enumerate(fields) if field in conf.parse.per_variant_fields]
+        self._extractors = [
+            (conf.parse.fields[field]["_read"], field, colidx)
+            for colidx, field in enumerate(fields)
+            if field in conf.parse.per_variant_fields
+        ]
         self.fields = [e[1] for e in self._extractors]
         self._reader = reader
+
     def __iter__(self):
         return self._get_variants()
+
     def _get_variants(self):
         for unparsed_variant in self._reader:
             assert len(unparsed_variant) == len(self._all_fields)
-            variant = {field: parser(unparsed_variant[colidx]) for parser,field,colidx in self._extractors}
+            variant = {
+                field: parser(unparsed_variant[colidx])
+                for parser, field, colidx in self._extractors
+            }
             yield variant
 
 
 @contextmanager
 def IndexedVariantFileReader(phenocode):
-    filepath = common_filepaths['pheno_gz'](phenocode)
+    filepath = common_filepaths["pheno_gz"](phenocode)
 
     with read_gzip(filepath) as f:
-        reader = csv.reader(f, dialect='pheweb-internal-dialect')
+        reader = csv.reader(f, dialect="pheweb-internal-dialect")
         colnames = next(reader)
-    assert colnames[0].startswith('#')
+    assert colnames[0].startswith("#")
     colnames[0] = colnames[0][1:]
-    for field in colnames:
-        assert field in conf.parse.per_variant_fields or field in conf.parse.per_assoc_fields, (field)
+    validate_fields(colnames)
     colidxs = {field: colnum for colnum, field in enumerate(colnames)}
 
     with pysam.TabixFile(filepath, parser=None) as tabix_file:
         yield _ivfr(tabix_file, colidxs)
+
+
 class _ivfr:
     def __init__(self, _tabix_file, _colidxs):
-        self._tabix_file=_tabix_file
-        self._colidxs=_colidxs
+        self._tabix_file = _tabix_file
+        self._colidxs = _colidxs
 
     def _parse_variant_row(self, variant_row):
         variant = {}
         for field in self._colidxs:
             val = variant_row[self._colidxs[field]]
-            parser = conf.parse.fields[field]['_read']
+            parser = conf.parse.fields[field]["_read"]
             try:
                 variant[field] = parser(val)
             except Exception as exc:
-                raise PheWebError('ERROR: Failed to parse the value {!r} for field {!r} in file {!r}'.format(val, field, self._tabix_file.filename)) from exc
+                raise PheWebError(
+                    "ERROR: Failed to parse the value {!r} for field {!r} in file {!r}".format(
+                        val, field, self._tabix_file.filename
+                    )
+                ) from exc
         return variant
 
     def get_region(self, chrom, start, end):
-        '''
+        """
         includes `start`, does not include `end`
         return is like [{
               'chrom': 'X', 'pos': 43254, ...,
             }, ...]
-        '''
-        if start < 1: start = 1
-        if start >= end: return []
-        if chrom not in self._tabix_file.contigs: return []
+        """
+        if start < 1:
+            start = 1
+        if start >= end:
+            return []
+        if chrom not in self._tabix_file.contigs:
+            return []
 
         # I do not understand why I need to use `pos-1`.
         # The pysam docs talk about being zero-based or one-based. Is this what they're referring to?
         # Doesn't make much sense to me.  There must be a reason that I don't understand.
         try:
-            tabix_iter = self._tabix_file.fetch(chrom, start-1, end-1, parser=None)
+            tabix_iter = self._tabix_file.fetch(chrom, start - 1, end - 1, parser=None)
         except Exception as exc:
-            raise PheWebError('ERROR when fetching {}-{}-{} from {}'.format(chrom, start-1, end-1, self._tabix_file.filename)) from exc
-        reader = csv.reader(tabix_iter, dialect='pheweb-internal-dialect')
+            raise PheWebError(
+                "ERROR when fetching {}-{}-{} from {}".format(
+                    chrom, start - 1, end - 1, self._tabix_file.filename
+                )
+            ) from exc
+        reader = csv.reader(tabix_iter, dialect="pheweb-internal-dialect")
         for variant_row in reader:
             yield self._parse_variant_row(variant_row)
 
     def get_variant(self, chrom, pos, ref, alt):
-        x = self.get_region(chrom, pos, pos+1)
+        x = self.get_region(chrom, pos, pos + 1)
         for variant in x:
-            if variant['pos'] != pos:
-                print('WARNING: while looking for variant {}-{}-{}-{}, saw {!r}'.format(
-                    chrom, pos, ref, alt, variant))
+            if variant["pos"] != pos:
+                print(
+                    "WARNING: while looking for variant {}-{}-{}-{}, saw {!r}".format(
+                        chrom, pos, ref, alt, variant
+                    )
+                )
                 continue
-            if variant['ref'] == ref and variant['alt'] == alt and variant:
+            if variant["ref"] == ref and variant["alt"] == alt and variant:
                 return variant
         return None
 
 
 class MatrixReader:
-    _filepath = get_generated_path('matrix.tsv.gz')
+    _filepath = get_generated_path("matrix.tsv.gz")
 
     def __init__(self):
         phenos = get_phenolist()
-        phenocodes = [pheno['phenocode'] for pheno in phenos]
+        phenocodes = [pheno["phenocode"] for pheno in phenos]
         self._info_for_pheno = {
-            pheno['phenocode']: {k: v for k,v in pheno.items() if k != 'assoc_files'}
+            pheno["phenocode"]: {k: v for k, v in pheno.items() if k != "assoc_files"}
             for pheno in phenos
         }
 
         with read_gzip(self._filepath) as f:
-            reader = csv.reader(f, dialect='pheweb-internal-dialect')
+            reader = csv.reader(f, dialect="pheweb-internal-dialect")
             colnames = next(reader)
-        assert colnames[0].startswith('#')
+        assert colnames[0].startswith("#")
         colnames[0] = colnames[0][1:]
 
-        self._colidxs = {} # maps field -> column_index
-        self._colidxs_for_pheno = {} # maps phenocode -> field -> column_index
+        self._colidxs = {}  # maps field -> column_index
+        self._colidxs_for_pheno = {}  # maps phenocode -> field -> column_index
         for colnum, colname in enumerate(colnames):
-            if '@' in colname:
-                x = colname.split('@')
+            if "@" in colname:
+                x = colname.split("@")
                 assert len(x) == 2, x
                 field, phenocode = x
                 assert field in conf.parse.fields, field
@@ -252,7 +322,7 @@ class MatrixReader:
                 self._colidxs_for_pheno.setdefault(phenocode, {})[field] = colnum
             else:
                 field = colname
-                assert field in conf.parse.fields, (field)
+                assert field in conf.parse.fields, field
                 self._colidxs[field] = colnum
 
     def get_phenocodes(self):
@@ -261,136 +331,183 @@ class MatrixReader:
     @contextmanager
     def context(self):
         with pysam.TabixFile(self._filepath, parser=None) as tabix_file:
-            yield _mr(tabix_file, self._colidxs, self._colidxs_for_pheno, self._info_for_pheno)
+            yield _mr(
+                tabix_file, self._colidxs, self._colidxs_for_pheno, self._info_for_pheno
+            )
+
+
 class _mr(_ivfr):
     def __init__(self, _tabix_file, _colidxs, _colidxs_for_pheno, _info_for_pheno):
-        self._tabix_file=_tabix_file
-        self._colidxs=_colidxs
-        self._colidxs_for_pheno=_colidxs_for_pheno
-        self._info_for_pheno=_info_for_pheno
+        self._tabix_file = _tabix_file
+        self._colidxs = _colidxs
+        self._colidxs_for_pheno = _colidxs_for_pheno
+        self._info_for_pheno = _info_for_pheno
 
     def _parse_field(self, variant_row, field, phenocode=None):
-        colidx = self._colidxs[field] if phenocode is None else self._colidxs_for_pheno[phenocode][field]
+        colidx = (
+            self._colidxs[field]
+            if phenocode is None
+            else self._colidxs_for_pheno[phenocode][field]
+        )
         val = variant_row[colidx]
         # some variants don't have results for all phenos
-        if val == 'NA':
-            print('Warning: replacing NA with 1: ' + field + ' ' + str(phenocode))
+        if val == "NA":
+            print("Warning: replacing NA with 1: " + field + " " + str(phenocode))
             val = 1
-        parser = conf.parse.fields[field]['_read']
+        parser = conf.parse.fields[field]["_read"]
         try:
             return parser(val)
         except Exception as exc:
-            error_message = 'ERROR: Failed to parse the value {!r} for field {!r}'.format(val, field)
-            if phenocode is not None: error_message += ' and phenocode {!r}'.format(phenocode)
+            error_message = (
+                "ERROR: Failed to parse the value {!r} for field {!r}".format(
+                    val, field
+                )
+            )
+            if phenocode is not None:
+                error_message += " and phenocode {!r}".format(phenocode)
             raise PheWebError(error_message) from exc
 
     def _parse_variant_row(self, variant_row):
-        variant = {'phenos': {}}
+        variant = {"phenos": {}}
         for field in self._colidxs:
             variant[field] = self._parse_field(variant_row, field)
         for phenocode, fields in self._colidxs_for_pheno.items():
-            if any(variant_row[self._colidxs_for_pheno[phenocode][field]] != '' for field in fields):
+            if any(
+                variant_row[self._colidxs_for_pheno[phenocode][field]] != ""
+                for field in fields
+            ):
                 p = {}
                 for field in fields:
                     p[field] = self._parse_field(variant_row, field, phenocode)
                     p.update(self._info_for_pheno[phenocode])
-                    variant['phenos'][phenocode] = p
+                    variant["phenos"][phenocode] = p
         return variant
 
 
 def with_chrom_idx(variants):
     for v in variants:
-        v['chrom_idx'] = chrom_order[v['chrom']]
+        v["chrom_idx"] = chrom_order[v["chrom"]]
         yield v
 
 
 @contextmanager
 def read_gzip(filepath):
     # handles buffering # TODO: profile whether this is fast.
-    with gzip.open(filepath, 'rb') as f: # leave in binary mode (default), let TextIOWrapper decode
-        with io.BufferedReader(f, buffer_size=2**18) as g: # 256KB buffer
-            with io.TextIOWrapper(g) as h: # bytes -> unicode
+    with gzip.open(
+        filepath, "rb"
+    ) as f:  # leave in binary mode (default), let TextIOWrapper decode
+        with io.BufferedReader(f, buffer_size=2 ** 18) as g:  # 256KB buffer
+            with io.TextIOWrapper(g) as h:  # bytes -> unicode
                 yield h
+
 
 @contextmanager
 def read_maybe_gzip(filepath):
     is_gzip = False
-    with open(filepath, 'rb', buffering=0) as f: # no need for buffers
-        if f.read(3) == b'\x1f\x8b\x08':
+    with open(filepath, "rb", buffering=0) as f:  # no need for buffers
+        if f.read(3) == b"\x1f\x8b\x08":
             is_gzip = True
     if is_gzip:
         with read_gzip(filepath) as f:
             yield f
     else:
-        with open(filepath, 'rt', buffering=2**18) as f: # 256KB buffer
+        with open(filepath, "rt", buffering=2 ** 18) as f:  # 256KB buffer
             yield f
-
 
 
 ## Writers
 
+
 @contextmanager
 def VariantFileWriter(filepath, allow_extra_fields=False):
-    '''
+    """
     Writes variants (represented by dictionaries) to an internal file.
 
         with VariantFileWriter('a.tsv') as writer:
             writer.write({'chrom': '2', 'pos': 47, ...})
-    '''
+    """
     part_file = get_tmp_path(filepath)
     make_basedir(filepath)
-    with AtomicSaver(filepath, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
+    with AtomicSaver(
+        filepath,
+        text_mode=True,
+        part_file=part_file,
+        overwrite_part=True,
+        rm_part_on_exc=False,
+    ) as f:
         yield _vfw(f, allow_extra_fields, filepath)
+
+
 class _vfw:
     def __init__(self, f, allow_extra_fields, filepath):
         self._f = f
         self._allow_extra_fields = allow_extra_fields
         self._filepath = filepath
+
     def write(self, variant):
-        if not hasattr(self, '_writer'):
+        if not hasattr(self, "_writer"):
             fields = []
             for field in conf.parse.fields:
-                if field in variant: fields.append(field)
+                if field in variant:
+                    fields.append(field)
             extra_fields = list(set(variant.keys()) - set(fields))
             if extra_fields:
                 if not self._allow_extra_fields:
-                    raise PheWebError("ERROR: found unexpected fields {!r} among the expected fields {!r} while writing {!r}.".format(
-                                    extra_fields, fields, self._filepath))
+                    raise PheWebError(
+                        "ERROR: found unexpected fields {!r} among the expected fields {!r} while writing {!r}.".format(
+                            extra_fields, fields, self._filepath
+                        )
+                    )
                 fields += extra_fields
-            self._writer = csv.DictWriter(self._f, fieldnames=fields, dialect='pheweb-internal-dialect')
+            self._writer = csv.DictWriter(
+                self._f, fieldnames=fields, dialect="pheweb-internal-dialect"
+            )
             self._writer.writeheader()
         self._writer.writerow(variant)
+
     def write_all(self, variants):
         for v in variants:
             self.write(v)
 
+
 def convert_VariantFile_to_IndexedVariantFile(vf_path, ivf_path):
     from .load.cffi._x import ffi, lib
+
     make_basedir(ivf_path)
     tmp_path = get_tmp_path(ivf_path)
     args = [
-        ffi.new('char[]', vf_path.encode('utf8')),
-        ffi.new('char[]', tmp_path.encode('utf8')),
-        ffi.new('char[]', b'#'),
+        ffi.new("char[]", vf_path.encode("utf8")),
+        ffi.new("char[]", tmp_path.encode("utf8")),
+        ffi.new("char[]", b"#"),
     ]
     lib.cffi_bgzip_file(*args)
     os.rename(tmp_path, ivf_path)
 
     pysam.tabix_index(
-        filename=ivf_path, force=True,
-        seq_col=0, start_col=1, end_col=1 # note: these are 0-based, but `/usr/bin/tabix` is 1-based
+        filename=ivf_path,
+        force=True,
+        seq_col=0,
+        start_col=1,
+        end_col=1,  # note: these are 0-based, but `/usr/bin/tabix` is 1-based
     )
 
 
-
-def write_json(*, filepath=None, data=None, indent=None, sort_keys=False, write_as_given=False):
+def write_json(
+    *, filepath=None, data=None, indent=None, sort_keys=False, write_as_given=False
+):
 
     if not write_as_given:
         assert filepath is not None and data is not None
         part_file = get_tmp_path(filepath)
         make_basedir(filepath)
-        with AtomicSaver(filepath, text_mode=True, part_file=part_file, overwrite_part=True, rm_part_on_exc=False) as f:
+        with AtomicSaver(
+            filepath,
+            text_mode=True,
+            part_file=part_file,
+            overwrite_part=True,
+            rm_part_on_exc=False,
+        ) as f:
             json.dump(data, f, indent=indent, sort_keys=sort_keys)
     else:
-        with open(filepath, 'w') as f:
-            json.dump(data,f)
+        with open(filepath, "w") as f:
+            json.dump(data, f)

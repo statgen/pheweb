@@ -4,7 +4,7 @@ from ..file_utils import common_filepaths
 
 import os
 import re
-import requests
+import urllib.request
 import csv
 import marisa_trie
 
@@ -25,10 +25,10 @@ def run(argv):
         canonical_symbols = set(v[0].upper() for v in aliases_for_ensg.values())
         for cs in canonical_symbols: assert cs and all(l.isalnum() or l in '-._' for l in cs), cs
 
-        r = requests.get('http://www.genenames.org/cgi-bin/download?col=gd_app_sym&col=gd_prev_sym&col=gd_aliases&col=gd_pub_ensembl_id&status=Approved&status=Entry+Withdrawn&status_opt=2&where=&order_by=gd_app_sym_sort&format=text&limit=&hgnc_dbtag=on&submit=submit', verify=False)
-        r.raise_for_status()
+        r = urllib.request.urlopen('http://www.genenames.org/cgi-bin/download?col=gd_app_sym&col=gd_prev_sym&col=gd_aliases&col=gd_pub_ensembl_id&status=Approved&status=Entry+Withdrawn&status_opt=2&where=&order_by=gd_app_sym_sort&format=text&limit=&hgnc_dbtag=on&submit=submit')
+        data = r.read().decode('utf-8')
 
-        for row in csv.DictReader(r.content.decode().split('\n'), delimiter='\t'):
+        for row in csv.DictReader(data.split('\n'), delimiter='\t'):
             ensg = row['Ensembl gene ID']
             if not ensg: continue
             assert re.match(r'^ENSG[R0-9\.]+$', ensg)
