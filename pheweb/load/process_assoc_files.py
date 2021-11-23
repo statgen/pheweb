@@ -20,6 +20,8 @@ matrix
 bgzip_phenos
 top_hits
 gather_pvalues_for_each_gene
+make_cpras_rsids_sqlite3
+make_gene_aliases_sqlite3
 '''.split('\n')
 scripts = [script for script in scripts if script]
 

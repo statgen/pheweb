@@ -178,11 +178,16 @@ class Parallelizer:
                         if p.is_alive():
                             p.terminate() # is this a good choice?  I dunno.
                     exc_filepath = get_dated_tmp_path('exception')
+                    msg = f"""
+                    Child process had exception:
+                    {indent(ret['exception_str'])}
+
+                    Traceback:
+                    {indent(ret['exception_tb'])}
+                    """
+                    print(msg)
                     with open(exc_filepath, 'wt') as f:
-                        f.write(
-                            "Child process had exception:\n" + indent(ret['exception_str']) + '\n' +
-                            "Traceback:\n" + indent(ret['exception_tb']) + '\n'
-                        )
+                        f.write(msg)
                     raise PheWebError('Child process had exception, info dumped to {}'.format(exc_filepath))
                 elif ret['type'] == 'exit':
                     n_procs -= 1
