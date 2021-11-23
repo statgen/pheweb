@@ -419,42 +419,50 @@ def gene_report(genename):
     phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
-    func_vars = jeeves.gene_functional_variants( genename,  conf.report_conf["func_var_assoc_threshold"])
+    func_vars = jeeves.gene_functional_variants( genename,  conf.report_conf['func_var_assoc_threshold'])
     for func_var in func_vars:
         func_var['significant_phenos'] = [pheno for pheno in func_var['significant_phenos'] if pheno.phenocode in use_phenos]
     funcvar = []
     chunk_size = 10
 
     def matching_ukbb(res):
-        ukbline = ""
-        ukbdat = res.get_matching_result("ukbb")
+        ukbline = ''
+        ukbdat = res.get_matching_result('ukbb')
         if( ukbdat is not None):
-            pval = float( ukbdat["pval"] )
-            beta = float( ukbdat["beta"] )
-            ukbline = " \\newline UKBB: " + (" $\\Uparrow$ " if beta>=0 else " $\Downarrow$ ") + ", p:" + "{:.2e}".format(pval)
+            pval = float( ukbdat['pval'] )
+            beta = float( ukbdat['beta'] )
+            ukbline = ' \\newline UKBB: ' + (' $\\Uparrow$ ' if beta>=0 else ' $\Downarrow$ ') + ', p:' + '{:.2e}'.format(pval)
         return ukbline
 
     for var in func_vars:
         i = 0
-        if len(var["significant_phenos"])==0:
-            funcvar.append( { 'rsid': var['var'].get_annotation('rsids'), 'variant':var['var'].id.replace(':', ' '), 'gnomad':var['var'].get_annotation('gnomad'),
-                              "consequence": var['var'].get_annotation("annot")["most_severe"].replace('_', ' ').replace(' variant', ''),
-                             'nSigPhenos':len(var["significant_phenos"]), "maf": var["var"].get_annotation('annot')["AF"], "info": var["var"].get_annotation("annot")["INFO"] ,
-                              "sigPhenos": "NONE" })
+        if len(var['significant_phenos'])==0:
+            funcvar.append( { 'rsid': var['var'].get_annotation('rsids'),
+                              'variant': var['var'].id.replace(':', ' '),
+                              'gnomad': var['var'].get_annotation('gnomad'),
+                              'consequence': var['var'].get_annotation('annot')['most_severe'].replace('_', ' ').replace(' variant', ''),
+                              'nSigPhenos': len(var['significant_phenos']),
+                              'maf': var['var'].get_annotation('annot')['AF'],
+                              'info': var['var'].get_annotation('annot')['INFO'] ,
+                              'sigPhenos': 'NONE' })
             continue
 
-        while i < len(var["significant_phenos"]):
-            phenos = var["significant_phenos"][i:min(i+chunk_size,len(var["significant_phenos"]))]
-            sigphenos = "\\newline \\medskip ".join( list(map(lambda x: (x.phenostring if x.phenostring!="" else x.phenocode if x.phenocode!="" else "NA") + " \\newline (OR:" + "{:.2f}".format( math.exp(x.beta)) + ",p:"  + "{:.2e}".format(x.pval) + ")" +  matching_ukbb(x) + " " , phenos)))
-            if i+chunk_size < len(var["significant_phenos"]):
-                sigphenos = sigphenos + "\\newline ..."
-            funcvar.append( { 'rsid': var['var'].get_annotation('rsids'), 'variant':var['var'].id.replace(':', ' '), 'gnomad':var['var'].get_annotation('gnomad'),
-                              "consequence": var['var'].get_annotation("annot")["most_severe"].replace('_', ' ').replace(' variant', ''),
-                             'nSigPhenos':len(var["significant_phenos"]), "maf": var["var"].get_annotation('annot')["AF"], "info": var["var"].get_annotation("annot")["INFO"] ,
-                              "sigPhenos": sigphenos })
+        while i < len(var['significant_phenos']):
+            phenos = var['significant_phenos'][i:min(i+chunk_size,len(var['significant_phenos']))]
+            sigphenos = '\\newline \\medskip '.join( list(map(lambda x: (x.phenostring if x.phenostring!='' else x.phenocode if x.phenocode!='' else 'NA') + ' \\newline (OR:' + '{:.2f}'.format( math.exp(x.beta)) + ',p:'  + '{:.2e}'.format(x.pval) + ')' +  matching_ukbb(x) + ' ' , phenos)))
+            if i+chunk_size < len(var['significant_phenos']):
+                sigphenos = sigphenos + '\\newline ...'
+            funcvar.append( { 'rsid': var['var'].get_annotation('rsids'),
+                              'variant': var['var'].id.replace(':', ' '),
+                              'gnomad': var['var'].get_annotation('gnomad'),
+                              'consequence': var['var'].get_annotation('annot')['most_severe'].replace('_', ' ').replace(' variant', ''),
+                              'nSigPhenos': len(var['significant_phenos']),
+                              'maf': var['var'].get_annotation('annot')['AF'],
+                              'info': var['var'].get_annotation('annot')['INFO'],
+                              'sigPhenos': sigphenos })
             i = i + chunk_size
     top_phenos = [res for res in jeeves.gene_phenos(genename) if res.pheno['phenocode'] in use_phenos]
-    top_assoc = [ assoc for assoc in top_phenos if assoc.assoc.pval<  conf.report_conf["gene_top_assoc_threshold"]  ]
+    top_assoc = [ assoc for assoc in top_phenos if assoc.assoc.pval < conf.report_conf['gene_top_assoc_threshold']  ]
     ukbb_match=[]
     for assoc in top_assoc:
         ukbb_match.append(matching_ukbb(assoc.assoc))
@@ -466,10 +474,16 @@ def gene_report(genename):
     drugs = jeeves.get_gene_drugs(genename)
 
     ta = list(zip(top_assoc,ukbb_match))
-    print(ta[1:4])
-    pdf =  report.render_template('gene_report.tex',imp0rt = importlib.import_module,
-                                  gene=genename, functionalVars=funcvar, topAssoc=ta, geneinfo=genedata, knownhits=knownhits, drugs=drugs,
-                                  gene_top_assoc_threshold=conf.report_conf["gene_top_assoc_threshold"], func_var_assoc_threshold=conf.report_conf["func_var_assoc_threshold"] )
+    pdf =  report.render_template('gene_report.tex',
+                                  imp0rt = importlib.import_module,
+                                  gene=genename,
+                                  functionalVars=funcvar,
+                                  topAssoc=ta,
+                                  geneinfo=genedata,
+                                  knownhits=knownhits,
+                                  drugs=drugs,
+                                  gene_top_assoc_threshold=conf.report_conf['gene_top_assoc_threshold'],
+                                  func_var_assoc_threshold=conf.report_conf['func_var_assoc_threshold'] )
     response = make_response( pdf.readb())
     response.headers.set('Content-Disposition', 'attachment', filename=genename + '_report.pdf')
     response.headers.set('Content-Type', 'application/pdf')

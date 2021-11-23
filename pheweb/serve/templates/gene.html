@@ -362,12 +362,12 @@
 
 <script type="text/template" id="streamtable-drugs-template">
   <tr>
-    <td><%= d.drug.molecule_name %></td>
-    <td><%= d.drug.molecule_type %></td>
-    <td><%= d.evidence.target2drug.action_type %></td>
-    <td><%= (d.disease && d.disease.efo_info && d.disease.efo_info.label) || '' %></td>
-    <td><%= d.evidence.drug2clinic ? d.evidence.drug2clinic.clinical_trial_phase.label : '' %></td>
-    <td><a href=<%= d.drug.id %>>ChEMBL</a></td>
+    <td><%= d.approvedName %></td>
+    <td><%= (Array.isArray(d.targetClass)?d.targetClass:[]).join() %></td>
+    <td><%= d.mechanismOfAction %></td>
+    <td><%= d.diseaseName %></td>
+    <td><%= d.phase %></td>
+    <td><a href="https://www.ebi.ac.uk/chembl/g/#search_results/all/query=<%= d.drugId %>"><%= d.drugId %></a></td>
   </tr>
 </script>
 

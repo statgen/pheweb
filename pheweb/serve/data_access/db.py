@@ -30,7 +30,7 @@ import glob
 from pheweb_colocalization.model_db import ColocalizationDAO
 from ..components.config_ui.dao import ConfigUIDAO
 from pathlib import Path
-
+from .drug_db import DrugDB, DrugDao
 
 class JSONifiable(object):
     @abc.abstractmethod
@@ -319,16 +319,6 @@ class ResultDB(object):
             Returns None if variant does not exist.
         """
 
-
-class DrugDB(object):
-    @abc.abstractmethod
-    def get_drugs(self, gene):
-        """ Retrieve drugs
-            Args: gene name
-            Returns: drugs targeting the gene
-        """
-        return
-
 class CodingDB(object):
     @abc.abstractmethod
     def get_coding(self):
@@ -404,72 +394,7 @@ class NCBIGeneInfoDao(GeneInfoDB):
         ## chr stop seems to be missing from top level annotation
         loc = list(filter( lambda x: x["annotationrelease"]=="109", data["locationhist"]))[0]
         return { "description":data["description"], "summary":data["summary"], "start":data["chrstart"], "stop":loc["chrstop"], "maploc":data["maplocation"]   }
-
-class DrugDao(DrugDB):
-
-    def __init__(self):
-        pass
-
-    def get_drugs(self, gene_name):
-        # see : https://platform-docs.opentargets.org/data-access/graphql-api
-        # Build query string                                                                                                                                                                           
-
-        query_string = """
-            query search($gene_name: String!) {
-              search( queryString : $gene_name , entityNames:["target"] ) {
-                hits {
-                  score
-                  name
-                  object {
-                    __typename ... on Target { id
-                    approvedSymbol
-                        approvedName
-                        knownDrugs { rows {
-                                            # evidence.drug2clinic.clinical_trial_phase.label
-                                            phase
-                                            # target.target_class
-                                            targetClass
-                                            # evidence.target2drug.action_type
-                                            drugType
-                                            drugId
-                                            prefName
-                                            approvedName
-                                            mechanismOfAction
-                                            # disease.efo_info.label
-                                            disease { dbXRefs }
-                                            drug {
-                                                   # evidence.drug2clinic.max_phase_for_disease.label
-                                                   maximumClinicalTrialPhase ,
-                                                   # drug
-                                                   name
-
-                        } } }
-                    }
-
-                  }
-                }
-              }
-            }
-        """
-
-        variables = {"gene_name": gene_name}
-        # Set base URL of GraphQL API endpoint
-        base_url = "https://api.platform.opentargets.org/api/v4/graphql"
-
-        # Perform POST request and check status code of response
-        r = requests.post(base_url, json={"query": query_string, "variables": variables})
-        print(r)
-        print(r.text)
-        assert r.status_code == 200 , f"failed fetching drugs : ${r}"
-        response = json.loads(r.text)
-        data = response['data'] if 'data' in response else {}
-        search = data['search'] if 'search' in data else {}
-        hits = search['hits'] if 'hits' in search else []
-        hits = sorted(hits, key=lambda x : x['score'], reverse=True)
-        hit = next((h for h in hits if h['name'] == gene_name),{})
-        target = hit['object'] if 'object' in hit else {}
-        return target
-
+    
 class ElasticAnnotationDao(AnnotationDB):
 
     def __init__(self, host, port, variant_index):

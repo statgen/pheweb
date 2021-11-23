@@ -564,7 +564,13 @@ def _ensure_conf():
     conf.set_default_value("var_top_pheno_export_fields", ["phenocode","phenostring","category","pval","beta",
     "maf","maf_case","maf_control","n_case","n_control"])
     conf.set_default_value("gene_pheno_export_fields", ["variant.varid", "assoc.pval","assoc.beta","assoc.variant.rsids", "pheno.category", "pheno.num_cases", "pheno.num_controls", "pheno.phenocode", "pheno.phenostring", "variant.annotation.gnomad.AF_fin", "variant.annotation.gnomad.AF_nfe"])
-    conf.set_default_value("drug_export_fields", ["drug.molecule_name", "drug.molecule_type", "evidence.target2drug.action_type", "disease.efo_info.label", "evidence.drug2clinic.clinical_trial_phase.label", "drug.id"])
+    conf.set_default_value("drug_export_fields",
+                           ["targetClass",
+                            "mechanismOfAction",
+                            "diseaseName",
+                            "phase",
+                            "drugId"])
+    
     conf.set_default_value("lof_export_fields", ["pheno", "variants", "p_value", "beta", "ref_alt_cases", "ref_alt_ctrls"])
 
     conf.set_default_value("report_conf", {"func_var_assoc_threshold":0.0001}  )

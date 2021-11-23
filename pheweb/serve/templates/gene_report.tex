@@ -32,10 +32,10 @@
 \section{ Functional variants }
 \begin{longtable}{p{1.5cm}|c|c|c|C{1.3cm}|C{1.3cm}|C{1.2cm}|L{4.8cm} }
 \caption{ Functional variant associations }\\
-Variant & rsid & Consequence & MAF & MAF FIN & MAF NFE & N phenos p\textless((( "{:.0e}".format(func_var_assoc_threshold) ))) & top phenos \\
+Variant & rsid & Consequence & MAF & MAF FIN & MAF NFE & N phenos p\textless((( "{:.0e}".format(func_var_assoc_threshold | float ) ))) & top phenos \\
 \hline
 ((* for var in functionalVars *))
-    ((( var.variant | escape_tex))) & ((( var.rsid ))) & (((  var.consequence | escape_tex))) & ((( "{:.2e}".format(var.maf) ))) & ((( "{:.2e}".format(var.gnomad.AF_fin) if "gnomad" in var and var.gnomad != none else "N/A" ))) & ((( "{:.2e}".format(var.gnomad.AF_nfe) if "gnomad" in var and var.gnomad is not none else "N/A" ))) & ((( var.nSigPhenos ))) & (((var.sigPhenos| escape_tex)))  \\
+    ((( var.variant | escape_tex))) & ((( var.rsid ))) & (((  var.consequence | escape_tex))) & ((( "{:.2e}".format(var.maf | float) ))) & ((( "{:.2e}".format(var.gnomad.AF_fin | float) if "gnomad" in var and var.gnomad != none else "N/A" ))) & ((( "{:.2e}".format(var.gnomad.AF_nfe | float) if "gnomad" in var and var.gnomad is not none else "N/A" ))) & ((( var.nSigPhenos ))) & (((var.sigPhenos| escape_tex)))  \\
 ((* endfor *))
 
 \end{longtable}
@@ -48,7 +48,7 @@ Variant & rsid & Consequence & MAF & MAF FIN & MAF NFE & N phenos p\textless((( 
     Variant & pheno & cases & controls & MAF case & MAF control & OR & p-value & UKBB \\
 \hline
 ((* for var in topAssoc *))
-    ((( var[0].variant.id.replace(":"," ") | escape_tex))) \newline ((( var[0].variant.rsids ))) & ((( var[0].assoc.phenostring | escape_tex))) & (((var[0].assoc.n_case ))) & (((var[0].assoc.n_control))) & ((( "{:.2e}".format(var[0].assoc.maf_case) ))) & ((( "{:.2e}".format(var[0].assoc.maf_control) ))) & ((( "{:.2e}".format(math.exp(var[0].assoc.beta)) ))) & ((( "{:.2e}".format(var[0].assoc.pval) ))) & (((var[1])))\\
+    ((( var[0].variant.id.replace(":"," ") | escape_tex))) \newline ((( var[0].variant.rsids ))) & ((( var[0].assoc.phenostring | escape_tex))) & (((var[0].assoc.n_case ))) & (((var[0].assoc.n_control))) & ((( "{:.2e}".format(var[0].assoc.maf_case | float) ))) & ((( "{:.2e}".format(var[0].assoc.maf_control | float) ))) & ((( "{:.2e}".format(math.exp(var[0].assoc.beta | float)) ))) & ((( "{:.2e}".format(var[0].assoc.pval | float) ))) & (((var[1])))\\
 ((* endfor *))
 \end{longtable}
 \end{landscape}
@@ -76,7 +76,7 @@ Variant & pheno & effective allele & EAF & beta/or & -10 log p-value & reference
 Molecule & type & action & disease & phase \\
 \hline
 ((* for d in drugs *))
-((( d.drug.molecule_name | escape_tex))) & ((( d.drug.molecule_type | escape_tex))) & ((( d.evidence.target2drug.action_type |escape_tex ))) & ((( d.disease.efo_info.label | escape_tex ))) & ((( d.evidence.drug2clinic.clinical_trial_phase.label if  d.evidence.drug2clinic != none else 'NA' | escape_tex ))) \\
+((( d.approvedName | escape_tex))) & ((( d.targetClass | join(' ') | escape_tex))) & ((( d.mechanismOfAction |escape_tex ))) & ((( d.diseaseName | escape_tex ))) & ((( d.phase ))) \\
 ((* endfor *))
 \end{longtable}
 \endgroup
