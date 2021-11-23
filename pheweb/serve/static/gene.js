@@ -65,8 +65,6 @@ function populate_variant_streamtable(data) {
 }
 
 function populate_drugs_streamtable(data) {
-
-    // data = _.sortBy(data, _.property('pval'));
     var template = _.template($('#streamtable-drugs-template').html());
     var view = function(d) {
         return template({d: d});
