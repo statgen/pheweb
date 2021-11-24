@@ -366,9 +366,12 @@ class MichinganGWASUKBBCatalogDao(KnownHitsDB):
                 " and chrom eq  '" + str(chr) + "'" +
                 " and pos ge " + str(start) +
                 " and pos le " + str(stop))
-
-        rep = r.json()
-
+        text = r.text
+        encoded_string = text.encode('ascii', errors='ignore')
+        decode_string = encoded_string.decode()
+        # remove escaped unicode
+        normalize_string = re.sub("\\\\u\d+", '', decode_string)
+        rep = json.loads(normalize_string)
         return rep["data"]
 
 
