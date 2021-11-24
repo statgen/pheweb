@@ -4,14 +4,14 @@ replicaCount: 3
 
 pheweb:
   mount: /mnt/nfs
-  subdomain: results
-  ipName: finngen-results-ip
+  subdomain: r8
+  ipName: finngen-r8-ip
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
-  release: r7
+  release: r8
   
 persistentVolume:
   path: /vol1
   server: 10.179.247.250
 
-image:
-  tag: ci-b9d7190d192faf8f32a73d80e01c4243710237e4
+image: # pheweb image
+   tag: ci-9ac43bee60721c531a45b260fc0f6b44efa6cf00
