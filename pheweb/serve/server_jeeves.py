@@ -479,11 +479,12 @@ class ServerJeeves(object):
         gnomad_data = pd.DataFrame(gnomad_data)
         # C:P:R:A to chrC_P_R_A
         fg_data["variant"] = "chr"+fg_data["variant"].str.replace(":","_")
-        gnomad_data["variant"] = "chr"+gnomad_data["variant"].str.replace(":","_") 
         
         #join that data to autoreporting dataframe
         output = pd.merge(df,fg_data,on="variant",how="left")
-        output = pd.merge(output,gnomad_data,on="variant",how="left")
+        if 'variant' in gnomad_data:
+            gnomad_data["variant"] = "chr"+gnomad_data["variant"].str.replace(":","_")
+            output = pd.merge(output,gnomad_data,on="variant",how="left")
         #and back to dicts :)
         #JSON doesn't implement floating point numbers correctly, so no infinite or nan values even though they are available in both python and js... >_<
         output=output.replace(to_replace={

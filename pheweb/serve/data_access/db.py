@@ -489,9 +489,6 @@ class ElasticGnomadDao(GnomadDB):
         self.port = port
 
         url = f'{host}:{port}'
-        print('!!!!!!!!!!!!!!!!!!!.........................................')
-        print(url)
-        print('!!!!!!!!!!!!!!!!!!!.........................................')        
         self.elastic = Elasticsearch(host + ':' + str(port))
         if not self.elastic.ping():
             raise ValueError("Could not connect to elasticsearch at " + host + ":" + str(port))
