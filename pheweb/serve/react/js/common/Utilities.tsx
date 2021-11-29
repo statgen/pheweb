@@ -1,5 +1,5 @@
 import React from "react";
-import * as Handlebars from 'handlebars';
+import * as Handlebars from "handlebars";
 
 /**
  * Compose fuction
@@ -9,8 +9,11 @@ import * as Handlebars from 'handlebars';
  * @param f
  * @param g
  */
-export function compose<A, B, C> (f: (arg: A) => B, g: (arg: B) => C): (arg: A) => C {
-  return x => g(f(x))
+export function compose<A, B, C>(
+  f: (arg: A) => B,
+  g: (arg: B) => C
+): (arg: A) => C {
+  return (x) => g(f(x));
 }
 
 /**
@@ -24,19 +27,54 @@ export function compose<A, B, C> (f: (arg: A) => B, g: (arg: B) => C): (arg: A) 
  * @param sink
  * @param fetchURL
  */
-export const get : <X>(url: string,
-                       sink : (x: X) => void) => Promise<void> = (url, sink) =>
-                         fetch(url)
-                           .then(response => response.json())
-                           .then(sink)
-                           .catch(console.error)
+export const get: <X>(url: string, sink: (x: X) => void) => Promise<void> = (
+  url,
+  sink
+) =>
+  fetch(url)
+    .then((response) => response.json())
+    .then(sink)
+    .catch(console.error);
+/**
+ * mustacheDiv
+ *
+ * return a div that contains as it's inner html
+ * the output of a mustache template expanded using
+ * the given context
+ */
+export const mustacheDiv: <X>(template: string, content: X) => JSX.Element = (
+  template,
+  content
+) => (
+  <div
+    dangerouslySetInnerHTML={{ __html: Handlebars.compile(template)(content) }}
+  ></div>
+);
 
-export const mustacheDiv : <X>(template : string, content : X) => JSX.Element = (template , content) =>
-    <div dangerouslySetInnerHTML={{ __html: Handlebars.compile(template)(content) }}></div>
+/**
+ * mustacheSpan
+ *
+ * return a span that contains as it's inner html
+ * the output of a mustache template expanded using
+ * the given context
+ */
+export const mustacheSpan: <X>(template: string, content: X) => JSX.Element = (
+  template,
+  content
+) => (
+  <span
+    dangerouslySetInnerHTML={{ __html: Handlebars.compile(template)(content) }}
+  ></span>
+);
 
-
-export const mustacheSpan : <X>(template : string, content : X) => JSX.Element = (template , content) =>
-    <span dangerouslySetInnerHTML={{ __html: Handlebars.compile(template)(content) }}></span>
-
-export const mustacheText : <X>(template : string, content : X) => string = (template , content) =>
-    Handlebars.compile(template)(content)
+/**
+ * mustacheText
+ *
+ * return a span that contains as it's inner html
+ * the output of a mustache template expanded using
+ * the given context
+ */
+export const mustacheText: <X>(template: string, content: X) => string = (
+  template,
+  content
+) => Handlebars.compile(template)(content);
