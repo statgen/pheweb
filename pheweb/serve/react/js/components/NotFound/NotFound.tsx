@@ -15,13 +15,12 @@ const NotFound = (props : Props) => {
       const query = new URLSearchParams(props.location.search).get('query');
       const default_message_template : string = `
       <p>
-      {{#query}}Could not find page for <i>'{{query}}'</i>{{/query}} 
+      {{#query}}Could not find page for <i>'{{.}}'</i>{{/query}}
       {{^query}}An empty query <i>'${query}'</i> was supplied;<br> therefore, a page could not be found.{{/query}}
       </p>
       `
       const message_template : string = config?.userInterface?.notFound?.message_template || default_message_template;
       const parameters = { query };
-      const loading = <div>loading ... </div>;
       return mustacheDiv(message_template, parameters);
 }
 
