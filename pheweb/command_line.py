@@ -62,7 +62,7 @@ for submodule in '''
  top_loci
  detect_ref
  export_data
- map_fields
+ format_summary_file
  external_matrix
  make_cpras_rsids_sqlite3
  make_gene_aliases_sqlite3
