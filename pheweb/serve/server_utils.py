@@ -1,3 +1,4 @@
+import math
 
 from flask import url_for, Response, redirect
 
@@ -37,7 +38,10 @@ class _Get_Pheno_Region:
                 _Get_Pheno_Region._rename(v, 'chrom', 'chr')
                 _Get_Pheno_Region._rename(v, 'pos', 'position')
                 _Get_Pheno_Region._rename(v, 'rsids', 'rsid')
+                # TODO: Old PheWeb sends "pvalue", but new LocusZoom is trying to encourage use of log_pvalue (more resistant to underflow for really significant hits)
+                #  We will send both fields for now, but should consolidate this in future.
                 _Get_Pheno_Region._rename(v, 'pval', 'pvalue')
+                v['log_pvalue'] = -math.log10(v['pvalue'])
                 variants.append(v)
 
         df = _Get_Pheno_Region._dataframify(variants)

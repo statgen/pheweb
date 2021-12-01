@@ -8,7 +8,7 @@
     float: none !important;
 }
 /*
-TODO: merge toolbar-component-centering into LZ. (should it be the default?)
+TODO: merge toolbar-widget-centering into LZ. (should it be the default?)
       - if not, make it explicit.  it's bad that I'm just centering anything with `.lz-toolbar-group-*`.
 TODO: stop text-align:center from cascading downward through descendants
 */
