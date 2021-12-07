@@ -49,12 +49,12 @@ repos:
           - flake8-builtins
           - flake8-copyright
           - pep8-naming
-  #- repo: https://github.com/pre-commit/mirrors-mypy
-  #  rev: v0.902
-  #  hooks:
-  #    - id: mypy
-  #      exclude: ^tests/
-  #      args: [--strict]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.902
+    hooks:
+      - id: mypy
+        exclude: ^tests/
+        args: [--strict]
   # - repo: https://github.com/asottile/seed-isort-config
   #   rev: v2.2.0
   #   hooks:

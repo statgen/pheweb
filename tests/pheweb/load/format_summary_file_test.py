@@ -24,6 +24,10 @@ from pheweb.load.format_summary_file import (
     parse_args,
     OUTPUT_COLUMN_CHROMOSOME,
     OUTPUT_COLUMN_POSITION,
+    OUTPUT_COLUMN_ALTERNATIVE,
+    OUTPUT_COLUMN_P_VALUE,
+    OUTPUT_COLUMN_M_LOG_P_VALUE,
+    OUTPUT_COLUMN_BETA,
     #     run,
     #     log_error,
     #     log_info,
@@ -92,76 +96,74 @@ def test_parse_args_position():
     assert parse_args([]).position is OUTPUT_COLUMN_POSITION
 
 
-#
-#
-# def test_parse_args_alt() -> None:
-#     """
-#     Test arguments for alternative column.
-#
-#     @return: None
-#     """
-#     alternative = str(uuid.uuid4())
-#     assert parse_args(["--alt", alternative]).alternative == alternative
-#     assert parse_args([]).alternative is None
-#
-#
-# def test_parse_args_p_value() -> None:
-#     """
-#     Test arguments for p-value column.
-#
-#     @return: None
-#     """
-#     p_value = str(uuid.uuid4())
-#     assert parse_args(["--pval", p_value]).p_value == p_value
-#     assert parse_args([]).p_value is None
-#
-#
-# def test_parse_args_m_log_p_value() -> None:
-#     """
-#     Test arguments for m log p value column.
-#
-#     @return: None
-#     """
-#     m_log_p_value = str(uuid.uuid4())
-#     assert parse_args(["--mlogp", m_log_p_value]).m_log_p_value == m_log_p_value
-#     assert parse_args([]).m_log_p_value is None
-#
-#
-# def test_parse_args_beta() -> None:
-#     """
-#     Test arguments for beta column.
-#
-#     @return: None
-#     """
-#     beta = str(uuid.uuid4())
-#     assert parse_args(["--beta", beta]).beta == beta
-#     assert parse_args([]).beta is None
-#
-#
-# def test_parse_args_exclude() -> None:
-#     """
-#     Test argument for columns to exclude.
-#
-#     @return: None
-#     """
-#     exclude = str(uuid.uuid4())
-#     assert parse_args(["--exclude", exclude]).exclude == {exclude}
-#     assert parse_args([]).exclude == set()
-#
-#
-# def test_parse_args_rename() -> None:
-#     """
-#     Test arguments for rename.
-#
-#     @return: None
-#     """
-#     new_name = str(uuid.uuid4())
-#     old_name = str(uuid.uuid4())
-#     rename = f"{old_name}:{new_name}"
-#     assert parse_args(["--rename", rename]).rename == {old_name: new_name}
-#     assert parse_args([]).rename == {}
-#
-#
+def test_parse_args_alt() -> None:
+    """
+    Test arguments for alternative column.
+
+    @return: None
+    """
+    alternative = str(uuid.uuid4())
+    assert parse_args(["--alt", alternative]).alternative == alternative
+    assert parse_args([]).alternative is OUTPUT_COLUMN_ALTERNATIVE
+
+
+def test_parse_args_p_value() -> None:
+    """
+    Test arguments for p-value column.
+
+    @return: None
+    """
+    p_value = str(uuid.uuid4())
+    assert parse_args(["--pval", p_value]).p_value == p_value
+    assert parse_args([]).p_value == OUTPUT_COLUMN_P_VALUE
+
+
+def test_parse_args_m_log_p_value() -> None:
+    """
+    Test arguments for m log p value column.
+
+    @return: None
+    """
+    m_log_p_value = str(uuid.uuid4())
+    assert parse_args(["--mlogp", m_log_p_value]).m_log_p_value == m_log_p_value
+    assert parse_args([]).m_log_p_value == OUTPUT_COLUMN_M_LOG_P_VALUE
+
+
+def test_parse_args_beta() -> None:
+    """
+    Test arguments for beta column.
+
+    @return: None
+    """
+    beta = str(uuid.uuid4())
+    assert parse_args(["--beta", beta]).beta == beta
+    assert parse_args([]).beta == OUTPUT_COLUMN_BETA
+
+
+def test_parse_args_exclude() -> None:
+    """
+    Test argument for columns to exclude.
+
+    @return: None
+    """
+    exclude = str(uuid.uuid4())
+    assert parse_args(["--exclude", exclude]).exclude == {exclude}
+    assert parse_args([]).exclude == set()
+
+
+def test_parse_args_rename() -> None:
+    """
+    Test arguments for rename.
+
+    @return: None
+    """
+    new_name = str(uuid.uuid4())
+    old_name = str(uuid.uuid4())
+    rename = f"{old_name}:{new_name}"
+    assert parse_args(["--rename", rename]).rename == {old_name: new_name}
+    assert not parse_args([]).rename
+
+
 # def test_parse_out_file() -> None:
 #     """
 #     Test arguments for out file.
