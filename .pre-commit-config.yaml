@@ -1,0 +1,63 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-xml
+      - id: check-yaml
+      - id: debug-statements
+      - id: detect-private-key
+      #- id: double-quote-string-fixer # fights with black
+      - id: end-of-file-fixer
+      - id: fix-encoding-pragma
+      - id: mixed-line-ending
+      - id: name-tests-test
+      - id: pretty-format-json
+      - id: requirements-txt-fixer
+      - id: sort-simple-yaml
+      - id: trailing-whitespace
+      - id: no-commit-to-branch
+        args: [ --branch, master]
+
+
+  - repo: https://github.com/pycqa/pylint
+    rev: v2.12.2
+    hooks:
+    -   id: pylint
+  - repo: https://github.com/ambv/black
+    rev: 21.11b1
+    hooks:
+      - id: black
+  - repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - flake8-docstrings
+          - flake8-rst-docstrings
+          - flake8-comprehensions
+          - flake8-builtins
+          - flake8-copyright
+          - pep8-naming
+  # - repo: https://github.com/asottile/seed-isort-config
+  #   rev: v2.2.0
+  #   hooks:
+  #     - id: seed-isort-config
+  #- repo: https://github.com/pre-commit/mirrors-isort
+  #  rev: v5.9.3
+  #  hooks:
+  #    - id: isort
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest-check
+        entry: pytest
+        language: system
+        pass_filenames: false
+        always_run: true

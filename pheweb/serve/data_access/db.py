@@ -14,7 +14,7 @@ import pymysql
 import imp
 from typing import List, Tuple, Dict
 from ...file_utils import MatrixReader, common_filepaths
-from ...utils import get_phenolist, get_gene_tuples
+from ...utils import get_phenolist, get_gene_tuples, pvalue_to_mlogp
 
 from collections import namedtuple
 import requests
@@ -127,18 +127,8 @@ class PhenoResult(JSONifiable):
             # if pval is missing there is nothing we can do
             if self.pval is None:
                 None
-            # special case if pval is zero
-            # as it could be a tiny number
-            # that gets rounded to zero
-            # the ui interprets this as
-            # mlogp >> 324
-            # this is problematic and will be
-            # addressed in issue #137
-            elif self.pval == 0:
-                self.mlogp = 324
-            # default to calculating from the pval
             else:
-                self.mlogp = -math.log10(self.pval)
+                self.mlogp = pvalue_to_mlogp(self.pval)
         
     def add_matching_result(self, resultname, result):
         self.matching_results[resultname] = result
