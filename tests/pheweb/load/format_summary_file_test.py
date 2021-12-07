@@ -9,7 +9,8 @@ format_summary_file.py.
 """
 # import io
 # import os
-# import uuid
+import uuid
+
 # import sys
 # import random
 import pytest
@@ -20,7 +21,9 @@ import pytest
 from pheweb.load.format_summary_file import (
     parse_exclude_args,
     parse_rename_args,
-    #     parse_args,
+    parse_args,
+    OUTPUT_COLUMN_CHROMOSOME,
+    OUTPUT_COLUMN_POSITION,
     #     run,
     #     log_error,
     #     log_info,
@@ -67,28 +70,28 @@ def test_rename_args() -> None:
         assert parse_rename_args("a")
 
 
-#
-#
-# def test_parse_args_chromosome() -> None:
-#     """
-#     Test arguments for chromosome column.
-#
-#     @return: None
-#     """
-#     chromosome = str(uuid.uuid4())
-#     assert parse_args(["--chrom", chromosome]).chromosome == chromosome
-#     assert parse_args([]).chromosome is None
-#
-#
-# def test_parse_args_position():
-#     """
-#     Test arguments for position column.
-#
-#     @return: None
-#     """
-#     position = str(uuid.uuid4())
-#     assert parse_args(["--pos", position]).position == position
-#     assert parse_args([]).position is None
+def test_parse_args_chromosome() -> None:
+    """
+    Test arguments for chromosome column.
+
+    @return: None
+    """
+    chromosome = str(uuid.uuid4())
+    assert parse_args(["--chrom", chromosome]).chromosome == chromosome
+    assert parse_args([]).chromosome is OUTPUT_COLUMN_CHROMOSOME
+
+
+def test_parse_args_position():
+    """
+    Test arguments for position column.
+
+    @return: None
+    """
+    position = str(uuid.uuid4())
+    assert parse_args(["--pos", position]).position == position
+    assert parse_args([]).position is OUTPUT_COLUMN_POSITION
+
+
 #
 #
 # def test_parse_args_alt() -> None:
