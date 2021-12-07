@@ -903,11 +903,11 @@ def process_file(arguments: Arguments, read_file, write_file) -> int:
         alternative : {arguments.alternative}
         p-value : {arguments.p_value}
         m log p-value : {arguments.m_log_p_value}
-    
+
     Configuration:
         exclude : {arguments.exclude}
         rename: {arguments.rename}
-    
+
     Files:
         in file : {arguments.in_file}
         out file : {arguments.out_file}

@@ -68,22 +68,25 @@ def get_phenolist():
     """
     # TODO: should this be memoized?
     from .file_utils import common_filepaths
-    filepath = common_filepaths['phenolist']
+
+    filepath = common_filepaths["phenolist"]
     try:
-        with open(os.path.join(filepath), encoding='utf-8') as f:
+        with open(os.path.join(filepath), encoding="utf-8") as f:
             phenotype_list = json.load(f)
     except (FileNotFoundError, PermissionError):
         raise PheWebError(
             f"""You need a file to define your phenotypes at '{filepath}'
-                For more information on how to make one, see 
+                For more information on how to make one, see
                 <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>"""
         )
     except json.JSONDecodeError:
-        print(f"""Your file at '{filepath}' contains invalid json.
-                  The error it produced was:""")
+        print(
+            f"""Your file at '{filepath}' contains invalid json.
+                  The error it produced was:"""
+        )
         raise
     for phenotype in phenotype_list:
-        phenotype['phenocode'] = urllib.parse.quote_plus(phenotype['phenocode'])
+        phenotype["phenocode"] = urllib.parse.quote_plus(phenotype["phenocode"])
     return phenotype_list
 
 
@@ -94,16 +97,21 @@ def get_use_phenos():
     @return: list of phenotypes.
     """
     from .file_utils import common_filepaths
-    filepath = common_filepaths['use_phenos']
+
+    filepath = common_filepaths["use_phenos"]
     try:
-        with open(os.path.join(filepath), encoding='utf-8') as f:
-            phenotype_list = [pheno.strip() for pheno in f.readlines() if pheno != '' and not pheno.startswith('#')]
-            print(f'using {str(len(phenotype_list))} phenotypes from {filepath}')
+        with open(os.path.join(filepath), encoding="utf-8") as f:
+            phenotype_list = [
+                pheno.strip()
+                for pheno in f.readlines()
+                if pheno != "" and not pheno.startswith("#")
+            ]
+            print(f"using {str(len(phenotype_list))} phenotypes from {filepath}")
     except FileNotFoundError:
-        print(f' {filepath} not found, using all phenotypes')
-        phenotype_list = [pheno['phenocode'] for pheno in get_phenolist()]
+        print(f" {filepath} not found, using all phenotypes")
+        phenotype_list = [pheno["phenocode"] for pheno in get_phenolist()]
     except PermissionError:
-        raise PheWebError(f' {filepath} could not be read')
+        raise PheWebError(f" {filepath} could not be read")
     return phenotype_list
 
 
@@ -132,8 +140,9 @@ def pad_gene(start, end):
 # CONSTANTS
 def get_gene_tuples(include_ensg=False):
     from .file_utils import common_filepaths
-    with open(common_filepaths['genes']) as f:
-        for row in csv.reader(f, delimiter='\t'):
+
+    with open(common_filepaths["genes"]) as f:
+        for row in csv.reader(f, delimiter="\t"):
             assert row[0] in chrom_order, row[0]
             if include_ensg:
                 yield row[0], int(row[1]), int(row[2]), row[3], row[4]
