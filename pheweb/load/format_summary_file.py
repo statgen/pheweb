@@ -4,58 +4,48 @@
 """
 Format summary file for pheweb.
 
-Tool for formatting a summary file for Pheweb.
-Pheweb expects summary file to be a tsv with
-the following required columns with their name
-and header:
+Tool for formatting a summary file for Pheweb.  Pheweb expects summary file
+to be a tsv with the following required columns with their name and header:
 
-* chromosome : #chrom
-* position : pos
-* reference : ref
-* alternative : alt
-* p-value : pval
-* m-log-p-value : mlogp
-* beta : beta
+* chromosome : #chrom : where chromosome is a number between 1-25
+* position : pos : the position is a positive integer
+* reference : ref : a string [GATC]+
+* alternative : alt : a string [GACT]+
+* p-value : pval : float : [0 - 1]
+* m-log-p-value : mlogp : float : -inf - sentinel
+* beta : beta : float
 
 The fields that follow these columns are free form.
 
-The values of the required fields validated:
-
-* chromosome : where chromosome is a number between 1-25
-* position : the position is a positive integer
-* reference : a string [GATC]+
-* alternative : a string [GACT]+
-* p-value : float : [0 - 1]
-* m-log-p-value : float : -inf - sentinel
-* beta : float
-
-The command line interface
-
-Run command to see usage
+CLI:
+Run command to see usage:
 
     format_summary_file.py -h
 
-Behavior
-
-The header is validated.  The header validation fails
-the error is output then the program terminates.  If
-the header validation succeeds each row is parsed
-and validated.  If the row is valid then it is output
-otherwise print error to stderr.   Print summary of error
-and valid rows to stderr when done.
+Behavior:
+The header is validated.  The header validation fails the error is output the
+program terminates.  If the header validation succeeds each row is parsed and
+validated.  If the row is valid then it is output otherwise print error to stderr.
+Print summary of error and valid rows to stderr when done.
 
 """
 
+import logging
 import argparse
 import os
 import re
 import sys
 import typing
 from dataclasses import dataclass
-from typing import Dict, List, Set, Optional
+from typing import Dict, Set, Optional, Sequence
 from pheweb.utils import file_open, pvalue_to_mlogp, parse_chromosome
 
-
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    encoding="utf-8",
+    level=logging.INFO,
+)
+LOGGER = logging.getLogger(__name__)
 # Data classes
 
 
@@ -64,8 +54,7 @@ class Arguments:
     """
     DTO containing the arguments.
 
-    The arguments to the script
-    are packed in this DTO.
+    The arguments to the script are packed in this DTO.
 
     chromosome : chromosome column name
     position: position column name
@@ -108,18 +97,31 @@ class Column:
     index: int
     header: str
     description: str
-    formatter: typing.Callable[[int, str], Optional[str]]
+    # see : https://stackoverflow.com/q/51811024
+    formatter: Optional[typing.Callable[[int, str], Optional[str]]]
 
 
 # CONSTANTS
-
 OUTPUT_COLUMN_CHROMOSOME = "#chrom"
+OUTPUT_DESCRIPTION_CHROMOSOME = "chromosome"
+
 OUTPUT_COLUMN_POSITION = "pos"
+OUTPUT_DESCRIPTION_POSITION = "position"
+
 OUTPUT_COLUMN_REFERENCE = "ref"
+OUTPUT_DESCRIPTION_REFERENCE = "reference"
+
 OUTPUT_COLUMN_ALTERNATIVE = "alt"
+OUTPUT_DESCRIPTION_ALTERNATIVE = "alternative"
+
 OUTPUT_COLUMN_P_VALUE = "pval"
+OUTPUT_DESCRIPTION_P_VALUE = "p-value"
+
 OUTPUT_COLUMN_M_LOG_P_VALUE = "mlogp"
+OUTPUT_DESCRIPTION_M_LOG_P_VALUE = "m log p-value"
+
 OUTPUT_COLUMN_BETA = "beta"
+OUTPUT_DESCRIPTION_BETA = "beta"
 
 OUTPUT_REQUIRED_COLUMNS = [
     OUTPUT_COLUMN_CHROMOSOME,
@@ -131,10 +133,8 @@ OUTPUT_REQUIRED_COLUMNS = [
     OUTPUT_COLUMN_BETA,
 ]
 
-
 M_LOG_P_COLUMN_HEADER = OUTPUT_COLUMN_M_LOG_P_VALUE
 M_LOG_P_COLUMN_DESCRIPTION = "m log p-value computed from p-value"
-
 
 # METHODS
 
@@ -143,8 +143,7 @@ def parse_exclude_args(exclude: str) -> Set[str]:
     """
     Parse exclude args.
 
-    Parse exclude args from a comma
-    separated list of fields to a set.
+    Parse exclude args from a comma separated list of fields to a set.
 
     @param exclude: comma separated list
     @return: set containing fields to exclude
@@ -159,13 +158,11 @@ def parse_rename_args(rename: Optional[str]) -> Dict[str, str]:
     """
     Parse rename args.
 
-    Parse rename args taking a comma
-    separated list of
+    Parse rename args taking a comma separated list of:
 
     OLD_NAME:NEW_NAME,...
 
-    And returning a dictionary list.  Method raises
-    an exception if string is malformed.
+    Method raises an exception if string is malformed.
 
     @param rename: comma separated list name mapping
     @return: dictionary containing the mapping
@@ -181,12 +178,11 @@ def parse_rename_args(rename: Optional[str]) -> Dict[str, str]:
     return rename_map
 
 
-def parse_args(argv: List[str]) -> Arguments:
+def parse_args(argv: Sequence[str]) -> Arguments:
     """
     Parse command args.
 
-    Parse command args and return an
-    argument object.
+    Parse command args and return an argument object.
 
     @param argv: commandline options
     @return: arguments object
@@ -301,14 +297,11 @@ def parse_args(argv: List[str]) -> Arguments:
     )
 
 
-def log_error(
-    msg: str, line_number: typing.Optional[int] = None, file=sys.stderr
-) -> None:
+def log_error(msg: str, line_number: typing.Optional[int] = None) -> None:
     """
     Log Error.
 
-    Method for logging errors to ensure uniform
-    summary.
+    Method for logging errors to ensure uniform summary.
 
     @param msg: message to be logged
     @param line_number: input file line number
@@ -316,21 +309,20 @@ def log_error(
     @return: None
     """
     msg = msg if line_number is None else f"line : {line_number} : {msg}"
-    print(msg, file=file)
+    LOGGER.error(msg)
 
 
-def log_info(msg: str, file=sys.stderr) -> None:
+def log_info(msg: str) -> None:
     """
     Log info message.
 
-    Intended usage for displaying configuration
-    and summary information
+    Intended usage for displaying configuration and summary information
 
     @param msg:
     @param file:
     @return:
     """
-    print(msg, file=file)
+    LOGGER.info(msg)
 
 
 def str_formatter(_: int, value: str) -> Optional[str]:
@@ -350,8 +342,7 @@ def chromosome_formatter(line_number: int, value: str) -> Optional[str]:
     """
     Format chromosome.
 
-    If valid chromosome format otherwise
-    log error.
+    If valid chromosome format otherwise log error.
 
     See utils_py:parse_chromosome
 
@@ -404,9 +395,8 @@ def parameterized_sequence_formatter(
     """
     Parameterize sequence formatter.
 
-    Because both the reference and alternate columns
-    both use the same formatter this allows the column
-    to be added to the error message.
+    Because both the reference and alternate columns both use the  same
+    formatter this allows the column to be added to the error message.
 
     @param column_name: column name
     @return:  Formatter for column
@@ -466,8 +456,7 @@ def m_log_from_p_value_formatter(line_number: int, value: str) -> typing.Optiona
     """
     M log p-value from p-value.
 
-    This formatter creates an m log p-value from
-    a p-value column by calculation.
+    This formatter creates an m log p-value from a p-value column by calculation.
 
     @param line_number: line number
     @param value: string value
@@ -524,13 +513,12 @@ def parameterized_float_formatter(
     return formatter
 
 
-def column_valid(headers: List[str], column: Column) -> typing.Optional[Column]:
+def column_valid(headers: Sequence[str], column: Column) -> typing.Optional[Column]:
     """
     Check is column is valid.
 
-    Check if a column is valid with respect to
-    the given header.  The only check done is
-    if the column index is in bounds.
+    Check if a column is valid with respect to the given header.
+    The only check done is if the column index is in bounds.
 
     @param headers:  list containing file headers
     @param column: column description object
@@ -546,13 +534,14 @@ def column_valid(headers: List[str], column: Column) -> typing.Optional[Column]:
 
 
 def search_header(
-    headers: List[Optional[str]], column_name: str, default_index: Optional[int] = None
+    headers: Sequence[Optional[str]],
+    column_name: str,
+    default_index: Optional[int] = None,
 ) -> Optional[int]:
     """
     Search header.
 
-    Search header for a column returning
-    the index.
+    Search header for a column returning the index.
 
     @param headers: headers
     @param column_name: name of column
@@ -567,12 +556,31 @@ def search_header(
     return index
 
 
+def resolve_index(
+    headers: Sequence[Optional[str]], index: Optional[int]
+) -> Optional[str]:
+    """
+    Resolve index.
+
+    Given an index return header at that index.
+
+    @param headers: headers
+    @param index: optional index
+    @return: header is available.
+    """
+    if index is None:
+        result = None
+    else:
+        result = headers[index]
+    return result
+
+
 def create_column(
-    headers: List[Optional[str]],
+    headers: Sequence[Optional[str]],
     column_name: str,
     description: str,
     formatter: typing.Callable[[int, str], typing.Optional[str]],
-) -> typing.Tuple[typing.List[typing.Optional[str]], typing.Optional[Column]]:
+) -> typing.Tuple[typing.Sequence[typing.Optional[str]], typing.Optional[Column]]:
     """
     Create column.
 
@@ -586,11 +594,11 @@ def create_column(
     """
     result: typing.Optional[Column] = None
     index = search_header(headers, column_name)
-    assert index is None or headers[index] is not None
-    if index is not None and headers[index] is not None:
+    header = resolve_index(headers, index)
+    if header is not None and index is not None:
         result = Column(
             index=index,
-            header=headers[index],
+            header=header,
             description=description,
             formatter=formatter,
         )
@@ -605,15 +613,13 @@ VALUE = typing.TypeVar("VALUE")
 
 
 def coalesce(
-    value: Optional[VALUE], acc: Optional[List[VALUE]]
-) -> Optional[List[VALUE]]:
+    value: Optional[VALUE], acc: Optional[Sequence[VALUE]]
+) -> Optional[Sequence[VALUE]]:
     """
     Coalesce a value into a list.
 
     If the value or the accumulator are None return.
     Otherwise, return accumulator with value appended.
-
-    accumulator+[value]
 
     @param value: optional value
     @param acc: optional accumulator
@@ -624,7 +630,7 @@ def coalesce(
     elif value is None:
         result = None
     else:
-        result = acc + [value]
+        result = list(acc) + [value]
     return result
 
 
@@ -649,12 +655,13 @@ def p_value_to_m_log_p_column(column: Column) -> Column:
     )
 
 
-def exclude_header(headers: List[str], exclude: Set[str]) -> List[Optional[str]]:
+def exclude_header(
+    headers: Sequence[str], exclude: Set[str]
+) -> Sequence[Optional[str]]:
     """
     Exclude header.
 
-    Exclude columns from header by
-    changing the entry to None.
+    Exclude columns from header by changing the entry to None.
 
     @param headers: headers
     @param exclude: columns to be excluded
@@ -665,7 +672,7 @@ def exclude_header(headers: List[str], exclude: Set[str]) -> List[Optional[str]]
     return excluded_headers
 
 
-def process_remainder(headers: List[Optional[str]]) -> List[Column]:
+def process_remainder(headers: Sequence[Optional[str]]) -> Sequence[Column]:
     """
     Process remainder.
 
@@ -688,13 +695,12 @@ def process_remainder(headers: List[Optional[str]]) -> List[Column]:
 
 
 def process_validate_exclude(
-    headers: List[str], exclude: Set[str], columns: Optional[List[Column]]
-) -> Optional[List[Column]]:
+    headers: Sequence[str], exclude: Set[str], columns: Optional[Sequence[Column]]
+) -> Optional[Sequence[Column]]:
     """
     Validate exclude.
 
-    Check that excluded columns could be found
-    in headers.
+    Check that excluded columns could be found in headers.
 
     @param headers: input file header
     @param exclude: columns to exclude
@@ -709,25 +715,23 @@ def process_validate_exclude(
 
 
 def process_validate_rename(
-    headers: List[str], rename: Dict[str, str], columns: Optional[List[Column]]
-) -> Optional[List[Column]]:
+    headers: Sequence[Optional[str]],
+    rename: Dict[str, str],
+    columns: Optional[Sequence[Column]],
+) -> Optional[Sequence[Column]]:
     """
     Validate rename arguments.
 
-    * Check they are not pointing to a required column
-      use the flags for those.
-    * Check the renaming refers to column that is in the
-      header.
+    * Check they are not pointing to a required column use the flags for those.
+    * Check the renaming refers to column that is in the header.
 
-    Note: this is run after columns have bene excluded,
-    so those values should be None.
-    Note: this also allows a column name to be repeated.
+    Note: This is run after columns have bene excluded, so those values should be None.
+    Note: This also allows a column name to be repeated.
 
     @param headers: input file headers
     @param rename: map continuing header names what to remap to.
     @param columns: columns being constructed
     @return: return None if remapping is invalid or column if they are
-
     """
     # can't map to protected columns have to use flags for that
     # have to map from allowed columns
@@ -741,8 +745,8 @@ def process_validate_rename(
 
 
 def headers_to_columns(
-    arguments: Arguments, headers: List[str]
-) -> typing.Optional[List[Column]]:
+    arguments: Arguments, headers: Sequence[str]
+) -> typing.Optional[Sequence[Column]]:
     """
      Create columns from header.
 
@@ -752,112 +756,112 @@ def headers_to_columns(
     @param headers: file headers
     @return:
     """
-    columns: typing.Optional[List[Column]] = []
+    columns: typing.Optional[Sequence[Column]] = []
     columns = process_validate_exclude(headers, arguments.exclude, columns)
     # mark excluded headers with None so they are not used
-    headers = exclude_header(headers, arguments.exclude)
+    processed_headers: Sequence[Optional[str]] = exclude_header(
+        headers, arguments.exclude
+    )
     # NOTE : excluded have been marked at this point
-    columns = process_validate_rename(headers, arguments.rename, columns)
+    columns = process_validate_rename(processed_headers, arguments.rename, columns)
 
-    # chromosome
-    headers, chromosome_column = create_column(
-        headers, arguments.chromosome, "chromosome", chromosome_formatter
+    processed_headers, chromosome_column = create_column(
+        processed_headers,
+        arguments.chromosome,
+        OUTPUT_DESCRIPTION_CHROMOSOME,
+        chromosome_formatter,
     )
     # indicate an error when coalescing
     columns = coalesce(chromosome_column, columns)
 
-    # position
-    headers, position_column = create_column(
-        headers, arguments.position, "position", position_formatter
+    processed_headers, position_column = create_column(
+        processed_headers,
+        arguments.position,
+        OUTPUT_DESCRIPTION_POSITION,
+        position_formatter,
     )
     columns = coalesce(position_column, columns)
 
-    # reference
-    reference_column_name = "reference"
-    headers, reference_column = create_column(
-        headers,
+    processed_headers, reference_column = create_column(
+        processed_headers,
         arguments.reference,
-        reference_column_name,
-        parameterized_sequence_formatter(reference_column_name),
+        OUTPUT_DESCRIPTION_REFERENCE,
+        parameterized_sequence_formatter(OUTPUT_DESCRIPTION_REFERENCE),
     )
     columns = coalesce(reference_column, columns)
 
-    # alternative
-    alternative_column_name = "alternative"
-    headers, alternative_column = create_column(
-        headers,
+    processed_headers, alternative_column = create_column(
+        processed_headers,
         arguments.alternative,
-        alternative_column_name,
-        parameterized_sequence_formatter(alternative_column_name),
+        OUTPUT_DESCRIPTION_ALTERNATIVE,
+        parameterized_sequence_formatter(OUTPUT_DESCRIPTION_ALTERNATIVE),
     )
     columns = coalesce(alternative_column, columns)
 
-    # p-value
-    headers, p_value_column = create_column(
-        headers, arguments.p_value, "p-value", p_value_formatter
+    processed_headers, p_value_column = create_column(
+        processed_headers,
+        arguments.p_value,
+        OUTPUT_DESCRIPTION_P_VALUE,
+        p_value_formatter,
     )
     columns = coalesce(p_value_column, columns)
 
-    # m log p-value
-    p_m_log_p_value_name = "m log p-value"
-    headers, p_m_log_p_value = create_column(
-        headers,
+    processed_headers, p_m_log_p_value = create_column(
+        processed_headers,
         arguments.m_log_p_value,
-        p_m_log_p_value_name,
-        parameterized_float_formatter(p_m_log_p_value_name),
+        OUTPUT_DESCRIPTION_M_LOG_P_VALUE,
+        parameterized_float_formatter(OUTPUT_DESCRIPTION_M_LOG_P_VALUE),
     )
 
     if p_m_log_p_value is None and p_value_column is not None:
         p_m_log_p_value = p_value_to_m_log_p_column(p_value_column)
     columns = coalesce(p_m_log_p_value, columns)
 
-    # beta
-    beta_name = "beta"
-    headers, beta_value = create_column(
-        headers, arguments.beta, beta_name, parameterized_float_formatter(beta_name)
+    processed_headers, beta_value = create_column(
+        processed_headers,
+        arguments.beta,
+        OUTPUT_DESCRIPTION_BETA,
+        parameterized_float_formatter(OUTPUT_DESCRIPTION_BETA),
     )
     columns = coalesce(beta_value, columns)
 
-    for current_column in process_remainder(headers):
+    for current_column in process_remainder(processed_headers):
         columns = coalesce(current_column, columns)
 
-    # now through
     return columns
 
 
-def line_to_row(line: str) -> List[str]:
+def line_to_row(line: str) -> Sequence[str]:
     """
     Line to row.
 
-    Given a string covert to a list
-    representing a row.
+    Given a string covert to a list representing a row.
 
-    @param line: string containng a row
+    @param line: string containing a row
     @return: row
     """
     return line.rstrip("\n").split("\t")
 
 
-def row_to_line(row: List[str]) -> str:
+def row_to_line(row: Sequence[str], prefix="\n") -> str:
     """
     Row to line.
 
-    Given a row (list of string) return a
-    tsv encoded string.
+    Given a row (list of string) return a tsv encoded string.
 
     @param row: list of cells
+    @param prefix : prefix (space supplied for header)
     @return: string representing the row
     """
     line = "\t".join(row)
-    return f"{line}\n"
+    return f"{prefix}{line}"
 
 
-def header_row(columns: List[Column]) -> List[str]:
+def header_row(columns: Sequence[Column]) -> Sequence[str]:
     """
     Header row.
 
-    Create header row from the column
-    metadata.
+    Create header row from the column metadata.
 
     @param columns:  column metadata
     @return: header row.
@@ -867,24 +871,24 @@ def header_row(columns: List[Column]) -> List[str]:
 
 
 def process_row(
-    line_number: int, row: List[str], columns: List[Column]
-) -> typing.Optional[List[str]]:
+    line_number: int, row: Sequence[str], columns: Sequence[Column]
+) -> typing.Optional[Sequence[str]]:
     """
     Process row from input.
 
-    Given a row return a str return formatted row
-    or None if there is a fault formatting row.
+    Given a row return a str return formatted row or None if there is a fault.
 
     @param line_number:
     @param row: input row to be formatted
     @param columns: row metadata
     @return: formatted row otherwise None
     """
-    result: typing.Optional[List[str]] = []
+    result: typing.Optional[Sequence[str]] = []
+    current_column: Column
     for current_column in columns:
-        cell: typing.Optional[str] = current_column.formatter(
-            line_number, row[current_column.index]
-        )
+        assert current_column.formatter is not None
+        formatter: typing.Callable[[int, str], Optional[str]] = current_column.formatter
+        cell: typing.Optional[str] = formatter(line_number, row[current_column.index])
         result = coalesce(cell, result)
     return result
 
@@ -925,12 +929,12 @@ def process_file(arguments: Arguments, read_file, write_file) -> int:
     if columns is None:
         exit_code = os.EX_CONFIG
     else:
-        write_file.write(row_to_line(header_row(columns)))
+        write_file.write(row_to_line(header_row(columns), prefix=""))
         line_number = 1
         for line in read_file.readlines():
             row = line_to_row(line)
-            row = process_row(line_number, row, columns)
-            faults = write_row(write_file, row, faults)
+            formatted_row = process_row(line_number, row, columns)
+            faults = write_row(write_file, formatted_row, faults)
             line_number = line_number + 1
         msg = f"""
         processed:
@@ -942,13 +946,11 @@ def process_file(arguments: Arguments, read_file, write_file) -> int:
     return exit_code
 
 
-def write_row(write_file, row: Optional[List[str]], faults: int) -> int:
+def write_row(write_file, row: Optional[Sequence[str]], faults: int) -> int:
     """
     Write row.
 
-    Given a row write out if valid
-    otherwise update the number of
-    faults.
+    Given a row write out if valid otherwise update the number of faults.
 
     @param write_file: file handle
     @param row: row
@@ -966,8 +968,7 @@ def faults_to_exit_code(faults: int) -> int:
     """
     Faults to exit code.
 
-    Given the number of faults in the file
-    return the exit code.
+    Given the number of faults in the file return the exit code.
 
     @param faults: number of faults in file
     @return: return exit code
@@ -979,7 +980,7 @@ def faults_to_exit_code(faults: int) -> int:
     return exit_code
 
 
-def run(argv: List[str]) -> int:
+def run(argv: Sequence[str]) -> int:
     """
     Take arguments and returns an exit code.
 
@@ -990,7 +991,6 @@ def run(argv: List[str]) -> int:
     with file_open(args.in_file, mode="r") as read_file:
         with file_open(args.out_file, mode="w") as write_file:
             return process_file(args, read_file, write_file)
-    return os.EX_OK
 
 
 if __name__ == "__main__":
