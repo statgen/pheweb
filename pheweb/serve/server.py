@@ -199,7 +199,7 @@ def api_variant(query):
 @app.route('/variant/<query>')
 def variant_page(query):
     try:
-        q=query.split("-")
+        q=re.split('-|:|/|_',query)
         if len(q)!=4:
             die("Malformed variant query. Use chr-pos-ref-alt")
         v = Variant(q[0].replace('X', '23'),q[1],q[2], q[3])
