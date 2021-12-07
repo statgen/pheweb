@@ -87,7 +87,7 @@ class Arguments:
     alternative: str
     p_value: str
     m_log_p_value: str
-    beta: Optional[str]
+    beta: str
     exclude: Set[str]
     rename: Dict[str, str]
     in_file: str
@@ -335,7 +335,7 @@ def log_info(msg: str, file=sys.stderr) -> None:
 
 def str_formatter(_: int, value: str) -> Optional[str]:
     """
-    String formatter.
+    Format string.
 
     A pass through formatter.
 
@@ -348,7 +348,7 @@ def str_formatter(_: int, value: str) -> Optional[str]:
 
 def chromosome_formatter(line_number: int, value: str) -> Optional[str]:
     """
-    Chromosome formatter.
+    Format chromosome.
 
     If valid chromosome format otherwise
     log error.
@@ -359,20 +359,19 @@ def chromosome_formatter(line_number: int, value: str) -> Optional[str]:
     @param value: value containing chromosome
     @return: formatted chromosome
     """
+    result: Optional[str] = None
     try:
         chromosome = value.strip()
-        chromosome = parse_chromosome(chromosome)
-        result = str(chromosome)
+        result = str(parse_chromosome(chromosome))
     except ValueError as value_error:
         log_error(
             f'invalid chromosome expected number "{value}" details : {value_error}',
             line_number=line_number,
         )
-        result = None
     return result
 
 
-def position_formatter(line_number: int, value: str) -> typing.Optional[Column]:
+def position_formatter(line_number: int, value: str) -> typing.Optional[str]:
     """
     Position formatter.
 
@@ -382,11 +381,11 @@ def position_formatter(line_number: int, value: str) -> typing.Optional[Column]:
     @param value: value
     @return: position if value otherwise None.
     """
-    result = None
+    result: Optional[str] = None
     try:
         position = int(value)
         if position >= 0:
-            result = position
+            result = str(position)
         else:
             log_error(
                 f'position expected positive integer "{value}"', line_number=line_number
@@ -421,6 +420,7 @@ def parameterized_sequence_formatter(
         @param value: sequence
         @return: sequence if valid otherwise None
         """
+        result: Optional[str] = None
         sequence = value.upper()
         if re.match(r"^[GCAT]*$", sequence):
             result = sequence
@@ -449,7 +449,7 @@ def p_value_formatter(line_number: int, value: str) -> typing.Optional[str]:
     try:
         p_value = float(value)
         if 0 <= p_value <= 1:
-            result = p_value
+            result = str(p_value)
         else:
             log_error(
                 f'p-value not in expected range "{p_value}"', line_number=line_number
@@ -477,9 +477,9 @@ def m_log_from_p_value_formatter(line_number: int, value: str) -> typing.Optiona
     p_value = p_value_formatter(line_number, value)
     if p_value is not None:
         try:
-            p_value = float(p_value)
-            p_value = pvalue_to_mlogp(p_value)
-            result = str(p_value)
+            p_value_float = float(p_value)
+            p_value_float = pvalue_to_mlogp(p_value_float)
+            result = str(p_value_float)
         except ValueError as value_error:
             log_error(
                 f'p-value for m log could not be parsed as float "{value}" details : {value_error}',
@@ -536,6 +536,7 @@ def column_valid(headers: List[str], column: Column) -> typing.Optional[Column]:
     @param column: column description object
     @return:  column if valid otherwise None
     """
+    result: typing.Optional[Column] = None
     if column.index < len(headers):
         result = column
     else:
@@ -545,7 +546,7 @@ def column_valid(headers: List[str], column: Column) -> typing.Optional[Column]:
 
 
 def search_header(
-    headers: List[str], column_name: str, default_index: Optional[int] = None
+    headers: List[Optional[str]], column_name: str, default_index: Optional[int] = None
 ) -> Optional[int]:
     """
     Search header.
@@ -558,6 +559,7 @@ def search_header(
     @param default_index: default to return if not found
     @return: index of column or default in not found
     """
+    index: Optional[int] = None
     if column_name is not None and column_name in headers:
         index = headers.index(column_name)
     else:
@@ -566,11 +568,11 @@ def search_header(
 
 
 def create_column(
-    headers: List[str],
-    column_name: typing.Union[str, None],
+    headers: List[Optional[str]],
+    column_name: str,
     description: str,
     formatter: typing.Callable[[int, str], typing.Optional[str]],
-) -> typing.Tuple[List[str], typing.Optional[Column]]:
+) -> typing.Tuple[typing.List[typing.Optional[str]], typing.Optional[Column]]:
     """
     Create column.
 
@@ -582,15 +584,17 @@ def create_column(
     @param formatter: column formatter
     @return: Column if column can be created None otherwise
     """
+    result: typing.Optional[Column] = None
     index = search_header(headers, column_name)
-    if index is not None:
+    assert index is None or headers[index] is not None
+    if index is not None and headers[index] is not None:
         result = Column(
             index=index,
             header=headers[index],
             description=description,
             formatter=formatter,
         )
-        headers = List[str](headers)
+        headers = list(headers)
         headers[index] = None
     else:
         result = None
@@ -645,7 +649,7 @@ def p_value_to_m_log_p_column(column: Column) -> Column:
     )
 
 
-def exclude_header(headers: List[str], exclude: Set[str]):
+def exclude_header(headers: List[str], exclude: Set[str]) -> List[Optional[str]]:
     """
     Exclude header.
 
@@ -657,8 +661,8 @@ def exclude_header(headers: List[str], exclude: Set[str]):
     @return: header with columns excluded
 
     """
-    headers = [None if current in exclude else current for current in headers]
-    return headers
+    excluded_headers = [None if current in exclude else current for current in headers]
+    return excluded_headers
 
 
 def process_remainder(headers: List[Optional[str]]) -> List[Column]:
@@ -710,7 +714,6 @@ def process_validate_rename(
     """
     Validate rename arguments.
 
-    Validate rename arguments.
     * Check they are not pointing to a required column
       use the flags for those.
     * Check the renaming refers to column that is in the
@@ -724,6 +727,7 @@ def process_validate_rename(
     @param rename: map continuing header names what to remap to.
     @param columns: columns being constructed
     @return: return None if remapping is invalid or column if they are
+
     """
     # can't map to protected columns have to use flags for that
     # have to map from allowed columns
@@ -748,7 +752,7 @@ def headers_to_columns(
     @param headers: file headers
     @return:
     """
-    columns = []
+    columns: typing.Optional[List[Column]] = []
     columns = process_validate_exclude(headers, arguments.exclude, columns)
     # mark excluded headers with None so they are not used
     headers = exclude_header(headers, arguments.exclude)
@@ -844,7 +848,8 @@ def row_to_line(row: List[str]) -> str:
     @param row: list of cells
     @return: string representing the row
     """
-    return "{}\n".format("\t".join(row))
+    line = "\t".join(row)
+    return f"{line}\n"
 
 
 def header_row(columns: List[Column]) -> List[str]:
@@ -857,8 +862,8 @@ def header_row(columns: List[Column]) -> List[str]:
     @param columns:  column metadata
     @return: header row.
     """
-    columns = list(map(lambda current_column: current_column.label, columns))
-    return columns
+    headers = list(map(lambda current_column: current_column.header, columns))
+    return headers
 
 
 def process_row(
@@ -875,12 +880,12 @@ def process_row(
     @param columns: row metadata
     @return: formatted row otherwise None
     """
-    result: List[str] = []
+    result: typing.Optional[List[str]] = []
     for current_column in columns:
-        row: typing.Optional[str] = current_column.formatter(
+        cell: typing.Optional[str] = current_column.formatter(
             line_number, row[current_column.index]
         )
-        result = coalesce(row, result)
+        result = coalesce(cell, result)
     return result
 
 
@@ -923,8 +928,8 @@ def process_file(arguments: Arguments, read_file, write_file) -> int:
         write_file.write(row_to_line(header_row(columns)))
         line_number = 1
         for line in read_file.readlines():
-            line_to_row(line)
-            row = process_row(line_number, line, columns)
+            row = line_to_row(line)
+            row = process_row(line_number, row, columns)
             faults = write_row(write_file, row, faults)
             line_number = line_number + 1
         msg = f"""
