@@ -42,7 +42,6 @@ from pheweb.utils import file_open, pvalue_to_mlogp, parse_chromosome
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    encoding="utf-8",
     level=logging.INFO,
 )
 LOGGER = logging.getLogger(__name__)
@@ -305,7 +304,6 @@ def log_error(msg: str, line_number: typing.Optional[int] = None) -> None:
 
     @param msg: message to be logged
     @param line_number: input file line number
-    @param file: optional file handle as where to long
     @return: None
     """
     msg = msg if line_number is None else f"line : {line_number} : {msg}"
@@ -319,8 +317,7 @@ def log_info(msg: str) -> None:
     Intended usage for displaying configuration and summary information
 
     @param msg:
-    @param file:
-    @return:
+    @return: None
     """
     LOGGER.info(msg)
 
@@ -410,16 +407,15 @@ def parameterized_sequence_formatter(
         @param value: sequence
         @return: sequence if valid otherwise None
         """
-        result: Optional[str] = None
         sequence = value.upper()
-        if re.match(r"^[GCAT]*$", sequence):
-            result = sequence
-        else:
+        if not re.match(r"^[GCAT]*$", sequence):
             result = None
             log_error(
                 f'{column_name} is not a valid sequence "{value}" ',
                 line_number=line_number,
             )
+        else:
+            result = sequence
         return result
 
     return formatter
@@ -524,12 +520,11 @@ def column_valid(headers: Sequence[str], column: Column) -> typing.Optional[Colu
     @param column: column description object
     @return:  column if valid otherwise None
     """
-    result: typing.Optional[Column] = None
-    if column.index < len(headers):
-        result = column
-    else:
+    if not column.index < len(headers):
         result = None
         log_error(f"{column.index} out of bounds header only has {len(headers)}")
+    else:
+        result = column
     return result
 
 
@@ -548,11 +543,10 @@ def search_header(
     @param default_index: default to return if not found
     @return: index of column or default in not found
     """
-    index: Optional[int] = None
-    if column_name is not None and column_name in headers:
-        index = headers.index(column_name)
-    else:
+    if column_name is None or column_name not in headers:
         index = default_index
+    else:
+        index = headers.index(column_name)
     return index
 
 
@@ -592,10 +586,11 @@ def create_column(
     @param formatter: column formatter
     @return: Column if column can be created None otherwise
     """
-    result: typing.Optional[Column] = None
     index = search_header(headers, column_name)
     header = resolve_index(headers, index)
-    if header is not None and index is not None:
+    if header is None or index is None:
+        result = None
+    else:
         result = Column(
             index=index,
             header=header,
@@ -604,8 +599,6 @@ def create_column(
         )
         headers = list(headers)
         headers[index] = None
-    else:
-        result = None
     return headers, result
 
 
