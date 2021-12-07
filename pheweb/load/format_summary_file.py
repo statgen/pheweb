@@ -973,7 +973,7 @@ def faults_to_exit_code(faults: int) -> int:
     return exit_code
 
 
-def run(argv: Sequence[str]) -> int:
+def run(argv: Sequence[str]) -> typing.NoReturn:
     """
     Take arguments and returns an exit code.
 
@@ -983,8 +983,9 @@ def run(argv: Sequence[str]) -> int:
     args = parse_args(argv)
     with file_open(args.in_file, mode="r") as read_file:
         with file_open(args.out_file, mode="w") as write_file:
-            return process_file(args, read_file, write_file)
+            return_code = process_file(args, read_file, write_file)
+    sys.exit(return_code)
 
 
 if __name__ == "__main__":
-    sys.exit(run(sys.argv[1:]))  # pragma: no cover
+    run(sys.argv[1:])  # pragma: no cover
