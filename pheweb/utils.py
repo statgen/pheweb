@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 Utility functions.
 
@@ -16,7 +17,7 @@ import csv
 import boltons.mathutils
 import smart_open
 import math
-import scipy
+from scipy import stats
 
 
 class PheWebError(Exception):
@@ -214,11 +215,11 @@ def pvalue_to_mlogp(p_value: float) -> float:
     return m_log_p_value
 
 
-def beta_to_m_log_p(beta: float, se_beta : float) -> float:
+def beta_to_m_log_p(beta: float, se_beta: float) -> float:
     if se_beta == 0:
-        raise ValueError(f'm log p-value value undefined {beta} {se_beta}')
+        raise ValueError(f"m log p-value value undefined {beta} {se_beta}")
     else:
-        return (scipy.stats.norm.logsf(beta / se_beta) + math.log(2)) / math.log(10)
+        return (stats.norm.logsf(beta / se_beta) + math.log(2)) / math.log(10)
 
 
 @contextlib.contextmanager

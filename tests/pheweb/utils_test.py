@@ -172,4 +172,4 @@ def test_file_open_file(mock_std_file_handler) -> None:
 
 
 def test_beta_to_m_log_p() -> None:
-    assert beta_to_m_log_p(1.0,1.0) == 0
+    assert beta_to_m_log_p(1.0,1.0) == -0.4985155458279891
