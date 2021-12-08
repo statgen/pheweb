@@ -19,7 +19,7 @@ from pheweb.utils import (
     M_LOG_P_SENTINEL,
     std_file_handler,
     file_open,
-    parse_chromosome,
+    parse_chromosome, beta_to_m_log_p,
 )
 from pheweb.utils import round_sig, approx_equal, pad_gene
 
@@ -169,3 +169,7 @@ def test_file_open_file(mock_std_file_handler) -> None:
     with file_open("test", mode="Ur") as file:
         buffer = file.read()
         assert salt == buffer
+
+
+def test_beta_to_m_log_p() -> None:
+    assert beta_to_m_log_p(1.0,1.0) == 0

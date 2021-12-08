@@ -38,7 +38,7 @@ import sys
 import typing
 from dataclasses import dataclass
 from typing import Dict, Set, Optional, Sequence
-from pheweb.utils import file_open, pvalue_to_mlogp, parse_chromosome
+from pheweb.utils import file_open, pvalue_to_mlogp, parse_chromosome, beta_to_m_log_p
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -76,10 +76,15 @@ class Arguments:
     p_value: str
     m_log_p_value: str
     beta: str
+    se_beta: str
     exclude: Set[str]
     rename: Dict[str, str]
     in_file: str
     out_file: str
+
+
+Formatter = Optional[typing.Union[typing.Callable[[int, str], Optional[str]],
+                                  typing.Callable[[int, str, str], Optional[str]]]]
 
 
 @dataclass(repr=True, eq=True, frozen=True)
@@ -93,11 +98,11 @@ class Column:
     formatter : given a column data return data if well formatted
     """
 
-    index: int
+    indices: Sequence[int]
     header: str
     description: str
     # see : https://stackoverflow.com/q/51811024
-    formatter: Optional[typing.Callable[[int, str], Optional[str]]]
+    formatter: Formatter
 
 
 # CONSTANTS
@@ -122,7 +127,10 @@ OUTPUT_DESCRIPTION_M_LOG_P_VALUE = "m log p-value"
 OUTPUT_COLUMN_BETA = "beta"
 OUTPUT_DESCRIPTION_BETA = "beta"
 
-OUTPUT_REQUIRED_COLUMNS = [
+OUTPUT_COLUMN_SE_BETA = "sebeta"
+OUTPUT_DESCRIPTION_SE_BETA = "sebeta"
+
+OUTPUT_FIXED_COLUMNS = [
     OUTPUT_COLUMN_CHROMOSOME,
     OUTPUT_COLUMN_POSITION,
     OUTPUT_COLUMN_REFERENCE,
@@ -130,6 +138,7 @@ OUTPUT_REQUIRED_COLUMNS = [
     OUTPUT_COLUMN_P_VALUE,
     OUTPUT_COLUMN_M_LOG_P_VALUE,
     OUTPUT_COLUMN_BETA,
+    OUTPUT_COLUMN_SE_BETA,
 ]
 
 M_LOG_P_COLUMN_HEADER = OUTPUT_COLUMN_M_LOG_P_VALUE
@@ -247,7 +256,16 @@ def parse_args(argv: Sequence[str]) -> Arguments:
         default=OUTPUT_COLUMN_BETA,
         action="store",
         type=str,
-        help="name of beta columns column after mlogp or pvalue",
+        help="name of beta columns column",
+    )
+
+    parser.add_argument(
+        "--se_beta",
+        dest="se_beta",
+        default=OUTPUT_COLUMN_SE_BETA,
+        action="store",
+        type=str,
+        help="name of se beta columns column",
     )
 
     parser.add_argument(
@@ -289,6 +307,7 @@ def parse_args(argv: Sequence[str]) -> Arguments:
         p_value=parsed.p_value,
         m_log_p_value=parsed.m_log_p_value,
         beta=parsed.beta,
+        se_beta=parsed.se_beta,
         exclude=parse_exclude_args(parsed.exclude),
         rename=parse_rename_args(parsed.rename),
         out_file=parsed.out_file,
@@ -473,6 +492,42 @@ def m_log_from_p_value_formatter(line_number: int, value: str) -> typing.Optiona
     return result
 
 
+def se_beta_formatter(line_number: int, value: str) -> typing.Optional[str]:
+    result: Optional[str] = None
+    try:
+        se_beta = float(value)
+        if se_beta >= 0:
+            result = str(se_beta)
+        else:
+            log_error(
+                f'position expected positive float "{value}"', line_number=line_number
+            )
+    except ValueError as value_error:
+        log_error(
+            f'position could not be parsed as integer "{value}" details : {value_error}',
+            line_number=line_number,
+        )
+    return result
+
+
+def m_log_from_beta_formatter(line_number: int, beta: str, se_beta: str) -> typing.Optional[str]:
+    result = None
+    string_beta = parameterized_float_formatter("beta")(line_number, beta)
+    string_se_beta: Optional[str] = se_beta_formatter(line_number, se_beta)
+    if string_beta is not None and string_se_beta is not None:
+        try:
+            float_beta = float(string_beta)
+            float_se_beta = float(string_se_beta)
+            m_log_p_value = beta_to_m_log_p(float_beta, float_se_beta)
+            result = str(m_log_p_value)
+        except ValueError as value_error:
+            log_error(
+                f'position could not calculate m log p from beta "{beta}" se beta "{se_beta}" details : {value_error}',
+                line_number=line_number,
+            )
+    return result
+
+
 def parameterized_float_formatter(
     column_name: str,
 ) -> typing.Callable[[int, str], typing.Optional[str]]:
@@ -520,9 +575,9 @@ def column_valid(headers: Sequence[str], column: Column) -> typing.Optional[Colu
     @param column: column description object
     @return:  column if valid otherwise None
     """
-    if not column.index < len(headers):
+    if not all(map(lambda index: index < len(headers), column.indices)):
         result = None
-        log_error(f"{column.index} out of bounds header only has {len(headers)}")
+        log_error(f"{column.indices} out of bounds header only has {len(headers)}")
     else:
         result = column
     return result
@@ -569,12 +624,10 @@ def resolve_index(
     return result
 
 
-def create_column(
-    headers: Sequence[Optional[str]],
-    column_name: str,
-    description: str,
-    formatter: typing.Callable[[int, str], typing.Optional[str]],
-) -> typing.Tuple[typing.Sequence[typing.Optional[str]], typing.Optional[Column]]:
+def create_column(headers: Sequence[Optional[str]],
+                  column_name: str,
+                  description: str,
+                  formatter: Formatter) -> typing.Tuple[typing.Sequence[typing.Optional[str]], typing.Optional[Column]]:
     """
     Create column.
 
@@ -591,12 +644,10 @@ def create_column(
     if header is None or index is None:
         result = None
     else:
-        result = Column(
-            index=index,
-            header=header,
-            description=description,
-            formatter=formatter,
-        )
+        result = Column(indices=[index],
+                        header=header,
+                        description=description,
+                        formatter=formatter)
         headers = list(headers)
         headers[index] = None
     return headers, result
@@ -640,12 +691,21 @@ def p_value_to_m_log_p_column(column: Column) -> Column:
     """
     # sanity check that p-value column was supplied.
     assert column.header == OUTPUT_COLUMN_P_VALUE
-    return Column(
-        index=column.index,
-        header=M_LOG_P_COLUMN_HEADER,
-        description=M_LOG_P_COLUMN_DESCRIPTION,
-        formatter=m_log_from_p_value_formatter,
-    )
+    return Column(indices=column.indices,
+                  header=M_LOG_P_COLUMN_HEADER,
+                  description=M_LOG_P_COLUMN_DESCRIPTION,
+                  formatter=m_log_from_p_value_formatter)
+
+
+def beta_to_m_log_p_column(beta_value_column: Column,
+                           se_beta_value_column: Column) -> Column:
+    assert beta_value_column.header == OUTPUT_COLUMN_SE_BETA
+    assert se_beta_value_column.header == OUTPUT_COLUMN_SE_BETA
+    return Column(indices=[*beta_value_column.header,
+                           *se_beta_value_column.header],
+                  header=M_LOG_P_COLUMN_HEADER,
+                  description=M_LOG_P_COLUMN_DESCRIPTION,
+                  formatter=m_log_from_beta_formatter)
 
 
 def exclude_header(
@@ -678,7 +738,7 @@ def process_remainder(headers: Sequence[Optional[str]]) -> Sequence[Column]:
     for index, current_header in enumerate(headers):
         if current_header is not None:
             current_column = Column(
-                index=index,
+                indices=[index],
                 header=current_header,
                 description=current_header,
                 formatter=str_formatter,
@@ -732,7 +792,7 @@ def process_validate_rename(
         if column_name not in headers:
             log_error(f"renaming source column {column_name} not found in header")
             columns = coalesce(None, columns)
-        if column_name in OUTPUT_REQUIRED_COLUMNS:
+        if column_name in OUTPUT_FIXED_COLUMNS:
             log_error(f"mapped column {column_name} not found in header")
     return columns
 
@@ -799,24 +859,38 @@ def headers_to_columns(
     )
     columns = coalesce(p_value_column, columns)
 
-    processed_headers, p_m_log_p_value = create_column(
+    processed_headers, beta_value_column = create_column(
+        processed_headers,
+        arguments.beta,
+        OUTPUT_DESCRIPTION_BETA,
+        parameterized_float_formatter(OUTPUT_DESCRIPTION_BETA),
+    )
+
+    processed_headers, se_beta_column = create_column(
+        processed_headers,
+        arguments.p_value,
+        OUTPUT_DESCRIPTION_SE_BETA,
+        parameterized_float_formatter(OUTPUT_DESCRIPTION_SE_BETA),
+    )
+
+    processed_headers, p_m_log_p_value_column = create_column(
         processed_headers,
         arguments.m_log_p_value,
         OUTPUT_DESCRIPTION_M_LOG_P_VALUE,
         parameterized_float_formatter(OUTPUT_DESCRIPTION_M_LOG_P_VALUE),
     )
 
-    if p_m_log_p_value is None and p_value_column is not None:
+    if p_m_log_p_value_column is None and beta_value_column is not None and se_beta_column:
+        p_m_log_p_value = beta_to_m_log_p_column(beta_value_column, se_beta_column)
+        columns = coalesce(p_m_log_p_value, columns)
+    elif p_m_log_p_value_column is None and p_value_column is not None:
         p_m_log_p_value = p_value_to_m_log_p_column(p_value_column)
-    columns = coalesce(p_m_log_p_value, columns)
+        columns = coalesce(p_m_log_p_value, columns)
 
-    processed_headers, beta_value = create_column(
-        processed_headers,
-        arguments.beta,
-        OUTPUT_DESCRIPTION_BETA,
-        parameterized_float_formatter(OUTPUT_DESCRIPTION_BETA),
-    )
-    columns = coalesce(beta_value, columns)
+    columns = coalesce(beta_value_column, columns)
+
+    if se_beta_column is not None:
+        columns = coalesce(se_beta_column, columns)
 
     for current_column in process_remainder(processed_headers):
         columns = coalesce(current_column, columns)
@@ -880,9 +954,19 @@ def process_row(
     current_column: Column
     for current_column in columns:
         assert current_column.formatter is not None
-        formatter: typing.Callable[[int, str], Optional[str]] = current_column.formatter
-        cell: typing.Optional[str] = formatter(line_number, row[current_column.index])
-        result = coalesce(cell, result)
+        lookup: typing.Callable[[int], str] = lambda i: row[i]
+        arguments: Sequence[str] = list(map(lookup, current_column.indices))
+        formatter: Formatter = current_column.formatter
+        if formatter is not None:
+            # NOTE : there is a bit of trickery used to get
+            # the arguments to the formatter and typed check.
+            # the formatter takes a maximum of two values
+            # see the union in the type formatter.  Then a
+            # subarray of length 2 is passed to the formatter.
+            cell: typing.Optional[str] = formatter(line_number, *arguments[:2])
+            result = coalesce(cell, result)
+        else:
+            result = None
     return result
 
 
