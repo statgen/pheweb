@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 """
 Format summary file for pheweb.
 
@@ -45,6 +46,8 @@ logging.basicConfig(
     level=logging.INFO,
 )
 LOGGER = logging.getLogger(__name__)
+
+
 # Data classes
 
 
@@ -83,8 +86,12 @@ class Arguments:
     out_file: str
 
 
-Formatter = Optional[typing.Union[typing.Callable[[int, str], Optional[str]],
-                                  typing.Callable[[int, str, str], Optional[str]]]]
+Formatter = Optional[
+    typing.Union[
+        typing.Callable[[int, str], Optional[str]],
+        typing.Callable[[int, str, str], Optional[str]],
+    ]
+]
 
 
 @dataclass(repr=True, eq=True, frozen=True)
@@ -143,6 +150,7 @@ OUTPUT_FIXED_COLUMNS = [
 
 M_LOG_P_COLUMN_HEADER = OUTPUT_COLUMN_M_LOG_P_VALUE
 M_LOG_P_COLUMN_DESCRIPTION = "m log p-value computed from p-value"
+
 
 # METHODS
 
@@ -493,6 +501,16 @@ def m_log_from_p_value_formatter(line_number: int, value: str) -> typing.Optiona
 
 
 def se_beta_formatter(line_number: int, value: str) -> typing.Optional[str]:
+    """
+    SE Beta formatter.
+
+    This formats SE beta values.  A valid SE beta values
+    is a positive float.
+
+    @param line_number:
+    @param value:
+    @return:
+    """
     result: Optional[str] = None
     try:
         se_beta = float(value)
@@ -510,7 +528,22 @@ def se_beta_formatter(line_number: int, value: str) -> typing.Optional[str]:
     return result
 
 
-def m_log_from_beta_formatter(line_number: int, beta: str, se_beta: str) -> typing.Optional[str]:
+def m_log_from_beta_formatter(
+    line_number: int, beta: str, se_beta: str
+) -> typing.Optional[str]:
+    """
+    Log_m p-value formatter.
+
+    This format calculates m log p-value from
+    the beta and se beta values.
+
+    See : utils.py:beta_to_m_log_p
+
+    @param line_number: line number
+    @param beta: beta value
+    @param se_beta: se beta value
+    @return: m log p-value otherwise None otherwise
+    """
     result = None
     string_beta = parameterized_float_formatter("beta")(line_number, beta)
     string_se_beta: Optional[str] = se_beta_formatter(line_number, se_beta)
@@ -522,7 +555,10 @@ def m_log_from_beta_formatter(line_number: int, beta: str, se_beta: str) -> typi
             result = str(m_log_p_value)
         except ValueError as value_error:
             log_error(
-                f'position could not calculate m log p from beta "{beta}" se beta "{se_beta}" details : {value_error}',
+                f"""position could not calculate m log p from
+                    beta : "{beta}"
+                    se beta : "{se_beta}"
+                    details : {value_error}""",
                 line_number=line_number,
             )
     return result
@@ -624,10 +660,12 @@ def resolve_index(
     return result
 
 
-def create_column(headers: Sequence[Optional[str]],
-                  column_name: str,
-                  description: str,
-                  formatter: Formatter) -> typing.Tuple[typing.Sequence[typing.Optional[str]], typing.Optional[Column]]:
+def create_column(
+    headers: Sequence[Optional[str]],
+    column_name: str,
+    description: str,
+    formatter: Formatter,
+) -> typing.Tuple[typing.Sequence[typing.Optional[str]], typing.Optional[Column]]:
     """
     Create column.
 
@@ -644,16 +682,31 @@ def create_column(headers: Sequence[Optional[str]],
     if header is None or index is None:
         result = None
     else:
-        result = Column(indices=[index],
-                        header=header,
-                        description=description,
-                        formatter=formatter)
+        result = Column(
+            indices=[index], header=header, description=description, formatter=formatter
+        )
         headers = list(headers)
         headers[index] = None
     return headers, result
 
 
 VALUE = typing.TypeVar("VALUE")
+
+
+def log_missing_column(column: Optional[Column], column_name: str) -> Optional[Column]:
+    """
+    Log missing column.
+
+    If column is None log the column could not be created
+    because it could not be found in header.
+
+    @param column: optional column
+    @param column_name: expected header name
+    @return: optional column
+    """
+    if column is None:
+        log_error(f"could not find column {column_name} in header")
+    return column
 
 
 def coalesce(
@@ -691,21 +744,38 @@ def p_value_to_m_log_p_column(column: Column) -> Column:
     """
     # sanity check that p-value column was supplied.
     assert column.header == OUTPUT_COLUMN_P_VALUE
-    return Column(indices=column.indices,
-                  header=M_LOG_P_COLUMN_HEADER,
-                  description=M_LOG_P_COLUMN_DESCRIPTION,
-                  formatter=m_log_from_p_value_formatter)
+    return Column(
+        indices=column.indices,
+        header=M_LOG_P_COLUMN_HEADER,
+        description=M_LOG_P_COLUMN_DESCRIPTION,
+        formatter=m_log_from_p_value_formatter,
+    )
 
 
-def beta_to_m_log_p_column(beta_value_column: Column,
-                           se_beta_value_column: Column) -> Column:
+def beta_to_m_log_p_value_column(
+    beta_value_column: Column, se_beta_value_column: Column
+) -> Column:
+    """
+    Beta to m log p-value.
+
+    Given beta value and se beta columns
+    return a column that calculates m
+    log p-value.  Care has to be taken
+    the arguments are given in the right
+    order.
+
+    @param beta_value_column:
+    @param se_beta_value_column:
+    @return:
+    """
     assert beta_value_column.header == OUTPUT_COLUMN_SE_BETA
     assert se_beta_value_column.header == OUTPUT_COLUMN_SE_BETA
-    return Column(indices=[*beta_value_column.header,
-                           *se_beta_value_column.header],
-                  header=M_LOG_P_COLUMN_HEADER,
-                  description=M_LOG_P_COLUMN_DESCRIPTION,
-                  formatter=m_log_from_beta_formatter)
+    return Column(
+        indices=[*beta_value_column.header, *se_beta_value_column.header],
+        header=M_LOG_P_COLUMN_HEADER,
+        description=M_LOG_P_COLUMN_DESCRIPTION,
+        formatter=m_log_from_beta_formatter,
+    )
 
 
 def exclude_header(
@@ -818,6 +888,7 @@ def headers_to_columns(
     # NOTE : excluded have been marked at this point
     columns = process_validate_rename(processed_headers, arguments.rename, columns)
 
+    # chromosome column
     processed_headers, chromosome_column = create_column(
         processed_headers,
         arguments.chromosome,
@@ -825,15 +896,18 @@ def headers_to_columns(
         chromosome_formatter,
     )
     # indicate an error when coalescing
-    columns = coalesce(chromosome_column, columns)
+    columns = coalesce(
+        log_missing_column(chromosome_column, arguments.p_value), columns
+    )
 
+    # position column
     processed_headers, position_column = create_column(
         processed_headers,
         arguments.position,
         OUTPUT_DESCRIPTION_POSITION,
         position_formatter,
     )
-    columns = coalesce(position_column, columns)
+    columns = coalesce(log_missing_column(position_column, arguments.position), columns)
 
     processed_headers, reference_column = create_column(
         processed_headers,
@@ -841,7 +915,9 @@ def headers_to_columns(
         OUTPUT_DESCRIPTION_REFERENCE,
         parameterized_sequence_formatter(OUTPUT_DESCRIPTION_REFERENCE),
     )
-    columns = coalesce(reference_column, columns)
+    columns = coalesce(
+        log_missing_column(reference_column, arguments.reference), columns
+    )
 
     processed_headers, alternative_column = create_column(
         processed_headers,
@@ -849,7 +925,9 @@ def headers_to_columns(
         OUTPUT_DESCRIPTION_ALTERNATIVE,
         parameterized_sequence_formatter(OUTPUT_DESCRIPTION_ALTERNATIVE),
     )
-    columns = coalesce(alternative_column, columns)
+    columns = coalesce(
+        log_missing_column(alternative_column, arguments.alternative), columns
+    )
 
     processed_headers, p_value_column = create_column(
         processed_headers,
@@ -857,7 +935,7 @@ def headers_to_columns(
         OUTPUT_DESCRIPTION_P_VALUE,
         p_value_formatter,
     )
-    columns = coalesce(p_value_column, columns)
+    columns = coalesce(log_missing_column(p_value_column, arguments.p_value), columns)
 
     processed_headers, beta_value_column = create_column(
         processed_headers,
@@ -868,26 +946,47 @@ def headers_to_columns(
 
     processed_headers, se_beta_column = create_column(
         processed_headers,
-        arguments.p_value,
+        arguments.se_beta,
         OUTPUT_DESCRIPTION_SE_BETA,
         parameterized_float_formatter(OUTPUT_DESCRIPTION_SE_BETA),
     )
 
-    processed_headers, p_m_log_p_value_column = create_column(
+    # m log p-value takes a few steps
+    # step 1
+    #  First try to see if the column is available.
+    # step 2
+    #  If it is not try to calculate using beta and
+    #  se_beta, this method is more accurate.  As
+    #  se-beta is optional this may not be possible.
+    # step 3
+    #  In this case try calculating using p-value. As
+    #  p-value required this step should succeed.
+    # step 4
+    #  Report findings to the authorities
+
+    # step 1
+    processed_headers, m_log_p_value_column = create_column(
         processed_headers,
         arguments.m_log_p_value,
         OUTPUT_DESCRIPTION_M_LOG_P_VALUE,
         parameterized_float_formatter(OUTPUT_DESCRIPTION_M_LOG_P_VALUE),
     )
 
-    if p_m_log_p_value_column is None and beta_value_column is not None and se_beta_column:
-        p_m_log_p_value = beta_to_m_log_p_column(beta_value_column, se_beta_column)
-        columns = coalesce(p_m_log_p_value, columns)
-    elif p_m_log_p_value_column is None and p_value_column is not None:
-        p_m_log_p_value = p_value_to_m_log_p_column(p_value_column)
-        columns = coalesce(p_m_log_p_value, columns)
+    # step 2
+    if m_log_p_value_column is None:
+        if beta_value_column is not None and se_beta_column:
+            m_log_p_value_column = beta_to_m_log_p_value_column(
+                beta_value_column, se_beta_column
+            )
+        # step 3
+        elif p_value_column is not None:
+            m_log_p_value_column = p_value_to_m_log_p_column(p_value_column)
 
-    columns = coalesce(beta_value_column, columns)
+    # step 4
+    columns = coalesce(
+        log_missing_column(m_log_p_value_column, arguments.m_log_p_value), columns
+    )
+    columns = coalesce(log_missing_column(beta_value_column, arguments.beta), columns)
 
     if se_beta_column is not None:
         columns = coalesce(se_beta_column, columns)
@@ -910,18 +1009,17 @@ def line_to_row(line: str) -> Sequence[str]:
     return line.rstrip("\n").split("\t")
 
 
-def row_to_line(row: Sequence[str], prefix="\n") -> str:
+def row_to_line(row: Sequence[str]) -> str:
     """
     Row to line.
 
     Given a row (list of string) return a tsv encoded string.
 
     @param row: list of cells
-    @param prefix : prefix (space supplied for header)
     @return: string representing the row
     """
     line = "\t".join(row)
-    return f"{prefix}{line}"
+    return f"{line}\n"
 
 
 def header_row(columns: Sequence[Column]) -> Sequence[str]:
@@ -970,7 +1068,11 @@ def process_row(
     return result
 
 
-def process_file(arguments: Arguments, read_file, write_file) -> int:
+def process_file(
+    arguments: Arguments,
+    read_file: typing.IO[str],
+    write_file: typing.IO[str],
+) -> int:
     """
     Process file.
 
@@ -1002,11 +1104,18 @@ def process_file(arguments: Arguments, read_file, write_file) -> int:
 
     faults = 0
     headers = line_to_row(read_file.readline())
+
+    msg = f"""
+    Headers:
+        {headers}
+    """
+    log_info(msg)
+
     columns = headers_to_columns(arguments, headers)
     if columns is None:
         exit_code = os.EX_CONFIG
     else:
-        write_file.write(row_to_line(header_row(columns), prefix=""))
+        write_file.write(row_to_line(header_row(columns)))
         line_number = 1
         for line in read_file.readlines():
             row = line_to_row(line)
@@ -1023,7 +1132,9 @@ def process_file(arguments: Arguments, read_file, write_file) -> int:
     return exit_code
 
 
-def write_row(write_file, row: Optional[Sequence[str]], faults: int) -> int:
+def write_row(
+    write_file: typing.IO[str], row: Optional[Sequence[str]], faults: int
+) -> int:
     """
     Write row.
 
@@ -1045,7 +1156,8 @@ def faults_to_exit_code(faults: int) -> int:
     """
     Faults to exit code.
 
-    Given the number of faults in the file return the exit code.
+    Given the number of faults in the file return the
+    exit code.  Fails if there are any faults.
 
     @param faults: number of faults in file
     @return: return exit code
