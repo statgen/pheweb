@@ -14,7 +14,7 @@ pheweb --help
 
 - If you get an error related to pysam, run `python3 -m pip install -U cython; python3 -m pip install https://github.com/pysam-developers/pysam/archive/master.zip` and try again.
 
-- If installation was successful but the command `pheweb --help` is not found, run `echo 'PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`, start a new terminal, and try `pheweb --help` again.  If you're on macOS, you might need `echo 'source "$HOME/.bashrc" >> ~/.bash_profile`.
+- If installation was successful but the command `pheweb --help` is not found, you need to add `pheweb` to your PATH.  You should be able to just run `echo 'PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`, start a new terminal, and try `pheweb --help` again.  If you're on macOS, you might need `echo 'source "$HOME/.bashrc" >> ~/.bash_profile`.
 
 - If that command fails in a different way, then use one of the approaches below.
 
@@ -54,19 +54,13 @@ If you are on macOS, install XCode Developer Tools with `xcode-select --install`
 
 To install miniconda3, follow the instructions [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/).
 
-In that installation, you can close the terms & conditions with "q".
+When you're installing miniconda3, you can close the terms & conditions with "q".
 You should install into the default directory of `~/miniconda3`.
-You should let miniconda modify `$PATH` in your `~/.bash_profile` or `~/.bashrc`, so that you'll be able to run just `pheweb` instead of `~/miniconda/bin/pheweb` on the command line.
+You should let miniconda modify `$PATH` in your `~/.bash_profile` or `~/.bashrc`, so that you'll be able to run just `pheweb` instead of needing to type `~/miniconda3/bin/pheweb` on the command line.
 
-Miniconda3 makes `python` an alias for `python3` and `pip` an alias for `pip3`.
-If you don't like that, run:
-
-```bash
-rm ~/miniconda3/bin/python
-rm ~/miniconda3/bin/pip
-```
-
-Next, close and re-open your terminal, to make the new `$PATH` take effect. Then run:
+Next, close and re-open your terminal, to make the new `$PATH` take effect.
+You can check that you have the miniconda3 python set up by running `which python3`, which should reply something like `/home/peter/miniconda3/bin/python3`.
+Then run:
 
 ```bash
 python3 -m pip install pheweb
