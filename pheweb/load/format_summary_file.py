@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 """
 Format summary file for pheweb.
 
@@ -30,15 +29,14 @@ validated.  If the row is valid then it is output otherwise print error to stder
 Print summary of error and valid rows to stderr when done.
 
 """
-
-import logging
 import argparse
+import logging
 import os
 import re
 import sys
 import typing
 from dataclasses import dataclass
-from typing import Dict, Set, Optional, Sequence
+from pheweb.load import command_flags
 from pheweb.utils import file_open, pvalue_to_mlogp, parse_chromosome, beta_to_m_log_p
 
 logging.basicConfig(
@@ -80,16 +78,18 @@ class Arguments:
     m_log_p_value: str
     beta: str
     se_beta: str
-    exclude: Set[str]
-    rename: Dict[str, str]
+    exclude: typing.Set[str]
+    rename: typing.Dict[str, str]
     in_file: str
     out_file: str
 
 
-Formatter = Optional[
+# type signature for formatter methods
+# see : https://stackoverflow.com/q/51811024
+Formatter = typing.Optional[
     typing.Union[
-        typing.Callable[[int, str], Optional[str]],
-        typing.Callable[[int, str, str], Optional[str]],
+        typing.Callable[[int, str], typing.Optional[str]],
+        typing.Callable[[int, str, str], typing.Optional[str]],
     ]
 ]
 
@@ -105,96 +105,32 @@ class Column:
     formatter : given a column data return data if well formatted
     """
 
-    indices: Sequence[int]
+    indices: typing.Sequence[int]
     header: str
     description: str
-    # see : https://stackoverflow.com/q/51811024
+    #
     formatter: Formatter
 
 
-# CONSTANTS
-OUTPUT_COLUMN_CHROMOSOME = "#chrom"
-OUTPUT_DESCRIPTION_CHROMOSOME = "chromosome"
-
-OUTPUT_COLUMN_POSITION = "pos"
-OUTPUT_DESCRIPTION_POSITION = "position"
-
-OUTPUT_COLUMN_REFERENCE = "ref"
-OUTPUT_DESCRIPTION_REFERENCE = "reference"
-
-OUTPUT_COLUMN_ALTERNATIVE = "alt"
-OUTPUT_DESCRIPTION_ALTERNATIVE = "alternative"
-
-OUTPUT_COLUMN_P_VALUE = "pval"
-OUTPUT_DESCRIPTION_P_VALUE = "p-value"
-
-OUTPUT_COLUMN_M_LOG_P_VALUE = "mlogp"
-OUTPUT_DESCRIPTION_M_LOG_P_VALUE = "m log p-value"
-
-OUTPUT_COLUMN_BETA = "beta"
-OUTPUT_DESCRIPTION_BETA = "beta"
-
-OUTPUT_COLUMN_SE_BETA = "sebeta"
-OUTPUT_DESCRIPTION_SE_BETA = "sebeta"
-
 OUTPUT_FIXED_COLUMNS = [
-    OUTPUT_COLUMN_CHROMOSOME,
-    OUTPUT_COLUMN_POSITION,
-    OUTPUT_COLUMN_REFERENCE,
-    OUTPUT_COLUMN_ALTERNATIVE,
-    OUTPUT_COLUMN_P_VALUE,
-    OUTPUT_COLUMN_M_LOG_P_VALUE,
-    OUTPUT_COLUMN_BETA,
-    OUTPUT_COLUMN_SE_BETA,
+    command_flags.OUTPUT_COLUMN_CHROMOSOME,
+    command_flags.OUTPUT_COLUMN_POSITION,
+    command_flags.OUTPUT_COLUMN_REFERENCE,
+    command_flags.OUTPUT_COLUMN_ALTERNATIVE,
+    command_flags.OUTPUT_COLUMN_P_VALUE,
+    command_flags.OUTPUT_COLUMN_M_LOG_P_VALUE,
+    command_flags.OUTPUT_COLUMN_BETA,
+    command_flags.OUTPUT_COLUMN_SE_BETA,
 ]
 
-M_LOG_P_COLUMN_HEADER = OUTPUT_COLUMN_M_LOG_P_VALUE
+M_LOG_P_COLUMN_HEADER = command_flags.OUTPUT_COLUMN_M_LOG_P_VALUE
 M_LOG_P_COLUMN_DESCRIPTION = "m log p-value computed from p-value"
 
 
 # METHODS
 
 
-def parse_exclude_args(exclude: str) -> Set[str]:
-    """
-    Parse exclude args.
-
-    Parse exclude args from a comma separated list of fields to a set.
-
-    @param exclude: comma separated list
-    @return: set containing fields to exclude
-    """
-    exclude_set: Set[str] = set()
-    if exclude:
-        exclude_set.update(exclude.split(","))
-    return exclude_set
-
-
-def parse_rename_args(rename: Optional[str]) -> Dict[str, str]:
-    """
-    Parse rename args.
-
-    Parse rename args taking a comma separated list of:
-
-    OLD_NAME:NEW_NAME,...
-
-    Method raises an exception if string is malformed.
-
-    @param rename: comma separated list name mapping
-    @return: dictionary containing the mapping
-    """
-    rename_map: Dict[str, str] = {}
-    if rename is not None and rename:
-        for columns in rename.split(","):
-            if ":" in columns:
-                old_name, new_name = columns.split(":")
-                rename_map[old_name] = new_name
-            else:
-                raise ValueError(f'could not find separator ":" in "{columns}"')
-    return rename_map
-
-
-def parse_args(argv: Sequence[str]) -> Arguments:
+def parse_args(argv: typing.Sequence[str]) -> Arguments:
     """
     Parse command args.
 
@@ -204,108 +140,18 @@ def parse_args(argv: Sequence[str]) -> Arguments:
     @return: arguments object
     """
     parser = argparse.ArgumentParser(description="format summary file")
-    parser.add_argument(
-        "--chrom",
-        dest="chromosome",
-        default=OUTPUT_COLUMN_CHROMOSOME,
-        action="store",
-        type=str,
-        help="name of chromosome column defaults to first column",
-    )
-
-    parser.add_argument(
-        "--pos",
-        dest="position",
-        default=OUTPUT_COLUMN_POSITION,
-        action="store",
-        type=str,
-        help="name of position column defaults to second column",
-    )
-
-    parser.add_argument(
-        "--ref",
-        dest="reference",
-        default=OUTPUT_COLUMN_REFERENCE,
-        action="store",
-        type=str,
-        help="name of reference column defaults to third column",
-    )
-
-    parser.add_argument(
-        "--alt",
-        dest="alternative",
-        default=OUTPUT_COLUMN_ALTERNATIVE,
-        action="store",
-        type=str,
-        help="name of alternate column defaults to fourth column",
-    )
-
-    parser.add_argument(
-        "--pval",
-        dest="p_value",
-        default=OUTPUT_COLUMN_P_VALUE,
-        action="store",
-        type=str,
-        help="name of p-value column  defaults to fifth column",
-    )
-
-    parser.add_argument(
-        "--mlogp",
-        dest="m_log_p_value",
-        default=OUTPUT_COLUMN_M_LOG_P_VALUE,
-        action="store",
-        type=str,
-        help="name of m-logp column checks 6 column",
-    )
-
-    parser.add_argument(
-        "--beta",
-        dest="beta",
-        default=OUTPUT_COLUMN_BETA,
-        action="store",
-        type=str,
-        help="name of beta columns column",
-    )
-
-    parser.add_argument(
-        "--se_beta",
-        dest="se_beta",
-        default=OUTPUT_COLUMN_SE_BETA,
-        action="store",
-        type=str,
-        help="name of se beta columns column",
-    )
-
-    parser.add_argument(
-        "--exclude",
-        dest="exclude",
-        default="",
-        action="store",
-        type=str,
-        help="rename fields format is field_1,... ",
-    )
-
-    parser.add_argument(
-        "--rename",
-        dest="rename",
-        default="",
-        action="store",
-        type=str,
-        help="rename fields format is old_name:new_name,... ",
-    )
-
-    parser.add_argument(
-        "--out-file",
-        dest="out_file",
-        default="-",
-        action="store",
-        type=str,
-        help="out file, defaults to stdout '-'",
-    )
-
-    parser.add_argument(
-        "in_file", nargs="?", default="-", help="in_file to be formatted"
-    )
+    command_flags.add_chromosome_flag(parser)
+    command_flags.add_position_flag(parser)
+    command_flags.add_reference_flag(parser)
+    command_flags.add_alternate_flag(parser)
+    command_flags.add_p_value_flag(parser)
+    command_flags.add_m_log_p_value_flag(parser)
+    command_flags.add_beta_value_flag(parser)
+    command_flags.add_se_beta_value_flag(parser)
+    command_flags.add_exclude_value_flag(parser)
+    command_flags.add_rename_value_flag(parser)
+    command_flags.add_out_file_value_flag(parser)
+    command_flags.add_in_file_value_flag(parser)
     parsed = parser.parse_args(argv)
     return Arguments(
         chromosome=parsed.chromosome,
@@ -316,8 +162,8 @@ def parse_args(argv: Sequence[str]) -> Arguments:
         m_log_p_value=parsed.m_log_p_value,
         beta=parsed.beta,
         se_beta=parsed.se_beta,
-        exclude=parse_exclude_args(parsed.exclude),
-        rename=parse_rename_args(parsed.rename),
+        exclude=command_flags.parse_exclude_args(parsed.exclude),
+        rename=command_flags.parse_rename_args(parsed.rename),
         out_file=parsed.out_file,
         in_file=parsed.in_file,
     )
@@ -349,7 +195,7 @@ def log_info(msg: str) -> None:
     LOGGER.info(msg)
 
 
-def str_formatter(_: int, value: str) -> Optional[str]:
+def str_formatter(_: int, value: str) -> typing.Optional[str]:
     """
     Format string.
 
@@ -362,7 +208,7 @@ def str_formatter(_: int, value: str) -> Optional[str]:
     return value
 
 
-def chromosome_formatter(line_number: int, value: str) -> Optional[str]:
+def chromosome_formatter(line_number: int, value: str) -> typing.Optional[str]:
     """
     Format chromosome.
 
@@ -374,7 +220,7 @@ def chromosome_formatter(line_number: int, value: str) -> Optional[str]:
     @param value: value containing chromosome
     @return: formatted chromosome
     """
-    result: Optional[str] = None
+    result: typing.Optional[str] = None
     try:
         chromosome = value.strip()
         result = str(parse_chromosome(chromosome))
@@ -396,7 +242,7 @@ def position_formatter(line_number: int, value: str) -> typing.Optional[str]:
     @param value: value
     @return: position if value otherwise None.
     """
-    result: Optional[str] = None
+    result: typing.Optional[str] = None
     try:
         position = int(value)
         if position >= 0:
@@ -511,7 +357,7 @@ def se_beta_formatter(line_number: int, value: str) -> typing.Optional[str]:
     @param value:
     @return:
     """
-    result: Optional[str] = None
+    result: typing.Optional[str] = None
     try:
         se_beta = float(value)
         if se_beta >= 0:
@@ -546,7 +392,7 @@ def m_log_from_beta_formatter(
     """
     result = None
     string_beta = parameterized_float_formatter("beta")(line_number, beta)
-    string_se_beta: Optional[str] = se_beta_formatter(line_number, se_beta)
+    string_se_beta: typing.Optional[str] = se_beta_formatter(line_number, se_beta)
     if string_beta is not None and string_se_beta is not None:
         try:
             float_beta = float(string_beta)
@@ -600,7 +446,9 @@ def parameterized_float_formatter(
     return formatter
 
 
-def column_valid(headers: Sequence[str], column: Column) -> typing.Optional[Column]:
+def column_valid(
+    headers: typing.Sequence[str], column: Column
+) -> typing.Optional[Column]:
     """
     Check is column is valid.
 
@@ -620,10 +468,10 @@ def column_valid(headers: Sequence[str], column: Column) -> typing.Optional[Colu
 
 
 def search_header(
-    headers: Sequence[Optional[str]],
+    headers: typing.Sequence[typing.Optional[str]],
     column_name: str,
-    default_index: Optional[int] = None,
-) -> Optional[int]:
+    default_index: typing.Optional[int] = None,
+) -> typing.Optional[int]:
     """
     Search header.
 
@@ -642,8 +490,8 @@ def search_header(
 
 
 def resolve_index(
-    headers: Sequence[Optional[str]], index: Optional[int]
-) -> Optional[str]:
+    headers: typing.Sequence[typing.Optional[str]], index: typing.Optional[int]
+) -> typing.Optional[str]:
     """
     Resolve index.
 
@@ -661,7 +509,7 @@ def resolve_index(
 
 
 def create_column(
-    headers: Sequence[Optional[str]],
+    headers: typing.Sequence[typing.Optional[str]],
     column_name: str,
     description: str,
     formatter: Formatter,
@@ -693,7 +541,9 @@ def create_column(
 VALUE = typing.TypeVar("VALUE")
 
 
-def log_missing_column(column: Optional[Column], column_name: str) -> Optional[Column]:
+def log_missing_column(
+    column: typing.Optional[Column], column_name: str
+) -> typing.Optional[Column]:
     """
     Log missing column.
 
@@ -710,8 +560,8 @@ def log_missing_column(column: Optional[Column], column_name: str) -> Optional[C
 
 
 def coalesce(
-    value: Optional[VALUE], acc: Optional[Sequence[VALUE]]
-) -> Optional[Sequence[VALUE]]:
+    value: typing.Optional[VALUE], acc: typing.Optional[typing.Sequence[VALUE]]
+) -> typing.Optional[typing.Sequence[VALUE]]:
     """
     Coalesce a value into a list.
 
@@ -743,7 +593,7 @@ def p_value_to_m_log_p_column(column: Column) -> Column:
     @return: m log p column
     """
     # sanity check that p-value column was supplied.
-    assert column.header == OUTPUT_COLUMN_P_VALUE
+    assert column.header == command_flags.OUTPUT_COLUMN_P_VALUE
     return Column(
         indices=column.indices,
         header=M_LOG_P_COLUMN_HEADER,
@@ -768,8 +618,8 @@ def beta_to_m_log_p_value_column(
     @param se_beta_value_column:
     @return:
     """
-    assert beta_value_column.header == OUTPUT_COLUMN_SE_BETA
-    assert se_beta_value_column.header == OUTPUT_COLUMN_SE_BETA
+    assert beta_value_column.header == command_flags.OUTPUT_COLUMN_BETA
+    assert se_beta_value_column.header == command_flags.OUTPUT_COLUMN_SE_BETA
     return Column(
         indices=[*beta_value_column.header, *se_beta_value_column.header],
         header=M_LOG_P_COLUMN_HEADER,
@@ -779,8 +629,8 @@ def beta_to_m_log_p_value_column(
 
 
 def exclude_header(
-    headers: Sequence[str], exclude: Set[str]
-) -> Sequence[Optional[str]]:
+    headers: typing.Sequence[str], exclude: typing.Set[str]
+) -> typing.Sequence[typing.Optional[str]]:
     """
     Exclude header.
 
@@ -795,7 +645,9 @@ def exclude_header(
     return excluded_headers
 
 
-def process_remainder(headers: Sequence[Optional[str]]) -> Sequence[Column]:
+def process_remainder(
+    headers: typing.Sequence[typing.Optional[str]],
+) -> typing.Sequence[Column]:
     """
     Process remainder.
 
@@ -818,8 +670,10 @@ def process_remainder(headers: Sequence[Optional[str]]) -> Sequence[Column]:
 
 
 def process_validate_exclude(
-    headers: Sequence[str], exclude: Set[str], columns: Optional[Sequence[Column]]
-) -> Optional[Sequence[Column]]:
+    headers: typing.Sequence[str],
+    exclude: typing.Set[str],
+    columns: typing.Optional[typing.Sequence[Column]],
+) -> typing.Optional[typing.Sequence[Column]]:
     """
     Validate exclude.
 
@@ -838,10 +692,10 @@ def process_validate_exclude(
 
 
 def process_validate_rename(
-    headers: Sequence[Optional[str]],
-    rename: Dict[str, str],
-    columns: Optional[Sequence[Column]],
-) -> Optional[Sequence[Column]]:
+    headers: typing.Sequence[typing.Optional[str]],
+    rename: typing.Dict[str, str],
+    columns: typing.Optional[typing.Sequence[Column]],
+) -> typing.Optional[typing.Sequence[Column]]:
     """
     Validate rename arguments.
 
@@ -868,8 +722,8 @@ def process_validate_rename(
 
 
 def headers_to_columns(
-    arguments: Arguments, headers: Sequence[str]
-) -> typing.Optional[Sequence[Column]]:
+    arguments: Arguments, headers: typing.Sequence[str]
+) -> typing.Optional[typing.Sequence[Column]]:
     """
      Create columns from header.
 
@@ -879,10 +733,10 @@ def headers_to_columns(
     @param headers: file headers
     @return:
     """
-    columns: typing.Optional[Sequence[Column]] = []
+    columns: typing.Optional[typing.Sequence[Column]] = []
     columns = process_validate_exclude(headers, arguments.exclude, columns)
     # mark excluded headers with None so they are not used
-    processed_headers: Sequence[Optional[str]] = exclude_header(
+    processed_headers: typing.Sequence[typing.Optional[str]] = exclude_header(
         headers, arguments.exclude
     )
     # NOTE : excluded have been marked at this point
@@ -892,7 +746,7 @@ def headers_to_columns(
     processed_headers, chromosome_column = create_column(
         processed_headers,
         arguments.chromosome,
-        OUTPUT_DESCRIPTION_CHROMOSOME,
+        command_flags.OUTPUT_DESCRIPTION_CHROMOSOME,
         chromosome_formatter,
     )
     # indicate an error when coalescing
@@ -904,7 +758,7 @@ def headers_to_columns(
     processed_headers, position_column = create_column(
         processed_headers,
         arguments.position,
-        OUTPUT_DESCRIPTION_POSITION,
+        command_flags.OUTPUT_DESCRIPTION_POSITION,
         position_formatter,
     )
     columns = coalesce(log_missing_column(position_column, arguments.position), columns)
@@ -912,8 +766,8 @@ def headers_to_columns(
     processed_headers, reference_column = create_column(
         processed_headers,
         arguments.reference,
-        OUTPUT_DESCRIPTION_REFERENCE,
-        parameterized_sequence_formatter(OUTPUT_DESCRIPTION_REFERENCE),
+        command_flags.OUTPUT_DESCRIPTION_REFERENCE,
+        parameterized_sequence_formatter(command_flags.OUTPUT_DESCRIPTION_REFERENCE),
     )
     columns = coalesce(
         log_missing_column(reference_column, arguments.reference), columns
@@ -922,8 +776,8 @@ def headers_to_columns(
     processed_headers, alternative_column = create_column(
         processed_headers,
         arguments.alternative,
-        OUTPUT_DESCRIPTION_ALTERNATIVE,
-        parameterized_sequence_formatter(OUTPUT_DESCRIPTION_ALTERNATIVE),
+        command_flags.OUTPUT_DESCRIPTION_ALTERNATIVE,
+        parameterized_sequence_formatter(command_flags.OUTPUT_DESCRIPTION_ALTERNATIVE),
     )
     columns = coalesce(
         log_missing_column(alternative_column, arguments.alternative), columns
@@ -932,7 +786,7 @@ def headers_to_columns(
     processed_headers, p_value_column = create_column(
         processed_headers,
         arguments.p_value,
-        OUTPUT_DESCRIPTION_P_VALUE,
+        command_flags.OUTPUT_DESCRIPTION_P_VALUE,
         p_value_formatter,
     )
     columns = coalesce(log_missing_column(p_value_column, arguments.p_value), columns)
@@ -940,15 +794,15 @@ def headers_to_columns(
     processed_headers, beta_value_column = create_column(
         processed_headers,
         arguments.beta,
-        OUTPUT_DESCRIPTION_BETA,
-        parameterized_float_formatter(OUTPUT_DESCRIPTION_BETA),
+        command_flags.OUTPUT_DESCRIPTION_BETA,
+        parameterized_float_formatter(command_flags.OUTPUT_DESCRIPTION_BETA),
     )
 
     processed_headers, se_beta_column = create_column(
         processed_headers,
         arguments.se_beta,
-        OUTPUT_DESCRIPTION_SE_BETA,
-        parameterized_float_formatter(OUTPUT_DESCRIPTION_SE_BETA),
+        command_flags.OUTPUT_DESCRIPTION_SE_BETA,
+        parameterized_float_formatter(command_flags.OUTPUT_DESCRIPTION_SE_BETA),
     )
 
     # m log p-value takes a few steps
@@ -968,8 +822,8 @@ def headers_to_columns(
     processed_headers, m_log_p_value_column = create_column(
         processed_headers,
         arguments.m_log_p_value,
-        OUTPUT_DESCRIPTION_M_LOG_P_VALUE,
-        parameterized_float_formatter(OUTPUT_DESCRIPTION_M_LOG_P_VALUE),
+        command_flags.OUTPUT_DESCRIPTION_M_LOG_P,
+        parameterized_float_formatter(command_flags.OUTPUT_DESCRIPTION_M_LOG_P),
     )
 
     # step 2
@@ -997,7 +851,7 @@ def headers_to_columns(
     return columns
 
 
-def line_to_row(line: str) -> Sequence[str]:
+def line_to_row(line: str) -> typing.Sequence[str]:
     """
     Line to row.
 
@@ -1009,7 +863,7 @@ def line_to_row(line: str) -> Sequence[str]:
     return line.rstrip("\n").split("\t")
 
 
-def row_to_line(row: Sequence[str]) -> str:
+def row_to_line(row: typing.Sequence[str]) -> str:
     """
     Row to line.
 
@@ -1022,7 +876,7 @@ def row_to_line(row: Sequence[str]) -> str:
     return f"{line}\n"
 
 
-def header_row(columns: Sequence[Column]) -> Sequence[str]:
+def header_row(columns: typing.Sequence[Column]) -> typing.Sequence[str]:
     """
     Header row.
 
@@ -1036,8 +890,8 @@ def header_row(columns: Sequence[Column]) -> Sequence[str]:
 
 
 def process_row(
-    line_number: int, row: Sequence[str], columns: Sequence[Column]
-) -> typing.Optional[Sequence[str]]:
+    line_number: int, row: typing.Sequence[str], columns: typing.Sequence[Column]
+) -> typing.Optional[typing.Sequence[str]]:
     """
     Process row from input.
 
@@ -1048,12 +902,12 @@ def process_row(
     @param columns: row metadata
     @return: formatted row otherwise None
     """
-    result: typing.Optional[Sequence[str]] = []
+    result: typing.Optional[typing.Sequence[str]] = []
     current_column: Column
     for current_column in columns:
         assert current_column.formatter is not None
         lookup: typing.Callable[[int], str] = lambda i: row[i]
-        arguments: Sequence[str] = list(map(lookup, current_column.indices))
+        arguments: typing.Sequence[str] = list(map(lookup, current_column.indices))
         formatter: Formatter = current_column.formatter
         if formatter is not None:
             # NOTE : there is a bit of trickery used to get
@@ -1133,7 +987,7 @@ def process_file(
 
 
 def write_row(
-    write_file: typing.IO[str], row: Optional[Sequence[str]], faults: int
+    write_file: typing.IO[str], row: typing.Optional[typing.Sequence[str]], faults: int
 ) -> int:
     """
     Write row.
@@ -1169,7 +1023,7 @@ def faults_to_exit_code(faults: int) -> int:
     return exit_code
 
 
-def run(argv: Sequence[str]) -> typing.NoReturn:
+def run(argv: typing.Sequence[str]) -> typing.NoReturn:
     """
     Take arguments and returns an exit code.
 

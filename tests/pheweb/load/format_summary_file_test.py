@@ -7,71 +7,20 @@ This contains the unit test for
 format_summary_file.py.
 
 """
-# import io
-# import os
 import uuid
 
-# import sys
-# import random
-import pytest
-
-# import uuid
-# from unittest.mock import patch
-# from pheweb.utils import M_LOG_P_SENTINEL
-from pheweb.load.format_summary_file import (
-    parse_exclude_args,
-    parse_rename_args,
-    parse_args,
+from pheweb.load.command_flags import (
     OUTPUT_COLUMN_CHROMOSOME,
     OUTPUT_COLUMN_POSITION,
     OUTPUT_COLUMN_ALTERNATIVE,
     OUTPUT_COLUMN_P_VALUE,
-    OUTPUT_COLUMN_M_LOG_P_VALUE,
     OUTPUT_COLUMN_BETA,
-    #     run,
-    #     log_error,
-    #     log_info,
-    #     Column,
-    #     str_formatter,
-    #     chromosome_formatter,
-    #     position_formatter,
-    #     parameterized_sequence_formatter,
-    #     p_value_formatter,
-    #     m_log_from_p_value_formatter,
-    #     parameterized_float_formatter,
-    #     column_valid,
-    #     search_header,
-    #     create_column,
-    #     coalesce,
-    #     p_value_to_m_log_p_column,
-    #     M_LOG_P_COLUMN_HEADER,
-    #     M_LOG_P_COLUMN_DESCRIPTION,
+    OUTPUT_COLUMN_M_LOG_P_VALUE,
 )
 
-
-def test_exclude_args() -> None:
-    """
-    Test exclude args.
-
-    @return: None
-    """
-    assert parse_exclude_args("") == set()
-    assert parse_exclude_args("a") == {"a"}
-    assert parse_exclude_args("a,b") == {"a", "b"}
-    assert parse_exclude_args("a,b,c") == {"a", "b", "c"}
-
-
-def test_rename_args() -> None:
-    """
-    Test rename args.
-
-    @return: None
-    """
-    assert not parse_rename_args("")
-    assert parse_rename_args("a:b") == {"a": "b"}
-    assert parse_rename_args("a:b,c:d") == {"a": "b", "c": "d"}
-    with pytest.raises(ValueError):
-        assert parse_rename_args("a")
+from pheweb.load.format_summary_file import (
+    parse_args,
+)
 
 
 def test_parse_args_chromosome() -> None:
