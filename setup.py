@@ -81,7 +81,6 @@ setup(
         'requests[security]~=2.25',
         'gunicorn~=20.0.4',
         'boltons~=20.2',
-        'blist~=1.3.6',
         'cffi~=1.14', # in both `setup_requires` and `install_requires` as per <https://github.com/pypa/setuptools/issues/391>
         'wget~=3.2',
         'gevent~=21.1',
