@@ -7,7 +7,10 @@ This contains the unit test for
 format_summary_file.py.
 
 """
+import typing
 import uuid
+from unittest.mock import patch
+import random
 
 from pheweb.load.command_flags import (
     OUTPUT_COLUMN_CHROMOSOME,
@@ -20,6 +23,8 @@ from pheweb.load.command_flags import (
 
 from pheweb.load.format_summary_file import (
     parse_args,
+    log_error,
+    log_info,
 )
 
 
@@ -113,264 +118,76 @@ def test_parse_args_rename() -> None:
     assert not parse_args([]).rename
 
 
-# def test_parse_out_file() -> None:
-#     """
-#     Test arguments for out file.
-#
-#     @return: None
-#     """
-#     out_file = str(uuid.uuid4())
-#     assert parse_args(["--out-file", out_file]).out_file == out_file
-#     assert parse_args([]).out_file == "-"
-#
-#
-# def test_parse_args_in_file() -> None:
-#     """
-#     Test arguments for input file.
-#
-#     @return: None
-#     """
-#     in_file = str(uuid.uuid4())
-#     assert parse_args([in_file]).in_file == in_file
-#     assert parse_args([]).in_file == "-"
-#
-#
-# def test_log_error() -> None:
-#     """
-#     Test error logger is logged.
-#
-#     @return: None
-#     """
-#     file = io.StringIO()
-#     salt = str(uuid.uuid4())
-#     log_error(salt, file=file)
-#     assert salt in file.getvalue()
-#
-#
-# def test_str_formatter() -> None:
-#     """
-#     Test string formatter.
-#
-#     @return: None
-#     """
-#     salt = str(uuid.uuid4())
-#     assert salt == str_formatter(0, salt)
-#
-#
-# def random_number():
-#     """
-#     Randome line number.
-#
-#     Generate a random line number for
-#     testing purposes.
-#
-#     @return: random number
-#     """
-#     return random.randint(1, 1000)
-#
-#
-# random_line_number = random_number
-# random_string = uuid.uuid4
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_chromosome_formatter(mock_log_error) -> None:
-#     """
-#     Test chromosome formatter.
-#
-#     @param mock_log_error: mocker logger
-#     @return: None
-#     """
-#     assert "1" == chromosome_formatter(1, "1")
-#     assert "25" == chromosome_formatter(1, "MT")
-#     assert not mock_log_error.called
-#     line_number = random_line_number()
-#     assert chromosome_formatter(line_number, "Z") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_position_formatter_1(mock_log_error) -> None:
-#     assert "1" == position_formatter(1, "1")
-#     assert "10" == position_formatter(1, "10")
-#     line_number = random_line_number()
-#     assert position_formatter(line_number, "-Z") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_position_formatter_negative(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert position_formatter(line_number, "-2") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_position_formatter_2(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert position_formatter(line_number, "bad") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_parameterized_sequence_formatter(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     column_name = str(uuid.uuid4())
-#     formatter = parameterized_sequence_formatter(column_name)
-#     assert "" == formatter(line_number, "")
-#     assert "G" == formatter(line_number, "G")
-#     assert "CAT" == formatter(line_number, "CAT")
-#     assert not mock_log_error.called
-#     assert formatter(line_number, "BAT") is None
-#     assert column_name in mock_log_error.call_args[0][0]
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_p_value_formatter_neg_1(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert p_value_formatter(line_number, "-1") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_p_value_formatter_zero(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert p_value_formatter(line_number, "0") == "0"
-#     assert not mock_log_error.called
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_p_value_formatter_zero_point_five(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert p_value_formatter(line_number, "0.5") == "0.5"
-#     assert not mock_log_error.called
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_p_value_formatter_one(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert p_value_formatter(line_number, "1.0") == "1.0"
-#     assert not mock_log_error.called
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_p_value_formatter_two(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert p_value_formatter(line_number, "2.0") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_p_value_formatter_a(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert p_value_formatter(line_number, "a") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_m_log_from_p_value_formatter_neg_1(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert m_log_from_p_value_formatter(line_number, "-1") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# @patch("pheweb.load.format_summary_file.p_value_formatter", return_value="-1.0")
-# def test_m_log_from_p_value_formatter_invalid_log(
-#     mock_p_value_formatter,
-#     mock_log_error,
-# ) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert m_log_from_p_value_formatter(line_number, "-1") is None
-#     mock_log_error.assert_called_once()
-#     mock_p_value_formatter.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_m_log_from_p_value_formatter_valid(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert m_log_from_p_value_formatter(line_number, "0") == str(M_LOG_P_SENTINEL)
-#     assert m_log_from_p_value_formatter(line_number, "0.1") == "1.0"
-#     assert m_log_from_p_value_formatter(line_number, "0.01") == "2.0"
-#     assert not mock_log_error.called
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_m_log_from_p_value_formatter_two(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert m_log_from_p_value_formatter(line_number, "2") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_m_log_from_p_value_formatter_a(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     assert not mock_log_error.called
-#     assert m_log_from_p_value_formatter(line_number, "a") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert kwargs == {"line_number": line_number}
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_parameterized_float_formatter_valid(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     column_name = uuid.uuid4()
-#     f = parameterized_float_formatter(column_name)
-#     assert not mock_log_error.called
-#     assert f(line_number, "-1") == "-1.0"
-#     assert f(line_number, "0") == "0.0"
-#     assert f(line_number, "0.1") == "0.1"
-#     assert f(line_number, "10.0") == "10.0"
-#     assert not mock_log_error.called
-#
-#
-# @patch("pheweb.load.format_summary_file.log_error")
-# def test_parameterized_float_formatter_a(mock_log_error) -> None:
-#     line_number = random_line_number()
-#     column_name = str(uuid.uuid4())
-#     f = parameterized_float_formatter(column_name)
-#     assert not mock_log_error.called
-#     assert f(line_number, "a") is None
-#     mock_log_error.assert_called_once()
-#     kwargs = mock_log_error.call_args.kwargs
-#     assert column_name in mock_log_error.call_args[0][0]
-#     assert kwargs == {"line_number": line_number}
-#
-#
+def test_parse_out_file() -> None:
+    """
+    Test arguments for out file.
+
+    @return: None
+    """
+    out_file: str = str(uuid.uuid4())
+    assert parse_args(["--out-file", out_file]).out_file == out_file
+    assert parse_args([]).out_file == "-"
+
+
+def test_parse_args_in_file() -> None:
+    """
+    Test arguments for input file.
+
+    @return: None
+    """
+    in_file = str(uuid.uuid4())
+    assert parse_args([in_file]).in_file == in_file
+    assert parse_args([]).in_file == "-"
+
+
+def random_number():
+    """
+    Random line number.
+
+    Generate a random line number for
+    testing purposes.
+
+    @return: random number
+    """
+    return random.randint(1, 1000)
+
+
+random_line_number: typing.Callable[[], int] = random_number
+random_string: typing.Callable[[], str] = lambda: str(uuid.uuid4)
+
+
+@patch("pheweb.load.format_summary_file.LOGGER.error")
+def test_log_error(mock_logger_error) -> None:
+    """
+    Test error logger is logged.
+
+    @return: None
+    """
+    salt = str(uuid.uuid4())
+    line_number = random_line_number()
+    assert not mock_logger_error.called
+    log_error(salt, line_number=line_number)
+    mock_logger_error.assert_called_once()
+    msg = mock_logger_error.call_args[0][0]
+    assert str(line_number) in msg
+    assert salt in msg
+
+
+@patch("pheweb.load.format_summary_file.LOGGER.info")
+def test_log_info(mock_logger_info) -> None:
+    """
+    Test info logger is logged.
+
+    @return: None
+    """
+    salt = str(uuid.uuid4())
+    assert not mock_logger_info.called
+    log_info(salt)
+    mock_logger_info.assert_called_once()
+    msg = mock_logger_info.call_args[0][0]
+    assert salt in msg
+
+
 # @patch("pheweb.load.format_summary_file.log_error")
 # def test_column_valid(mock_log_error) -> None:
 #     """

@@ -27,24 +27,33 @@ The header is validated.  The header validation fails the error is output the
 program terminates.  If the header validation succeeds each row is parsed and
 validated.  If the row is valid then it is output otherwise print error to stderr.
 Print summary of error and valid rows to stderr when done.
-
 """
 import argparse
 import logging
 import os
-import re
 import sys
 import typing
 from dataclasses import dataclass
 from pheweb.load import command_flags
-from pheweb.utils import file_open, pvalue_to_mlogp, parse_chromosome, beta_to_m_log_p
+from pheweb.load.field_formatter import (
+    m_log_from_p_value_formatter,
+    m_log_from_beta_formatter,
+    str_formatter,
+    chromosome_formatter,
+    position_formatter,
+    parameterized_float_formatter,
+    parameterized_sequence_formatter,
+    p_value_formatter,
+    se_beta_formatter,
+)
+
+from pheweb.utils import file_open
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
 )
 LOGGER = logging.getLogger(__name__)
-
 
 # Data classes
 
@@ -67,7 +76,6 @@ class Arguments:
     rename: name of columns to be renamed
     in_file: file to read from ('-' means stdin)
     out_file: file to write to ('-' means stdout)
-
     """
 
     chromosome: str
@@ -84,12 +92,11 @@ class Arguments:
     out_file: str
 
 
-# type signature for formatter methods
-# see : https://stackoverflow.com/q/51811024
+# type signature for formatter methods see : https://stackoverflow.com/q/51811024
 Formatter = typing.Optional[
     typing.Union[
-        typing.Callable[[int, str], typing.Optional[str]],
-        typing.Callable[[int, str, str], typing.Optional[str]],
+        typing.Callable[[str], typing.Optional[str]],
+        typing.Callable[[str, str], typing.Optional[str]],
     ]
 ]
 
@@ -108,7 +115,6 @@ class Column:
     indices: typing.Sequence[int]
     header: str
     description: str
-    #
     formatter: Formatter
 
 
@@ -125,7 +131,6 @@ OUTPUT_FIXED_COLUMNS = [
 
 M_LOG_P_COLUMN_HEADER = command_flags.OUTPUT_COLUMN_M_LOG_P_VALUE
 M_LOG_P_COLUMN_DESCRIPTION = "m log p-value computed from p-value"
-
 
 # METHODS
 
@@ -195,257 +200,6 @@ def log_info(msg: str) -> None:
     LOGGER.info(msg)
 
 
-def str_formatter(_: int, value: str) -> typing.Optional[str]:
-    """
-    Format string.
-
-    A pass through formatter.
-
-    @param _: Ignored
-    @param value: value to pass through
-    @return: value supplied
-    """
-    return value
-
-
-def chromosome_formatter(line_number: int, value: str) -> typing.Optional[str]:
-    """
-    Format chromosome.
-
-    If valid chromosome format otherwise log error.
-
-    See utils_py:parse_chromosome
-
-    @param line_number: line number
-    @param value: value containing chromosome
-    @return: formatted chromosome
-    """
-    result: typing.Optional[str] = None
-    try:
-        chromosome = value.strip()
-        result = str(parse_chromosome(chromosome))
-    except ValueError as value_error:
-        log_error(
-            f'invalid chromosome expected number "{value}" details : {value_error}',
-            line_number=line_number,
-        )
-    return result
-
-
-def position_formatter(line_number: int, value: str) -> typing.Optional[str]:
-    """
-    Position formatter.
-
-    Check for valid position and format.
-
-    @param line_number:
-    @param value: value
-    @return: position if value otherwise None.
-    """
-    result: typing.Optional[str] = None
-    try:
-        position = int(value)
-        if position >= 0:
-            result = str(position)
-        else:
-            log_error(
-                f'position expected positive integer "{value}"', line_number=line_number
-            )
-    except ValueError as value_error:
-        log_error(
-            f'position could not be parsed as integer "{value}" details : {value_error}',
-            line_number=line_number,
-        )
-    return result
-
-
-def parameterized_sequence_formatter(
-    column_name: str,
-) -> typing.Callable[[int, str], typing.Optional[str]]:
-    """
-    Parameterize sequence formatter.
-
-    Because both the reference and alternate columns both use the  same
-    formatter this allows the column to be added to the error message.
-
-    @param column_name: column name
-    @return:  Formatter for column
-    """
-
-    def formatter(line_number: int, value: str) -> typing.Optional[str]:
-        """
-        Validate a sequence.
-
-        @param line_number: line number
-        @param value: sequence
-        @return: sequence if valid otherwise None
-        """
-        sequence = value.upper()
-        if not re.match(r"^[GCAT]*$", sequence):
-            result = None
-            log_error(
-                f'{column_name} is not a valid sequence "{value}" ',
-                line_number=line_number,
-            )
-        else:
-            result = sequence
-        return result
-
-    return formatter
-
-
-def p_value_formatter(line_number: int, value: str) -> typing.Optional[str]:
-    """
-    P-value formatter.
-
-    Check for valid p-value and format.
-
-    @param line_number: line number
-    @param value: string p-value
-    @return: p-value if value otherwise None.
-    """
-    result = None
-    try:
-        p_value = float(value)
-        if 0 <= p_value <= 1:
-            result = str(p_value)
-        else:
-            log_error(
-                f'p-value not in expected range "{p_value}"', line_number=line_number
-            )
-    except ValueError as value_error:
-        log_error(
-            f'p-value could not be parsed as float "{value}" details : {value_error}',
-            line_number=line_number,
-        )
-    return result
-
-
-def m_log_from_p_value_formatter(line_number: int, value: str) -> typing.Optional[str]:
-    """
-    M log p-value from p-value.
-
-    This formatter creates an m log p-value from a p-value column by calculation.
-
-    @param line_number: line number
-    @param value: string value
-    @return: m log p-value if it can be calculated otherwise None
-    """
-    result = None
-    p_value = p_value_formatter(line_number, value)
-    if p_value is not None:
-        try:
-            p_value_float = float(p_value)
-            p_value_float = pvalue_to_mlogp(p_value_float)
-            result = str(p_value_float)
-        except ValueError as value_error:
-            log_error(
-                f'p-value for m log could not be parsed as float "{value}" details : {value_error}',
-                line_number=line_number,
-            )
-    return result
-
-
-def se_beta_formatter(line_number: int, value: str) -> typing.Optional[str]:
-    """
-    SE Beta formatter.
-
-    This formats SE beta values.  A valid SE beta values
-    is a positive float.
-
-    @param line_number:
-    @param value:
-    @return:
-    """
-    result: typing.Optional[str] = None
-    try:
-        se_beta = float(value)
-        if se_beta >= 0:
-            result = str(se_beta)
-        else:
-            log_error(
-                f'position expected positive float "{value}"', line_number=line_number
-            )
-    except ValueError as value_error:
-        log_error(
-            f'position could not be parsed as integer "{value}" details : {value_error}',
-            line_number=line_number,
-        )
-    return result
-
-
-def m_log_from_beta_formatter(
-    line_number: int, beta: str, se_beta: str
-) -> typing.Optional[str]:
-    """
-    Log_m p-value formatter.
-
-    This format calculates m log p-value from
-    the beta and se beta values.
-
-    See : utils.py:beta_to_m_log_p
-
-    @param line_number: line number
-    @param beta: beta value
-    @param se_beta: se beta value
-    @return: m log p-value otherwise None otherwise
-    """
-    result = None
-    string_beta = parameterized_float_formatter("beta")(line_number, beta)
-    string_se_beta: typing.Optional[str] = se_beta_formatter(line_number, se_beta)
-    if string_beta is not None and string_se_beta is not None:
-        try:
-            float_beta = float(string_beta)
-            float_se_beta = float(string_se_beta)
-            m_log_p_value = beta_to_m_log_p(float_beta, float_se_beta)
-            result = str(m_log_p_value)
-        except ValueError as value_error:
-            log_error(
-                f"""position could not calculate m log p from
-                    beta : "{beta}"
-                    se beta : "{se_beta}"
-                    details : {value_error}""",
-                line_number=line_number,
-            )
-    return result
-
-
-def parameterized_float_formatter(
-    column_name: str,
-) -> typing.Callable[[int, str], typing.Optional[str]]:
-    """
-    Parameterized float formatter.
-
-    Used to format beta values and m-log p when provided.
-
-    @param column_name: name of column being formatted
-    @return: formatter
-    """
-
-    def formatter(line_number: int, value: str) -> typing.Optional[str]:
-        """
-        Float formatter.
-
-        Returns a string representing float if a valid
-        float is provided.  Returns None otherwise.
-
-        @param line_number:
-        @param value: value to be formatted
-        @return: string representing provided float None otherwise
-        """
-        result = None
-        try:
-            result = str(float(value))
-        except ValueError as value_error:
-            log_error(
-                f'{column_name} could not be parsed as float "{value}" details : {value_error}',
-                line_number=line_number,
-            )
-        return result
-
-    return formatter
-
-
 def column_valid(
     headers: typing.Sequence[str], column: Column
 ) -> typing.Optional[Column]:
@@ -489,30 +243,12 @@ def search_header(
     return index
 
 
-def resolve_index(
-    headers: typing.Sequence[typing.Optional[str]], index: typing.Optional[int]
-) -> typing.Optional[str]:
-    """
-    Resolve index.
-
-    Given an index return header at that index.
-
-    @param headers: headers
-    @param index: optional index
-    @return: header is available.
-    """
-    if index is None:
-        result = None
-    else:
-        result = headers[index]
-    return result
-
-
 def create_column(
     headers: typing.Sequence[typing.Optional[str]],
     column_name: str,
     description: str,
     formatter: Formatter,
+    column_header: str = None,
 ) -> typing.Tuple[typing.Sequence[typing.Optional[str]], typing.Optional[Column]]:
     """
     Create column.
@@ -523,13 +259,14 @@ def create_column(
     @param column_name: name of columns
     @param description: description of columns
     @param formatter: column formatter
+    @param column_header: used to override the column_header
     @return: Column if column can be created None otherwise
     """
     index = search_header(headers, column_name)
-    header = resolve_index(headers, index)
-    if header is None or index is None:
+    if index is None:
         result = None
     else:
+        header = column_name if column_header is None else column_header
         result = Column(
             indices=[index], header=header, description=description, formatter=formatter
         )
@@ -710,12 +447,11 @@ def process_validate_rename(
     @param columns: columns being constructed
     @return: return None if remapping is invalid or column if they are
     """
-    # can't map to protected columns have to use flags for that
-    # have to map from allowed columns
     for column_name in rename:
         if column_name not in headers:
             log_error(f"renaming source column {column_name} not found in header")
             columns = coalesce(None, columns)
+        # can't map to required columns. Use flags instead.
         if column_name in OUTPUT_FIXED_COLUMNS:
             log_error(f"mapped column {column_name} not found in header")
     return columns
@@ -739,7 +475,7 @@ def headers_to_columns(
     processed_headers: typing.Sequence[typing.Optional[str]] = exclude_header(
         headers, arguments.exclude
     )
-    # NOTE : excluded have been marked at this point
+    # NOTE : excluded have been "marked"/replaced with None at this point
     columns = process_validate_rename(processed_headers, arguments.rename, columns)
 
     # chromosome column
@@ -748,6 +484,7 @@ def headers_to_columns(
         arguments.chromosome,
         command_flags.OUTPUT_DESCRIPTION_CHROMOSOME,
         chromosome_formatter,
+        column_header=command_flags.OUTPUT_COLUMN_CHROMOSOME,
     )
     # indicate an error when coalescing
     columns = coalesce(
@@ -760,6 +497,7 @@ def headers_to_columns(
         arguments.position,
         command_flags.OUTPUT_DESCRIPTION_POSITION,
         position_formatter,
+        column_header=command_flags.OUTPUT_COLUMN_POSITION,
     )
     columns = coalesce(log_missing_column(position_column, arguments.position), columns)
 
@@ -768,6 +506,7 @@ def headers_to_columns(
         arguments.reference,
         command_flags.OUTPUT_DESCRIPTION_REFERENCE,
         parameterized_sequence_formatter(command_flags.OUTPUT_DESCRIPTION_REFERENCE),
+        column_header=command_flags.OUTPUT_COLUMN_REFERENCE,
     )
     columns = coalesce(
         log_missing_column(reference_column, arguments.reference), columns
@@ -778,6 +517,7 @@ def headers_to_columns(
         arguments.alternative,
         command_flags.OUTPUT_DESCRIPTION_ALTERNATIVE,
         parameterized_sequence_formatter(command_flags.OUTPUT_DESCRIPTION_ALTERNATIVE),
+        column_header=command_flags.OUTPUT_COLUMN_ALTERNATIVE,
     )
     columns = coalesce(
         log_missing_column(alternative_column, arguments.alternative), columns
@@ -788,6 +528,7 @@ def headers_to_columns(
         arguments.p_value,
         command_flags.OUTPUT_DESCRIPTION_P_VALUE,
         p_value_formatter,
+        column_header=command_flags.OUTPUT_COLUMN_P_VALUE,
     )
     columns = coalesce(log_missing_column(p_value_column, arguments.p_value), columns)
 
@@ -796,27 +537,25 @@ def headers_to_columns(
         arguments.beta,
         command_flags.OUTPUT_DESCRIPTION_BETA,
         parameterized_float_formatter(command_flags.OUTPUT_DESCRIPTION_BETA),
+        column_header=command_flags.OUTPUT_COLUMN_BETA,
     )
 
     processed_headers, se_beta_column = create_column(
         processed_headers,
         arguments.se_beta,
         command_flags.OUTPUT_DESCRIPTION_SE_BETA,
-        parameterized_float_formatter(command_flags.OUTPUT_DESCRIPTION_SE_BETA),
+        se_beta_formatter,
+        column_header=command_flags.OUTPUT_COLUMN_SE_BETA,
     )
 
     # m log p-value takes a few steps
-    # step 1
-    #  First try to see if the column is available.
-    # step 2
-    #  If it is not try to calculate using beta and
-    #  se_beta, this method is more accurate.  As
-    #  se-beta is optional this may not be possible.
-    # step 3
-    #  In this case try calculating using p-value. As
+    # step 1. First try to see if the column is available.
+    # step 2. If it is not try to calculate using beta and
+    # se_beta, this method is more accurate.  As
+    # se-beta is optional this may not be possible.
+    # step 3. In this case try calculating using p-value. As
     #  p-value required this step should succeed.
-    # step 4
-    #  Report findings to the authorities
+    # step 4. Report findings to the authorities
 
     # step 1
     processed_headers, m_log_p_value_column = create_column(
@@ -824,6 +563,7 @@ def headers_to_columns(
         arguments.m_log_p_value,
         command_flags.OUTPUT_DESCRIPTION_M_LOG_P,
         parameterized_float_formatter(command_flags.OUTPUT_DESCRIPTION_M_LOG_P),
+        column_header=command_flags.OUTPUT_COLUMN_M_LOG_P_VALUE,
     )
 
     # step 2
@@ -909,16 +649,36 @@ def process_row(
         lookup: typing.Callable[[int], str] = lambda i: row[i]
         arguments: typing.Sequence[str] = list(map(lookup, current_column.indices))
         formatter: Formatter = current_column.formatter
-        if formatter is not None:
-            # NOTE : there is a bit of trickery used to get
-            # the arguments to the formatter and typed check.
-            # the formatter takes a maximum of two values
-            # see the union in the type formatter.  Then a
-            # subarray of length 2 is passed to the formatter.
-            cell: typing.Optional[str] = formatter(line_number, *arguments[:2])
-            result = coalesce(cell, result)
-        else:
+        result = coalesce(call_formatter(formatter, arguments, line_number), result)
+    return result
+
+
+def call_formatter(
+    formatter: Formatter, arguments: typing.Sequence[str], line_number: int
+) -> typing.Optional[str]:
+    """
+    Call formatter.
+
+    Create cell given arguments to formatter.
+
+    @param formatter: cell formatter
+    @param arguments: arguments for formatter
+    @param line_number: line number being processed
+    @return:
+    """
+    if formatter is not None:
+        # NOTE : there is a bit of trickery used to get
+        # the arguments to the formatter and typed check.
+        # the formatter takes a maximum of two values
+        # see the union in the type formatter.  Then a
+        # subarray of length 2 is passed to the formatter.
+        try:
+            result: typing.Optional[str] = formatter(*arguments[:2])
+        except ValueError as value_error:
+            log_error(str(value_error), line_number=line_number)
             result = None
+    else:
+        result = None
     return result
 
 
