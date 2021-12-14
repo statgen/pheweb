@@ -45,6 +45,7 @@ from pheweb.load.field_formatter import (
     parameterized_sequence_formatter,
     p_value_formatter,
     se_beta_formatter,
+    Formatter,
 )
 
 from pheweb.utils import file_open
@@ -90,15 +91,6 @@ class Arguments:
     rename: typing.Dict[str, str]
     in_file: str
     out_file: str
-
-
-# type signature for formatter methods see : https://stackoverflow.com/q/51811024
-Formatter = typing.Optional[
-    typing.Union[
-        typing.Callable[[str], typing.Optional[str]],
-        typing.Callable[[str, str], typing.Optional[str]],
-    ]
-]
 
 
 @dataclass(repr=True, eq=True, frozen=True)
@@ -666,19 +658,19 @@ def call_formatter(
     @param line_number: line number being processed
     @return:
     """
-    if formatter is not None:
+    if formatter is None:
+        result = None
+    else:
         # NOTE : there is a bit of trickery used to get
         # the arguments to the formatter and typed check.
         # the formatter takes a maximum of two values
         # see the union in the type formatter.  Then a
         # subarray of length 2 is passed to the formatter.
         try:
-            result: typing.Optional[str] = formatter(*arguments[:2])
+            result = formatter(*arguments[:2])
         except ValueError as value_error:
             log_error(str(value_error), line_number=line_number)
             result = None
-    else:
-        result = None
     return result
 
 

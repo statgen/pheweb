@@ -11,8 +11,16 @@ import re
 
 from pheweb.utils import parse_chromosome, pvalue_to_mlogp, beta_to_m_log_p
 
+# type signature for formatter methods see : https://stackoverflow.com/q/51811024
+Formatter = typing.Optional[
+    typing.Union[
+        typing.Callable[[str], str],
+        typing.Callable[[str, str], str],
+    ]
+]
 
-def str_formatter(value: str) -> typing.Optional[str]:
+
+def str_formatter(value: str) -> str:
     """
     Format string.
 
@@ -24,7 +32,7 @@ def str_formatter(value: str) -> typing.Optional[str]:
     return value
 
 
-def chromosome_formatter(value: str) -> typing.Optional[str]:
+def chromosome_formatter(value: str) -> str:
     """Format chromosome.
 
     If valid chromosome format otherwise log error.
@@ -44,7 +52,7 @@ def chromosome_formatter(value: str) -> typing.Optional[str]:
     return result
 
 
-def position_formatter(value: str) -> typing.Optional[str]:
+def position_formatter(value: str) -> str:
     """
     Position formatter.
 
@@ -68,7 +76,7 @@ def position_formatter(value: str) -> typing.Optional[str]:
 
 def parameterized_sequence_formatter(
     column_name: str,
-) -> typing.Callable[[str], typing.Optional[str]]:
+) -> typing.Callable[[str], str]:
     """
     Parameterize sequence formatter.
 
@@ -79,7 +87,7 @@ def parameterized_sequence_formatter(
     @return:  Formatter for column
     """
 
-    def formatter(value: str) -> typing.Optional[str]:
+    def formatter(value: str) -> str:
         """
         Validate a sequence.
 
@@ -94,7 +102,7 @@ def parameterized_sequence_formatter(
     return formatter
 
 
-def p_value_formatter(value: str) -> typing.Optional[str]:
+def p_value_formatter(value: str) -> str:
     """
     P-value formatter.
 
@@ -116,7 +124,7 @@ def p_value_formatter(value: str) -> typing.Optional[str]:
     return result
 
 
-def m_log_from_p_value_formatter(value: str) -> typing.Optional[str]:
+def m_log_from_p_value_formatter(value: str) -> str:
     """
     M log p-value from p-value.
 
@@ -125,21 +133,19 @@ def m_log_from_p_value_formatter(value: str) -> typing.Optional[str]:
     @param value: string value
     @return: m log p-value if it can be calculated otherwise None
     """
-    result = None
     p_value = p_value_formatter(value)
-    if p_value is not None:
-        try:
-            p_value_float = float(p_value)
-            p_value_float = pvalue_to_mlogp(p_value_float)
-            result = str(p_value_float)
-        except ValueError as value_error:
-            raise ValueError(
-                f'p-value for m log could not be parsed as float "{value}" details : {value_error}',
-            ) from value_error
+    try:
+        p_value_float = float(p_value)
+        p_value_float = pvalue_to_mlogp(p_value_float)
+        result = str(p_value_float)
+    except ValueError as value_error:
+        raise ValueError(
+            f'p-value for m log could not be parsed as float "{value}" details : {value_error}',
+        ) from value_error
     return result
 
 
-def se_beta_formatter(value: str) -> typing.Optional[str]:
+def se_beta_formatter(value: str) -> str:
     """
     SE Beta formatter.
 
@@ -162,7 +168,7 @@ def se_beta_formatter(value: str) -> typing.Optional[str]:
     return result
 
 
-def m_log_from_beta_formatter(beta: str, se_beta: str) -> typing.Optional[str]:
+def m_log_from_beta_formatter(beta: str, se_beta: str) -> str:
     """
     Log_m p-value formatter.
 
@@ -175,28 +181,26 @@ def m_log_from_beta_formatter(beta: str, se_beta: str) -> typing.Optional[str]:
     @param se_beta: se beta value
     @return: m log p-value otherwise None otherwise
     """
-    result = None
     string_beta = parameterized_float_formatter("beta")(beta)
-    string_se_beta: typing.Optional[str] = se_beta_formatter(se_beta)
-    if string_beta is not None and string_se_beta is not None:
-        try:
-            float_beta = float(string_beta)
-            float_se_beta = float(string_se_beta)
-            m_log_p_value = beta_to_m_log_p(float_beta, float_se_beta)
-            result = str(m_log_p_value)
-        except ValueError as value_error:
-            raise ValueError(
-                f"""position could not calculate m log p from
-                    beta : "{beta}"
-                    se beta : "{se_beta}"
-                    details : {value_error}""",
-            ) from value_error
+    string_se_beta = se_beta_formatter(se_beta)
+    try:
+        float_beta = float(string_beta)
+        float_se_beta = float(string_se_beta)
+        m_log_p_value = beta_to_m_log_p(float_beta, float_se_beta)
+        result = str(m_log_p_value)
+    except ValueError as value_error:
+        raise ValueError(
+            f"""position could not calculate m log p from
+                beta : "{beta}"
+                se beta : "{se_beta}"
+                details : {value_error}""",
+        ) from value_error
     return result
 
 
 def parameterized_float_formatter(
     column_name: str,
-) -> typing.Callable[[str], typing.Optional[str]]:
+) -> typing.Callable[[str], str]:
     """
     Parameterized float formatter.
 
@@ -206,7 +210,7 @@ def parameterized_float_formatter(
     @return: formatter
     """
 
-    def formatter(value: str) -> typing.Optional[str]:
+    def formatter(value: str) -> str:
         """
         Float formatter.
 
