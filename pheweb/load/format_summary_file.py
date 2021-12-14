@@ -52,10 +52,9 @@ from pheweb.utils import file_open
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
 )
 LOGGER = logging.getLogger(__name__)
-
+LOGGER.setLevel(logging.INFO)
 # Data classes
 
 
@@ -205,7 +204,7 @@ def column_valid(
     @param column: column description object
     @return:  column if valid otherwise None
     """
-    if not all(map(lambda index: index < len(headers), column.indices)):
+    if not all(map(lambda index: 0 <= index < len(headers), column.indices)):
         result = None
         log_error(f"{column.indices} out of bounds header only has {len(headers)}")
     else:
@@ -240,7 +239,7 @@ def create_column(
     column_name: str,
     description: str,
     formatter: Formatter,
-    column_header: str = None,
+    column_header: typing.Optional[str] = None,
 ) -> typing.Tuple[typing.Sequence[typing.Optional[str]], typing.Optional[Column]]:
     """
     Create column.
@@ -332,7 +331,8 @@ def p_value_to_m_log_p_column(column: Column) -> Column:
 
 
 def beta_to_m_log_p_value_column(
-    beta_value_column: Column, se_beta_value_column: Column
+    beta_column: Column,
+    se_beta_column: Column,
 ) -> Column:
     """
     Beta to m log p-value.
@@ -343,14 +343,14 @@ def beta_to_m_log_p_value_column(
     the arguments are given in the right
     order.
 
-    @param beta_value_column:
-    @param se_beta_value_column:
+    @param beta_column:
+    @param se_beta_column:
     @return:
     """
-    assert beta_value_column.header == command_flags.OUTPUT_COLUMN_BETA
-    assert se_beta_value_column.header == command_flags.OUTPUT_COLUMN_SE_BETA
+    assert beta_column.header == command_flags.OUTPUT_COLUMN_BETA
+    assert se_beta_column.header == command_flags.OUTPUT_COLUMN_SE_BETA
     return Column(
-        indices=[*beta_value_column.header, *se_beta_value_column.header],
+        indices=[*beta_column.indices, *se_beta_column.indices],
         header=M_LOG_P_COLUMN_HEADER,
         description=M_LOG_P_COLUMN_DESCRIPTION,
         formatter=m_log_from_beta_formatter,
@@ -480,7 +480,7 @@ def headers_to_columns(
     )
     # indicate an error when coalescing
     columns = coalesce(
-        log_missing_column(chromosome_column, arguments.p_value), columns
+        log_missing_column(chromosome_column, arguments.chromosome), columns
     )
 
     # position column
@@ -730,7 +730,7 @@ def process_file(
             line_number = line_number + 1
         msg = f"""
         processed:
-         lines : {line_number}
+         line count : {line_number}
          fault : {faults}
         """
         log_info(msg)
@@ -777,10 +777,14 @@ def faults_to_exit_code(faults: int) -> int:
 
 def run(argv: typing.Sequence[str]) -> typing.NoReturn:
     """
-    Take arguments and returns an exit code.
+    Take arguments return format summary and exit.
+
+    Parse the arguments given.  Open the input and
+    output file.  Process the input file and write
+    to the output and exit.
 
     @param argv: command line arguments
-    @return: exit code
+    @return: NoReturn
     """
     args = parse_args(argv)
     with file_open(args.in_file, mode="r") as read_file:
