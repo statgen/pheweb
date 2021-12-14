@@ -65,7 +65,7 @@ setup(
     cffi_modules=['pheweb/load/cffi/ffibuilder.py:ffibuilder'],
     python_requires=">=3.6",
     setup_requires=[
-        'cffi~=1.14',
+        'cffi~=1.15',
         'pytest-runner~=5.2',
     ],
     install_requires=[
@@ -81,7 +81,7 @@ setup(
         'requests[security]~=2.25',
         'gunicorn~=20.0.4',
         'boltons~=20.2',
-        'cffi~=1.14', # in both `setup_requires` and `install_requires` as per <https://github.com/pypa/setuptools/issues/391>
+        'cffi~=1.15', # in both `setup_requires` and `install_requires` as per <https://github.com/pypa/setuptools/issues/391>
         'wget~=3.2',
         'gevent~=21.1',
         'psutil~=5.8',
