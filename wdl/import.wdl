@@ -7,29 +7,53 @@ task preprocess {
   String docker
 
   String? preprocessor
+  
+  String? chrom_column
+  String chrom_flag = if defined(chrom_column) then "--chrom  '${chrom_column}'" else ""
 
-  String chrom_column
-  String pos_column
-  String ref_column
-  String alt_column
-  String pval_column
-  String beta_column
+  String? pos_column
+  String pos_flag = if defined(pos_column) then "--pos  '${pos_column}'" else ""
+  
+  String? ref_column
+  String ref_flag = if defined(ref_column) then "--ref  '${ref_column}'" else ""
+  
+  String? alt_column
+  String alt_flag = if defined(alt_column) then "--alt  '${alt_column}'" else ""
+  
+  String? pval_column
+  String pval_flag = if defined(pval_column) then "--pval  '${pval_column}'" else ""
+
+  
+  String? mlogp_column
+  String mlogp_flag = if defined(mlogp_column) then "--mlogp  '${mlogp_column}'" else ""
+
+  
+  String? beta_column
+  String beta_flag = if defined(beta_column) then "--beta  '${beta_column}'" else ""
+
+  
+  String? se_beta_column
+  String se_beta_flag = if defined(se_beta_column) then "--se_beta  '${se_beta_column}'" else ""
+
+  String? rename
+  String rename_flag = if defined(rename) then "--rename '${rename}'" else ""
+
+  String? exclude
+  String exclude_flag = if defined(exclude) then "--exclude '${exclude}'" else ""
   
   String normalized_filename = sub(sub(basename(summary_file), ".gz$", ""), ".bgz$", "")
   String out_filename = "${normalized_filename}.gz"
 
   String dir = '/cromwell_root/'
 
-  
-
-
   command <<<
 	   set -euxo pipefail
      	   cd ${dir}
 
 	   cat "${summary_file}" | \
-	   (if [[ "${summary_file}" == *.gz || "${summary_file}" == *.bgz ]]; then zcat ; else cat ; fi) | ${default="cat" preprocessor } | \
-           pheweb format-summary-file --chrom  "${chrom_column}" --pos "${pos_column}" --ref "${ref_column}" --alt "${alt_column}" --pval "${pval_column}" --beta "${beta_column}" | \
+           cat | (if [[ "${summary_file}" == *.gz || "${summary_file}" == *.bgz ]]; then zcat ; else cat ; fi) | \
+           ${default="cat" preprocessor } | \
+           pheweb format-summary-file ${chrom_flag} ${pos_flag} ${ref_flag} ${alt_flag} ${pval_flag} ${mlogp_flag} ${beta_flag} ${se_beta_flag} | \
            sort -t$'\t' -k1,1n -k2,2n -k3,3 -k4,4 | \
            bgzip > "${dir}${out_filename}"
 
@@ -44,10 +68,9 @@ task preprocess {
   runtime {
         docker: "${docker}"
     	cpu: 2
-    	memory: "4 GB"
+    	memory: "8 GB"
         bootDiskSizeGb: 50
-        # data files are about 0.5 GB 
-        disks: "local-disk 100 HDD"
+        disks: "local-disk 200 HDD"
         zones: "europe-west1-b"
         preemptible: 0
   }
@@ -209,7 +232,7 @@ task pheno {
     	cpu: 2
     	memory: "10 GB"
         bootDiskSizeGb: 50
-        disks: "local-disk 100 HDD"
+        disks: "local-disk 200 HDD"
         zones: "europe-west1-b"
         preemptible: 0
     }
@@ -228,11 +251,6 @@ task matrix {
     Int disk
     Int mem
 
-    String chrom_column
-    String pos_column
-    String ref_column
-    String alt_column
-  
     command <<<
         set -euxo pipefail
         mkdir -p pheweb/generated-by-pheweb/tmp && \
@@ -263,7 +281,7 @@ task matrix {
         def multiproc(i):
             file = sorted(glob.glob("*pheno_piece"))[i]
             print(file)
-            cmd = ["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "${chrom_column}", "--pos", "${chrom_column}", "--ref", "${ref_column}", "--alt", "${alt_column}", "--no_require_match", "--no_tabix", "--all_fields"]
+            cmd = ["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--no_require_match", "--no_tabix", "--all_fields"]
             start = time.time()
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             out,err = [elem.decode("utf-8").strip() for elem in p.communicate()]
@@ -356,17 +374,8 @@ task matrix {
 workflow import_pheweb {
 	 String docker
 	 String summary_files
-	 String? preprocessor
 	 String? file_affix
 
-         String? chrom_column = "#chrom" # name of chromosome column
-         String? pos_column = "pos" # name of position column
-         String? ref_column = "ref" # name of reference column
-         String? alt_column = "alt" # name of alternative column
-         String? pval_column = "pval" # name of p-value column
-         String? beta_column = "beta" # name of beta column
-         
-  
          Int disk
          Int mem
   
@@ -380,15 +389,6 @@ workflow import_pheweb {
 	    call preprocess { input :
                summary_file = pheno_file ,
                docker = docker ,
-               preprocessor = preprocessor,
-
-               chrom_column = chrom_column ,
-               pos_column = pos_column ,
-               ref_column = ref_column ,
-               alt_column = alt_column ,
-               pval_column = pval_column ,
-               beta_column = beta_column
-	   
 	       }
          }
 
@@ -422,10 +422,6 @@ workflow import_pheweb {
 		      bed_file = bed_file,
 		      docker=docker,
 	              mem = mem ,  
-                      disk=disk ,
-	              chrom_column = chrom_column ,
-                      pos_column = pos_column ,
-                      ref_column = ref_column ,
-                      alt_column = alt_column
+                      disk=disk
         }	    
 }
