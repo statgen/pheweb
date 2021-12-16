@@ -8,6 +8,7 @@ pheweb:
   cloudSQLCredentialFile: /mnt/nfs/pheweb/phewas.sql.credentials.json
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
   ipName: sandbox-gwas
+  release: r7
   
 persistentVolume:
   path: /vol1

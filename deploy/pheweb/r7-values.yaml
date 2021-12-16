@@ -13,5 +13,3 @@ persistentVolume:
   path: /vol1
   server: 10.179.247.250
 
-image: # pheweb image
-   tag: ci-9ac43bee60721c531a45b260fc0f6b44efa6cf00
