@@ -13,5 +13,3 @@ persistentVolume:
   path: /vol1
   server: 10.179.247.250
 
-image:
-  tag: ci-b9d7190d192faf8f32a73d80e01c4243710237e4

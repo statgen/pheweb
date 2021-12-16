@@ -6,6 +6,7 @@ pheweb:
   mount: /mnt/nfs
   subdomain: metaresults
   ipName: finngen-meta-ip
+  release: r7
   
 persistentVolume:
   storage: 11T

@@ -168,10 +168,14 @@ def run():
         msg = """
         Please provide additional columns by either
         
-        by supplying a list of fields
+        by supplying a list of fields:
+
             --other_fields [list of fields]
-        or indicating a fields should be used
+
+        or indicating all fields should be used:
+
            --all_fields
+
         """
         raise ValueError(msg)
 
