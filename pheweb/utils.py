@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 Utility functions.
 
@@ -8,21 +9,24 @@ This file should be reorganized.
 """
 
 import contextlib
+import csv
 import json
+import math
 import os
 import sys
 import urllib.parse
-import csv
+
 import boltons.mathutils
 import smart_open
-import math
+from scipy import stats
 
 
 class PheWebError(Exception):
     """Pheweb error.
 
     Implies that an exception is being handled by PheWeb,
-    so its message should just be printed."""
+    so its message should just be printed.
+    """
 
 
 def round_sig(value: float, digits: int) -> float:
@@ -33,7 +37,6 @@ def round_sig(value: float, digits: int) -> float:
     @param digits:  digits to round to
     @return: float
     """
-
     if value == 0:
         result = 0
     elif abs(value) == math.inf or math.isnan(value):
@@ -71,14 +74,14 @@ def get_phenolist():
 
     filepath = common_filepaths["phenolist"]
     try:
-        with open(os.path.join(filepath), encoding="utf-8") as f:
-            phenotype_list = json.load(f)
-    except (FileNotFoundError, PermissionError):
+        with open(os.path.join(filepath), encoding="utf-8") as file:
+            phenotype_list = json.load(file)
+    except (FileNotFoundError, PermissionError) as exception:
         raise PheWebError(
             f"""You need a file to define your phenotypes at '{filepath}'
                 For more information on how to make one, see
                 <https://github.com/statgen/pheweb#3-make-a-list-of-your-phenotypes>"""
-        )
+        ) from exception
     except json.JSONDecodeError:
         print(
             f"""Your file at '{filepath}' contains invalid json.
@@ -100,18 +103,18 @@ def get_use_phenos():
 
     filepath = common_filepaths["use_phenos"]
     try:
-        with open(os.path.join(filepath), encoding="utf-8") as f:
+        with open(os.path.join(filepath), encoding="utf-8") as file:
             phenotype_list = [
                 pheno.strip()
-                for pheno in f.readlines()
+                for pheno in file.readlines()
                 if pheno != "" and not pheno.startswith("#")
             ]
             print(f"using {str(len(phenotype_list))} phenotypes from {filepath}")
     except FileNotFoundError:
         print(f" {filepath} not found, using all phenotypes")
         phenotype_list = [pheno["phenocode"] for pheno in get_phenolist()]
-    except PermissionError:
-        raise PheWebError(f" {filepath} could not be read")
+    except PermissionError as error:
+        raise PheWebError(f" {filepath} could not be read") from error
     return phenotype_list
 
 
@@ -139,10 +142,18 @@ def pad_gene(start, end):
 
 # CONSTANTS
 def get_gene_tuples(include_ensg=False):
+    """
+    Get gene tuples.
+
+    Very unsure what this is about.
+
+    @param include_ensg:
+    @return: 4-tuple
+    """
     from .file_utils import common_filepaths
 
-    with open(common_filepaths["genes"]) as f:
-        for row in csv.reader(f, delimiter="\t"):
+    with open(common_filepaths["genes"], encoding="utf-8") as file:
+        for row in csv.reader(file, delimiter="\t"):
             assert row[0] in chrom_order, row[0]
             if include_ensg:
                 yield row[0], int(row[1]), int(row[2]), row[3], row[4]
@@ -213,8 +224,21 @@ def pvalue_to_mlogp(p_value: float) -> float:
     return m_log_p_value
 
 
+def beta_to_m_log_p(beta: float, se_beta: float) -> float:
+    """
+    Compute m log p from betas.
+
+    @param beta: beta values
+    @param se_beta: se beta value
+    @return: computed m log p-value
+    """
+    if se_beta == 0:
+        raise ValueError(f"m log p-value value undefined {beta} {se_beta}")
+    return (stats.norm.logsf(beta / se_beta) + math.log(2)) / math.log(10)
+
+
 @contextlib.contextmanager
-def file_open(filename, mode="Ur"):
+def file_open(filename: str, mode: str = "Ur"):
     """
     Smart open a path.
 
@@ -256,7 +280,6 @@ def std_file_handler(mode: str):
     @param mode: string indicating mode
     @return: file handle
     """
-
     if mode is None or mode == "" or "r" in mode:
         file_handle = sys.stdin
     else:
