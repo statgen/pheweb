@@ -53,9 +53,9 @@ setup(
         'Flask-Compress~=1.4',
         'Flask-Login~=0.4',
         'pyasn1~=0.4.6',
-        'google-api-python-client~=1.7.11',
-        'google-auth~=1.11.2',
-        'google-auth-httplib2~=0.0.3',
+        'google-api-python-client~=2.33.0',
+        'google-auth~=2.3.3',
+        'google-auth-httplib2~=0.1.0',
         'google-compute-engine~=2.8.13',
         'rauth~=0.7',
         'pysam~=0.14',
@@ -73,7 +73,6 @@ setup(
         'blist~=1.3',
         'cffi~=1.11',
         'wget~=3.2',
-        'gevent~=21.1.2',
         'elasticsearch~=6.2.0',
         'latex~=0.7.0',
         'attrs',
@@ -81,7 +80,7 @@ setup(
         'SQLAlchemy~=1.3.19',
         'PyMySQL>=0.10.1',
         'mysqlclient>=2.0.1',
-        'smart_open~=5.2.1'
+        'smart_open[gcs]~=5.2.1'
     ],
     dependency_links=[
         'https://github.com/FINNGEN/finngen-common-data-model.git@7a3d457cdcccdbd7e8be173259150ec98e2737ad#egg=finngen_common_data_model'

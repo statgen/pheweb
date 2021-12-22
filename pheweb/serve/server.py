@@ -36,8 +36,8 @@ from .group_based_auth  import verify_membership
 from .server_auth import before_request
 
 from pheweb_colocalization.view import colocalization
-from .components.config_ui.service import config_ui
 from .components.autocomplete.service import autocomplete
+from .components.chip.service import chip
 
 app = Flask(__name__)
 
@@ -116,8 +116,8 @@ jeeves = ServerJeeves( conf )
 
 app.jeeves = jeeves
 app.register_blueprint(colocalization)
-app.register_blueprint(config_ui)
 app.register_blueprint(autocomplete)
+app.register_blueprint(chip)
 
 
 if "data_dir" in conf:
