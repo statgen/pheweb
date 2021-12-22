@@ -29,7 +29,7 @@ import subprocess
 import sys
 import glob
 from pheweb_colocalization.model_db import ColocalizationDAO
-from ..components.config_ui.dao import ConfigUIDAO
+from ..components.chip.fs_storage import FileChipDAO
 from pathlib import Path
 from .drug_db import DrugDB, DrugDao
 
@@ -1983,5 +1983,5 @@ class DataFactory(object):
             else None
         )
 
-    def get_config_ui_dao(self):
-        return self.dao_impl["config_ui"] if "config_ui" in self.dao_impl else None
+    def get_chip_dao(self):
+        return self.dao_impl["chip"] if "chip" in self.dao_impl else None
