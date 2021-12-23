@@ -7,7 +7,7 @@ from typing import Union, Dict
 This package queries `opentargets<https://www.opentargets.org/>`
 and returns the drug information related to the gene name.
 
-There is a `playground<https://api.platform.opentargets.org/api/v4/graphql/browser>` 
+There is a `playground<https://api.platform.opentargets.org/api/v4/graphql/browser>`
 to develop the graphql queries.
 
 Documentation on how to query :
@@ -27,7 +27,7 @@ class DrugDB(object):
         @param gene: gene name
         @return: information about drugs associated with the gene
         """
-        return
+        raise NotImplementedError
 
 
 def nvl_attribute(name: str, obj: Union[None, Dict], default):
@@ -56,8 +56,9 @@ def copy_attribute(name, src, dst):
     @return: destination object
     """
     if src and name in src:
-        dst[name] = src[name] 
+        dst[name] = src[name]
     return dst
+
 
 def extract_rows(response, gene_name):
     """
@@ -182,9 +183,10 @@ def query_endpoint(gene_name):
 
 def fetch_drugs(gene_name):
     """
+    fetch drug information for gene.
 
-    @param gene_name:
-    @return:
+    @param gene_name: gene name to search for
+    @return: information
     """
     response = query_endpoint(gene_name)
     rows = extract_rows(response, gene_name)
@@ -194,15 +196,21 @@ def fetch_drugs(gene_name):
 
 class DrugDao(DrugDB):
     """
+        Drug DAO.
 
+        DAO for fetch drug data from open targets.
     """
+
     def __init__(self):
         pass
 
     def get_drugs(self, gene_name):
         """
+        Get drugs.
 
-        @param gene_name:
-        @return:
+        Get drug information for gene.
+
+        @param gene_name: gene name
+        @return: information if there is any.
         """
         return fetch_drugs(gene_name)
