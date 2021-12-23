@@ -10,7 +10,8 @@ from dataclasses import dataclass
 from typing import NamedTuple, List, Any
 
 
-class ChipData(NamedTuple):
+@dataclass
+class ChipData:
     """
     Chip Data DTO.
 
