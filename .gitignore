@@ -83,3 +83,5 @@ pheweb_colocalization
 auto-save-list
 tramp
 .\#*
+.coverage
+.isort.cfg
