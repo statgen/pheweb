@@ -1,0 +1,38 @@
+{
+  "name": "ft",
+  "version": "0.0.1",
+  "description": "FinnGen Table",
+  "main": "index.js",
+  "dependencies": {
+    "@babel/core": "^7.11.6",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/preset-react": "^7.10.4",
+    "@reduxjs/toolkit": "^1.4.0",
+    "babel": "^6.23.0",
+    "babel-loader": "^8.1.0",
+    "plotly.js": "^1.56.0",
+    "react": "^16.13.1",
+    "react-csv": "^2.0.3",
+    "react-dom": "^16.13.1",
+    "react-plotly.js": "^2.5.0",
+    "react-router-dom": "^5.2.0",
+    "react-table-v6": "^6.8.6",
+    "react-tabs": "^3.1.1",
+    "react-tooltip": "^4.2.21",
+    "validator": "^13.1.17",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12",
+    "webpack-merge": "^5.2.0"
+  },
+  "devDependencies": {
+    "css-loader": "^5.0.2",
+    "react-redux": "^7.2.1",
+    "redux": "^4.0.5",
+    "style-loader": "^2.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "jk",
+  "license": "MIT"
+}
