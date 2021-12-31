@@ -59,7 +59,15 @@ def test_position_formatter_1() -> None:
     """
     assert "1" == position_formatter("1")
     assert "10" == position_formatter("10")
-    for bad_value in ["-BAD VALUE", "-2", "bad"]:
+    assert "100300000" == position_formatter("1.003e+08")
+    assert "249200000" == position_formatter("2.492e+08")
+    for bad_value in [
+        "-BAD VALUE",
+        "-2",
+        "2.492e+01",
+        "bad",
+        "2.492e+01call_formatter",
+    ]:
         with pytest.raises(ValueError) as value_error:
             position_formatter(bad_value)
         assert bad_value in str(value_error)
@@ -122,7 +130,7 @@ def test_m_log_from_m_log_from_p_value_formatter_edge_case(
     mock_p_value_formatter,
 ) -> None:
     """
-    Test m log p-value with a edge case.
+    Test m log p-value with an edge case.
 
     @param mock_p_value_formatter: mocker p-value formatter
     @return: None

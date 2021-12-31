@@ -62,11 +62,14 @@ def position_formatter(value: str) -> str:
     @return: position if value otherwise None.
     """
     try:
-        position = int(value)
-        if position >= 0:
-            result = str(position)
-        else:
+
+        position = int(float(value))
+        if position < 0:
             raise ValueError(f'position expected positive integer "{value}"')
+        if float(value) != round(float(value)):
+            raise ValueError(f'position float has decimal point "{value}"')
+        result = str(position)
+
     except ValueError as value_error:
         raise ValueError(
             f'position could not be parsed as integer "{value}" details : {value_error}'

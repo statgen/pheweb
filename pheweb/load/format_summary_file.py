@@ -55,6 +55,8 @@ logging.basicConfig(
 )
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
+
 # Data classes
 
 
@@ -123,6 +125,7 @@ OUTPUT_FIXED_COLUMNS = [
 M_LOG_P_COLUMN_HEADER = command_flags.OUTPUT_COLUMN_M_LOG_P_VALUE
 M_LOG_P_COLUMN_DESCRIPTION = "m log p-value computed from p-value"
 
+
 # METHODS
 
 
@@ -132,8 +135,8 @@ def parse_args(argv: typing.Sequence[str]) -> Arguments:
 
     Parse command args and return an argument object.
 
-    @param argv: commandline options
-    @return: arguments object
+    :param argv: commandline options
+    :returns: arguments object
     """
     parser = argparse.ArgumentParser(description="format summary file")
     command_flags.add_chromosome_flag(parser)
@@ -171,9 +174,9 @@ def log_error(msg: str, line_number: typing.Optional[int] = None) -> None:
 
     Method for logging errors to ensure uniform summary.
 
-    @param msg: message to be logged
-    @param line_number: input file line number
-    @return: None
+    :param msg: message to be logged
+    :param line_number: input file line number
+    :returns: None
     """
     msg = msg if line_number is None else f"line : {line_number} : {msg}"
     LOGGER.error(msg)
@@ -183,10 +186,10 @@ def log_info(msg: str) -> None:
     """
     Log info message.
 
-    Intended usage for displaying configuration and summary information
+    Intended usage for displaying configuration and summary information.
 
-    @param msg:
-    @return: None
+    :param msg: message to be logged
+    :returns: None
     """
     LOGGER.info(msg)
 
@@ -200,9 +203,9 @@ def column_valid(
     Check if a column is valid with respect to the given header.
     The only check done is if the column index is in bounds.
 
-    @param headers:  list containing file headers
-    @param column: column description object
-    @return:  column if valid otherwise None
+    :param headers:  list containing file headers
+    :param column: column description object
+    :returns:  column if valid otherwise None
     """
     if not all(map(lambda index: 0 <= index < len(headers), column.indices)):
         result = None
@@ -222,10 +225,10 @@ def search_header(
 
     Search header for a column returning the index.
 
-    @param headers: headers
-    @param column_name: name of column
-    @param default_index: default to return if not found
-    @return: index of column or default in not found
+    :param headers: headers
+    :param column_name: name of column
+    :param default_index: default to return if not found
+    :returns: index of column or default in not found
     """
     if column_name is None or column_name not in headers:
         index = default_index
@@ -246,12 +249,12 @@ def create_column(
 
     Constructor method for column.
 
-    @param headers: file header
-    @param column_name: name of columns
-    @param description: description of columns
-    @param formatter: column formatter
-    @param column_header: used to override the column_header
-    @return: Column if column can be created None otherwise
+    :param headers: file header
+    :param column_name: name of columns
+    :param description: description of columns
+    :param formatter: column formatter
+    :param column_header: used to override the column_header
+    :returns: Column if column can be created None otherwise
     """
     index = search_header(headers, column_name)
     if index is None:
@@ -278,9 +281,9 @@ def log_missing_column(
     If column is None log the column could not be created
     because it could not be found in header.
 
-    @param column: optional column
-    @param column_name: expected header name
-    @return: optional column
+    :param column: optional column
+    :param column_name: expected header name
+    :returns: optional column
     """
     if column is None:
         log_error(f"could not find column {column_name} in header")
@@ -296,9 +299,9 @@ def coalesce(
     If the value or the accumulator are None return.
     Otherwise, return accumulator with value appended.
 
-    @param value: optional value
-    @param acc: optional accumulator
-    @return: return accumulator+[value] otherwise None
+    :param value: optional value
+    :param acc: optional accumulator
+    :returns: return accumulator+[value] otherwise None
     """
     if acc is None:
         result = None
@@ -317,8 +320,8 @@ def p_value_to_m_log_p_column(column: Column) -> Column:
     calculate from p-value column.   This is done by taking
     the p-value column and overriding the definition.
 
-    @param column: p-value column
-    @return: m log p column
+    :param column: p-value column
+    :returns: m log p column
     """
     # sanity check that p-value column was supplied.
     assert column.header == command_flags.OUTPUT_COLUMN_P_VALUE
@@ -343,9 +346,9 @@ def beta_to_m_log_p_value_column(
     the arguments are given in the right
     order.
 
-    @param beta_column:
-    @param se_beta_column:
-    @return:
+    :param beta_column: beta column
+    :param se_beta_column: se-beta column
+    :returns: m log-p column
     """
     assert beta_column.header == command_flags.OUTPUT_COLUMN_BETA
     assert se_beta_column.header == command_flags.OUTPUT_COLUMN_SE_BETA
@@ -365,9 +368,9 @@ def exclude_header(
 
     Exclude columns from header by changing the entry to None.
 
-    @param headers: headers
-    @param exclude: columns to be excluded
-    @return: header with columns excluded
+    :param headers: headers
+    :param exclude: columns to be excluded
+    :returns: header with columns excluded
 
     """
     excluded_headers = [None if current in exclude else current for current in headers]
@@ -382,8 +385,8 @@ def process_remainder(
 
     Create columns from the remainder of columns.
 
-    @param headers: headers
-    @return: columns
+    :param headers: headers
+    :returns: columns
     """
     columns = []
     for index, current_header in enumerate(headers):
@@ -408,10 +411,10 @@ def process_validate_exclude(
 
     Check that excluded columns could be found in headers.
 
-    @param headers: input file header
-    @param exclude: columns to exclude
-    @param columns: partially constructed columns
-    @return: None if excluded is malformed otherwise columns
+    :param headers: input file header
+    :param exclude: columns to exclude
+    :param columns: partially constructed columns
+    :returns: None if excluded is malformed otherwise columns
     """
     for column_name in exclude:
         if column_name not in headers:
@@ -434,10 +437,10 @@ def process_validate_rename(
     Note: This is run after columns have bene excluded, so those values should be None.
     Note: This also allows a column name to be repeated.
 
-    @param headers: input file headers
-    @param rename: map continuing header names what to remap to.
-    @param columns: columns being constructed
-    @return: return None if remapping is invalid or column if they are
+    :param headers: input file headers
+    :param rename: map continuing header names what to remap to.
+    :param columns: columns being constructed
+    :returns: return None if remapping is invalid or column if they are
     """
     for column_name in rename:
         if column_name not in headers:
@@ -457,9 +460,9 @@ def headers_to_columns(
 
      Create column metadata from headers.
 
-    @param arguments: arguments
-    @param headers: file headers
-    @return:
+    :param arguments: arguments
+    :param headers: file headers
+    :returns: Sequence of columns if successful None otherwise
     """
     columns: typing.Optional[typing.Sequence[Column]] = []
     columns = process_validate_exclude(headers, arguments.exclude, columns)
@@ -589,8 +592,8 @@ def line_to_row(line: str) -> typing.Sequence[str]:
 
     Given a string covert to a list representing a row.
 
-    @param line: string containing a row
-    @return: row
+    :param line: string containing a row
+    :returns: row
     """
     return line.rstrip("\n").split("\t")
 
@@ -601,8 +604,8 @@ def row_to_line(row: typing.Sequence[str]) -> str:
 
     Given a row (list of string) return a tsv encoded string.
 
-    @param row: list of cells
-    @return: string representing the row
+    :param row: list of cells
+    :returns: string representing the row
     """
     line = "\t".join(row)
     return f"{line}\n"
@@ -614,34 +617,71 @@ def header_row(columns: typing.Sequence[Column]) -> typing.Sequence[str]:
 
     Create header row from the column metadata.
 
-    @param columns:  column metadata
-    @return: header row.
+    :param columns:  column metadata
+    :returns: header row.
     """
     headers = list(map(lambda current_column: current_column.header, columns))
     return headers
 
 
 def process_row(
-    line_number: int, row: typing.Sequence[str], columns: typing.Sequence[Column]
+    line_number: int,
+    row: typing.Optional[typing.Sequence[str]],
+    columns: typing.Sequence[Column],
 ) -> typing.Optional[typing.Sequence[str]]:
     """
     Process row from input.
 
     Given a row return a str return formatted row or None if there is a fault.
 
-    @param line_number:
-    @param row: input row to be formatted
-    @param columns: row metadata
-    @return: formatted row otherwise None
+    :param line_number:
+    :param row: input row to be formatted
+    :param columns: row metadata
+    :returns: formatted row otherwise None
     """
-    result: typing.Optional[typing.Sequence[str]] = []
-    current_column: Column
-    for current_column in columns:
-        assert current_column.formatter is not None
-        lookup: typing.Callable[[int], str] = lambda i: row[i]
-        arguments: typing.Sequence[str] = list(map(lookup, current_column.indices))
-        formatter: Formatter = current_column.formatter
-        result = coalesce(call_formatter(formatter, arguments, line_number), result)
+    if row is not None:
+        result: typing.Optional[typing.Sequence[str]] = []
+        current_column: Column
+        for current_column in columns:
+            assert current_column.formatter is not None
+            assert row is not None
+            _row: typing.Sequence[str] = row  # mypy type hint
+            lookup: typing.Callable[[int], str] = lambda i: _row[i]
+            arguments: typing.Sequence[str] = list(map(lookup, current_column.indices))
+            formatter: Formatter = current_column.formatter
+            result = coalesce(call_formatter(formatter, arguments, line_number), result)
+    else:
+        result = None
+    return result
+
+
+def check_row(
+    line_number: int,
+    row: typing.Optional[typing.Sequence[str]],
+    header: typing.Sequence[str],
+) -> typing.Optional[typing.Sequence[str]]:
+    """
+    Check row is well-structured.
+
+    This checks if the row has the same
+    number of columns as the header.
+
+    :param line_number: line number currently being processed
+    :param row: row to be checked
+    :param header: file header
+    :returns: None is row is malformed returns row otherwise
+    """
+    if row is None:
+        result = None
+        log_error("row is missing (None)", line_number=line_number)
+    elif len(header) != len(row):
+        result = None
+        log_error(
+            f" header has : {len(header)} column , row has {len(row)} : {row}",
+            line_number=line_number,
+        )
+    else:
+        result = row
     return result
 
 
@@ -653,10 +693,10 @@ def call_formatter(
 
     Create cell given arguments to formatter.
 
-    @param formatter: cell formatter
-    @param arguments: arguments for formatter
-    @param line_number: line number being processed
-    @return:
+    :param formatter: cell formatter
+    :param arguments: arguments for formatter
+    :param line_number: line number being processed
+    :returns: formatted cell if successful None otherwise
     """
     if formatter is None:
         result = None
@@ -684,10 +724,10 @@ def process_file(
 
     Format file given supplied path.
 
-    @param arguments : arguments
-    @param read_file: read file handle
-    @param write_file: write file handle
-    @return: return code
+    :param arguments : arguments
+    :param read_file: read file handle
+    :param write_file: write file handle
+    :returns: process return code
     """
     msg = f"""
     Columns:
@@ -726,7 +766,7 @@ def process_file(
         write_file.write(row_to_line(header_row(columns)))
         line_number = 1
         for line in read_file.readlines():
-            row = line_to_row(line)
+            row = check_row(line_number, line_to_row(line), headers)
             formatted_row = process_row(line_number, row, columns)
             faults = write_row(write_file, formatted_row, faults)
             line_number = line_number + 1
@@ -748,10 +788,10 @@ def write_row(
 
     Given a row write out if valid otherwise update the number of faults.
 
-    @param write_file: file handle
-    @param row: row
-    @param faults: current number of faults
-    @return: updated number of faults
+    :param write_file: file handle
+    :param row: row
+    :param faults: current number of faults
+    :returns: updated number of faults
     """
     if row is not None:
         write_file.write(row_to_line(row))
@@ -767,8 +807,8 @@ def faults_to_exit_code(faults: int) -> int:
     Given the number of faults in the file return the
     exit code.  Fails if there are any faults.
 
-    @param faults: number of faults in file
-    @return: return exit code
+    :param faults: number of faults in file
+    :returns: return exit code
     """
     if faults == 0:
         exit_code = os.EX_OK
@@ -785,8 +825,8 @@ def run(argv: typing.Sequence[str]) -> typing.NoReturn:
     output file.  Process the input file and write
     to the output and exit.
 
-    @param argv: command line arguments
-    @return: NoReturn
+    :param argv: command line arguments
+    :returns: NoReturn
     """
     args = parse_args(argv)
     with file_open(args.in_file, mode="r") as read_file:
