@@ -1,6 +1,7 @@
 import { getDefaultMiddleware } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import tableReducer from './features/tableSlice'
+import tableReducer from './ChipTableSlice'
+
 
 export default configureStore({
     reducer: { 
