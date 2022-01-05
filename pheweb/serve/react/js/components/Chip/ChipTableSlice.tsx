@@ -8,7 +8,6 @@ import { ChipData } from "./ChipModel";
 import 'regenerator-runtime/runtime'
 import { NoInfer } from "@reduxjs/toolkit/dist/tsHelpers";
 
-
 export type State = {
   status: string;
   error: string | null;
