@@ -12,22 +12,42 @@ declare let window: PhewebWindow;
 const pValueSentinel = 5e-324
 
 const textFormatter = (props) => props.value;
+
+const decimalFormatter = (props) => (+props.value).toPrecision(3)
+const optionalDecimalFormatter = (props) => isNaN(+props.value) ? props.value : decimalFormatter(props)
+
 const numberFormatter = (props) => +props.value;
-const floatFormatter = (props) => (+props.value).toExponential(1)
-const optionalFloat = (props) => isNaN(+props.value) ? props.value : floatFormatter(props)
+const optionalNumberFormatter = (props) => isNaN(+props.value) ? props.value : numberFormatter
+
+const scientificFormatter = (props) => (+props.value).toExponential(1)
+const optionalScientificFormatter = (props) => isNaN(+props.value) ? props.value : scientificFormatter(props)
+
 const pValueFormatter = (props) => (props.value == pValueSentinel) ? ` << ${pValueSentinel}` : props.value.toExponential(1)
+
 const arrayFormatter = (props) => props.value.join(" ");
+
 const phenotypeFormatter = (props) => (<a href={"https://results.finngen.fi/pheno/" + props.original.pheno}
                                            target="_blank">{props.value == 'NA' ? props.original.pheno : props.value}</a>)
 
 const formatters = {
     "text": textFormatter,
-    "number": numberFormatter,
-    "float": floatFormatter,
+
+    "decimal": decimalFormatter,
+    "optionalDecimal": decimalFormatter,
+
+    "number" : numberFormatter,
+    "optionalNumber" : optionalNumberFormatter,
+
+    "scientific" : scientificFormatter ,
+    "optionalScientific": optionalScientificFormatter,
+
+    "pValue": pValueFormatter,
+    
     "array": arrayFormatter,
-    "p_value": pValueFormatter,
-    "phenotype": phenotypeFormatter,
+
+    "phenotype": phenotypeFormatter
 };
+
 
 const variantSorter = (a, b) => {
     const v1 = a.split(':').map(e => +e)
@@ -209,38 +229,35 @@ const phenotypeColumns = {
             <span title="p-value in imputed data GWAS" style={{textDecoration: 'underline'}}>pval_imp</span>),
         accessor: 'pval_imp',
         filterMethod: (filter, row) => row[filter.id] <= filter.value,
-        Cell: props => props.value == 'NA' ? props.value : props.value.toExponential(1),
+        Cell: props => optionalScientificFormatter,
         width: columnWith(80)
     },
     chipBeta: {
         Header: () => (<span title="effect size beta in chip EWAS" style={{textDecoration: 'underline'}}>beta</span>),
         accessor: 'beta',
         filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
-        Cell: props => {
-            return isNaN(+props.value) ? '' :
-                props.value.toPrecision(3)
-        },
+        Cell: optionalScientificFormatter,
         width: columnWith(60)
     },
     chipAF: {
         Header: () => (<span title="allele frequency (cases+controls)" style={{textDecoration: 'underline'}}>af</span>),
         accessor: 'af_alt',
         filterMethod: (filter, row) => row[filter.id] <= filter.value,
-        Cell: floatFormatter,
+        Cell: scientificFormatter,
         width: columnWith(60)
     },
     chipAFCase: {
         Header: () => (<span title="allele frequency (cases)" style={{textDecoration: 'underline'}}>af_case</span>),
         accessor: 'af_alt_cases',
         filterMethod: (filter, row) => row[filter.id] <= filter.value,
-        Cell: floatFormatter,
+        Cell: scientificFormatter,
         width: columnWith(60)
     },
     chipAFControl: {
         Header: () => (<span title="allele frequency (controls)" style={{textDecoration: 'underline'}}>af_ctrl</span>),
         accessor: 'af_alt_controls',
         filterMethod: (filter, row) => row[filter.id] <= filter.value,
-        Cell: floatFormatter,
+        Cell: scientificFormatter,
         width: columnWith(60)
     },
     chipAFFinn: {
@@ -249,7 +266,7 @@ const phenotypeColumns = {
         accessor: 'fin_AF',
         filterMethod: (filter, row) => row[filter.id] <= filter.value,
         sortMethod: naSmallSorter,
-        Cell: optionalFloat,
+        Cell: optionalScientificFormatter,
         width: columnWith(60)
     },
     chipAFNFSEE: {
@@ -259,7 +276,7 @@ const phenotypeColumns = {
         accessor: 'nfsee_AF',
         filterMethod: (filter, row) => row[filter.id] <= filter.value,
         sortMethod: naSmallSorter,
-        Cell: optionalFloat,
+        Cell: optionalScientificFormatter,
         width: columnWith(80)
     },
     chipFINEnrichment: {
@@ -325,7 +342,7 @@ const phenotypeColumns = {
             </div>)
         },
         sortMethod: naSmallSorter,
-        Cell: textFormatter,
+        Cell: optionalDecimalFormatter,
         width: columnWith(120)
     },
     phenotype:
