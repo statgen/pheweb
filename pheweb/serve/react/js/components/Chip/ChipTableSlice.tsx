@@ -93,7 +93,7 @@ const extraReducers = (builder: ActionReducerMapBuilder<NoInfer<State>>) => {
 };
 
 
-export const tableSlice = createSlice({
+export const tableSlice = createSlice<State, SliceCaseReducers<State>>({
     name: 'table',
     initialState: {
 	table: null,
