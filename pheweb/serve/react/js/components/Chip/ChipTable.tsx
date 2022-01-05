@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import ReactTable from 'react-table-v6'
 import ReactTooltip from 'react-tooltip'
 import { fetchData, setData, State } from './ChipTableSlice'
-import { chipTableCols } from './tables.js'
-import { mustacheDiv } from "../../common/Utilities";
-import { ConfigurationWindow } from "../Configuration/ConfigurationModel";
+import { chipTableCols } from '../../common/TableColumn'
+import { mustacheDiv } from "../../common/Utilities"
+import { ConfigurationWindow } from "../Configuration/ConfigurationModel"
+import ReactDOMServer from 'react-dom/server'
 
-const default_banner: string = `
-      <p style="paddingBottom: '10px', textDecoration: 'none', color: 'black', width: '200px'">CHIP RESULTS</p>
-      `;
+const default_banner: string =
+    ReactDOMServer.renderToString(
+      <p style={{paddingBottom: '10px', textDecoration: 'none', color: 'black', width: '200px'}}>CHIP RESULTS</p>
+    );
 const loading_div = <div>.. . loading . ..</div>
 
 declare let window: ConfigurationWindow;
