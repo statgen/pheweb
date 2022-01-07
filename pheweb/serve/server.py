@@ -125,7 +125,7 @@ resource_dir = None
 if "resource_dir" in conf:
     resource_dir = conf['resource_dir']
 elif "data_dir" in conf:
-    resource_dir = path.join(conf['data_dir'], "resources")
+    resource_dir = os.path.join(conf['data_dir'], "resources")
 
 if resource_dir:    
     static_resources = Blueprint('static_resources',
