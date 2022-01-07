@@ -21,27 +21,22 @@ interface LineNumber {
 // http://crocodillon.com/blog/always-catch-localstorage-security-and-quota-exceeded-errors
 export type QuotaException = DOMException & LineNumber
 export const isQuotaExceeded = (e: QuotaException) : boolean => {
-  let quotaExceeded = false;
-  if (e) {
-    if (e.code) {
-      switch (e.code) {
-        case 22:
-          quotaExceeded = true;
-          break;
-        case 1014:
-          // Firefox
-          if (e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
-            quotaExceeded = true;
-          }
-          break;
-      }
-    } else if (e.number === -2147024882) {
-      // Internet Explorer 8
+  let quotaExceeded : boolean;
+  switch (e?.code) {
+  case 22:
       quotaExceeded = true;
-    }
+      break;
+  case 1014:
+      // Firefox
+      quotaExceeded = (e.name === 'NS_ERROR_DOM_QUOTA_REACHED')
+      break;
+  default:
+      quotaExceeded = e?.number === -2147024882
+      break;
   }
   return quotaExceeded;
 }
+
 
 export const fetchData = createAsyncThunk('table/fetchData', async (url : string, { rejectWithValue }) => {
     const response: Response = await fetch(url)
