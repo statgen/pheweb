@@ -1,11 +1,10 @@
-import { getDefaultMiddleware } from '@reduxjs/toolkit'
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore ,
+  createSerializableStateInvariantMiddleware,
+  createImmutableStateInvariantMiddleware } from '@reduxjs/toolkit'
 import tableReducer from './ChipTableSlice'
 
-
-export default configureStore({
-    reducer: { 
-        table: tableReducer
-    },
-    middleware: [...getDefaultMiddleware({immutableCheck: false, serializableCheck: false})]
-})
+const serializableCheck = createSerializableStateInvariantMiddleware()
+const immutableCheck = createImmutableStateInvariantMiddleware()
+const middleware = (getDefaultMiddleware) => getDefaultMiddleware().concat([serializableCheck, immutableCheck])
+const reducer = { table: tableReducer }
+export default configureStore({ reducer, middleware })
