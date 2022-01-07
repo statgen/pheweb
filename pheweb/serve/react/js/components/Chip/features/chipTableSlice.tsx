@@ -4,7 +4,7 @@ import { createSlice,
 	 AsyncThunk,
 	 ActionReducerMapBuilder,
        } from "@reduxjs/toolkit";
-import { ChipData } from "./ChipModel";
+import { ChipData } from "../chipModel";
 import 'regenerator-runtime/runtime'
 import { NoInfer } from "@reduxjs/toolkit/dist/tsHelpers";
 
@@ -19,8 +19,9 @@ interface LineNumber {
 }
 
 // http://crocodillon.com/blog/always-catch-localstorage-security-and-quota-exceeded-errors
-function isQuotaExceeded(e: DOMException & LineNumber): boolean {
-  var quotaExceeded = false;
+export type QuotaException = DOMException & LineNumber
+export const isQuotaExceeded = (e: QuotaException) : boolean => {
+  let quotaExceeded = false;
   if (e) {
     if (e.code) {
       switch (e.code) {

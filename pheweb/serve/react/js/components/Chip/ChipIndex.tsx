@@ -1,7 +1,7 @@
 import React from 'react'
 import { Provider } from 'react-redux'
 
-import store from './ChipStore'
+import store from './chipStore'
 import { Table } from './ChipTable'
 
 const Chip = (props) => {

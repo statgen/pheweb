@@ -1,5 +1,5 @@
 import {NotFoundConfiguration} from "../NotFound/NotFoundModel";
-import {ChipConfiguration} from "../Chip/ChipModel";
+import {ChipConfiguration} from "../Chip/chipModel";
 
 export interface ConfigurationUserInterface {
     notFound? : NotFoundConfiguration;

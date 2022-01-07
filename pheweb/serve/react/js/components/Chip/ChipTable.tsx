@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import ReactTable from 'react-table-v6'
 import ReactTooltip from 'react-tooltip'
-import { fetchData, setData, State } from './ChipTableSlice'
+import { fetchData, setData, State } from './features/chipTableSlice'
 import { chipTableCols } from '../../common/TableColumn'
 import { mustacheDiv } from "../../common/Utilities"
 import { ConfigurationWindow } from "../Configuration/ConfigurationModel"

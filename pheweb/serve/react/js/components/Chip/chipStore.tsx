@@ -1,7 +1,7 @@
 import { configureStore ,
   createSerializableStateInvariantMiddleware,
   createImmutableStateInvariantMiddleware } from '@reduxjs/toolkit'
-import tableReducer from './ChipTableSlice'
+import tableReducer from './features/chipTableSlice'
 
 const serializableCheck = createSerializableStateInvariantMiddleware()
 const immutableCheck = createImmutableStateInvariantMiddleware()
