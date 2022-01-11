@@ -26,8 +26,9 @@ const pValueFormatter = (props) => (props.value == pValueSentinel) ? ` << ${pVal
 
 const arrayFormatter = (props) => props.value.join(" ");
 
-const phenotypeFormatter = (props) => (<a href={"https://results.finngen.fi/pheno/" + props.original.pheno}
-                                           target="_blank">{props.value == 'NA' ? props.original.pheno : props.value}</a>)
+const phenotypeFormatter = (props) => (<a href={`/pheno/${props.original.pheno}` }
+                                          target="_blank">{props.value == 'NA' ? props.original.pheno : props.value}</a>)
+
 
 const formatters = {
     "text": textFormatter,

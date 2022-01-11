@@ -35,18 +35,25 @@ spec:
       - name: pheweb-container
         image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
+          
         - name: PHEWEB_DIR
           value: {{- if .Values.pheweb.directory }} "{{ .Values.pheweb.directory }}" {{ else }} "{{ .Values.pheweb.mount }}/pheweb/{{ .Values.pheweb.subdomain }}"  {{- end }}
         {{- if .Values.pheweb.cloudSQLCredentialFile }}
+        
         - name: CLOUD_SQL_PROXY_CREDENTIAL_FILE
           value: {{ .Values.pheweb.cloudSQLCredentialFile }}
         {{- end }}
         {{- if .Values.pheweb.cloudSQLProxyInstances }}
+        
         - name: CLOUD_SQL_PROXY_INSTANCES
           value: {{ .Values.pheweb.cloudSQLProxyInstances }}
         {{- end }}
 
-
+        {{- if .Values.pheweb.secretName }}
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /etc/gcp/sa_credentials.json
+        {{- end }}
+          
         ports:
         - containerPort: 8080
         {{- if .Values.pheweb.health }}
@@ -65,8 +72,24 @@ spec:
         volumeMounts:
         - mountPath: "{{ .Values.pheweb.mount }}"
           name: pheweb-nfs
+
+        {{- if .Values.pheweb.secretName }}
+        - name: service-account-credentials-volume
+          mountPath: /etc/gcp
+          readOnly: true
+        {{- end }}
+        
       volumes:
       - name: pheweb-nfs
         persistentVolumeClaim:
           claimName: pvc-{{ include "pheweb.fullname" . }}
           readOnly: false
+
+      {{- if .Values.pheweb.secretName }}
+      - name: service-account-credentials-volume
+        secret:
+          secretName: {{ .Values.pheweb.secretName }}
+          items:
+            - key: sa_json
+              path: sa_credentials.json
+      {{- end }}
