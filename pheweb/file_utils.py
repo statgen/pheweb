@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+""" File utilities
+"""
 from typing import List, Union
 from pathlib import Path
 
@@ -13,7 +16,6 @@ import pysam
 
 from .utils import PheWebError, get_phenolist, chrom_order
 from .conf_utils import conf, get_field_parser, validate_fields
-
 
 
 def get_generated_path(*path_parts):
@@ -181,7 +183,9 @@ class _vfr:
             for field in self.fields
         ]
         for unparsed_variant in self._reader:
-            assert len(unparsed_variant) == len(self.fields)
+            assert len(unparsed_variant) == len(
+                self.fields
+            ), f"length {len(unparsed_variant)} {len(self.fields)} {unparsed_variant} {self.fields}"
             variant = {
                 field: parser(value)
                 for parser, field, value in zip(parsers, self.fields, unparsed_variant)

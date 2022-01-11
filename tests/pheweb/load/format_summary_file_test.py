@@ -59,6 +59,7 @@ from pheweb.load.format_summary_file import (
     call_formatter,
     process_file,
     Arguments,
+    check_row,
 )
 
 
@@ -485,6 +486,72 @@ def test_process_row() -> None:
     cell = str(uuid.uuid4())
     row = [cell]
     assert process_row(line_number, row, [column]) == [cell]
+
+
+@patch("pheweb.load.format_summary_file.LOGGER.error")
+def test_process_row_none(mock_logger_error) -> None:
+    """
+    Test process row with None.
+
+    :param mock_logger_error: mocker logger
+    :return: None
+    """
+    line_number: int = random_line_number()
+    row: typing.Optional[typing.Sequence[str]] = None
+    columns: typing.Sequence[Column] = []
+    assert not mock_logger_error.called
+    assert process_row(line_number, row, columns) is None
+
+
+@patch("pheweb.load.format_summary_file.LOGGER.error")
+def test_check_row_none(mock_logger_error) -> None:
+    """
+    Check what happens when row is None
+    :param mock_logger_error: logger
+    :return: None
+    """
+    line_number: int = random_line_number()
+    row: typing.Optional[typing.Sequence[str]] = None
+    header: typing.Sequence[str] = []
+    assert not mock_logger_error.called
+    assert check_row(line_number, row, header) is None
+    mock_logger_error.assert_called_once()
+    msg = mock_logger_error.call_args[0][0]
+    assert str(line_number) in msg
+
+
+@patch("pheweb.load.format_summary_file.LOGGER.error")
+def test_check_row_wrong_width(mock_logger_error) -> None:
+    """
+    Test check row with wrong width.
+
+    :param mock_logger_error: logger
+    :return: None
+    """
+    line_number: int = random_line_number()
+    row: typing.Optional[typing.Sequence[str]] = ["a"]
+    header: typing.Sequence[str] = ["a", "b"]
+    assert not mock_logger_error.called
+    assert check_row(line_number, row, header) is None
+    mock_logger_error.assert_called_once()
+    msg = mock_logger_error.call_args[0][0]
+    assert str(line_number) in msg
+
+
+@patch("pheweb.load.format_summary_file.LOGGER.error")
+def test_check_row_success(mock_logger_error) -> None:
+    """
+    Test check row success path.
+
+    :param mock_logger_error: error log
+    :return: None
+    """
+    line_number: int = random_line_number()
+    row: typing.Optional[typing.Sequence[str]] = ["a", "b"]
+    header: typing.Sequence[str] = ["c", "d"]
+    assert not mock_logger_error.called
+    assert check_row(line_number, row, header) == row
+    assert not mock_logger_error.called
 
 
 # call_formatter
