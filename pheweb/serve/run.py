@@ -1,8 +1,5 @@
 ## this is needed before importing request or other network modulse for http communication or else things can spectacularly fail
 ## dependent on the running environment. https://github.com/gevent/gevent/issues/1009
-from gevent import monkey
-monkey.patch_all()
-
 def run_flask_dev_server(app, args):
     print("Running dev: " + str(args.use_reloader))
     app.run(
@@ -34,17 +31,8 @@ def run_gunicorn(app, args):
         'access_log_format': '%(t)s | %(s)s | %(L)ss | %(m)s %(U)s | resp_len:%(B)s | referrer:"%(f)s" | ip:%(h)s | agent:%(a)s',
         'timeout': 120,
         # docs @ <http://docs.gunicorn.org/en/stable/settings.html#access-log-format>
-        'worker_class': 'gevent',
     }
     sga = StandaloneGunicornApplication(app, options)
-    # for skey,sval in sorted(sga.cfg.settings.items()):
-    #     cli_args = sval.cli and ' '.join(sval.cli) or ''
-    #     val = str(sval.value)
-    #     print(f'cfg.{skey:25} {cli_args:28} {val}')
-    #     if sval.value != sval.default:
-    #         print(f'             default: {str(sval.default)}')
-    #         print(f'             short: {sval.short}')
-    #         print(f'             desc: <<\n{sval.desc}\n>>')
     sga.run()
 
 def gunicorn_is_broken():
@@ -77,15 +65,7 @@ def print_ip(port):
 def get_ip():
     import subprocess
     return subprocess.check_output('dig +short myip.opendns.com @resolver1.opendns.com'.split()).strip().decode('ascii')
-    # import socket
-    # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # sock.connect(('resolver1.opendns.com', 53))
-    # sock.send(b'\0\0\1\0\0\1\0\0\0\0\0\0\4myip\7opendns\3com\0\0\1\0\1')
-    # resp = sock.recv(1000)
-    # return '.'.join(str(b) for b in resp[-4:])
-    # import requests, re
-    # data = requests.get('http://checkip.dyndns.com/').text
-    # return re.compile(r'Address: (\d+\.\d+\.\d+\.\d+)').search(data).group(1)
+
 
 def attempt_open(url):
     import os

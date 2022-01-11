@@ -20,7 +20,7 @@ module.exports = {
 		query: { presets: ['@babel/preset-env', '@babel/preset-react'] },
 		exclude: /node_modules/
 	    },
-      { test: /\.tsx?$/, loader: 'ts-loader', exclude: /node_modules/ }
+            { test: /\.tsx?$/, loader: 'ts-loader', exclude: /node_modules/ }
 	]
     }
 }

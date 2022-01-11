@@ -36,8 +36,8 @@ from .group_based_auth  import verify_membership
 from .server_auth import before_request
 
 from pheweb_colocalization.view import colocalization
-from .components.config_ui.service import config_ui
 from .components.autocomplete.service import autocomplete
+from .components.chip.service import chip
 
 app = Flask(__name__)
 
@@ -116,16 +116,22 @@ jeeves = ServerJeeves( conf )
 
 app.jeeves = jeeves
 app.register_blueprint(colocalization)
-app.register_blueprint(config_ui)
 app.register_blueprint(autocomplete)
+app.register_blueprint(chip)
 
 
-if "data_dir" in conf:
-    path=conf['data_dir'] + "resources"
+# static resources
+resource_dir = None
+if "resource_dir" in conf:
+    resource_dir = conf['resource_dir']
+elif "data_dir" in conf:
+    resource_dir = path.join(conf['data_dir'], "resources")
+
+if resource_dir:    
     static_resources = Blueprint('static_resources',
                                  __name__,
                                  static_url_path='/static/resources',
-                                 static_folder=path)
+                                 static_folder=resource_dir)
     app.register_blueprint(static_resources)
 
 # see discussion
