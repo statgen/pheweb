@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ReactTable from "react-table-v6";
 import { createCSVLinkHeaders, createTableColumns, phenotypeListTableColumns } from "../../common/tableColumn";
 import { ConfigurationWindow } from "../Configuration/ConfigurationModel";
 import loading from "../../common/Loading";
 import { Phenotype } from "./indexModel";
 import { CSVLink } from "react-csv";
+import { getRegion } from "../Region/RegionAPI";
+import { getPhenotypes } from "./indexAPI";
 
 interface Props { }
 
@@ -20,25 +22,7 @@ export const Table = (props: Props) => {
   const [link, setLink] = useState<HTMLAnchorElement | null>(null);
 
 
-  const getPhenotypes = () => {
-    fetch("/api/phenos")
-      .then(response => {
-        if (!response.ok) {
-          throw response;
-        } else {
-          return response.json();
-        }
-      })
-      .then((response: Phenotype[]) => {
-        response = response.map((phenotype: Phenotype) => {
-          return { ...phenotype, lambda: phenotype.gc_lambda["0.5"] };
-        });
-        setPhenotypes(response);
-      })
-      .catch(error => {
-        alert(`${error.statusText || error}`);
-      });
-  };
+  useEffect(() => { getPhenotypes(setPhenotypes); },[]);
 
   const tableColumns = createTableColumns(config?.userInterface?.index?.tableColumns) || phenotypeListTableColumns;
   const download = () => {
@@ -79,7 +63,8 @@ export const Table = (props: Props) => {
       target="_blank" />
 
   </div>;
-  return phenotypes ? loading : body;
+  const component = phenotypes == null? loading : body;
+  return component;
 };
 
 export default Table;
