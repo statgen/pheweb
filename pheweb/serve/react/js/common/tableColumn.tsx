@@ -1,6 +1,7 @@
 import {Column, HeaderProps, Renderer} from "react-table";
 import React from 'react'
 import ReactDOMServer from "react-dom/server";
+import { Headers, LabelKeyObject } from "react-csv/components/CommonPropTypes";
 
 interface PhewebWindow extends Window {
     release_prev: number
@@ -456,7 +457,7 @@ const phenotypeColumns = {
             label: "ATC code",
             accessor: 'atc',
             Cell: props => (
-                <a href={"https://www.whocc.no/atc_ddd_index/?code=" + props.value} target="_blank">{props.value}</a>),
+                <a href={`https://www.whocc.no/atc_ddd_index/?code=${props.value}`} target="_blank">{props.value}</a>),
             minWidth: 200
         },
 
@@ -696,7 +697,17 @@ const phenotypeColumns = {
         }
 }
 
-export const chipTableCols = [
+
+export const phenotypeListTableColumns = [
+  { ... phenotypeColumns.phenotype , "attributes" : { "minWidth": 300 } } ,
+  phenotypeColumns.category,
+  phenotypeColumns.numCases,
+  phenotypeColumns.numControls,
+  phenotypeColumns.numGwSignificant,
+  phenotypeColumns.controlLambda ]
+
+
+export const chipTableColumns = [
     phenotypeColumns.chipPhenotype,
     phenotypeColumns.chipVariant,
     phenotypeColumns.chipRSID,
@@ -732,26 +743,40 @@ interface ColumnDescriptor<E extends {}> {
 }
 
 type ColumnConfiguration<E> = ColumnArchetype<E> | ColumnDescriptor<E>;
+export type TableColumnConfiguration<E> = ColumnConfiguration<E>[]|undefined|null
 
-
-function createColumn<Type extends {}>(descriptor: ColumnConfiguration<Type>): Column<Type> {
-    if ('type' in descriptor && 'attributes' in descriptor) {
-        return {...phenotypeColumns[descriptor.type], ...descriptor.attributes};
-    } else {
-        const {title, label, accessor, formatter, minWidth, sorter} = descriptor;
-        const header: Renderer<HeaderProps<Type>> =
-            (<span title={`{title || label }`} style={{textDecoration: 'underline'}}>{label || title}</span>);
-        const column = {
-            Header: header,
-            accessor: accessor,
-            Cell: formatter in formatters ? formatters[formatter] : textFormatter,
-            ...(sorter && sorter in sorters && {sortMethod: sorters[sorter]}),
-            ...(minWidth && {minWidth})
-        };
-        return column;
-    }
+const createColumn = <Type extends {}>(descriptor: ColumnConfiguration<Type>) : Column<Type> => {
+  if ('type' in descriptor && 'attributes' in descriptor) {
+    return {...phenotypeColumns[descriptor.type], ...descriptor.attributes};
+  } else {
+    const {title, label, accessor, formatter, minWidth, sorter} = descriptor;
+    const header: Renderer<HeaderProps<Type>> =
+      (<span title={`{title || label }`} style={{textDecoration: 'underline'}}>{label || title}</span>);
+    const column = {
+      Header: header,
+      accessor: accessor,
+      Cell: formatter in formatters ? formatters[formatter] : textFormatter,
+      ...(sorter && sorter in sorters && {sortMethod: sorters[sorter]}),
+      ...(minWidth && {minWidth})
+    };
+    return column;
+  }
 }
 
-export const createTableColumns = <Type extends {}>(param : ColumnConfiguration<Type>[]|undefined|null) : Column<Type>[]|null =>  {
-    return (param)? param.map(createColumn): null;
+export const createTableColumns = <Type extends {}>(param : TableColumnConfiguration<Type>) : Column<Type>[]|null =>  {
+  return (param)? param.map(createColumn): null;
+}
+
+const reshape = <Type extends {}>(column : Column<Type>) : LabelKeyObject => {
+  let result : LabelKeyObject
+  if (typeof column.accessor == "string") {
+    result = { label: column.accessor, key: column.accessor };
+  } else {
+    throw `invalid column : {column.accessor}`
+  }
+  return result;
+}
+
+export const createCSVLinkHeaders = <Type extends {}>(columns : Column<Type>[]|null) : Headers => {
+  return columns?.map(reshape)||[];
 }
