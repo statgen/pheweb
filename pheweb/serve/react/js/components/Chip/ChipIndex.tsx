@@ -4,7 +4,9 @@ import { Provider } from 'react-redux'
 import store from './chipStore'
 import { Table } from './ChipTable'
 
-const Chip = (props) => {
+interface Props {}
+
+const Chip = (props : Props) => {
   return (
     <Provider store={store}>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

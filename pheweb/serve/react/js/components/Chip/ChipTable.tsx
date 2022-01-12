@@ -15,7 +15,7 @@ const default_banner: string =
   );
 
 declare let window: ConfigurationWindow;
-interface Props { match : { params : { data : string } } }
+interface Props { match? : { params? : { data? : string } } }
 export const Table = (props : Props) => {
 
   const dispatch = useDispatch();
@@ -31,7 +31,7 @@ export const Table = (props : Props) => {
     if (data?.status == "idle") {
       dispatch(fetchData(`/api/v1/chip_data`));
     } else {
-      const stored = sessionStorage.getItem(`${props.match.params.data}`);
+      const stored = sessionStorage.getItem(`${props?.match?.params?.data}`);
       if (stored) {
         // console.log('cache hit')
         dispatch(setData(JSON.parse(stored)));
