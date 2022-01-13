@@ -31,7 +31,9 @@
         <h1 style="margin-top:0">All Phenotypes</h1>
     </div>
     <div class="col-xs-12 col-sm-4">
-      <span class="pull-right"><a class="btn btn-default" href="{{ url_for('.download_phenotypes') }}">Download</a></span>
+      {% if config.DOWNLOAD_PHENOTYPES_BUTTON %}
+        <span class="pull-right"><a class="btn btn-default" href="{{ url_for('.download_phenotypes') }}">Download</a></span>
+      {% endif %}
   </div>
 </div>
 <br>

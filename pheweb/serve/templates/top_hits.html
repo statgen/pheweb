@@ -31,7 +31,9 @@
         <h1 style="margin-top:0">Top Hits</h1>
     </div>
     <div class="col-xs-12 col-sm-4">
-      <span class="pull-right"><a class="btn btn-default" href="{{ url_for('.download_top_hits') }}">Download</a></span>
+      {% if config.DOWNLOAD_TOP_HITS_BUTTON %}
+        <span class="pull-right"><a class="btn btn-default" href="{{ url_for('.download_top_hits') }}">Download</a></span>
+      {% endif %}
   </div>
 </div>
 <div class="row">
