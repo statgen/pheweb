@@ -26,6 +26,10 @@ def set_override(key:str, value:Any) -> None:
         #raise PheWebError("Use `{}` instead of `{}`.".format(replacements[key], key))
     if key=='download_pheno_sumstats' and value=='secret':
         overrides['secret_download_pheno_sumstats'] = True
+    if key=='download_top_hits' and value=='hide':
+        overrides['show_download_top_hits_button'] = False
+    if key=='download_phenotypes' and value=='hide':
+        overrides['show_download_phenotypes_button'] = False
     elif key == 'login':
         if not isinstance(value, dict): raise Exception(value)
         overrides['login'] = True
@@ -186,6 +190,8 @@ def get_login_allowlist() -> List[str]:
     _check_overrides_type(key, list)
     return overrides.get(key, [])  # type: ignore
 def get_secret_key() -> str: return _get_config_str('SECRET_KEY', 'nonsecret key')
+def should_show_download_top_hits_button() -> bool: return _get_config_bool('show_download_top_hits_button', True)
+def should_show_download_phenotypes_button() -> bool: return _get_config_bool('show_download_phenotypes_button', True)
 def is_secret_download_pheno_sumstats() -> bool: return _get_config_bool('secret_download_pheno_sumstats', False)
 def get_google_analytics_id() -> Optional[str]: return _get_config_optional_str('GOOGLE_ANALYTICS_TRACKING_ID')
 def get_sentry_id() -> Optional[str]: return _get_config_optional_str('SENTRY_DSN')

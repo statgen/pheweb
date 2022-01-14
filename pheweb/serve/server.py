@@ -365,7 +365,11 @@ def gene_page(genename:str):
         die("Sorry, that gene doesn't appear to have any associations in any phenotype.")
     return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
 
+if conf.should_show_download_top_hits_button():
+    app.config['DOWNLOAD_TOP_HITS_BUTTON'] = True
 
+if conf.should_show_download_phenotypes_button():
+    app.config['DOWNLOAD_PHENOTYPES_BUTTON'] = True
 
 if conf.is_secret_download_pheno_sumstats():
     if app.config['SECRET_KEY'] == 'nonsecret key':
