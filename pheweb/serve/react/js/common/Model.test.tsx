@@ -1,13 +1,28 @@
 /* eslint-env jest */
 // https://stackoverflow.com/questions/59833839/swap-one-typescript-type-with-another-inside-an-object
 import renderer from 'react-test-renderer'
-import {variantToStr, variantFromStr, locusFromStr, locusToStr, stringToChromosome, Variant, Locus} from './Model'
+import {
+  variantToStr,
+  variantFromStr,
+  locusFromStr,
+  locusToStr,
+  stringToChromosome,
+  Variant,
+  Locus,
+  variantToPheweb
+} from "./Model";
 import { variantLink } from './Formatter'
 
 test('serialize variant 1', () => {
   const variant : Variant = { chromosome: 1, position: 1, reference: 'A', alternate: 'G' }
   expect(variantToStr(variant)).toStrictEqual('1:1_A/G')
 })
+
+test('variant to pheweb format 1', () => {
+  const variant : Variant = { chromosome: 1, position: 1, reference: 'A', alternate: 'G' }
+  expect(variantToPheweb(variant)).toStrictEqual('1-1-A-G')
+})
+
 
 
 test('string to chromosome', () => {
@@ -55,6 +70,13 @@ test('parse variant 5', () => {
   const expected : Variant = { chromosome: 9, position: 96792507, reference: 'T', alternate: '<INS:ME:ALU>' }
   expect(variantFromStr(variant)).toStrictEqual(expected)
 })
+
+test('parse variant 6', () => {
+  const variant : string = "20-59159857-G-A"
+  const expected : Variant = { chromosome: 20, position: 59159857, reference: 'G', alternate: 'A' }
+  expect(variantFromStr(variant)).toStrictEqual(expected)
+})
+
 
 test('parse locus 1', () => {
   const locus : string = '1:1-10'

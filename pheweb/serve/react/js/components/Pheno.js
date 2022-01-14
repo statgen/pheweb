@@ -6,6 +6,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import { phenoTableCols, csTableCols, csInsideTableCols, pval_sentinel } from '../tables.js'
 import { create_gwas_plot, create_qq_plot } from '../pheno.js'
 import { mustacheText } from '../common/Utilities'
+import VariantTable from './Phenotype/PhenotypeVariantTable'
 
 const defaultErrorMessagesTemplate = { 400: 'The phenotype {{phenocode}} does not exist' }
 
@@ -330,40 +331,19 @@ class Pheno extends React.Component {
       </div> :
       <div>loading</div>
 
-    const var_table = this.state.data ?
-      <div>
-        <ReactTable
-          ref={(r) => this.vartable = r}
-          data={this.state.data.unbinned_variants.filter(v => !!v.peak)}
-          filterable
-          defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())}
-          columns={this.state.columns}
-          defaultSorted={[{
-            id: 'pval',
-            desc: false
-          }]}
-          defaultPageSize={20}
-          className="-striped -highlight"
-        />
-        <div className="row">
-          <div className="col-xs-12">
-            <div className="btn btn-primary" onClick={this.download}>Download table</div>
-          </div>
-        </div>
-      </div> :
-      <div>loading</div>
+    const variantTable = <VariantTable phenotype={pheno.phenocode} />
     const qq_table = this.state.qq ?
-      <div>
-        <table className='column_spacing'>
-          <tbody>
-            {Object.keys(this.state.qq.overall.gc_lambda).sort().reverse().map(perc => <tr key={perc}>
-              <td>GC lambda {perc}</td>
-              <td>{this.state.qq.overall.gc_lambda[perc]}</td>
-            </tr>)}
-          </tbody>
-        </table>
-      </div> :
-      <div>loading</div>
+          <div>
+            <table className='column_spacing'>
+              <tbody>
+                {Object.keys(this.state.qq.overall.gc_lambda).sort().reverse().map(perc => <tr key={perc}>
+                  <td>GC lambda {perc}</td>
+                  <td>{this.state.qq.overall.gc_lambda[perc]}</td>
+                </tr>)}
+              </tbody>
+            </table>
+          </div> :
+          <div>loading</div>
 
     const is_cs = this.state.credibleSets == null ?
       '' :
@@ -410,7 +390,7 @@ class Pheno extends React.Component {
           </TabPanel>
           <TabPanel style={{ display: this.state.selectedTab == 1 ? 'block' : 'none' }}>
             <div id="traditional table" style={{ height: '100%', width: '100%' }}>
-              {var_table}
+              {variantTable}
             </div>
           </TabPanel>
         </Tabs>

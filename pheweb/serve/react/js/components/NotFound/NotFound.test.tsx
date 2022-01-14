@@ -6,7 +6,7 @@ import { v4 } from "uuid";
 import {
   ConfigurationUserInterface,
   ConfigurationWindow,
-} from "../Configuration/ConfigurationModel";
+} from "../Configuration/configurationModel";
 
 import Adapter from "enzyme-adapter-react-16";
 

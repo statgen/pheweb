@@ -73,6 +73,9 @@ export function variantToStr (variant : Variant) {
   return `${variant.chromosome}:${variant.position}_${variant.reference}/${variant.alternate}`
 }
 
+export function variantToPheweb (variant : Variant) {
+  return `${variant.chromosome}-${variant.position}-${variant.reference}-${variant.alternate}`
+}
 /**
  * Convert string to chromosome
  *
@@ -128,7 +131,7 @@ export const stringToChromosome = (chr :string) : (number | undefined) => {
  */
 export function variantFromStr (str : string) : Variant | undefined {
   let result : Variant | undefined
-  const match = str.match(/^(chr)?([\da-zA-Z]+)([_:/])([\d]+)([_:/])([^_:/]+)([_:/])(.+)$/)
+  const match = str.match(/^(chr)?([\da-zA-Z]+)([_:/-])([\d]+)([_:/-])([^_:/-]+)([_:/-])(.+)$/)
   if (match) {
     const [ignore1, ignore2,
            chromosomeString,

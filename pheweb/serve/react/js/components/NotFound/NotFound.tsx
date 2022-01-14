@@ -5,7 +5,7 @@ import { RegionContext, RegionState } from "../Region/RegionContext";
 import {
   ConfigurationUserInterface,
   ConfigurationWindow,
-} from "../Configuration/ConfigurationModel";
+} from "../Configuration/configurationModel";
 
 interface Props {
   location: { search: string };

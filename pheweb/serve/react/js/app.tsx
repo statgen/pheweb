@@ -6,9 +6,12 @@ import Index from './components/Index/Index'
 import LoF from './components/LoF'
 import Chip from './components/Chip/ChipIndex'
 import Coding from './components/Coding'
-import Variant from './components/Variant'
+import Variant from './components/Variant/Variant'
 import Pheno from './components/Pheno'
 import Region from './components/Region/RegionIndex'
+import About from './components/About/About'
+import Gene from './components/Gene/Gene'
+import TopHits from './components/TopHits/TopsHits'
 
 const element = document.getElementById('reactEntry')
 if (typeof (element) !== 'undefined' && element != null) {
@@ -24,6 +27,10 @@ if (typeof (element) !== 'undefined' && element != null) {
           <Route path='/variant/:variant' component={Variant} />
           <Route path='/pheno/:pheno' component={Pheno} />
           <Route path='/region/:region' component={Region} />
+
+          <Route path='/about' component={About} />
+          <Route path='/gene/:gene' component={Gene} />
+          <Route path='/tophits' component={TopHits} />
         </div>
       </div>
 	</BrowserRouter>
