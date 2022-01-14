@@ -19,8 +19,8 @@ interface Link extends HTMLAnchorElement { link : HTMLAnchorElement }
 export interface Props <TableData, RowType extends  {},
                         ReactProperties extends {} = {},
                         LinkProperties extends {} = {}>{
-  fetchTableData : (handler : (data : TableData| null) => void) => void // method to fetch data
-  dataToTableRows : (data : TableData| null) => RowType[] // method to convert fetch data to table rows
+  tableData : (TableData| null)
+  dataToTableRows : (data : TableData| null) => RowType[]
   tableColumns : Column<RowType>[]
   tableProperties? : ReactProperties,
   linkProperties? : LinkProperties,
@@ -30,7 +30,7 @@ export interface Props <TableData, RowType extends  {},
 export type DownloadTableProps<TableData, RowType extends  {}, ReactProperties extends {} = {}> = Props<TableData, RowType, ReactProperties>
 
 const DownloadTable = <TableData,RowType extends {}>
-  ({ fetchTableData,
+  ({ tableData,
      dataToTableRows ,
      tableColumns ,
      tableProperties,
@@ -38,12 +38,10 @@ const DownloadTable = <TableData,RowType extends {}>
      defaultSorted
    } : Props<TableData, RowType>) => {
 
-    const [tableData, setTableData] = useState<TableData | null>(null);
     const [download, setDownload] = useState<RowType[] | null>(null);
     const [reactTableRef, setReactTableRef] = useState<ReactTable | null>(null);
     const [link, setLink] = useState<Link | null>(null);
 
-    useEffect(() => { fetchTableData(setTableData); },[]);
    /* Using an effect because the data in tsv wasn't populated
     * when the link was clicked.
     */

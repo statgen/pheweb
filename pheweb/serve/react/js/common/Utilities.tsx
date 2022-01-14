@@ -78,3 +78,11 @@ export const mustacheText: <X>(template: string, content: X) => string = (
   template,
   content
 ) => Handlebars.compile(template)(content);
+
+
+export const fatal = (msg : string, context : {} ={}) : never =>{
+  console.log(msg);
+  alert(msg);
+  console.log(context);
+  throw msg;
+}

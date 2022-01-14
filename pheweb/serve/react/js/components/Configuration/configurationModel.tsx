@@ -4,14 +4,18 @@ import { IndexConfiguration } from "../Index/indexModel";
 import { PhenotypeConfiguration } from "../Phenotype/phenotypeModel";
 import { AboutConfiguration } from "../About/aboutModel";
 import { VariantConfiguration } from "../Variant/variantModel";
+import { TopHitsConfiguration } from "../TopHits/topHitsModel";
+import { GeneConfiguration } from "../Gene/geneModel";
 
 export interface ConfigurationUserInterface {
-    notFound? : NotFoundConfiguration;
-    chip? : ChipConfiguration;
-    index?: IndexConfiguration;
-    phenotype?: PhenotypeConfiguration;
-    about?: AboutConfiguration;
-    variant? : VariantConfiguration;
+    notFound? : NotFoundConfiguration
+    chip? : ChipConfiguration
+    index?: IndexConfiguration
+    phenotype?: PhenotypeConfiguration
+    about?: AboutConfiguration
+    variant? : VariantConfiguration
+    topHits? : TopHitsConfiguration
+    gene? : GeneConfiguration
 }
 export interface ConfigurationMetaData {}
 

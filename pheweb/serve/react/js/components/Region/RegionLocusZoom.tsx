@@ -22,6 +22,8 @@ const RegionLocusZoom =  (props : Props) => {
         }
     },[locusZoomData, region, setLocusZoomContext]);
 
+
+
     if(region) {
         return (<div className="row">
             <div className="col-xs-12">

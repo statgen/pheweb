@@ -30,7 +30,7 @@ if (typeof (element) !== 'undefined' && element != null) {
 
           <Route path='/about' component={About} />
           <Route path='/gene/:gene' component={Gene} />
-          <Route path='/tophits' component={TopHits} />
+          <Route path='/top_hits' component={TopHits} />
         </div>
       </div>
 	</BrowserRouter>

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Variant, variantFromStr } from "../../common/Model";
-import { RegionParameter } from "../Region/RegionModel";
-import { Phenotype } from "../Index/indexModel";
-import { VariantData } from "../Phenotype/phenotypeModel";
+import { VariantData } from "./variantModel";
 import { getVariant } from "./variantAPI";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { mustacheDiv } from "../../common/Utilities";
 import loading from "../../common/Loading";
+import VariantTable from "./VariantTable";
+import VariantLocusZoom from "./VariantLocusZoom";
 
 interface Props {}
 
@@ -29,9 +29,12 @@ const default_banner: string = `
         <p>Nearest gene:
           <a style="color:black" href="/gene/{{nearest_genes}}">{{nearest_genes}}</a>
         </p>
-        
-        <p id="annotation"></p>
-         
+        <p id="annotation"></p>         
+
+       <p>View in                                                                                                                                                                                                                                                             
+          <a href="https://genetics.opentargets.org/variant/{{chrom}}_{{pos}}_{{ref}}_{{alt}}">Open Targets</a> ,
+          <a href="https://gnomad.broadinstitute.org/variant/{{chrom}}-{{pos}}-{{ref}}-{{alt}}?dataset=gnomad_r3">gnomAD</a>
+       </p>
 </div>
 `
 
@@ -47,9 +50,16 @@ const Variant = (props : Props) => {
     variant && getVariant(variant, setVariantData)
   },[]);
 
-  return variantData == null?loading:<div>
-    {mustacheDiv(banner, variantData)}
-  </div>
+  return variantData == null?loading:
+    <React.Fragment>
+    <div className="row" style={{ width: '100%' }}>
+      <div className="variant-info col-xs-12">
+      {mustacheDiv(banner, variantData)}
+      <VariantLocusZoom variantData={variantData} />
+      <VariantTable variantData={variantData} />
+      </div>
+    </div>
+  </React.Fragment>
 }
 
 export default Variant;

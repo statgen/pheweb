@@ -1,7 +1,7 @@
-import { Layout, Panel, LayoutDataLayersEntity } from 'locuszoom';
-import { Region, LzConf, layout_types } from '../RegionModel';
+import { Layout, LayoutDataLayersEntity } from 'locuszoom';
+import { Region } from '../RegionModel';
 
-import { Layouts, Data, createCORSPromise, DataSources, TransformationFunctions, Dashboard, populate } from 'locuszoom';
+import { Layouts } from 'locuszoom';
 
 'use strict';
 

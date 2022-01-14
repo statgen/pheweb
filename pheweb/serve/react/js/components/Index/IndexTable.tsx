@@ -25,6 +25,7 @@ const tableColumns = createTableColumns(config?.userInterface?.index?.tableColum
 
 export const Table = (props: Props) => {
 
+
   const [phenotypes, setPhenotypes] = useState<Phenotype[] | null>(null);
   const [dataToDownload, setDataToDownload] = useState<Phenotype[] | null>(null);
   const [reactTableRef, setReactTableRef] = useState<ReactTable | null>(null);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   createTableColumns,
   phenotypeTableColumns, pValueSentinel,
@@ -14,7 +14,7 @@ const defaultSorted = [{
   desc: false
 }]
 
-const properties = {
+const tableProperties = {
   defaultPageSize : 20,
   className : "-striped -highlight",
   defaultFilterMethod : (filter : {id : string , value : string}, row : { [ key : string ] : string }) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())
@@ -66,18 +66,24 @@ declare let window: ConfigurationWindow;
 const { config : { userInterface } = { userInterface : undefined } } = window;
 const tableColumns : Column<VariantRow>[] = createTableColumns(userInterface?.phenotype?.variantTable?.tableColumns) || phenotypeTableColumns as Column<VariantRow>[]
 
-const prop = (phenotypeCode : string) : DownloadTableProps<VariantData, VariantRow> => {
-  return {
-      fetchTableData : fetchTableData(phenotypeCode) ,
-      dataToTableRows ,
-      tableColumns ,
-      tableProperties: properties,
-      defaultSorted
-  }
-}
-interface Props { phenotype : string }
-const VariantTable = ({ phenotype} : Props ) =>
-  <div>
-    <DownloadTable { ... prop(phenotype) } />
+interface Props { phenotypeCode : string }
+const VariantTable = ({ phenotypeCode} : Props ) => {
+  const [tableData, setTableData] = useState<VariantData| null>(null);
+
+  useEffect(() => {
+    getManhattan(phenotypeCode, (variantData : VariantData) => {
+      console.log(variantData);
+      setTableData(processData(phenotypeCode,variantData))
+    })
+    },[]);
+  const props : DownloadTableProps<VariantData, VariantRow>  = {
+    tableData,
+    dataToTableRows,
+    tableColumns,
+    tableProperties,
+    defaultSorted  }
+  return <div>
+    <DownloadTable {...props} />
   </div>
+}
 export default VariantTable

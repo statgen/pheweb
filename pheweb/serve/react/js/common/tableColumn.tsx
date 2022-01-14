@@ -25,7 +25,7 @@ const optionalScientificFormatter = (props) => isNaN(+props.value) ? props.value
 
 const pValueFormatter = (props) => (props.value == pValueSentinel) ? ` << ${pValueSentinel}` : props.value.toExponential(1);
 
-const arrayFormatter = (props) => props.value.join(" ");
+const arrayFormatter = (props) => { return props?.value?.join(" ") || "" }
 
 const phenotypeFormatter = (props) => (<a href={`/pheno/${props.original.pheno || props.original.phenocode}`}
                                           target="_blank">{props.value == "NA" ? props.original.pheno : props.value}</a>);
@@ -255,7 +255,7 @@ const phenotypeColumns = {
     Header: () => (<span title="allele frequency (cases+controls)" style={{ textDecoration: "underline" }}>af</span>),
     accessor: "af_alt",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: scientificFormatter,
+    Cell: optionalScientificFormatter,
     width: columnWith(60)
   },
   chipAFCase: {
@@ -522,6 +522,23 @@ const phenotypeColumns = {
       minWidth: 40
     },
 
+  variant:
+    {
+      Header: () => (<span title="position in build 38" style={{ textDecoration: "underline" }}>variant</span>),
+      label: "variant",
+      accessor: "pos",
+      Cell: props => (
+        <a
+          href={`/variant/${props.original.chrom}-${props.original.pos}-${props.original.ref}-${props.original.alt}`}>
+          {props.original.chrom}:{props.original.pos}:{props.original.ref}:{props.original.alt}
+        </a>),
+      filterMethod: (filter, row) => {
+        const s = filter.value.split("-").map(val => +val);
+        if (s.length == 1) return row[filter.id] == filter.value;
+        else if (s.length == 2) return row[filter.id] > s[0] && row[filter.id] < s[1];
+      },
+      minWidth: 100
+    },
   pos:
     {
       Header: () => (<span title="position in build 38" style={{ textDecoration: "underline" }}>pos</span>),
@@ -668,7 +685,7 @@ const phenotypeColumns = {
         <span title="allele frequency in cases" style={{ textDecoration: "underline" }}>af cases</span>),
       accessor: "maf_cases",
       filterMethod: (filter, row) => row[filter.id] < +filter.value,
-      Cell: props => props.value.toPrecision(3),
+      Cell: optionalScientificFormatter,
       minWidth: 110
     },
 
@@ -678,7 +695,7 @@ const phenotypeColumns = {
         <span title="allele frequency in controls" style={{ textDecoration: "underline" }}>af controls</span>),
       accessor: "maf_controls",
       filterMethod: (filter, row) => row[filter.id] < +filter.value,
-      Cell: props => props.value.toPrecision(3),
+      Cell: optionalScientificFormatter,
       minWidth: 110
     },
 
@@ -712,9 +729,73 @@ const phenotypeColumns = {
                           &nbsp;
                         </span>} {Number(props.original.ukbb.pval).toExponential(1)}</div> : "NA",
       minWidth: 110
-    }
+    },
+  drugType: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>molecule</span>),
+    accessor: "approvedName",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: textFormatter
+  },
+  targetClass: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>type</span>),
+    accessor: "targetClass",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: arrayFormatter
+  },
+  mechanismOfAction: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>action</span>),
+    accessor: "mechanismOfAction",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: textFormatter
+  },
+  disease: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>disease</span>),
+    accessor: "disease",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: textFormatter
+  },
+  phase: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>phase</span>),
+    accessor: "phase",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: textFormatter
+  },
+  drugId: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>id</span>),
+    accessor: "drugId",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: props => props.value == "NA" ? props.value : (
+      <a href={`https://www.ebi.ac.uk/chembl/g/#search_results/all/query={props.value}`}
+         target="_blank">
+        {props.value}
+      </a>
+    )
+
+  }
 };
 
+export const geneLOFTableColumns = [ phenotypeColumns.rsid ]
+
+
+export const genePhenotypeTableColumns = [ phenotypeColumns.rsid ]
+
+export const geneFunctionalVariantTableColumns = [
+  phenotypeColumns.rsid,
+  //consequence -
+  //info -
+  //FIN enrichment -
+  //maf -
+
+]
+
+export const geneDrugListTableColumns = [
+  phenotypeColumns.drugType,
+  phenotypeColumns.targetClass,
+  phenotypeColumns.mechanismOfAction,
+  phenotypeColumns.disease,
+  phenotypeColumns.phase,
+  phenotypeColumns.drugId
+]
 
 export const phenotypeListTableColumns = [
   { ...phenotypeColumns.phenotype, "attributes": { "minWidth": 300 } },
@@ -769,9 +850,18 @@ export const variantTableColumns = [
   phenotypeColumns.beta,
   phenotypeColumns.pValue,
   phenotypeColumns.mlogp,
-  phenotypeColumns.afCases,
-  phenotypeColumns.afControls,
-  phenotypeColumns.numSamples,
+  phenotypeColumns.chipAFCase,
+  phenotypeColumns.chipAFControl
+]
+
+export const topHitTableColumns = [
+  //Top variant in loci	Phenotype	Nearest Gene(s)	MAF
+  { ...phenotypeColumns.phenotype, accessor: "phenocode" },
+  phenotypeColumns.variant,
+  phenotypeColumns.rsid,
+  phenotypeColumns.nearestGene ,
+  phenotypeColumns.pValue,
+  phenotypeColumns.mlogp
 ]
 
 interface ColumnArchetype<E extends {}> {

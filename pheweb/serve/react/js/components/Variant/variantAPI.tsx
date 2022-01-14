@@ -1,4 +1,4 @@
-import { VariantData } from "../Phenotype/phenotypeModel";
+import { VariantData } from "./variantModel";
 import { get } from "../../common/Utilities";
 import { Variant, variantToPheweb } from "../../common/Model";
 
