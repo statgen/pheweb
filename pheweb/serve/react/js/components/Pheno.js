@@ -331,7 +331,7 @@ class Pheno extends React.Component {
       </div> :
       <div>loading</div>
 
-    const variantTable = <VariantTable phenotype={pheno.phenocode} />
+    const variantTable = <VariantTable phenotypeCode={pheno.phenocode} />
     const qq_table = this.state.qq ?
           <div>
             <table className='column_spacing'>

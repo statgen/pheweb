@@ -42,8 +42,7 @@ export const Table = (props: Props) => {
     tableProperties,
     defaultSorted
   }
-
-  return phenotypes == null ? loading: <div>
+  return phenotypes == null ? loading: <div style={{ width : "100%"}}>
     {mustacheDiv(banner, [])}
     <DownloadTable {...prop}/>
   </div>

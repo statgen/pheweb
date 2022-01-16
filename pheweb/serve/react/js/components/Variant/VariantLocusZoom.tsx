@@ -41,7 +41,7 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       <div id={element_id}
            className="lz-locuszoom-container lz-container-responsive"
            data-region={ variantData }>
-        &nnsp;
+        &nbsp;
       </div>
   </div>
 }

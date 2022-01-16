@@ -71,8 +71,8 @@ const VariantTable = ({ phenotypeCode} : Props ) => {
   const [tableData, setTableData] = useState<VariantData| null>(null);
 
   useEffect(() => {
+    phenotypeCode !=null &&
     getManhattan(phenotypeCode, (variantData : VariantData) => {
-      console.log(variantData);
       setTableData(processData(phenotypeCode,variantData))
     })
     },[]);
