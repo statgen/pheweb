@@ -1,4 +1,6 @@
 import { TableColumnConfiguration } from "../../common/tableColumn";
+import { SortingRule } from "react-table";
+import { Phenotype } from "../Index/indexModel";
 
 export interface VariantRow {
   af_alt: number,
@@ -31,6 +33,8 @@ export interface VariantData {
 }
 
 export interface VariantConfiguration {
-  variantTable? : TableColumnConfiguration<VariantRow>
+  table : { columns: TableColumnConfiguration<VariantRow> ,
+            defaultSorted : SortingRule<VariantRow>[] }
   banner?: string;
 }
+

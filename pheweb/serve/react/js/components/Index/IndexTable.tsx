@@ -12,26 +12,24 @@ interface Props { }
 
 declare let window: ConfigurationWindow;
 
-/* Abstraction is broken here see:
- * https://stackoverflow.com/questions/53504924/reactjs-download-csv-file-on-button-click
- */
-interface Link extends HTMLAnchorElement { link : HTMLAnchorElement }
-
 const default_banner: string = ``
 
-const { config } = window;
-const tableColumns : Column<Phenotype>[] = createTableColumns(config?.userInterface?.index?.tableColumns) || phenotypeListTableColumns as Column<Phenotype>[];
-const defaultSorted = [{
-  id: 'phenotype',
-  desc: false
+const index = window?.config?.userInterface?.index;
+
+const tableColumns : Column<Phenotype>[] = createTableColumns(index?.table?.columns) || phenotypeListTableColumns as Column<Phenotype>[];
+const defaultSorted = index?.table?.defaultSorted || [{
+  id: 'num_gw_significant',
+  desc: true
 }]
+const banner: string = index?.banner || default_banner;
+
+
 
 const tableProperties = {}
 
 export const Table = (props: Props) => {
 
   const [phenotypes, setPhenotypes] = useState<Phenotype[] | null>(null);
-  const banner: string = config?.userInterface?.index?.banner || default_banner;
 
   useEffect(() => { getPhenotypes(setPhenotypes); },[]);
 

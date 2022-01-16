@@ -34,5 +34,5 @@ if (typeof (element) !== 'undefined' && element != null) {
         </div>
       </div>
 	</BrowserRouter>
-    , document.getElementById('reactEntry'))
+  , document.getElementById('reactEntry'))
 }

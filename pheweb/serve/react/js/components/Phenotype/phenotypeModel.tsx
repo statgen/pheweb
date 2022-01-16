@@ -1,6 +1,8 @@
 import { TableColumnConfiguration } from "../../common/tableColumn";
+import { SortingRule } from "react-table";
+import { Phenotype } from "../Index/indexModel";
 
-export interface VariantRow {
+export interface PhenotypeVariantRow {
   peak? : number
   annotation: { most_severe: string, INFO?: string }
   info?: string
@@ -17,11 +19,15 @@ export interface VariantRow {
   gnomad:  { [key: string]: string } & { AF_fin : number}
 }
 
-export interface VariantData {
-  unbinned_variants : VariantRow[]
+export interface PhenotypeVariantData {
+  unbinned_variants : PhenotypeVariantRow[]
 }
 
 export interface PhenotypeConfiguration {
-  banner?: string;
-  variantTable? : { tableColumns?: TableColumnConfiguration<VariantRow> };
+  banner?: string
+  variant : {
+    banner?: string
+    table : { columns: TableColumnConfiguration<PhenotypeVariantRow> ,
+                      defaultSorted : SortingRule<PhenotypeVariantRow>[] }
+  }
 }

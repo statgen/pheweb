@@ -1,9 +1,9 @@
 import { addLambda, Phenotype } from "../Index/indexModel";
 import { get } from "../../common/Utilities";
-import { VariantData } from "./phenotypeModel";
+import { PhenotypeVariantData } from "./phenotypeModel";
 
 export const getManhattan= (phenotypeCode: string,
-                             sink: (s: VariantData) => void,getURL = get) : void => {
+                            sink: (s: PhenotypeVariantData) => void, getURL = get) : void => {
   getURL(`/api/manhattan/pheno/${phenotypeCode}`, sink)
 }
 

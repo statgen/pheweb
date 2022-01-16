@@ -6,7 +6,7 @@ import {
 import { ConfigurationUserInterface, ConfigurationWindow } from "../Configuration/configurationModel";
 import { Column, Row, SortingRule } from "react-table";
 import DownloadTable, { DownloadTableProps  } from "../../common/DownloadTable";
-import { VariantData, VariantRow } from "./phenotypeModel";
+import { PhenotypeVariantData, PhenotypeVariantRow } from "./phenotypeModel";
 import { getManhattan } from "./phenotypeAPI";
 
 const defaultSorted = [{
@@ -20,9 +20,9 @@ const tableProperties = {
   defaultFilterMethod : (filter : {id : string , value : string}, row : { [ key : string ] : string }) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())
 }
 
-const defaultColumns : Column<VariantRow>[] = phenotypeTableColumns as Column<VariantRow>[]
+const defaultColumns : Column<PhenotypeVariantRow>[] = phenotypeTableColumns as Column<PhenotypeVariantRow>[]
 
-const processData = (phenocode : string,data  : VariantData) => {
+const processData = (phenocode : string,data  : PhenotypeVariantData) => {
   data.unbinned_variants.filter(variant => !!variant.annotation).forEach(variant => {
     variant.most_severe = variant.annotation.most_severe ? variant.annotation.most_severe.replace(/_/g, ' ').replace(' variant', '') : ''
     variant.info = variant.annotation.INFO
@@ -54,29 +54,29 @@ const processData = (phenocode : string,data  : VariantData) => {
   return data
 }
 
-const fetchTableData = (phenotypeCode : string) => (handler : (data : VariantData| null) => void) => {
-  getManhattan(phenotypeCode, (variantData : VariantData) => {
+const fetchTableData = (phenotypeCode : string) => (handler : (data : PhenotypeVariantData| null) => void) => {
+  getManhattan(phenotypeCode, (variantData : PhenotypeVariantData) => {
     handler(processData(phenotypeCode,variantData))
   })
 }
 
-const dataToTableRows = (data : VariantData| null) => data?.unbinned_variants?.filter(v => !!v.peak) || []
+const dataToTableRows = (data : PhenotypeVariantData| null) => data?.unbinned_variants?.filter(v => !!v.peak) || []
 declare let window: ConfigurationWindow;
 
-const { config : { userInterface } = { userInterface : undefined } } = window;
-const tableColumns : Column<VariantRow>[] = createTableColumns(userInterface?.phenotype?.variantTable?.tableColumns) || phenotypeTableColumns as Column<VariantRow>[]
+const variant = window?.config?.userInterface?.phenotype?.variant;
+const tableColumns : Column<PhenotypeVariantRow>[] = createTableColumns<PhenotypeVariantRow>(variant?.table?.columns) || phenotypeTableColumns as Column<PhenotypeVariantRow>[]
 
 interface Props { phenotypeCode : string }
 const VariantTable = ({ phenotypeCode} : Props ) => {
-  const [tableData, setTableData] = useState<VariantData| null>(null);
+  const [tableData, setTableData] = useState<PhenotypeVariantData| null>(null);
 
   useEffect(() => {
     phenotypeCode !=null &&
-    getManhattan(phenotypeCode, (variantData : VariantData) => {
+    getManhattan(phenotypeCode, (variantData : PhenotypeVariantData) => {
       setTableData(processData(phenotypeCode,variantData))
     })
     },[]);
-  const props : DownloadTableProps<VariantData, VariantRow>  = {
+  const props : DownloadTableProps<PhenotypeVariantData, PhenotypeVariantRow>  = {
     tableData,
     dataToTableRows,
     tableColumns,

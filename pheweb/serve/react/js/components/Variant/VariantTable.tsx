@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from "react";
-import { Column, Row, SortingRule } from "react-table";
+import React from "react";
+import { Column } from "react-table";
 import DownloadTable, { DownloadTableProps  } from "../../common/DownloadTable";
 import { VariantData , VariantRow } from "../Variant/variantModel";
-import { createTableColumns, phenotypeTableColumns, variantTableColumns } from "../../common/tableColumn";
+import { createTableColumns, variantTableColumns } from "../../common/tableColumn";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 
 
 const dataToTableRows = (variantData : VariantData | null) : VariantRow[] => variantData?.phenos || []
 declare let window: ConfigurationWindow;
-const { config : { userInterface } = { userInterface : undefined } } = window;
+const { config : { userInterface : { variant } } } = window;
 
-const tableColumns : Column<VariantRow>[] = createTableColumns(userInterface?.variant?.variantTable) || (variantTableColumns as Column<VariantRow>[])
-const tableProperties = {}
-const defaultSorted = [{
+const tableColumns : Column<VariantRow>[] = createTableColumns(variant?.table?.columns) || (variantTableColumns as Column<VariantRow>[])
+const defaultSorted = variant?.table?.defaultSorted || [{
   id: 'pval',
-  desc: false
+  desc: true
 }]
+
+const tableProperties = {}
 
 interface Props { variantData : VariantData }
 

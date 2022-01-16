@@ -1,5 +1,5 @@
 import { TableColumnConfiguration } from "../../common/tableColumn";
-import { Column } from "react-table";
+import { Column, SortingRule } from "react-table";
 
 export interface Phenotype {
   gc_lambda : {'0.5' : number}
@@ -12,6 +12,7 @@ export const addLambda = (phenotype: Phenotype) => {
 
 export interface IndexConfiguration {
   banner?: string;
+  table : { columns: TableColumnConfiguration<Phenotype> ,
+            defaultSorted : SortingRule<Phenotype>[] }
   tableColumns: TableColumnConfiguration<Phenotype>;
 }
-

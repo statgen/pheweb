@@ -357,6 +357,14 @@ const phenotypeColumns = {
     Cell: optionalDecimalFormatter,
     width: columnWith(120)
   },
+  categoryIndex: {
+    Header: () => (<span title="phenotype" style={{ textDecoration: "underline" }}>Category Index</span>),
+    label: "category_index",
+    id: "category_index",
+    accessor: "category_index",
+    Cell: numberFormatter,
+    minWidth: 300
+  },
   phenotype:
     {
       Header: () => (<span title="phenotype" style={{ textDecoration: "underline" }}>phenotype</span>),
@@ -821,7 +829,8 @@ export const phenotypeTableColumns = [
   phenotypeColumns.afCases,
   phenotypeColumns.afControls,
   phenotypeColumns.or,
-  phenotypeColumns.pValue
+  phenotypeColumns.pValue,
+  phenotypeColumns.mlogp
 ]
 
 export const chipTableColumns = [
@@ -879,6 +888,7 @@ interface ColumnDescriptor<E extends {}> {
   sorter: string,
   filter: string
 }
+
 
 type ColumnConfiguration<E> = ColumnArchetype<E> | ColumnDescriptor<E>;
 export type TableColumnConfiguration<E> = ColumnConfiguration<E>[] | undefined | null
