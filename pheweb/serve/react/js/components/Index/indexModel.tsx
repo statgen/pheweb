@@ -1,4 +1,5 @@
 import { TableColumnConfiguration } from "../../common/tableColumn";
+import { Column } from "react-table";
 
 export interface Phenotype {
   gc_lambda : {'0.5' : number}
@@ -11,6 +12,6 @@ export const addLambda = (phenotype: Phenotype) => {
 
 export interface IndexConfiguration {
   banner?: string;
-  tableColumns: TableColumnConfiguration<{ }>;
+  tableColumns: TableColumnConfiguration<Phenotype>;
 }
 

@@ -12,7 +12,7 @@ declare let window: PhewebWindow;
 
 export const pValueSentinel = 5e-324;
 
-const textFormatter = (props) => props.value;
+const textFormatter = (props : { value : any }) => props.value;
 
 const decimalFormatter = (props) => (+props.value).toPrecision(3);
 const optionalDecimalFormatter = (props) => isNaN(+props.value) ? props.value : decimalFormatter(props);
@@ -361,6 +361,7 @@ const phenotypeColumns = {
     {
       Header: () => (<span title="phenotype" style={{ textDecoration: "underline" }}>phenotype</span>),
       label: "phenotype",
+      id: "phenotype",
       accessor: "phenostring",
       Cell: phenotypeFormatter,
       minWidth: 300

@@ -3,10 +3,7 @@ import ReactTable from "react-table-v6";
 import loading from "./Loading";
 import {
   createCSVLinkHeaders,
-  createTableColumns,
-  TableColumnConfiguration
 } from "./tableColumn";
-import { ConfigurationUserInterface, ConfigurationWindow } from "../components/Configuration/configurationModel";
 import { CSVLink } from "react-csv";
 import { Column, SortingRule } from "react-table";
 
@@ -15,6 +12,7 @@ import { Column, SortingRule } from "react-table";
  * https://stackoverflow.com/questions/53504924/reactjs-download-csv-file-on-button-click
  */
 interface Link extends HTMLAnchorElement { link : HTMLAnchorElement }
+interface Table<RowType> extends  JSX.Element { getResolvedState : () => { sortedData : RowType[] } }
 
 export interface Props <TableData, RowType extends  {},
                         ReactProperties extends {} = {},
@@ -39,7 +37,7 @@ const DownloadTable = <TableData,RowType extends {}>
    } : Props<TableData, RowType>) => {
 
     const [download, setDownload] = useState<RowType[] | null>(null);
-    const [reactTableRef, setReactTableRef] = useState<ReactTable | null>(null);
+    const [reactTableRef, setReactTableRef] = useState<Table<RowType> | null>(null);
     const [link, setLink] = useState<Link | null>(null);
 
    /* Using an effect because the data in tsv wasn't populated
@@ -53,7 +51,7 @@ const DownloadTable = <TableData,RowType extends {}>
         setDownload(reactTableRef.getResolvedState().sortedData)
       }
     }
-
+    const table = <ReactTable/>
     const body = <div>
       <ReactTable
         ref={setReactTableRef}

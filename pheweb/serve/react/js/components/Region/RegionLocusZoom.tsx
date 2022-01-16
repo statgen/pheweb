@@ -1,11 +1,6 @@
 import React, {useContext, useEffect} from "react";
 import {RegionContext, RegionState} from "./RegionContext";
-import ColocalizationProvider, {
-    ColocalizationContext,
-    ColocalizationState
-} from "./Colocalization/ColocalizationContext";
-import ColocalizationList from "./Colocalization/ColocalizationList";
-import {getRegion} from "./RegionAPI";
+import { ColocalizationContext, ColocalizationState } from "./Colocalization/ColocalizationContext";
 import {init_locus_zoom} from "./LocusZoom/RegionLocus";
 
 interface Props {}
@@ -27,12 +22,12 @@ const RegionLocusZoom =  (props : Props) => {
     if(region) {
         return (<div className="row">
             <div className="col-xs-12">
-                <div id="lz-1" className="lz-locuszoom-container lz-container-responsive" data-region={ region.region }></div>
+                <div id="lz-1" className="lz-locuszoom-container lz-container-responsive" data-region={ region.region }>&nbsp;</div>
             </div>
         </div>);
 
     } else {
-        return (<div className="row"></div>);
+        return (<div className="row">&nbsp;</div>);
     }
 
 }

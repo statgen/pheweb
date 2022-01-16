@@ -1,10 +1,7 @@
 import React, {useContext, useEffect} from "react";
 import {RegionContext, RegionState} from "./RegionContext";
-import RegionSelectFinemapping from "./LocusZoom/RegionSelectFinemapping";
-import {getRegion} from "./RegionAPI";
 import {DataSourceKeys} from "./RegionModel";
 import {processMouseUpdates, updateMousehandler} from "./LocusZoom/MouseHandler";
-import {DataSources} from "locuszoom";
 
 interface  Props {}
 

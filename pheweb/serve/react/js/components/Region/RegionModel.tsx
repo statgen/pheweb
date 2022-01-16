@@ -1,4 +1,4 @@
-import React, { createContext, ReactChildren, useState , ReactNode } from 'react';
+import React from 'react';
 import {Locus, locusFromStr} from "../../common/Model";
 
 export type DataSourceKeys = "association" | "conditional" | "finemapping" | "colocalization" |

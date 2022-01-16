@@ -147,7 +147,7 @@ const phenolistTableCols = {'FINNGEN': [{
     Cell: props => (<a href={"https://www.whocc.no/atc_ddd_index/?code=" + props.value} target="_blank">{props.value}</a>),
     minWidth: 200
 },{
-    Header: () => (<span title="number of samples" style={{textDecoration: 'underline'}}>number of individuals with >0 purchases</span>),
+    Header: () => (<span title="number of samples" style={{textDecoration: 'underline'}}>number of individuals with &gt; 0 purchases</span>),
     accessor: 'num_samples',
     Cell: props => props.value,
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,

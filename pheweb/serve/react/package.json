@@ -24,7 +24,7 @@
     "@types/uuid": "^8.3.3",
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
-    "babel-loader": "^8.1.0",
+    "babel-loader": "^8.2.3",
     "d3": "^6.2.0",
     "d3-tip": "^0.9.1",
     "dts-gen": "^0.6.0",

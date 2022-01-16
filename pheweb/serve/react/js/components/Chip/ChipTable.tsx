@@ -6,7 +6,6 @@ import { fetchData, setData, State } from "./features/chipTableSlice";
 import { chipTableColumns, createTableColumns } from "../../common/tableColumn";
 import { mustacheDiv, mustacheSpan } from "../../common/Utilities";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import ReactDOMServer from "react-dom/server";
 import loading from "../../common/Loading";
 
 
@@ -49,21 +48,16 @@ export const Table = (props : Props) => {
               ref={reactTable}
               data={data.data}
               filterable
-              defaultFilterMethod={(filter, row) =>
+              defaultFilterMethod={(filter : any, row : any) =>
                 row[filter.id]
                   .toLowerCase()
                   .startsWith(filter.value.toLowerCase())
               }
-              onFilteredChange={(filtered) => {
+              onFilteredChange={(filtered : any) => {
                 setFilter(filtered);
               }}
               columns={tableColumns}
-              defaultSorted={[
-                {
-                  id: "pval",
-                  desc: false
-                }
-              ]}
+              defaultSorted={[ { id: "pval", desc: false } ]}
               defaultPageSize={20}
               className="-striped -highlight"
             />

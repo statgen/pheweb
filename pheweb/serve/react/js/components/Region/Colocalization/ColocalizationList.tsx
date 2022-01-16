@@ -2,6 +2,7 @@ import React, { useState, useEffect , useContext } from 'react';
 import {CasualVariant, Colocalization, Variant, variantToStr} from "../../../common/Model";
 import ReactTable, {Cell, Column, Row} from 'react-table';
 import {ColocalizationContext, ColocalizationState} from "./ColocalizationContext";
+//@ts-ignore
 import selectTableHOC from "react-table/lib/hoc/selectTable";
 import { CSVLink } from 'react-csv'
 import { cellNumber, cellText, variantLink } from "../../../common/Formatter";
@@ -11,7 +12,7 @@ import {RegionContext, RegionState} from "../RegionContext";
 
 
 const SelectTable = selectTableHOC(ReactTable);
-SelectTable.prototype.headSelector = () => null;
+SelectTable.prototype.headSelector = () : null => null;
 
 export const cell_locus_id1 = (row : Row<Colocalization>) => row.original.locus_id1
 export const cell_locus_id2 = (row : Row<Colocalization>) => row.original.locus_id2
@@ -88,7 +89,7 @@ const ColocalizationList = (props : Props) => {
 
     const [selectedRow, setRowSelected]= useState<string | undefined>(undefined);
     locusZoomHandler();
-    const toggleSelection = (key : string, shift, row : Colocalization) => {
+    const toggleSelection = (key : string, shiftKeyPressed: boolean, row : Colocalization) => {
         setSelectedColocalization && setSelectedColocalization(selectedRow ? undefined : row);
         setRowSelected(selectedRow ? undefined : key);
     }
@@ -97,7 +98,7 @@ const ColocalizationList = (props : Props) => {
         return selectedRow === key;
     }
 
-    const rowFn = (state : {}, rowInfo : Row<Colocalization>, column : Column<Colocalization>, instance) => {
+    const rowFn = (state : {}, rowInfo : Row<Colocalization>, column : Column<Colocalization>, instance : any) => {
         return { onClick: (e : Event, handleOriginal : (undefined | (() => void))) => handleOriginal && handleOriginal() ,
                  style: { background: (rowInfo && selectedRow && +selectedRow === rowInfo.original.colocalization_id)? "lightgrey" : undefined }
         };
@@ -114,7 +115,7 @@ const ColocalizationList = (props : Props) => {
                          defaultSorted={[{  id: "clpa", desc: true }]}
                          defaultPageSize={10}
                          filterable
-                         defaultFilterMethod={(filter, row) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase())}
+                         defaultFilterMethod={(filter : any, row : any) => row[filter.id].toLowerCase().startsWith(filter.value.toLowerCase())}
                          SubComponent={ subComponent }
                          toggleSelection={toggleSelection}
                          selectType="radio"
