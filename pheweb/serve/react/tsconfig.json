@@ -2,7 +2,8 @@
   "compilerOptions": {
     "module": "esnext",
     "jsx": "react",
-    "target": "es6",
+      "target": "es6",
+      "noImplicitThis" : false,
     "esModuleInterop": true,
     "preserveConstEnums": true,
     "strictNullChecks": false,

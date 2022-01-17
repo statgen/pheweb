@@ -36,10 +36,10 @@ const dataLayerHandler = (setSelectedPosition : (position : number |undefined) =
 
     const selector = `[id='${id}'] path`;
     const fieldName: string = positionFieldName(key);
-    const index : any = {};
+    const index = {};
 
     const dots = selectAll(selector);
-    dots.each((d: any, i : number) => {
+    dots.each((d: { [k: string]: any }, i: number) => {
         /* d : an object containing a data element
          * of the locus zoom plot e.g. for colocalizaiton
          * the keys will :
@@ -48,7 +48,7 @@ const dataLayerHandler = (setSelectedPosition : (position : number |undefined) =
         index[d[fieldName]] = i;
     });
 
-    dots.on('mouseover', (m, data : any) => {
+    dots.on('mouseover', (m, data) => {
         setSelectedPosition(data[fieldName] as number);
     });
 

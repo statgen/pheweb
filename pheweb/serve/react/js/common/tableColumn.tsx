@@ -559,7 +559,7 @@ const phenotypeColumns = {
       Cell: props => (
         <a
           href={`/variant/${props.original.chrom}-${props.original.pos}-${props.original.ref}-${props.original.alt}`}>{props.value}</a>),
-      filterMethod: (filter, rocatw) => {
+      filterMethod: (filter, row) => {
         const s = filter.value.split("-").map(val => +val);
         if (s.length == 1) return row[filter.id] == filter.value;
         else if (s.length == 2) return row[filter.id] > s[0] && row[filter.id] < s[1];
