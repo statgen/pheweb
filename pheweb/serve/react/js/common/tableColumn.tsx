@@ -17,6 +17,7 @@ const textFormatter = (props : { value : any }) => props.value;
 const decimalFormatter = (props) => (+props.value).toPrecision(3);
 const optionalDecimalFormatter = (props) => isNaN(+props.value) ? props.value : decimalFormatter(props);
 
+
 const numberFormatter = (props) => +props.value;
 const optionalNumberFormatter = (props) => isNaN(+props.value) ? props.value : numberFormatter;
 
@@ -393,14 +394,16 @@ const phenotypeColumns = {
       Filter: ({ filter, onChange }) => null,
       minWidth: 50
     },
-
   category:
     {
       Header: () => (<span title="phenotype category"
                            style={{ textDecoration: "underline" }}>category</span>),
       label: "category",
       accessor: "category",
-      Cell: props => props.value,
+      Cell: props => {
+        console.log(props.original);
+        return <span style={{ color: props.original.color || "black" }}>{props.value}</span>
+      },
       minWidth: 200
     },
 
@@ -556,7 +559,7 @@ const phenotypeColumns = {
       Cell: props => (
         <a
           href={`/variant/${props.original.chrom}-${props.original.pos}-${props.original.ref}-${props.original.alt}`}>{props.value}</a>),
-      filterMethod: (filter, row) => {
+      filterMethod: (filter, rocatw) => {
         const s = filter.value.split("-").map(val => +val);
         if (s.length == 1) return row[filter.id] == filter.value;
         else if (s.length == 2) return row[filter.id] > s[0] && row[filter.id] < s[1];

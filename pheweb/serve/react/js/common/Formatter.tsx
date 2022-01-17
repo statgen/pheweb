@@ -13,3 +13,9 @@ export const variantLink = (variant : Variant | undefined) : JSX.Element => {
     {`${variant.chromosome}:${variant.position}:${variant.reference}:${variant.alternate}`}
                    </a> : <span>NA</span>
 }
+
+export const decimalFormatter = (value, nan = null) => isNaN(+value) ? (nan == null?value:nan) : (+value).toPrecision(3);
+export const numberFormatter = (value, nan = 'NA') => isNaN(+value) ? (nan == null?value:nan) : (+value).toString();
+export const scientificFormatter = (value, nan = 'NA') => isNaN(+value) ? (nan == null?value:nan) : (+value).toExponential(1);
+export const shortNumberFormatter = (value, nan = 'NA') => isNaN(+value) ? (nan == null?value:nan) : (+value).toPrecision(1)
+

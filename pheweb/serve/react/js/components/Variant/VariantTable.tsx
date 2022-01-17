@@ -8,7 +8,7 @@ import { ConfigurationWindow } from "../Configuration/configurationModel";
 
 const dataToTableRows = (variantData : VariantData | null) : VariantRow[] => variantData?.phenos || []
 declare let window: ConfigurationWindow;
-const { config : { userInterface : { variant } } } = window;
+const variant = window?.config?.userInterface?.variant;
 
 const tableColumns : Column<VariantRow>[] = createTableColumns(variant?.table?.columns) || (variantTableColumns as Column<VariantRow>[])
 const defaultSorted = variant?.table?.defaultSorted || [{

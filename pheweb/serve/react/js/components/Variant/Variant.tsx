@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Variant, variantFromStr } from "../../common/Model";
-import { VariantData } from "./variantModel";
-import { getVariant } from "./variantAPI";
+import { EnsemblData, Mapping, NCBIData, PubMedData, VariantData, VariantDetail } from "./variantModel";
+import { getEnsembl, getNCBI, getPubMed, getVariant } from "./variantAPI";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { mustacheDiv } from "../../common/Utilities";
+import { mustacheDiv, warn } from "../../common/Utilities";
 import loading from "../../common/Loading";
 import VariantTable from "./VariantTable";
 import VariantLocusZoom from "./VariantLocusZoom";
+import { numberFormatter, scientificFormatter } from "../../common/Formatter";
+import ReactTooltip from 'react-tooltip'
 
 interface Props {}
-
 
 export const createVariant = (href : string = window.location.href) : Variant | undefined  => {
   const match = href.match("\/variant\/(.+)$")
@@ -20,21 +21,335 @@ export const createVariant = (href : string = window.location.href) : Variant | 
   }
 }
 
+interface KeyValue {
+  key : string
+  value : string
+}
+
+interface MAF {
+  start : string
+  stop : string
+  properties :  KeyValue[]
+  description : string }
+
+interface GnomAD {
+  finEnrichment : string
+  afFin : string
+  afPopmax : string
+  properties :  KeyValue[]
+}
+
+interface InfoRange {
+  start : string,
+  stop : string ,
+  properties :  KeyValue[]
+}
+
+interface VariantSummary {
+  nearestGenes : string[]
+  mostSevereConsequence? : string
+  infoRange? : InfoRange
+  numberAlternativeHomozygotes? : string
+  rsids : string[]
+  maf? : MAF
+  gnomAD? : GnomAD
+  chrom : number
+  pos : number
+  posStart : number
+  posStop : number
+  ref : string
+  alt : string
+}
+
+const createVariantSummary = (variantData : VariantData) => {
+  const nearestGenes : string [] = variantData.nearest_genes.split(",");
+  const hasOneNearestGenes : boolean = nearestGenes.length == 1
+  const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
+
+  const isNumber = function(d) { return typeof d == "number"; };
+  const mafs : number[] = variantData.results.map(function(v) {
+    if (isNumber(v.maf_control))  { return v.maf_control; }
+    else if ('af' in v && isNumber(v['af'])) { return v['af']; }
+    else if ('af_alt' in v && isNumber(v['af_alt'])) { return v['af_alt']; }
+    else if ('maf' in v && isNumber(v['maf'])) { return v['maf']; }
+    else if ('ac' in v &&
+             'num_samples' in v &&
+             isNumber(v['ac']) &&
+             v['ac'] != 0 &&
+             isNumber(v['num_samples'])) { return v['ac'] / v['num_samples']; }
+    else { return undefined; }
+  });
+  const numPhenotypesWithMaf = mafs.filter(isNumber)
+  const annot = variantData?.variant?.annotation?.annot
+
+  let maf : MAF | undefined = undefined
+
+  { let properties = annot == undefined || annot == null ? []  : Object.
+    keys(annot).
+    filter((key) => key.indexOf('AF_') === 0 ).
+    map((key) => { return { key : key.replace(/AF_|\.calls|_Drem|_R[1-9]/g, '') ,
+      value :  (+annot[key]).toExponential(2)} } )
+
+    if(mafs.length == numPhenotypesWithMaf.length){
+      maf = { start : scientificFormatter(Math.min(...mafs)) ,
+        stop : scientificFormatter(Math.max(...mafs)) ,
+        properties ,
+        description : 'across all phenotype' }
+    } else {
+      {v : variantData.variant }
+      maf = { start : scientificFormatter(Math.min(...numPhenotypesWithMaf)) ,
+        stop : scientificFormatter(Math.max(...numPhenotypesWithMaf)),
+        properties ,
+        description : 'for phenotypes where it is defined' }
+    }
+  }
+
+  let gnomAD : GnomAD
+  {
+    const gnomad = variantData?.variant?.annotation?.gnomad
+    let finEnrichment : string
+
+    if(!gnomad){
+      finEnrichment = 'No data in gnomAD'
+    } else if(gnomad &&
+      'AF_fin' in gnomad &&
+      +gnomad['AF_fin'] == 0) {
+      finEnrichment = 'No FIN in gnomAD'
+    } else if (gnomad &&
+      'AC_nfe_nwe' in gnomad &&
+      'AC_nfe_nwe' in gnomad &&
+      'AC_nfe_onf' in gnomad &&
+      'AC_nfe_seu' in gnomad &&
+      +gnomad['AC_nfe_nwe'] + +gnomad['AC_nfe_onf'] + +gnomad['AC_nfe_seu'] == 0) {
+      finEnrichment = 'No NFEE in gnomAD'
+    } else if ('AC_fin' in gnomad &&
+      'AN_fin' in gnomad &&
+      'AC_nfe_nwe' in gnomad &&
+      'AC_nfe_onf' in gnomad &&
+      'AC_nfe_seu' in gnomad &&
+      'AN_nfe_nwe' in gnomad &&
+      'AN_nfe_onf' in gnomad &&
+      'AN_nfe_seu' in gnomad) {
+      const fin_enrichment_value : number =
+        +gnomad['AC_fin'] / +gnomad['AN_fin'] /
+        ( (+gnomad['AC_nfe_nwe'] + +gnomad['AC_nfe_onf'] + +gnomad['AC_nfe_seu']) /
+          (+gnomad['AN_nfe_nwe'] + +gnomad['AN_nfe_onf'] + +gnomad['AN_nfe_seu']) )
+      finEnrichment = scientificFormatter(fin_enrichment_value)
+    } else {
+      finEnrichment = 'Not available'
+      warn('fin enrichment Not available', gnomad)
+    }
+
+    // af fin
+    let afFin :string | undefined
+    if(gnomad && 'AF_fin' in gnomad && !isNaN(+gnomad['AF_fin']) && isFinite(+gnomad['AF_fin'])){
+      afFin = scientificFormatter(+gnomad['AF_fin']);
+    } else {
+      afFin = undefined
+    }
+
+    // af pop max
+    let afPopmax :string | undefined
+    if(gnomad && 'AF_fin' in gnomad && !isNaN(+gnomad['AF_popmax']) && isFinite(+gnomad['AF_popmax'])){
+      afPopmax = scientificFormatter(+gnomad['AF_popmax']);
+    } else {
+      afPopmax = undefined
+    }
+
+    let properties = gnomad == undefined || annot == null ? []  : Object.
+    keys(gnomad).
+    filter((key) => key.indexOf('AF_') === 0 ).
+    map((key) => {
+      return { key : key.replace(/AF_|\.calls|_Drem|_R[1-9]/g, ''), value : scientificFormatter(+gnomad[key]) }
+    })
+
+    gnomAD = (afFin != undefined && afPopmax != undefined) ? { finEnrichment , afFin , afPopmax , properties } : undefined
+
+  }
+
+
+  // info range
+  let infoRange : InfoRange
+  {
+    const info = 'INFO' in annot ? annot['INFO'] : undefined
+    if(annot && info){
+      let infos : number[] = Object.keys(annot).filter(function(key) {
+        return key.indexOf('INFO_') === 0
+      })
+      .map(function(k) { return annot[k] })
+      .map(x => +x).filter(x => !isNaN(x));
+      let [start, stop] = [ scientificFormatter(Math.min(...infos)),
+                            scientificFormatter(Math.max(...infos))];
+      let properties = annot == undefined || annot == null ? []  : Object.
+      keys(annot).
+      filter((key) => key.indexOf('AF_') === 0 ).
+      map((key) => {
+        return { key : key.replace(/AF_|\.calls|_Drem|_R[1-9]/g, ''), value : scientificFormatter(+annot[key]) }
+      })
+
+      infoRange  = { start, stop , properties }
+    } else {
+      infoRange = undefined
+    }
+  }
+
+  const acHom = variantData?.variant?.annotation?.annot
+  const numberAlternativeHomozygotes = 'AC_Hom' in acHom && !isNaN(+acHom['AC_Hom'])?numberFormatter(+acHom['AC_Hom']/2):undefined
+  const rsids : string[] = variantData?.variant?.annotation?.rsids?.split(',') || []
+  const chrom = +variantData.chrom
+  const pos = +variantData.pos
+  const posStart = pos - 200000
+  const posStop = pos + 200000
+
+  const ref = variantData.ref
+  const alt = variantData.alt
+
+  const variantSummary : VariantSummary = {
+    nearestGenes ,
+    mostSevereConsequence ,
+    maf,
+    infoRange ,
+    gnomAD ,
+    numberAlternativeHomozygotes ,
+    rsids ,
+    chrom ,
+    pos ,
+    ref ,
+    alt ,
+    posStart ,
+    posStop
+  }
+  return variantSummary
+}
+
+const data_original_title : string = `test`
+
 const default_banner: string = `
 <div class="variant-info col-xs-12">
         <h1 style="margin-top:0">
-          {{chrom}}:{{pos}}:{{ref}}:{{alt}}
-          ({{rsids}})
+          {{summary.chrom}}:{{summary.pos}}:{{summary.ref}}:{{summary.alt}}
+          ({{summary.rsids}})
         </h1>
-        <p>Nearest gene:
-          <a style="color:black" href="/gene/{{nearest_genes}}">{{nearest_genes}}</a>
+        <p style="margin-bottom: 0px;">
+          Nearest gene:
+          {{#summary.nearestGenes}}
+          <a style="color:black" href="/gene/{{nearest_genes}}">{{.}}</a>
+          {{/summary.nearestGenes}}
         </p>
-        <p id="annotation"></p>         
-
-       <p>View in                                                                                                                                                                                                                                                             
-          <a href="https://genetics.opentargets.org/variant/{{chrom}}_{{pos}}_{{ref}}_{{alt}}">Open Targets</a> ,
-          <a href="https://gnomad.broadinstitute.org/variant/{{chrom}}-{{pos}}-{{ref}}-{{alt}}?dataset=gnomad_r3">gnomAD</a>
+        
+        <p id="annotation" style="margin-bottom: 0px;">
+           {{#summary.mostSevereConsequence}}
+             <span id="most_severe">
+                Most severe consequence: {{.}}
+             </span>
+           {{/summary.mostSevereConsequence}}
+        </p>
+  
+       {{#summary.maf}}
+       <p id="maf-range" 
+          style="margin-bottom: 0px;text-decoration: underline;"  
+          data-place="bottom"
+          data-tip="<div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
+                    {{#properties}}
+                         <div>
+                              <span style='text-align: left; float: left; padding-right: 10px;'>{{value}}</span>
+                              <span style='text-align: left; float: left;'>{{key}}</span>
+                         </div>
+                    {{/properties}}
+                    </div>
+          "
+          html="true" 
+          data-html="true">
+          AF ( ranges from {{start}} to {{stop}} {{description}} )          
+          
        </p>
+       {{/summary.maf}}
+       
+       {{#summary.gnomAD}}
+       <p id="gnomad"
+          style="margin-bottom: 0px;text-decoration: underline;"  
+          data-place="bottom"
+          data-tip="<div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
+                    {{#properties}}
+                         <div>
+                              <span style='text-align: left; float: left; padding-right: 10px;'>{{value}}</span>
+                              <span style='text-align: left; float: left;'>{{key}}</span>
+                         </div>
+                    {{/properties}}
+                    </div>
+          "
+          html="true" 
+          data-html="true">
+          AF in gnomAD genomes 2.1: FIN {{afFin}} POPMAX {{afPopmax}} FIN enrichment vs. NFEE:  {{finEnrichment}} 
+       </p>
+       {{/summary.gnomAD}}
+       {{^summary.gnomAD}}
+          No data found in gnomAD 2.1.1
+       {{/summary.gnomAD}}
+       
+       {{#summary.infoRange}}
+       <p id="info-range"
+          style="margin-bottom: 0px;text-decoration: underline;"  
+          data-place="bottom"
+          data-tip="<div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
+                    {{#properties}}
+                         <div>
+                              <span style='text-align: left; float: left; padding-right: 10px;'>{{value}}</span>
+                              <span style='text-align: left; float: left;'>{{key}}</span>
+                         </div>
+                    {{/properties}}
+                    </div>
+          "
+          html="true" 
+          data-html="true">
+          (ranges in genotyping batches from {{start}} to {{stop}} )
+       </p>
+       {{/summary.infoRange}}
+       
+       {{#summary.numberAlternativeHomozygotes}}
+       <p id="info-range"
+          style="margin-bottom: 0px;">
+          Number of alt homozygotes:  {{.}}
+       </p>
+       {{/summary.numberAlternativeHomozygotes}}
+
+
+
+
+       <p style="margin-bottom: 0px;">View in                                                                                                                                                                                                                                                             
+          <a href="https://genetics.opentargets.org/variant/{{ summary.chrom }}_{{ summary.pos}}_{{ summary.ref}}_{{ summary.alt }}">Open Targets</a> ,
+          <a href="https://gnomad.broadinstitute.org/variant/{{ summary.chrom }}-{{ summary.pos}}-{{ summary.ref}}-{{ summary.alt }}?dataset=gnomad_r3">gnomAD</a> ,
+          <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&highlight=hg38.chr{{ chrom }}%3A{{ summary.pos }}-{{ summary.pos }}&position=chr{{ summary.chrom }}%3A{{ summary.posStart }}-{{ summary.posStop }}">UCSC</a>
+
+          {{#summary.rsids.length}}          
+          , GWAS Catalog for 
+          {{/summary.rsids.length}}          
+
+          {{#summary.rsids}}
+          <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a>
+          {{/summary.rsids}}
+
+          {{#summary.rsids.length}}          
+          , dbSNP for 
+          {{/summary.rsids.length}}          
+          
+          {{#summary.rsids}}
+          <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a>
+          {{/summary.rsids}} 
+
+
+          {{#bioBankURL.length}}
+          , UMich UK Biobank
+          {{/bioBankURL.length}}
+          {{#bioBankURL}}
+            <a href="{{url}}" target='_blank'>{{rsid}}</a>
+          {{/bioBankURL}}
+          
+       </p>
+       <p style="margin-bottom: 0px;">
+          p-values smaller than 1e-10 are shown on a log-log scale
+       </p>
+
 </div>
 `
 
@@ -45,16 +360,38 @@ const banner: string = config?.userInterface?.variant?.banner || default_banner;
 
 const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantData | null>(null);
+  const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : string }| null>(null);
+
+  const[ncbi,setNCBI] = useState<NCBIData | null>(null);
   useEffect(() => {
     const variant = createVariant()
     variant && getVariant(variant, setVariantData)
   },[]);
 
-  return variantData == null?loading:
+  useEffect(() => {
+    if(variantData) {
+      const variant = createVariant()
+      const summary = createVariantSummary(variantData)
+      summary?.rsids?.forEach((rsid) => {
+        getEnsembl(rsid, (e: EnsemblData) => {
+          if (e && e.mappings && e.mappings.length > 0) {
+            const mapping: Mapping = e.mappings[0]
+            const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${variant.reference}-${variant.alternate}`
+            setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } })
+          }
+        })
+      })
+    }
+  },[variantData]);
+
+  // the null check is on  bioBankURL == null as for some reason
+  // the tool tip is not happing loading this later.
+  return variantData == null || bioBankURL == null?loading:
     <React.Fragment>
+      <ReactTooltip />
     <div className="row" style={{ width: '100%' }}>
       <div className="variant-info col-xs-12">
-      {mustacheDiv(banner, variantData)}
+      {mustacheDiv(banner, { ncbi, bioBankURL : Object.entries(bioBankURL).map(([k,v])=> { return { rsid : k , url : v}}), summary : createVariantSummary(variantData) } )}
       <VariantLocusZoom variantData={variantData} />
       <VariantTable variantData={variantData} />
       </div>

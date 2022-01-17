@@ -86,3 +86,7 @@ export const fatal = (msg : string, context : {} ={}) : never =>{
   console.log(context);
   throw msg;
 }
+
+export const warn = (msg : string, context : {} ={}) : void =>{
+  console.warn(msg);
+}
