@@ -1,13 +1,12 @@
 import { mustacheDiv } from "../../common/Utilities";
 import React, { useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { GeneDrugData, GeneDrugRow, MyGeneInformation } from "./geneModel";
-import { getGeneDrugs, getMyGeneInformation } from "./geneAPI";
+import { getGeneDrugs } from "./geneAPI";
 import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
 import loading from "../../common/Loading";
-import { VariantData, VariantRow } from "../Variant/variantModel";
 import { Column } from "react-table";
 import { createTableColumns, geneDrugListTableColumns, variantTableColumns } from "../../common/tableColumn";
+import { GeneDrugs} from "./geneModel";
 
 const default_banner: string = `
 <h3>Drugs targeting Drug Name</h3>
@@ -17,9 +16,9 @@ const { config } = window;
 const banner: string = config?.userInterface?.gene?.drugs?.banner || default_banner;
 
 const { config : { userInterface } = { userInterface : undefined } } = window;
-const tableColumns : Column<GeneDrugRow>[] = createTableColumns(userInterface?.gene?.drugs?.tableColumns) || (geneDrugListTableColumns as Column<GeneDrugRow>[])
+const tableColumns : Column<GeneDrugs.Row>[] = createTableColumns(userInterface?.gene?.drugs?.tableColumns) || (geneDrugListTableColumns as Column<GeneDrugs.Row>[])
 const tableProperties = {}
-const dataToTableRows = (d : GeneDrugData| null) : GeneDrugRow[] => d || []
+const dataToTableRows = (d : GeneDrugs.Data| null) : GeneDrugs.Row[] => d || []
 const defaultSorted = [{
   id: 'pval',
   desc: false
@@ -28,11 +27,11 @@ const defaultSorted = [{
 
 interface Props { gene : string }
 const GeneDrugs = ({ gene } : Props) => {
-  const [geneDrugData, setGeneDrugData] = useState<GeneDrugData | null>(null);
+  const [geneDrugData, setGeneDrugData] = useState<GeneDrugs.Data | null>(null);
 
   useEffect(() => { getGeneDrugs(gene,setGeneDrugData) },[]);
 
-  const prop : DownloadTableProps<GeneDrugData, GeneDrugRow> = {
+  const prop : DownloadTableProps<GeneDrugs.Data, GeneDrugs.Row> = {
     tableData : geneDrugData,
     dataToTableRows,
     tableColumns ,

@@ -34,7 +34,7 @@ export const get: <X>(url: string, sink: (x: X) => void) => Promise<void> = (
   fetch(url)
     .then((response) => response.json())
     .then(sink)
-    .catch(console.error);
+    .catch((e) => warn(url, e));
 /**
  * mustacheDiv
  *

@@ -60,6 +60,7 @@ const DownloadTable = <TableData,RowType extends {}>
         columns={tableColumns}
         defaultSorted={defaultSorted}
         {...(tableProperties && {tableProperties: tableProperties}) }
+
       />
 
 

@@ -5,7 +5,7 @@ import { PhenotypeConfiguration } from "../Phenotype/phenotypeModel";
 import { AboutConfiguration } from "../About/aboutModel";
 import { VariantConfiguration } from "../Variant/variantModel";
 import { TopHitsConfiguration } from "../TopHits/topHitsModel";
-import { GeneConfiguration } from "../Gene/geneModel";
+import { Gene } from "../Gene/geneModel";
 
 export interface ConfigurationUserInterface {
     notFound? : NotFoundConfiguration
@@ -15,7 +15,7 @@ export interface ConfigurationUserInterface {
     about?: AboutConfiguration
     variant? : VariantConfiguration
     topHits? : TopHitsConfiguration
-    gene? : GeneConfiguration
+    gene? : Gene.Configuration
 }
 export interface ConfigurationMetaData {}
 

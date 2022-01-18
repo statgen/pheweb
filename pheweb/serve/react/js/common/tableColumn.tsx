@@ -2,6 +2,10 @@ import { Column, HeaderProps, Renderer } from "react-table";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { Headers, LabelKeyObject } from "react-csv/components/CommonPropTypes";
+import { variantFromStr, variantToPheweb, variantToStr } from "./Model";
+import { values } from "d3";
+import exp from "constants";
+import { scientificFormatter } from "./Formatter";
 
 interface PhewebWindow extends Window {
   release_prev: number;
@@ -12,43 +16,91 @@ declare let window: PhewebWindow;
 
 export const pValueSentinel = 5e-324;
 
-const textFormatter = (props : { value : any }) => props.value;
+const textCellFormatter = (props : { value : any }) => props.value;
 
-const decimalFormatter = (props) => (+props.value).toPrecision(3);
-const optionalDecimalFormatter = (props) => isNaN(+props.value) ? props.value : decimalFormatter(props);
+const decimalCellFormatter = (props) => (+props.value).toPrecision(3);
+const optionalCellDecimalFormatter = (props) => isNaN(+props.value) ? props.value : decimalCellFormatter(props);
 
 
-const numberFormatter = (props) => +props.value;
-const optionalNumberFormatter = (props) => isNaN(+props.value) ? props.value : numberFormatter;
+const numberCellFormatter = (props) => +props.value;
+const optionaCellNumberFormatter = (props) => isNaN(+props.value) ? props.value : numberCellFormatter;
 
-const scientificFormatter = (props) => (+props.value).toExponential(1);
-const optionalScientificFormatter = (props) => isNaN(+props.value) ? props.value : scientificFormatter(props);
+const scientificCellFormatter = (props) => (+props.value).toExponential(1);
+const optionalCellScientificFormatter = (props) => isNaN(+props.value) ? props.value : scientificCellFormatter(props);
 
-const pValueFormatter = (props) => (props.value == pValueSentinel) ? ` << ${pValueSentinel}` : props.value.toExponential(1);
+const pValueCellFormatter = (props) => (props.value == pValueSentinel) ? ` << ${pValueSentinel}` :  isNaN(+props.value) ?props.value: props.value.toExponential(1);
 
-const arrayFormatter = (props) => { return props?.value?.join(" ") || "" }
+const arrayCellFormatter = (props) => { return props?.value?.join(" ") || "" }
 
-const phenotypeFormatter = (props) => (<a href={`/pheno/${props.original.pheno || props.original.phenocode}`}
+const phenotypeCellFormatter = (props) => (<a href={`/pheno/${ props.original.phenocode || props.original.pheno  } `}
                                           target="_blank">{props.value == "NA" ? props.original.pheno : props.value}</a>);
 
+const variantCell = (value : string) => {
+  const variant = variantFromStr(value)
+  if(variant){
+    return <a href={`/variant/${variantToPheweb(variant)}`}>{variantToStr(variant)}</a>
+  } else {
+    return <span>{value}</span>
+  }
+  return value;
+}
+
+interface FunctionalVariantFinnGen {
+  pheno : string
+  beta : number
+  pval : number
+  phenocode : string
+  phenostring : string
+}
+
+const finnGenPhenotypeCell = (prop : {  value :  FunctionalVariantFinnGen[]}) => {
+  const value = prop.value.filter(v => +v.pval < 1.0e-4)
+  value.sort(function(pheno1, pheno2) { return naSorter(+pheno1.pval, +pheno2.pval) })
+
+  return <table>
+    <tbody>
+    { value.map(finnGenPhenotypeCellRow) }
+    </tbody>
+  </table>
+}
+
+const finnGenPhenotypeCellRow = ({ pheno , beta , pval, phenocode, phenostring} : FunctionalVariantFinnGen) => {
+  const label = phenostring && phenostring != "" ?phenostring : phenocode
+  const arrow = beta >= 0 ?
+    <span style={{ color: "green", float: "left"}} className="glyphicon glyphicon-triangle-top" aria-hidden={"true"}/>
+    :
+    <span style={{color: "red", float: "left"}} className="glyphicon glyphicon-triangle-bottom" aria-hidden={"true"}/>
+  const body = <tr className={"gene_func_var_tab"} key={phenocode}>
+    <td className={"gene_func_var_row"} style={{ width : "100px"}}>
+      { arrow }
+      OR {pheno || phenostring } {scientificFormatter(beta)}<br/>
+      p-val {scientificFormatter(pval)}
+    </td>
+    <td>
+      <a style={{ color : "black"}} href={`/pheno/${phenocode}`}> { label  }</a>
+    </td>
+  </tr>;
+
+  return body;
+}
 
 const formatters = {
-  "text": textFormatter,
+  "text": textCellFormatter,
 
-  "decimal": decimalFormatter,
-  "optionalDecimal": decimalFormatter,
+  "decimal": decimalCellFormatter,
+  "optionalDecimal": decimalCellFormatter,
 
-  "number": numberFormatter,
-  "optionalNumber": optionalNumberFormatter,
+  "number": numberCellFormatter,
+  "optionalNumber": optionaCellNumberFormatter,
 
-  "scientific": scientificFormatter,
-  "optionalScientific": optionalScientificFormatter,
+  "scientific": scientificCellFormatter,
+  "optionalScientific": optionalCellScientificFormatter,
 
-  "pValue": pValueFormatter,
+  "pValue": pValueCellFormatter,
 
-  "array": arrayFormatter,
+  "array": arrayCellFormatter,
 
-  "phenotype": phenotypeFormatter
+  "phenotype": phenotypeCellFormatter
 };
 
 
@@ -88,6 +140,29 @@ const naSmallSorter = (a, b) => {
   }
   return a - b;
 };
+
+const isString = (x : any) => (typeof x === 'string' || x instanceof String)
+
+const numberStringSorter = (a, b) => {
+  a = +a;
+  b = +b;
+  if(isString(a) && isString(b)){
+    return (a<b?-1:(a>b?1:0));
+  }
+
+  if (isNaN(a)) {
+    if (isNaN(b)) {
+      return 0;
+    }
+    return 1;
+  }
+  if (isNaN(b)) {
+    return -1;
+  }
+  return a - b;
+};
+
+
 
 const stringToCountSorter = (a, b) => {
   const c = a.split(";").filter(x => x != "NA").length;
@@ -135,7 +210,7 @@ const phenotypeColumns = {
                onChange={event => onChange((filter && filter.value.split("|")[0] || "all") + "|" + event.target.value)} />
       </div>);
     },
-    Cell: phenotypeFormatter,
+    Cell: phenotypeCellFormatter,
     width: columnWith(200)
   },
   chipVariant: {
@@ -227,7 +302,7 @@ const phenotypeColumns = {
     Header: () => (<span title="p-value in chip EWAS" style={{ textDecoration: "underline" }}>pval</span>),
     accessor: "pval",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: pValueFormatter,
+    Cell: pValueCellFormatter,
     width: columnWith(70)
   },
   chipPValueImputed: {
@@ -235,42 +310,42 @@ const phenotypeColumns = {
       <span title="p-value in imputed data GWAS" style={{ textDecoration: "underline" }}>pval_imp</span>),
     accessor: "pval_imp",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: props => optionalScientificFormatter,
+    Cell: props => optionalCellScientificFormatter,
     width: columnWith(80)
   },
   beta: {
     Header: () => (<span title="effect size beta in chip EWAS" style={{ textDecoration: "underline" }}>beta (se)</span>),
     accessor: "beta",
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
-    Cell: optionalScientificFormatter,
+    Cell: optionalCellScientificFormatter,
     width: columnWith(60)
   },
   chipBeta: {
     Header: () => (<span title="effect size beta in chip EWAS" style={{ textDecoration: "underline" }}>beta</span>),
     accessor: "beta",
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
-    Cell: optionalScientificFormatter,
+    Cell: optionalCellScientificFormatter,
     width: columnWith(60)
   },
   chipAF: {
     Header: () => (<span title="allele frequency (cases+controls)" style={{ textDecoration: "underline" }}>af</span>),
     accessor: "af_alt",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: optionalScientificFormatter,
+    Cell: optionalCellScientificFormatter,
     width: columnWith(60)
   },
   chipAFCase: {
     Header: () => (<span title="allele frequency (cases)" style={{ textDecoration: "underline" }}>af_case</span>),
     accessor: "af_alt_cases",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: scientificFormatter,
+    Cell: scientificCellFormatter,
     width: columnWith(60)
   },
   chipAFControl: {
     Header: () => (<span title="allele frequency (controls)" style={{ textDecoration: "underline" }}>af_ctrl</span>),
     accessor: "af_alt_controls",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: scientificFormatter,
+    Cell: scientificCellFormatter,
     width: columnWith(60)
   },
   chipAFFinn: {
@@ -279,7 +354,7 @@ const phenotypeColumns = {
     accessor: "fin_AF",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
     sortMethod: naSmallSorter,
-    Cell: optionalScientificFormatter,
+    Cell: optionalCellScientificFormatter,
     width: columnWith(60)
   },
   chipAFNFSEE: {
@@ -289,7 +364,7 @@ const phenotypeColumns = {
     accessor: "nfsee_AF",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
     sortMethod: naSmallSorter,
-    Cell: optionalScientificFormatter,
+    Cell: optionalCellScientificFormatter,
     width: columnWith(80)
   },
   chipFINEnrichment: {
@@ -307,7 +382,7 @@ const phenotypeColumns = {
       style={{ textDecoration: "underline" }}>het_ex_chip</span>),
     accessor: "het_ex_ch",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: textFormatter,
+    Cell: textCellFormatter,
     width: columnWith(100)
   },
   chipFETPValue: {
@@ -355,7 +430,7 @@ const phenotypeColumns = {
       </div>);
     },
     sortMethod: naSmallSorter,
-    Cell: optionalDecimalFormatter,
+    Cell: optionalCellDecimalFormatter,
     width: columnWith(120)
   },
   categoryIndex: {
@@ -363,7 +438,7 @@ const phenotypeColumns = {
     label: "category_index",
     id: "category_index",
     accessor: "category_index",
-    Cell: numberFormatter,
+    Cell: numberCellFormatter,
     minWidth: 300
   },
   phenotype:
@@ -372,7 +447,7 @@ const phenotypeColumns = {
       label: "phenotype",
       id: "phenotype",
       accessor: "phenostring",
-      Cell: phenotypeFormatter,
+      Cell: phenotypeCellFormatter,
       minWidth: 300
     },
 
@@ -401,7 +476,6 @@ const phenotypeColumns = {
       label: "category",
       accessor: "category",
       Cell: props => {
-        console.log(props.original);
         return <span style={{ color: props.original.color || "black" }}>{props.value}</span>
       },
       minWidth: 200
@@ -641,7 +715,7 @@ const phenotypeColumns = {
       Header: () => (<span title="p-value" style={{ textDecoration: "underline" }}>p-value</span>),
       accessor: "pval",
       filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
-      Cell: pValueFormatter,
+      Cell: pValueCellFormatter,
       minWidth: 80,
       id: "pval"
     },
@@ -653,6 +727,17 @@ const phenotypeColumns = {
       filterMethod: (filter, row) => row[filter.id] >= +filter.value,
       Cell: props => isNaN(+props.value) ? "NA" : (+props.value).toPrecision(3),
       minWidth: 80
+    },
+
+  finEnrichmentText:
+    {
+      Header: () => (<span title="AF enrichment FIN / Non-Finnish-non-Estonian European"
+                           style={{ textDecoration: "underline" }}>FIN enrichment</span>),
+      accessor: "fin_enrichment",
+      filterMethod: (filter, row) => row[filter.id] > +filter.value,
+      Cell: textCellFormatter,
+      sortMethod : numberStringSorter,
+      minWidth: 120
     },
 
   finEnrichment:
@@ -697,7 +782,7 @@ const phenotypeColumns = {
         <span title="allele frequency in cases" style={{ textDecoration: "underline" }}>af cases</span>),
       accessor: "maf_cases",
       filterMethod: (filter, row) => row[filter.id] < +filter.value,
-      Cell: optionalScientificFormatter,
+      Cell: optionalCellScientificFormatter,
       minWidth: 110
     },
 
@@ -707,7 +792,7 @@ const phenotypeColumns = {
         <span title="allele frequency in controls" style={{ textDecoration: "underline" }}>af controls</span>),
       accessor: "maf_controls",
       filterMethod: (filter, row) => row[filter.id] < +filter.value,
-      Cell: optionalScientificFormatter,
+      Cell: optionalCellScientificFormatter,
       minWidth: 110
     },
 
@@ -746,31 +831,31 @@ const phenotypeColumns = {
     Header: () => (<span style={{ textDecoration: "underline" }}>molecule</span>),
     accessor: "approvedName",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: textFormatter
+    Cell: textCellFormatter
   },
   targetClass: {
     Header: () => (<span style={{ textDecoration: "underline" }}>type</span>),
     accessor: "targetClass",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: arrayFormatter
+    Cell: arrayCellFormatter
   },
   mechanismOfAction: {
     Header: () => (<span style={{ textDecoration: "underline" }}>action</span>),
     accessor: "mechanismOfAction",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: textFormatter
+    Cell: textCellFormatter
   },
   disease: {
     Header: () => (<span style={{ textDecoration: "underline" }}>disease</span>),
     accessor: "disease",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: textFormatter
+    Cell: textCellFormatter
   },
   phase: {
     Header: () => (<span style={{ textDecoration: "underline" }}>phase</span>),
     accessor: "phase",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
-    Cell: textFormatter
+    Cell: textCellFormatter
   },
   drugId: {
     Header: () => (<span style={{ textDecoration: "underline" }}>id</span>),
@@ -782,22 +867,79 @@ const phenotypeColumns = {
         {props.value}
       </a>
     )
-
+  },
+  variants : {
+    Header: () => (<span style={{ textDecoration: "underline" }}>variants</span>),
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: props => props.value == "NA" ? props.value : props.value.split(",").map(variantCell),
+    accessor : "variants"
+  },
+  altCountCases : {
+    Header: () => (<span style={{ textDecoration: "underline" }}>alt cases</span>),
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: numberCellFormatter,
+    accessor: "alt_count_cases"
+  },
+  altCountCtrls: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>alt controls</span>),
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: numberCellFormatter,
+    accessor: "alt_count_ctrls"
+  },
+  refCountCases: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>ref cases</span>),
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: numberCellFormatter,
+    accessor: "ref_count_cases"
+  },
+  refCountCtrls: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>ref controls</span>),
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: numberCellFormatter,
+    accessor: "ref_count_ctrls"
+  },
+  finnGenPhenotype : {
+    Header: () => (<span style={{ textDecoration: "underline" }}>FinnGen phenotypes p &lt; 1E-04</span>),
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell : finnGenPhenotypeCell,
+    accessor: "significant_phenos"
   }
+
 };
 
-export const geneLOFTableColumns = [ phenotypeColumns.rsid ]
 
 
-export const genePhenotypeTableColumns = [ phenotypeColumns.rsid ]
+export const geneLossOfFunctionTableColumns = [
+  phenotypeColumns.phenotype,
+  phenotypeColumns.variants,
+  phenotypeColumns.pValue,
+  phenotypeColumns.or,
+  phenotypeColumns.altCountCases,
+  phenotypeColumns.altCountCtrls,
+  phenotypeColumns.refCountCases,
+  phenotypeColumns.refCountCtrls
+]
+
+
+export const genePhenotypeTableColumns = [
+  phenotypeColumns.rsid,
+  phenotypeColumns.finEnrichmentText,
+  phenotypeColumns.phenotype,
+  phenotypeColumns.category,
+  phenotypeColumns.or,
+  phenotypeColumns.mlogp,
+  phenotypeColumns.pValue,
+  phenotypeColumns.numCases
+
+]
 
 export const geneFunctionalVariantTableColumns = [
-  phenotypeColumns.rsid,
-  //consequence -
-  //info -
-  //FIN enrichment -
-  //maf -
-
+  { ...phenotypeColumns.rsid, "attributes": { "minWidth": 100 } },
+  { ...phenotypeColumns.consequence, "attributes": { "minWidth": 100 } },
+  { ...phenotypeColumns.infoScore, "attributes": { "minWidth": 100 } },
+  { ...phenotypeColumns.finEnrichmentText, "attributes": { "minWidth": 100 } },
+  { ...phenotypeColumns.af, "attributes": { "minWidth": 100 } },
+  phenotypeColumns.finnGenPhenotype
 ]
 
 export const geneDrugListTableColumns = [
@@ -913,7 +1055,7 @@ const createColumn = <Type extends {}>(descriptor: ColumnConfiguration<Type>): C
     column = {
       Header: header,
       accessor: accessor,
-      Cell: formatter in formatters ? formatters[formatter] : textFormatter,
+      Cell: formatter in formatters ? formatters[formatter] : textCellFormatter,
       ...(sorter && sorter in sorters && { sortMethod: sorters[sorter] }),
       ...(filter && filter in filters && { filter: filters[filter] }),
       ...(minWidth && { minWidth })

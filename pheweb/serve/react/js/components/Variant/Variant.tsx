@@ -9,6 +9,7 @@ import VariantTable from "./VariantTable";
 import VariantLocusZoom from "./VariantLocusZoom";
 import { numberFormatter, scientificFormatter } from "../../common/Formatter";
 import ReactTooltip from 'react-tooltip'
+import { finEnrichmentLabel } from "../Finngen/gnomad";
 
 interface Props {}
 
@@ -107,38 +108,7 @@ const createVariantSummary = (variantData : VariantData) => {
   let gnomAD : GnomAD
   {
     const gnomad = variantData?.variant?.annotation?.gnomad
-    let finEnrichment : string
-
-    if(!gnomad){
-      finEnrichment = 'No data in gnomAD'
-    } else if(gnomad &&
-      'AF_fin' in gnomad &&
-      +gnomad['AF_fin'] == 0) {
-      finEnrichment = 'No FIN in gnomAD'
-    } else if (gnomad &&
-      'AC_nfe_nwe' in gnomad &&
-      'AC_nfe_nwe' in gnomad &&
-      'AC_nfe_onf' in gnomad &&
-      'AC_nfe_seu' in gnomad &&
-      +gnomad['AC_nfe_nwe'] + +gnomad['AC_nfe_onf'] + +gnomad['AC_nfe_seu'] == 0) {
-      finEnrichment = 'No NFEE in gnomAD'
-    } else if ('AC_fin' in gnomad &&
-      'AN_fin' in gnomad &&
-      'AC_nfe_nwe' in gnomad &&
-      'AC_nfe_onf' in gnomad &&
-      'AC_nfe_seu' in gnomad &&
-      'AN_nfe_nwe' in gnomad &&
-      'AN_nfe_onf' in gnomad &&
-      'AN_nfe_seu' in gnomad) {
-      const fin_enrichment_value : number =
-        +gnomad['AC_fin'] / +gnomad['AN_fin'] /
-        ( (+gnomad['AC_nfe_nwe'] + +gnomad['AC_nfe_onf'] + +gnomad['AC_nfe_seu']) /
-          (+gnomad['AN_nfe_nwe'] + +gnomad['AN_nfe_onf'] + +gnomad['AN_nfe_seu']) )
-      finEnrichment = scientificFormatter(fin_enrichment_value)
-    } else {
-      finEnrichment = 'Not available'
-      warn('fin enrichment Not available', gnomad)
-    }
+    let finEnrichment : string = finEnrichmentLabel(gnomad)
 
     // af fin
     let afFin :string | undefined
