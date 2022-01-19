@@ -33,7 +33,9 @@ export const Table = (props: Props) => {
 
   useEffect(() => { getPhenotypes(setPhenotypes); },[]);
 
+  const filename = 'endpoints.tsv'
   const prop : DownloadTableProps<Phenotype[], Phenotype> = {
+    filename,
     tableData : phenotypes,
     dataToTableRows : (data : Phenotype[]) => data,
     tableColumns  : tableColumns,

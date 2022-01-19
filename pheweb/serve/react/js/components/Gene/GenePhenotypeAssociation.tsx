@@ -74,7 +74,9 @@ const getTopHit = (d : GenePhenotypes.Data| null) :  GenePhenotypes.Row | null =
 const GenePhenotypeAssociation = ({ gene } : Props) => {
   const [data, setData] = useState<GenePhenotypes.Data | null>(null);
   useEffect(() => { getGenePhenotypes(gene,setData) },[]);
+  const filename =  `${gene}_top_associations`
   const prop : DownloadTableProps<GenePhenotypes.Data, GenePhenotypes.ViewRow> = {
+    filename,
     tableData : data,
     dataToTableRows,
     tableColumns ,

@@ -81,7 +81,9 @@ const GeneLossOfFunction = ({ gene } : Props) => {
     getLossOfFunction(gene,setData)
   },[]);
 
+  const filename = `${gene}_lof.tsv`
   const prop : DownloadTableProps<LossOfFunction.Data, LossOfFunction.ViewRow> = {
+    filename,
     tableData : data,
     dataToTableRows,
     tableColumns ,

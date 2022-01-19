@@ -23,7 +23,10 @@ interface Props { variantData : VariantData }
 const VariantTable = ({ variantData } : Props ) => {
   const tableData : VariantData = variantData;
 
+  const filename = `${variantData.chrom}_${variantData.pos}_${variantData.ref}_${variantData.alt}_phenotype_associations.tsv`
+  
   const prop : DownloadTableProps<VariantData, VariantRow> = {
+      filename,
       tableData,
       dataToTableRows ,
       tableColumns ,
@@ -32,4 +35,5 @@ const VariantTable = ({ variantData } : Props ) => {
   }
   return <DownloadTable {...prop} />
 }
-export default VariantTable
+
+export default  VariantTable

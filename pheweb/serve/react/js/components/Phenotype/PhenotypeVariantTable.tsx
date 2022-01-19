@@ -67,7 +67,7 @@ const variant = window?.config?.userInterface?.phenotype?.variant;
 const tableColumns : Column<PhenotypeVariantRow>[] = createTableColumns<PhenotypeVariantRow>(variant?.table?.columns) || phenotypeTableColumns as Column<PhenotypeVariantRow>[]
 
 interface Props { phenotypeCode : string }
-const VariantTable = ({ phenotypeCode} : Props ) => {
+const PhenotypeVariantTable = ({ phenotypeCode} : Props ) => {
   const [tableData, setTableData] = useState<PhenotypeVariantData| null>(null);
 
   useEffect(() => {
@@ -76,7 +76,10 @@ const VariantTable = ({ phenotypeCode} : Props ) => {
       setTableData(processData(phenotypeCode,variantData))
     })
     },[]);
+
+  const filename : string = `${phenotypeCode}.tsv`
   const props : DownloadTableProps<PhenotypeVariantData, PhenotypeVariantRow>  = {
+    filename,
     tableData,
     dataToTableRows,
     tableColumns,
@@ -86,4 +89,4 @@ const VariantTable = ({ phenotypeCode} : Props ) => {
     <DownloadTable {...props} />
   </div>
 }
-export default VariantTable
+export default PhenotypeVariantTable

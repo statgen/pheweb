@@ -32,8 +32,10 @@ const GeneDrugs = ({ gene } : Props) => {
   const [geneDrugData, setGeneDrugData] = useState<GeneDrugs.Data | null>(null);
 
   useEffect(() => { getGeneDrugs(gene,setGeneDrugData) },[]);
+  const filename = `${gene}_drugs.tsv`
 
   const prop : DownloadTableProps<GeneDrugs.Data, GeneDrugs.Row> = {
+    filename,
     tableData : geneDrugData,
     dataToTableRows,
     tableColumns ,

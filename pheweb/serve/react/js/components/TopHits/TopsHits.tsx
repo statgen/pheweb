@@ -43,7 +43,9 @@ const TopHits = (props : Props) => {
     getTopHits(setTopHitData)
   },[]);
 
+  const filename = 'tophits.tsv'
   const prop : DownloadTableProps<TopHitsData, TopHitsRow> = {
+    filename,
     tableData : topHitData,
     dataToTableRows ,
     tableColumns ,

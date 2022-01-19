@@ -17,6 +17,7 @@ interface Table<RowType> extends  JSX.Element { getResolvedState : () => { sorte
 export interface Props <TableData, RowType extends  {},
                         ReactProperties extends {} = {},
                         LinkProperties extends {} = {}>{
+  filename : string
   tableData : (TableData| null)
   dataToTableRows : (data : TableData| null) => RowType[]
   tableColumns : Column<RowType>[]
@@ -28,7 +29,8 @@ export interface Props <TableData, RowType extends  {},
 export type DownloadTableProps<TableData, RowType extends  {}, ReactProperties extends {} = {}> = Props<TableData, RowType, ReactProperties>
 
 const DownloadTable = <TableData,RowType extends {}>
-  ({ tableData,
+  ({ filename,
+     tableData,
      dataToTableRows ,
      tableColumns ,
      tableProperties,
@@ -78,7 +80,7 @@ const DownloadTable = <TableData,RowType extends {}>
         data={download == null ? [] : download }
         separator={"\t"}
         enclosingCharacter={""}
-        filename="endpoints.tsv"
+        filename={ filename }
         className="hidden"
         ref={(r) => setLink(r)}
         target="_blank"

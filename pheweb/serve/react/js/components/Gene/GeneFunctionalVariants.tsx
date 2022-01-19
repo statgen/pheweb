@@ -50,11 +50,13 @@ interface Props { gene : string}
 const GeneFunctionalVariants = ({ gene} ) => {
 
   const [data, setData] = useState<FunctionalVariants.Data | null>(null);
+  const filename = `${gene}_functional_variants.tsv`
   useEffect(() => {
     getGeneFunctionalVariants(gene,setData)
   },[]);
 
   const prop : DownloadTableProps<FunctionalVariants.Data, FunctionalVariants.ViewRow> = {
+    filename,
     tableData : data,
     dataToTableRows ,
     tableColumns ,
