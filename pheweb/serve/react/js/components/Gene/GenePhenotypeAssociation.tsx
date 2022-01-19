@@ -7,6 +7,7 @@ import { Column } from "react-table";
 import { createTableColumns, genePhenotypeTableColumns } from "../../common/tableColumn";
 import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
 import { finEnrichmentLabel } from "../Finngen/gnomad";
+import loading from "../../common/Loading";
 
 const default_banner: string = `
 <div class="row">
@@ -81,11 +82,18 @@ const GenePhenotypeAssociation = ({ gene } : Props) => {
     defaultSorted
   }
   const context = { topHit : getTopHit(data)}
-  return <React.Fragment>
-    { mustacheDiv(banner, { }) }
-    <DownloadTable {...prop}/>
-    { mustacheDiv(footer, context) }
-  </React.Fragment>
+  let view
+
+  if(data == null){
+    view = loading
+  } else {
+    view = <React.Fragment>
+      { mustacheDiv(banner, { }) }
+      <DownloadTable {...prop  }/>
+      { mustacheDiv(footer, context) }
+    </React.Fragment>
+  }
+  return view
 }
 
 export default GenePhenotypeAssociation

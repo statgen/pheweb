@@ -17,7 +17,7 @@ const default_banner : string =`
 </div>
 `
 const default_empty: string =`                                                                                                              
-    No functional variants for {{gene}}                                                                                               
+    No functional or missense variants for {{gene}}                                                                                               
   `
 
 declare let window: ConfigurationWindow;
@@ -28,7 +28,8 @@ const empty: string = config?.empty || default_empty;
 const tableColumns : Column<FunctionalVariants.ViewRow>[] = createTableColumns<FunctionalVariants.ViewRow>(config?.tableColumns) || (geneFunctionalVariantTableColumns as Column<FunctionalVariants.ViewRow>[])
 const defaultSorted =[]
 
-const tableProperties = {}
+const tableProperties = {  defaultPageSize : 5
+}
 const reshapeRow = (r : FunctionalVariants.Row) : FunctionalVariants.ViewRow => {
   const rsids = r.rsids
   const alt = r.var.alt
@@ -40,6 +41,7 @@ const reshapeRow = (r : FunctionalVariants.Row) : FunctionalVariants.ViewRow => 
   const maf = +r.var.annotation.annot.AF < 0.5 ? +r.var.annotation.annot.AF : 1 - +r.var.annotation.annot.AF
   const fin_enrichment = finEnrichmentLabel(r.var.annotation.gnomad)
   const significant_phenos = r.significant_phenos
+
   return { rsids , alt , chr , pos , ref , most_severe , info , maf , fin_enrichment , significant_phenos }
 }
 const dataToTableRows = (data : FunctionalVariants.Data) : FunctionalVariants.ViewRow[] => data.map(reshapeRow)

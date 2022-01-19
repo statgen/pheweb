@@ -59,9 +59,7 @@ const DownloadTable = <TableData,RowType extends {}>
         filterable
         columns={tableColumns}
         defaultSorted={defaultSorted}
-        {...(tableProperties && {tableProperties: tableProperties}) }
-
-      />
+        {...tableProperties  } />
 
 
       <p>

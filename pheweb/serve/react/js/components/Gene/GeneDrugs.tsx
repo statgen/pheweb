@@ -17,7 +17,9 @@ const banner: string = config?.userInterface?.gene?.drugs?.banner || default_ban
 
 const { config : { userInterface } = { userInterface : undefined } } = window;
 const tableColumns : Column<GeneDrugs.Row>[] = createTableColumns(userInterface?.gene?.drugs?.tableColumns) || (geneDrugListTableColumns as Column<GeneDrugs.Row>[])
-const tableProperties = {}
+const tableProperties = {
+  defaultPageSize : 5
+}
 const dataToTableRows = (d : GeneDrugs.Data| null) : GeneDrugs.Row[] => d || []
 const defaultSorted = [{
   id: 'pval',

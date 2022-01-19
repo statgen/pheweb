@@ -16,10 +16,7 @@ const clickHandler = (state : State,
   if(state != State.Downloading && anchor != null){
     setState(State.Downloading)
     const url = `/api/genereport/${gene}`
-    console.log(gene)
-    console.log(url)
     fetch(url).then(response => response.blob()).then((response) => {
-      console.log(response);
       setData(URL.createObjectURL(response))
     }).then(() => { setState(State.Ready)})
       .catch(() => { setState(State.Error)})

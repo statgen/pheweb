@@ -1,5 +1,6 @@
 import React, {Component, ErrorInfo} from 'react'
 import ReactDOM from 'react-dom'
+import { warn } from "../../common/Utilities";
 
 interface Props { children: React.ReactNode }
 
@@ -18,8 +19,8 @@ export class RegionErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error : Error, errorInfo : ErrorInfo) {
-        console.error(error);
-        console.error(errorInfo);
+        warn(error.name,error)
+        warn(error.name,errorInfo)
     }
 
     errorMessage : React.ReactNode = <h1>Error</h1>
