@@ -2,36 +2,36 @@ task preprocess {
   # after this task it is assumed the file
   # is of form chrom, pos, ref, alt, pval, beta, sebeta ...
   # see format-summary-file for details
-  
+
   File summary_file
   String docker
 
   String? preprocessor
-  
+
   String? chrom_column
   String chrom_flag = if defined(chrom_column) then "--chrom  '${chrom_column}'" else ""
 
   String? pos_column
   String pos_flag = if defined(pos_column) then "--pos  '${pos_column}'" else ""
-  
+
   String? ref_column
   String ref_flag = if defined(ref_column) then "--ref  '${ref_column}'" else ""
-  
+
   String? alt_column
   String alt_flag = if defined(alt_column) then "--alt  '${alt_column}'" else ""
-  
+
   String? pval_column
   String pval_flag = if defined(pval_column) then "--pval  '${pval_column}'" else ""
 
-  
+
   String? mlogp_column
   String mlogp_flag = if defined(mlogp_column) then "--mlogp  '${mlogp_column}'" else ""
 
-  
+
   String? beta_column
   String beta_flag = if defined(beta_column) then "--beta  '${beta_column}'" else ""
 
-  
+
   String? se_beta_column
   String se_beta_flag = if defined(se_beta_column) then "--se_beta  '${se_beta_column}'" else ""
 
@@ -40,7 +40,7 @@ task preprocess {
 
   String? exclude
   String exclude_flag = if defined(exclude) then "--exclude '${exclude}'" else ""
-  
+
   String normalized_filename = sub(sub(basename(summary_file), ".gz$", ""), ".bgz$", "")
   String out_filename = "${normalized_filename}.gz"
 
@@ -58,13 +58,13 @@ task preprocess {
            bgzip > "${dir}${out_filename}"
 
            du -h "${dir}${out_filename}"
-           
+
   >>>
 
   output {
      	    File out_file = "${dir}${out_filename}"
   }
-     
+
   runtime {
         docker: "${docker}"
     	cpu: 2
@@ -83,10 +83,10 @@ task sites {
 	   # There is a pheweb command `pheweb sites`
      	   # that generates the list of variants.
      	   # this is a bash replacement for that command
-	   
+
      command <<<
         for file in ${sep="\t" summary_files}; do
-	   
+
 	   # decompress if suffixes indicate compression
 	   cat "$file" | \
 
@@ -105,7 +105,7 @@ task sites {
         # python memory script
      	(echo -e 'chrom\tpos\tref\talt' ; cat summary_files.tsv | tr '\n' '\0' | sort --merge --unique --files0-from=- -t$'\t' -k1,1n -k2,2n -k3,3 -k4,4) > sites.tsv
      >>>
-     
+
      output {
         File variant_list = "sites.tsv"
      }
@@ -124,12 +124,12 @@ task sites {
 task annotation {
      String docker
      Int mem
-  
+
      File? rsids_file
      File bed_file
 
      File variant_list
-    
+
     String dir = '/cromwell_root/'
     command <<<
 	set -euxo pipefail
@@ -141,11 +141,11 @@ task annotation {
 	mkdir -p pheweb/generated-by-pheweb/sites/dbSNP
 
 	# TODO test cache
-	# TODO this file also appears : generated-by-pheweb/sites/dbSNP/dbsnp-b151-GRCh38.gz 
+	# TODO this file also appears : generated-by-pheweb/sites/dbSNP/dbsnp-b151-GRCh38.gz
 	[[ -z "${rsids_file}" ]] || mv ${rsids_file} pheweb/generated-by-pheweb/sites/dbSNP/
 	[[ -z "${bed_file}" ]] || mv ${bed_file}   pheweb/generated-by-pheweb/sites/genes/
 	mv ${variant_list} pheweb/generated-by-pheweb/sites/sites-unannotated.tsv
-	
+
  	cd pheweb
 
         df -h && pheweb add-rsids
@@ -179,7 +179,7 @@ task pheno {
 	File variant_list
 	File pheno_file
     	String file_affix
-     
+
         String base_name = sub(basename(pheno_file), file_affix, "")
         String pheno_name = sub(base_name, ".gz$", "")
         String dir = '/cromwell_root/'
@@ -197,14 +197,14 @@ task pheno {
         mkdir -p pheweb/generated-by-pheweb/parsed
 	mkdir -p pheweb/generated-by-pheweb/sites
 	mkdir -p pheweb/generated-by-pheweb/pheno_gz
-	
+
 	mv ${variant_list} pheweb/generated-by-pheweb/sites/
-	
+
 	# pipeline to file without compression suffix if there is one
 	cat ${pheno_file} | \
 	(if [[ "${pheno_file}" == *.gz || "${pheno_file}" == *.bgz ]]; then zcat ; else cat ; fi) | \
 	sed '1 s/^#chrom/chrom/ ; '  > pheweb/generated-by-pheweb/parsed/${pheno_name}
-	
+
         cd pheweb
 
         pheweb phenolist glob generated-by-pheweb/parsed/* && \
@@ -213,10 +213,10 @@ task pheno {
         pheweb manhattan && \
         pheweb qq && \
         pheweb bgzip-phenos &&
-        find ./ 
+        find ./
 	# find just to make sure the whole sequence is completed
 	# and you know what you have.
-	
+
 	>>>
 
 
@@ -226,7 +226,7 @@ task pheno {
 	File pheno_manhattan = manhattan_file
 	File pheno_qq = qq_file
    }
-   
+
    runtime {
         docker: "${docker}"
     	cpu: 2
@@ -275,25 +275,24 @@ task matrix {
 
         tail -n+2 ${sites} > ${sites}.noheader
         python3 <<EOF
-        import os,glob,subprocess,time
-        files = sorted(glob.glob("*pheno_piece"))
-        import multiprocessing
-        def multiproc(i):
-            file = sorted(glob.glob("*pheno_piece"))[i]
-            print(file)
-            cmd = ["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--no_require_match", "--no_tabix", "--all_fields"]
-            start = time.time()
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            out,err = [elem.decode("utf-8").strip() for elem in p.communicate()]
-            print(f"{i}: file done.")
-            print("ERR: ",err)
-            print(f"It took {time.time() - start} seconds.")
+import os,glob,subprocess,time
+files = sorted(glob.glob("*pheno_piece"))
+import multiprocessing
+def multiproc(i):
+    file = sorted(glob.glob("*pheno_piece"))[i]
+    print(file)
+    cmd = ["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--no_require_match", "--no_tabix", "--all_fields"]
+    start = time.time()
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    out,err = [elem.decode("utf-8").strip() for elem in p.communicate()]
+    print(f"{i}: file done.")
+    print("ERR: ",err)
+    print(f"It took {time.time() - start} seconds.")
 
-        cpus = multiprocessing.cpu_count()
-        pools = multiprocessing.Pool(cpus - 1)
-        pools.map(multiproc,range(len(files)))
-        pools.close()
-
+cpus = multiprocessing.cpu_count()
+pools = multiprocessing.Pool(cpus - 1)
+pools.map(multiproc,range(len(files)))
+pools.close()
         EOF
 
         cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
@@ -307,45 +306,45 @@ task matrix {
         pheweb top-hits
 
         python3 <<EOF
-        import glob
-        import subprocess
-        import json,time
-        import multiprocessing
-        # get gene-to-pheno json per piece
-        files =  glob.glob("*pheno_piece.matrix.tsv")
-        def multiproc(i):
-            file = sorted(glob.glob("*pheno_piece.matrix.tsv"))[i]
-            print(file)
-            cmd = ["pheweb", "gather-pvalues-for-each-gene", file]
-            start = time.time()
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            out,err = [elem.decode("utf-8").strip() for elem in p.communicate()]
-            print(f"{i}: file done.")
-            print("ERR: ",err)
-            print(f"It took {time.time() - start} seconds.")
+import glob
+import subprocess
+import json,time
+import multiprocessing
+# get gene-to-pheno json per piece
+files =  glob.glob("*pheno_piece.matrix.tsv")
+def multiproc(i):
+    file = sorted(glob.glob("*pheno_piece.matrix.tsv"))[i]
+    print(file)
+    cmd = ["pheweb", "gather-pvalues-for-each-gene", file]
+    start = time.time()
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    out,err = [elem.decode("utf-8").strip() for elem in p.communicate()]
+    print(f"{i}: file done.")
+    print("ERR: ",err)
+    print(f"It took {time.time() - start} seconds.")
 
-        cpus = multiprocessing.cpu_count()
-        pools = multiprocessing.Pool(cpus - 1)
-        pools.map(multiproc,range(len(files)))
-        pools.close()
+cpus = multiprocessing.cpu_count()
+pools = multiprocessing.Pool(cpus - 1)
+pools.map(multiproc,range(len(files)))
+pools.close()
 
-        # collect jsons
-        gene2phenos = {}
-        for file in glob.glob("*pheno_piece.matrix.tsv_best-phenos-by-gene.json"):
-            with open(file) as f:
-                j = json.load(f)
-                for gene in j:
-                    if gene not in gene2phenos:
-                        gene2phenos[gene] = []
-                    gene2phenos[gene].extend(j[gene])
-        for gene in gene2phenos:
-            phenos = sorted(gene2phenos[gene], key=lambda x: x['pval'])
-            n_sig = len([p for p in phenos if p['pval'] < 5e-8])
-            gene2phenos[gene] = phenos[:max(4,n_sig)]
-        with open('generated-by-pheweb/best-phenos-by-gene.json', 'w') as f:
-            json.dump(gene2phenos, f)
-        EOF
-    # TODOD : verify number of columns
+# collect jsons
+gene2phenos = {}
+for file in glob.glob("*pheno_piece.matrix.tsv_best-phenos-by-gene.json"):
+    with open(file) as f:
+        j = json.load(f)
+        for gene in j:
+            if gene not in gene2phenos:
+                gene2phenos[gene] = []
+            gene2phenos[gene].extend(j[gene])
+for gene in gene2phenos:
+    phenos = sorted(gene2phenos[gene], key=lambda x: x['pval'])
+    n_sig = len([p for p in phenos if p['pval'] < 5e-8])
+    gene2phenos[gene] = phenos[:max(4,n_sig)]
+with open('generated-by-pheweb/best-phenos-by-gene.json', 'w') as f:
+    json.dump(gene2phenos, f)
+EOF
+# TODOD : verify number of columns
     >>>
 
     output {
@@ -375,10 +374,11 @@ workflow import_pheweb {
 	 String docker
 	 String summary_files
 	 String? file_affix
+         String? sites_file
 
          Int disk
          Int mem
-  
+
 	 Array[String] pheno_files = read_lines(summary_files)
          # get file from here https://resources.pheweb.org/
          # https://resources.pheweb.org/genes-v37-hg38.bed
@@ -392,20 +392,22 @@ workflow import_pheweb {
 	       }
          }
 
-	 call sites { input :
-           summary_files = preprocess.out_file ,
-           docker = docker,
-	   disk=disk
-         }
+	 if (!defined(sites_file)) {
+	   call sites { input :
+              summary_files = preprocess.out_file ,
+              docker = docker,
+	      disk=disk
+           }
+	 }
 
 	 call annotation { input :
-            variant_list = sites.variant_list ,
-	    mem = mem ,  
+            variant_list = if defined(sites_file) then sites_file else sites.variant_list ,
+	    mem = mem ,
 	    bed_file = bed_file ,
 	    rsids_file = rsids_file ,
             docker = docker
          }
-	 
+
 	 scatter (pheno_file in preprocess.out_file) {
 	 	 call pheno { input :
 	 	      	      variant_list = annotation.sites_list ,
@@ -421,7 +423,7 @@ workflow import_pheweb {
 		      manhattan=pheno.pheno_manhattan,
 		      bed_file = bed_file,
 		      docker=docker,
-	              mem = mem ,  
+	              mem = mem ,
                       disk=disk
-        }	    
+        }
 }
