@@ -196,14 +196,7 @@ def pheno(phenocode):
 def phenolist():
     return jsonify([pheno for pheno in get_phenolist() if pheno['phenocode'] in use_phenos])
 
-@app.route('/api/variant/<query>')
-def api_variant(query):
-    variant = get_variant(query)
-    variant['phenos'] = [pheno for pheno in variant['phenos'] if pheno['phenocode'] in use_phenos]
-    return jsonify(variant)
-
-@app.route('/variant/<query>')
-def variant_page(query):
+def legacy_variant_page(query):
     try:
         q=re.split('-|:|/|_',query)
         if len(q)!=4:
@@ -216,16 +209,25 @@ def variant_page(query):
         regions = jeeves.get_finemapped_regions(v)
         if regions is not None:
             regions = [region for region in regions if region['phenocode'] in use_phenos]
-        return render_template('variant.html',
-                               variant=variantdat[0],
-                               results=variantdat[1],
-                               regions=regions,
-                               tooltip_lztemplate=conf.parse.tooltip_lztemplate,
-                               var_top_pheno_export_fields=conf.var_top_pheno_export_fields,
-                               vis_conf=conf.vis_conf
-        )
+        result = { "variant" : variantdat[0] ,
+                   "results" : variantdat[1] ,
+                   "regions" : regions ,
+                   "tooltip_lztemplate" : conf.parse.tooltip_lztemplate ,
+                   "var_top_pheno_export_fields" : conf.var_top_pheno_export_fields ,
+                   "vis_conf" : conf.vis_conf }
+        return result
     except Exception as exc:
         die('Oh no, something went wrong', exc)
+
+def legacy_variant_api(query):
+    variant = get_variant(query)
+    variant['phenos'] = [pheno for pheno in variant['phenos'] if pheno['phenocode'] in use_phenos]
+    return variant
+
+@app.route('/api/variant/<query>')
+def api_variant(query):
+    result = {**legacy_variant_page(query) , **legacy_variant_api(query) }
+    return result
 
 @app.route('/api/manhattan/pheno/<phenocode>')
 def api_pheno(phenocode):
@@ -281,10 +283,6 @@ def api_pheno_qq(phenocode):
     if phenocode not in use_phenos:
         abort(404)
     return send_from_directory(common_filepaths['qq'](''), phenocode + '.json')
-
-@app.route('/top_hits')
-def top_hits_page():
-    return render_template('top_hits.html')
 
 @app.route('/api/coding_data')
 def coding_data():
@@ -368,9 +366,13 @@ def api_finemapped_region(phenocode):
     rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, prob_threshold=conf.locuszoom_conf['prob_threshold'])
     return jsonify(rv)
 
-@app.route('/region/<phenocode>/gene/<genename>')
-def gene_phenocode_page(phenocode, genename):
+@app.route('/api/gene/<genename>')
+def gene_api(genename):
+    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
+    if not phenos_in_gene:
+        die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     try:
+        phenocode=phenos_in_gene[0]['phenocode']
         gene_region_mapping = jeeves.get_gene_region_mapping()
         chrom, start, end = gene_region_mapping[genename]
 
@@ -395,32 +397,23 @@ def gene_phenocode_page(phenocode, genename):
                     'assoc': {k:v for k,v in pheno_in_gene.items() if k != 'phenocode'},
                 })
 
-        return render_template('gene.html',
-                               pheno=pheno,
-                               significant_phenos=phenos_in_gene,
-                               gene_symbol=genename,
-                               region='{}:{}-{}'.format(chrom, start, end),
-                               tooltip_lztemplate=conf.parse.tooltip_lztemplate,
-                               lz_conf=conf.locuszoom_conf,
-                               ld_panel_version=conf.ld_panel_version,
-                               gene_pheno_export_fields=conf.gene_pheno_export_fields,
-                               drug_export_fields=conf.drug_export_fields,
-                               lof_export_fields=conf.lof_export_fields,
-                               func_var_report_p_threshold = conf.report_conf["func_var_assoc_threshold"]
-        )
+        gene_information = { "pheno" :  pheno,
+                             "significant_phenos" : phenos_in_gene,
+                             "gene_symbol" : genename,
+                             "region" : f'{chrom}-{start}-{end}',
+                             "tooltip_lztemplate" : conf.parse.tooltip_lztemplate,
+                             "lz_conf" : conf.locuszoom_conf,
+                             "ld_panel_version" : conf.ld_panel_version,
+                             "gene_pheno_export_fields" : conf.gene_pheno_export_fields,
+                             "drug_export_fields" : conf.drug_export_fields,
+                             "lof_export_fields" : conf.lof_export_fields,
+                              "func_var_report_p_threshold" : conf.report_conf["func_var_assoc_threshold"] }
+        
+        return jsonify(gene_information)
     except Exception as exc:
         die("Sorry, your region request for phenocode {!r} and gene {!r} didn't work".format(phenocode, genename), exception=exc)
 
-
-@app.route('/gene/<genename>')
-def gene_page(genename):
-    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
-    if not phenos_in_gene:
-        die("Sorry, that gene doesn't appear to have any associations in any phenotype")
-    return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
-
-
-@app.route('/genereport/<genename>')
+@app.route('/api/genereport/<genename>')
 def gene_report(genename):
     phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
@@ -502,10 +495,6 @@ def drugs(genename):
         return jsonify(drugs)
     except Exception as exc:
         die("Could not fetch drugs for gene {!r}".format(genename), exception=exc)
-
-@app.route('/about')
-def about_page():
-    return render_template('about.html')
 
 # NCBI sometimes doesn't like cross-origin requests so do them here and not in the browser
 @app.route('/api/ncbi/<endpoint>')
