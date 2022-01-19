@@ -40,7 +40,7 @@ export namespace FunctionalVariants {
   export interface ViewRow {
     rsids : string ,
     alt : string ,
-    chr : number,
+    chrom : number,
     pos : number ,
     ref : string ,
     most_severe : string ,

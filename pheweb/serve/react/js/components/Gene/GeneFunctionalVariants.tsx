@@ -33,7 +33,7 @@ const tableProperties = {  defaultPageSize : 5
 const reshapeRow = (r : FunctionalVariants.Row) : FunctionalVariants.ViewRow => {
   const rsids = r.rsids
   const alt = r.var.alt
-  const chr = r.var.chr
+  const chrom = r.var.chr
   const pos = r.var.pos
   const ref = r.var.ref
   const most_severe = r.var.annotation.annot.most_severe.replace(/_/g, ' ').replace(' variant', '')
@@ -42,7 +42,7 @@ const reshapeRow = (r : FunctionalVariants.Row) : FunctionalVariants.ViewRow => 
   const fin_enrichment = finEnrichmentLabel(r.var.annotation.gnomad)
   const significant_phenos = r.significant_phenos
 
-  return { rsids , alt , chr , pos , ref , most_severe , info , maf , fin_enrichment , significant_phenos }
+  return { rsids , alt , chrom , pos , ref , most_severe , info , maf , fin_enrichment , significant_phenos }
 }
 const dataToTableRows = (data : FunctionalVariants.Data) : FunctionalVariants.ViewRow[] => data.map(reshapeRow)
 
