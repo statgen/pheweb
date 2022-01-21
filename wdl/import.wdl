@@ -143,8 +143,9 @@ task annotation {
 	# TODO test cache
 	# TODO this file also appears : generated-by-pheweb/sites/dbSNP/dbsnp-b151-GRCh38.gz
 	[[ -z "${rsids_file}" ]] || mv ${rsids_file} pheweb/generated-by-pheweb/sites/dbSNP/
-	[[ -z "${bed_file}" ]] || mv ${bed_file}   pheweb/generated-by-pheweb/sites/genes/
-	mv ${variant_list} pheweb/generated-by-pheweb/sites/sites-unannotated.tsv
+        [[ -z "${bed_file}" ]] || mv ${bed_file}   pheweb/generated-by-pheweb/sites/genes/
+        # allow for compressed sites file
+	cat ${variant_list} | (if [[ "${variant_list}" == *.gz || "${variant_list}" == *.bgz ]]; then zcat ; else cat ; fi) > pheweb/generated-by-pheweb/sites/sites-unannotated.tsv
 
  	cd pheweb
 
@@ -274,7 +275,9 @@ task matrix {
         split -d -l $n_batch --additional-suffix pheno_piece pheno_config.txt
 
         tail -n+2 ${sites} > ${sites}.noheader
-        python3 <<EOF
+
+        echo "debug.1"
+python3 <<EOF
 import os,glob,subprocess,time
 files = sorted(glob.glob("*pheno_piece"))
 import multiprocessing
@@ -293,8 +296,9 @@ cpus = multiprocessing.cpu_count()
 pools = multiprocessing.Pool(cpus - 1)
 pools.map(multiproc,range(len(files)))
 pools.close()
-        EOF
+EOF
 
+        echo "debug.2"
         cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
         for file in *pheno_piece.matrix.tsv; do
             cmd="$cmd <(cut -f5- $file) "
