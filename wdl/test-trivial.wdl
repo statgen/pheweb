@@ -4,7 +4,7 @@ task create_custom_json {
 
 
   command <<<
-    echo -e '{ "mystery_phenotype" : {} }'  > custom.json
+    echo -e '[ { "name" : "mystery_phenotype" , "label" : "Mystery Phenotype" } ]'  > custom.json
   >>>
 
   runtime { docker: "python:3.8" }
@@ -41,7 +41,7 @@ workflow test_trivial_no_sites {
        disk = 1000 ,
        mem = 16 ,
        custom_json = create_custom_json.custom_json ,
-       fields = [] ,
+       fields = [ "label" ] ,
        summary_files = trivial_summary.summary_files
   }
 }
