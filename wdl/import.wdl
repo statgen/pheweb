@@ -157,7 +157,7 @@ task annotation {
 
         find ./
 
-        if [ -z "${url}" ]; then
+        if [ ! -z "${url}" ]; then
            curl -T "${dir}/pheweb/generated-by-pheweb/sites/sites.tsv"                     "${url}/generated-by-pheweb/sites/sites.tsv"
            curl -T "${dir}/pheweb/generated-by-pheweb/resources/gene_aliases-vv25.sqlite3" "${url}/generated-by-pheweb/resources/gene_aliases-vv25.sqlite3"
            curl -T "${dir}/pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3"           "${url}/generated-by-pheweb/sites/cpras-rsids.sqlite3"
@@ -185,6 +185,7 @@ task annotation {
 task webdav_directories {
 
     String url
+    String docker
 
     command <<<
       # we ignore failures as directories may alread by created
@@ -197,7 +198,7 @@ task webdav_directories {
     >>>
 
     runtime {
-        docker: "alpine:3.14"
+        docker: "${docker}"
     	cpu: 2
     	memory: "2 GB"
         bootDiskSizeGb: 50
@@ -254,7 +255,7 @@ task pheno {
 	# find just to make sure the whole sequence is completed
 	# and you know what you have.
 
-        if [[ -z "${url}" ]]
+        if [[ ! -z "${url}" ]]
         then
           curl -T "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz"                     "${url}/generated-by-pheweb/pheno_gz/${pheno_name}.gz"     # gz_file
 	  curl -T "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi"                 "${url}/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi" # gz_file
@@ -298,7 +299,7 @@ task matrix {
     String? url
 
     command <<<
-        set -euxo pipefail
+set -euxo pipefail
         mkdir -p pheweb/generated-by-pheweb/tmp && \
             echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
             mkdir -p pheweb/generated-by-pheweb/pheno_gz && \
@@ -321,7 +322,6 @@ task matrix {
 
         tail -n+2 ${sites} > ${sites}.noheader
 
-        echo "debug.1"
 python3 <<EOF
 import os,glob,subprocess,time
 files = sorted(glob.glob("*pheno_piece"))
@@ -343,7 +343,6 @@ pools.map(multiproc,range(len(files)))
 pools.close()
 EOF
 
-        echo "debug.2"
         cmd="paste <(cat ${sites} | sed 's/chrom/#chrom/') "
         for file in *pheno_piece.matrix.tsv; do
             cmd="$cmd <(cut -f5- $file) "
@@ -393,8 +392,10 @@ for gene in gene2phenos:
 with open('generated-by-pheweb/best-phenos-by-gene.json', 'w') as f:
     json.dump(gene2phenos, f)
 EOF
-# TODOD : verify number of columns
-        if [[ -z "${url}" ]]
+      # TODOD : verify number of columns
+      find ./
+
+      if [[ ! -z "${url}" ]]
         then
             curl -T "pheweb/pheno-list.json"                                 "${url}/pheno-list.json"
             curl -T "pheweb/generated-by-pheweb/matrix.tsv.gz"               "${url}/generated-by-pheweb/matrix.tsv.gz"
@@ -404,7 +405,6 @@ EOF
             curl -T "pheweb/generated-by-pheweb/top_hits_1k.json"            "${url}/generated-by-pheweb/top_hits_1k.json"
             curl -T "pheweb/generated-by-pheweb/best-phenos-by-gene.json"    "${url}/generated-by-pheweb/best-phenos-by-gene.json"
       fi
-
     >>>
 
     output {
@@ -437,6 +437,8 @@ task fix_json {
     # standard json to edit
     File pheno_json
     # json with metata provided
+    # a list containg an element for each phenotype
+    # [ { 'name' : <your phenotype> , <extra fields> } , .... ]
     File custom_json
     Array[String] fields
     # qq_json info from which to extract lambda and sig hits
@@ -479,7 +481,8 @@ for p_dict in phenolist:
     # UPDATE P_DICT
     p_dict['gc_lambda'] = qq['overall']['gc_lambda']
     p_dict['num_gw_significant'] = len([v for v in manha['unbinned_variants'] if 'peak' in v and v['peak'] == True and float(v['pval']) < 5e-8])
-    for key in fields: p_dict[key] = custom_jsons[pheno][key]
+    # remove empty strings - empty lists become a list with empty string
+    for key in [k for k in fields if k ]: p_dict[key] = custom_jsons[pheno][key]
 
     final_json.append(p_dict)
 
@@ -487,11 +490,10 @@ with open('./new_pheno.json', 'a') as outfile: json.dump(final_json, outfile, in
 
 CODE
 
-        if [[ -z "${url}" ]]
-        then
-        curl -T "/cromwell_root/new_pheno.json" "${url}/pheno-list.json"
-        fi
-
+if [ ! -z "${url}" ]; then
+     curl -T "/cromwell_root/new_pheno.json" "${url}/pheno-list.json"
+fi
+true
 >>>
 
     output {
@@ -530,7 +532,8 @@ workflow import_pheweb {
 
          if(defined(url)){
            call webdav_directories { input :
-	      url = url
+	     url = url ,
+	     docker = docker
             }
 	 }
 
