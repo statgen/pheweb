@@ -399,8 +399,9 @@ EOF
       find "${dir}"
 
       if [[ ! -z "${url}" ]]
-        then
-            curl -T "${dir}pheweb/pheno-list.json"                                 "${url}/pheno-list.json"
+      then
+            #skipping pheno-list.json as it is written in the the fix json step
+            #curl -T "${dir}pheweb/pheno-list.json"                                "${url}/pheno-list.json"
             curl -T "${dir}pheweb/generated-by-pheweb/matrix.tsv.gz"               "${url}/generated-by-pheweb/matrix.tsv.gz"
             curl -T "${dir}pheweb/generated-by-pheweb/matrix.tsv.gz.tbi"           "${url}/generated-by-pheweb/matrix.tsv.gz.tbi"
             curl -T "${dir}pheweb/generated-by-pheweb/top_hits.json"               "${url}/generated-by-pheweb/top_hits.json"
@@ -449,11 +450,15 @@ task fix_json {
     Array[File] man_jsons
 
     String docker
-    # ned to loop over phenos in pheno_json
+    String root_dir = '/cromwell_root/'
+
+    # need to loop over phenos in pheno_json
+
+
    command <<<
 set -euxo pipefail
 python3 <<CODE
-DATA_DIR = '/cromwell_root/'
+DATA_DIR = '${root_dir}'
 PHENO_JSON = '${pheno_json}'
 CUSTOM_JSON = '${custom_json}'
 print(DATA_DIR,PHENO_JSON)
@@ -493,9 +498,10 @@ with open('./new_pheno.json', 'a') as outfile: json.dump(final_json, outfile, in
 
 CODE
 
-if [ ! -z "${url}" ]; then
-     curl -T "/cromwell_root/new_pheno.json" "${url}/pheno-list.json"
-fi
+     cat "${root_dir}new_pheno.json"
+     if [ ! -z "${url}" ]; then
+         curl -T "${root_dir}new_pheno.json" "${url}/pheno-list.json"
+     fi
 true
 >>>
 
