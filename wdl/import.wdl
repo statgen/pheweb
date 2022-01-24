@@ -186,6 +186,7 @@ task webdav_directories {
 
     String url
     String docker
+    File bed_file
 
     command <<<
       # we ignore failures as directories may alread by created
@@ -195,6 +196,8 @@ task webdav_directories {
       curl -X MKCOL ${url}/generated-by-pheweb/pheno_gz/ || true
       curl -X MKCOL ${url}/generated-by-pheweb/manhattan/ || true
       curl -X MKCOL ${url}/generated-by-pheweb/qq/ || true
+      curl -X MKCOL ${url}/cache/ || true
+      curl -T "${bed_file}"     "${url}/generated-by-pheweb/cache/genes-b38-v25.bed"
     >>>
 
     runtime {
@@ -206,9 +209,7 @@ task webdav_directories {
         zones: "europe-west1-b"
         preemptible: 0
     }
-
 }
-
 
 task pheno {
     	String docker
@@ -297,6 +298,8 @@ task matrix {
     Int mem
 
     String? url
+
+    String dir = '/cromwell_root/'
 
     command <<<
 set -euxo pipefail
@@ -393,17 +396,17 @@ with open('generated-by-pheweb/best-phenos-by-gene.json', 'w') as f:
     json.dump(gene2phenos, f)
 EOF
       # TODOD : verify number of columns
-      find ./
+      find "${dir}"
 
       if [[ ! -z "${url}" ]]
         then
-            curl -T "pheweb/pheno-list.json"                                 "${url}/pheno-list.json"
-            curl -T "pheweb/generated-by-pheweb/matrix.tsv.gz"               "${url}/generated-by-pheweb/matrix.tsv.gz"
-            curl -T "pheweb/generated-by-pheweb/matrix.tsv.gz.tbi"           "${url}/generated-by-pheweb/matrix.tsv.gz.tbi"
-            curl -T "pheweb/generated-by-pheweb/top_hits.json"               "${url}/generated-by-pheweb/top_hits.json"
-            curl -T "pheweb/generated-by-pheweb/top_hits.tsv"                "${url}/generated-by-pheweb/top_hits.tsv"
-            curl -T "pheweb/generated-by-pheweb/top_hits_1k.json"            "${url}/generated-by-pheweb/top_hits_1k.json"
-            curl -T "pheweb/generated-by-pheweb/best-phenos-by-gene.json"    "${url}/generated-by-pheweb/best-phenos-by-gene.json"
+            curl -T "${dir}pheweb/pheno-list.json"                                 "${url}/pheno-list.json"
+            curl -T "${dir}pheweb/generated-by-pheweb/matrix.tsv.gz"               "${url}/generated-by-pheweb/matrix.tsv.gz"
+            curl -T "${dir}pheweb/generated-by-pheweb/matrix.tsv.gz.tbi"           "${url}/generated-by-pheweb/matrix.tsv.gz.tbi"
+            curl -T "${dir}pheweb/generated-by-pheweb/top_hits.json"               "${url}/generated-by-pheweb/top_hits.json"
+            curl -T "${dir}pheweb/generated-by-pheweb/top_hits.tsv"                "${url}/generated-by-pheweb/top_hits.tsv"
+            curl -T "${dir}pheweb/generated-by-pheweb/top_hits_1k.json"            "${url}/generated-by-pheweb/top_hits_1k.json"
+            curl -T "${dir}pheweb/generated-by-pheweb/best-phenos-by-gene.json"    "${url}/generated-by-pheweb/best-phenos-by-gene.json"
       fi
     >>>
 
@@ -533,7 +536,8 @@ workflow import_pheweb {
          if(defined(url)){
            call webdav_directories { input :
 	     url = url ,
-	     docker = docker
+	     docker = docker ,
+	     bed_file = bed_file
             }
 	 }
 
