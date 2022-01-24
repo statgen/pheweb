@@ -197,7 +197,7 @@ task webdav_directories {
       curl -X MKCOL ${url}/generated-by-pheweb/manhattan/ || true
       curl -X MKCOL ${url}/generated-by-pheweb/qq/ || true
       curl -X MKCOL ${url}/cache/ || true
-      curl -T "${bed_file}"     "${url}/generated-by-pheweb/cache/genes-b38-v25.bed"
+      curl -T "${bed_file}" "${url}/cache/genes-b38-v25.bed"
     >>>
 
     runtime {
