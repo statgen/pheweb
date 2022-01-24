@@ -58,7 +58,6 @@ task preprocess {
            bgzip > "${dir}${out_filename}"
 
            du -h "${dir}${out_filename}"
-
   >>>
 
   output {
@@ -130,7 +129,9 @@ task annotation {
 
      File variant_list
 
-    String dir = '/cromwell_root/'
+     String dir = '/cromwell_root/'
+     String? url
+
     command <<<
 	set -euxo pipefail
 	cd ${dir}
@@ -154,7 +155,13 @@ task annotation {
         df -h && pheweb make-cpras-rsids-sqlite3
         df -h && pheweb make-gene-aliases-sqlite3
 
-	find ./
+        find ./
+
+        if [ -z "${url}" ]; then
+           curl -T "${dir}/pheweb/generated-by-pheweb/sites/sites.tsv"                     "${url}/generated-by-pheweb/sites/sites.tsv"
+           curl -T "${dir}/pheweb/generated-by-pheweb/resources/gene_aliases-vv25.sqlite3" "${url}/generated-by-pheweb/resources/gene_aliases-vv25.sqlite3"
+           curl -T "${dir}/pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3"           "${url}/generated-by-pheweb/sites/cpras-rsids.sqlite3"
+        fi
     >>>
 
     output {
@@ -175,6 +182,33 @@ task annotation {
 }
 
 
+task webdav_directories {
+
+    String url
+
+    command <<<
+      # we ignore failures as directories may alread by created
+      curl -X MKCOL ${url}/generated-by-pheweb/ || true
+      curl -X MKCOL ${url}/generated-by-pheweb/sites/ || true
+      curl -X MKCOL ${url}/generated-by-pheweb/resources/ || true
+      curl -X MKCOL ${url}/generated-by-pheweb/pheno_gz/ || true
+      curl -X MKCOL ${url}/generated-by-pheweb/manhattan/ || true
+      curl -X MKCOL ${url}/generated-by-pheweb/qq/ || true
+    >>>
+
+    runtime {
+        docker: "alpine:3.14"
+    	cpu: 2
+    	memory: "2 GB"
+        bootDiskSizeGb: 50
+        disks: "local-disk 100 HDD"
+        zones: "europe-west1-b"
+        preemptible: 0
+    }
+
+}
+
+
 task pheno {
     	String docker
 	File variant_list
@@ -185,11 +219,13 @@ task pheno {
         String pheno_name = sub(base_name, ".gz$", "")
         String dir = '/cromwell_root/'
 
+        String? url
+
 
 	String gz_file = "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz"
  	String tbi_file = "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi"
 	String manhattan_file = "${dir}pheweb/generated-by-pheweb/manhattan/${pheno_name}.json"
-    	String qq_file = "${dir}pheweb/generated-by-pheweb/qq/${pheno_name}.json"
+    	String qq_jsons = "${dir}pheweb/generated-by-pheweb/qq/${pheno_name}.json"
 
         command <<<
 
@@ -218,14 +254,21 @@ task pheno {
 	# find just to make sure the whole sequence is completed
 	# and you know what you have.
 
-	>>>
+        if [[ -z "${url}" ]]
+        then
+          curl -T "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz"                     "${url}/generated-by-pheweb/pheno_gz/${pheno_name}.gz"     # gz_file
+	  curl -T "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi"                 "${url}/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi" # gz_file
+	  curl -T "${dir}pheweb/generated-by-pheweb/manhattan/${pheno_name}.json"                  "${url}/generated-by-pheweb/manhattan/${pheno_name}.json" # gz_file
+	  curl -T "${dir}pheweb/generated-by-pheweb/qq/${pheno_name}.json"                         "${url}/generated-by-pheweb/qq/${pheno_name}.json" # gz_file
+        fi
 
+	>>>
 
    output {
 	File pheno_gz = gz_file
  	File pheno_tbi = tbi_file
 	File pheno_manhattan = manhattan_file
-	File pheno_qq = qq_file
+	File pheno_qq = qq_jsons
    }
 
    runtime {
@@ -251,6 +294,8 @@ task matrix {
     Int cpu
     Int disk
     Int mem
+
+    String? url
 
     command <<<
         set -euxo pipefail
@@ -349,6 +394,17 @@ with open('generated-by-pheweb/best-phenos-by-gene.json', 'w') as f:
     json.dump(gene2phenos, f)
 EOF
 # TODOD : verify number of columns
+        if [[ -z "${url}" ]]
+        then
+            curl -T "pheweb/pheno-list.json"                                 "${url}/pheno-list.json"
+            curl -T "pheweb/generated-by-pheweb/matrix.tsv.gz"               "${url}/generated-by-pheweb/matrix.tsv.gz"
+            curl -T "pheweb/generated-by-pheweb/matrix.tsv.gz.tbi"           "${url}/generated-by-pheweb/matrix.tsv.gz.tbi"
+            curl -T "pheweb/generated-by-pheweb/top_hits.json"               "${url}/generated-by-pheweb/top_hits.json"
+            curl -T "pheweb/generated-by-pheweb/top_hits.tsv"                "${url}/generated-by-pheweb/top_hits.tsv"
+            curl -T "pheweb/generated-by-pheweb/top_hits_1k.json"            "${url}/generated-by-pheweb/top_hits_1k.json"
+            curl -T "pheweb/generated-by-pheweb/best-phenos-by-gene.json"    "${url}/generated-by-pheweb/best-phenos-by-gene.json"
+      fi
+
     >>>
 
     output {
@@ -374,11 +430,94 @@ EOF
 }
 
 
+task fix_json {
+
+    String? url
+
+    # standard json to edit
+    File pheno_json
+    # json with metata provided
+    File custom_json
+    Array[String] fields
+    # qq_json info from which to extract lambda and sig hits
+    Array[File] qq_jsons
+    Array[File] man_jsons
+
+    String docker
+    # ned to loop over phenos in pheno_json
+   command <<<
+set -euxo pipefail
+python3 <<CODE
+DATA_DIR = '/cromwell_root/'
+PHENO_JSON = '${pheno_json}'
+CUSTOM_JSON = '${custom_json}'
+print(DATA_DIR,PHENO_JSON)
+
+import json,os
+with open(PHENO_JSON) as f:phenolist = json.load(f)
+with open(CUSTOM_JSON) as f: custom_jsons = {elem['name']:elem for elem in json.load(f)}
+fields = "${sep="," fields}".split(",")
+print(fields)
+
+def find(name, path,subpath):
+    for root, dirs, files in os.walk(path):
+        if name in files and subpath in root:
+            return os.path.join(root, name)
+
+final_json = []
+for p_dict in phenolist:
+    print(p_dict)
+    pheno = p_dict['phenocode']
+    print(pheno,custom_jsons[pheno])
+    # FIND QQ PLOT
+    p_qq = find(pheno +".json",DATA_DIR,'qq')
+    with open(p_qq) as f: qq = json.load(f)
+    # FIND MANAHTTAN PLOT
+    p_m = find(pheno +".json",DATA_DIR,'manhattan')
+    with open(p_m) as f: manha = json.load(f)
+
+    # UPDATE P_DICT
+    p_dict['gc_lambda'] = qq['overall']['gc_lambda']
+    p_dict['num_gw_significant'] = len([v for v in manha['unbinned_variants'] if 'peak' in v and v['peak'] == True and float(v['pval']) < 5e-8])
+    for key in fields: p_dict[key] = custom_jsons[pheno][key]
+
+    final_json.append(p_dict)
+
+with open('./new_pheno.json', 'a') as outfile: json.dump(final_json, outfile, indent=2)
+
+CODE
+
+        if [[ -z "${url}" ]]
+        then
+        curl -T "/cromwell_root/new_pheno.json" "${url}/pheno-list.json"
+        fi
+
+>>>
+
+    output {
+        File json ='/cromwell_root/new_pheno.json'
+    }
+
+   runtime {
+        docker: "${docker}"
+        cpu: 1
+        memory: "2 GB"
+        disks: "local-disk 5 HDD"
+        zones: "europe-west1-b"
+        preemptible: 0
+    }
+}
+
+
 workflow import_pheweb {
 	 String docker
 	 String summary_files
 	 String? file_affix
          String? sites_file
+         String? url
+
+         File custom_json
+         Array[String] fields
 
          Int disk
          Int mem
@@ -388,6 +527,12 @@ workflow import_pheweb {
          # https://resources.pheweb.org/genes-v37-hg38.bed
 	 File bed_file
 	 File? rsids_file
+
+         if(defined(url)){
+           call webdav_directories { input :
+	      url = url
+            }
+	 }
 
 	 scatter (pheno_file in pheno_files) {
 	    call preprocess { input :
@@ -405,6 +550,7 @@ workflow import_pheweb {
 	 }
 
 	 call annotation { input :
+	    url = url,
             variant_list = if defined(sites_file) then sites_file else sites.variant_list ,
 	    mem = mem ,
 	    bed_file = bed_file ,
@@ -417,7 +563,8 @@ workflow import_pheweb {
 	 	      	      variant_list = annotation.sites_list ,
 	       	      	      pheno_file = pheno_file ,
 	       	       	      file_affix = if defined(file_affix) then file_affix else "",
-              	       	      docker = docker
+                              docker = docker,
+	                      url = url
 	 	 }
 	}
 
@@ -428,6 +575,18 @@ workflow import_pheweb {
 		      bed_file = bed_file,
 		      docker=docker,
 	              mem = mem ,
-                      disk=disk
+                      disk=disk ,
+	              url = url
+        }
+
+	call fix_json{
+        input:
+          pheno_json = matrix.phenolist ,
+          qq_jsons = pheno.pheno_qq ,
+          man_jsons = pheno.pheno_manhattan ,
+          docker = docker ,
+	  url = url ,
+	  custom_json = custom_json ,
+          fields = fields
         }
 }
