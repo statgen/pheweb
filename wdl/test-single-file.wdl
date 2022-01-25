@@ -5,7 +5,7 @@ task create_custom_json {
   String description
 
   command <<<
-    echo -e '[ { "name" : "${phenocode}" , "phenostring" : "${description}" } ]'  > custom.json
+    echo -e '[ { "phenocode" : "${phenocode}" , "phenostring" : "${description}" } ]'  > custom.json
   >>>
 
   runtime { docker: "python:3.8" }
@@ -21,6 +21,7 @@ task copy_summary {
 
   command {
     set -euxo pipefail
+    # can point to url, file or bucket
     python3 -c "import smart_open; import shutil; shutil.copyfileobj(smart_open.open('${file_url}','rb'), open('${root_dir}${phenocode}', 'wb'))"
   }
   # use the pheweb image as it has smart open
