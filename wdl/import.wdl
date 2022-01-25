@@ -83,7 +83,9 @@ task sites {
      	   # that generates the list of variants.
      	   # this is a bash replacement for that command
 
-     command <<<
+  command <<<
+        set -euxo pipefail
+
         for file in ${sep="\t" summary_files}; do
 
 	   # decompress if suffixes indicate compression
