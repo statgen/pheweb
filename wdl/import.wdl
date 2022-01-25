@@ -334,7 +334,7 @@ import multiprocessing
 def multiproc(i):
     file = sorted(glob.glob("*pheno_piece"))[i]
     print(file)
-    cmd = ["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--no_require_match", "--no_tabix", "--all_fields"]
+    cmd = ["external_matrix.py", file, file + ".", "${sites}.noheader", "--chr", "#chrom", "--pos", "pos", "--ref", "ref", "--alt", "alt", "--no_require_match", "--no_tabix", "--all_fields" , "--exclude_field" , "rsids,nearest_genes" ]
     start = time.time()
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     out,err = [elem.decode("utf-8").strip() for elem in p.communicate()]
@@ -444,7 +444,7 @@ task fix_json {
     File pheno_json
     # json with metata provided
     # a list containg an element for each phenotype
-    # [ { 'name' : <your phenotype> , <extra fields> } , .... ]
+    # [ { 'phenocode' : <your phenotype> , <extra fields> } , .... ]
     File custom_json
     Array[String] fields
     # qq_json info from which to extract lambda and sig hits
@@ -467,7 +467,7 @@ print(DATA_DIR,PHENO_JSON)
 
 import json,os
 with open(PHENO_JSON) as f:phenolist = json.load(f)
-with open(CUSTOM_JSON) as f: custom_jsons = {elem['name']:elem for elem in json.load(f)}
+with open(CUSTOM_JSON) as f: custom_jsons = {elem['phenocode']:elem for elem in json.load(f)}
 fields = "${sep="," fields}".split(",")
 print(fields)
 

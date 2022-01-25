@@ -4,7 +4,7 @@ task create_custom_json {
 
 
   command <<<
-    echo -e '[ { "name" : "mystery_phenotype" , "label" : "Mystery Phenotype" } ]'  > custom.json
+    echo -e '[ { "phenocode" : "mystery_phenotype" , "label" : "Mystery Phenotype" } ]'  > custom.json
   >>>
 
   runtime { docker: "python:3.8" }
