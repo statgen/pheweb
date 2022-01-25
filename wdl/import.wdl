@@ -304,7 +304,7 @@ task matrix {
     String dir = '/cromwell_root/'
 
     command <<<
-set -euxo pipefail
+        set -euxo pipefail
         mkdir -p pheweb/generated-by-pheweb/tmp && \
             echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
             mkdir -p pheweb/generated-by-pheweb/pheno_gz && \

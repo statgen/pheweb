@@ -102,9 +102,11 @@ def handle_all_fields(config_file, CPRA_fields):
 
 
 def handle_exclude_fields(exclude_fields, supp_fields):
-    exclude = {f.strip().lower() for f in exclude_fields.split(",")}
-    return [f.strip() for f in supp_fields if f.strip().lower() not in exclude]
-
+    exclude = set()
+    for e in exclude_fields:
+        exclude.update(e.strip().lower().split(','))
+    supp_fields = [f.strip() for f in supp_fields if not f.strip().lower() in exclude]
+    return supp_fields
 
 def handle_rename_fields(rename_fields):
     for f in rename_fields.split(","):
@@ -167,7 +169,7 @@ def run():
         # otherwise you end up with just chr, pos, ref, alt
         msg = """
         Please provide additional columns by either
-        
+
         by supplying a list of fields:
 
             --other_fields [list of fields]
@@ -181,7 +183,7 @@ def run():
 
     # exclude fields
     if (args.exclude_fields):
-        exclude_fields = handle_exclude_fields(args.exclude_fields, supp_fields)
+        supp_fields = handle_exclude_fields(args.exclude_fields, supp_fields)
 
     # rename fields when output
 
