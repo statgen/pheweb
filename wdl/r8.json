@@ -5,5 +5,6 @@
    "import_pheweb.disk":8000,
    "import_pheweb.matrix.cpu":8,
    "import_pheweb.mem":64,
-   "import_pheweb.preprocessor":"awk -F\"\\t\" 'BEGIN { OFS = \"\\t\" } NR == 1{ if(NF == 9) { print $0, \"af_alt_cases\", \"af_alt_controls\" } else { print $0 } } NR > 1{ if(NF == 9) { print $0, \"\",\"\" } else { print $0 } }'"
+    "import_pheweb.preprocessor":"awk -F\"\\t\" 'BEGIN { OFS = \"\\t\" } NR == 1{ if(NF == 9) { print $0, \"af_alt_cases\", \"af_alt_controls\" } else { print $0 } } NR > 1{ if(NF == 9) { print $0, \"\",\"\" } else { print $0 } }'"
+    gs://finngen-production-library-green/finngen_R8/finngen_R8_analysis_data/annotations/R8_sisuv4_annotated_variants_v1.gz
 }
