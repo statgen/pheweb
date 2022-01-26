@@ -5,7 +5,7 @@
   "import_pheweb.matrix.cpu" : 8 ,
   "import_pheweb.mem" : 64 ,
   "import_pheweb.preprocess.preprocessor" : "awk -F\"\\t\" 'BEGIN { OFS = \"\\t\" } NR == 1{ if(NF == 9) { print $0, \"af_alt_cases\", \"af_alt_controls\" } else { print $0 } } NR > 1{ if(NF == 9) { print $0, \"\",\"\" } else { print $0 } }'" ,
-  "import_pheweb.sites_file" : "gs://finngen-production-library-green/finngen_R8/finngen_R8_analysis_data/annotations/R8_sisuv4_annotated_variants_v1.gz" ,
+  "import_pheweb.sites_file" : "gs://r8_data_green/sites.tsv",
   "import_pheweb.custom_json" : "gs://r8_data_green/custom-pheno-list.json" ,
   "import_pheweb.fields" : ["category" , "category_index" , "num_cases" , "num_cases_prev" , "num_controls" , "num_gw_significant" , "num_gw_significant_prev" , "phenocode", "phenostring" ]
 }
