@@ -8,7 +8,6 @@ import { createTableColumns, genePhenotypeTableColumns } from "../../common/tabl
 import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
 import { finEnrichmentLabel } from "../Finngen/gnomad";
 import loading from "../../common/Loading";
-import Lavaa from "./Lava/lavaa";
 
 const default_banner: string = `
 <div class="row">
@@ -91,7 +90,6 @@ const GenePhenotypeAssociation = ({ gene } : Props) => {
     view = loading
   } else {
     view = <React.Fragment>
-      <Lavaa dataprop={data.map(d => d.assoc)}/>
       { mustacheDiv(banner, { }) }
       <DownloadTable {...prop  }/>
       { mustacheDiv(footer, context) }

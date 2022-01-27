@@ -10,6 +10,7 @@ import VariantLocusZoom from "./VariantLocusZoom";
 import { numberFormatter, scientificFormatter } from "../../common/Formatter";
 import ReactTooltip from 'react-tooltip'
 import { finEnrichmentLabel } from "../Finngen/gnomad";
+import Lavaa from "./Lava/lavaa";
 
 interface Props {}
 
@@ -192,8 +193,6 @@ const createVariantSummary = (variantData : VariantData) => {
   return variantSummary
 }
 
-const data_original_title : string = `test`
-
 const default_banner: string = `
 <div class="variant-info col-xs-12">
         <h1 style="margin-top:0">
@@ -203,7 +202,7 @@ const default_banner: string = `
         <p style="margin-bottom: 0px;">
           Nearest gene:
           {{#summary.nearestGenes}}
-          <a style="color:black" href="/gene/{{nearest_genes}}">{{.}}</a>
+          <a style="color:black" href="/gene/{{.}}">{{.}}</a>
           {{/summary.nearestGenes}}
         </p>
         
@@ -358,14 +357,30 @@ const Variant = (props : Props) => {
   // the tool tip is not happing loading this later.
   return variantData == null || bioBankURL == null?loading:
     <React.Fragment>
-      <ReactTooltip />
-    <div className="row" style={{ width: '100%' }}>
-      <div className="variant-info col-xs-12">
-      {mustacheDiv(banner, { ncbi, bioBankURL : Object.entries(bioBankURL).map(([k,v])=> { return { rsid : k , url : v}}), summary : createVariantSummary(variantData) } )}
-      <VariantLocusZoom variantData={variantData} />
-      <VariantTable variantData={variantData} />
+
+      <div className="row" style={{ width: '100%' }}>
+        <ReactTooltip />
+             <div className="variant-info col-xs-12">
+                 {mustacheDiv(banner, { ncbi, bioBankURL : Object.entries(bioBankURL).map(([k,v])=> { return { rsid : k , url : v}}), summary : createVariantSummary(variantData) } )}
+             </div>
       </div>
-    </div>
+      <div className="row" style={{ width: '100%' }}>
+        <div className="variant-info col-xs-12">
+          <Lavaa dataprop={variantData.phenos}/>
+        </div>
+      </div>
+
+      <div className="row" style={{ width: '100%' }}>
+        <div className="variant-info col-xs-12">
+           <VariantLocusZoom variantData={variantData} />
+        </div>
+      </div>
+
+      <div className="row" style={{ width: '100%' }}>
+        <div className="variant-info col-xs-12">
+           <VariantTable variantData={variantData} />
+        </div>
+      </div>
   </React.Fragment>
 }
 

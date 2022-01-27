@@ -18,7 +18,7 @@ if (typeof (element) !== 'undefined' && element != null) {
     ReactDOM.render(
     <BrowserRouter>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <div style={{ flex: 1, height: '100%', padding: '10px', display: 'flex', flexFlow: 'row nowrap', justifyContent: 'flex-start' }}>
+        <div style={{ flex: 1, height: '100%', padding: '10px', display: 'flex', flexFlow: 'column nowrap', justifyContent: 'flex-start' }}>
           <Route exact path='/' component={Index} />
           <Route exact path='/notfound' component={NotFound} />
           <Route exact path='/lof' component={LoF} />
