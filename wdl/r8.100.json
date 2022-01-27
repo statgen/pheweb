@@ -1,8 +1,11 @@
-{ "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-97e833c185a4bd6294de2edd51da76f6c14c636e",
+{ "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-dbf532c6217db08ed43338d168bf677d91c1bd99" ,
   "import_pheweb.summary_files" : "gs://r8_data_green/regenie/summary_file_list_100.txt" ,
-  "import_pheweb.bed_file" : "gs://r8_data_green/genes-v37-hg38.bed",
+  "import_pheweb.bed_file" : "gs://r8_data_green/genes-v37-hg38.bed" ,
   "import_pheweb.disk" : 8000 ,
   "import_pheweb.matrix.cpu" : 8 ,
-  "import_pheweb.mem" : 64
-  "import_pheweb.preprocessor" : "awk -F\"\\t\" 'BEGIN { OFS = \"\\t\" } NR == 1{ if(NF == 9) { print $0, \"af_alt_cases\", \"af_alt_controls\" } else { print $0 } } NR > 1{ if(NF == 9) { print $0, \"\",\"\" } else { print $0 } }'"
+  "import_pheweb.mem" : 64 ,
+  "import_pheweb.preprocess.preprocessor" : "awk -F\"\\t\" 'BEGIN { OFS = \"\\t\" } NR == 1{ if(NF == 9) { print $0, \"af_alt_cases\", \"af_alt_controls\" } else { print $0 } } NR > 1{ if(NF == 9) { print $0, \"\",\"\" } else { print $0 } }'" ,
+  "import_pheweb.sites_file" : "gs://r8_data_green/sites.tsv",
+  "import_pheweb.custom_json" : "gs://r8_data_green/custom-pheno-list.json" ,
+  "import_pheweb.fields" : ["category" , "category_index" , "num_cases" , "num_cases_prev" , "num_controls" , "num_gw_significant" , "num_gw_significant_prev" , "phenocode", "phenostring" ]
 }
