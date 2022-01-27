@@ -504,7 +504,6 @@ CODE
      if [ ! -z "${url}" ]; then
          curl -T "${root_dir}new_pheno.json" "${url}/pheno-list.json"
      fi
-true
 >>>
 
     output {
