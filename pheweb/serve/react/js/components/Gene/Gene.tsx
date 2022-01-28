@@ -9,6 +9,8 @@ import GenePhenotypeAssociation from "./GenePhenotypeAssociation";
 import GeneLossOfFunction from "./GeneLossOfFunction";
 import GeneFunctionalVariants from "./GeneFunctionalVariants";
 import GeneDrugs from "./GeneDrugs";
+import GeneLocusZoom from "./GeneLocusZoom";
+import GeneContextProvider, { GeneContext } from "./GeneContext";
 
 interface Props {}
 
@@ -82,15 +84,18 @@ const Gene = (props : Props) => {
   useEffect(() => { getMyGene(gene,setMyGeneData); },[]);
 
   const summary = createSummary(myGeneData)
-  return myGeneData == null ? loading: <div>
-    { mustacheDiv(banner, { summary }) }
-    <GeneDownload gene={gene}/>
-    <GenePhenotypeAssociation gene={gene}/>
-    {/* <GeneLocusZoom/> */}
-    <GeneLossOfFunction gene={gene}/>
-    <GeneFunctionalVariants gene={gene}/>
-    <GeneDrugs gene={gene}/>
-  </div>
+  return myGeneData == null ? loading:
+  <GeneContextProvider>
+    <div>
+      { mustacheDiv(banner, { summary }) }
+      <GeneDownload gene={gene}/>
+      <GenePhenotypeAssociation />
+      <GeneLocusZoom />
+      <GeneLossOfFunction gene={gene}/>
+      <GeneFunctionalVariants gene={gene}/>
+      <GeneDrugs gene={gene}/>
+    </div>
+  </GeneContextProvider>
 }
 
 export default Gene;

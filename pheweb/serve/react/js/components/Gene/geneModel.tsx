@@ -33,8 +33,6 @@ export namespace Gene {
     drugs? : DrugsConfiguration
   }
 }
-
-
 export namespace FunctionalVariants {
 
   export interface ViewRow {
@@ -89,7 +87,6 @@ export namespace FunctionalVariants {
     gnomad?:      { [key: string]: string }
   }
 }
-
 export namespace LossOfFunction {
   export type Data = Row[]
 
@@ -152,78 +149,87 @@ export namespace GeneDrugs {
 export namespace GenePhenotypes {
 
   export interface ViewRow {
-    num_cases : number
-    beta : number
-    rsids: string
-    fin_enrichment: string
-    mlogp : number
-    phenostring : string
-    phenocode : string
-    category : string
-    pval : number
-    chrom : number
-    pos : number
-    ref : string
-    alt : string
-  }
-    export type Data = Row[]
-
-  export interface Row {
-    assoc:   Assoc;
-    pheno:   Pheno;
-    variant: Variant;
+    readonly num_cases : number
+    readonly beta : number
+    readonly rsids: string
+    readonly fin_enrichment: string
+    readonly mlogp : number
+    readonly phenostring : string
+    readonly phenocode : string
+    readonly category : string
+    readonly pval : number
+    readonly chrom : number
+    readonly pos : number
+    readonly ref : string
+    readonly alt : string
   }
 
-  export interface Assoc {
-    beta:             number;
-    category:         string;
-    category_index:   number | null;
-    maf:              number;
-    maf_case:         number;
-    maf_control:      number;
-    matching_results: {};
-    mlogp:            number;
-    n_case:           number;
-    n_control:        number;
-    n_sample:         number | "NA";
-    phenocode:        string;
-    phenostring:      string;
-    pval:             number;
+  export interface  Region {
+    readonly chrom : number
+    readonly start : number
+    readonly end : number
+  }
+
+  export type Data = {
+    readonly region : Region
+    readonly phenotypes : Phenotype[]
+  }
+
+  export interface Phenotype {
+    readonly assoc:   Association
+    readonly pheno:   Phenotype
+    readonly variant: Variant
+  }
+
+  export interface Association {
+    readonly beta:             number;
+    readonly category:         string;
+    readonly category_index:   number | null;
+    readonly maf:              number;
+    readonly maf_case:         number;
+    readonly maf_control:      number;
+    readonly matching_results: {};
+    readonly mlogp:            number;
+    readonly n_case:           number;
+    readonly n_control:        number;
+    readonly n_sample:         number | "NA";
+    readonly phenocode:        string;
+    readonly phenostring:      string;
+    readonly pval:             number;
   }
 
 
-  export interface Pheno {
-    assoc_files:             string[];
-    category:                string;
-    category_index?:         number;
-    gc_lambda:               { [key: string]: number };
-    num_cases:               number;
-    num_cases_prev:          "NA" | number;
-    num_controls:            number;
-    num_gw_significant:      number;
-    num_gw_significant_prev: "NA" | number;
-    phenocode:               string;
-    phenostring:             string;
+  export interface Phenotype {
+    readonly assoc_files:             string[];
+    readonly category:                string;
+    readonly category_index?:         number;
+    readonly gc_lambda:               { [key: string]: number };
+    readonly num_cases:               number;
+    readonly num_cases_prev:          "NA" | number;
+    readonly num_controls:            number;
+    readonly num_gw_significant:      number;
+    readonly num_gw_significant_prev: "NA" | number;
+    readonly phenocode:               string;
+    readonly phenostring:             string;
   }
 
   export interface Variant {
-    alt:        string;
-    annotation: Annotation;
-    chr:        number;
-    pos:        number;
-    ref:        string;
-    varid:      string;
+    readonly alt:        string;
+    readonly annotation: Annotation;
+    readonly chr:        number;
+    readonly pos:        number;
+    readonly ref:        string;
+    readonly varid:      string;
   }
 
   export interface Annotation {
-    gnomad?:       { [key: string]: (string | number) };
-    nearest_gene: string;
-    rsids?:       string;
+    readonly gnomad?:       { [key: string]: (string | number) };
+    readonly nearest_gene: string;
+    readonly rsids?:       string;
   }
 
 
 }
-
 export namespace MyGene {
   export interface Data {
     took: number;
