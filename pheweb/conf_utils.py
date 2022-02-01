@@ -430,7 +430,6 @@ def _ensure_conf():
                 "af_alt_cases",
                 {
                     "type": float,
-                    "nullable": True,
                     "range": [0, 1],
                     "sigfigs": 2,
                     "tooltip_underscoretemplate": "AF cases: <%= d.af_alt_cases.toFixed(4) %><br>",
@@ -442,7 +441,6 @@ def _ensure_conf():
                 "af_alt_controls",
                 {
                     "aliases": ["af_alt_controls"],
-                    "nullable": True,
                     "type": float,
                     "range": [0, 1],
                     "sigfigs": 2,

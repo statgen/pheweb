@@ -33,19 +33,19 @@ genome_build = "38"
 if genome_build not in ["37", "38"]:
     raise ("genome build needs to be 37 or 38")
 dbsnp_version = "151"
-genes_version = "v25"
+genes_version = "37"
 
 common_filepaths = {
     "phenolist": os.path.join(conf.data_dir, "pheno-list.json"),
     "use_phenos": os.path.join(conf.data_dir, "use_phenos.txt"),
     "genes": get_cacheable_file_location(
-        "sites/genes", "genes-b38-{}.bed".format(genes_version)
+        "sites/genes", f'genes-b{genome_build}-v{genes_version}.bed'
     ),
     "gene-aliases-trie": get_cacheable_file_location(
-        "sites/genes", "gene_aliases_b38.marisa_trie"
+        "sites/genes", f'gene_aliases_b{genome_build}.marisa_trie'
     ),
     "rsids": get_cacheable_file_location(
-        "sites/dbSNP", "rsids-b38-{}.vcf.gz".format(dbsnp_version)
+        "sites/dbSNP", f'rsids-b{genome_build}-{dbsnp_version}.vcf.gz'
     ),
     "unanno": get_generated_path("sites/sites-unannotated.tsv"),
     "sites-rsids": get_generated_path("sites/sites-rsids.tsv"),
@@ -83,14 +83,13 @@ common_filepaths = {
     ),
     "cpras-rsids-sqlite3": get_generated_path("sites/cpras-rsids.sqlite3"),
     "gene-aliases-sqlite3": (
-        lambda: get_generated_path(
-            "resources/gene_aliases-v{}.sqlite3".format(genes_version)
-        )
+        lambda: get_generated_path(f'resources/gene_aliases-v{genes_version}.sqlite3')
     ),
 }
 
-# TODO: make a standard function for getting file names that checks that they exist.
-#       if the file doesn't exist, it prints an error message telling the user how to make that file.
+# TODO: make a standard function for getting file names that checks that
+# they exist. if the file doesn't exist, it prints an error message telling
+# the user how to make that file.
 
 
 def make_basedir(path):
