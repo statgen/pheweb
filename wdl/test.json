@@ -3,5 +3,5 @@
   "test_import_pheweb.disk" : "100",
   "test_import_pheweb.mem" : "10",
   "test_import_pheweb.cpu" : "2",
-  "test_import_pheweb.bed_file" : "gs://r8_data_green/genes-v37-hg38.bed"
+  "test_import_pheweb.bed_file" : "gs://r8_data_green/genes-b38-v37.bed"
 }
