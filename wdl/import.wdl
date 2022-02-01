@@ -161,14 +161,14 @@ task annotation {
 
         if [ ! -z "${url}" ]; then
            curl -T "${dir}/pheweb/generated-by-pheweb/sites/sites.tsv"                     "${url}/generated-by-pheweb/sites/sites.tsv"
-           curl -T "${dir}/pheweb/generated-by-pheweb/resources/gene_aliases-vv25.sqlite3" "(${url}/generated-by-pheweb/resources/gene_aliases-v*.sqlite3)"
+           curl -T "${dir}/pheweb/generated-by-pheweb/resources/gene_aliases.sqlite3"      "${url}/generated-by-pheweb/resources/gene_aliases.sqlite3"
            curl -T "${dir}/pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3"           "${url}/generated-by-pheweb/sites/cpras-rsids.sqlite3"
         fi
     >>>
 
     output {
 	File sites_list = "${dir}pheweb/generated-by-pheweb/sites/sites.tsv"
-	File gene_aliases_sqlite3 = glob("${dir}pheweb/generated-by-pheweb/resources/gene_aliases-v*.sqlite3")[0]
+	File gene_aliases_sqlite3 = "${dir}pheweb/generated-by-pheweb/resources/gene_aliases.sqlite3"
 	File cpras_rsids_sqlite3 = "${dir}pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3"
    }
 

@@ -83,7 +83,7 @@ common_filepaths = {
     ),
     "cpras-rsids-sqlite3": get_generated_path("sites/cpras-rsids.sqlite3"),
     "gene-aliases-sqlite3": (
-        lambda: get_generated_path(f'resources/gene_aliases-v{genes_version}.sqlite3')
+        lambda: get_generated_path(f'resources/gene_aliases.sqlite3')
     ),
 }
 
