@@ -161,14 +161,14 @@ task annotation {
 
         if [ ! -z "${url}" ]; then
            curl -T "${dir}/pheweb/generated-by-pheweb/sites/sites.tsv"                     "${url}/generated-by-pheweb/sites/sites.tsv"
-           curl -T "${dir}/pheweb/generated-by-pheweb/resources/gene_aliases-vv25.sqlite3" "${url}/generated-by-pheweb/resources/gene_aliases-vv25.sqlite3"
+           curl -T "${dir}/pheweb/generated-by-pheweb/resources/gene_aliases-vv25.sqlite3" "(${url}/generated-by-pheweb/resources/gene_aliases-v*.sqlite3)"
            curl -T "${dir}/pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3"           "${url}/generated-by-pheweb/sites/cpras-rsids.sqlite3"
         fi
     >>>
 
     output {
 	File sites_list = "${dir}pheweb/generated-by-pheweb/sites/sites.tsv"
-	File gene_aliases_sqlite3 = "${dir}pheweb/generated-by-pheweb/resources/gene_aliases-vv25.sqlite3"
+	File gene_aliases_sqlite3 = glob("${dir}pheweb/generated-by-pheweb/resources/gene_aliases-v*.sqlite3")[0]
 	File cpras_rsids_sqlite3 = "${dir}pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3"
    }
 
@@ -199,7 +199,7 @@ task webdav_directories {
       curl -X MKCOL ${url}/generated-by-pheweb/manhattan/ || true
       curl -X MKCOL ${url}/generated-by-pheweb/qq/ || true
       curl -X MKCOL ${url}/cache/ || true
-      curl -T "${bed_file}" "${url}/cache/genes-b38-v25.bed"
+      #curl -T "${bed_file}" "${url}/cache/genes-b38-v25.bed"
     >>>
 
     runtime {
