@@ -365,7 +365,7 @@ const Variant = (props : Props) => {
              </div>
       </div>
       <div className="row" style={{ width: '100%' }}>
-        <div className="variant-info col-xs-12">
+        <div className="variant-info col-xs-12" style={{ height : "500px" }}>
           <Lavaa dataprop={variantData.phenos}/>
         </div>
       </div>
