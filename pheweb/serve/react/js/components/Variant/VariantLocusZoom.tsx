@@ -130,6 +130,9 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
           data[i]["phewas:id"] = i.toString();
           data[i]["phewas:phenostring"] = d.phenostring
           data[i]["log_pvalue"] = d.mlogp
+          data[i]["phewas:category_name"] = d.category
+          data[i]["category_name"] = d.category
+          data[i]["phewas:trait_group"] = d.category
           trans.forEach(function(transformation, t){
             if (typeof transformation == "function"){
               data[i][outNames[t]] = transformation(data[i][fields[t]]);
@@ -196,10 +199,8 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
           {field:"mlogp", operator:"<", value:topMLogPValue10(results)});
       }
 
-      // Color points by category.
-      pValueDataLayer.color.parameters = { categories : uniqueCategories , values : uniqueCategories.map(colorByCategory) }
-      //pValueDataLayer.color.parameters.categories = uniqueCategories; TODO
-      //pValueDataLayer.color.parameters.values = uniqueCategories.map(colorByCategory) TODO
+      pValueDataLayer.color[0].parameters.categories = uniqueCategories
+      pValueDataLayer.color[0].parameters.values = uniqueCategories.map(colorByCategory)
 
       // Shape points by effect direction.
       pValueDataLayer.point_shape = [
@@ -212,7 +213,7 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
         },
         'circle'
       ];
-
+      console.log(pValueDataLayer);
       // Make points clickable
       pValueDataLayer.behaviors.onclick = [{action:"link", href:"/pheno/{{phewas_code}}"}];
 
@@ -260,6 +261,7 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
         panels: [phewasPanel],
         mouse_guide: false
       }
+      console.log(layout)
 
       const plot : Plot = populate('#'+element_id, dataSources, layout);
     }
