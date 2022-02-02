@@ -10,7 +10,7 @@ import {
   geneLossOfFunctionTableColumns
 } from "../../common/tableColumn";
 import loading from "../../common/Loading";
-import { r4_api_lof_ABO } from "./geneModel.test";
+import { r4_api_lof_ABO } from "./geneModel.data";
 
 
 const default_banner : string =`

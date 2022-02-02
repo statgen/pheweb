@@ -1,5 +1,3 @@
-import { Variant, variantToPheweb } from "../../common/Model";
-import { VariantData } from "../Variant/variantModel";
 import { get } from "../../common/Utilities";
 import { TopHitsData } from "./topHitsModel";
 

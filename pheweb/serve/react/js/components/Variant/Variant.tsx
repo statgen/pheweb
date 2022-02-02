@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Variant, variantFromStr } from "../../common/Model";
-import { EnsemblData, Mapping, NCBIData, PubMedData, VariantData, VariantDetail } from "./variantModel";
+import { Ensembl, NCBI, PubMed, Variant as VariantModel } from "./variantModel";
 import { getEnsembl, getNCBI, getPubMed, getVariant } from "./variantAPI";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { mustacheDiv, warn } from "../../common/Utilities";
@@ -63,7 +63,7 @@ interface VariantSummary {
   alt : string
 }
 
-const createVariantSummary = (variantData : VariantData) => {
+const createVariantSummary = (variantData : VariantModel.Data) => {
   const nearestGenes : string [] = variantData.nearest_genes.split(",");
   const hasOneNearestGenes : boolean = nearestGenes.length == 1
   const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
@@ -328,10 +328,10 @@ const banner: string = config?.userInterface?.variant?.banner || default_banner;
 
 
 const Variant = (props : Props) => {
-  const [variantData, setVariantData] = useState<VariantData | null>(null);
+  const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
   const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : string }| null>(null);
 
-  const[ncbi,setNCBI] = useState<NCBIData | null>(null);
+  const[ncbi,setNCBI] = useState<NCBI.Data | null>(null);
   useEffect(() => {
     const variant = createVariant()
     variant && getVariant(variant, setVariantData)
@@ -342,9 +342,9 @@ const Variant = (props : Props) => {
       const variant = createVariant()
       const summary = createVariantSummary(variantData)
       summary?.rsids?.forEach((rsid) => {
-        getEnsembl(rsid, (e: EnsemblData) => {
+        getEnsembl(rsid, (e: Ensembl.Data) => {
           if (e && e.mappings && e.mappings.length > 0) {
-            const mapping: Mapping = e.mappings[0]
+            const mapping: Ensembl.Mapping = e.mappings[0]
             const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${variant.reference}-${variant.alternate}`
             setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } })
           }
@@ -365,7 +365,7 @@ const Variant = (props : Props) => {
              </div>
       </div>
       <div className="row" style={{ width: '100%' }}>
-        <div className="variant-info col-xs-12" style={{ height : "500px" }}>
+        <div className="variant-info col-xs-12" style={{ height : "700px" }}>
           <Lavaa dataprop={variantData.phenos}/>
         </div>
       </div>

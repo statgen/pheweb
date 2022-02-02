@@ -1,16 +1,16 @@
 import React from "react";
 import { Column } from "react-table";
 import DownloadTable, { DownloadTableProps  } from "../../common/DownloadTable";
-import { VariantData , VariantRow } from "../Variant/variantModel";
+import { Variant } from "../Variant/variantModel";
 import { createTableColumns, variantTableColumns } from "../../common/tableColumn";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 
 
-const dataToTableRows = (variantData : VariantData | null) : VariantRow[] => variantData?.phenos || []
+const dataToTableRows = (variantData : Variant.Data | null) : Variant.Phenotype[] => variantData?.phenos || []
 declare let window: ConfigurationWindow;
 const variant = window?.config?.userInterface?.variant;
 
-const tableColumns : Column<VariantRow>[] = createTableColumns(variant?.table?.columns) || (variantTableColumns as Column<VariantRow>[])
+const tableColumns : Column<Variant.Phenotype>[] = createTableColumns(variant?.table?.columns) || (variantTableColumns as Column<Variant.Phenotype>[])
 const defaultSorted = variant?.table?.defaultSorted || [{
   id: 'pval',
   desc: true
@@ -18,14 +18,14 @@ const defaultSorted = variant?.table?.defaultSorted || [{
 
 const tableProperties = {}
 
-interface Props { variantData : VariantData }
+interface Props { variantData : Variant.Data }
 
 const VariantTable = ({ variantData } : Props ) => {
-  const tableData : VariantData = variantData;
+  const tableData : Variant.Data = variantData;
 
   const filename = `${variantData.chrom}_${variantData.pos}_${variantData.ref}_${variantData.alt}_phenotype_associations.tsv`
   
-  const prop : DownloadTableProps<VariantData, VariantRow> = {
+  const prop : DownloadTableProps<Variant.Data, Variant.Phenotype> = {
       filename,
       tableData,
       dataToTableRows ,

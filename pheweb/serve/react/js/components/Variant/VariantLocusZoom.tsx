@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
-import { Result, VariantData } from "./variantModel";
+import { Variant } from "./variantModel";
 import { DataSources, Plot, populate, Data, Layouts, LayoutDataLayersEntity } from "locuszoom";
 import * as d3 from "d3";
 
 import * as LocusZoom from "locuszoom";
 
-interface Props { variantData : VariantData }
+interface Props { variantData : Variant.Data }
 
 const element_id : string = 'lz-1'
 
@@ -22,8 +22,10 @@ interface ResultLZ {
 }
 
 
-const sortPhenotypes = (results : (Result & ResultLZ)[]) => {
+export const sortPhenotypes = (orginal : Variant.Result[]) :  (Variant.Result & ResultLZ)[]  => {
 // sort phenotypes
+  const results : (Variant.Result & ResultLZ)[]  = JSON.parse(JSON.stringify(orginal))
+
   if (results.every((d) => d.category_index !== undefined)) {
     results.sort((a, b) => a.category_index - b.category_index)
   } else if (results.every((d) => Number.isFinite(parseFloat(d.phenocode)) && !isNaN(parseFloat(d.phenocode)))) {
@@ -31,9 +33,10 @@ const sortPhenotypes = (results : (Result & ResultLZ)[]) => {
   } else {
     results.sort((a, b) => a.phenocode.localeCompare(b.phenocode))
   }
+  return results
 }
 
-const getFirstOfEachCategory = (results : (Result & ResultLZ)[]) => {
+export const getFirstOfEachCategory = (results : (Variant.Result & ResultLZ)[]) : (Variant.Result & ResultLZ)[] =>   {
     const categoriesSeen = {};
     return results.filter( ( phenotype ) => {
       if(categoriesSeen.hasOwnProperty(phenotype.category)){
@@ -43,6 +46,25 @@ const getFirstOfEachCategory = (results : (Result & ResultLZ)[]) => {
         return true;
       }
     } )
+}
+
+export const getCategoryOrder = (firstOfEachCategory : (Variant.Result & ResultLZ)[]) : { [ key : string] : number } =>
+    firstOfEachCategory.reduce((acc : { [ key : string] : number },phenotype , i : number) => { acc[phenotype.category] =i ; return acc} , {})
+
+export const doCategoryOrderSort = (results : (Variant.Result & ResultLZ)[], categoryOrder : { [ key : string] : number }) :void => {
+  results.sort((a,b) => categoryOrder[a.category] - categoryOrder[b.category])
+}
+
+export const getUniqueCategories = (results : (Variant.Result & ResultLZ)[]) : string[] => [...new Set(results.map( p => p.category))];
+
+export const reshapeResult =  (results : (Variant.Result & ResultLZ)[],colorByCategory :  d3.ScaleOrdinal<string, string>) : void => {
+  results.forEach((r,i) => {
+    r.phewas_code = r.phenocode
+    r.phewas_string = (r.phenostring || r.phenocode)
+    r.category_name = r.category
+    r.color = colorByCategory(r.category)
+    r.idx = i
+  })
 }
 
 
@@ -64,36 +86,35 @@ const effectDirection = (parameters, input) => {
   return null;
 }
 
+
+const addPScaled = (logLogThreshold : number) => (phenotype : Variant.Result & ResultLZ) => {
+  phenotype.pScaled = phenotype.mlogp? phenotype.mlogp : -Math.log10(phenotype.pval)
+  if (phenotype.pScaled > logLogThreshold) {
+    phenotype.pScaled = logLogThreshold * Math.log10(phenotype.pScaled) / Math.log10(logLogThreshold)
+  }
+}
+
 const VariantLocusZoom = ({ variantData } : Props ) => {
   useEffect(() => {
     const element = document.getElementById(element_id);
     if(variantData){
-      const results : (Result & ResultLZ)[]  = JSON.parse(JSON.stringify(variantData.results))
-      const firstOfEachCategory : (Result & ResultLZ)[] = getFirstOfEachCategory(results)
+      const results : (Variant.Result & ResultLZ)[]  = sortPhenotypes(variantData.results)
+      const firstOfEachCategory : (Variant.Result & ResultLZ)[] = getFirstOfEachCategory(results)
 
-      const categoryOrder : { [ key : string] : number } = firstOfEachCategory.reduce((acc : { [ key : string] : number },phenotype , i : number) => { acc[phenotype.category] =i ; return acc} , {})
-      results.sort((a,b) => categoryOrder[a.category] - categoryOrder[b.category])
-      const uniqueCategories = [...new Set(results.map( p => p.category))];
+      const categoryOrder : { [ key : string] : number } = getCategoryOrder(firstOfEachCategory)
+      doCategoryOrderSort(results, categoryOrder)
+      const uniqueCategories = getUniqueCategories(results)
 
       // https://www.d3-graph-gallery.com/graph/custom_color.html
       // https://observablehq.com/@d3/d3-scalelinear
       const colorByCategory :  d3.ScaleOrdinal<string, string> = d3.scaleOrdinal(d3.schemeCategory10).domain(uniqueCategories);
-      //const colorByCategory = ((uniqueCategories.length>10) ? d3.scale.category20() : d3.scale.category10()).domain(uniqueCategories);
-      results.forEach((r,i) => {
-        r.phewas_code = r.phenocode
-        r.phewas_string = (r.phenostring || r.phenocode)
-        r.category_name = r.category
-        r.color = colorByCategory(r.category)
-        r.idx = i
-      })
+      reshapeResult(results, colorByCategory)
 
-      const logLogThreshold = 1; // TODO fix this
-      results.forEach((phenotype) => {
-        phenotype.pScaled = phenotype.mlogp? phenotype.mlogp : -Math.log10(phenotype.pval)
-        if (phenotype.pScaled > logLogThreshold) {
-          phenotype.pScaled = logLogThreshold * Math.log10(phenotype.pScaled) / Math.log10(logLogThreshold)
-        }
-      })
+      // 1. get pScaled values
+      // 2. harness
+      // 3. compare
+      const logLogThreshold = variantData.vis_conf.loglog_threshold;
+      results.forEach(addPScaled(logLogThreshold))
 
       const bestNegativeLog10PValue = d3.max(results.map(function(x) { return LocusZoom.TransformationFunctions.get('neglog10')(x.pval); }));
 
@@ -140,8 +161,8 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       };
 
       const pValueDataLayer = phewasPanel.data_layers[1]
-      pValueDataLayer.y_axis.min_extent = [0, neglog10SignificanceThreshold*1.05];
-      pValueDataLayer.y_axis.upper_buffer = 0.1;
+      //pValueDataLayer.y_axis.min_extent = [0, neglog10SignificanceThreshold*1.05]; TODO
+      //pValueDataLayer.y_axis.upper_buffer = 0.1; TODO
       pValueDataLayer.tooltip.html = `
       <div><strong>{{phewas_string}}</strong></div>
       <div><strong style='color:{{color}}'>{{category_name}}</strong></div>
@@ -166,7 +187,7 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       ];
 
       if (results.length > 10) {
-        const topMLogPValue10 = (r :  (Result & ResultLZ)[]) => {
+        const topMLogPValue10 = (r :  (Variant.Result & ResultLZ)[]) => {
           const mLogPValue = r.map((a) => a['mlogp']);
           mLogPValue.sort();
           return mLogPValue[10];
@@ -176,8 +197,9 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       }
 
       // Color points by category.
-      pValueDataLayer.color.parameters.categories = uniqueCategories;
-      pValueDataLayer.color.parameters.values = uniqueCategories.map(colorByCategory)
+      pValueDataLayer.color.parameters = { categories : uniqueCategories , values : uniqueCategories.map(colorByCategory) }
+      //pValueDataLayer.color.parameters.categories = uniqueCategories; TODO
+      //pValueDataLayer.color.parameters.values = uniqueCategories.map(colorByCategory) TODO
 
       // Shape points by effect direction.
       pValueDataLayer.point_shape = [
@@ -219,7 +241,7 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       phewasPanel.axes.y1.label = '-log\u2081\u2080p-value'
 
       // add a little x-padding so that no points intersect the edge
-      phewasPanel.x_axis.min_extent = [-1, results.length]
+      //phewasPanel.x_axis.min_extent = [-1, results.length] TODO
 
       const layout = {
         state: {

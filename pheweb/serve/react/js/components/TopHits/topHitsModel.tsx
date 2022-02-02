@@ -1,5 +1,4 @@
 import { TableColumnConfiguration } from "../../common/tableColumn";
-import { VariantRow } from "../Variant/variantModel";
 
 export interface TopHitsRow {
   af_alt: number,
