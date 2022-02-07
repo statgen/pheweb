@@ -63,6 +63,18 @@ export namespace Variant {
     pval:             number | null;
   }
 
+  export interface ResultLZ extends  Result {
+    id : string
+    x : number
+    idx : number
+    pScaled : number
+
+    phewas_code : string
+    phewas_string  : string
+    category_name : string
+    color : string
+  }
+
   export interface MatchingResults {
   }
 

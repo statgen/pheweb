@@ -11,6 +11,8 @@ import { numberFormatter, scientificFormatter } from "../../common/Formatter";
 import ReactTooltip from 'react-tooltip'
 import { finEnrichmentLabel } from "../Finngen/gnomad";
 import Lavaa from "./Lava/lavaa";
+import VariantContextProvider from "./VariantContext";
+import * as d3 from "d3";
 
 interface Props {}
 
@@ -356,6 +358,7 @@ const Variant = (props : Props) => {
   // the null check is on  bioBankURL == null as for some reason
   // the tool tip is not happing loading this later.
   return variantData == null || bioBankURL == null?loading:
+    <VariantContextProvider>
     <React.Fragment>
 
       <div className="row" style={{ width: '100%' }}>
@@ -382,6 +385,7 @@ const Variant = (props : Props) => {
         </div>
       </div>
   </React.Fragment>
+  </VariantContextProvider>
 }
 
 export default Variant;

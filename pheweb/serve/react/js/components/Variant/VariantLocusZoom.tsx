@@ -1,30 +1,20 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { Variant } from "./variantModel";
 import { DataSources, Plot, populate, Data, Layouts, LayoutDataLayersEntity } from "locuszoom";
 import * as d3 from "d3";
 
 import * as LocusZoom from "locuszoom";
+import { GeneContext, GeneState } from "../Gene/GeneContext";
+import { VariantContext, VariantState } from "./VariantContext";
 
 interface Props { variantData : Variant.Data }
 
 const element_id : string = 'lz-1'
 
-interface ResultLZ {
-  id : string
-  x : number
-  idx : number
-  pScaled : number
 
-  phewas_code : string
-  phewas_string  : string
-  category_name : string
-  color : string
-}
-
-
-export const sortPhenotypes = (orginal : Variant.Result[]) :  (Variant.Result & ResultLZ)[]  => {
+export const sortPhenotypes = (orginal : Variant.Result[]) :  Variant.ResultLZ[]  => {
 // sort phenotypes
-  const results : (Variant.Result & ResultLZ)[]  = JSON.parse(JSON.stringify(orginal))
+  const results : Variant.ResultLZ[]  = JSON.parse(JSON.stringify(orginal))
 
   if (results.every((d) => d.category_index !== undefined)) {
     results.sort((a, b) => a.category_index - b.category_index)
@@ -36,7 +26,7 @@ export const sortPhenotypes = (orginal : Variant.Result[]) :  (Variant.Result & 
   return results
 }
 
-export const getFirstOfEachCategory = (results : (Variant.Result & ResultLZ)[]) : (Variant.Result & ResultLZ)[] =>   {
+export const getFirstOfEachCategory = (results : Variant.ResultLZ[]) : Variant.ResultLZ[] =>   {
     const categoriesSeen = {};
     return results.filter( ( phenotype ) => {
       if(categoriesSeen.hasOwnProperty(phenotype.category)){
@@ -48,16 +38,16 @@ export const getFirstOfEachCategory = (results : (Variant.Result & ResultLZ)[]) 
     } )
 }
 
-export const getCategoryOrder = (firstOfEachCategory : (Variant.Result & ResultLZ)[]) : { [ key : string] : number } =>
+export const getCategoryOrder = (firstOfEachCategory : Variant.ResultLZ[]) : { [ key : string] : number } =>
     firstOfEachCategory.reduce((acc : { [ key : string] : number },phenotype , i : number) => { acc[phenotype.category] =i ; return acc} , {})
 
-export const doCategoryOrderSort = (results : (Variant.Result & ResultLZ)[], categoryOrder : { [ key : string] : number }) :void => {
+export const doCategoryOrderSort = (results : Variant.ResultLZ[], categoryOrder : { [ key : string] : number }) :void => {
   results.sort((a,b) => categoryOrder[a.category] - categoryOrder[b.category])
 }
 
-export const getUniqueCategories = (results : (Variant.Result & ResultLZ)[]) : string[] => [...new Set(results.map( p => p.category))];
+export const getUniqueCategories = (results : Variant.ResultLZ[]) : string[] => [...new Set(results.map( p => p.category))];
 
-export const reshapeResult =  (results : (Variant.Result & ResultLZ)[],colorByCategory :  d3.ScaleOrdinal<string, string>) : void => {
+export const reshapeResult =  (results : Variant.ResultLZ[],colorByCategory :  d3.ScaleOrdinal<string, string>) : void => {
   results.forEach((r,i) => {
     r.phewas_code = r.phenocode
     r.phewas_string = (r.phenostring || r.phenocode)
@@ -87,7 +77,7 @@ const effectDirection = (parameters, input) => {
 }
 
 
-const addPScaled = (logLogThreshold : number) => (phenotype : Variant.Result & ResultLZ) => {
+const addPScaled = (logLogThreshold : number) => (phenotype : Variant.ResultLZ) => {
   phenotype.pScaled = phenotype.mlogp? phenotype.mlogp : -Math.log10(phenotype.pval)
   if (phenotype.pScaled > logLogThreshold) {
     phenotype.pScaled = logLogThreshold * Math.log10(phenotype.pScaled) / Math.log10(logLogThreshold)
@@ -95,11 +85,12 @@ const addPScaled = (logLogThreshold : number) => (phenotype : Variant.Result & R
 }
 
 const VariantLocusZoom = ({ variantData } : Props ) => {
+  const { setColorByCategory } = useContext<Partial<VariantState>>(VariantContext);
   useEffect(() => {
     const element = document.getElementById(element_id);
     if(variantData){
-      const results : (Variant.Result & ResultLZ)[]  = sortPhenotypes(variantData.results)
-      const firstOfEachCategory : (Variant.Result & ResultLZ)[] = getFirstOfEachCategory(results)
+      const results : Variant.ResultLZ[]  = sortPhenotypes(variantData.results)
+      const firstOfEachCategory : Variant.ResultLZ[] = getFirstOfEachCategory(results)
 
       const categoryOrder : { [ key : string] : number } = getCategoryOrder(firstOfEachCategory)
       doCategoryOrderSort(results, categoryOrder)
@@ -108,8 +99,11 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       // https://www.d3-graph-gallery.com/graph/custom_color.html
       // https://observablehq.com/@d3/d3-scalelinear
       const colorByCategory :  d3.ScaleOrdinal<string, string> = d3.scaleOrdinal(d3.schemeCategory10).domain(uniqueCategories);
-      reshapeResult(results, colorByCategory)
 
+      const categoryToColor: { [name: string]: string } = {};
+      uniqueCategories.forEach(category => categoryToColor[category] = colorByCategory(category))
+      setColorByCategory(categoryToColor)
+      reshapeResult(results, colorByCategory)
       // 1. get pScaled values
       // 2. harness
       // 3. compare
@@ -130,8 +124,6 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
           data[i]["phewas:id"] = i.toString();
           data[i]["phewas:phenostring"] = d.phenostring
           data[i]["log_pvalue"] = d.mlogp
-          data[i]["phewas:category_name"] = d.category
-          data[i]["category_name"] = d.category
           data[i]["phewas:trait_group"] = d.category
           trans.forEach(function(transformation, t){
             if (typeof transformation == "function"){
@@ -190,7 +182,7 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       ];
 
       if (results.length > 10) {
-        const topMLogPValue10 = (r :  (Variant.Result & ResultLZ)[]) => {
+        const topMLogPValue10 = (r :  Variant.ResultLZ[]) => {
           const mLogPValue = r.map((a) => a['mlogp']);
           mLogPValue.sort();
           return mLogPValue[10];
@@ -213,7 +205,6 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
         },
         'circle'
       ];
-      console.log(pValueDataLayer);
       // Make points clickable
       pValueDataLayer.behaviors.onclick = [{action:"link", href:"/pheno/{{phewas_code}}"}];
 
