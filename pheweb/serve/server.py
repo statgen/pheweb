@@ -69,12 +69,6 @@ app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['browser'] = conf['browser']
 app.config['show_ukbb'] = conf['show_ukbb']
 app.config['show_risteys'] = conf['show_risteys']
-for cont in ['about', 'coding', 'chip', 'lof']:
-    if cont + '_content' in conf:
-        with open(conf[cont + '_content'], 'r') as f:
-            app.config[cont + '_content'] = f.read().strip().replace('\n', '')
-    else:
-        app.config[cont + '_content'] = ''
 if 'noindex' in conf:
     app.config['noindex'] = conf['noindex']
 app.config['release'] = conf['release']
@@ -89,9 +83,9 @@ app.config['title'] = conf['title']
 app.config['page_title'] = conf['page_title']
 if 'endpoint_def' in conf:
     app.config['endpoint_def'] = conf['endpoint_def']
-app.config['lof'] = 'lof' in [list(c.keys())[0] for c in conf.database_conf]
-app.config['coding'] = False
-app.config['chip'] = False
+#app.config['lof'] = 'lof' in [list(c.keys())[0] for c in conf.database_conf]
+#app.config['coding'] = False
+#app.config['chip'] = False
 app.config['ukbb'] = False
 for c in conf.database_conf:
     if 'coding' in c:
@@ -239,9 +233,17 @@ def api_pheno(phenocode):
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
 
 @app.route('/api/gene_phenos/<gene>')
-def api_gene_phenos(gene):
-    res = [res for res in jeeves.gene_phenos(gene) if res.pheno['phenocode'] in use_phenos]
-    return jsonify( res )
+def api_gene_phenotypes(gene):
+    gene_region_mapping = jeeves.get_gene_region_mapping()
+    chrom, start, end = gene_region_mapping[gene]
+    start, end = pad_gene(start, end)
+    phenotypes = [res for res in jeeves.gene_phenos(gene) if res.pheno['phenocode'] in use_phenos]
+    region = { "chrom" : chrom ,
+               "start" : start ,
+               "end" : end }
+    result = { "phenotypes" : phenotypes ,
+               "region" : region }
+    return jsonify( result )
 
 @app.route('/api/gene_functional_variants/<gene>')
 def api_gene_functional_variants(gene):
@@ -401,6 +403,8 @@ def gene_api(genename):
                              "significant_phenos" : phenos_in_gene,
                              "gene_symbol" : genename,
                              "region" : f'{chrom}-{start}-{end}',
+                             "start" : start ,
+                             "end" : end ,
                              "tooltip_lztemplate" : conf.parse.tooltip_lztemplate,
                              "lz_conf" : conf.locuszoom_conf,
                              "ld_panel_version" : conf.ld_panel_version,
