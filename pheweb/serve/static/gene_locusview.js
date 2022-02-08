@@ -103,53 +103,63 @@
         mouse_guide: true,
 
         "dashboard": {
-            "components": [{
+            "components": [
+            {
                 type: 'link',
                 title: 'Go to Manhattan Plot',
                 text:' Manhattan Plot',
                 url: '/pheno/' + window.pheno.phenocode
-            },{
+            },
+            {
                 type: 'move',
                 text: '<<',
                 title: 'Shift view 1/4 to the left',
                 direction: -0.75,
                 group_position: "start",
-            },{
+            },
+            {
                 type: 'move',
                 text: '<',
                 title: 'Shift view 1/4 to the left',
                 direction: -0.25,
                 group_position: "middle",
-            },{
+            },
+            {
                 type: 'zoom_region',
                 button_html: 'z+',
                 title: 'zoom in 2x',
                 step: -0.5,
                 group_position: "middle",
-            },{
+            },
+            {
                 type: 'zoom_region',
                 button_html: 'z-',
                 title: 'zoom out 2x',
                 step: 1,
                 group_position: "middle",
-            },{
+            },
+            {
                 type: 'move',
                 text: '>',
                 title: 'Shift view 1/4 to the right',
                 direction: 0.25,
                 group_position: "middle",
-            },{
+            },
+            {
                 type: 'move',
                 text: '>>',
                 title: 'Shift view 3/4 to the right',
                 direction: 0.75,
                 group_position: "end",
-            },{
+            },
+            {
                 "type": "download",
                 "position": "right",
-            }]
+            }
+            ]
         },
-        "panels": [ {
+        "panels": [
+          {
             "id": "association",
             "title": { "text":window.browser, "x":55, "y":30 } ,
             "proportional_height": 0.3,
@@ -340,9 +350,8 @@
                 "y": 0
             },
             "background_click": "clear_selections",
-        }
-        ,
-        {
+        },
+          {
             "id": "gwas_catalog",
             "title": { "text":"GWAS catalog + UKBB", "x":55, "y":30 },
             "y_index": 2,
@@ -483,9 +492,8 @@
                 "y": 0
             },
             "background_click": "clear_selections",
-        }
-        ,
-        {
+        },
+          {
             "id": "genes",
             "proportional_height": 0.5,
             "min_width": 400,
@@ -581,8 +589,6 @@
             "background_click": "clear_selections",
             "legend": null
         }
-
-
       ]
     }
 
