@@ -465,6 +465,32 @@ const phenotypeColumns = {
       },
       minWidth: 300
     },
+  geneOddRatio:
+    {
+      Header: () => (<span title="odds ratio" style={{ textDecoration: "underline" }}>OR</span>),
+      label: "odds ratio",
+      accessor: "beta",
+      filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+      Cell: props => {
+        const beta = +props.value
+        const label = Math.exp(props.value).toFixed(2)
+        const arrow =
+          (beta >= 0) ?
+            <span style={{ color: 'green', float: 'left' }} className={'glyphicon glyphicon-triangle-top'}
+                  aria-hidden={'true'}>&nbsp;</span> :
+            ((beta < 0) ?
+              <span style={{ color: 'red', float: 'left' }} className={'glyphicon glyphicon-triangle-bottom'}
+                    aria-hidden={'true'}>&nbsp;</span> :
+              <span>&nbsp;</span>)
+
+        const body = <React.Fragment>
+          {arrow}
+          {label}
+        </React.Fragment>
+        return body
+      },
+      minWidth: 80
+    },
 
   risteysLink:
     {
@@ -941,7 +967,7 @@ export const genePhenotypeTableColumns = [
   phenotypeColumns.finEnrichmentText,
   phenotypeColumns.genePhenotype,
   phenotypeColumns.category,
-  phenotypeColumns.or,
+  phenotypeColumns.geneOddRatio,
   phenotypeColumns.mlogp,
   phenotypeColumns.pValue,
   phenotypeColumns.numCases
