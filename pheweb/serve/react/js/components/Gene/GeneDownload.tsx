@@ -1,7 +1,8 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useContext, useEffect, useState } from "react";
 import CSS from 'csstype';
+import { GeneContext, GeneState } from "./GeneContext";
 
-interface  Props { gene : string }
+interface  Props {  }
 
 const INITIAL_MESSAGE = "Generate gene report"
 const GENERATING_MESSAGE = "Generating report..."
@@ -39,7 +40,8 @@ const downloadClass = (state : State) => {
       break;
   }
 }
-const GeneDownload = ({ gene  } : Props) => {
+const GeneDownload = ({} : Props) => {
+  const { gene } = useContext<Partial<GeneState>>(GeneContext);
   const [state, setState] = useState<State>(State.Ready);
   const [data, setData] = useState<string|null>(null);
   const [anchor, setAnchor] = useState<HTMLAnchorElement|null>(null);

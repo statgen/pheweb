@@ -9,6 +9,9 @@ import { finEnrichmentLabel } from "../Finngen/gnomad";
 import loading from "../../common/Loading";
 import { GeneContext, GeneState } from "./GeneContext";
 import GenePhenotypeAssociationSelected from "./GenePhenotypeAssociationSelected";
+import './gene.css'
+
+
 
 const default_banner: string = `
 <div class="row">
@@ -29,13 +32,12 @@ const defaultSorted = [{
   id: 'pval',
   desc: false
 }]
-const tableProperties = {
-  defaultPageSize : 5
-}
 
 interface  Props {}
 
-const reshapeRow = (d : GenePhenotypes.Phenotype) : GenePhenotypes.ViewRow => {
+const reshapeRow =
+  (gene : string) =>
+  (d : GenePhenotypes.Phenotype) : GenePhenotypes.ViewRow => {
   const rsids = d.variant.annotation.rsids
   const mlogp = d.assoc.mlogp
   const phenostring = d.assoc.phenostring
@@ -51,24 +53,40 @@ const reshapeRow = (d : GenePhenotypes.Phenotype) : GenePhenotypes.ViewRow => {
   const ref = d.variant.ref
   const alt = d.variant.alt
 
-  return  { chrom, pos, ref, alt , num_cases, beta, pval , rsids , mlogp , phenostring , category ,fin_enrichment , phenocode }
+  return  { chrom, pos, ref, alt , num_cases, beta, pval ,
+            rsids , mlogp , phenostring , category ,
+            fin_enrichment , phenocode , gene}
 }
-const dataToTableRows = (d : GenePhenotypes.Data| null) :  GenePhenotypes.ViewRow[] => d == null? [] : d.phenotypes.map(reshapeRow)
+
+const dataToTableRows =
+  (gene : string) =>
+  (d : GenePhenotypes.Data| null) :  GenePhenotypes.ViewRow[] =>
+  d == null? [] : d.phenotypes.map(reshapeRow(gene))
 
 const GenePhenotypeAssociation = ({} : Props = {}) => {
-  const { genePhenotype , gene } = useContext<Partial<GeneState>>(GeneContext);
+  const { genePhenotype , gene , selectedPhenotype} = useContext<Partial<GeneState>>(GeneContext);
   const filename =  `${gene}_top_associations`
+  const tableProperties = {
+    getTrProps : (state, rowInfo, column) => {
+      if (rowInfo !== undefined && rowInfo?.original?.phenocode == selectedPhenotype?.pheno?.phenocode) {
+        return { className: 'geneSelectedRow' }
+      } else {
+        return { className: 'geneNonSelectedRow' }
+      }
+    },
+    defaultPageSize : 5
+  }
   const prop : DownloadTableProps<GenePhenotypes.Data, GenePhenotypes.ViewRow> = {
     filename,
     tableData : genePhenotype,
-    dataToTableRows,
+    dataToTableRows : dataToTableRows(gene),
     tableColumns ,
     tableProperties,
     defaultSorted
   }
   let view
 
-  if(genePhenotype == null || genePhenotype == undefined){
+  if(genePhenotype == null || genePhenotype == undefined || selectedPhenotype == undefined){
     view = loading
   } else {
     view = <React.Fragment>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { mustacheDiv } from "../../common/Utilities";
 import { FunctionalVariants } from "./geneModel";
@@ -8,6 +8,7 @@ import { createTableColumns, geneFunctionalVariantTableColumns } from "../../com
 import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
 import loading from "../../common/Loading";
 import { finEnrichmentLabel } from "../Finngen/gnomad";
+import { GeneContext, GeneState } from "./GeneContext";
 
 const default_banner : string =`
 <div class="row">
@@ -46,9 +47,9 @@ const reshapeRow = (r : FunctionalVariants.Row) : FunctionalVariants.ViewRow => 
 }
 const dataToTableRows = (data : FunctionalVariants.Data) : FunctionalVariants.ViewRow[] => data.map(reshapeRow)
 
-interface Props { gene : string}
-const GeneFunctionalVariants = ({ gene} ) => {
-
+interface Props { }
+const GeneFunctionalVariants = ({ } ) => {
+  const { gene } = useContext<Partial<GeneState>>(GeneContext);
   const [data, setData] = useState<FunctionalVariants.Data | null>(null);
   const filename = `${gene}_functional_variants.tsv`
   useEffect(() => {

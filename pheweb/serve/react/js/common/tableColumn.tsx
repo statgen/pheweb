@@ -32,9 +32,11 @@ const pValueCellFormatter = (props) => (props.value == pValueSentinel) ? ` << ${
 
 const arrayCellFormatter = (props) => { return props?.value?.join(" ") || "" }
 
-const phenotypeCellFormatter = (props) => (<a href={`/pheno/${ props.original.phenocode || props.original.pheno  } `}
-                                          target="_blank">{props.value == "NA" ? props.original.pheno : props.value}</a>);
-
+const phenotypeCellFormatter = (props) => {
+  const href = `/pheno/${props.original.phenocode || props.original.pheno}`
+  const label = props.value == "NA" ? props.original.pheno : props.value
+  return <a href={href} target="_blank">{label}</a>
+}
 const variantCell = (value : string) => {
   const variant = variantFromStr(value)
   if(variant){
@@ -448,6 +450,19 @@ const phenotypeColumns = {
       id: "phenotype",
       accessor: "phenostring",
       Cell: phenotypeCellFormatter,
+      minWidth: 300
+    },
+  genePhenotype:
+    {
+      Header: () => (<span title="phenotype" style={{ textDecoration: "underline" }}>phenotype</span>),
+      label: "phenotype",
+      id: "phenotype",
+      accessor: "phenostring",
+      Cell:  (props) => {
+        const href = `/gene/${props.original.gene}/pheno/${props.original.phenocode || props.original.pheno}`
+        const label = props.value == "NA" ? props.original.pheno : props.value
+        return <a href={href} target="_blank">{label}</a>
+      },
       minWidth: 300
     },
 
@@ -924,7 +939,7 @@ export const geneLossOfFunctionTableColumns = [
 export const genePhenotypeTableColumns = [
   phenotypeColumns.rsid,
   phenotypeColumns.finEnrichmentText,
-  phenotypeColumns.phenotype,
+  phenotypeColumns.genePhenotype,
   phenotypeColumns.category,
   phenotypeColumns.or,
   phenotypeColumns.mlogp,

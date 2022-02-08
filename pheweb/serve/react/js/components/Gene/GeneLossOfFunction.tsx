@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { mustacheDiv } from "../../common/Utilities";
 import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
@@ -10,7 +10,7 @@ import {
   geneLossOfFunctionTableColumns
 } from "../../common/tableColumn";
 import loading from "../../common/Loading";
-import { r4_api_lof_ABO } from "./geneModel.data";
+import { GeneContext, GeneState } from "./GeneContext";
 
 
 const default_banner : string =`
@@ -39,7 +39,7 @@ const { config } = window;
 const banner: string = config?.userInterface?.gene?.lossOfFunction?.banner || default_banner;
 const empty: string = config?.userInterface?.gene?.lossOfFunction?.empty || default_empty;
 
-interface Props { gene : string }
+interface Props { }
 
 const reshapeRow = (d : LossOfFunction.Row) : LossOfFunction.ViewRow => {
   const phenostring  = d.gene_data.phenostring
@@ -74,7 +74,8 @@ const dataToTableRows = (d : LossOfFunction.Data| null) :  LossOfFunction.ViewRo
 const tableColumns : Column<LossOfFunction.ViewRow>[] = createTableColumns<LossOfFunction.ViewRow>(config?.userInterface?.gene?.lossOfFunction?.tableColumns) || (geneLossOfFunctionTableColumns as Column<LossOfFunction.ViewRow>[])
 
 
-const GeneLossOfFunction = ({ gene } : Props) => {
+const GeneLossOfFunction = ({  } : Props) => {
+  const { gene } = useContext<Partial<GeneState>>(GeneContext);
   const [data, setData] = useState<LossOfFunction.Data | null>(null);
   useEffect(() => {
     /* test data setData(r4_api_lof_ABO) */

@@ -45,7 +45,8 @@ export namespace FunctionalVariants {
     info : string ,
     maf : number
     fin_enrichment : string
-    significant_phenos: SignificantPheno[] }
+    significant_phenos: SignificantPheno[]
+  }
   export type Data = Row[]
 
   export interface Row {
@@ -162,6 +163,7 @@ export namespace GenePhenotypes {
     readonly pos : number
     readonly ref : string
     readonly alt : string
+    readonly gene : string
   }
 
   export interface  Region {

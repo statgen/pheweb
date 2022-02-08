@@ -1,5 +1,5 @@
 import { mustacheDiv } from "../../common/Utilities";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { getGeneDrugs } from "./geneAPI";
 import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
@@ -7,6 +7,7 @@ import loading from "../../common/Loading";
 import { Column } from "react-table";
 import { createTableColumns, geneDrugListTableColumns, variantTableColumns } from "../../common/tableColumn";
 import { GeneDrugs} from "./geneModel";
+import { GeneContext, GeneState } from "./GeneContext";
 
 const default_banner: string = `
 <h3>Drugs targeting Drug Name</h3>
@@ -27,8 +28,9 @@ const defaultSorted = [{
 }]
 
 
-interface Props { gene : string }
-const GeneDrugs = ({ gene } : Props) => {
+interface Props {}
+const GeneDrugs = ({ } : Props) => {
+  const { gene } = useContext<Partial<GeneState>>(GeneContext);
   const [geneDrugData, setGeneDrugData] = useState<GeneDrugs.Data | null>(null);
 
   useEffect(() => { getGeneDrugs(gene,setGeneDrugData) },[]);
