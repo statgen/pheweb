@@ -22,13 +22,9 @@ class Pheno extends React.Component {
 
   constructor (props) {
 
-    if (!phenoTableCols[window.browser]) {
-      alert('no table columns for ' + window.browser)
-    }
     super(props)
     this.state = {
       phenocode: props.match.params.pheno,
-      columns: phenoTableCols[window.browser],
       csColumns: csTableCols,
       InsideColumns: csInsideTableCols,
       dataToDownload: [],
