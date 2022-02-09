@@ -1,0 +1,732 @@
+/*#start{
+  background-color: rgba(0,0,0,0.7);
+  animation: fade 0.5s linear 1 normal forwards;
+  width: 100%;
+  height: 100vh;
+  z-index: 99;
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+#afterStart{
+  display: none;
+}*/
+
+.myScroll {
+  z-index: 10;
+}
+
+#input-btn-block-start{
+  display: flex;
+  justify-content: center;
+  padding-top: 40vh;
+}
+
+input#data-file-start{
+  width: 250px;
+}
+/*help from https://css-tricks.com/snippets/css/custom-file-input-styling-webkitblink/*/
+.custom-file-input-start::-webkit-file-upload-button {
+  visibility: hidden;
+}
+.custom-file-input-start::before {
+  content: 'Select .tsv file to get started';
+  display: inline-block;
+  font-size: 15px;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 25px;
+  margin: 0px;
+  outline: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  cursor: pointer;
+  background-color: white;
+}
+.custom-file-input-start:hover::before {
+  border-color: black;
+}
+.custom-file-input-start:active::before {
+  background: -webkit-linear-gradient(top, #e3e3e3, #f9f9f9);
+}
+
+::-webkit-scrollbar {
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgb(190, 190, 190);
+}
+
+input {
+  width: 100px;
+}
+/*help from https://css-tricks.com/snippets/css/custom-file-input-styling-webkitblink/*/
+.custom-file-input::-webkit-file-upload-button {
+  visibility: hidden;
+}
+.custom-file-input::before {
+  content: 'Select .tsv';
+  display: inline-block;
+  border: 1px solid black;
+  border-radius: 3px;
+  padding: 8px 15px;
+  margin: 0px;
+  outline: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  cursor: pointer;
+  text-shadow: 1px 1px #fff;
+}
+.custom-file-input:hover::before {
+  border-color: black;
+}
+.custom-file-input:active::before {
+  background: -webkit-linear-gradient(top, #e3e3e3, #f9f9f9);
+}
+
+button#download {
+  width: 150px;
+  display: inline-block;
+  border: 1px solid #999;
+  border-radius: 3px;
+  padding: 8px 25px;
+  margin: 0px;
+  outline: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  cursor: pointer;
+  text-shadow: 1px 1px #fff;
+  background: white;
+}
+button#download:hover {
+  border-color: black;
+}
+.downloadImgBtn {
+  width: 73px;
+  display: inline-block;
+  border: 1px solid #999;
+  border-radius: 3px;
+  padding: 8px 25px;
+  margin-top: 4px;
+  outline: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  cursor: pointer;
+  text-shadow: 1px 1px #fff;
+  background: white;
+}
+.downloadImgBtn:hover{
+  border: 1px solid black;
+}
+a#downloadSvg{
+  text-decoration: none;
+}
+a#downloadJpeg{
+  text-decoration: none;
+}
+a#report{
+  text-decoration: none;
+  color: grey;
+}
+.reportIcon{
+  display: block;
+  background: grey;
+  color: #fff;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  line-height: 15px;
+  text-align: center;
+  font-size: 12px;
+  font-family: Verdana;
+}
+.reportIssue{
+  float: left;
+  display: flex;
+  margin-left: -33vw;
+}
+
+/*-------------------------*/
+button#downloadSample {
+  /*width: 150px;*/
+  display: inline-block;
+  border: 1px solid #999;
+  border-radius: 3px;
+  padding: 8px 10px;
+  margin: 0px;
+  outline: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  cursor: pointer;
+  text-shadow: 1px 1px #fff;
+  background: white;
+}
+button#downloadSample:hover {
+  border-color: black;
+}
+
+
+text.annotation-label {
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.4em;
+      letter-spacing: 0.2px;
+
+      word-wrap: normal;
+      width: 20px;
+    }
+
+.info{
+      font-family: 'Roboto', sans-serif;
+      letter-spacing: 0.2px;
+      font-size: 12px;
+      line-height: 5px; 
+      font-smooth: subpixel-antialiased;
+    }
+
+text.label{
+      visibility: hidden;
+      font-family: 'Roboto', sans-serif;
+      letter-spacing: 0.2px;
+      font-size: 0.7em;
+      font-smooth: subpixel-antialiased;
+      /*disable user selection, courtesy of www.w3docs.com*/
+       -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+/*------------d3 tooltip styling----------------*/
+/*general box and text styling*/
+ .d3-tip {
+      box-sizing: border-box;
+      display: inline;
+      max-width: 250px;
+      line-height: 1.5;
+      padding: 8px;
+      margin-bottom: 5px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      border-radius: 4px;
+      font-size: 1em;
+      font-family: 'Roboto', sans-serif;
+      font-style: italic;
+      font-weight: 400;
+      z-index: 99;
+      pointer-events: none !important; /*fixing a flicker bug*/
+}
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+      box-sizing: border-box;
+      display: inline;
+      max-width: 250px;
+      width: 100%;
+      line-height: 1;
+      color: rgba(0, 0, 0, 0.8);
+      content: "\25BC";/*unicode symbol*/
+      position: absolute;
+      text-align: right;
+}
+/* Style northward tooltips specifically */
+.d3-tip.n:after {
+      margin: 0 0 0 0;
+      top: 99%;/*triangle vertical position*/
+      left: -118px;
+}
+
+/*----------------button styles---------------*/
+#button_styled { 
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.8em;
+      margin-right: 1vw;
+      padding: 10px 25px;
+      border: 1px solid black;
+      background-color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+.button_styled { 
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.8em;
+  margin-right: 1vw;
+  padding: 10px 25px;
+  border: 1px solid black;
+  background-color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+#button_styled_csv {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.8em;
+  margin-right: 1vw;
+  padding: 10px 25px;
+  border: 1px solid black;
+  background-color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+#button_styled-2 { 
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.8em;
+  margin-right: 1vw;
+  padding: 10px 25px;
+  border: 1px solid black;
+  background-color: white;
+  border-radius: 5px;
+  cursor: pointer;
+    }
+/*text button with arrow on top of the legend block*/
+#button_legend { 
+      display: block;/*center the text*/
+      background: transparent;
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.8em;
+      border-style: none;
+      cursor: pointer;
+      /*margin-left: auto;
+      margin-right: auto;*/
+      padding-top: 5vh;
+      padding-bottom: 2vh;
+    }
+/*text button with arrow on top of the legend block*/
+.button_collapse {
+      display: none;
+      background: transparent;
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.8em;
+      border-style: none;
+      cursor: pointer;
+      padding-top: 5vh;
+      padding-bottom: 2vh;
+    }
+/*unique back button to toggle zoom view and general view*/
+#button_back {
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.8em;
+      border-radius: 5px;
+      display: none;
+      border: 1px solid #999;
+      border-radius: 3px;
+      padding: 8px 25px;
+      background: white;
+      margin-right: 2vw; 
+      cursor: pointer;
+    }
+a#button_styled_download { 
+      font-family: 'Roboto', sans-serif;
+      font-size: 1em;
+      margin-right: 1vw;
+      padding: 10px 25px;
+      border-style: none;
+      border-radius: 5px;
+    }
+
+
+/*--------------image download styles----------------*/
+/*when download img button is clicked*/
+#download-options{
+      background-color: rgba(0,0,0,0.7);
+      /*animation: fade 0.5s linear 1 normal forwards;*/
+      width: 100%;/*make full width*/
+      height: 100vh;/*make full height*/
+      z-index: 99;
+      display: none;/*only show after click event*/
+      position: fixed;
+      top: 0;
+      left: 0;
+  }
+
+/*when sample data is clicked*/
+#upload-options{
+  position: fixed;
+  top: 50%;
+  width: 100%;
+  z-index: 99;
+  }
+
+#upload-options-background{
+  background-color: rgba(0,0,0,0.7);
+      /*animation: fade 0.5s linear 1 normal forwards;*/
+      width: 100%;/*make full width*/
+      height: 100vh;/*make full height*/
+      z-index: 95;
+      display: none;/*only show after click event*/
+      position: fixed;
+      top: 0;
+      left: 0;
+}
+
+/*cross icon*/
+[class^="ico-"]{
+      font: normal 1em/1 Arial, sans-serif;
+      display: inline-block;
+}
+.ico-times:before{ content: "\2716"; 
+}
+.close{
+  background: white;
+  border-color: transparent;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-left: 2vw;
+}
+.close:hover{
+  cursor: pointer;
+  border: 1px solid black;
+}
+#download-options-inner{
+      padding-left: 45vw;
+      padding-top: 45vh;
+}
+#downloadImg-block{
+      display: none;
+      float: right;/*float right to the chart*/
+      position: relative;
+      top: 43vw;/*position right below the chart*/
+      z-index: 99;
+}
+
+#divider-vertical {
+  border-left: 1px solid black;
+  height: 35vw;
+  position: absolute;
+  right: 0%;
+  margin-top: 5vh;
+  margin-left: 50px;
+  top: 0
+}
+
+/*----------brush column styling-----------------*/
+#info-column-wrapper{
+max-width: 50vw;
+height: 40vw;
+/*border-bottom: 0.5px solid black;*/
+}
+
+    #info-column {
+      width: 45vw;
+      float: right;
+      max-height: 40vw;/*make same height as chart*/
+      white-space: nowrap;/*force text to one line*/
+      overflow-y: auto;
+      overflow-x: auto;
+      grid-auto-rows: 1fr;
+      z-index: 1;
+    }
+   /*individual columns styling, some need more space than others*/
+    #category {
+      width: 10vw;
+      float: left;
+      overflow-x: auto; 
+    }
+    #phenotype {
+      width: 10vw;
+      padding-left: 1vw;
+      float: left;
+      overflow-x: auto;
+    }
+    #pval {
+      width: 5vw;
+      padding-left: 1vw;
+      float: left;
+      overflow-x: auto;
+    }
+    #beta {
+      width: 3vw;
+      padding-left: 0.6vw;
+      float: left;
+      overflow-x: auto;
+    }
+    #case-control {
+      width: 6vw;
+      padding-left: 1vw;
+      float: left;
+      overflow-x: auto;
+    }
+
+/*------------checkbox styling help from W3Schools------------*/
+/* Hide the browser's default checkbox */
+.h5 input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+/* Create a custom checkbox */
+.checkmark-custom {
+  position: absolute;
+  /*flexbox works with absolute positioning, just not with the commented-out attributes; use margins instead*/
+  /*top: 0;*/
+  /*left: 110px;*/
+  margin-left: 0.5vw;
+  margin-top: -1%;
+  height: 30px;
+  width: 30px;
+  border: 0.5px solid;
+  background-color: white;
+}
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark-custom:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+/* Show the checkmark when checked */
+.chart-btn-container input:checked ~ .checkmark-custom:after {
+  display: block;
+}
+/* Style the checkmark/indicator */
+.chart-btn-container .checkmark-custom:after {
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+/*second unique checkmark*/
+.checkmark-custom-2 {
+  position: absolute;
+  margin-left: 0.5vw;
+  margin-top: -1%;
+  height: 30px;
+  width: 30px;
+  border: 0.5px solid;
+  background-color: white;
+}
+.checkmark-custom-2:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+.chart-btn-container input:checked ~ .checkmark-custom-2:after {
+  display: block;
+}
+.chart-btn-container .checkmark-custom-2:after {
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+/*third unique checkmark*/
+.checkmark-custom-3 {
+  position: absolute;
+  margin-left: 0.5vw;
+  margin-top: -1%;
+  height: 30px;
+  width: 30px;
+  border: 0.5px solid;
+  background-color: white;
+}
+.checkmark-custom-3:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+.chart-btn-container input:checked ~ .checkmark-custom-3:after {
+  display: block;
+}
+.chart-btn-container .checkmark-custom-3:after {
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+/*fourth unique checkmark*/
+.checkmark-custom-4 {
+  position: absolute;
+  margin-left: 0.5vw;
+  height: 30px;
+  width: 30px;
+  background-color: #eee;
+}
+.checkmark-custom-4:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.chart-btn-container input:checked ~ .checkmark-custom-4:after {
+  display: block;
+}
+.chart-btn-container .checkmark-custom-4:after {
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+
+/*--------------sections and blocks styling-------------------*/
+body {
+  overflow-x: hidden;
+}
+    #chart {
+      max-width: 50vw;
+      max-height: 100vh;
+      padding-bottom: 5vh;
+      z-index: 1;
+    }
+
+    #chartInner {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%;
+    vertical-align: top;
+    overflow: hidden;
+    margin-top:2vh;
+    }
+
+    #input-btn-block {
+      padding-left: 0vw;
+    }
+
+   #btn-block {
+      width: 45vw;
+      float: right;
+      padding-top: 6vh;
+      margin-right: -3vw;
+    }
+
+      #btn-block-2 {
+      width: 45vw;
+      display: none;
+      padding-top: -5vh;
+    }
+
+    #btn-block-toggle{
+      display: block;
+    }
+
+    #headline-block {
+      padding-left: 1vw;
+      padding-top: 3vh;
+    }
+
+    #chart-btn-block {
+      padding-left: 5vw;
+      padding-top: 3vh;
+      margin-bottom: -3vh;
+      max-height: 100px;
+      max-width: 50vw;
+    }
+
+    #labels-block{
+      position: absolute;
+      display: inline-block;
+      left: 50vw;
+      top: 11vh;
+      opacity: 0;
+      background: white;
+      z-index: 90;
+      height: 40vw;
+      border: 0px solid black;
+      /*box-shadow: inset 0px 0px 0px 0.5px black;*/
+      box-sizing: border-box;
+      width: 5vw;
+      float: left;
+      /*border-radius: 0px 10px 10px 0px;*/
+    }
+
+    #gLegContainer{
+      padding-left: 1.5vw;
+      height: 38vw;
+      overflow: visible;
+    }
+      /*.labels-block-outer{
+      background: white;
+      border: 0px solid black;
+      box-shadow: inset 0px 0px 0px 0.5px black;
+      box-sizing: border-box;
+      width: 50vw;
+      float: right;
+      height: 50vw;
+      margin-top: 140px;
+      border-radius: 0px 10px 10px 0px;
+    }*/
+
+    #legendTextDiv{
+      visibility: visible;
+      max-width: 35vw;
+    }
+
+    .flexbox-checkbox {
+      display: flex;
+      flex-direction: row;
+      max-width: 50vw;
+      min-width: 500px;
+    }
+
+    .chart-btn-container {
+      display: block;
+      position: relative;
+    }
+
+#hideThese {
+      display: block;
+}
+#ZoomHull {
+      display: none;
+}
+
+/*----------general html tag stylings----------*/
+h1{
+  font-family: 'Roboto', sans-serif;
+  font-size: 3em;
+}
+.h2 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: bold;
+  font-size: 1.2em;
+  color:  #606060;
+}
+h3{
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5em;
+}
+h4{
+  font-family: 'Roboto', sans-serif;
+  font-size: 1em;
+  margin-bottom: -0.3em;
+}
+.h5 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: 0.8em;
+}
+p{
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.5em;
+  font-size: 0.9em;
+  padding-bottom: 1vh;
+}

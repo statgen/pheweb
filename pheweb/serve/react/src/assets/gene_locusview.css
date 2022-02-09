@@ -1,0 +1,31 @@
+.lz-dashboard.lz-plot-dashboard { text-align: center; padding-bottom: 0; }
+.lz-dashboard-left, .lz-dashboard-right { display: inline-block; }
+.lz-dashboard-group-start, .lz-dashboard-group-middle, .lz-dashboard-group-end { float: none !important; }
+
+
+.gene_func_var_tab {
+    border-spacing: 0 10px;
+}
+
+.gene_func_var_row {
+    height: 45px
+}
+
+svg.lz-locuszoom path.lz-data_layer-scatter, svg.lz-locuszoom path.lz-data_layer-category_scatter {
+    stroke-width: 0px !important;
+}
+
+svg.lz-locuszoom path.lz-highlight {
+    stroke-width: 6px !important;
+}
+
+div.lz-data_layer-tooltip th, div.lz-data_layer-tooltip td {
+    padding: 2px;
+}
+
+/*
+/* TODO:
+   1. merge dashboard-component-centering into LZ. (should it be the default?)
+      - if not, make it explicit.  it's bad that I'm just centering anything with `.lz-dashboard-group-*`.
+   2. stop text-align:center from cascading downward through descendants
+*/

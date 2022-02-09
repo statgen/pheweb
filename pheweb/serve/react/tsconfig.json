@@ -1,16 +1,20 @@
 {
   "compilerOptions": {
-    "plugins": [{ "name": "typescript-plugin-css-modules" }],
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules"
+      }
+    ],
     "module": "esnext",
     "jsx": "react",
-      "target": "es6",
-      "noImplicitThis" : false,
+    "target": "es6",
+    "noImplicitThis": false,
     "esModuleInterop": true,
     "preserveConstEnums": true,
     "strictNullChecks": false,
     "sourceMap": true,
-      "skipLibCheck": true,
-      "noImplicitAny" : false,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
     "lib": [
       "dom",
       "es6",
@@ -19,14 +23,13 @@
       "es2018.RegExp"
     ],
     "allowJs": true,
-    "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": false
+    "noEmit": true
   },
   "include": [
     "js/**/*",

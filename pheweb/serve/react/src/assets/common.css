@@ -1,0 +1,272 @@
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600,700");
+
+body { font-family:'Open Sans',sans-serif; }
+
+a { color: #4B1DD9; }
+
+table.column_spacing td {
+    padding-right: 10px;
+}
+
+.loader {
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-bottom: 16px solid #3498db;
+    border-radius: 50%;
+    text-align: justify;
+    width: 20px;
+    height: 20px;
+    animation: spin 2s linear infinite;
+    display: none;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.errorbox {
+    background-color: rgba(208, 40, 47,0.1);
+    padding: 10px;
+}
+
+border {}
+
+.snugtable {
+    padding-bottom: 0px;
+}
+
+
+.aligned {
+    vertical-align: middle;
+}
+
+.logo-header {
+    float: left;
+    line-height: 69px;
+    font-size: 15px;
+    margin-left: 10px;
+    letter-spacing: 0.1em;
+    color: #282828;
+}
+
+.variant_point,.binned_variant_point {
+    fill-opacity: 0.5;
+}
+
+.navbar-header {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.navbar-right {
+    margin-top: 17px;
+}
+
+#navbar-searchbox-input {
+    margin-top: 7px;
+}
+
+.alert,.label,.form-control,.lz-dashboard-button,.pagination>li:first-child>a,.pagination>li:last-child>a {
+    border-radius: 0px;
+}
+
+.pagination.active {
+    border-color: #3500D4;
+}
+
+.pagination>li>a {
+    color: #282828;
+}
+
+.pagination>li>a:hover {
+    color: #3500D4;
+}
+
+.pagination>li.active>a {
+    background-color: #282828;
+}
+
+.pagination>li.active>a:hover {
+    background-color: #3500D4;
+}
+
+.label {
+    background-color: #282828;
+}
+
+.form-control:focus {
+    border-color: rgb(75, 30, 218);
+    box-shadow: inset 0 1px 1px rgba(75, 30, 218, 0.2);
+}
+
+.jumbotron {
+    border-radius: 0px;
+}
+
+.btn-lg {
+    border-radius: 0px;
+    background-color: rgb(75, 30, 218);
+}
+
+.btn {
+    border-radius: 0px;
+}
+
+.dl-link {
+    display: inline-block;
+    width: auto;
+    border-radius: 0px;
+    background-color: #282828;
+    color:white;
+}
+.dl-link:visited {
+    color:white
+}
+.dl-link:hover {
+  background-color: rgb(75, 30, 218);
+}
+
+.dropdown-toggle {
+  background-color: #ffffff !important;
+}
+
+.btn-group>.btn {
+  background-color: #282828;
+}
+
+.btn-group>.active,.btn-group>.btn:hover {
+  background-color: rgb(75, 30, 218);
+}
+
+.dropdown-menu {
+  border-radius: 0px;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+}
+
+.bootstrap-select>.dropdown-toggle.bs-placeholder {
+  color: #000000 !important;
+  font-weight: bold;
+}
+
+.bootstrap-select>.dropdown-toggle:focus {
+  outline: none !important;
+}
+
+.btn-group.open .dropdown-toggle {
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+}
+
+.table>thead>tr>th {
+  vertical-align: middle;
+}
+
+/* ORIGINAL */
+
+/* Reconcile bootstrap3 to typeahead.js (the real Typeahead, not bootstrap-typeahead) */
+.twitter-typeahead {
+  width: 100%;
+}
+.tt-menu {
+  margin-top: 2px;
+  padding: 5px 0;
+  background-color: #fff;
+  border: 1px solid rgba(0,0,0,.2);
+  width:100%;
+  max-height: 20em;
+  overflow-y: auto;
+}
+.tt-empty-message,
+.tt-suggestion {
+  padding: 3px 20px;
+}
+.tt-suggestion.tt-cursor {
+  color: #fff;
+  background-color: #0081c2; /* just backup for linear-gradientless browsers? */
+  background-image: linear-gradient(to bottom, #0088cc, #0077b3);
+}
+/* ---- */
+
+/* StreamTable */
+.pagination {
+  margin: 0;
+}
+.stream_table_row {
+  margin-top: 10px;
+}
+.st_per_page {
+  display: none;
+}
+#stream_table {
+  margin-bottom: 10px;
+}
+/* ---- */
+
+/* LocusZoom */
+.lz-data_layer-tooltip {
+    pointer-events: none;
+}
+.lz-dashboard {
+    height: 0;
+}
+/* ---- */
+
+.tooltip-inner {
+    max-width: initial;
+    width: 600px;
+}
+
+
+.d3-tip {
+    line-height: 1.4;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 4px;
+    pointer-events: none;
+}
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    position: absolute;
+    pointer-events: none;
+}
+/* Northward tooltips */
+.d3-tip.n:after {
+    content: "\25BC";
+    margin: -3px 0 0 0;
+    top: 100%;
+    left: 0;
+    text-align: center;
+}
+
+#manhattan_plot_container {
+    min-width: 700px;
+}
+#manhattan_plot_container .axis > path.domain {
+    stroke-width: 2px;
+    stroke: #666;
+    fill: none;
+}
+#manhattan_plot_container .axis g.tick line {
+    stroke: #666;
+}
+
+#qq_plot_container .axis path.domain {
+    stroke: black;
+    fill: none;
+}
+#qq_plot_container .axis g.tick line {
+    stroke: #666;
+    opacity: 0.3;
+}
+
+.icd9-info > p, .pheno-info > p {
+    margin-bottom: 0;
+}
