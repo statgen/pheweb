@@ -6,6 +6,7 @@ import { AboutConfiguration } from "../About/aboutModel";
 import { VariantConfiguration } from "../Variant/variantModel";
 import { TopHitsConfiguration } from "../TopHits/topHitsModel";
 import { Gene } from "../Gene/geneModel";
+import { LOFConfiguration } from "../LOF/lofModel";
 
 
 export interface ApplicationConfiguration {
@@ -27,6 +28,7 @@ export interface ConfigurationUserInterface {
     variant? : VariantConfiguration
     topHits? : TopHitsConfiguration
     gene? : Gene.Configuration
+    lof? : LOFConfiguration
 }
 export interface ConfigurationMetaData {}
 

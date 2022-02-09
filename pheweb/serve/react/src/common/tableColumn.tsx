@@ -1,7 +1,6 @@
 import { Column, HeaderProps, Renderer } from "react-table";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import { Headers, LabelKeyObject } from "react-csv/components/CommonPropTypes";
 import { variantFromStr, variantToPheweb, variantToStr } from "./Model";
 import { scientificFormatter } from "./Formatter";
 
@@ -35,6 +34,24 @@ const phenotypeCellFormatter = (props) => {
   const label = props.value === "NA" ? props.original.pheno : props.value
   return <a href={href} target="_blank" rel="noopener noreferrer" >{label}</a>
 }
+
+const variantListCellFormatter = (prop) => {
+  let cell : JSX.Element[]= []
+  const variants = prop.value
+  const fragments = variants.split(',').map(v => v.trim().replace(/^chr/, ''))
+  for (const variantString of fragments) {
+    const variant = variantFromStr(variantString)
+    if(variant === undefined){
+      const body = <span style={{ color : '#fee'}}>{variantString}</span>
+      cell.push(body)
+    } else {
+      const phewebVariant = variantToPheweb(variant)
+      cell.push(<a href={`/variant/${phewebVariant}`}>{phewebVariant}</a>)
+    }
+  }
+  return cell
+}
+
 const variantCell = (value : string) => {
   const variant = variantFromStr(value)
   if(variant){
@@ -317,7 +334,7 @@ const phenotypeColumns = {
     width: columnWith(80)
   },
   beta: {
-    Header: () => (<span title="effect size beta in chip EWAS" style={{ textDecoration: "underline" }}>beta (se)</span>),
+    Header: () => (<span title="effect size beta" style={{ textDecoration: "underline" }}>beta (se)</span>),
     accessor: "beta",
     filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
     Cell: optionalCellScientificFormatter,
@@ -468,6 +485,14 @@ const phenotypeColumns = {
       },
       minWidth: 300
     },
+  lofPhenotype: {
+    Header: () => (<span title="phenotype" style={{textDecoration: 'underline'}}>phenotype</span>),
+    accessor: 'phenostring',
+    Cell: props => (<a href={`/pheno/${props.original.pheno}`}
+                       rel="noopener noreferrer"
+                       target="_blank">{props.value}</a>),
+    minWidth: 400,
+  },
   geneOddRatio:
     {
       Header: () => (<span title="odds ratio" style={{ textDecoration: "underline" }}>OR</span>),
@@ -949,9 +974,48 @@ const phenotypeColumns = {
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
     Cell : finnGenPhenotypeCell,
     accessor: "significant_phenos"
+  },
+  lofGene : {
+    Header: () => (<span title="gene" style={{textDecoration: 'underline'}}>gene</span>),
+    accessor: 'gene',
+    Cell: props => <a href={`/gene/${props.value}`} rel="noopener noreferrer" target="_blank">{props.value}</a>,
+    minWidth: 80
+  },
+  variantList : {
+    Header: () => (<span title="variants" style={{textDecoration: 'underline'}}>variants</span>),
+    accessor: 'variants',
+    Cell: variantListCellFormatter,
+    minWidth: 200
+  },
+  referenceAlleleCaseCount : {
+    Header: () => (<span title="reference allele count in cases" style={{textDecoration: 'underline'}}>ref cases</span>),
+    accessor: 'ref_count_cases',
+    minWidth: 90,
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: props => props.value
+  },
+  alternativeAlleleCaseCount : {
+    Header: () => (<span title="alternative allele count in cases" style={{textDecoration: 'underline'}}>alt cases</span>),
+    accessor: 'alt_count_cases',
+    minWidth: 90,
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: props => props.value
+  },
+  referenceAlleleControlCount : {
+    Header: () => (<span title="reference allele count in controls" style={{textDecoration: 'underline'}}>ref controls</span>),
+    accessor: 'ref_count_ctrls',
+    minWidth: 90,
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: props => props.value
+  },
+  alternativeAlleleControlCount : {
+    Header: () => (<span title="alternative allele count in controls" style={{textDecoration: 'underline'}}>alt controls</span>),
+    accessor: 'alt_count_ctrls',
+    minWidth: 90,
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: props => props.value
   }
-
-};
+}
 
 
 
@@ -1044,6 +1108,18 @@ export const chipTableColumns = [
   phenotypeColumns.chipMissingProportion,
   phenotypeColumns.chipInfoSISU4
 ];
+
+export const LOFTableColumns = [
+  phenotypeColumns.lofPhenotype,
+  phenotypeColumns.lofGene,
+  { ...phenotypeColumns.pValue , minWidth: 70, accessor:  'p_value' },
+  phenotypeColumns.variantList,
+  phenotypeColumns.beta,
+  phenotypeColumns.referenceAlleleCaseCount,
+  phenotypeColumns.alternativeAlleleCaseCount,
+  phenotypeColumns.referenceAlleleControlCount,
+  phenotypeColumns.alternativeAlleleControlCount
+]
 
 export const variantTableColumns = [
   phenotypeColumns.category,
