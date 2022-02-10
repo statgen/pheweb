@@ -5,7 +5,9 @@ replicaCount: 2
 pheweb:
   mount: /mnt/nfs
   subdomain: r4
+  release: r4
   ipName: finngen-r4-ip
+  secretName: production-r4-secrets
   
 persistentVolume:
   storage: 11T

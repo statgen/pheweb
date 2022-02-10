@@ -1,8 +1,8 @@
 FROM debian:10
 
 # can change this in k8s deployment yaml to serve from another directory
-ENV PHEWEB_DIR /mnt/nfs/pheweb/r7
-ENV CLOUD_SQL_PROXY_CREDENTIAL_FILE /mnt/nfs/pheweb/phewas.sql.credentials.json
+ENV PHEWEB_DIR /mnt/nfs/pheweb
+ENV CLOUD_SQL_PROXY_CREDENTIAL_FILE /etc/gcp/cloud-sql-credentials.json
 ENV CLOUD_SQL_PROXY_INSTANCES phewas-development:europe-west1:pheweb=tcp:3306
 
 # create and setup the en_US.UTF-8 locale

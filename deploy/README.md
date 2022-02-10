@@ -1,11 +1,120 @@
-# Upgrading
+# Creating a new pheweb release
+
+  For consistency the release will be referred to
+  ${release} e.g ${release}="r9","userresults"
+  ${environment} e.g. ${environment}=prod,dev,staging
+
+## Create IP
+   https://console.cloud.google.com/networking/addresses/list
+
+   Reserve a static address
+
+   Name: prod-${release}-pheweb-ip
+   Network Service Tier : Premium
+   IP version : IPv4
+   Type : Global
+   Region : europe-west1
+
+## Request DNS
+
+   Request the domain name for release.
+
+   ${release}.finngen.fi to resolve to the ip address
+   just created.
+
+## Create Oauth
+
+   https://console.cloud.google.com/apis/credentials
+
+   Create credentials
+
+   Oauth clientId
+   Application Type : Web Application
+   Name : PheWeb ${release}
+   Authorized JavaScript origins : https://${release}.finngen.fi
+   Authorized redirect URIs :
+
+## Create Deployment
+
+   gcloud deployment-manager deployments create prod-${release}-pheweb --config=prod-${release}-pheweb.yaml
+
+## Install secrets
+
+   Back up credentials in google cloud secrets
+
+   oauth.conf                                   ${environment}_${release}_oauth
+   pheweb-group-oauth.json                      pheweb_group_oauth
+   service-account-credentials.json             service_account_credentials
+   cloud-sql-credentials.json                   cloud_sql_credentials
+   mysql.conf                                   ${environment}_${release}_mysql.conf
+
+
+
+   NOTE : pheweb_group_oauth, service_account_credentials,
+   cloud_sql_credentials
+   should be also populated by previous releases
+
+```
+   # oauth.conf
+   gcloud beta secrets create ${environment}_${release}_oauth --replication-policy="user-managed" --locations=europe-west1
+   gcloud beta secrets versions add ${environment}_${release}_oauth --data-file=oauth.conf
+
+
+   # pheweb_group_oauth          : populated in previous releases
+   # service_account_credentials : populated in previous releases
+
+   # mysql.conf
+   gcloud beta secrets create ${environment}_${release}_mysql_conf --replication-policy="user-managed" --locations=europe-west1
+   gcloud beta secrets versions add ${environment}_${release}_mysql_conf --data-file=mysql.conf
+```
+
+   NOTE : add the appropriate groups
+   e.g. gcloud beta secrets add-iam-policy-binding my_secret --member=group:my_group --role=roles/secretmanager.viewer
+
+   Pull the secrets you just installed. This step ensures the cluster can be recovered with the necessary secrets.
+
+```
+   gcloud beta secrets versions access latest --secret=${environment}_${release}_oauth       > oauth.conf
+   gcloud beta secrets versions access latest --secret=pheweb_group_oauth                    > pheweb-group-oauth.json
+   gcloud beta secrets versions access latest --secret=service_account_credentials           > service-account-credentials.json
+   gcloud beta secrets versions access latest --secret=cloud_sql_credentials                 > cloud-sql-credentials.json
+   gcloud beta secrets versions access latest --secret=${environment}_${release}_mysql_conf  > mysql.conf
+
+```
+
+   gcloud container clusters get-credentials ${environment}-${release}-pheweb --region europe-west1-b
+
+   Install secrets in the cluster.
+   NOTE : the names should remained unchanged.
+
+
+```
+         kubectl create secret generic ${environment}-${release}-secrets \
+           --from-file=oauth.conf \
+           --from-file=pheweb-group-oauth.json \
+           --from-file=service-account-credentials.json \
+           --from-file=mysql.conf \
+           --from-file=cloud-sql-credentials.json
+```
+
+## Install Pheweb
+
+
+   create values file ${release}-values.yaml . Use the older release
+   files have
+
+   helm create ${release}-pheweb .  -f ${release}-values.yaml
+
+# Upgrading pheweb
 
   For results,r6,r5,staging use helm
 ```
-helm upgrade -f r6_values.yaml pheweb . # r6
-helm upgrade -f r5_values.yaml pheweb . # r5
-helm upgrade -f results_values.yaml pheweb . # results
-helm upgrade -f staging_values.yaml  pheweb . # starging
+   helm upgrade ${release}-pheweb .  -f ${release}-values.yaml
 ```
 
- For r1,r2,r3,r4 use kubectl
+# Deleting deployment
+
+# Backup directories
+
+
+  gsutil -m rsync -r /mnt/nfs/pheweb/${release} gs://${release}_data_green/${environment}/pheweb

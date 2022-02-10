@@ -17,23 +17,20 @@ gcloud container clusters create <clustername> --num-nodes=1 --machine-type=n1-s
 	gcloud container clusters get-credentials <clustername> --zone europe-west1-b
 ```
 
-3. get certificates
+3. install secrets
 
+   oauth.conf              - oauth configuration file        # TODO how to get this
+   pheweb-group-oauth.json - oauth group configruation file  # TODO how to get this
+   service-account.json    - service account json            # TODO how to get this
+   
 ```
-	gcloud beta secrets list
-	
-	gcloud beta secrets versions access latest --secret=<cert name> > cert.pem
-	gcloud beta secrets versions access latest --secret=<key name> > cert_key.pem
-	
-```
-
-4. install certificate
-
-```
-	kubectl create secret tls finngen-tls --cert=cert.pem --key=cert_key.pem
+   kubectl create secret generic r9-secrets \
+     --from-file=/home/mwm1/oauth.conf \
+     --from-file=/etc/gcp/pheweb-group-oauth.json \
+     --from-file=/home/mwm1/service-account.json 
 ```
 
-5. create configuration
+4. create configuration
 
 
 From the root of this repo `cd deploy/pheweb` and create

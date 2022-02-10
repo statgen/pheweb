@@ -49,9 +49,11 @@ spec:
           value: {{ .Values.pheweb.cloudSQLProxyInstances }}
         {{- end }}
 
+        # sets environment variable so applications
+        # can find the credentials
         {{- if .Values.pheweb.secretName }}
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /etc/gcp/sa_credentials.json
+          value: /etc/gcp/service-account-credentials.json
         {{- end }}
           
         ports:
@@ -76,8 +78,8 @@ spec:
         {{- if .Values.pheweb.secretName }}
         - name: service-account-credentials-volume
           mountPath: /etc/gcp
-          readOnly: true
-        {{- end }}
+          readOnly: true 
+       {{- end }}
         
       volumes:
       - name: pheweb-nfs
@@ -89,7 +91,4 @@ spec:
       - name: service-account-credentials-volume
         secret:
           secretName: {{ .Values.pheweb.secretName }}
-          items:
-            - key: sa_json
-              path: sa_credentials.json
       {{- end }}

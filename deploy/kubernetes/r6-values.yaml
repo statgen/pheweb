@@ -3,9 +3,11 @@
 replicaCount: 3
 
 pheweb:
-  mount: /mnt/nfs
-  subdomain: r6
   ipName: finngen-r6-ip
+  mount: /mnt/nfs
+  release: r6
+  secretName: production-r6-secrets
+  subdomain: r6
   
 persistentVolume:
   path: /vol1
