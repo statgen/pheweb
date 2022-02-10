@@ -7,11 +7,10 @@ import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
 import loading from "../../common/Loading";
 import { getLOF } from "./lofAPI";
 
-interface Props {}
 declare let window: ConfigurationWindow;
 const lof = window?.config?.userInterface?.lof;
 
-const dataToTableRows = (lofData : LOF.Data | null) : LOF.GeneData[] => lofData?.map(l => l.gene_data)
+const dataToTableRows = (lofData : LOF.Data | null) : LOF.GeneData[] => lofData?.map(l => l.gene_data) || []
 const tableColumns : Column<LOF.GeneData>[] = createTableColumns(lof?.table?.columns) || (LOFTableColumns as Column<LOF.GeneData>[])
 const defaultSorted = lof?.table?.defaultSorted || [{
   id: 'pval',
