@@ -305,6 +305,8 @@ task matrix {
 
     command <<<
         set -euxo pipefail
+        mkdir -p /root/.pheweb/cache/
+        cp ${bed_file} /root/.pheweb/cache/genes-b38-v25.bed
         mkdir -p pheweb/generated-by-pheweb/tmp && \
             echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
             mkdir -p pheweb/generated-by-pheweb/pheno_gz && \
