@@ -45,7 +45,7 @@ common_filepaths = {
         "sites/genes", f'gene_aliases_b{genome_build}.marisa_trie'
     ),
     "rsids": get_cacheable_file_location(
-        "sites/dbSNP", f'rsids-b{genome_build}-{dbsnp_version}.vcf.gz'
+        "sites/dbSNP", f'rsids-b{genome_build}-dbsnp{dbsnp_version}.vcf.gz'
     ),
     "unanno": get_generated_path("sites/sites-unannotated.tsv"),
     "sites-rsids": get_generated_path("sites/sites-rsids.tsv"),
