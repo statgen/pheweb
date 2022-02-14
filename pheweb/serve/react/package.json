@@ -19,7 +19,6 @@
     "@types/react-test-renderer": "^16.9.3",
     "@types/react-tooltip": "^4.2.4",
     "@types/uuid": "^8.3.3",
-    "babel-jest": "^27.5.1",
     "bootstrap": "^4.6.1",
     "d3": "^6.2.0",
     "d3-tip": "^0.9.1",
