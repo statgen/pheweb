@@ -45,10 +45,10 @@ RUN python3 -m pip install /pheweb
 RUN python3 -m pip freeze
 
 # create react js bundle
-RUN cd /pheweb/pheweb/serve/react && \
-    npm install && node_modules/webpack/bin/webpack.js --config webpack.prod.js && \
-    mv /pheweb/pheweb/serve/static/bundle.js /usr/local/lib/python3.7/dist-packages/pheweb/serve/static/ && \
-    rm -r /pheweb
+RUN cd /pheweb/pheweb/serve/react && npm install
+RUN cd /pheweb/pheweb/serve/react && npm run build
+RUN cp -R /pheweb/pheweb/serve/static/* /usr/local/lib/python3.7/dist-packages/pheweb/serve/static/
+RUN rm -r /pheweb
 
 ADD . /pheweb
 ADD pheweb/load/external_matrix.py /usr/local/bin/
