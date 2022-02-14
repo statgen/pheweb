@@ -145,8 +145,8 @@ task annotation {
 
 	# TODO test cache
 	# TODO this file also appears : generated-by-pheweb/sites/dbSNP/dbsnp-b151-GRCh38.gz
-	[[ -z "${rsids_file}" ]] || mv ${rsids_file} pheweb/generated-by-pheweb/sites/dbSNP/
-        [[ -z "${bed_file}" ]] || mv ${bed_file}   pheweb/generated-by-pheweb/sites/genes/
+	[[ -z "${rsids_file}" ]] || mv ${rsids_file} pheweb/generated-by-pheweb/sites/dbSNP/rsids-b38-dbsnp151.vcf.gz
+        [[ -z "${bed_file}" ]] || mv ${bed_file}   pheweb/generated-by-pheweb/sites/genes/genes-b38-v37.bed
         # allow for compressed sites file
 	cat ${variant_list} | (if [[ "${variant_list}" == *.gz || "${variant_list}" == *.bgz ]]; then zcat ; else cat ; fi) > pheweb/generated-by-pheweb/sites/sites-unannotated.tsv
 
@@ -305,14 +305,12 @@ task matrix {
 
     command <<<
         set -euxo pipefail
-        mkdir -p /root/.pheweb/cache/
-        cp ${bed_file} /root/.pheweb/cache/genes-b38-v25.bed
         mkdir -p pheweb/generated-by-pheweb/tmp && \
             echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
             mkdir -p pheweb/generated-by-pheweb/pheno_gz && \
             mkdir -p pheweb/generated-by-pheweb/manhattan && \
             mkdir -p /root/.pheweb/cache && \
-            [[ -z "${bed_file}" ]] || mv ${bed_file} /root/.pheweb/cache/ && \
+            [[ -z "${bed_file}" ]] || mv ${bed_file} /root/.pheweb/cache/genes-b38-v37.bed && \
             mv ${sep=" " pheno_gz} pheweb/generated-by-pheweb/pheno_gz/ && \
             mv ${sep=" " manhattan} pheweb/generated-by-pheweb/manhattan/ && \
             cd pheweb && \
