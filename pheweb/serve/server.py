@@ -9,7 +9,7 @@ from flask import Blueprint
 
 from .data_access.db import Variant
 
-from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
+from flask import Flask, jsonify, render_template, request, redirect, abort, flash, current_app, send_from_directory, send_file, session, url_for,make_response
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from .reporting import Report
@@ -38,8 +38,19 @@ from .server_auth import before_request
 from pheweb_colocalization.view import colocalization
 from .components.autocomplete.service import autocomplete
 from .components.chip.service import chip
+from flask_cors import CORS
 
-app = Flask(__name__)
+
+app = Flask(__name__,
+            # this is hack so this it doesn't get confused on the static subdirectory
+            static_url_path='/55e2cb41-9305-4f09-97fd-b66c4141d245',
+            static_folder='static')
+
+# see: https://flask-cors.readthedocs.io/en/latest/
+if 'cors_origins' in conf:
+    resources = {r"/api/*": {"origins": conf['cors_origins']}}
+    print(f'CORS : {resources}')
+    cors = CORS(app, resources=resources)
 
 ## allows debug statements in jinja
 @app.context_processor
@@ -83,9 +94,7 @@ app.config['title'] = conf['title']
 app.config['page_title'] = conf['page_title']
 if 'endpoint_def' in conf:
     app.config['endpoint_def'] = conf['endpoint_def']
-#app.config['lof'] = 'lof' in [list(c.keys())[0] for c in conf.database_conf]
-#app.config['coding'] = False
-#app.config['chip'] = False
+
 app.config['ukbb'] = False
 for c in conf.database_conf:
     if 'coding' in c:
@@ -121,7 +130,7 @@ if "resource_dir" in conf:
 elif "data_dir" in conf:
     resource_dir = os.path.join(conf['data_dir'], "resources")
 
-if resource_dir:    
+if resource_dir:
     static_resources = Blueprint('static_resources',
                                  __name__,
                                  static_url_path='/static/resources',
@@ -144,24 +153,20 @@ def check_auth():
         result = before_request()
     return result
 
-@app.route('/auth')
-@is_public
-def auth():
-    return render_template('auth.html')
-
 @app.route('/health')
 @is_public
 def health():
     return jsonify({'health': 'ok'})
 
+# see : https://stackoverflow.com/questions/44209978/serving-a-front-end-created-with-create-react-app-with-flask
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def homepage(path):
-    return render_template('index_react.html',
-                           tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
-                           vis_conf=conf.vis_conf)
-
-
+def serve(path):
+    if path != '' and os.path.exists(f'{app.static_folder}/{path}'):
+        print(f'{app.static_folder}/{path}')
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/api/autoreport/<phenocode>')
 def autoreport(phenocode):
@@ -276,6 +281,7 @@ def api_lof_gene(gene):
 @app.route('/api/top_hits.json')
 def api_top_hits():
     return send_file(common_filepaths['top-hits-1k'])
+
 @app.route('/download/top_hits.tsv')
 def download_top_hits():
     return send_file(common_filepaths['top-hits-tsv'])
@@ -412,7 +418,7 @@ def gene_api(genename):
                              "drug_export_fields" : conf.drug_export_fields,
                              "lof_export_fields" : conf.lof_export_fields,
                               "func_var_report_p_threshold" : conf.report_conf["func_var_assoc_threshold"] }
-        
+
         return jsonify(gene_information)
     except Exception as exc:
         die("Sorry, your region request for phenocode {!r} and gene {!r} didn't work".format(phenocode, genename), exception=exc)
@@ -517,13 +523,6 @@ def die(message='no message', exception=None):
     print(message)
     flash(message)
     abort(404)
-
-@app.errorhandler(404)
-def error_page(message):
-    return render_template(
-        'error.html',
-        message=message
-    ), 404
 
 # Resist some CSRF attacks
 @app.after_request

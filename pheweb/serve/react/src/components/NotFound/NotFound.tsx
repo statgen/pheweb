@@ -10,8 +10,9 @@ declare let window: ConfigurationWindow;
 
 const NotFound = (props: Props) => {
   const { config } = window;
-  const query = new URLSearchParams(props.location.search).get("query");
+  const query = new URLSearchParams(props.location.search).get("query") || window.location.pathname;
   // NOTE: Empty value is set by backtick quotes and not mustache
+
   const default_message_template: string = `
       <p>
       {{#query}}Could not find page for <i>'<span className="query">{{.}}<span>'</i>{{/query}}

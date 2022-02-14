@@ -19,6 +19,7 @@
     "@types/react-test-renderer": "^16.9.3",
     "@types/react-tooltip": "^4.2.4",
     "@types/uuid": "^8.3.3",
+    "bootstrap": "^4.6.1",
     "d3": "^6.2.0",
     "d3-tip": "^0.9.1",
     "d3-v6-tip": "^1.0.9",
@@ -28,6 +29,7 @@
     "locuszoom": "^0.11.0",
     "match-sorter": "^1.8.1",
     "npm-install-all": "^1.1.6",
+    "npm-watch": "^0.11.0",
     "plotly.js": "^1.56.0",
     "q": "^1.5.1",
     "react": "^16.14.0",
@@ -68,10 +70,11 @@
     "typescript-plugin-css-modules": "^3.4.0"
   },
   "scripts": {
+    "watch": "npm-watch",
     "test": "react-scripts test --env=jsdom",
-    "start": "react-scripts  --openssl-legacy-provider start",
-    "build": "react-scripts  --openssl-legacy-provider build",
-    "eject": "react-scripts  --openssl-legacy-provider eject"
+    "start": "react-scripts start",
+    "build": "react-scripts build && cp -R build/* ../static/",
+    "eject": "react-scripts eject"
   },
   "author": "",
   "license": "ISC",
@@ -113,5 +116,13 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "watch": {
+    "build": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": "js,jsx,tsx"
+    }
   }
 }

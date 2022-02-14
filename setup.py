@@ -51,6 +51,7 @@ setup(
         'Jinja2~=2.11.3',
         'Flask~=1.1.2',
         'Flask-Compress~=1.4',
+        'Flask-Cors~=3.0.10',
         'Flask-Login~=0.4',
         'pyasn1~=0.4.6',
         'google-api-python-client~=2.33.0',
