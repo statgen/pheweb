@@ -100,10 +100,10 @@ class SQLiteAutocompleter(object):
                         display = cpra_display
                     else:
                         display = '{} ({})'.format(cpra_display, ','.join(row['rsid'] for row in rowlist))
-                        yield {
-                            'variant' : cpra,
-                            'display' : display
-                        }
+                    yield {
+                        'variant' : cpra,
+                        'display' : display
+                    }
 
     def _autocomplete_rsid(self, query:str) -> Iterator[Dict[str,str]]:
         key = query.lower()
