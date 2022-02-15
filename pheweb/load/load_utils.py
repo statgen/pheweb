@@ -185,7 +185,7 @@ class Parallelizer:
                     Traceback:
                     {indent(ret['exception_tb'])}
                     """
-                    print(msg)
+                    print(msg, file=sys.stderr)
                     with open(exc_filepath, 'wt') as f:
                         f.write(msg)
                     raise PheWebError('Child process had exception, info dumped to {}'.format(exc_filepath))

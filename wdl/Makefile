@@ -6,6 +6,3 @@ wdl.zip: *.wdl
 
 test-trivial-nosites: wdl.zip
 	cromshell submit test-trivial.wdl test-trivial-nosites.json options.json wdl.zip
-
-test-trivial-sites: wdl.zip
-	cromshell submit test-trivial.wdl test-trivial-sites.json options.json wdl.zip
