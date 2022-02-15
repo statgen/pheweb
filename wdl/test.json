@@ -1,7 +1,0 @@
-{ "test_import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-2a203e69b0a7a9da6b451d381ac7f0d7c641813d",
-  "test_import_pheweb.summary_file" : "gs://r8_data_green/regenie/release/summary_stats/Z21_PREVIOUS_SUICIDE_ATTEMPT.gz",
-  "test_import_pheweb.disk" : "100",
-  "test_import_pheweb.mem" : "10",
-  "test_import_pheweb.cpu" : "2",
-  "test_import_pheweb.bed_file" : "gs://r8_data_green/genes-b38-v37.bed"
-}

@@ -256,14 +256,23 @@ def _ensure_conf():
             return x
 
         def read(self, value):
-            """read from internal file"""
-            if self._d["nullable"] and (value == "" or value == "NA"):
-                return ""
-            x = self._d["type"](value)
-            if "range" in self._d:
-                assert self._d["range"][0] is None or x >= self._d["range"][0]
-                assert self._d["range"][1] is None or x <= self._d["range"][1]
-            return x
+            try:
+                """read from internal file"""
+                if self._d["nullable"] and (value == "" or value == "NA"):
+                    return ""
+                x = self._d["type"](value)
+                if "range" in self._d:
+                    assert self._d["range"][0] is None or x >= self._d["range"][0]
+                    assert self._d["range"][1] is None or x <= self._d["range"][1]
+                return x
+            except Exception as e:
+                # The goal of this block is to give
+                # context to errors when parsing a
+                # field.
+                print(f'exception : {str(e)}', file=sys.stderr)
+                print(f'value : {value}', file=sys.stderr)
+                print(f'field : {self}', file=sys.stderr)
+                raise e
 
     default_null_values = ["", ".", "NA", "nan", "NaN"]
 
