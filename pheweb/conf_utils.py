@@ -270,7 +270,7 @@ def _ensure_conf():
                 # context to errors when parsing a
                 # field.
                 print(f'exception : {str(e)}', file=sys.stderr)
-                print(f'value : {value}', file=sys.stderr)
+                print(f'value : "{value}"', file=sys.stderr)
                 print(f'field : {self}', file=sys.stderr)
                 raise e
 
