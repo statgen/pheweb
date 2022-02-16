@@ -5,6 +5,7 @@ import itertools
 from collections import OrderedDict, Counter
 from copy import deepcopy
 from boltons.fileutils import mkdir_p
+import sys
 
 # This module creates the object `conf`.
 # It also offers some configuration-related utility functions.
