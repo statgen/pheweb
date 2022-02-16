@@ -272,7 +272,7 @@ def _ensure_conf():
                 # field.
                 print(f'exception : {str(e)}', file=sys.stderr)
                 print(f'value : "{value}"', file=sys.stderr)
-                print(f'field : {self}', file=sys.stderr)
+                print(f'field : {self._d}', file=sys.stderr)
                 raise e
 
     default_null_values = ["", ".", "NA", "nan", "NaN"]
@@ -440,6 +440,7 @@ def _ensure_conf():
                 "af_alt_cases",
                 {
                     "type": float,
+                    "nullable": True,
                     "range": [0, 1],
                     "sigfigs": 2,
                     "tooltip_underscoretemplate": "AF cases: <%= d.af_alt_cases.toFixed(4) %><br>",
@@ -451,6 +452,7 @@ def _ensure_conf():
                 "af_alt_controls",
                 {
                     "aliases": ["af_alt_controls"],
+                    "nullable": True,
                     "type": float,
                     "range": [0, 1],
                     "sigfigs": 2,
