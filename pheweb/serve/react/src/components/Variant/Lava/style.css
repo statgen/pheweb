@@ -115,7 +115,6 @@ button#download:hover {
   border: 1px solid #999;
   border-radius: 3px;
   padding: 8px 25px;
-  margin-top: 4px;
   outline: none;
   white-space: nowrap;
   -webkit-user-select: none;
@@ -187,7 +186,8 @@ text.annotation-label {
       font-family: 'Roboto', sans-serif;
       letter-spacing: 0.2px;
       font-size: 12px;
-      line-height: 5px; 
+      padding-top: 1vh;
+      line-height: 15px; 
       font-smooth: subpixel-antialiased;
     }
 
@@ -235,6 +235,7 @@ text.label{
       content: "\25BC";/*unicode symbol*/
       position: absolute;
       text-align: right;
+      pointer-events:none !important;
 }
 /* Style northward tooltips specifically */
 .d3-tip.n:after {
@@ -372,21 +373,24 @@ a#button_styled_download {
 }
 .ico-times:before{ content: "\2716"; 
 }
-.close{
+button.close{
   background: white;
   border-color: transparent;
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  margin-left: 2vw;
+  opacity: 1;
 }
-.close:hover{
+button.close:hover{
   cursor: pointer;
   border: 1px solid black;
 }
 #download-options-inner{
-      padding-left: 45vw;
+      padding-left: 40vw;
+      padding-right: 40vw;
       padding-top: 45vh;
+      display: flex;
+      justify-content: space-around;
 }
 #downloadImg-block{
       display: none;
@@ -401,7 +405,7 @@ a#button_styled_download {
   height: 35vw;
   position: absolute;
   right: 0%;
-  margin-top: 5vh;
+  margin-top: 30%;
   margin-left: 50px;
   top: 0
 }
@@ -410,6 +414,7 @@ a#button_styled_download {
 #info-column-wrapper{
 max-width: 50vw;
 height: 40vw;
+padding-top: 3vh;
 /*border-bottom: 0.5px solid black;*/
 }
 
@@ -430,7 +435,7 @@ height: 40vw;
       overflow-x: auto; 
     }
     #phenotype {
-      width: 10vw;
+      width: 11vw;
       padding-left: 1vw;
       float: left;
       overflow-x: auto;
@@ -442,13 +447,13 @@ height: 40vw;
       overflow-x: auto;
     }
     #beta {
-      width: 3vw;
-      padding-left: 0.6vw;
+      width: 5vw;
+      padding-left: 1vw;
       float: left;
       overflow-x: auto;
     }
     #case-control {
-      width: 6vw;
+      width: 10vw;
       padding-left: 1vw;
       float: left;
       overflow-x: auto;
@@ -488,10 +493,10 @@ height: 40vw;
 }
 /* Style the checkmark/indicator */
 .chart-btn-container .checkmark-custom:after {
-  left: 9px;
+  left: 11px;
   top: 5px;
-  width: 5px;
-  height: 10px;
+  width: 7.5px;
+  height: 15px;
   border: solid black;
   border-width: 0 3px 3px 0;
   -webkit-transform: rotate(45deg);
@@ -517,10 +522,10 @@ height: 40vw;
   display: block;
 }
 .chart-btn-container .checkmark-custom-2:after {
-  left: 9px;
+  left: 11px;
   top: 5px;
-  width: 5px;
-  height: 10px;
+  width: 7.5px;
+  height: 15px;
   border: solid black;
   border-width: 0 3px 3px 0;
   -webkit-transform: rotate(45deg);
@@ -546,10 +551,10 @@ height: 40vw;
   display: block;
 }
 .chart-btn-container .checkmark-custom-3:after {
-  left: 9px;
+  left: 11px;
   top: 5px;
-  width: 5px;
-  height: 10px;
+  width: 7.5px;
+  height: 15px;
   border: solid black;
   border-width: 0 3px 3px 0;
   -webkit-transform: rotate(45deg);
@@ -574,10 +579,10 @@ height: 40vw;
   display: block;
 }
 .chart-btn-container .checkmark-custom-4:after {
-  left: 9px;
+  left: 11px;
   top: 5px;
-  width: 5px;
-  height: 10px;
+  width: 7.5px;
+  height: 15px;
   border: solid black;
   border-width: 0 3px 3px 0;
   -webkit-transform: rotate(45deg);
@@ -592,7 +597,7 @@ body {
 }
     #chart {
       max-width: 50vw;
-      max-height: 100vh;
+      max-height: 80vh;
       padding-bottom: 5vh;
       z-index: 1;
     }
@@ -604,7 +609,6 @@ body {
     padding-bottom: 100%;
     vertical-align: top;
     overflow: hidden;
-    margin-top:2vh;
     }
 
     #input-btn-block {
@@ -726,7 +730,7 @@ h4{
 }
 p{
   font-family: 'Roboto', sans-serif;
-  line-height: 1.5em;
+  /*line-height: 1.5em;*/
   font-size: 0.9em;
-  padding-bottom: 1vh;
+  /*padding-bottom: 1vh;*/
 }
