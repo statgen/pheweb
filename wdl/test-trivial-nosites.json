@@ -1,4 +1,4 @@
 { "test_trivial_no_sites.import_pheweb.bed_file" : "gs://r8_data_green/genes-b38-v37.bed" ,
   "test_trivial_no_sites.import_pheweb.matrix.cpu" : 8 ,
-  "test_trivial_no_sites.docker" : "eu.gcr.io/phewas-development/pheweb:wip-c1b79c0f2ba778666bef21920f53e9a17170df63"
+  "test_trivial_no_sites.docker" : "eu.gcr.io/phewas-development/pheweb:wip-d3d60f8dc716e1a7d24688e5bd2aa73b2e9bdd58"
 }

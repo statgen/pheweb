@@ -1,6 +1,6 @@
 { "import_single_file.import_pheweb.bed_file" : "gs://r8_data_green/genes-b38-v37.bed" ,
   "import_single_file.import_pheweb.matrix.cpu" : 8 ,
-  "import_single_file.docker" : "eu.gcr.io/phewas-development/pheweb:wip-2a203e69b0a7a9da6b451d381ac7f0d7c641813d" ,
+  "import_single_file.docker" : "eu.gcr.io/phewas-development/pheweb:wip-d3d60f8dc716e1a7d24688e5bd2aa73b2e9bdd58",
   "import_single_file.phenocode" : "whradjbmi" ,
   "import_single_file.description" : "waist to hip ratio" ,
   "import_single_file.file_url" : "https://portals.broadinstitute.org/collaboration/giant/images/e/e6/PublicRelease.WHRadjBMI.C.All.Rec.txt.gz" ,
