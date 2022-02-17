@@ -40,6 +40,8 @@ ADD . /pheweb
 # install python packages and perquisites
 RUN apt-get update && apt-get install default-libmysqlclient-dev git python3-pip libffi-dev libz-dev  libbz2-dev liblzma-dev libssl-dev --yes --fix-missing
 RUN python3 -m pip install cython
+RUN apt-get install rustc --yes
+RUN python3 -m pip install gsutil # needed for wdl copying files
 RUN python3 -m pip install pip==20.1.1 --upgrade
 RUN python3 -m pip install /pheweb
 RUN python3 -m pip freeze
@@ -54,7 +56,7 @@ ADD . /pheweb
 ADD pheweb/load/external_matrix.py /usr/local/bin/
 
 # remove build tools
-RUN apt-get purge git gcc cmake --yes
+RUN apt-get purge git gcc rustc cmake --yes
 
 EXPOSE 8080
 CMD cloud_sql_proxy -instances=$CLOUD_SQL_PROXY_INSTANCES -credential_file=$CLOUD_SQL_PROXY_CREDENTIAL_FILE & cd $PHEWEB_DIR && pheweb serve --port 8080 --num-workers 4
