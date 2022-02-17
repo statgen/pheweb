@@ -328,15 +328,12 @@ const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
   const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : string }| null>(null);
 
-//  const[ncbi,setNCBI] = useState<NCBI.Data | null>(null);
   useEffect(() => {
-    console.log('... 1')
     const variant = createVariant()
     variant && getVariant(variant, setVariantData)
   },[]);
 
   useEffect(() => {
-    console.log('... 2')
     if(variantData && bioBankURL == null) {
       const variant = createVariant()
       const summary = createVariantSummary(variantData)
@@ -351,8 +348,6 @@ const Variant = (props : Props) => {
       })
     }
   },[variantData, setBioBankURL,bioBankURL]);
-
-  console.log('... 3')
 
   // the null check is on  bioBankURL == null as for some reason
   // the tool tip is not happing loading this later.

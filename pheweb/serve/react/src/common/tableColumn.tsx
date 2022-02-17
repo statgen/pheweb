@@ -1388,7 +1388,9 @@ export const variantTableColumns = [
   phenotypeColumns.pValue,
   phenotypeColumns.mlogp,
   phenotypeColumns.chipAFCase,
-  phenotypeColumns.chipAFControl
+  phenotypeColumns.chipAFControl,
+  phenotypeColumns.numCases,
+  phenotypeColumns.numControls
 ]
 
 export const topHitTableColumns = [
@@ -1446,20 +1448,20 @@ const createColumn = <Type extends {}>(descriptor: ColumnConfiguration<Type>): C
   return column;
 };
 
-export const createTableColumns = <Type extends {}>(param: TableColumnConfiguration<Type>): Column<Type>[] | null => {
-  return (param) ? param.map(createColumn) : null;
-};
+export const createTableColumns = <Type extends {}>(param: TableColumnConfiguration<Type>): Column<Type>[] | null =>
+  (param) ? param.map(createColumn) : null
+
 
 const reshape = <Type extends {}>(column: Column<Type>): LabelKeyObject => {
   let result: LabelKeyObject;
   if (typeof column.accessor == "string") {
-    result = { label: column.accessor, key: column.accessor };
+    result = { label: column.id || column.accessor ,
+               key: column.id || column.accessor };
   } else {
     throw Error(`invalid column : ${column.accessor} : ${column.id}`);
   }
   return result;
 };
 
-export const createCSVLinkHeaders = <Type extends {}>(columns: Column<Type>[] | null): Headers => {
-  return columns?.map(reshape) || [];
-};
+export const createCSVLinkHeaders = <Type extends {}>(columns: Column<Type>[] | null): Headers =>
+  columns?.map(reshape) || []

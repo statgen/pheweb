@@ -24,7 +24,9 @@ export interface Props <TableData, RowType extends  {},
   defaultSorted : SortingRule<string>[]
 }
 
-export type DownloadTableProps<TableData, RowType extends  {}, ReactProperties extends {} = {}> = Props<TableData, RowType, ReactProperties>
+export type DownloadTableProps<TableData,
+                               RowType extends  {},
+                               ReactProperties extends {} = {}> = Props<TableData, RowType, ReactProperties>
 
 const DownloadTable = <TableData,RowType extends {}>
   ({ filename,
@@ -45,7 +47,6 @@ const DownloadTable = <TableData,RowType extends {}>
     */
     useEffect(() => { download && link && link.link.click() },[download,link]);
 
-
     const downloadHandler = () => {
       if (reactTableRef != null) {
         setDownload(reactTableRef.getResolvedState().sortedData)
@@ -59,7 +60,6 @@ const DownloadTable = <TableData,RowType extends {}>
         columns={tableColumns}
         defaultSorted={defaultSorted}
         {...tableProperties  } />
-
 
       <p>
 
