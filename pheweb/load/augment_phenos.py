@@ -4,10 +4,14 @@ from pheweb.utils import PheWebError
 from pheweb.file_utils import VariantFileReader, VariantFileWriter, common_filepaths, with_chrom_idx
 from pheweb.load.load_utils import parallelize_per_pheno
 
+
+def get_sites_filepath():
+    return common_filepaths['sites']
+
 def run(argv):
 
     parallelize_per_pheno(
-        get_input_filepaths = lambda pheno: [common_filepaths['parsed'](pheno['phenocode']), sites_filepath],
+        get_input_filepaths = lambda pheno: [common_filepaths['parsed'](pheno['phenocode']), get_sites_filepath()],
         get_output_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
         convert = convert_phenotype,
         cmd = 'augment-pheno',
@@ -20,7 +24,7 @@ def cli():
 @cli.command()
 @click.argument('phenotype')
 def convert_phenotype(pheno):
-    sites_filepath = common_filepaths['sites']
+    sites_filepath = get_sites_filepath()
     input_filepath = common_filepaths['parsed'](pheno['phenocode'])
     output_filepath = common_filepaths['pheno'](pheno['phenocode'])
     convert_files(sites_filepath, input_filepath, output_filepath)
