@@ -15,6 +15,14 @@ function Lavaa (props) {
 
   const data = props.dataprop
 
+  data.forEach((d)=> {
+    d.n_case = d.n_case | d.af_alt_cases | d.maf_alt_cases;
+  })
+  data.forEach((d)=> {
+    d.n_control = d.n_control | d.af_alt_controls | d.maf_alt_controls;
+  })
+
+
   useEffect(() => {
 
     if (!ready) { // if not ready, then:
@@ -324,7 +332,7 @@ function Lavaa (props) {
         })
         //max for the case numbers
         var maxCases = d3.max(data, function (d) {
-          return d.maf_alt_cases
+          return d.n_case
         })
         //create two Yscales with different ranges
         yScale.domain([min, max])
@@ -425,7 +433,7 @@ function Lavaa (props) {
           .attr('class', 'd3-tip')
           .offset([-5, 0])
           .html((event, d) => {
-          return d.category + '<br>' + '<br>' + d.phenostring + '<br>' + '<br>' + 'p-value: ' + d.pval + '<br>' + 'beta value: ' + d.beta + '<br>' + 'cases / controls: ' + d.maf_alt_cases + ' / ' + d.maf_alt_controls + '<br>' + 'pip: ' + d.pip
+          return d.category + '<br>' + '<br>' + d.phenostring + '<br>' + '<br>' + 'p-value: ' + d.pval + '<br>' + 'beta value: ' + d.beta + '<br>' + 'cases / controls: ' + d.n_case + ' / ' + d.n_control + '<br>' + 'pip: ' + d.pip
         })
         svg.call(tip)
 
@@ -439,7 +447,7 @@ function Lavaa (props) {
           .attr('cy', function (d) {
             return yScale(d.pval)
           })
-          .attr('r', d => sqrtScale(d.maf_alt_cases))
+          .attr('r', d => sqrtScale(d.n_case))
           .style('pointer-events', 'none') //disable hover effects
           .style('opacity', function (d) {
             if (d.pval >= 0.0000001) {
@@ -475,7 +483,7 @@ function Lavaa (props) {
           //highlight color
           .on('mouseover.color', function () {
             d3.select(this).transition().duration('200').style('opacity', 1)
-              .attr('r', d => sqrtScale(d.maf_alt_cases))
+              .attr('r', d => sqrtScale(d.n_case))
           }).on('mouseout.color', function () {
           d3.select(this).transition().duration('200').style('opacity', function (d) {
             if (d.pval >= 0.0000001) {
@@ -491,7 +499,7 @@ function Lavaa (props) {
               y = parseFloat(d3.select(this).attr('cy'))
             //format the case number with a comma separator
             let format = d3.format(',')
-            let formattedCases = format(d.maf_alt_cases)
+            let formattedCases = format(d.n_case)
             const label = labelLayer.append('g').classed('chartLabel', true).style('transform', `translate(${x + 10}px,${y + 10}px)`)
             label.append('line')
               .attr('x1', 0)
@@ -567,7 +575,7 @@ function Lavaa (props) {
             }).on('mouseout.tip', tip.hide)
             //highlight color
             .on('mouseover.color', function () {
-              d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.maf_alt_cases))
+              d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.n_case))
             }).on('mouseout.color', function () {
             d3.select(this).transition().duration('200').style('opacity', 1).attr('r', 2)
           })
@@ -577,7 +585,7 @@ function Lavaa (props) {
                 y = parseFloat(d3.select(this).attr('cy'))
               //format the case number with a comma separator
               let format = d3.format(',')
-              let formattedCases = format(d.maf_alt_cases)
+              let formattedCases = format(d.n_case)
               const label = labelLayer.append('g').classed('chartLabel', true).style('transform', `translate(${x + 10}px,${y + 10}px)`)
               label.append('line').attr('x1', 0).attr('y1', -2.5).attr('x2', -10).attr('y2', -10).style('stroke-width', '0.5px').style('stroke', '#d3d3d3')
               label.append('text').style('font-size', '5px').style('font-family', 'sans-serif').style('cursor', 'grab').text(d.phenostring).call(d3.drag().on('start', dragLabelStarted))
@@ -683,7 +691,8 @@ function Lavaa (props) {
           caseCol.selectAll('p').data((removeDuplicates(selection2))).enter().append('div').attr('class', 'myScroll').style('overflow-x', 'auto').append('p').attr('class', 'info').attr('x', 10).attr('y', function (d, i) {
             return i * 12
           }).html(function (d) {
-            return d.maf_alt_cases + ' / ' + d.maf_alt_controls
+            return d.n_case + ' / ' + d.n_case
+    
           })
           setSelection(selection2)
         })
@@ -995,7 +1004,7 @@ function Lavaa (props) {
             .style('font-family', 'sans-serif')
           //set up the tooltip
           var tip = d3.tip().attr('class', 'd3-tip').offset([-5, 0]).html((event, d) => {
-            return d.category + '<br>' + '<br>' + d.phenostring + '<br>' + '<br>' + 'p-value: ' + d.pval + '<br>' + 'beta value: ' + d.beta + '<br>' + 'cases / controls: ' + d.maf_alt_cases + ' / ' + d.maf_alt_controls + '<br>' + 'pip: ' + d.pip
+            return d.category + '<br>' + '<br>' + d.phenostring + '<br>' + '<br>' + 'p-value: ' + d.pval + '<br>' + 'beta value: ' + d.beta + '<br>' + 'cases / controls: ' + d.n_case + ' / ' + d.n_control + '<br>' + 'pip: ' + d.pip
           })
           svg.call(tip)
 
@@ -1009,7 +1018,7 @@ function Lavaa (props) {
             .attr('cy', function (d) {
               return yScale(d.pval)
             })
-            .attr('r', d => sqrtScale(d.maf_alt_cases))
+            .attr('r', d => sqrtScale(d.n_case))
             .style('pointer-events', 'none') //disable hover effects
             .style('opacity', function (d) {
               if (d.pval >= 0.0000001) {
@@ -1042,7 +1051,7 @@ function Lavaa (props) {
             }).on('mouseout.tip', tip.hide)
             //highlight color
             .on('mouseover.color', function () {
-              d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.maf_alt_cases))
+              d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.n_case))
             }).on('mouseout.color', function () {
             d3.select(this).transition().duration('200').style('opacity', function (d) {
               if (d.pval >= 0.0000001) {
@@ -1058,7 +1067,7 @@ function Lavaa (props) {
                 y = parseFloat(d3.select(this).attr('cy'))
               //format the case number with a comma separator
               let format = d3.format(',')
-              let formattedCases = format(d.maf_alt_cases)
+              let formattedCases = format(d.n_case)
               const label = labelLayer.append('g').classed('chartLabel', true).style('transform', `translate(${x + 10}px,${y + 10}px)`)
               label.append('line')
                 .attr('x1', 0)
@@ -1126,7 +1135,7 @@ function Lavaa (props) {
               }).on('mouseout.tip', tip.hide)
               //highlight color
               .on('mouseover.color', function () {
-                d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.maf_alt_cases))
+                d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.n_case))
               }).on('mouseout.color', function () {
               d3.select(this).transition().duration('200').style('opacity', 1).attr('r', 2)
             })
@@ -1136,7 +1145,7 @@ function Lavaa (props) {
                   y = parseFloat(d3.select(this).attr('cy'))
                 //format the case number with a comma separator
                 let format = d3.format(',')
-                let formattedCases = format(d.maf_alt_cases)
+                let formattedCases = format(d.n_case)
                 const label = labelLayer.append('g').classed('chartLabel', true).style('transform', `translate(${x + 10}px,${y + 10}px)`)
                 label.append('line')
                   .attr('x1', 0)
@@ -1251,7 +1260,7 @@ function Lavaa (props) {
             caseCol.selectAll('p').data((removeDuplicates(selection2))).enter().append('div').attr('data-simplebar', 'init').style('overflow-x', 'auto').append('p').attr('class', 'info').attr('x', 10).attr('y', function (d, i) {
               return i * 12
             }).html(function (d) {
-              return d.maf_alt_cases + ' / ' + d.maf_alt_controls
+              return d.n_case + ' / ' + d.n_control
             })
           })
 
@@ -1408,7 +1417,7 @@ function Lavaa (props) {
             }).on('mouseout.tip', tip.hide)
             //highlight color
             .on('mouseover.color', function () {
-              d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.maf_alt_cases))
+              d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.n_case))
             }).on('mouseout.color', function () {
             d3.select(this).transition().duration('200').style('opacity', function (d) {
               if (d.pval >= 0.0000001) {
@@ -1424,7 +1433,7 @@ function Lavaa (props) {
                 y = parseFloat(d3.select(this).attr('cy'))
               //format the case number with a comma separator
               let format = d3.format(',')
-              let formattedCases = format(d.maf_alt_cases)
+              let formattedCases = format(d.n_case)
               const label = labelLayer.append('g').classed('chartLabel', true).style('transform', `translate(${x + 10}px,${y + 10}px)`)
               label.append('line').attr('x1', 0).attr('y1', -2.5).attr('x2', -10).attr('y2', -10).style('stroke-width', '0.5px').style('stroke', '#d3d3d3')
               label.append('text').style('font-size', '5px').style('font-family', 'sans-serif').style('cursor', 'grab').text(d.phenostring).call(d3.drag().on('start', dragLabelStarted))
@@ -1443,7 +1452,7 @@ function Lavaa (props) {
           }) //added offset to align beta values
             .attr('cy', function (d) {
               return yScale3(d.pval)
-            }).attr('r', d => sqrtScale(d.maf_alt_cases)).style('pointer-events', 'none') //disable hover effects
+            }).attr('r', d => sqrtScale(d.n_case)).style('pointer-events', 'none') //disable hover effects
             .attr('class', 'circleBackground').style('opacity', 0.2).attr('fill', d => colorScale(colorValue(d))) //color by category
           //brushing significant ones, help from https://peterbeshai.com/blog/2016-12-03-brushing-in-scatterplots-with-d3-and-quadtrees/
           const brush = d3.brush().extent([
@@ -1502,7 +1511,7 @@ function Lavaa (props) {
               }).on('mouseout.tip', tip.hide)
               //highlight color
               .on('mouseover.color', function () {
-                d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.maf_alt_cases))
+                d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.n_case))
               }).on('mouseout.color', function () {
               d3.select(this).transition().duration('200').style('opacity', 1).attr('r', 2)
             })
@@ -1512,7 +1521,7 @@ function Lavaa (props) {
                   y = parseFloat(d3.select(this).attr('cy'))
                 //format the case number with a comma separator
                 let format = d3.format(',')
-                let formattedCases = format(d.maf_alt_cases)
+                let formattedCases = format(d.n_case)
                 const label = labelLayer.append('g').classed('chartLabel', true).style('transform', `translate(${x + 10}px,${y + 10}px)`)
                 label.append('line').attr('x1', 0).attr('y1', -2.5).attr('x2', -10).attr('y2', -10).style('stroke-width', '0.5px').style('stroke', '#d3d3d3')
                 label.append('text').style('font-size', '5px').style('font-family', 'sans-serif').style('cursor', 'grab').text(d.phenostring).call(d3.drag().on('start', dragLabelStarted))
@@ -1589,7 +1598,7 @@ function Lavaa (props) {
             caseCol.selectAll('p').data((removeDuplicates2(selection3))).enter().append('div').attr('data-simplebar', 'init').style('overflow-x', 'auto').append('p').attr('class', 'info').attr('x', 10).attr('y', function (d, i) {
               return i * 12
             }).html(function (d) {
-              return d.maf_alt_cases + ' / ' + d.maf_alt_controls
+              return d.n_case + ' / ' + d.n_control
             })
           })
 
@@ -1728,7 +1737,7 @@ function Lavaa (props) {
             }).on('mouseout.tip', tip.hide)
             //highlight color
             .on('mouseover.color', function () {
-              d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.maf_alt_cases))
+              d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.n_case))
             }).on('mouseout.color', function () {
             d3.select(this).transition().duration('200').style('opacity', function (d) {
               if (d.pval >= 0.0000001) {
@@ -1744,7 +1753,7 @@ function Lavaa (props) {
                 y = parseFloat(d3.select(this).attr('cy'))
               //format the case number with a comma separator
               let format = d3.format(',')
-              let formattedCases = format(d.maf_alt_cases)
+              let formattedCases = format(d.n_case)
               const label = labelLayer.append('g').classed('chartLabel', true).style('transform', `translate(${x + 10}px,${y + 10}px)`)
               label.append('line')
                 .attr('x1', 0)
@@ -1774,7 +1783,7 @@ function Lavaa (props) {
           }) //added offset to align beta values
             .attr('cy', function (d) {
               return yScale4(d.pval)
-            }).attr('r', d => sqrtScale(d.maf_alt_cases))
+            }).attr('r', d => sqrtScale(d.n_case))
             .style('pointer-events', 'none') //disable hover effects
             .attr('class', 'circleBackground').style('opacity', function (d) {
             if (d.pval >= 0.0000001) {
@@ -1838,7 +1847,7 @@ function Lavaa (props) {
               }).on('mouseout.tip', tip.hide)
               //highlight color
               .on('mouseover.color', function () {
-                d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.maf_alt_cases))
+                d3.select(this).transition().duration('200').style('opacity', 1).attr('r', d => sqrtScale(d.n_case))
               }).on('mouseout.color', function () {
               d3.select(this).transition().duration('200').style('opacity', 1).attr('r', 2)
             })
@@ -1911,7 +1920,7 @@ function Lavaa (props) {
             caseCol.selectAll('p').data((removeDuplicates3(selection4))).enter().append('div').attr('data-simplebar', 'init').style('overflow-x', 'auto').append('p').attr('class', 'info').attr('x', 10).attr('y', function (d, i) {
               return i * 12
             }).html(function (d) {
-              return d.maf_alt_cases + ' / ' + d.maf_alt_controls
+              return d.n_case + ' / ' + d.n_control
             })
           })
           labelLayer.raise()
