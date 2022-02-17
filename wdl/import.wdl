@@ -161,13 +161,12 @@ task annotation {
 
         for url in ${sep="\t" output_url}; do
 
-        cp_cmd = ''
         if [ "$url" = http* ]; then
-           cp_cmd = 'curl -T' # copy to webdav directory
+           cp_cmd='curl -T' # copy to webdav directory
         elif [ "$url" = gs* ]; then
-           cp_cmd = 'gsutil cp' # copy to bucket
+           cp_cmd='gsutil cp' # copy to bucket
         else
-           cp_cmd = ''
+           cp_cmd=''
         fi
 
         if [[ ! -z "$cp_cmd" ]]; then
@@ -280,13 +279,12 @@ task pheno {
 
         for url in ${sep="\t" output_url}; do
 
-        cp_cmd = ''
         if [ "$url" = http* ]; then
-           cp_cmd = 'curl -T' # copy to webdav directory
+           cp_cmd='curl -T' # copy to webdav directory
         elif [ "$url" = gs* ]; then
-           cp_cmd = 'gsutil cp' # copy to bucket
+           cp_cmd='gsutil cp' # copy to bucket
         else
-           cp_cmd = ''
+           cp_cmd=''
         fi
 
         if [[ ! -z "$cp_cmd" ]]; then
@@ -432,13 +430,12 @@ EOF
 
         for url in ${sep="\t" output_url}; do
 
-        cp_cmd = ''
         if [ "$url" = http* ]; then
-           cp_cmd = 'curl -T' # copy to webdav directory
+           cp_cmd='curl -T' # copy to webdav directory
         elif [ "$url" = gs* ]; then
-           cp_cmd = 'gsutil cp' # copy to bucket
+           cp_cmd='gsutil cp' # copy to bucket
         else
-           cp_cmd = ''
+           cp_cmd=''
         fi
 
         if [[ ! -z "$cp_cmd" ]]; then
@@ -545,13 +542,12 @@ CODE
 
         for url in ${sep="\t" output_url}; do
 
-        cp_cmd = ''
         if [ "$url" = http* ]; then
-           cp_cmd = 'curl -T' # copy to webdav directory
+           cp_cmd='curl -T' # copy to webdav directory
         elif [ "$url" = gs* ]; then
-           cp_cmd = 'gsutil cp' # copy to bucket
+           cp_cmd='gsutil cp' # copy to bucket
         else
-           cp_cmd = ''
+           cp_cmd=''
         fi
 
         if [[ ! -z "$cp_cmd" ]]; then
