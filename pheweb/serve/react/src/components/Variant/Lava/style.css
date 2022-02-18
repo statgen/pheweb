@@ -41,7 +41,7 @@ input#data-file-start{
   margin: 0px;
   outline: none;
   white-space: nowrap;
-  -webkit-user-select: none;
+ /* -webkit-user-select: none;*/
   cursor: pointer;
   background-color: white;
 }
@@ -117,7 +117,7 @@ button#download:hover {
   padding: 8px 25px;
   outline: none;
   white-space: nowrap;
-  -webkit-user-select: none;
+  /*-webkit-user-select: none;*/
   cursor: pointer;
   text-shadow: 1px 1px #fff;
   background: white;
@@ -163,7 +163,7 @@ button#downloadSample {
   margin: 0px;
   outline: none;
   white-space: nowrap;
-  -webkit-user-select: none;
+  /*-webkit-user-select: none;*/
   cursor: pointer;
   text-shadow: 1px 1px #fff;
   background: white;
