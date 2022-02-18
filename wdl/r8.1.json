@@ -1,4 +1,4 @@
-{ "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-d3d60f8dc716e1a7d24688e5bd2aa73b2e9bdd58",
+{ "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-584c4fc2af41a26900cd89d06743c04599a93e7a",
   "import_pheweb.summary_files" : "gs://r8_data_green/regenie/summary_file_list_1.txt" ,
   "import_pheweb.bed_file" : "gs://r8_data_green/genes-b38-v37.bed" ,
   "import_pheweb.disk" : 8000 ,
