@@ -1,10 +1,8 @@
-.PHONY: test
+.PHONY: test-trival-nosites default
+default: test-trivial-sites
 
 wdl.zip: *.wdl
 	zip wdl.zip  *.wdl
 
-test:   import-test.wdl test.json options.json wdl.zip
-	cromshell submit import-test.wdl test.json options.json wdl.zip
-
-preprocess_test: preprocess-test.wdl preprocess-test.json options.json wdl.zip
-	cromshell submit preprocess-test.wdl preprocess-test.json options.json wdl.zip
+test-trivial-nosites: wdl.zip
+	cromshell submit test-trivial.wdl test-trivial-nosites.json options.json wdl.zip

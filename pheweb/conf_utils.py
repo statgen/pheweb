@@ -5,6 +5,7 @@ import itertools
 from collections import OrderedDict, Counter
 from copy import deepcopy
 from boltons.fileutils import mkdir_p
+import sys
 
 # This module creates the object `conf`.
 # It also offers some configuration-related utility functions.
@@ -256,14 +257,23 @@ def _ensure_conf():
             return x
 
         def read(self, value):
-            """read from internal file"""
-            if self._d["nullable"] and (value == "" or value == "NA"):
-                return ""
-            x = self._d["type"](value)
-            if "range" in self._d:
-                assert self._d["range"][0] is None or x >= self._d["range"][0]
-                assert self._d["range"][1] is None or x <= self._d["range"][1]
-            return x
+            try:
+                """read from internal file"""
+                if self._d["nullable"] and (value == "" or value == "NA"):
+                    return ""
+                x = self._d["type"](value)
+                if "range" in self._d:
+                    assert self._d["range"][0] is None or x >= self._d["range"][0]
+                    assert self._d["range"][1] is None or x <= self._d["range"][1]
+                return x
+            except Exception as e:
+                # The goal of this block is to give
+                # context to errors when parsing a
+                # field.
+                print(f'exception : {str(e)}', file=sys.stderr)
+                print(f'value : "{value}"', file=sys.stderr)
+                print(f'field : {self._d}', file=sys.stderr)
+                raise e
 
     default_null_values = ["", ".", "NA", "nan", "NaN"]
 
@@ -430,6 +440,7 @@ def _ensure_conf():
                 "af_alt_cases",
                 {
                     "type": float,
+                    "nullable": True,
                     "range": [0, 1],
                     "sigfigs": 2,
                     "tooltip_underscoretemplate": "AF cases: <%= d.af_alt_cases.toFixed(4) %><br>",
@@ -441,6 +452,7 @@ def _ensure_conf():
                 "af_alt_controls",
                 {
                     "aliases": ["af_alt_controls"],
+                    "nullable": True,
                     "type": float,
                     "range": [0, 1],
                     "sigfigs": 2,

@@ -1,9 +1,0 @@
-{
-   "import_pheweb.docker":"eu.gcr.io/phewas-development/pheweb:wip-97e833c185a4bd6294de2edd51da76f6c14c636e",
-   "import_pheweb.summary_files":"gs://r8_data_green/regenie/summary_file_list_all.txt",
-   "import_pheweb.bed_file":"gs://r8_data_green/genes-v37-hg38.bed",
-   "import_pheweb.disk":8000,
-   "import_pheweb.matrix.cpu":8,
-   "import_pheweb.mem":64,
-   "import_pheweb.preprocessor":"awk -F\"\\t\" 'BEGIN { OFS = \"\\t\" } NR == 1{ if(NF == 9) { print $0, \"af_alt_cases\", \"af_alt_controls\" } else { print $0 } } NR > 1{ if(NF == 9) { print $0, \"\",\"\" } else { print $0 } }'"
-}

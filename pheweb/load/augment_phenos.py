@@ -1,4 +1,3 @@
-
 from ..utils import PheWebError
 from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, with_chrom_idx
 from .load_utils import parallelize_per_pheno
@@ -7,7 +6,7 @@ from .load_utils import parallelize_per_pheno
 sites_filepath = common_filepaths['sites']
 
 def run(argv):
-    
+
     parallelize_per_pheno(
         get_input_filepaths = lambda pheno: [common_filepaths['parsed'](pheno['phenocode']), sites_filepath],
         get_output_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
@@ -18,7 +17,7 @@ def run(argv):
 def convert(pheno):
     with VariantFileReader(sites_filepath) as sites_reader, \
          VariantFileReader(common_filepaths['parsed'](pheno['phenocode'])) as pheno_reader, \
-         VariantFileWriter(common_filepaths['pheno'](pheno['phenocode']), allow_extra_fields=True) as writer:
+         VariantFileWriter(common_filepaths['pheno'](pheno['phenocode'])) as writer:
         sites_variants = with_chrom_idx(iter(sites_reader))
         pheno_variants = with_chrom_idx(iter(pheno_reader))
 
