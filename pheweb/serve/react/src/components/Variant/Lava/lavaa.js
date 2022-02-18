@@ -14,7 +14,7 @@ function Lavaa (props) {
   const [ready, setReady] = useState(false) // set the initial state to be not ready
 
   const data = props.dataprop
-  const colorByCategory = props.colorByCategory^M
+  const colorByCategory = props.colorByCategory
 
   data.forEach((d)=> {
     d.n_case = d.n_case | d.num_case | d.af_alt_cases | d.maf_alt_cases;
@@ -320,7 +320,7 @@ function Lavaa (props) {
         var yScale2 = d3.scaleLog()
         var yScale3 = d3.scaleLog()
         /*const colorScale = d3.scaleOrdinal().range(d3.schemeTableau10)*/
-        const colorScale = (v) => colorByCategory[v]^M
+        const colorScale = (v) => colorByCategory[v]
         const colorValue = d => d.category //Color value by category
         /*const colorScale2 = d3.scaleOrdinal().range(d3.schemeTableau10)*/
         //getting max and min y (p-value) values
@@ -692,7 +692,7 @@ function Lavaa (props) {
             return i * 12
           }).html(function (d) {
             return d.n_case + ' / ' + d.n_case
-    
+
           })
           setSelection(selection2)
         })
