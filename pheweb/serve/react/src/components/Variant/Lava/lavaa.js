@@ -2213,7 +2213,7 @@ function Lavaa (props) {
           </div>
 
           <div id="downloadImg-block">
-            <button id="download" class="button_styled" onClick={() => {downloadImgClick()}}>download image</button>
+            <button id="download" className="button_styled" onClick={() => {downloadImgClick()}}>download image</button>
             <div className="reportIssue">
               <div className="reportIcon">?</div>
               <a id="report"
