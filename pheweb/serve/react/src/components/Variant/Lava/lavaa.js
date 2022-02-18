@@ -14,12 +14,11 @@ function Lavaa (props) {
   const [ready, setReady] = useState(false) // set the initial state to be not ready
 
   const data = props.dataprop
+  const colorByCategory = props.colorByCategory^M
 
   data.forEach((d)=> {
-    d.n_case = d.n_case | d.af_alt_cases | d.maf_alt_cases;
-  })
-  data.forEach((d)=> {
-    d.n_control = d.n_control | d.af_alt_controls | d.maf_alt_controls;
+    d.n_case = d.n_case | d.num_case | d.af_alt_cases | d.maf_alt_cases;
+    d.n_control = d.n_control | d.num_control | d.af_alt_controls | d.maf_alt_controls;
   })
 
 
@@ -320,9 +319,10 @@ function Lavaa (props) {
         var yScale = d3.scaleLog()
         var yScale2 = d3.scaleLog()
         var yScale3 = d3.scaleLog()
-        const colorScale = d3.scaleOrdinal().range(d3.schemeTableau10)
+        /*const colorScale = d3.scaleOrdinal().range(d3.schemeTableau10)*/
+        const colorScale = (v) => colorByCategory[v]^M
         const colorValue = d => d.category //Color value by category
-        const colorScale2 = d3.scaleOrdinal().range(d3.schemeTableau10)
+        /*const colorScale2 = d3.scaleOrdinal().range(d3.schemeTableau10)*/
         //getting max and min y (p-value) values
         var max = d3.max(data, function (d) {
           return d.pval
