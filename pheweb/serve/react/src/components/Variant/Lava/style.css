@@ -725,8 +725,8 @@ h4{
 }
 .h5 {
   font-family: 'Roboto', sans-serif;
-  font-weight: 400;
-  font-size: 0.8em;
+  font-weight: 400 !important;
+  font-size: 0.8em !important;
 }
 p{
   font-family: 'Roboto', sans-serif;
