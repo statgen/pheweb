@@ -53,6 +53,7 @@ RUN python3 -m pip freeze
 # install gcloud
 # OTHER PEOPLE'S CODE : https://github.com/GoogleCloudPlatform/cloud-sdk-docker/blob/master/Dockerfile
 # ---- OPC
+
 ARG CLOUD_SDK_VERSION=373.0.0
 ENV CLOUD_SDK_VERSION=$CLOUD_SDK_VERSION
 ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
