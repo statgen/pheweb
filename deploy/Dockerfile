@@ -5,6 +5,9 @@ ENV PHEWEB_DIR /mnt/nfs/pheweb/r7
 ENV CLOUD_SQL_PROXY_CREDENTIAL_FILE /mnt/nfs/pheweb/phewas.sql.credentials.json
 ENV CLOUD_SQL_PROXY_INSTANCES phewas-development:europe-west1:pheweb=tcp:3306
 
+RUN groupadd -r -g 1000 cloudsdk && \
+    useradd -r -u 1000 -m -s /bin/bash -g cloudsdk cloudsdk
+
 # create and setup the en_US.UTF-8 locale
 RUN apt-get upgrade --yes && apt-get update --yes && apt-get install locales --yes
 RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment
@@ -41,10 +44,59 @@ ADD . /pheweb
 RUN apt-get update && apt-get install default-libmysqlclient-dev git python3-pip libffi-dev libz-dev  libbz2-dev liblzma-dev libssl-dev --yes --fix-missing
 RUN python3 -m pip install cython
 RUN apt-get install rustc --yes
-RUN python3 -m pip install gsutil # needed for wdl copying files
 RUN python3 -m pip install pip==20.1.1 --upgrade
 RUN python3 -m pip install /pheweb
 RUN python3 -m pip freeze
+
+
+# install gcloud
+# OTHER PEOPLE'S CODE : https://github.com/GoogleCloudPlatform/cloud-sdk-docker/blob/master/Dockerfile
+# ---- OPC
+
+ARG CLOUD_SDK_VERSION=373.0.0
+ENV CLOUD_SDK_VERSION=$CLOUD_SDK_VERSION
+ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
+COPY --from=docker:20.10.12 /usr/local/bin/docker /usr/local/bin/docker
+RUN apt-get -qqy update && apt-get install -qqy \
+        curl \
+        python3-dev \
+        python3-crcmod \
+        python-crcmod \
+        apt-transport-https \
+        lsb-release \
+        openssh-client \
+        git \
+        make \
+        gnupg && \
+    export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
+    echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+    apt-get update && \
+    apt-get install -y google-cloud-sdk=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-app-engine-python=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-app-engine-python-extras=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-app-engine-java=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-app-engine-go=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-datalab=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-datastore-emulator=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-pubsub-emulator=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-bigtable-emulator=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-firestore-emulator=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-spanner-emulator=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-cbt=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-kpt=${CLOUD_SDK_VERSION}-0 \
+        google-cloud-sdk-local-extract=${CLOUD_SDK_VERSION}-0 \
+        kubectl && \
+    gcloud --version && \
+    /usr/local/bin/docker --version && kubectl version --client
+RUN apt-get install -qqy \
+        gcc \
+        python3-pip
+RUN pip3 install --upgrade pip
+RUN pip3 install pyopenssl
+RUN git config --system credential.'https://source.developers.google.com'.helper gcloud.sh
+
+# ---- OPC
 
 # create react js bundle
 RUN cd /pheweb/pheweb/serve/react && npm install
