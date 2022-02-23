@@ -1,15 +1,15 @@
 #!/bin/bash
 
 set -euxo pipefail
-src="$1"
-dst="$2"
-if [ "$src" == "" ] || [ "$dst" == "" ] || [ "$#" -ne 2 ]; then
+if [ "$#" -ne 2 ]; then
     echo "$0 src dst"
     echo "src = <local file>"
     echo "dst = <gs://... , http://... , nfs://...>"
     exit 1
 else
-    if [ -r "src" ]; then
+    src="$1"
+    dst="$2"
+    if [ -r "${src}" ]; then
 	if [[ "$src" = http* ]]; then
 	    cp_cmd='curl -T' # copy to webdav directory
 	elif [[ "$url" = gs* ]]; then
