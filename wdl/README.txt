@@ -35,6 +35,20 @@ Example :
  "phenostring" ]
 ```
 
+import_pheweb.output_url : array of root directories to output files to
+
+the following storage options are supported
+
+webdav : http://
+google cloud : gs://
+nfs : nfs://
+
+
+For nfs directories have to be created prior to runing the import
+
+mkdir -p generated-by-pheweb/{sites,resources,pheno_gz,manhattan,qq}
+
+
 Development and testing
 
 To run the pipeline on a trivial dataset to test the pipeline
