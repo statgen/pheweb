@@ -15,9 +15,10 @@ else
 	elif [[ "$url" = gs* ]]; then
 	    cp_cmd='gsutil cp' # copy to bucket
 	elif [[ "$url" = nfs* ]]; then
-	    cp_cmd='gsutil cp' # copy to bucket
+	    cp_cmd='nfs-cp' # copy to bucket
 	else
-	    cp_cmd='nfs-cp'
+	    echo "dst = <gs://... , http://... , nfs://...>"
+	    exit 1
 	fi
 	($cp_cmd "$src" "$dst" )
     else
