@@ -8,5 +8,7 @@
   "import_pheweb.sites_file" : "gs://r8_data_green/sites.tsv",
   "import_pheweb.custom_json" : "gs://r8_data_green/custom-pheno-list.json" ,
   "import_pheweb.fields" : ["category" , "category_index" , "num_cases" , "num_cases_prev" , "num_controls" , "num_gw_significant" , "num_gw_significant_prev" , "phenocode", "phenostring" ] ,
-  "import_pheweb.output_url" : [ "gs://r8_data_green/pheweb/staging" ]
+  "import_pheweb.output_url" : [ "gs://r8_data_green/pheweb/staging" ,
+			         "nfs://10.179.247.250/vol1/pheweb/r8_demo" ] ,
+  "import_pheweb.post_import" : "gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b && kubectl delete pods --all --wait=false"
 }
