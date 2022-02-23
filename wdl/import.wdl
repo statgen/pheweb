@@ -425,10 +425,10 @@ for gene in gene2phenos:
 with open('generated-by-pheweb/best-phenos-by-gene.json', 'w') as f:
     json.dump(gene2phenos, f)
 EOF
-      # TODOD : verify number of columns
+      # TODO : verify number of columns
       find "${dir}"
 
-        for url in ${sep="\t" output_url}; do
+      for url in ${sep="\t" output_url}; do
 
         if [[ "$url" = http* ]]; then
            cp_cmd='curl -T' # copy to webdav directory
