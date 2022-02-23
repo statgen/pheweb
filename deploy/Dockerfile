@@ -1,3 +1,4 @@
+FROM docker:20.10.12
 FROM debian:10
 
 # can change this in k8s deployment yaml to serve from another directory
@@ -52,7 +53,6 @@ RUN python3 -m pip freeze
 # install gcloud
 # OTHER PEOPLE'S CODE : https://github.com/GoogleCloudPlatform/cloud-sdk-docker/blob/master/Dockerfile
 # ---- OPC
-
 ARG CLOUD_SDK_VERSION=373.0.0
 ENV CLOUD_SDK_VERSION=$CLOUD_SDK_VERSION
 ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
@@ -67,6 +67,7 @@ RUN apt-get -qqy update && apt-get install -qqy \
         openssh-client \
         git \
         make \
+	libnfs-utils \
         gnupg && \
     export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
