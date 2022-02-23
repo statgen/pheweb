@@ -10,11 +10,11 @@ else
     src="$1"
     dst="$2"
     if [ -r "${src}" ]; then
-	if [[ "$src" = http* ]]; then
+	if   [[ "$dst" = http* ]]; then
 	    cp_cmd='curl -T' # copy to webdav directory
-	elif [[ "$url" = gs* ]]; then
+	elif [[ "$dst" = gs* ]]; then
 	    cp_cmd='gsutil cp' # copy to bucket
-	elif [[ "$url" = nfs* ]]; then
+	elif [[ "$dst" = nfs* ]]; then
 	    cp_cmd='nfs-cp' # copy to bucket
 	else
 	    echo "dst = <gs://... , http://... , nfs://...>"
