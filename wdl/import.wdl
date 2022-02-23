@@ -534,12 +534,30 @@ CODE
 }
 
 task exec_cmd {
+  # we don't want to cache this
+  # see :
+  # https://cromwell.readthedocs.io/en/stable/optimizations/VolatileTasks/
+  # https://github.com/broadinstitute/cromwell/issues/1695
+  meta {
+    volatile: true
+  }
+
   String cmd
+  String docker
+
   command <<<
     set -euxo pipefail
     date
     ${cmd}
   >>>
+   runtime {
+        docker: "${docker}"
+        cpu: 1
+        memory: "2 GB"
+        disks: "local-disk 5 HDD"
+        zones: "europe-west1-b"
+        preemptible: 0
+    }
 }
 
 workflow import_pheweb {
@@ -626,7 +644,9 @@ workflow import_pheweb {
         }
 
         if(defined(post_import)){
-           call exec_cmd { input : cmd = post_import }
+          call exec_cmd { input :
+	  docker = docker ,
+	  cmd = post_import }
 	}
 
 }
