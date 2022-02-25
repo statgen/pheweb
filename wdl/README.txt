@@ -1,17 +1,22 @@
+# Import
+
+## Overview
 'r8.json' provides an example configuration.
 
 the wdl to use is 'import.wdl'.
 
+## Parameters
 Required parameters :
 
-pheweb.docker : docker image
-pheweb.summary_files : file containing the list of summary files
-pheweb.bed_file : the bed file
-pheweb.disk : disk space needed for the whole export
-pheweb.matrix.cpu : cpu's need for the matrix step
-pheweb.mem : memory size
-pheweb.sites : sites file
-pheweb.custom_json :
+**pheweb.docker** : docker image
+**pheweb.summary_files** : file containing the list of summary files
+**pheweb.bed_file** : the bed file
+**pheweb.disk** : disk space needed for the whole export
+**pheweb.matrix.cpu** : cpu's need for the matrix step
+**pheweb.mem** : memory size
+**pheweb.sites** : sites file
+**pheweb.custom_json** : fields to be added to the pheno-list.json
+
 NOTE : there must be an entry in the file for every pheno code in the summary file
 
 Example :
@@ -19,7 +24,7 @@ Example :
 [ { "phenocode" : "A" , "phenostring" : "Ankle" } , { "phenocode" : "B" , "phenostring" : "Back" } ]
 ```
 
-pheweb.fields : fields to import from the custom json file
+**pheweb.fields** : fields to import from the custom json file
 
 Example :
 
@@ -35,22 +40,33 @@ Example :
  "phenostring" ]
 ```
 
-import_pheweb.output_url : array of root directories to output files to
+**import_pheweb.output_url** : array of url to output files to
 
 the following storage options are supported
 
-webdav : http://
-google cloud : gs://
-nfs : nfs://
+|storage      | url prefix |
+|-------------|------------|
+|webdav       | http://    |
+|google cloud | gs://      |
+|nfs          | nfs://     |
 
 
-For nfs directories have to be created prior to runing the import
+
+**NOTE** For nfs directories have to be created prior to runing the import
 
 ```
 mkdir -p {cache,generated-by-pheweb/{sites,resources,pheno_gz,manhattan,qq}}
 ```
 
-Development and testing
+**import_pheweb.post_import**
+
+Optional commands to run e.g.
+
+```
+  "import_pheweb.post_import" : [ "gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b && kubectl delete pods --all --wait=false" ]
+```
+
+## Development and testing
 
 To run the pipeline on a trivial dataset to test the pipeline
 
