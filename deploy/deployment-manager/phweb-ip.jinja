@@ -1,0 +1,10 @@
+resources:
+
+- name: {{ properties["environment"] }}-{{ properties["release"] }}-pheweb-ip
+  type: compute.v1.address
+  properties:
+    region: global
+     metadata:
+      items:
+        - key: product
+          value: pheweb-production-{{ properties["release"] }}

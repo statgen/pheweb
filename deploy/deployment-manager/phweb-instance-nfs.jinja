@@ -1,0 +1,31 @@
+resources:
+
+- name: {{ properties["environment"] }}-{{ properties["release"] }}-instance-nfs
+  type: compute.v1.instance
+  properties:
+    zone: europe-west1-b
+    machineType: https://www.googleapis.com/compute/v1/projects/phewas-development/zones/europe-west1-b/machineTypes/e2-medium
+    serviceAccounts:
+      - email: {{ properties["service_account"] }}
+        scopes:
+          - https://www.googleapis.com/auth/cloud-platform
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/family/debian-10
+      labels:
+        product: {{ properties["release"] }}-pheweb-nfs
+      diskSizeGb: {{ properties["nfsDiskSizeGb"]}}
+    
+    networkInterfaces:
+    - network: https://www.googleapis.com/compute/v1/projects/phewas-development/global/networks/default
+      accessConfigs:
+      - name: External NAT
+        networkTier: PREMIUM
+        type: ONE_TO_ONE_NAT
+    startRestricted: false
+    labels:
+      product: {{ properties["release"] }}-pheweb-nfs

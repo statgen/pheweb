@@ -1,0 +1,11 @@
+imports:
+- path: phweb-filestore.jinja
+- path: phweb-ip.jinja
+- path: phweb-kubernetes.jinja
+resources:
+- name: pheweb-deployment-template
+  type: pheweb-deployment.jinja
+  properties:
+    release: r9
+    environment: production
+    nfsDiskSizeGb: 30

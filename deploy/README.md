@@ -103,7 +103,7 @@
    create values file ${release}-values.yaml . Use the older release
    files have
 
-   helm create ${release}-pheweb .  -f ${release}-values.yaml
+   helm install ${release}-pheweb .  -f ${release}-values.yaml
 
 # Upgrading pheweb
 
