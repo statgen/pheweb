@@ -543,13 +543,13 @@ task exec_cmd {
     volatile: true
   }
 
-  String cmd
+  Array[String] cmd
   String docker
 
   command <<<
     set -euxo pipefail
     date
-    ${cmd}
+    ${sep="&&" cmd}
   >>>
    runtime {
         docker: "${docker}"
@@ -566,7 +566,7 @@ workflow import_pheweb {
 	 String summary_files
 	 String? file_affix
          String? sites_file
-         String? post_import
+         Array[String]? post_import = []
          Array[String]? output_url = []
 
          File custom_json
