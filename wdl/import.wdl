@@ -539,26 +539,28 @@ task exec_cmd {
   # see :
   # https://cromwell.readthedocs.io/en/stable/optimizations/VolatileTasks/
   # https://github.com/broadinstitute/cromwell/issues/1695
-  meta {
-    volatile: true
-  }
-
   Array[String] cmd
   String docker
+
 
   command <<<
     set -euxo pipefail
     date
     ${sep="&&" cmd}
   >>>
-   runtime {
+  runtime {
         docker: "${docker}"
         cpu: 1
         memory: "2 GB"
         disks: "local-disk 5 HDD"
         zones: "europe-west1-b"
         preemptible: 0
-    }
+  }
+  meta {
+    volatile: "true"
+  }
+
+
 }
 
 workflow import_pheweb {
