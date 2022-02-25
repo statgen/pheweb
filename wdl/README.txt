@@ -46,8 +46,9 @@ nfs : nfs://
 
 For nfs directories have to be created prior to runing the import
 
-mkdir -p generated-by-pheweb/{sites,resources,pheno_gz,manhattan,qq}
-
+```
+mkdir -p {cache,generated-by-pheweb/{sites,resources,pheno_gz,manhattan,qq}}
+```
 
 Development and testing
 

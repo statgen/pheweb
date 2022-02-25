@@ -164,6 +164,7 @@ task annotation {
         /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/sites/sites.tsv"                "$url/generated-by-pheweb/sites/sites.tsv"
         /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/resources/gene_aliases.sqlite3" "$url/generated-by-pheweb/resources/gene_aliases.sqlite3"
         /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3"      "$url/generated-by-pheweb/sites/cpras-rsids.sqlite3"
+        /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/sites/genes/genes-b38-v37.bed"  "$url/cache/genes-b38-v37.bed"
 
         done
 
