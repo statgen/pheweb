@@ -7,7 +7,6 @@ gsutil iam ch serviceAccount:pheweb@phewas-development.iam.gserviceaccount.com:l
 gcloud deployment-manager deployments create r1-deployment --config r1-values.yaml --automatic-rollback-on-error
 gcloud compute config-ssh
 ansible-playbook site.yml -i inventory.ini -u ${USER}
-
 1. copy files
 2. setup cron
 3. 

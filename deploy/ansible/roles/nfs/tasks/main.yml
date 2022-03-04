@@ -13,26 +13,25 @@
     state: present
     update_cache: yes
 
-
 - name: nfs - make share directory
   ansible.builtin.file:
-    path: /data/pheweb
+    path: "${share_directory}"
     owner:  nobody
     group: nogroup
     mode: '0777'
     state: directory
   
 - name: nfs - create export configuration
-  copy: 
+  template:
     src: exports
     dest: /etc/exports
     owner: root
     group: root
     mode: 0644
 
-- name: nfs - make share directory
+- name: nfs - make pheweb directory
   ansible.builtin.file:
-    path: /data/pheweb/r1
+    path: "${pheweb_directory}"
     owner:  nobody
     group: nogroup
     mode: '0777'
@@ -41,8 +40,7 @@
 - name: nfs - copy bucket
   ansible.builtin.command:
   args:
-    cmd: gsutil -m cp -R gs://r9_data_green/development /data/pheweb/r1
-    creates: /data/pheweb/r1/config.py
+    cmd: gsutil -m rsync -R "{{bucket_directory}}" "{{pheweb_directory}}"
   
 #- name: nfs - crontab bucket
 # gsutil -m rsync -R gs://r9_data_green/development/ /data/pheweb/r1 
