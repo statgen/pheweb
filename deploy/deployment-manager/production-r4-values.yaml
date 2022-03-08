@@ -8,7 +8,7 @@ resources:
   properties:
     release: r4
     environment: production
-    nfsDiskSizeGb: 1500
+    nfsDiskSizeGb: 2750
 
 - name: phweb-kubernetes-template
   type: phweb-kubernetes.jinja

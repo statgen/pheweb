@@ -8,11 +8,12 @@ pheweb:
   release: r4
   ipName: finngen-r4-ip
   secretName: production-r4-secrets
-  
+  directory: /mnt/nfs/pheweb/r4
+  cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
 persistentVolume:
   storage: 11T
-  path: /vol1
-  server: 10.179.247.250
+  path: /data/nfs
+  server: 10.132.0.38
 
 image:
   tag: prod_4fd92fd_doc_link4
