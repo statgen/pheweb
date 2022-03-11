@@ -1,4 +1,4 @@
-{ "test_trivial_no_sites.import_pheweb.bed_file" : "gs://r8_data_green/genes-b38-v37.bed" ,
-  "test_trivial_no_sites.import_pheweb.matrix.cpu" : 8 ,
-  "test_trivial_no_sites.docker" : "eu.gcr.io/phewas-development/pheweb:wip-584c4fc2af41a26900cd89d06743c04599a93e7a"
+{ "test_trivial_no_sites.docker" : "eu.gcr.io/phewas-development/pheweb:wip-b307537991c59970e36849c6b197b8b3979f2237",
+  "test_trivial_no_sites.import_pheweb.bed_file" : "gs://r8_data_green/genes-b38-v37.bed" ,
+  "test_trivial_no_sites.import_pheweb.matrix.cpu" : 8
 }
