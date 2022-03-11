@@ -2,7 +2,7 @@ import React, { Fragment, useContext } from "react";
 import { Variant } from "./variantModel";
 import { VariantContext, VariantState } from "./VariantContext";
 import loading from "../../common/Loading";
-import Lavaa from "./Lava/lavaa";
+import { Lavaa } from "lavaa";
 
 interface Props { variantData : Variant.Data }
 
