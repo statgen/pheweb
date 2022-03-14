@@ -159,6 +159,8 @@ task annotation {
 
         find ./
 
+        gcloud auth list
+
         for url in ${sep="\t" output_url}; do
 
         /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/sites/sites.tsv"                "$url/generated-by-pheweb/sites/sites.tsv"
