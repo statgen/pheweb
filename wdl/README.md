@@ -6,7 +6,7 @@
 the wdl to use is 'import.wdl'.
 
 ## Parameters
-Required parameters :
+### Required parameters
 
 **pheweb.docker** : docker image
 **pheweb.summary_files** : file containing the list of summary files
@@ -40,6 +40,22 @@ Example :
  "phenostring" ]
 ```
 
+### Optional parameters
+
+**preprocess.alt_column** : column to use for alt
+
+**preprocess.pval_column** : column to use for p-value
+
+**preprocess.mlogp_column** : column to use for mlog p-value
+
+**preprocess.beta_column** : column to use for beta
+
+**preprocess.se_beta_column** : column to use to se-beta
+
+**preprocess.rename** : column separated list of fields to rename : old1:new1,...
+
+**preprocess.exclude** : comma separated list of fields to : field1,field2
+
 **import_pheweb.output_url** : array of url to output files to
 
 the following storage options are supported
@@ -60,7 +76,8 @@ mkdir -p {cache,generated-by-pheweb/{sites,resources,pheno_gz,manhattan,qq}}
 
 **import_pheweb.post_import**
 
-Optional commands to run e.g.
+Optional commands to run after import e.g.
+
 
 ```
   "import_pheweb.post_import" : [ "gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b && kubectl delete pods --all --wait=false" ]
