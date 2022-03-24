@@ -225,7 +225,7 @@ def add_exclude_value_flag(parser: argparse.ArgumentParser) -> None:
         default=DEFAULT_EXCLUDE,
         action="store",
         type=str,
-        help="rename fields format is field_1,... ",
+        help="exclude fields format is field_1,... ",
     )
 
 
