@@ -300,19 +300,19 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
     Header: () => (<span title="allele frequency" style={{textDecoration: 'underline'}}>af</span>),
     accessor: 'maf',
     filterMethod: (filter, row) => row[filter.id] < +filter.value,
-    Cell: props => props.value.toPrecision(3),
+    Cell: props => optionalFloat(props.value),
     minWidth: 110
 }, {
     Header: () => (<span title="allele frequency in cases" style={{textDecoration: 'underline'}}>af cases</span>),
     accessor: 'maf_cases',
     filterMethod: (filter, row) => row[filter.id] < +filter.value,
-    Cell: props => props.value.toPrecision(3),
+    Cell: props => optionalFloat(props.value),
     minWidth: 110
 }, {
     Header: () => (<span title="allele frequency in controls" style={{textDecoration: 'underline'}}>af controls</span>),
     accessor: 'maf_controls',
     filterMethod: (filter, row) => row[filter.id] < +filter.value,
-    Cell: props => props.value.toPrecision(3),
+    Cell: props => optionalFloat(props.value),
     minWidth: 110
 }, ...phenoTableCommonCols[1],
 {
