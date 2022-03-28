@@ -1,0 +1,9 @@
+---
+- name: nfs - create symlink
+  ansible.builtin.file:
+    src: /mnt/nfs/pheweb/r5/ukbb_neale/pheno
+    dest: /mnt/nfs/ukbb_neale/pheno
+    owner: nobody
+    group: nogroup
+    state: link
+    force: true

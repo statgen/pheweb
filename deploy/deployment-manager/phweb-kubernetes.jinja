@@ -5,7 +5,7 @@ resources:
   properties:
     zone: europe-west1-b
     cluster:
-      name: {{ properties["environment"] }}-{{ properties["release"] }}-pheweb-kubernetes
+      name: {{ properties["environment"] }}-{{ properties["release"] }}-pheweb
       description: Kubernetes cluster for {{ properties["release"] }} pheweb
       nodePools:
         - name: {{ properties["environment"] }}-{{ properties["release"] }}-pheweb-pool

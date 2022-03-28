@@ -1,8 +1,8 @@
-# Creating a new pheweb release
+
 
   For consistency the release will be referred to
   ${release} e.g ${release}="r9","userresults"
-  ${environment} e.g. ${environment}=prod,dev,staging
+  ${environment} e.g. ${environment}=production,development,staging
 
 ## Create IP
    https://console.cloud.google.com/networking/addresses/list
@@ -36,7 +36,11 @@
 
 ## Create Deployment
 
-   gcloud deployment-manager deployments create prod-${release}-pheweb --config=prod-${release}-pheweb.yaml
+   gcloud deployment-manager deployments create ${environment}-${release}-pheweb --config=${environment}-${release}-pheweb.yaml
+
+## Log into kubernettes cluster
+
+   gcloud container clusters get-credentials ${environment}-${release}-pheweb --region europe-west1-b
 
 ## Install secrets
 
@@ -100,21 +104,43 @@
 ## Install Pheweb
 
 
-   create values file ${release}-values.yaml . Use the older release
+   Create values file ${release}-values.yaml . Use the older release
    files have
 
-   helm install ${release}-pheweb .  -f ${release}-values.yaml
+```
+   helm install ${release}-pheweb .  -f ${environment}-${release}-pheweb-values.yaml
+```
 
-# Upgrading pheweb
+## Upgrading pheweb
 
   For results,r6,r5,staging use helm
 ```
-   helm upgrade ${release}-pheweb .  -f ${release}-values.yaml
+   helm upgrade ${release}-pheweb .  -f ${environment}-${release}-pheweb-values.yaml
 ```
+
+## Admin Pheweb
+
+   Various helm commands for cluster administration
+
+### Take down pheweb
+
+To take down pheweb and keep the helm history 
+
+```
+helm uninstall ${release}-pheweb --keep-history
+```
+
+### Restore older version
+
 
 # Deleting deployment
 
+```
+   gcloud deployment-manager deployments delete ${environment}-${release}-pheweb
+```
+
 # Backup directories
 
-
+```
   gsutil -m rsync -r /mnt/nfs/pheweb/${release} gs://${release}_data_green/${environment}/pheweb
+```

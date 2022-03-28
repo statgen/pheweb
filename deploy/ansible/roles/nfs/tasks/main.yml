@@ -52,3 +52,11 @@
 
 - name: nfs - restart nfs server
   service: name=nfs-kernel-server state=restarted
+
+- name: r4 specific tasks
+  import_tasks: r4.yaml
+  when: release == "r4"
+
+- name: r5 specific tsaks
+  import_tasks: r5.yaml
+  when: release == "r5"

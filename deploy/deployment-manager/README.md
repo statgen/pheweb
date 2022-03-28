@@ -6,7 +6,33 @@ gsutil iam ch serviceAccount:pheweb@phewas-development.iam.gserviceaccount.com:l
 
 gcloud deployment-manager deployments create r1-deployment --config r1-values.yaml --automatic-rollback-on-error
 gcloud compute config-ssh
+
+ssh into the box to exchange keys
+
+```
+ssh ${enviroment}-${release}-instance-nfs.${region}.${project}
+```
+
+add entry for the box to the inventory file for ${enviroment}-{release}-instance-nfs in
+  - inventory.ini
+  - host_vars/${enviroment}-{release}-instance-nfs
+
+check entry
+
+```
+ansible -i inventory.ini  all -m ping -v
+```
+
+Provision nfs
+
+```
 ansible-playbook site.yml -i inventory.ini -u ${USER}
+```
+
 1. copy files
 2. setup cron
-3. 
+3.
+
+
+# Reference
+  https://github.com/GoogleCloudPlatform/deploymentmanager-samples
