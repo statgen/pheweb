@@ -4,9 +4,9 @@
 {% block in_head %}
 <script type="text/javascript">
   window.model = window.model || {};
-  window.variant = {{ variant |tojson(separators=(',',':'))|safe }};
-  window.results =  {{ results |tojson(separators=(',',':'))|safe }};
-  window.regions = {{ regions |tojson(separators=(',',':'))|safe }};
+  window.variant = {{ variant |tojson|safe }};
+  window.results =  {{ results |tojson|safe }};
+  window.regions = {{ regions |tojson|safe }};
   window.model.tooltip_lztemplate = {{ tooltip_lztemplate|tojson }};
   window.var_top_pheno_export_fields = {{ var_top_pheno_export_fields|tojson }};
   window.vis_conf = {{ vis_conf|tojson|safe }};

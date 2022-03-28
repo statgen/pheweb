@@ -108,6 +108,16 @@ class Variant(JSONifiable):
         return self.__dict__
 
 
+def optional_float(x):
+    if x is None:
+        return None
+    elif x == 'NA':
+        return None
+    elif x == '':
+        return None
+    else:
+        return float(x)
+
 class PhenoResult(JSONifiable):
     def __init__(
         self,
@@ -132,15 +142,9 @@ class PhenoResult(JSONifiable):
             sys.float_info.min * sys.float_info.epsilon if self.pval == 0 else self.pval
         )
         self.beta = float(beta) if beta is not None and beta != "NA" else None
-        self.maf = float(maf) if maf is not None and maf != "NA" and maf != "" else None
-        self.maf_case = (
-            float(maf_case) if maf_case is not None and maf_case != "NA" else None
-        )
-        self.maf_control = (
-            float(maf_control)
-            if maf_control is not None and maf_control != "NA"
-            else None
-        )
+        self.maf = optional_float(maf)
+        self.maf_case = optional_float(maf_case)
+        self.maf_control = optional_float(maf_control)
         self.matching_results = {}
         self.category = category_name
         self.category_index = category_index
