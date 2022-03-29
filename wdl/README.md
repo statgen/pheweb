@@ -12,7 +12,7 @@ the wdl to use is 'import.wdl'.
 
 **pheweb.summary_files** : file containing the list of summary files
 
-**pheweb.bed_file** : the bed file for file compatibility only use bed files from https://resources.pheweb.org/
+**pheweb.bed_file** : the bed file for file compatibility only use bed files from https://resources.pheweb.org/ see code [download_genes.py](https://github.com/statgen/pheweb/blob/master/pheweb/load/download_genes.py)
       
 **pheweb.disk** : disk space needed for the whole export
 
