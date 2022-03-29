@@ -9,12 +9,19 @@ the wdl to use is 'import.wdl'.
 ### Required parameters
 
 **pheweb.docker** : docker image
+
 **pheweb.summary_files** : file containing the list of summary files
-**pheweb.bed_file** : the bed file
+
+**pheweb.bed_file** : the bed file for file compatibility only use bed files from https://resources.pheweb.org/
+      
 **pheweb.disk** : disk space needed for the whole export
+
 **pheweb.matrix.cpu** : cpu's need for the matrix step
+
 **pheweb.mem** : memory size
+
 **pheweb.sites** : sites file
+
 **pheweb.custom_json** : fields to be added to the pheno-list.json
 
 NOTE : there must be an entry in the file for every pheno code in the summary file
