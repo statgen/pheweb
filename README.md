@@ -15,7 +15,7 @@ python3 create_custom_json.py --phenotype_col phenocode --n_cases_col num_cases 
 
 Get bed file e.g. v38 gene annotations from gencode and upload to a bucket and change bed gene annotation to point to this file
 ```
-curl https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz | zcat |  awk ' BEGIN{FS=OFS="\t"} $3=="gene"{ gsub("chr","",$1); split($9,a,";"); for(e in a) { split(a[e],b,"=");elems[b[1]]=b[2] }; print $1,$4,$5,elems["gene_name"],elems["gene_id"]; }' > gencode.v38.genes.bed
+curl https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz | zcat |  awk ' BEGIN{FS=OFS="\t"} $3=="gene"{ gsub("chr","",$1); gsub("M","MT",$1); split($9,a,";"); for(e in a) { split(a[e],b,"=");elems[b[1]]=b[2] }; print $1,$4,$5,elems["gene_name"],elems["gene_id"]; }' > gencode.v38.genes.bed
 ```
 
 ***Copy imported data to destination***
