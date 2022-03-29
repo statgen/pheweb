@@ -53,6 +53,7 @@ setup(
         'Flask-Compress~=1.10.1',
         'Flask-Cors~=3.0.10',
         'Flask-Login~=0.5.0',
+        'Werkzeug~=2.0.0',
         'pyasn1~=0.4.6',
         'google-api-python-client~=2.33.0',
         'google-auth~=2.3.3',
