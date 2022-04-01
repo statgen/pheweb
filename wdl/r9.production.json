@@ -1,0 +1,12 @@
+{ "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-584c4fc2af41a26900cd89d06743c04599a93e7a",
+  "import_pheweb.summary_files":"gs://r9_data_green/pheweb_import/release/R9_summary_stats.txt",
+  "import_pheweb.bed_file" : "gs://r9_data_green/genes-b38-v39.bed" ,
+  "import_pheweb.disk" : 8000 ,
+  "import_pheweb.matrix.cpu" : 8 ,
+  "import_pheweb.mem" : 64 ,
+  "import_pheweb.preprocess.preprocessor" : "awk -F\"\\t\" 'BEGIN { OFS = \"\\t\" } NR == 1{ if(NF == 9) { print $0, \"af_alt_cases\", \"af_alt_controls\" } else { print $0 } } NR > 1{ if(NF == 9) { print $0, \"\",\"\" } else { print $0 } }'" ,
+  "import_pheweb.sites_file" : "gs://r8_data_green/sites.tsv",
+  "import_pheweb.custom_json" : "gs://r9_data_green/R9_json_with_quants.json" ,
+  "import_pheweb.fields" : ["category" , "category_index" , "num_cases" , "num_controls" , "phenocode", "phenostring" ] ,
+  "import_pheweb.output_url" : [ "gs://r9_data_green/pheweb/production" ]
+}
