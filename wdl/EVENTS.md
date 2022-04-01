@@ -4,8 +4,16 @@
     *Import*
 
 	*Configuration*
+    34 demonstration phenotypes
 
+    See r9.development.import.json
 	*Artifacts*
+    cromwell hash:
+    7cd620ed-45ce-4b8c-b8dd-5b08e2b6d0c8
+
+### Issues during import
+
+    The WDL was not the current import.wdl, and there were issues related to generating gene pa
 
 
 ## import production
@@ -13,9 +21,30 @@
     *Import*
 
 	*Configuration*
+    2275 endpoints, including 2269 binary endpoints and 6 quantitative endpoints. 3 of these quantitative endpoints ( HEIGHT, WEIGHT, BMI) were not intended as core analysis endpoints.
+
+    See r9.production.import.json
 
 	*Artifacts*
-	cromwell hash : f13ffb9c-caef-4ed1-b364-a28083daf181
+	cromwell hash : 062a640a-9d6a-46f6-a734-536d95b4c4dd
+    data: gs://r9_data_green/production/
+
+### Issues when running import
+    *Incident*
+    in annotation task, `pheweb make-gene-aliases-sqlite3` failed due to a file download failing. Rerunning the task solved the problem.
+    cromwell hash: 728b30cd-84e4-482c-a60b-c6b7a29623e2
+    failed workflow log: gs://dev-cromwell-1/import_pheweb/728b30cd-84e4-482c-a60b-c6b7a29623e2/call-annotation/annotation.log
+
+    *Solution*
+    Transient error -> rerun did not encounter it.
+
+    *Incident*
+    Copying of files to GCS failed for annotation task.
+    Error message: ServiceException: 401 Anonymous caller does not have storage.objects.list access to the Google Cloud Storage bucket.
+    cromwell hash:857bcca2-224c-4cf9-b1bd-b45d4f3c41f3
+
+    *Solution*
+    Disabling of file copying  and subsequent manual copying to GCS.
 
 ## empty best phenos by gene
 
