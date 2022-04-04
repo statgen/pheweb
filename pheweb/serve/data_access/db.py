@@ -1380,7 +1380,8 @@ class TabixAnnotationDao(AnnotationDB):
         "string": lambda x: x,
     }
 
-    def __init__(self, matrix_path):
+    def __init__(self, matrix_path, gene_column="gene"):
+        self.gene_column = gene_column
         self.matrix_path = matrix_path
         self.gene_region_mapping = {
             genename: (chrom, pos1, pos2)
@@ -1566,7 +1567,7 @@ class TabixAnnotationDao(AnnotationDB):
             chrom, pos, ref, alt = split[0].split(":")
             if (
                 split[self.header_i["most_severe"]] in self.functional_variants
-                and split[self.header_i["gene"]].upper() == gene.upper()
+                and split[self.header_i[self.gene_column]].upper() == gene.upper()
             ):
                 v = Variant(chrom, pos, ref, alt)
                 var_dat = {
