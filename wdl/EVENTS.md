@@ -70,3 +70,21 @@ gsutil cp - gs://r9_data_green/genes-without-M-b38-v39.bed
 	*Artifacts*
     cromwell hash : f17c4611-8849-4816-ae33-dc4def15b8e3
 	gs://r9_data_green/genes-without-M-b38-v39.bed
+
+## missing genes, invalid chromosomes
+
+  *incident*
+  Pheweb was using an old version of the gene region file (genes-b38-v37.bed), which resulted in https://r9.finngen.fi/gene/MRPL45P2 failing. 
+
+  *primary solution*
+  First solution was to replace genes-b38-v37.bed with the v39 bed file from gs://r9_data_green/genes-b38-v39.bed.
+  However, the file contained genes in chromosome M, which caused an error in chromosome name assertion in function utils.get_gene_tuples() (https://github.com/FINNGEN/pheweb/blob/master/pheweb/utils.py#L157).
+  
+  *Secondary solution*
+  This was fixed by filtering out chromosome M genes from the region file:
+  ```
+  grep -vE "^M" genes-b38-v39.bed genes-b38-v37.bed 
+  ```
+  *Notes*
+  Hardcoded gene file names are quite fragile, moving gene file to be read from config could be beneficial. And/or allowing the filename to reflect the file version.  
+  Error propagation with more information in https://github.com/FINNGEN/pheweb/blob/master/pheweb/serve/server.py#L372-L412 could help initial investigation.
