@@ -88,3 +88,8 @@ gsutil cp - gs://r9_data_green/genes-without-M-b38-v39.bed
   *Notes*
   Hardcoded gene file names are quite fragile, moving gene file to be read from config could be beneficial. And/or allowing the filename to reflect the file version.  
   Error propagation with more information in https://github.com/FINNGEN/pheweb/blob/master/pheweb/serve/server.py#L372-L412 could help initial investigation.
+
+## Search autocomplete not working
+
+  *incident*
+  Search bar autocomplete did not work. Investigation revealed that files were copied to pheweb-folder/generated-by-pheweb/resources and pheweb-folder/generated-by-pheweb/sites, whereas pheweb looked for them in pheweb-folder/resources and pheweb-folder/sites.
