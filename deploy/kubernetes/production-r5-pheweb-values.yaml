@@ -19,5 +19,5 @@ persistentVolume:
   storage: 11T
 
 image:
-  tag: ci-f78dca68080083c101b63c53a2b8890481381df5
-       
+  tag: ci-26942597c44ab322792db89457ff1358717cd7ce
+

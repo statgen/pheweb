@@ -57,6 +57,3 @@
   import_tasks: r4.yaml
   when: release == "r4"
 
-- name: r5 specific tsaks
-  import_tasks: r5.yaml
-  when: release == "r5"

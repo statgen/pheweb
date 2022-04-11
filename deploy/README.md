@@ -101,6 +101,12 @@
            --from-file=cloud-sql-credentials.json
 ```
 
+   Check secrets are installed.
+
+```
+   kubectl describe secret ${environment}-${release}-secrets
+```
+
 ## Install Pheweb
 
 
@@ -108,14 +114,14 @@
    files have
 
 ```
-   helm install ${release}-pheweb .  -f ${environment}-${release}-pheweb-values.yaml
+   helm install ${environment}-${release} .  -f ${environment}-${release}-pheweb-values.yaml
 ```
 
 ## Upgrading pheweb
 
   For results,r6,r5,staging use helm
 ```
-   helm upgrade ${release}-pheweb .  -f ${environment}-${release}-pheweb-values.yaml
+   helm upgrade ${environment}-${release} .  -f ${environment}-${release}-pheweb-values.yaml
 ```
 
 ## Admin Pheweb

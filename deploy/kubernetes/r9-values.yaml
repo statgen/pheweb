@@ -1,19 +1,20 @@
 # Default values are found in values.yaml
 
-replicaCount: 2
+replicaCount: 3
 
 pheweb:
-  mount: /mnt/r9
-  directory: /mnt/r9/pheweb
-  subdomain: r9
-  ipName: finngen-r9-ip
+  cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
+  directory: /mnt/r9/pheweb
+  ipName: finngen-r9-ip
+  mount: /mnt/r9
   release: r9
   secretName: r9-secrets
+  subdomain: r9
   
 persistentVolume:
   path: /pheweb
   server: 10.248.24.170
 
 image:
-  tag: wip-510982365578b216a3bde9bded5f3512a5e9e199
+  tag: ci-7bd54b4e2b6f58bf940be6e9be0a073f783f7e06
