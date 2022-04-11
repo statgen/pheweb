@@ -1,8 +1,15 @@
-
+## Setup your environment
 
   For consistency the release will be referred to
   ${release} e.g ${release}="r9","userresults"
   ${environment} e.g. ${environment}=production,development,staging
+
+  Below is an example for a fictional release r100
+  
+```
+export release=r100
+export environment=production
+```
 
 ## Create IP
    https://console.cloud.google.com/networking/addresses/list
