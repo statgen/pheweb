@@ -9,7 +9,7 @@ resources:
       description: Kubernetes cluster for {{ properties["release"] }} pheweb
       nodePools:
         - name: {{ properties["environment"] }}-{{ properties["release"] }}-pheweb-pool
-          initialNodeCount: 1  
+          initialNodeCount: 2
           config:
             machineType: n1-standard-1
             labels:
