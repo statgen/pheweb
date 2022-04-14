@@ -24,6 +24,11 @@ const stringToCountSorter = (a,b) => {
     return d - c
 }
 
+const stringToCount= (a) => {
+    a.split(";").filter(x=> x != 'NA').length
+    return a
+}
+
 const tofixed = (v,n) => {
     return typeof(v) == typeof(0) ? v.toFixed(n) : v
 }
@@ -316,8 +321,8 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
 					       (Number(props.original.ukbb.beta) < 0) ? <span style={{color: 'red', float: 'left', paddingRight: '5px'}} className="glyphicon glyphicon-triangle-bottom" aria-hidden="true"></span> :
 					       <span></span>} {Number(props.original.ukbb.pval).toExponential(1)}</div> : 'NA',
     minWidth: 110
-}					
-       ]:[])				    
+}
+       ]:[])
 ],
 'FINNGEN_QUANT': [...phenoTableCommonCols[0],{
     Header: () => (<span title="INFO score in FinnGen" style={{textDecoration: 'underline'}}>INFO FG</span>),
@@ -391,10 +396,10 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
 const csTableCols = [{
     Header: () => (<span title="variant with highest PIP in the credible set" style={{textDecoration: 'underline'}}>top PIP variant</span>),
     accessor: 'locus_id',
-    Cell: props => (<a href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)}
-                       rel="noopener noreferrer"
-                       target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
-    //width: Math.min(270, 270/maxTableWidth*window.innerWidth),
+    filterMethod: (filter,row) => filter.value == row[filter.id],
+    Cell: props => (<a  rel="noopener noreferrer"
+			href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)}
+			target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
     minWidth: 60,
 },{
     Header: () => (<span title="CS quality" style={{textDecoration: 'underline'}}>CS quality</span>),
@@ -405,6 +410,7 @@ const csTableCols = [{
 }, {
     Header: () => (<span title="chromosome" style={{textDecoration: 'underline'}}>chromosome</span>),
     accessor: 'chrom',
+    filterMethod: (filter,row) => filter.value == row[filter.id],
     Cell: props => props.value,
     minWidth: 50,
 }, { ...pval_column , minWidth: 50,
@@ -412,13 +418,13 @@ const csTableCols = [{
 }, {
     Header: () => (<span title="effect size (beta)" style={{textDecoration: 'underline'}}>effect size (beta)</span>),
     accessor: 'lead_beta',
-    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
     Cell: props => tofixed(props.value,3),
     minWidth: 50,
 }, {
     Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish Enrichment</span>),
     accessor: 'lead_enrichment',
-    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
     Cell: props => tofixed(props.value,3),
     minWidth: 50,
 },{
@@ -430,38 +436,43 @@ const csTableCols = [{
 },{
     Header: () => (<span title="Lead Variant Gene" style={{textDecoration: 'underline'}}>Lead Variant Gene</span>),
     accessor: 'lead_most_severe_gene',
-    Cell: props => props.value !== "NA" ? (<a href={"/gene/" + props.value}
+    filterMethod: (filter,row) => filter.value == row[filter.id],
+    Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value}
                                              rel="noopener noreferrer"
-                                             target="_blank">{props.value}</a>):"NA",
+					     target="_blank">{props.value}</a>):"NA",
     minWidth: 50,
 }, {
     Header: () => (<span title="number of coding variants in the credible set. Tooltip shows variant name, most severe consequence, R² to lead variant" style={{textDecoration: 'underline'}}># coding in cs</span>),
     accessor: 'functional_variants_strict',
     sortMethod: stringToCountSorter,
+    filterMethod: (filter,row) => stringToCount(row[filter.id]) >= filter.value,
     Cell: props => <div><span title={truncateString(props.value,4)}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
     minWidth: 40
 }, {
     Header: () => (<span title="# Credible set variants" style={{textDecoration: 'underline'}}># credible variants</span>),
     accessor: 'credible_set_variants',
     sortMethod: stringToCountSorter,
+    filterMethod: (filter,row) => stringToCount(row[filter.id]) >= filter.value,
     Cell: props => <div><span title={truncateString(props.value,4)}>{props.original.cs_size}</span></div>,
     minWidth: 50,
 },{
     Header: () => (<span title="Credible set Log10 bayes factor" style={{textDecoration: 'underline'}}>Credible set bayes factor (log10)</span>),
     accessor: 'cs_log_bayes_factor',
-    filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+    filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
     Cell: props => tofixed(props.value,3),
     minWidth: 50,
 }, {
     Header: () => (<span title="CS matching Traits" style={{textDecoration: 'underline'}}>CS matching Traits</span>),
     accessor: 'all_traits_strict',
     sortMethod: stringToCountSorter,
+    filterMethod: (filter,row) => stringToCount(row[filter.id]) >= filter.value,
     Cell: props => <div><span title={props.value}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
     minWidth: 60,
 }, {
     Header: () => (<span title="LD Partner matching Traits" style={{textDecoration: 'underline'}}>LD Partner Traits</span>),
     accessor: 'all_traits_relaxed',
     sortMethod: stringToCountSorter,
+    filterMethod: (filter,row) => stringToCount(row[filter.id]) >= filter.value,
     Cell: props => <div><span title={props.value}>{props.value.split(";").filter(x=>x!=="NA").length}</span></div>,
     minWidth: 60,
 },
@@ -474,7 +485,7 @@ const csTableCols = [{
 					       <span></span>} {Number(props.value).toExponential(1)}</div> : props.value,
       minWidth: 60 }
     ]:[])
-		     
+
 
 ]
 
@@ -495,19 +506,21 @@ minWidth: 60,
 }, {
 Header: () => (<span title="effect size" style={{textDecoration: 'underline'}}>effect size</span>),
 accessor: 'beta',
-filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
 Cell: props => props.value,
 minWidth: 50,
 }, {
 Header: () => (<span title="Gene" style={{textDecoration: 'underline'}}>Gene</span>),
 accessor: 'most_severe_gene',
-Cell: props => props.value !== "NA" ? (<a href={"/gene/" + props.value}
-                                          rel="noopener noreferrer"
-                                          target="_blank">{props.value}</a>):"NA",
+	filterMethod: (filter, row) => row[filter.id] == +filter.value,
+    Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value}
+					     rel="noopener noreferrer"
+					     target="_blank">{props.value}</a>):"NA",
 minWidth: 50,
 }, {
 Header: () => (<span title="Consequence" style={{textDecoration: 'underline'}}>Consequence</span>),
 accessor: 'most_severe_consequence',
+filterMethod: (filter, row) => row[filter.id] == +filter.value,
 Cell: props => props.value ,
 minWidth: 50,
 }, {
@@ -531,29 +544,32 @@ minWidth: 40,
 }, {
 Header: () => (<span title="INFO" style={{textDecoration: 'underline'}}>INFO</span>),
 accessor: 'INFO',
-filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
 Cell: optionalFloat,
 minWidth: 40,
 }, {
 Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish enrichment</span>),
 accessor: 'enrichment_nfsee',
-filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
 Cell: optionalFloat ,
 minWidth: 50,
 }, {
 Header: () => (<span title="Credible set PIP" style={{textDecoration: 'underline'}}>CS PIP</span>),
 accessor: 'cs_prob',
+filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
 Cell: optionalFloat ,
 minWidth: 40
 }, {
 Header: () => (<span title="Functional Category" style={{textDecoration: 'underline'}}>Functional variant</span>),
 accessor: 'functional_category',
+filterMethod: (filter, row) => row[filter.id] == +filter.value,
 Cell: props => props.value,
 minWidth: 40
 }, {
 Header: () => (<span title="Matching trait" style={{textDecoration: 'underline'}}>Matching trait</span>),
 accessor: 'trait_name',
 sortMethod: stringToCountSorter,
+filterMethod: (filter,row) => stringToCount(row[filter.id]) >= filter.value,
 Cell: props => <div><span title={props.value}>{truncateString(props.value,2)}</span></div>,
 minWidth: 40
 }, {
