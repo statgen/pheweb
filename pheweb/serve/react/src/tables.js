@@ -26,7 +26,7 @@ const stringToCountSorter = (a,b) => {
 
 const stringToCount= (a) => {
     return a.split(";").filter(x=> x != 'NA').length
-    
+
 }
 
 const tofixed = (v,n) => {
@@ -396,10 +396,9 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
 const csTableCols = [{
     Header: () => (<span title="variant with highest PIP in the credible set" style={{textDecoration: 'underline'}}>top PIP variant</span>),
     accessor: 'locus_id',
-    filterMethod: (filter,row) => filter.value == row[filter.id],
+    filterMethod: (filter,row) => (filter.value == row[filter.id].replace("chr","").replace(/_/g,":"))|(filter.value == row[filter.id]),
     Cell: props => (<a  rel="noopener noreferrer"
-			href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)}
-			target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
+			href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
     minWidth: 60,
 },{
     Header: () => (<span title="CS quality" style={{textDecoration: 'underline'}}>CS quality</span>),
