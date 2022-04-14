@@ -411,7 +411,7 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
 const csTableCols = [{
     Header: () => (<span title="variant with highest PIP in the credible set" style={{textDecoration: 'underline'}}>top PIP variant</span>),
     accessor: 'locus_id',
-    filterMethod: (filter,row) => filter.value == row[filter.id],
+    filterMethod: (filter,row) => (filter.value == row[filter.id].replace("chr","").replace(/_/g,":"))|(filter.value == row[filter.id]),
     Cell: props => (<a href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
     //width: Math.min(270, 270/maxTableWidth*window.innerWidth),
     minWidth: 60,
