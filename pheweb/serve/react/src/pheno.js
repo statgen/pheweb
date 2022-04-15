@@ -2,6 +2,8 @@ import d3Tip from 'd3-tip'
 import _ from 'underscore'
 import $ from 'jquery'
 import * as d3 from 'd3'
+import { mustacheText } from './common/Utilities'
+import { numberFormatter, scientificFormatter } from './common/Formatter'
 
 function fmt (format) {
   const args = Array.prototype.slice.call(arguments, 1)
@@ -55,7 +57,140 @@ const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
     var chrom_offsets = get_chrom_offsets().chrom_offsets
     return chrom_offsets[variant.chrom] + variant.pos
   }
+  const reshape = (d) => {
+    /*
+    {
+  "alt": "A",
+  "beta": -0.056333,
+  "chrom": "7",
+  "mlogp": 21.4298,
+  "nearest_genes": "NOS3",
+  "pos": 151007755,
+  "pval": 3.71706e-22,
+  "ref": "G",
+  "rsids": "rs891511",
+  "sebeta": 0.00582035,
+  "maf": 0.436522,
+  "maf_cases": 0.429901,
+  "maf_controls": 0.439303,
+  "phenocode": "I9_HYPTENS",
+  "fin_enrichment": -1,
+  "pScaled": 13.310181265630716
+  }
 
+<% if(_.has(d, 'mlogp')) { %>mlog10p-value: <%= d.mlogp %><br><% } %>
+<% if(_.has(d, 'beta')) { %>beta: <%= d.beta.toFixed(2) %><% if(_.has(d, \"sebeta\")){ %> (<%= d.sebeta.toFixed(2) %>)<% } %><br><% } %>
+<% if(_.has(d, 'or')) { %>Odds Ratio: <%= d['or'] %><br><% } %>
+<% if(_.has(d, 'af_alt')) { %>AF: <%= d.af_alt.toFixed(4) %><br><% } %>
+<% if(_.has(d, 'af_alt_cases')) { %>AF cases: <%= d.af_alt_cases.toFixed(4) %><br><% } %>
+<% if(_.has(d, 'af_alt_controls')) { %>AF controls: <%= d.af_alt_controls.toFixed(4) %><br><% } %>
+<% if(_.has(d, 'maf')) { %>AF: <%= d.maf.toFixed(4) %><br><% } %>
+<% if(_.has(d, 'maf_cases')) { %>AF cases: <%= d.maf_cases.toFixed(4) %><br><% } %>
+<% if(_.has(d, 'maf_controls')) { %>AF controls: <%= d.maf_controls.toFixed(4) %><br><% } %>
+<% if(_.has(d, 'af')) { %>AF: <%= d['af'] %><br><% } %>
+<% if(_.has(d, 'ac')) { %>AC: <%= d.ac.toFixed(1) %> <br><% } %>
+<% if(_.has(d, 'r2')) { %>R2: <%= d['r2'] %><br><% } %>
+<% if(_.has(d, 'tstat')) { %>Tstat: <%= d['tstat'] %><br><% } %>
+<% if(_.has(d, 'n_cohorts')) { %>n_cohorts: <%= d['n_cohorts'] %><br><% } %>
+<% if(_.has(d, 'n_hom_cases')) { %>n_hom_cases: <%= d['n_hom_cases'] %><br><% } %>
+<% if(_.has(d, 'n_hom_ref_cases')) { %>n_hom_ref_cases: <%= d['n_hom_ref_cases'] %><br><% } %>
+<% if(_.has(d, 'n_het_cases')) { %>n_het_cases: <%= d['n_het_cases'] %><br><% } %>
+<% if(_.has(d, 'n_hom_controls')) { %>n_hom_controls: <%= d['n_hom_controls'] %><br><% } %>
+<% if(_.has(d, 'n_hom_ref_controls')) { %>n_hom_ref_controls: <%= d['n_hom_ref_controls'] %><br><% } %>
+<% if(_.has(d, 'n_het_controls')) { %>n_het_controls: <%= d['n_het_controls'] %><br><% } %>
+<% if(_.has(d, 'n_case')) { %>#cases: <%= d['n_case'] %><br><% } %>
+<% if(_.has(d, 'n_control')) { %>#controls: <%= d['n_control'] %><br><% } %>
+<% if(_.has(d, 'num_samples')) { %>#samples: <%= d['num_samples'] %><br><% } %>
+     */
+    const result = {}
+
+    if(d.chrom && (typeof d.pos === 'number') && d.ref && d.alt){
+      result.cpra = `${d.chrom}:${d.pos.toLocaleString()} ${d.ref} / ${d.alt}`
+    }
+    if(typeof d.rsids === 'string'){
+      result.rsids = d.rsids.split(',').join(' ')
+    }
+    if(typeof d.nearest_genes === 'string') {
+      result.nearestGenes = d.nearest_genes.includes(',') ? `"${d.nearest_genes}"` : d.nearest_genes
+    }
+    if(typeof d.pheno === 'string') {
+      result.pheno = d.pheno
+    }
+    if(typeof d.pval === 'number'){
+      result.pvalue = scientificFormatter(d.pval)
+    }
+    if(typeof d.mlogp === 'number'){
+      result.mlogp = scientificFormatter(d.mlogp)
+    }
+    if(typeof d.beta === 'number'){
+      result.beta = scientificFormatter(d.beta)
+    }
+    if(typeof d.or === 'number'){
+      result.or = scientificFormatter(d.or)
+    }
+    if(typeof d.af_alt === 'number'){
+      result.af_alt = scientificFormatter(d.af_alt)
+    }
+    if(typeof d.af_alt_cases === 'number'){
+      result.af_alt_cases = numberFormatter(d.af_alt_cases)
+    }
+    if(typeof d.af_alt_controls === 'number'){
+      result.af_alt_controls = numberFormatter(d.af_alt_controls)
+    }
+    if(typeof d.maf === 'number'){
+      result.maf = numberFormatter(d.maf)
+    }
+    if(typeof d.maf_cases === 'number'){
+      result.maf_cases = numberFormatter(d.maf_cases)
+    }
+    if(typeof d.maf_controls === 'number'){
+      result.maf_controls = numberFormatter(d.maf_controls)
+    }
+    if(typeof d.af === 'number'){
+      result.af = scientificFormatter(d.af)
+    }
+    if(typeof d.ac === 'number'){
+      result.ac = numberFormatter(d.ac)
+    }
+    if(typeof d.r2 === 'number'){
+      result.r2 = numberFormatter(d.r2)
+    }
+    if(typeof d.tstat === 'number'){
+      result.tstat = numberFormatter(d.tstat)
+    }
+    if(typeof d.n_cohorts === 'number'){
+      result.n_cohorts = numberFormatter(d.n_cohorts)
+    }
+    if(typeof d.n_hom_cases === 'number'){
+      result.n_hom_cases = numberFormatter(d.n_hom_cases)
+    }
+    if(typeof d.n_hom_ref_cases === 'number'){
+      result.n_hom_ref_cases = numberFormatter(d.n_hom_ref_cases)
+    }
+    if(typeof d.n_het_cases === 'number'){
+      result.n_het_cases = numberFormatter(d.n_het_cases)
+    }
+    if(typeof d.n_hom_controls === 'number'){
+      result.n_hom_controls = numberFormatter(d.n_hom_controls)
+    }
+    if(typeof d.n_hom_ref_controls === 'number'){
+      result.n_hom_ref_controls = numberFormatter(d.n_hom_ref_controls)
+    }
+    if(typeof d.n_het_controls === 'number'){
+      result.n_het_controls = numberFormatter(d.n_het_controls)
+    }
+    if(typeof d.n_case === 'number'){
+      result.n_case = numberFormatter(d.n_case)
+    }
+    if(typeof d.n_control === 'number'){
+      result.n_control = numberFormatter(d.n_control)
+    }
+    if(typeof d.num_samples === 'number'){
+      result.num_samples = numberFormatter(d.num_samples)
+    }
+
+    return result;
+  }
   $(function () {
     var svg_width = $('#manhattan_plot_container').width()
     var svg_height = 550
@@ -138,6 +273,7 @@ const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
       .range([0, plot_height * .97])
       .clamp(true)
 
+
     var color_by_chrom = d3.scaleOrdinal()
       .domain(get_chrom_offsets().chroms)
       .range(window.vis_conf.manhattan_colors)
@@ -150,16 +286,45 @@ const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
       .attr('stroke-width', '2px')
       .attr('stroke', 'lightgray')
       .attr('stroke-dasharray', '10,10')
-      .on('mouseover', significance_threshold_tooltip.show)
-      .on('mouseout', significance_threshold_tooltip.hide)
+      .on('mouseover', function(d) { significance_threshold_tooltip.show(d, this) })
+      .on('mouseout', function(d) { significance_threshold_tooltip.hide(d, this) })
 
     // Points & labels
-    var tooltip_template = _.template('tofu')
     var point_tooltip = d3Tip()
       .attr('class', 'd3-tip')
       .html(function (d) {
-        //return tooltip_template({ d: d })
-        return d;
+        const template =`
+        {{#cpra}}<b>{{.}}</b><br/>{{/cpra}}
+        {{#rsids}}rsid: {{.}}<br/>{{/rsids}}
+        {{#nearestGenes}}nearest genes: {{.}}<br/>{{/nearestGenes}}
+        {{#pheno}}pheno: {{.}}<br/>{{/pheno}}
+        {{#pvalue}}p-value: {{.}}<br/>{{/pvalue}}
+        {{#mlogp}}mlog10p-value: {{.}}<br/>{{/mlogp}}
+        {{#beta}}beta: {{.}}<br/>{{/beta}}
+        {{#or}}Odds Ratio: {{.}}<br/>{{/or}}
+        {{#af_alt}}AF: {{.}}<br/>{{/af_alt}}
+        {{#af_alt_cases}}AF cases: {{.}}<br/>{{/af_alt_cases}}
+        {{#af_alt_controls}}AF controls: {{.}}<br/>{{/af_alt_controls}}
+        {{#maf}}AF: {{.}}<br/>{{/maf}}
+        {{#maf_cases}}AF cases: {{.}}<br/>{{/maf_cases}}
+        {{#maf_controls}}AF controls: {{.}}<br/>{{/maf_controls}}
+        {{#af}}AF: {{.}}<br/>{{/af}}
+        {{#ac}}AC: {{.}}<br/>{{/ac}}
+        {{#rc}}RC: {{.}}<br/>{{/rc}}
+        {{#tstat}}Tstat: {{.}}<br/>{{/tstat}}
+        {{#n_cohorts}}n_cohorts: {{.}}<br/>{{/n_cohorts}}
+        {{#n_hom_cases}}n_hom_cases: {{.}}<br/>{{/n_hom_cases}}
+        {{#n_hom_ref_cases}}n_hom_ref_cases: {{.}}<br/>{{/n_hom_ref_cases}}
+        {{#n_het_cases}}n_het_cases: {{.}}<br/>{{/n_het_cases}}
+        {{#n_hom_controls}}n_hom_controls: {{.}}<br/>{{/n_hom_controls}}
+        {{#n_hom_ref_controls}}n_hom_ref_controls: {{.}}<br/>{{/n_hom_ref_controls}}
+        {{#n_het_controls}}#cases: {{.}}<br/>{{/n_het_controls}}
+        {{#n_case}}#cases: {{.}}<br/>{{/n_case}}
+        {{#n_control}}#controls: {{.}}<br/>{{/n_control}}
+        {{#num_samples}}#samples: {{.}}<br/>{{/num_samples}}
+        `;
+        const data = d.target.__data__ ;
+        return mustacheText(template, reshape(data));
       })
       .offset([-6, 0])
     gwas_svg.call(point_tooltip)
@@ -194,8 +359,7 @@ const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
         .on('mouseover', function (d) {
           //Note: once a tooltip has been explicitly placed once, it must be explicitly placed forever after.
           if (d.isDisabled !== true) {
-            var target_node = document.getElementById(fmt('variant-point-{0}-{1}-{2}-{3}', d.chrom, d.pos, d.ref, d.alt))
-            point_tooltip.show(d, target_node)
+            point_tooltip.show(d, this)
           }
         })
         .on('mouseout', point_tooltip.hide)
