@@ -96,6 +96,7 @@ const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
       .domain(genomic_position_extent)
       .range([0, plot_width])
 
+
     unbinned_variants.forEach(function (variant) {
       variant.pScaled = -Math.log10(variant.pval)
       if (variant.pScaled > window.vis_conf.loglog_threshold) {
@@ -153,11 +154,12 @@ const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
       .on('mouseout', significance_threshold_tooltip.hide)
 
     // Points & labels
-    var tooltip_template = _.template(window.model.tooltip_underscoretemplate)
+    var tooltip_template = _.template('tofu')
     var point_tooltip = d3Tip()
       .attr('class', 'd3-tip')
       .html(function (d) {
-        return tooltip_template({ d: d })
+        //return tooltip_template({ d: d })
+        return d;
       })
       .offset([-6, 0])
     gwas_svg.call(point_tooltip)

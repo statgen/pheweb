@@ -7,4 +7,10 @@ npm start
 npm run build
 # Troubleshooting
 
---openssl-legacy-provider
+Error: error:0308010C:digital envelope routines::unsupported
+
+```
+export NODE_OPTIONS=--openssl-legacy-provider
+```
+
+# Configuration

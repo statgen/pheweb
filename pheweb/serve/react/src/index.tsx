@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter, Route, Switch } from 'react-router-dom'
-import NotFound from './components/NotFound/NotFound'
+import NotFoundEntity from './components/NotFound/NotFoundEntity'
 import Index from './components/Index/Index'
 import LoF from './components/LOF/LOF'
 import Chip from './components/Chip/ChipIndex'
@@ -18,7 +18,7 @@ import './assets/common.css'
 import './assets/react-style.css'
 import 'locuszoom/dist/locuszoom.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import Nav from './Nav'
+import Nav from './components/Nav/Nav'
 
 const element = document.getElementById('root')
 
@@ -37,7 +37,7 @@ if (typeof (element) !== 'undefined' && element != null) {
         }}>
           <Switch>
             <Route exact path='/' component={Index} />
-            <Route exact path='/notfound' component={NotFound} />
+            <Route exact path='/notfound' component={NotFoundEntity('entity')} />
             <Route exact path='/lof' component={LoF} />
             <Route exact path='/chip' component={Chip} />
             <Route exact path='/coding' component={Coding} />
@@ -48,7 +48,7 @@ if (typeof (element) !== 'undefined' && element != null) {
             <Route path='/gene/:gene' component={Gene} />
             <Route path='/gene/:gene/pheno/:pheno' component={Gene} />
             <Route path='/top_hits' component={TopHits} />
-            <Route component={NotFound} />
+            <Route component={NotFoundEntity('page')} />
           </Switch>
 
         </div>

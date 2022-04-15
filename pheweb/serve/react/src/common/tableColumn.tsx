@@ -196,9 +196,11 @@ const sorters = {
 
 
 const id_filter = (filter, row) => row[filter.id] <= filter.value;
+const number_filter = (filter, row) => Math.abs(row[filter.id]) > +filter.value
 
 const filters = {
-  "id": id_filter
+  "id": id_filter,
+  "number" : number_filter
 };
 
 const maxTableWidth = 1600;
@@ -499,7 +501,7 @@ const phenotypeColumns = {
         Header: () => (<span title="odds ratio" style={{ textDecoration: "underline" }}>OR</span>),
         label: "odds ratio",
         accessor: "beta",
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         Cell: props => {
           const beta = +props.value
           const label = Math.exp(props.value).toFixed(2)
@@ -558,18 +560,18 @@ const phenotypeColumns = {
         label: "number of cases",
         accessor: "num_cases",
         Cell: props => props.value,
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         minWidth: 50
       },
 
     numCasesPrev:
       {
-        Header: () => (<span title={`number of cases ${window.release_prev}`}
-                             style={{ textDecoration: "underline" }}>{`number of cases ${window.release_prev}`}</span>),
-        label: `number of cases ${window.release_prev}`,
+        Header: () => (<span title={'number of cases previous release'}
+                             style={{ textDecoration: "underline" }}>{'number of cases previous release'}</span>),
+        label: 'number of cases in previous release',
         accessor: "num_cases_prev",
         Cell: props => props.value,
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         minWidth: 50
       },
 
@@ -580,7 +582,7 @@ const phenotypeColumns = {
         label: "number of controls",
         accessor: "num_controls",
         Cell: props => props.value,
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         minWidth: 50
       },
 
@@ -591,18 +593,17 @@ const phenotypeColumns = {
         label: "number of genome-wide significant hits",
         accessor: "num_gw_significant",
         Cell: props => props.value,
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         minWidth: 50
       },
 
     numGwSignificantPrev:
-      {
-        Header: () => (<span title={`number of genome-wide significant hits ${window.release_prev}`}
-                             style={{ textDecoration: "underline" }}>{`genome-wide sig loci ${window.release_prev}`}</span>),
-        label: `number of genome-wide significant hits ${window.release_prev}`,
+      { Header: () => (<span title={"number of genome-wide significant hits release"}
+                             style={{ textDecoration: "underline" }}>genome-wide sig loci previous release</span>),
+        label: `number of genome-wide significant hits previous release`,
         accessor: "num_gw_significant_prev",
         Cell: props => props.value,
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         minWidth: 50
       },
 
@@ -613,7 +614,7 @@ const phenotypeColumns = {
         label: "genomic control lambda 0.5",
         accessor: "lambda",
         Cell: props => props.value,
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         minWidth: 50
       },
 
@@ -636,7 +637,7 @@ const phenotypeColumns = {
         label: "number of samples",
         accessor: "num_samples",
         Cell: props => props.value,
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         minWidth: 100
       },
 
@@ -647,7 +648,7 @@ const phenotypeColumns = {
         label: "number of purchases",
         accessor: "num_events",
         Cell: props => props.value,
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         minWidth: 100
       },
 
@@ -657,7 +658,7 @@ const phenotypeColumns = {
         label: "number of cohorts",
         accessor: "cohorts",
         Cell: props => +props.value.length,
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         minWidth: 50
       },
 
@@ -777,7 +778,7 @@ const phenotypeColumns = {
         Header: () => (<span title="odds ratio" style={{ textDecoration: "underline" }}>OR</span>),
         label: "odds ratio",
         accessor: "beta",
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) > +filter.value,
+        filterMethod: number_filter,
         Cell: props => Math.exp(props.value).toFixed(2),
         minWidth: 80
       },

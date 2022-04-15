@@ -1,4 +1,4 @@
-import { NotFoundConfiguration } from '../NotFound/NotFoundModel'
+import { NotFoundConfiguration } from '../NotFound/notFoundModel'
 import { ChipConfiguration } from '../Chip/chipModel'
 import { IndexConfiguration } from '../Index/indexModel'
 import { PhenotypeConfiguration } from '../Phenotype/phenotypeModel'
@@ -14,7 +14,7 @@ export interface ApplicationConfiguration {
     title: string
     logo : string
     vis_conf : object
-    model : object
+    model : { locuszoomTooltip : string }
 }
 
 
@@ -42,7 +42,11 @@ export interface ConfigurationWindow extends  Window {
 
 declare let window: ConfigurationWindow;
 
-export const resolveURL = (url : string) => {
+export const resolveURL = (relativeURL : string,params : { [ key : string ] : string } | undefined = undefined) : string => {
     const root = window.config?.application?.root
-    return (root)?`${root}${url}`:url
+    const url = new URL((root)?`${root}${relativeURL}`:relativeURL)
+    if(params !== undefined){
+        url.search = new URLSearchParams(params).toString()
+    }
+    return url.toString()
 }

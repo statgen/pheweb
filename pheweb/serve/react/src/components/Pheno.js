@@ -7,6 +7,7 @@ import { create_gwas_plot, create_qq_plot } from '../pheno.js'
 import { mustacheText } from '../common/Utilities'
 import VariantTable from './Phenotype/PhenotypeVariantTable'
 import { resolveURL } from './Configuration/configurationModel'
+import PhenotypeBanner from './Phenotype/PhenotypeBanner'
 
 const defaultErrorMessagesTemplate = { 400: 'The phenotype {{phenocode}} does not exist' }
 
@@ -348,27 +349,9 @@ class Pheno extends React.Component {
         '. No credible sets for this phenotype.' :
         ''
 
-    const risteys = window.browser === 'FINNGEN' ?
-      <p style={{ marginBottom: '10px' }}>
-        <a style={{
-          fontSize: '1.25rem',
-          padding: '.25rem .5rem',
-          backgroundColor: '#2779bd',
-          color: '#fff',
-          borderRadius: '.25rem',
-          fontWeight: 700,
-          boxShadow: '0 0 5px rgba(0,0,0,.5)'
-        }}
-           rel="noopener noreferrer"
-           href={'https://risteys.finngen.fi/phenocode/' + this.state.pheno.phenocode.replace('_EXALLC', '').replace('_EXMORE', '')}
-           target="_blank">RISTEYS
-        </a>
-      </p> : null
     return (
       <div style={{ width: '100%', padding: '0' }}>
-        <h2 style={{ marginTop: 0 }}>{this.state.pheno.phenostring}</h2>
-        <p>{this.state.pheno.category}</p>
-        {risteys}
+        <PhenotypeBanner pheno={this.state.pheno} />
         <table className='column_spacing'>
           {n_cc1}
         </table>

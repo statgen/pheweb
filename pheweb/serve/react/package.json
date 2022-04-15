@@ -39,6 +39,7 @@
     "react-plotly.js": "^2.5.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.3.0",
+    "react-select": "^5.3.0",
     "react-table": "^6.8.6",
     "react-table-v6": "^6.8.6",
     "react-tabs": "^3.1.1",
