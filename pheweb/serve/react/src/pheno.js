@@ -58,50 +58,6 @@ const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
     return chrom_offsets[variant.chrom] + variant.pos
   }
   const reshape = (d) => {
-    /*
-    {
-  "alt": "A",
-  "beta": -0.056333,
-  "chrom": "7",
-  "mlogp": 21.4298,
-  "nearest_genes": "NOS3",
-  "pos": 151007755,
-  "pval": 3.71706e-22,
-  "ref": "G",
-  "rsids": "rs891511",
-  "sebeta": 0.00582035,
-  "maf": 0.436522,
-  "maf_cases": 0.429901,
-  "maf_controls": 0.439303,
-  "phenocode": "I9_HYPTENS",
-  "fin_enrichment": -1,
-  "pScaled": 13.310181265630716
-  }
-
-<% if(_.has(d, 'mlogp')) { %>mlog10p-value: <%= d.mlogp %><br><% } %>
-<% if(_.has(d, 'beta')) { %>beta: <%= d.beta.toFixed(2) %><% if(_.has(d, \"sebeta\")){ %> (<%= d.sebeta.toFixed(2) %>)<% } %><br><% } %>
-<% if(_.has(d, 'or')) { %>Odds Ratio: <%= d['or'] %><br><% } %>
-<% if(_.has(d, 'af_alt')) { %>AF: <%= d.af_alt.toFixed(4) %><br><% } %>
-<% if(_.has(d, 'af_alt_cases')) { %>AF cases: <%= d.af_alt_cases.toFixed(4) %><br><% } %>
-<% if(_.has(d, 'af_alt_controls')) { %>AF controls: <%= d.af_alt_controls.toFixed(4) %><br><% } %>
-<% if(_.has(d, 'maf')) { %>AF: <%= d.maf.toFixed(4) %><br><% } %>
-<% if(_.has(d, 'maf_cases')) { %>AF cases: <%= d.maf_cases.toFixed(4) %><br><% } %>
-<% if(_.has(d, 'maf_controls')) { %>AF controls: <%= d.maf_controls.toFixed(4) %><br><% } %>
-<% if(_.has(d, 'af')) { %>AF: <%= d['af'] %><br><% } %>
-<% if(_.has(d, 'ac')) { %>AC: <%= d.ac.toFixed(1) %> <br><% } %>
-<% if(_.has(d, 'r2')) { %>R2: <%= d['r2'] %><br><% } %>
-<% if(_.has(d, 'tstat')) { %>Tstat: <%= d['tstat'] %><br><% } %>
-<% if(_.has(d, 'n_cohorts')) { %>n_cohorts: <%= d['n_cohorts'] %><br><% } %>
-<% if(_.has(d, 'n_hom_cases')) { %>n_hom_cases: <%= d['n_hom_cases'] %><br><% } %>
-<% if(_.has(d, 'n_hom_ref_cases')) { %>n_hom_ref_cases: <%= d['n_hom_ref_cases'] %><br><% } %>
-<% if(_.has(d, 'n_het_cases')) { %>n_het_cases: <%= d['n_het_cases'] %><br><% } %>
-<% if(_.has(d, 'n_hom_controls')) { %>n_hom_controls: <%= d['n_hom_controls'] %><br><% } %>
-<% if(_.has(d, 'n_hom_ref_controls')) { %>n_hom_ref_controls: <%= d['n_hom_ref_controls'] %><br><% } %>
-<% if(_.has(d, 'n_het_controls')) { %>n_het_controls: <%= d['n_het_controls'] %><br><% } %>
-<% if(_.has(d, 'n_case')) { %>#cases: <%= d['n_case'] %><br><% } %>
-<% if(_.has(d, 'n_control')) { %>#controls: <%= d['n_control'] %><br><% } %>
-<% if(_.has(d, 'num_samples')) { %>#samples: <%= d['num_samples'] %><br><% } %>
-     */
     const result = {}
 
     if(d.chrom && (typeof d.pos === 'number') && d.ref && d.alt){
