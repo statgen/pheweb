@@ -20,6 +20,7 @@ import {
 } from "./RegionLayouts";
 import { ClinvarDataSource, FG_LDDataSource, GWASCatSource } from "./RegionCustomLocuszooms";
 import { Region } from "../RegionModel";
+import { resolveURL } from "../../Configuration/configurationModel";
 
 TransformationFunctions.set<number,number>("neglog10_or_100", (x : number) => (x === 0)?100:-Math.log(x) / Math.LN10);
 TransformationFunctions.set<string | null | undefined,string>("na", (x: string | null | undefined) => x??"NA");
@@ -97,9 +98,9 @@ interface ConditionalParams {
 export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     // Define LocusZoom Data Sources object
 
-    const localBase : string = `/api/region/${region.pheno.phenocode}/lz-`;
-    const localCondBase : string = "/api/conditional_region/" + region.pheno.phenocode + "/lz-";
-    const localFMBase : string = "/api/finemapped_region/" + region.pheno.phenocode + "/lz-";
+    const localBase : string = resolveURL(`/api/region/${region.pheno.phenocode}/lz-`);
+    const localCondBase : string = resolveURL("/api/conditional_region/" + region.pheno.phenocode + "/lz-");
+    const localFMBase : string = resolveURL("/api/finemapped_region/" + region.pheno.phenocode + "/lz-");
     const remoteBase : string = "https://portaldev.sph.umich.edu/api/v1/";
     const dataSources : DataSources = new DataSources();
 
@@ -128,7 +129,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     dataSources.add("clinvar", new ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { region:region , id:[1,4] ,pvalue_field: "log_pvalue" }}));
 
     if (region.lz_conf?.ld_service?.toLowerCase() === 'finngen') {
-	dataSources.add("ld", new FG_LDDataSource({url: "/api/ld",
+	dataSources.add("ld", new FG_LDDataSource({url: resolveURL("/api/ld"),
 						   params: { id:[1,4] ,
 							     region: region,
 							     pvalue_field: "association:pvalue",

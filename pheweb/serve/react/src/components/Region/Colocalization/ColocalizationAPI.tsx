@@ -2,6 +2,7 @@ import { LocusZoomData, SearchResults, searchResultsColocalization, SearchSummar
 import { RegionParameter } from "../RegionModel";
 import { Colocalization } from "../../../common/Model";
 import { compose, get } from "../../../common/Utilities";
+import { resolveURL } from "../../Configuration/configurationModel";
 
 /**
  * Given a colocalization parameter
@@ -24,7 +25,7 @@ export const rest_url = (parameter : RegionParameter, suffix : string = "") : st
 export const getSearchResults = (parameter: RegionParameter | undefined,
                                  sink: (s: Colocalization[]) => void,
                                  getURL = get) =>
-    parameter &&  getURL<SearchResults>(rest_url(parameter),compose(searchResultsColocalization,sink));
+    parameter &&  getURL<SearchResults>(resolveURL(rest_url(parameter)),compose(searchResultsColocalization,sink));
 
 /**
  * Given a parameter return the locus zoom dat associated with that
@@ -37,7 +38,7 @@ export const getSearchResults = (parameter: RegionParameter | undefined,
 export const getLocusZoomData = (parameter: RegionParameter | undefined,
                                  sink : (s : LocusZoomData) => void,
                                  getURL : <LocusZoomData>(url: string, sink: (x: LocusZoomData) => void) => Promise<void> = get) =>
-    parameter &&  getURL<LocusZoomData>(rest_url(parameter,'/finemapping'), sink);
+    parameter &&  getURL<LocusZoomData>(resolveURL(rest_url(parameter,'/finemapping')), sink);
 
 /**
  * Given a parameter return the summary data associated with that
@@ -50,6 +51,6 @@ export const getLocusZoomData = (parameter: RegionParameter | undefined,
 export const getSummary = (parameter: RegionParameter | undefined,
                            sink : (s : SearchSummary) => void,
                            getURL : <SearchSummary>(url: string, sink: (x: SearchSummary) => void) => Promise<void> = get) =>
-    parameter &&  getURL<SearchSummary>(rest_url(parameter,'/summary?clpa.gte=0.1'), sink);
+    parameter &&  getURL<SearchSummary>(resolveURL(rest_url(parameter,'/summary?clpa.gte=0.1')), sink);
 
 

@@ -12,11 +12,16 @@ const RegionLocusZoom =  (props : Props) => {
     useEffect(() => {
         const element = document.getElementById('lz-1');
         if(region && locusZoomData && element && setLocusZoomContext){
-            setLocusZoomContext(init_locus_zoom(region));
+            try {
+                setLocusZoomContext(init_locus_zoom(region));
+            } catch (error) {
+                console.error(error);
+                // expected output: ReferenceError: nonExistentFunction is not defined
+                // Note - error messages will vary depending on browser
+            }
+
         }
     },[locusZoomData, region, setLocusZoomContext]);
-
-
 
     if(region) {
         return (<div className="row">

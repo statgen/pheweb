@@ -12,7 +12,7 @@ import RegionSelection from "./RegionSelection";
 
 interface Props {};
 const Region = (props : Props) => {
-    return (<RegionErrorBoundary>
+    return (
         <RegionContextProvider>
             <ColocalizationContextProvider>
                 <div className="container-fluid"  style={{ width : "95%"}}>
@@ -24,8 +24,7 @@ const Region = (props : Props) => {
                     <RegionColocalization/>
                 </div>
             </ColocalizationContextProvider>
-          </RegionContextProvider>
-        </RegionErrorBoundary>)
+          </RegionContextProvider>)
 }
 
 export default Region;
