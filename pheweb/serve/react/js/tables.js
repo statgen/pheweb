@@ -411,14 +411,15 @@ const phenoTableCols = {'GBMA': [...phenoTableCommonCols[0], ...phenoTableCommon
 const csTableCols = [{
     Header: () => (<span title="variant with highest PIP in the credible set" style={{textDecoration: 'underline'}}>top PIP variant</span>),
     accessor: 'locus_id',
-    filterMethod: (filter,row) => (filter.value == row[filter.id].replace("chr","").replace(/_/g,":"))|(filter.value == row[filter.id]),
+    filterMethod: (filter,rows) => {const fstr = "chr"+filter.value.replace("chr","").replace(/:/g,"_");return matchSorter(rows,fstr,{keys:[row => row[filter.id]]})},
+    filterAll:true,
     Cell: props => (<a href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
     //width: Math.min(270, 270/maxTableWidth*window.innerWidth),
     minWidth: 60,
 },{
     Header: () => (<span title="CS quality" style={{textDecoration: 'underline'}}>CS quality</span>),
     accessor: 'good_cs',
-    filterMethod: (filter,row) => filter.value == row[filter.id],
+    filterMethod: (filter,row) => (filter,row) => (filter.value=="true"?1:(filter.value=="false"?0:2)) == row[filter.id],
     Cell: props => String(props.value),
     minWidth: 60,
 }, {
@@ -450,7 +451,8 @@ const csTableCols = [{
 },{
     Header: () => (<span title="Lead Variant Gene" style={{textDecoration: 'underline'}}>Lead Variant Gene</span>),
     accessor: 'lead_most_severe_gene',
-    filterMethod: (filter,row) => filter.value == row[filter.id],
+    filterMethod: (filter,rows) => matchSorter(rows,filter.value,{keys:[row=>row[filter.id]]}),
+    filterAll: true,
     Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value} target="_blank">{props.value}</a>):"NA",
     minWidth: 50,
 }, {
