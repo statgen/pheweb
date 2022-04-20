@@ -44,7 +44,7 @@ declare let window: ConfigurationWindow;
 
 export const resolveURL = (relativeURL : string,params : { [ key : string ] : string } | undefined = undefined) : string => {
     const root = window.config?.application?.root
-    const url = new URL((root)?`${root}${relativeURL}`:relativeURL)
+    const url = new URL(relativeURL,root?root:window.location.origin)
     if(params !== undefined){
         url.search = new URLSearchParams(params).toString()
     }
