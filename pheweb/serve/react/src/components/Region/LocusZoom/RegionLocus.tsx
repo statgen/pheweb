@@ -95,9 +95,10 @@ interface ConditionalParams {
     trans : any,
 };
 
+let count = 0;
 export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     // Define LocusZoom Data Sources object
-
+    if(count++ >0){ return 0; }
     const localBase : string = resolveURL(`/api/region/${region.pheno.phenocode}/lz-`);
     const localCondBase : string = resolveURL("/api/conditional_region/" + region.pheno.phenocode + "/lz-");
     const localFMBase : string = resolveURL("/api/finemapped_region/" + region.pheno.phenocode + "/lz-");
