@@ -606,7 +606,7 @@ const regionTableCols = [{
 }, {
     Header: () => (<span title="does the variant belong to a credible set" style={{textDecoration: 'underline'}}>variant in a credible set?</span>),
     accessor: 'credible',
-    Cell: props => {props.value},
+    Cell: props => props.value,
     width: Math.min(270, 270/maxTableWidth*window.innerWidth)
 }]
 

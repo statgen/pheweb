@@ -199,8 +199,12 @@ export namespace PubMed {
 export namespace Configuration {
 
 }
+
+export interface LavaaConfiguration { display? : boolean }
 export interface VariantConfiguration {
-  table : { columns: TableColumnConfiguration<Variant.Phenotype> ,
+  lavaa : LavaaConfiguration
+  table : {
+    columns: TableColumnConfiguration<Variant.Phenotype> ,
     defaultSorted : SortingRule<Variant.Phenotype>[] }
   banner?: string;
 }

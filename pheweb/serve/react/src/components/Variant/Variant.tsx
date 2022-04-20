@@ -11,7 +11,7 @@ import { numberFormatter, scientificFormatter } from "../../common/Formatter";
 import ReactTooltip from "react-tooltip";
 import { finEnrichmentLabel } from "../Finngen/gnomad";
 import VariantContextProvider from "./VariantContext";
-import VariantLavaPlot from "./VariantLavaPlot";
+import VariantLavaaPlot from "./VariantLavaaPlot";
 interface Props {}
 
 export const createVariant = (href : string = window.location.href) : CommonVariantModel | undefined  => {
@@ -362,7 +362,7 @@ const Variant = (props : Props) => {
              </div>
       </div>
       <div>
-        <VariantLavaPlot variantData={variantData}/>
+        <VariantLavaaPlot variantData={variantData}/>
       </div>
 
       <div>
