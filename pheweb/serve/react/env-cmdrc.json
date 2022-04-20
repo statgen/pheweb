@@ -1,0 +1,5 @@
+{ "development": { "REACT_APP_CONFIG_URL" : "config.js" ,
+		   "SKIP_PREFLIGHT_CHECK" : true },
+  "production": { "REACT_APP_CONFIG_URL" : "/static/resources/config.js" ,
+		   "SKIP_PREFLIGHT_CHECK" : true }
+}
