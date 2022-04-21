@@ -48,7 +48,6 @@ const stringToCountSorter = (a,b) => {
 
 const stringToCount= (a) => {
     return a.split(";").filter(x=> x != 'NA').length
-
 }
 
 const tofixed = (v,n) => {
