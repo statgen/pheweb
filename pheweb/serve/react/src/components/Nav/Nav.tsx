@@ -1,7 +1,7 @@
 import React from 'react'
 import { ConfigurationWindow } from '../../components/Configuration/configurationModel'
 import { mustacheSpan } from '../../common/Utilities'
-import Search from "./Search";
+import Search from './Search'
 
 declare let window: ConfigurationWindow
 const application = window?.config?.application
@@ -19,11 +19,10 @@ const Nav = () => {
     hasCoding = userInterface?.coding !== undefined,
     hasChip = userInterface?.chip !== undefined,
     hasAbout = userInterface?.about !== undefined,
-    hasCurrentUser = undefined,
-    currentUser = "";
+    hasCurrentUser = undefined;
 
   return <nav className="navbar navbar-expand-lg navbar-light bg-light">
-    <a className="navbar-brand" href="#">{ logo }</a>
+    <a className="navbar-brand" href="/">{ logo }</a>
     <a className="navbar-brand" href="/"> <span className='logo-header'>{ title }</span></a>
     <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
             aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
