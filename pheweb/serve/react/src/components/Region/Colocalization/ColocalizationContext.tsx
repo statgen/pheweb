@@ -22,18 +22,19 @@ export const ColocalizationContext = createContext<Partial<ColocalizationState>>
 
 
 const ColocalizationContextProvider = (props : Props) => {
-    const parameter : RegionParameter| undefined = createParameter();
     const [colocalization, setColocalization] = useState<Colocalization[]| undefined>(undefined);
     const [locusZoomData, setLocusZoomData] = useState<LocusZoomData| undefined>(undefined);
     const [selectedColocalization, setSelectedColocalization] = useState<Colocalization | undefined>(undefined);
     const [searchSummary, setSearchSummary] = useState<SearchSummary | undefined>(undefined);
     const [casualVariant, selectedCasualVariant] = useState<CasualVariant | undefined>(undefined);
         useEffect(() => {
+        const parameter : RegionParameter| undefined = createParameter();
         getSearchResults(parameter, setColocalization);
         getLocusZoomData(parameter, setLocusZoomData);
         getSummary(parameter, setSearchSummary)
-    },[parameter]);
+    },[]);
 
+    const parameter : RegionParameter| undefined = createParameter();
     return (<ColocalizationContext.Provider value={{ parameter ,
                                                      colocalization ,
                                                      locusZoomData ,

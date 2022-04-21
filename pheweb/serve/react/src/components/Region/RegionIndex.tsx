@@ -6,7 +6,6 @@ import RegionBanner from "./RegionBanner";
 import RegionSummary from "./RegionSummary";
 import RegionContextProvider from "./RegionContext";
 import ColocalizationContextProvider from "./Colocalization/ColocalizationContext";
-import { RegionErrorBoundary } from "./RegionErrorBoundary";
 import RegionSelection from "./RegionSelection";
 
 

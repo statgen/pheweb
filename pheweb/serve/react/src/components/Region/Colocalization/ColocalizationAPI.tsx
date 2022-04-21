@@ -53,4 +53,3 @@ export const getSummary = (parameter: RegionParameter | undefined,
                            getURL : <SearchSummary>(url: string, sink: (x: SearchSummary) => void) => Promise<void> = get) =>
     parameter &&  getURL<SearchSummary>(resolveURL(rest_url(parameter,'/summary?clpa.gte=0.1')), sink);
 
-

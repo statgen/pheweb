@@ -17,11 +17,12 @@ export interface RegionState {
 export const RegionContext = createContext<Partial<RegionState>>({});
 
 const RegionContextProvider = (props : Props) => {
-    const parameter : RegionParameter| undefined = createParameter();
     const [region, setRegion] = useState<Region| undefined>(undefined);
     const [ locusZoomContext, setLocusZoomContext] = useState<LocusZoomContext | undefined>(undefined);
     const [ selectedPosition , setSelectedPosition] = useState<number | undefined>(undefined);
-    useEffect(() => { getRegion(parameter,setRegion); },[]);
+    useEffect(() => {
+      const parameter : RegionParameter| undefined = createParameter()
+      getRegion(parameter,setRegion); },[]);
     return (<RegionContext.Provider value={{ region,
                                              locusZoomContext,
                                              setLocusZoomContext,
