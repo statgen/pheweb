@@ -48,6 +48,7 @@ const stringToCountSorter = (a,b) => {
 
 const stringToCount= (a) => {
     return a.split(";").filter(x=> x != 'NA').length
+
 }
 
 const tofixed = (v,n) => {
@@ -412,8 +413,8 @@ const csTableCols = [{
     accessor: 'locus_id',
     filterMethod: (filter,rows) => {const fstr = "chr"+filter.value.replace("chr","").replace(/:/g,"_");return matchSorter(rows,fstr,{keys:[row => row[filter.id]]})},
     filterAll:true,
-    Cell: props => (<a rel="noopener noreferrer"
-		       href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
+    Cell: props => (<a href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
+    //width: Math.min(270, 270/maxTableWidth*window.innerWidth),
     minWidth: 60,
 },{
     Header: () => (<span title="CS quality" style={{textDecoration: 'underline'}}>CS quality</span>),
@@ -452,8 +453,7 @@ const csTableCols = [{
     accessor: 'lead_most_severe_gene',
     filterMethod: (filter,rows) => matchSorter(rows,filter.value,{keys:[row=>row[filter.id]]}),
     filterAll: true,
-    Cell: props => props.value != "NA" ? (<a rel="noopener noreferrer"
-					     href={"/gene/" + props.value} target="_blank">{props.value}</a>):"NA",
+    Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value} target="_blank">{props.value}</a>):"NA",
     minWidth: 50,
 }, {
     Header: () => (<span title="number of coding variants in the credible set. Tooltip shows variant name, most severe consequence, R² to lead variant" style={{textDecoration: 'underline'}}># coding in cs</span>),
@@ -525,9 +525,7 @@ minWidth: 50,
 Header: () => (<span title="Gene" style={{textDecoration: 'underline'}}>Gene</span>),
 accessor: 'most_severe_gene',
 filterMethod: (filter, row) => row[filter.id] == +filter.value,
-Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value}
-					 rel="noopener noreferrer"
-					 target="_blank">{props.value}</a>):"NA",
+Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value} target="_blank">{props.value}</a>):"NA",
 minWidth: 50,
 }, {
 Header: () => (<span title="Consequence" style={{textDecoration: 'underline'}}>Consequence</span>),
