@@ -4,10 +4,6 @@
   "description": "",
   "main": "webpack.common.js",
   "dependencies": {
-    "@babel/core": "^7.11.6",
-    "@babel/preset-env": "^7.11.5",
-    "@babel/preset-react": "^7.10.4",
-    "@babel/runtime": "^7.16.5",
     "@reduxjs/toolkit": "^1.4.0",
     "@types/d3": "^5.7.2",
     "@types/es6-promise": "^3.3.0",
@@ -21,17 +17,20 @@
     "@types/react-router-dom": "^5.1.5",
     "@types/react-table": "^7.0.19",
     "@types/react-test-renderer": "^16.9.3",
+    "@types/react-tooltip": "^4.2.4",
     "@types/uuid": "^8.3.3",
-    "babel": "^6.23.0",
-    "babel-cli": "^6.26.0",
-    "babel-loader": "^8.1.0",
+    "bootstrap": "^4.6.1",
     "d3": "^6.2.0",
     "d3-tip": "^0.9.1",
+    "d3-v6-tip": "^1.0.9",
     "dts-gen": "^0.6.0",
     "handlebars": "^4.7.7",
+    "jquery": "^3.6.0",
+    "lavaa": "github:FINNGEN/lavaa-react#1541a557e5f5ca926dca3ef3088df713b3da288d",
     "locuszoom": "^0.11.0",
     "match-sorter": "^1.8.1",
     "npm-install-all": "^1.1.6",
+    "npm-watch": "^0.11.0",
     "plotly.js": "^1.56.0",
     "q": "^1.5.1",
     "react": "^16.14.0",
@@ -40,6 +39,7 @@
     "react-plotly.js": "^2.5.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.3.0",
+    "react-select": "^5.3.0",
     "react-table": "^6.8.6",
     "react-table-v6": "^6.8.6",
     "react-tabs": "^3.1.1",
@@ -47,26 +47,22 @@
     "regenerator-runtime": "^0.13.9",
     "ts-loader": "^8.0.11",
     "typescript": "^3.9.6",
+    "underscore": "^1.13.2",
     "uuid": "^8.3.2",
-    "validator": "^13.1.17",
-    "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.12",
-    "webpack-merge": "^5.2.0"
+    "validator": "^13.1.17"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.10.4",
-    "@babel/plugin-transform-runtime": "^7.16.5",
+    "@testing-library/react": "^12.1.2",
     "@types/enzyme": "^3.10.7",
     "@types/enzyme-adapter-react-16": "^1.0.6",
-    "@types/jest": "^26.0.15",
     "@types/q": "^1.5.4",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
     "css-loader": "^5.0.2",
+    "env-cmd": "^10.1.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",
     "enzyme-to-json": "^3.6.2",
-    "jest": "^26.4.2",
     "prettier": "2.5.0",
     "react-redux": "^7.2.1",
     "react-test-renderer": "^16.13.1",
@@ -74,13 +70,14 @@
     "standard": "^14.3.4",
     "standardx": "^5.0.0",
     "style-loader": "^2.0.0",
-    "ts-jest": "^26.4.0",
-    "uglifyjs-webpack-plugin": "^2.2.0",
-    "unminified-webpack-plugin": "^2.0.0",
-    "webpack-dev-server": "^4.0.0"
+    "typescript-plugin-css-modules": "^3.4.0"
   },
   "scripts": {
-    "test": "jest"
+    "watch": "npm-watch",
+    "test": "react-scripts test --env=jsdom",
+    "start": "env-cmd -r env-cmdrc.json -e development react-scripts start",
+    "build": "env-cmd -r env-cmdrc.json -e production react-scripts build && cp -R build/* ../static/",
+    "eject": "react-scripts eject"
   },
   "author": "",
   "license": "ISC",
@@ -110,5 +107,25 @@
       "js/components/Variant.js",
       "js/tables.js"
     ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "watch": {
+    "build": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": "js,jsx,tsx"
+    }
   }
 }

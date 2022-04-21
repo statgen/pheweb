@@ -9,7 +9,7 @@ from flask import Blueprint
 
 from .data_access.db import Variant
 
-from flask import Flask, jsonify, render_template, request, redirect, abort, flash, send_from_directory, send_file, session, url_for,make_response
+from flask import Flask, jsonify, render_template, request, redirect, abort, flash, current_app, send_from_directory, send_file, session, url_for,make_response
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from .reporting import Report
@@ -38,8 +38,19 @@ from .server_auth import before_request
 from pheweb_colocalization.view import colocalization
 from .components.autocomplete.service import autocomplete
 from .components.chip.service import chip
+from flask_cors import CORS
 
-app = Flask(__name__)
+
+app = Flask(__name__,
+            # this is hack so this it doesn't get confused on the static subdirectory
+            static_url_path='/55e2cb41-9305-4f09-97fd-b66c4141d245',
+            static_folder='static')
+
+# see: https://flask-cors.readthedocs.io/en/latest/
+if 'cors_origins' in conf:
+    resources = {r"/api/*": {"origins": conf['cors_origins']}}
+    print(f'CORS : {resources}')
+    cors = CORS(app, resources=resources)
 
 ## allows debug statements in jinja
 @app.context_processor
@@ -69,12 +80,6 @@ app.config['PHEWEB_VERSION'] = pheweb_version
 app.config['browser'] = conf['browser']
 app.config['show_ukbb'] = conf['show_ukbb']
 app.config['show_risteys'] = conf['show_risteys']
-for cont in ['about', 'coding', 'chip', 'lof']:
-    if cont + '_content' in conf:
-        with open(conf[cont + '_content'], 'r') as f:
-            app.config[cont + '_content'] = f.read().strip().replace('\n', '')
-    else:
-        app.config[cont + '_content'] = ''
 if 'noindex' in conf:
     app.config['noindex'] = conf['noindex']
 app.config['release'] = conf['release']
@@ -89,9 +94,7 @@ app.config['title'] = conf['title']
 app.config['page_title'] = conf['page_title']
 if 'endpoint_def' in conf:
     app.config['endpoint_def'] = conf['endpoint_def']
-app.config['lof'] = 'lof' in [list(c.keys())[0] for c in conf.database_conf]
-app.config['coding'] = False
-app.config['chip'] = False
+
 app.config['ukbb'] = False
 for c in conf.database_conf:
     if 'coding' in c:
@@ -127,7 +130,7 @@ if "resource_dir" in conf:
 elif "data_dir" in conf:
     resource_dir = os.path.join(conf['data_dir'], "resources")
 
-if resource_dir:    
+if resource_dir:
     static_resources = Blueprint('static_resources',
                                  __name__,
                                  static_url_path='/static/resources',
@@ -150,24 +153,20 @@ def check_auth():
         result = before_request()
     return result
 
-@app.route('/auth')
-@is_public
-def auth():
-    return render_template('auth.html')
-
 @app.route('/health')
 @is_public
 def health():
     return jsonify({'health': 'ok'})
 
+# see : https://stackoverflow.com/questions/44209978/serving-a-front-end-created-with-create-react-app-with-flask
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def homepage(path):
-    return render_template('index_react.html',
-                           tooltip_underscoretemplate=conf.parse.tooltip_underscoretemplate,
-                           vis_conf=conf.vis_conf)
-
-
+def serve(path):
+    if path != '' and os.path.exists(f'{app.static_folder}/{path}'):
+        print(f'{app.static_folder}/{path}')
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/api/autoreport/<phenocode>')
 def autoreport(phenocode):
@@ -196,14 +195,7 @@ def pheno(phenocode):
 def phenolist():
     return jsonify([pheno for pheno in get_phenolist() if pheno['phenocode'] in use_phenos])
 
-@app.route('/api/variant/<query>')
-def api_variant(query):
-    variant = get_variant(query)
-    variant['phenos'] = [pheno for pheno in variant['phenos'] if pheno['phenocode'] in use_phenos]
-    return jsonify(variant)
-
-@app.route('/variant/<query>')
-def variant_page(query):
+def legacy_variant_page(query):
     try:
         q=re.split('-|:|/|_',query)
         if len(q)!=4:
@@ -216,16 +208,25 @@ def variant_page(query):
         regions = jeeves.get_finemapped_regions(v)
         if regions is not None:
             regions = [region for region in regions if region['phenocode'] in use_phenos]
-        return render_template('variant.html',
-                               variant=variantdat[0],
-                               results=variantdat[1],
-                               regions=regions,
-                               tooltip_lztemplate=conf.parse.tooltip_lztemplate,
-                               var_top_pheno_export_fields=conf.var_top_pheno_export_fields,
-                               vis_conf=conf.vis_conf
-        )
+        result = { "variant" : variantdat[0] ,
+                   "results" : variantdat[1] ,
+                   "regions" : regions ,
+                   "tooltip_lztemplate" : conf.parse.tooltip_lztemplate ,
+                   "var_top_pheno_export_fields" : conf.var_top_pheno_export_fields ,
+                   "vis_conf" : conf.vis_conf }
+        return result
     except Exception as exc:
         die('Oh no, something went wrong', exc)
+
+def legacy_variant_api(query):
+    variant = get_variant(query)
+    variant['phenos'] = [pheno for pheno in variant['phenos'] if pheno['phenocode'] in use_phenos]
+    return variant
+
+@app.route('/api/variant/<query>')
+def api_variant(query):
+    result = {**legacy_variant_page(query) , **legacy_variant_api(query) }
+    return result
 
 @app.route('/api/manhattan/pheno/<phenocode>')
 def api_pheno(phenocode):
@@ -237,9 +238,17 @@ def api_pheno(phenocode):
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
 
 @app.route('/api/gene_phenos/<gene>')
-def api_gene_phenos(gene):
-    res = [res for res in jeeves.gene_phenos(gene) if res.pheno['phenocode'] in use_phenos]
-    return jsonify( res )
+def api_gene_phenotypes(gene):
+    gene_region_mapping = jeeves.get_gene_region_mapping()
+    chrom, start, end = gene_region_mapping[gene]
+    start, end = pad_gene(start, end)
+    phenotypes = [res for res in jeeves.gene_phenos(gene) if res.pheno['phenocode'] in use_phenos]
+    region = { "chrom" : chrom ,
+               "start" : start ,
+               "end" : end }
+    result = { "phenotypes" : phenotypes ,
+               "region" : region }
+    return jsonify( result )
 
 @app.route('/api/gene_functional_variants/<gene>')
 def api_gene_functional_variants(gene):
@@ -272,6 +281,7 @@ def api_lof_gene(gene):
 @app.route('/api/top_hits.json')
 def api_top_hits():
     return send_file(common_filepaths['top-hits-1k'])
+
 @app.route('/download/top_hits.tsv')
 def download_top_hits():
     return send_file(common_filepaths['top-hits-tsv'])
@@ -281,10 +291,6 @@ def api_pheno_qq(phenocode):
     if phenocode not in use_phenos:
         abort(404)
     return send_from_directory(common_filepaths['qq'](''), phenocode + '.json')
-
-@app.route('/top_hits')
-def top_hits_page():
-    return render_template('top_hits.html')
 
 @app.route('/api/coding_data')
 def coding_data():
@@ -368,9 +374,13 @@ def api_finemapped_region(phenocode):
     rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, prob_threshold=conf.locuszoom_conf['prob_threshold'])
     return jsonify(rv)
 
-@app.route('/region/<phenocode>/gene/<genename>')
-def gene_phenocode_page(phenocode, genename):
+@app.route('/api/gene/<genename>')
+def gene_api(genename):
+    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
+    if not phenos_in_gene:
+        die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     try:
+        phenocode=phenos_in_gene[0]['phenocode']
         gene_region_mapping = jeeves.get_gene_region_mapping()
         chrom, start, end = gene_region_mapping[genename]
 
@@ -395,32 +405,25 @@ def gene_phenocode_page(phenocode, genename):
                     'assoc': {k:v for k,v in pheno_in_gene.items() if k != 'phenocode'},
                 })
 
-        return render_template('gene.html',
-                               pheno=pheno,
-                               significant_phenos=phenos_in_gene,
-                               gene_symbol=genename,
-                               region='{}:{}-{}'.format(chrom, start, end),
-                               tooltip_lztemplate=conf.parse.tooltip_lztemplate,
-                               lz_conf=conf.locuszoom_conf,
-                               ld_panel_version=conf.ld_panel_version,
-                               gene_pheno_export_fields=conf.gene_pheno_export_fields,
-                               drug_export_fields=conf.drug_export_fields,
-                               lof_export_fields=conf.lof_export_fields,
-                               func_var_report_p_threshold = conf.report_conf["func_var_assoc_threshold"]
-        )
+        gene_information = { "pheno" :  pheno,
+                             "significant_phenos" : phenos_in_gene,
+                             "gene_symbol" : genename,
+                             "region" : f'{chrom}-{start}-{end}',
+                             "start" : start ,
+                             "end" : end ,
+                             "tooltip_lztemplate" : conf.parse.tooltip_lztemplate,
+                             "lz_conf" : conf.locuszoom_conf,
+                             "ld_panel_version" : conf.ld_panel_version,
+                             "gene_pheno_export_fields" : conf.gene_pheno_export_fields,
+                             "drug_export_fields" : conf.drug_export_fields,
+                             "lof_export_fields" : conf.lof_export_fields,
+                              "func_var_report_p_threshold" : conf.report_conf["func_var_assoc_threshold"] }
+
+        return jsonify(gene_information)
     except Exception as exc:
         die("Sorry, your region request for phenocode {!r} and gene {!r} didn't work".format(phenocode, genename), exception=exc)
 
-
-@app.route('/gene/<genename>')
-def gene_page(genename):
-    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
-    if not phenos_in_gene:
-        die("Sorry, that gene doesn't appear to have any associations in any phenotype")
-    return gene_phenocode_page(phenos_in_gene[0]['phenocode'], genename)
-
-
-@app.route('/genereport/<genename>')
+@app.route('/api/genereport/<genename>')
 def gene_report(genename):
     phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
@@ -503,10 +506,6 @@ def drugs(genename):
     except Exception as exc:
         die("Could not fetch drugs for gene {!r}".format(genename), exception=exc)
 
-@app.route('/about')
-def about_page():
-    return render_template('about.html')
-
 # NCBI sometimes doesn't like cross-origin requests so do them here and not in the browser
 @app.route('/api/ncbi/<endpoint>')
 def ncbi(endpoint):
@@ -524,13 +523,6 @@ def die(message='no message', exception=None):
     print(message)
     flash(message)
     abort(404)
-
-@app.errorhandler(404)
-def error_page(message):
-    return render_template(
-        'error.html',
-        message=message
-    ), 404
 
 # Resist some CSRF attacks
 @app.after_request

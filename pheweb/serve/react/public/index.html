@@ -1,0 +1,22 @@
+<!doctype html>
+<html itemscope=""
+      itemtype="http://schema.org/WebPage"
+      lang="en">
+  <head>
+    <!-- configuration -->
+    <script src="%REACT_APP_CONFIG_URL%" type="text/javascript"></script>
+    <script type="text/javascript">
+      window.config = { 'userInterface': (typeof userInterface == 'undefined'?undefined:userInterface),
+                        'metaData': (typeof metaData == 'undefined'?undefined:metaData),
+			                  'application' : (typeof metaData == 'undefined'?undefined:application) }
+      window.vis_conf = application.vis_conf
+      window.model = application.model
+
+    </script>
+    <!-- configuration -->
+
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

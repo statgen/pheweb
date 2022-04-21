@@ -53,6 +53,7 @@ RUN python3 -m pip freeze
 # install gcloud
 # OTHER PEOPLE'S CODE : https://github.com/GoogleCloudPlatform/cloud-sdk-docker/blob/master/Dockerfile
 # ---- OPC
+
 ARG CLOUD_SDK_VERSION=373.0.0
 ENV CLOUD_SDK_VERSION=$CLOUD_SDK_VERSION
 ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
@@ -100,10 +101,10 @@ RUN git config --system credential.'https://source.developers.google.com'.helper
 # ---- OPC
 
 # create react js bundle
-RUN cd /pheweb/pheweb/serve/react && \
-    npm install && node_modules/webpack/bin/webpack.js --config webpack.prod.js && \
-    mv /pheweb/pheweb/serve/static/bundle.js /usr/local/lib/python3.7/dist-packages/pheweb/serve/static/ && \
-    rm -r /pheweb
+RUN cd /pheweb/pheweb/serve/react && npm install
+RUN cd /pheweb/pheweb/serve/react && npm run build
+RUN cp -R /pheweb/pheweb/serve/static/* /usr/local/lib/python3.7/dist-packages/pheweb/serve/static/
+RUN rm -r /pheweb
 
 ADD . /pheweb
 ADD pheweb/load/external_matrix.py /usr/local/bin/

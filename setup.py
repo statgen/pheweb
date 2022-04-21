@@ -72,7 +72,7 @@ setup(
         'idna~=2.6',
         'gunicorn~=19.7',
         'boltons~=18.0',
-        'blist~=1.3',
+        'blist~=1.3.6',
         'cffi~=1.11',
         'wget~=3.2',
         'elasticsearch~=6.2.0',
