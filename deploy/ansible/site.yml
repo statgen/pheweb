@@ -1,0 +1,7 @@
+---
+- name: nfs setup nfs server
+  hosts: all
+  roles:
+    - role: nfs
+      become: yes
+  

@@ -1,0 +1,20 @@
+
+# Default values are found in values.yaml
+
+replicaCount: 3
+
+pheweb:
+  cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
+  cloudSQLProxyInstances: phewas-development:europe-west1:pheweb=tcp:3306
+  directory: /mnt/nfs/pheweb/r6
+  ipName: finngen-r6-ip
+  mount: /mnt/nfs
+  release: r6
+  secretName: production-r6-secrets
+  subdomain: r6
+  tag: ci-939b9f1d70035ac541019f1f8d3ebab6a4875f45
+  
+persistentVolume:
+  path: /data/nfs
+  server: 10.132.0.124
+  storage: 11T

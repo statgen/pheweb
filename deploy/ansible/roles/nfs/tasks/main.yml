@@ -1,0 +1,59 @@
+---
+# tasks file for nfs
+# see :
+#   https://github.com/takara9/vagrant-nfs
+#   https://www.tecmint.com/install-nfs-server-on-ubuntu/
+#   https://advishnuprasad.com/blog/2016/03/29/setup-nfs-server-and-client-using-ansible/
+
+- name: nfs - install apt packages
+  apt:
+    name:
+      - nfs-kernel-server
+      - nfs-common
+    state: present
+    update_cache: yes
+
+- name: nfs - make share directory
+  ansible.builtin.file:
+    path: "{{share_directory}}"
+    owner:  nobody
+    group: nogroup
+    mode: '0777'
+    state: directory
+  
+- name: nfs - create export configuration
+  template:
+    src: exports
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: 0644
+
+- name: nfs - make pheweb directory
+  ansible.builtin.file:
+    path: "{{pheweb_directory}}"
+    owner:  nobody
+    group: nogroup
+    mode: '0777'
+    state: directory
+
+- name: nfs - copy bucket
+  ansible.builtin.command:
+  args:
+    cmd: gsutil -m rsync -R "{{bucket_directory}}" "{{pheweb_directory}}"
+
+- name: nfs - make tmp directory
+  ansible.builtin.file:
+    path: "{{pheweb_directory}}/generated-by-pheweb/tmp"
+    owner: nobody
+    group: nogroup
+    mode: '0777'
+    state: directory
+
+- name: nfs - restart nfs server
+  service: name=nfs-kernel-server state=restarted
+
+- name: r4 specific tasks
+  import_tasks: r4.yaml
+  when: release == "r4"
+

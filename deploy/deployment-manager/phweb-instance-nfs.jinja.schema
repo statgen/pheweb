@@ -1,0 +1,22 @@
+info:
+  title: nfs instance
+  author: major seitan 
+  description: creates a nfs server instance
+  
+required:
+- environment
+- release
+- serviceAccount
+- nfsDiskSizeGb
+
+properties:
+  environment:
+    type: string
+    description: production, development, testing, staging
+  release:
+    type: string
+    description: release e.g. r6, userresult
+  serviceAccount:
+    type: string
+  nfsDiskSizeGb:
+    type: integer
