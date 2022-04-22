@@ -1,7 +1,12 @@
 ---
-- name: nfs setup nfs server
+- name: setup nfs server
   hosts: all
   roles:
     - role: nfs
       become: yes
-  
+
+- name: setup development server
+  hosts: development
+  roles:
+    - role: development
+      become: yes

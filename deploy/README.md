@@ -110,6 +110,12 @@ Add entry for the box to the inventory file for ${enviroment}-{release}-instance
 - inventory.ini
 - host_vars/${enviroment}-{release}-instance-nfs (use previous release or template as a guide)
 
+Check ansible version is >= core 2.12.4
+
+```
+ansible --version
+```
+
 Check _inventory.ini_  entry.  this should successfully ping your server.
 
 ```

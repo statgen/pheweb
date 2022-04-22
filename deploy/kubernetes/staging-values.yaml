@@ -11,7 +11,6 @@ pheweb:
   secretName: phewas-service-account-credentials
   directory: /mnt/nfs/pheweb/bstaging
 
-
 persistentVolume:
   path: /vol1
   server: 10.179.247.250
