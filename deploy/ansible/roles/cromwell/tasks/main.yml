@@ -1,0 +1,95 @@
+---
+- name: configure cromwell instance
+  hosts: all
+  tasks:
+
+    # dev_cromwell_1_database
+    - name: get secret dev_cromwell_1_database
+      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_database
+      register: dev_cromwell_1_database
+    - set_fact:
+        dev_cromwell_1_database={{ dev_cromwell_1_database.stdout }}
+
+    # dev_cromwell_1_password
+    - name: get secret dev_cromwell_1_password
+      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_password
+      register: dev_cromwell_1_password
+    - set_fact:
+        dev_cromwell_1_password={{ dev_cromwell_1_password.stdout }}
+
+    # dev_cromwell_1_username
+    - name: get secret dev_cromwell_1_username
+      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_username
+      register: dev_cromwell_1_username
+    - set_fact:
+        dev_cromwell_1_username={{ dev_cromwell_1_username.stdout }}
+
+    # dev_cromwell_1_mysql
+    - name: get secret dev_cromwell_1_mysql
+      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_mysql
+      register: dev_cromwell_1_mysql
+    - set_fact:
+        dev_cromwell_1_mysql={{ dev_cromwell_1_mysql.stdout }}
+
+    # dev_cromwell_1_zone
+    - name: get secret dev_cromwell_1_zone
+      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_zone
+      register: dev_cromwell_1_zone
+    - set_fact:
+        dev_cromwell_1_zone={{ dev_cromwell_1_zone.stdout }}
+
+    # dev_cromwell_1_project
+    - name: get secret dev_cromwell_1_project
+      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_project
+      register: dev_cromwell_1_project
+    - set_fact:
+        dev_cromwell_1_zone={{ dev_cromwell_1_project.stdout }}
+
+    - name: Update and upgrade apt packages
+      become: true
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: Install git and java
+      become: true
+      apt:
+        state: latest
+        name:
+          - git
+          - openjdk-11-jre
+          - docker-compose
+
+    - name: add group cromwell
+      become: yes
+      group:
+        name: cromwell
+        state: present
+
+    - name: add group cromwell
+      become: yes
+      user:
+        name: cromwell
+        groups: cromwell,docker
+        state: present
+
+    - name: Creates directory
+      file:
+        path: /opt
+        state: directory
+
+    - name: copy cromwell files
+      become: yes
+      copy:
+        src: roles/cromwell/files/cromwell
+        dest: /opt
+        owner: cromwell
+        group: cromwell
+
+    - name: template configuration
+      become: yes
+      template:
+        src: roles/cromwell/templates/application.conf.j2
+        dest: /opt/cromwell/compose/cromwell/app-config/cromwell-application.conf
+        owner: cromwell
+        group: cromwell

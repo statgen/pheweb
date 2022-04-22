@@ -1,0 +1,83 @@
+---
+# dev_cromwell_1_database
+- name: Update and upgrade apt packages
+  become: true
+  apt:
+    upgrade: yes
+    update_cache: yes
+
+- name: Install packages
+  become: true
+  apt:
+    state: latest
+    name:
+      - git
+      - nfs-common
+      - nginx
+      - direnv
+      - virtualenv
+      - rsync
+      - kubectl
+      - pwgen
+      - python-pip
+      - python3-pip
+
+- name: resolve hash issues
+  become: true
+  command: hash -r
+
+- name: Install packages
+  become: true
+  apt:
+    state: latest
+    name:
+      - git
+      - nfs-common
+
+- name: Create mount directory
+  become: true
+  file:
+    path: /mnt/nfs_dev
+    state: directory
+
+- name: Check that the somefile.conf exists
+  stat:
+    path: /mnt/nfs_dev/pheweb
+  register: pheweb_result
+
+- name: Mount an NFS volume
+  become: true
+  mount:
+    src: 10.233.113.218:/vol1
+    path: /mnt/nfs_dev
+    opts: rw,sync,hard,intr
+    state: mounted
+    fstype: nfs
+  when: not pheweb_result.stat.exists
+
+- name: Create pipeline directory
+  become: true
+  file:
+    path: /opt
+    state: directory
+
+- name: Creates directory
+  file:
+    path: /opt
+    state: directory
+
+- name: copy code
+  become: true
+  synchronize:
+    src: /home/mwm1/Work/pipeline_coordination/restart_pods
+    dest: /opt/pipeline_coordination
+    rsync_opts:
+      - "--exclude=.direnv"
+
+- name: copy code
+  become: true
+  template:
+    src: templates/default
+    dest: /etc/nginx/sites-enabled/default
+  notify:
+    - restart nginx
