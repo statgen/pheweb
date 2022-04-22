@@ -161,7 +161,7 @@ def health():
 # see : https://stackoverflow.com/questions/44209978/serving-a-front-end-created-with-create-react-app-with-flask
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def serve(path):
+def homepage(path):
     if path != '' and os.path.exists(f'{app.static_folder}/{path}'):
         print(f'{app.static_folder}/{path}')
         return send_from_directory(app.static_folder, path)
