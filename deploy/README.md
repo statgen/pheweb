@@ -1,21 +1,21 @@
-# Creating a releae
+# Creating a release
 
   These resources will be created independently of
   the deployment
-  
+
   ip - the dns is tied to the ip
   bucket - data is archived here
   oauth - currently not part of deloyment manager so has to be done manually
 
   These resource will be managed by the deployment manger.
-  
+
   nfs - a nfs server
   kubernettes - a k8 cluster
 
 ## Setup your environment
 
   For consistency the release will be referred to
-  
+
   ${release} e.g ${release}="r9","userresults"
   ${environment} e.g. ${environment}=production,development,staging
   ${project} e.g. phewas-development
@@ -34,12 +34,12 @@ export region=europe-west1-b
 ## Create bucker for data
 
 ```
-	gsutil mb -p phewas-development -c STANDARD -l ${region} -b on gs://${release}_data_green 
+	gsutil mb -p phewas-development -c STANDARD -l ${region} -b on gs://${release}_data_green
 ```
 
    Place data for release in the following directory.
    The nfs will synch from this directory.
-   
+
    gs://${release}_data_green/${environment}/pheweb
 
 
@@ -48,7 +48,7 @@ export region=europe-west1-b
 
    Reserve a static address
 
-   Name: prod-${release}-pheweb-ip
+   Name: production-${release}-pheweb-ip
    Network Service Tier : Premium
    IP version : IPv4
    Type : Global
@@ -77,12 +77,16 @@ export region=europe-west1-b
 
   Create deployment
 ```
-   gcloud deployment-manager deployments create ${environment}-${release}-pheweb --config=${environment}-${release}-pheweb-values.yaml
+   gcloud deployment-manager deployments create ${environment}-${release} --config=${environment}-${release}-pheweb-values.yaml
 ```
 
 ## Log into kubernettes cluster
 
-   gcloud container clusters get-credentials ${environment}-${release}-pheweb --region europe-west1-b
+	Setup the credentials for the kubernettes cluster.
+
+```
+   gcloud container clusters get-credentials ${environment}-${release}-pheweb --region ${region}
+```
 
 ## Setup nfs
 
@@ -100,11 +104,11 @@ machine into your known-hosts.
 ssh ${enviroment}-${release}-instance-nfs.${region}.${project}
 ```
 
-setup bucket for files
+Setup bucket for files:
 
-add entry for the box to the inventory file for ${enviroment}-{release}-instance-nfs in
-  - inventory.ini
-  - host_vars/${enviroment}-{release}-instance-nfs (use previous release or template as a guide)
+Add entry for the box to the inventory file for ${enviroment}-{release}-instance-nfs in
+- inventory.ini
+- host_vars/${enviroment}-{release}-instance-nfs (use previous release or template as a guide)
 
 Check _inventory.ini_  entry.  this should successfully ping your server.
 
@@ -119,7 +123,7 @@ ansible-playbook site.yml -i inventory.ini -u ${USER} -vvvv
 ```
 
 The above command runs for all servers and
-can be speed up but limiting it to the new 
+can be speed up but limiting it to the new
 server.
 
 ```
@@ -205,7 +209,7 @@ ansible-playbook site.yml -i inventory.ini -u ${USER}  --limit ${enviroment}-{re
 
   To upgrade, edit the appropriate yaml
   file and then upgrade using helm.
-  
+
 ```
    helm upgrade ${environment}-${release} .  -f ${environment}-${release}-pheweb-values.yaml
 ```
@@ -216,7 +220,7 @@ ansible-playbook site.yml -i inventory.ini -u ${USER}  --limit ${enviroment}-{re
 
 ### Take down pheweb
 
-To take down pheweb and keep the helm history 
+To take down pheweb and keep the helm history
 
 ```
 helm uninstall ${release}-pheweb --keep-history
