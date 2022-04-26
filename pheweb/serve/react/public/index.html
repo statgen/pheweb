@@ -6,15 +6,13 @@
     <!-- configuration -->
     <script src="%REACT_APP_CONFIG_URL%" type="text/javascript"></script>
     <script type="text/javascript">
-      window.config = { 'userInterface': (typeof userInterface == 'undefined'?undefined:userInterface),
-                        'metaData': (typeof metaData == 'undefined'?undefined:metaData),
-			                  'application' : (typeof metaData == 'undefined'?undefined:application) }
-      window.vis_conf = application.vis_conf
-      window.model = application.model
-
+      if(typeof config !== 'undefined') {
+	  window.config = config
+      } else {
+	  console.warn('configuration not loaded ... using default configuration')
+      }
     </script>
     <!-- configuration -->
-
   </head>
   <body>
     <div id="root"></div>

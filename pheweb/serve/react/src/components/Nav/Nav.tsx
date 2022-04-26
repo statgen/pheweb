@@ -19,10 +19,10 @@ const show = <X,>(toogle : boolean) => (value :X) => toogle?value:<></>
 const emailFromCookie =/"([^|]+)/
 const cookie = document.cookie
 
-const logout_url = new URL( '/logout', application.root || window.location.origin)
+const logout_url = new URL( '/logout', application?.root || window.location.origin)
 const Nav = () => {
-  const logo = mustacheSpan((application && application.logo) || 'LOGO',{}) // mustacheSpan('', {});
-  const title = (application && application.title) || 'TITLE'
+  const logo = mustacheSpan(application?.logo || 'LOGO',{}) // mustacheSpan('', {});
+  const title = application?.title || 'TITLE'
   const hasLOF = userInterface?.lof !== undefined,
     hasCoding = userInterface?.coding !== undefined,
     hasChip = userInterface?.chip !== undefined,
