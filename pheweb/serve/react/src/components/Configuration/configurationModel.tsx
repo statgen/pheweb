@@ -43,7 +43,7 @@ export interface ConfigurationWindow extends  Window {
 declare let window: ConfigurationWindow;
 
 export const resolveURL = (relativeURL : string,params : { [ key : string ] : string } | undefined = undefined) : string => {
-    const root = window.config?.application?.root
+    const root = window?.config?.application?.root
     const url = new URL(relativeURL,root?root:window.location.origin)
     if(params !== undefined){
         url.search = new URLSearchParams(params).toString()

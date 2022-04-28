@@ -12,6 +12,8 @@ function fmt (format) {
   })
 }
 
+const vis_conf = window?.config?.application?.vis_conf
+
 const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
 
   var get_chrom_offsets = _.memoize(function () {
@@ -190,22 +192,22 @@ const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
 
     unbinned_variants.forEach(function (variant) {
       variant.pScaled = -Math.log10(variant.pval)
-      if (variant.pScaled > window.vis_conf.loglog_threshold) {
-        variant.pScaled = window.vis_conf.loglog_threshold * Math.log10(variant.pScaled) / Math.log10(window.vis_conf.loglog_threshold)
+      if (variant.pScaled > vis_conf.loglog_threshold) {
+        variant.pScaled = vis_conf.loglog_threshold * Math.log10(variant.pScaled) / Math.log10(vis_conf.loglog_threshold)
       }
     })
     variant_bins.forEach(function (bin) {
       bin.neglog10_pval_extents.forEach(function (ext) {
-        if (ext[0] > window.vis_conf.loglog_threshold) {
-          ext[0] = window.vis_conf.loglog_threshold * Math.log10(ext[0]) / Math.log10(window.vis_conf.loglog_threshold)
+        if (ext[0] > vis_conf.loglog_threshold) {
+          ext[0] = vis_conf.loglog_threshold * Math.log10(ext[0]) / Math.log10(vis_conf.loglog_threshold)
         }
-        if (ext[1] > window.vis_conf.loglog_threshold) {
-          ext[1] = window.vis_conf.loglog_threshold * Math.log10(ext[1]) / Math.log10(window.vis_conf.loglog_threshold)
+        if (ext[1] > vis_conf.loglog_threshold) {
+          ext[1] = vis_conf.loglog_threshold * Math.log10(ext[1]) / Math.log10(vis_conf.loglog_threshold)
         }
       })
       bin.neglog10_pvals.forEach(function (pval, indx, arr) {
-        if (pval > window.vis_conf.loglog_threshold) {
-          arr[indx] = window.vis_conf.loglog_threshold * Math.log10(pval) / Math.log10(window.vis_conf.loglog_threshold)
+        if (pval > vis_conf.loglog_threshold) {
+          arr[indx] = vis_conf.loglog_threshold * Math.log10(pval) / Math.log10(vis_conf.loglog_threshold)
         }
 
       })
@@ -232,7 +234,7 @@ const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
 
     var color_by_chrom = d3.scaleOrdinal()
       .domain(get_chrom_offsets().chroms)
-      .range(window.vis_conf.manhattan_colors)
+      .range(vis_conf.manhattan_colors)
 
     gwas_plot.append('line')
       .attr('x1', 0)
@@ -422,7 +424,7 @@ const create_gwas_plot = function (phenocode, variant_bins, unbinned_variants) {
       .axisLeft()
       .scale(y_scale)
       .tickFormat(function (d) {
-        return d <= window.vis_conf.loglog_threshold ? d : Math.round(Math.pow(window.vis_conf.loglog_threshold, d / window.vis_conf.loglog_threshold))
+        return d <= vis_conf.loglog_threshold ? d : Math.round(Math.pow(vis_conf.loglog_threshold, d / vis_conf.loglog_threshold))
       })
     gwas_plot.append('g')
       .attr('class', 'y axis')

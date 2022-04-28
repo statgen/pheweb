@@ -12,10 +12,16 @@ const lavaa : LavaaConfiguration|undefined = window?.config?.userInterface?.vari
 interface Props { variantData : Variant.Data }
 
 const VariantLavaaPlot = ({ variantData } : Props) => {
-  const { colorByCategory } = useContext<Partial<VariantState>>(VariantContext);
-  return (lavaa && lavaa.display === true && colorByCategory)?<Fragment>
-    <Lavaa dataprop={variantData.phenos} colorByCategory={colorByCategory} />
-  </Fragment>:loading
+  const { colorByCategory } = useContext<Partial<VariantState>>(VariantContext)
+  let result
+  if(lavaa?.display === true){
+    result = (lavaa && colorByCategory)?<Fragment>
+      <Lavaa dataprop={variantData.phenos} colorByCategory={colorByCategory} />
+    </Fragment>:loading
+  } else {
+    result = <></>
+  }
+  return result
 }
 
 export default VariantLavaaPlot
