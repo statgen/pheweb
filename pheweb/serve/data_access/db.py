@@ -29,6 +29,7 @@ import subprocess
 import sys
 import glob
 from pheweb_colocalization.model_db import ColocalizationDAO
+from .variant_phenotype_pip import  VariantPhenotypePipDao
 from ..components.chip.fs_storage import FileChipDAO
 from pathlib import Path
 from .drug_db import DrugDB, DrugDao
@@ -134,6 +135,7 @@ class PhenoResult(JSONifiable):
         n_control,
         mlogp,
         n_sample=None,
+        pip=None
     ):
         self.phenocode = phenocode
         self.phenostring = phenostring
@@ -150,6 +152,8 @@ class PhenoResult(JSONifiable):
         self.category_index = category_index
         self.n_case = n_case
         self.n_control = n_control
+        if pip is not None:
+            self.pip = pip
         if n_sample is None:
             self.n_sample = n_case + n_control
         else:
@@ -173,6 +177,10 @@ class PhenoResult(JSONifiable):
             if resultname in self.matching_results
             else None
         )
+
+    def set_pip(self, pip : float):
+        if pip is not None:
+            self.pip = pip
 
     def json_rep(self):
         return self.__dict__
@@ -1990,3 +1998,6 @@ class DataFactory(object):
 
     def get_chip_dao(self):
         return self.dao_impl["chip"] if "chip" in self.dao_impl else None
+
+    def get_variant_phenotype_pip_dao(self):
+        return self.dao_impl["variant_phenotype_pip"] if "variant_phenotype_pip" in self.dao_impl else None
