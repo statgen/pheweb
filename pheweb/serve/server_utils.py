@@ -1,10 +1,8 @@
 
-from ..file_utils import MatrixReader, IndexedVariantFileReader, common_filepaths
+from ..file_utils import MatrixReader, IndexedVariantFileReader
 
-import random
 import re
 import itertools
-import json
 
 
 class _Get_Pheno_Region:
@@ -53,53 +51,18 @@ class _Get_Pheno_Region:
 get_pheno_region = _Get_Pheno_Region.get_pheno_region
 
 
-class _ParseVariant:
-    chrom_regex = re.compile(r'(?:[cC][hH][rR])?([0-9XYMT]+)')
-    chrom_pos_regex = re.compile(chrom_regex.pattern + r'[-_:/ ]([0-9]+)')
-    chrom_pos_ref_alt_regex = re.compile(chrom_pos_regex.pattern + r'[-_:/ ]([-AaTtCcGg\.]+)[-_:/ ]([-AaTtCcGg\.]+)')
-    def parse_variant(self, query, default_chrom_pos=True):
-        match = self.chrom_pos_ref_alt_regex.match(query) or self.chrom_pos_regex.match(query) or self.chrom_regex.match(query)
-        g = match.groups() if match else ()
-
-        if default_chrom_pos:
-            if len(g) == 0: g += ('1',)
-            if len(g) == 1: g += (0,)
-        if len(g) >= 2: g = (g[0], int(g[1])) + tuple([bases.upper() for bases in g[2:]])
-        return g + tuple(itertools.repeat(None, 4-len(g)))
-parse_variant = _ParseVariant().parse_variant
-
-class _GetVariant:
-    def get_variant(self, query):
-        chrom, pos, ref, alt = parse_variant(query)
-        assert None not in [chrom, pos, ref, alt]
-        if not hasattr(self, '_matrix_reader'):
-            self._matrix_reader = MatrixReader()
-        with self._matrix_reader.context() as mr:
-            v = mr.get_variant(chrom, pos, ref, alt)
-        if v is None: return None
-        v['phenos'] = list(v['phenos'].values())
-        v['variant_name'] = '{} : {:,} {} / {}'.format(chrom, pos, ref, alt)
-        return v
-get_variant = _GetVariant().get_variant
+__CHROMOSOME_REGEX = re.compile(r'(?:[cC][hH][rR])?([0-9XYMT]+)')
+__CHROMOSOME_POS_REGEX = re.compile(__CHROMOSOME_REGEX.pattern + r'[-_:/ ]([0-9]+)')
+__CHROMOSOME_POS_REF_ALT_REGEX = re.compile(__CHROMOSOME_POS_REGEX.pattern + r'[-_:/ ]([-AaTtCcGg\.]+)[-_:/ ]([-AaTtCcGg\.]+)')
 
 
+def parse_variant(self, query, default_chrom_pos=True):
+    match = self.__CHROMOSOME_POS_REF_ALT_REGEX.match(query) or self.__CHROMOSOME_POS_REGEX.match(query) or self.__CHROMOSOME_REGEX.match(
+        query)
+    g = match.groups() if match else ()
 
-
-def get_random_page():
-    with open(common_filepaths['top-hits-1k']) as f:
-        hits = json.load(f)
-    if not hits:
-        return None
-    hits_to_choose_from = [hit for hit in hits if hit['pval'] < 5e-8]
-    if len(hits_to_choose_from) < 10:
-        hits_to_choose_from = hits[:10]
-    hit = random.choice(hits_to_choose_from)
-    r = random.random()
-    if r < 0.4:
-        return '/pheno/{}'.format(hit['phenocode'])
-    elif r < 0.8:
-        return '/variant/{chrom}-{pos}-{ref}-{alt}'.format(**hit)
-    else:
-        offset = int(50e3)
-        return '/region/{phenocode}/{chrom}:{pos1}-{pos2}'.format(pos1=hit['pos']-offset, pos2=hit['pos']+offset, **hit)
-    # TODO: also include gene pages
+    if default_chrom_pos:
+        if len(g) == 0: g += ('1',)
+        if len(g) == 1: g += (0,)
+    if len(g) >= 2: g = (g[0], int(g[1])) + tuple([bases.upper() for bases in g[2:]])
+    return g + tuple(itertools.repeat(None, 4 - len(g)))

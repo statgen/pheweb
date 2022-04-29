@@ -1,49 +1,16 @@
-import { TableColumnConfiguration } from "../../common/tableColumn";
-import { SortingRule } from "react-table";
+import { TableColumnConfiguration } from '../../common/tableColumn'
+import { SortingRule } from 'react-table'
 
 export namespace Variant {
 
   export interface Data {
-    alt:                         string;
-    chrom:                       string;
-    nearest_genes:               string;
-    phenos:                      Phenotype[];
-    pos:                         number;
-    ref:                         string;
     regions:                     any[];
     results:                     Result[];
-    rsids:                       string;
     tooltip_lztemplate:          string;
     var_top_pheno_export_fields: string[];
     variant:                     Variant;
     variant_name:                string;
     vis_conf:                    VisConf;
-  }
-
-  export interface Phenotype {
-    af_alt:                  number;
-    af_alt_cases:            number;
-    af_alt_controls:         number;
-    beta:                    number;
-    category:                string;
-    category_index:          number;
-    gc_lambda:               { [key: string]: number };
-    mlogp:                   number;
-    n_het_cases:             number;
-    n_het_controls:          number;
-    n_hom_cases:             number;
-    n_hom_controls:          number;
-    n_hom_ref_cases:         number;
-    n_hom_ref_controls:      number;
-    num_cases:               number;
-    num_cases_prev:          'NA' | number;
-    num_controls:            number;
-    num_gw_significant:      number;
-    num_gw_significant_prev: 'NA' | number;
-    phenocode:               string;
-    phenostring:             string;
-    pval:                    number;
-    sebeta:                  number;
   }
 
   export interface Result {
@@ -73,9 +40,6 @@ export namespace Variant {
     phewas_string  : string
     category_name : string
     color : string
-  }
-
-  export interface MatchingResults {
   }
 
   export interface Variant {
@@ -204,7 +168,7 @@ export interface LavaaConfiguration { display? : boolean }
 export interface VariantConfiguration {
   lavaa : LavaaConfiguration
   table : {
-    columns: TableColumnConfiguration<Variant.Phenotype> ,
-    defaultSorted : SortingRule<Variant.Phenotype>[] }
+    columns: TableColumnConfiguration<Variant.Result> ,
+    defaultSorted : SortingRule<Variant.Result>[] }
   banner?: string;
 }

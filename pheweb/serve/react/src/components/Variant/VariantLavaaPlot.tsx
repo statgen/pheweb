@@ -16,7 +16,7 @@ const VariantLavaaPlot = ({ variantData } : Props) => {
   let result
   if(lavaa?.display === true){
     result = (lavaa && colorByCategory)?<Fragment>
-      <Lavaa dataprop={variantData.phenos} colorByCategory={colorByCategory} />
+      <Lavaa dataprop={variantData.results} colorByCategory={colorByCategory} />
     </Fragment>:loading
   } else {
     result = <></>

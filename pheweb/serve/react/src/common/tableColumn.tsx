@@ -1388,10 +1388,11 @@ export const variantTableColumns = [
   phenotypeColumns.beta,
   phenotypeColumns.pValue,
   phenotypeColumns.mlogp,
-  phenotypeColumns.chipAFCase,
-  phenotypeColumns.chipAFControl,
-  phenotypeColumns.numCases,
-  phenotypeColumns.numControls
+  { ... phenotypeColumns.chipAFCase, accessor: 'maf_case' },
+  { ... phenotypeColumns.chipAFControl , accessor: 'maf_control' },
+  { ... phenotypeColumns.numCases , accessor: 'n_case' },
+  { ...phenotypeColumns.numControls, accessor: 'n_control' },
+  phenotypeColumns.pip
 ]
 
 export const topHitTableColumns = [

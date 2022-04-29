@@ -1,7 +1,7 @@
 from ..utils import get_phenolist, get_use_phenos, get_gene_tuples, pad_gene
 from ..conf_utils import conf
 from ..file_utils import common_filepaths
-from .server_utils import get_variant, get_random_page, get_pheno_region
+from .server_utils import get_variant, get_pheno_region
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
 
@@ -195,7 +195,8 @@ def pheno(phenocode):
 def phenolist():
     return jsonify([pheno for pheno in get_phenolist() if pheno['phenocode'] in use_phenos])
 
-def legacy_variant_page(query):
+@app.route('/api/variant/<query>')
+def api_variant(query):
     try:
         q=re.split('-|:|/|_',query)
         if len(q)!=4:
@@ -217,16 +218,6 @@ def legacy_variant_page(query):
         return result
     except Exception as exc:
         die('Oh no, something went wrong', exc)
-
-def legacy_variant_api(query):
-    variant = get_variant(query)
-    variant['phenos'] = [pheno for pheno in variant['phenos'] if pheno['phenocode'] in use_phenos]
-    return variant
-
-@app.route('/api/variant/<query>')
-def api_variant(query):
-    result = {**legacy_variant_page(query) , **legacy_variant_api(query) }
-    return result
 
 @app.route('/api/manhattan/pheno/<phenocode>')
 def api_pheno(phenocode):
@@ -301,13 +292,6 @@ def coding_data():
 def chip_data():
     data = [d for d in jeeves.chip() if d['pheno'] in use_phenos]
     return jsonify(data)
-
-@app.route('/random')
-def random_page():
-    url = get_random_page()
-    if url is None:
-        die("Sorry, it looks like no hits in this pheweb reached the significance threshold.")
-    return redirect(url)
 
 @app.route('/api/ukbb_n/<phenocode>')
 def ukbb_ns(phenocode):

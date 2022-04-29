@@ -64,7 +64,7 @@ interface VariantSummary {
 }
 
 const createVariantSummary = (variantData : VariantModel.Data) => {
-  const nearestGenes : string [] = variantData.nearest_genes.split(",");
+  const nearestGenes : string [] = variantData.variant.annotation.nearest_gene.split(",");
   const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
 
   const isNumber = function(d) { return typeof d == "number"; };
@@ -164,13 +164,13 @@ const createVariantSummary = (variantData : VariantModel.Data) => {
   const acHom = variantData?.variant?.annotation?.annot
   const numberAlternativeHomozygotes = 'AC_Hom' in acHom && !isNaN(+acHom['AC_Hom'])?numberFormatter(+acHom['AC_Hom']/2):undefined
   const rsids : string[] = variantData?.variant?.annotation?.rsids?.split(',') || []
-  const chrom = +variantData.chrom
-  const pos = +variantData.pos
+  const chrom = variantData.variant.chr
+  const pos = variantData.variant.pos
   const posStart = pos - 200000
   const posStop = pos + 200000
 
-  const ref = variantData.ref
-  const alt = variantData.alt
+  const ref = variantData.variant.ref
+  const alt = variantData.variant.alt
 
   const variantSummary : VariantSummary = {
     nearestGenes ,
