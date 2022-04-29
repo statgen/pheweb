@@ -3,17 +3,18 @@
 replicaCount: 1
 
 pheweb:
+  cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
   deployment: staging
-  mount: /mnt/nfs
-  release: r8
+  directory: /mnt/r9/pheweb
+  mount: /mnt/r9
+  release: r9
+  secretName: development-staging-secrets
   subdomain: bstaging
-  secretName: phewas-service-account-credentials
-  directory: /mnt/nfs/pheweb/bstaging
 
 persistentVolume:
-  path: /vol1
-  server: 10.179.247.250
+  path: /pheweb
+  server: 10.248.24.170
 
 image:
   tag: ci-dec97a579de7b47e884616e945f8daaae8e70871

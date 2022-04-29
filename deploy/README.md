@@ -27,7 +27,7 @@
 ```
 export release=r100
 export environment=production
-export projedct=phewas-development
+export project=phewas-development
 export region=europe-west1-b
 ```
 
