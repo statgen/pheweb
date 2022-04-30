@@ -1,7 +1,7 @@
 from ..utils import get_phenolist, get_use_phenos, get_gene_tuples, pad_gene
 from ..conf_utils import conf
 from ..file_utils import common_filepaths
-from .server_utils import get_variant, get_pheno_region
+from .server_utils import get_pheno_region
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
 
