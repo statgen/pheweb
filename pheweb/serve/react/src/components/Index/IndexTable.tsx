@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { createTableColumns, phenotypeListTableColumns } from "../../common/tableColumn";
+import { wordFilter, createTableColumns, phenotypeListTableColumns } from '../../common/tableColumn'
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import loading from "../../common/Loading";
 import { Phenotype } from "./indexModel";
@@ -7,7 +7,6 @@ import { getPhenotypes } from "./indexAPI";
 import { mustacheDiv } from "../../common/Utilities";
 import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
 import { Column } from "react-table";
-
 interface Props { }
 
 declare let window: ConfigurationWindow;
@@ -19,13 +18,15 @@ const index = window?.config?.userInterface?.index;
 const tableColumns : Column<Phenotype>[] = createTableColumns(index?.table?.columns) || phenotypeListTableColumns as Column<Phenotype>[];
 const defaultSorted = index?.table?.defaultSorted || [{
   id: 'num_gw_significant',
-  desc: true
+  desc: true,
 }]
 const banner: string = index?.banner || default_banner;
 
 
 
-const tableProperties = {}
+const tableProperties = {
+  defaultFilterMethod : wordFilter
+}
 
 export const Table = (props: Props) => {
 

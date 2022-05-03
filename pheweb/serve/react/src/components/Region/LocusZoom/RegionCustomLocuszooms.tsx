@@ -55,7 +55,7 @@ ClinvarDataSource.prototype.fetchRequest = function(state: any, chain: any, fiel
 
       var data = JSON.parse(resp as string);
 
-      if (data.esearchresult.count === 0) {
+      if (+data.esearchresult.count === 0) {
         var res = defer();
         res.resolve("{ \"noresults\":\"\",\"pos\":" + state.start + " }");
         return res.promise;

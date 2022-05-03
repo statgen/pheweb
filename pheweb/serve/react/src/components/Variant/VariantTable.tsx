@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Column } from "react-table";
 import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
 import { Variant } from "../Variant/variantModel";
-import { createTableColumns, variantTableColumns } from "../../common/tableColumn";
+import { wordFilter, createTableColumns, variantTableColumns } from "../../common/tableColumn";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { VariantContext, VariantState } from "./VariantContext";
 import loading from "../../common/Loading";
@@ -18,7 +18,9 @@ const defaultSorted = variant?.table?.defaultSorted || [{
   desc: false
 }]
 
-const tableProperties = {}
+const tableProperties = {
+  defaultFilterMethod : wordFilter
+}
 
 interface Props { variantData : Variant.Data }
 

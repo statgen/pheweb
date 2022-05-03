@@ -3,12 +3,15 @@ import { Region } from "../RegionModel";
 
 // DEPENDENCIES: This js depends on custom_locuszoom.js and region_layouts.js which need to be included first in html files. We are moving to webpack to take care of the dependencies and this documentation is
 // an interim reminder
+
+
 export const region_layout: (region: Region) => Layout = (region: Region) => {
+	var width = Math.round(window.innerWidth * 0.95);
 	return {
 
-		width: 800,
+		width: width,
 		height: 800,
-		"min_width": 800,
+		"min_width": width,
 	    "min_height": 100,
 		responsive_resize: 'both',
 		"resizable": "responsive",
