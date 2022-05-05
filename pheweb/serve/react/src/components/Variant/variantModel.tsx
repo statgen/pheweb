@@ -28,7 +28,11 @@ export namespace Variant {
     phenocode:        string;
     phenostring:      string;
     pval:             number | null;
+    pip:              number | null | undefined;
   }
+
+  export interface  MatchingResults {}
+
 
   export interface ResultLZ extends  Result {
     id : string
