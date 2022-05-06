@@ -542,19 +542,12 @@ const loadLocusZoom = (phenotype: string) => {
           },
           tooltip: {
             closable: false,
-            "show": {
-              "or": ["highlighted", "selected"]
-            },
-            "hide": {
-              "and": ["unhighlighted", "unselected"]
-            },
+            "show": { "or": ["highlighted", "selected"] },
+            "hide": { "and": ["unhighlighted", "unselected"] },
             html: 'Variant:<strong>{{gwas_cat:variant}}</strong><br>\n\nTrait:<strong>{{gwas_cat:trait}}</strong><br>\n\neffect size:<strong>{{gwas_cat:or_beta}}</strong><br>\n\nLog-pval:<strong>{{gwas_cat:log_pvalue}}</strong><br>\n\nRisk allele:<strong>{{gwas_cat:risk_allele}}</strong><br>\n\nRisk allele frq:<strong>{{gwas_cat:risk_frq}}</strong><br>\n\nStudy:<strong>{{gwas_cat:study}}</strong><br>'
           },
 
-          "x_axis": {
-            "field": "gwas_cat:pos",
-            "axis": 1
-          },
+          "x_axis": { "field": "gwas_cat:pos", "axis": 1 },
           "y_axis": {
             "axis": 1,
             "field": "gwas_cat:log_pvalue",
@@ -565,14 +558,8 @@ const loadLocusZoom = (phenotype: string) => {
           "transition": false,
         }],
         "description": null,
-        "origin": {
-          "x": 0,
-          "y": 0
-        },
-        "proportional_origin": {
-          "x": 0,
-          "y": 0
-        },
+        "origin": { "x": 0, "y": 0 },
+        "proportional_origin": { "x": 0, "y": 0 },
         "background_click": "clear_selections",
       },
       {
@@ -581,6 +568,7 @@ const loadLocusZoom = (phenotype: string) => {
         "min_width": 400,
         "y_index": 1,
         "min_height": 100,
+        "height": 200,
         "margin": {
           "top": 0,
           "right": 50,
@@ -610,10 +598,7 @@ const loadLocusZoom = (phenotype: string) => {
           }]
         },
         "data_layers": [{
-          "namespace": {
-            "gene": "gene",
-            // "constraint": "constraint"
-          },
+          "namespace": { "gene": "gene" },
           "id": "genes",
           "type": "genes",
           "fields": ["gene:gene"],
@@ -634,14 +619,9 @@ const loadLocusZoom = (phenotype: string) => {
           },
           "tooltip": {
             "closable": true,
-            "show": {
-              "or": ["highlighted", "selected"]
-            },
-            "hide": {
-              "and": ["unhighlighted", "unselected"]
-            },
+            "show": { "or": ["highlighted", "selected"] },
+            "hide": { "and": ["unhighlighted", "unselected"] },
             "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div>Gene ID: <strong>{{gene_id}}</strong></div><div>Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
-            // "html": "<h4><strong><i>{{gene_name}}</i></strong></h4><div style=\"float: left;\">Gene ID: <strong>{{gene_id}}</strong></div><div style=\"float: right;\">Transcript ID: <strong>{{transcript_id}}</strong></div><div style=\"clear: both;\"></div><table><tr><th>Constraint</th><th>Expected variants</th><th>Observed variants</th><th>Const. Metric</th></tr><tr><td>Synonymous</td><td>{{exp_syn}}</td><td>{{n_syn}}</td><td>z = {{syn_z}}</td></tr><tr><td>Missense</td><td>{{exp_mis}}</td><td>{{n_mis}}</td><td>z = {{mis_z}}</td></tr><tr><td>LoF</td><td>{{exp_lof}}</td><td>{{n_lof}}</td><td>pLI = {{pLI}}</td></tr></table><table width=\"100%\"><tr><td><button onclick=\"LocusZoom.getToolTipPlot(this).panel_ids_by_y_index.forEach(function(panel){ if(panel == 'genes'){ return; } var filters = (panel.indexOf('intervals') != -1 ? [['intervals:start','>=','{{start}}'],['intervals:end','<=','{{end}}']] : [['position','>','{{start}}'],['position','<','{{end}}']]); LocusZoom.getToolTipPlot(this).panels[panel].undimElementsByFilters(filters, true); }.bind(this)); LocusZoom.getToolTipPanel(this).data_layers.genes.unselectAllElements();\">Identify data in region</button></td><td style=\"text-align: right;\"><a href=\"http://exac.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on ExAC</a></td></tr></table>"
           },
           "label_font_size": 12,
           "label_exon_spacing": 3,
@@ -649,25 +629,14 @@ const loadLocusZoom = (phenotype: string) => {
           "bounding_box_padding": 5,
           "track_vertical_spacing": 5,
           "hover_element": "bounding_box",
-          "x_axis": {
-            "axis": 1
-          },
-          "y_axis": {
-            "axis": 1
-          },
-
+          "x_axis": { "axis": 1 },
+          "y_axis": { "axis": 1 }
         }
         ],
         "title": null,
         "description": null,
-        "origin": {
-          "x": 0,
-          "y": 225
-        },
-        "proportional_origin": {
-          "x": 0,
-          "y": 0.5
-        },
+        "origin": { "x": 0, "y": 225 },
+        "proportional_origin": { "x": 0, "y": 0.5 },
         "background_click": "clear_selections",
         "legend": null
       }

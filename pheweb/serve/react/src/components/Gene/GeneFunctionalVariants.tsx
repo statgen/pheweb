@@ -4,7 +4,7 @@ import { mustacheDiv } from "../../common/Utilities";
 import { FunctionalVariants } from "./geneModel";
 import { getGeneFunctionalVariants } from "./geneAPI";
 import { Column } from "react-table";
-import { createTableColumns, geneFunctionalVariantTableColumns } from "../../common/tableColumn";
+import { wordFilter, createTableColumns, geneFunctionalVariantTableColumns } from "../../common/tableColumn";
 import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
 import loading from "../../common/Loading";
 import { finEnrichmentLabel } from "../Finngen/gnomad";
@@ -29,7 +29,9 @@ const empty: string = config?.empty || default_empty;
 const tableColumns : Column<FunctionalVariants.ViewRow>[] = createTableColumns<FunctionalVariants.ViewRow>(config?.tableColumns) || (geneFunctionalVariantTableColumns as Column<FunctionalVariants.ViewRow>[])
 const defaultSorted =[]
 
-const tableProperties = {  defaultPageSize : 5
+const tableProperties = {
+  defaultPageSize : 5,
+  defaultFilterMethod : wordFilter
 }
 const reshapeRow = (r : FunctionalVariants.Row) : FunctionalVariants.ViewRow => {
   const rsids = r.rsids

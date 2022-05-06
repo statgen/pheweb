@@ -90,7 +90,7 @@ const finnGenPhenotypeCellRow = ({ pheno , beta , pval, phenocode, phenostring} 
   const body = <tr className={"gene_func_var_tab"} key={phenocode}>
     <td className={"gene_func_var_row"} style={{ width : "100px"}}>
       { arrow }
-      OR {pheno || phenostring } {scientificFormatter(beta)}<br/>
+      OR {scientificFormatter(beta)}<br/>
       p-val {scientificFormatter(pval)}
     </td>
     <td>
