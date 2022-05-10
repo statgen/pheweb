@@ -3,8 +3,7 @@ import { Dashboard, DataSources, populate, positionIntToString } from "locuszoom
 import { GeneContext, GeneState } from "./GeneContext";
 import loading from "../../common/Loading";
 import { resolveURL } from "../Configuration/configurationModel";
-
-interface Props {}
+import {add_dashboard_button } from '../Region/LocusZoom/RegionLocus'
 
 const element_id: string = "lz-1";
 
@@ -136,25 +135,10 @@ const loadLocusZoom = (phenotype: string) => {
     return component
   });
 
-  const add_dashboard_button = (name, func) => {
-    Dashboard.Components.add(name, function(layout : { color : string , title : string, text : string}){
-    const component = new Dashboard.Component.apply(this);
-    component.update = function(){
-        if (this.button)
-          return this;
-        this.button = new Dashboard.Component.Button(this)
-          .setColor(layout.color).setText(layout.text).setTitle(layout.title)
-          .setOnclick(func(layout).bind(this));
-        this.button.show();
-        return this.update();
-    };
-    return component
-    });
-  }
-
   add_dashboard_button('link', function(layout) {
     return function() { window.location.href = layout.url; };
   });
+
   add_dashboard_button('move', function(layout) {
     // see also the default component `shift_region`
     return function() {
@@ -168,6 +152,7 @@ const loadLocusZoom = (phenotype: string) => {
       });
     }
   });
+
 
   const layout = {
     width: 800,

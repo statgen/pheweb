@@ -70,7 +70,7 @@ export interface LocusZoomContext {
 }
 
 // dashboard components
-function add_dashboard_button(name : string, func : (layout : ComponentsEntity) => { bind : (a : any) => any }) {
+export function add_dashboard_button(name : string, func : (layout : ComponentsEntity) => { bind : (a : any) => any }) {
     Dashboard.Components.add(name, function(layout : ComponentsEntity){
         Dashboard.Component.apply(this, arguments as any);
         this.update = function(){
