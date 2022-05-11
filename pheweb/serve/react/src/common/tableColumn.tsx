@@ -978,7 +978,16 @@ const phenotypeColumns = {
     },
     finnGenPhenotype: {
       Header: () => (<span style={{ textDecoration: "underline" }}>FinnGen phenotypes p &lt; 1E-04</span>),
-      filterMethod: (filter, row) => row[filter.id] <= filter.value,
+      filterMethod: (filter, row) => {
+          const {pheno, beta, pval, significant_phenos} = row;
+          const labels = (significant_phenos || []).map(c => c.phenostring.toLowerCase());
+          const betapval = [ ... (significant_phenos || []).map(c => c.pval),
+                             ... (significant_phenos || []).map(c => c.beta)]
+          const value = filter.value
+          const number = betapval.find(current => !isNaN(+current) && +current <= +value)
+          const word = labels.find(l => l.includes(value.toLowerCase()))
+          return number || word
+      },
       Cell: finnGenPhenotypeCell,
       accessor: "significant_phenos"
     },
