@@ -984,9 +984,9 @@ const phenotypeColumns = {
           const betapval = [ ... (significant_phenos || []).map(c => c.pval),
                              ... (significant_phenos || []).map(c => c.beta)]
           const value = filter.value
-          const number = betapval.find(current => !isNaN(+current) && +current <= +value)
-          const word = labels.find(l => l.includes(value.toLowerCase()))
-          return number || word
+          const lessThanValue = betapval.find(current => !isNaN(+current) && +current <= +value)
+          const containsValue = labels.find(l => l.includes(value.toLowerCase()))
+          return lessThanValue || containsValue
       },
       Cell: finnGenPhenotypeCell,
       accessor: "significant_phenos"
