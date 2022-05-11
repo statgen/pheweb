@@ -3,7 +3,7 @@ import { mustacheDiv } from "../../common/Utilities";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { GenePhenotypes } from "./geneModel";
 import { Column } from "react-table";
-import { createTableColumns, genePhenotypeTableColumns } from "../../common/tableColumn";
+import { wordFilter, createTableColumns, genePhenotypeTableColumns } from "../../common/tableColumn";
 import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
 import { finEnrichmentLabel } from "../Finngen/gnomad";
 import loading from "../../common/Loading";
@@ -66,6 +66,7 @@ const GenePhenotypeAssociation = () => {
   const { genePhenotype , gene , selectedPhenotype} = useContext<Partial<GeneState>>(GeneContext);
   const filename =  `${gene}_top_associations`
   const tableProperties = {
+    defaultFilterMethod : wordFilter,
     getTrProps : (state, rowInfo, column) => {
       if (rowInfo !== undefined && rowInfo?.original?.phenocode === selectedPhenotype?.pheno?.phenocode) {
         return { className: 'geneSelectedRow' }

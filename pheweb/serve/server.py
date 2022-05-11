@@ -539,6 +539,23 @@ if 'login' in conf:
             return User(email=id)
         return None
 
+    # /api/authentication # GET
+    @app.route('/api/authentication', methods=['GET'])
+    def api_get_authentication():
+        """Get authenticated user information."""
+        user_info = { 'email' : current_user.email,
+                      'username' : current_user.username }
+        return user_info
+
+    # /api/authentication # DELETE
+    @app.route('/api/authentication', methods=['DELETE'])
+    def api_delete_authentication():
+        """Log out by a delete call."""
+        logout_user()
+        return { 'status' : 'success' ,
+                 'message' : 'logged out' }
+
+
     @app.route('/logout')
     @is_public
     def logout():

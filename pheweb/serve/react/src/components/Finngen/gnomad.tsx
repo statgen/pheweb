@@ -37,34 +37,3 @@ export const finEnrichmentLabel = (gnomad : { [key : string ] : (string | number
   }
   return finEnrichment;
 }
-
-/*
-export const finEnrichment = (gnomad : { [key : string ] : (string | number)}) => {
-  let value = undefined
-  if(gnomad){
-    if ('AC_fin' in gnomad &&
-       'AN_fin' in gnomad &&
-       'AC_nfe_nwe' in gnomad &&
-       'AC_nfe_onf' in gnomad &&
-       'AC_nfe_seu' in gnomad &&
-       'AN_nfe_nwe' in gnomad &&
-       'AN_nfe_onf' in gnomad &&
-       'AN_nfe_seu' in gnomad &&
-       !isNaN(+gnomad['AC_fin']) &&
-       !isNaN(+gnomad['AN_fin']) &&
-       !isNaN(+gnomad['AC_nfe_nwe']) &&
-       !isNaN(+gnomad['AC_nfe_onf']) &&
-       !isNaN(+gnomad['AC_nfe_seu']) &&
-       !isNaN(+gnomad['AN_nfe_nwe']) &&
-       !isNaN(+gnomad['AN_nfe_onf']) &&
-       !isNaN(+gnomad['AN_nfe_seu'])) {
-      value =
-        +gnomad['AC_fin'] / +gnomad['AN_fin'] /
-        ((+gnomad['AC_nfe_nwe'] + +gnomad['AC_nfe_onf'] + +gnomad['AC_nfe_seu']) /
-          (+gnomad['AN_nfe_nwe'] + +gnomad['AN_nfe_onf'] + +gnomad['AN_nfe_seu']))
-    }
-  }
-  return value
-}
-
-*/

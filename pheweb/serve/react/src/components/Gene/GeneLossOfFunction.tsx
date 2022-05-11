@@ -5,7 +5,7 @@ import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
 import { LossOfFunction } from "./geneModel";
 import { getLossOfFunction } from "./geneAPI";
 import { Column } from "react-table";
-import { createTableColumns, geneLossOfFunctionTableColumns } from "../../common/tableColumn";
+import { wordFilter, createTableColumns, geneLossOfFunctionTableColumns } from "../../common/tableColumn";
 import loading from "../../common/Loading";
 import { GeneContext, GeneState } from "./GeneContext";
 
@@ -27,7 +27,8 @@ const defaultSorted = [{
   desc: false
 }]
 const tableProperties = {
-  defaultPageSize : 5
+  defaultPageSize : 5,
+  defaultFilterMethod : wordFilter
 }
 
 

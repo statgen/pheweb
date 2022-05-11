@@ -1,13 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { ConfigurationWindow } from '../../components/Configuration/configurationModel'
 import { mustacheSpan } from '../../common/Utilities'
 import Search from './Search'
+import Logout from './Logout'
 
 declare let window: ConfigurationWindow
 const application = window?.config?.application
 const userInterface = window?.config?.userInterface
 
-const navLink = (href : string, label : string) => <li className="nav-item">
+export const navLink = (href : string, label : string) => <li className="nav-item">
   <a className="nav-link" href={href} style={{ color: '#333', fontWeight: 'bold' }}>{label}</a>
 </li>
 const show = <X,>(toogle : boolean) => (value :X) => toogle?value:<></>
@@ -19,15 +20,16 @@ const show = <X,>(toogle : boolean) => (value :X) => toogle?value:<></>
 const emailFromCookie =/"([^|]+)/
 const cookie = document.cookie
 
-const logout_url = new URL( '/logout', application?.root || window.location.origin)
 const Nav = () => {
+
   const logo = mustacheSpan(application?.logo || 'LOGO',{}) // mustacheSpan('', {});
   const title = application?.title || 'TITLE'
   const hasLOF = userInterface?.lof !== undefined,
     hasCoding = userInterface?.coding !== undefined,
     hasChip = userInterface?.chip !== undefined,
     hasAbout = userInterface?.about !== undefined,
-    hasCurrentUser = emailFromCookie.test(cookie) && document.cookie.match(cookie)[1];
+    hasCurrentUser : string | undefined = emailFromCookie.test(cookie) && document.cookie.match(cookie)[1];
+
 
   return <nav className="navbar navbar-expand-lg navbar-light bg-light">
     <a className="navbar-brand" href="/">{ logo }</a>
@@ -44,7 +46,7 @@ const Nav = () => {
         {show(hasCoding)(navLink('/coding','Coding'))}
         {show(hasChip)(navLink('/chip','Chip'))}
         {show(hasAbout)(navLink('/about','About'))}
-        {show(hasCurrentUser)(navLink(logout_url.href,'currentUser'))}
+        <Logout/>
       </ul>
     </div>
   </nav>

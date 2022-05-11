@@ -50,7 +50,7 @@ ClinvarDataSource.prototype.getURL = function(state: any, chain: any, fields: an
 ClinvarDataSource.prototype.fetchRequest = function(state: any, chain: any, fields: any) {
 
   var url = this.getURL(state, chain, fields);
-  var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + "[" + (this.params.region.genome_build === 37 ? "chrpos37" : "chrpos") + "]%22clinsig%20pathogenic%22[Properties]&retmax=500";
+  var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + "[" + (this.params?.region?.genome_build === 37 ? "chrpos37" : "chrpos") + "]%22clinsig%20pathogenic%22[Properties]&retmax=500";
   return createCORSPromise("GET", requrl).then(function(resp: unknown) {
 
       var data = JSON.parse(resp as string);

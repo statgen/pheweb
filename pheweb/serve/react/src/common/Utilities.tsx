@@ -35,6 +35,28 @@ export const get: <X>(url: string, sink: (x: X) => void) => Promise<void> = (
     .then((response) => response.json())
     .then(sink)
     .catch((e) => warn(url, e));
+
+/**
+ * Delete url
+ *
+ * Takes a setter and an optional transformation and a fetchURL
+ * Fetches url as a json object.  Calls the sink with the resulting
+ * json.  If there is an error it's sent to the console.
+ *
+ * @param url
+ * @param sink
+ * @param fetchURL
+ */
+export const deleteRequest : <X>(url: string, sink: (x: X) => void) => Promise<void> = (
+    url,
+    sink
+) =>
+    fetch(url, { method : 'DELETE' })
+        .then((response) => response.json())
+        .then(sink)
+        .catch((e) => warn(url, e));
+
+
 /**
  * mustacheDiv
  *

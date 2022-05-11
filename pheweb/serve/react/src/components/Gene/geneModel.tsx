@@ -179,7 +179,7 @@ export namespace GenePhenotypes {
 
   export interface Phenotype {
     readonly assoc:   Association
-    readonly pheno:   Phenotype
+    readonly pheno:   PhenotypeDetail
     readonly variant: Variant
   }
 
@@ -201,7 +201,7 @@ export namespace GenePhenotypes {
   }
 
 
-  export interface Phenotype {
+  export interface PhenotypeDetail {
     readonly assoc_files:             string[];
     readonly category:                string;
     readonly category_index?:         number;

@@ -90,7 +90,7 @@ const finnGenPhenotypeCellRow = ({ pheno , beta , pval, phenocode, phenostring} 
   const body = <tr className={"gene_func_var_tab"} key={phenocode}>
     <td className={"gene_func_var_row"} style={{ width : "100px"}}>
       { arrow }
-      OR {pheno || phenostring } {scientificFormatter(beta)}<br/>
+      OR {scientificFormatter(beta)}<br/>
       p-val {scientificFormatter(pval)}
     </td>
     <td>
@@ -978,7 +978,16 @@ const phenotypeColumns = {
     },
     finnGenPhenotype: {
       Header: () => (<span style={{ textDecoration: "underline" }}>FinnGen phenotypes p &lt; 1E-04</span>),
-      filterMethod: (filter, row) => row[filter.id] <= filter.value,
+      filterMethod: (filter, row) => {
+          const { significant_phenos} = row;
+          const labels = (significant_phenos || []).map(c => c.phenostring.toLowerCase());
+          const betapval = [ ...(significant_phenos || []).map(c => c.pval),
+                             ...(significant_phenos || []).map(c => c.beta)]
+          const value = filter.value
+          const lessThanValue = betapval.find(current => !isNaN(+current) && +current <= +value)
+          const containsValue = labels.find(l => l.includes(value.toLowerCase()))
+          return lessThanValue || containsValue
+      },
       Cell: finnGenPhenotypeCell,
       accessor: "significant_phenos"
     },
@@ -1393,9 +1402,9 @@ export const variantTableColumns = [
   phenotypeColumns.beta,
   phenotypeColumns.pValue,
   phenotypeColumns.mlogp,
-  { ... phenotypeColumns.chipAFCase, accessor: 'maf_case' },
-  { ... phenotypeColumns.chipAFControl , accessor: 'maf_control' },
-  { ... phenotypeColumns.numCases , accessor: 'n_case' },
+  { ...phenotypeColumns.chipAFCase, accessor: 'maf_case' },
+  { ...phenotypeColumns.chipAFControl , accessor: 'maf_control' },
+  { ...phenotypeColumns.numCases , accessor: 'n_case' },
   { ...phenotypeColumns.numControls, accessor: 'n_control' },
   phenotypeColumns.pip
 ]

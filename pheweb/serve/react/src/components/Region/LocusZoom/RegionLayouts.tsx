@@ -301,8 +301,8 @@ export const genes_layout: (region: Region) => Layout = (region: Region) => {
 	}
 }
 
-export const clinvar_layout: (region: Region) => Layout = (region: Region) => {
-    return { "id": "clinvar",
+export const clinvar_layout: Layout =  {
+	"id": "clinvar",
 	     "title": { "text": "", "x": 55, "y": 35, "style": { "font-size": 6 } },
 	     "y_index": 3,
 	     "min_width": 400,
@@ -375,8 +375,8 @@ export const clinvar_layout: (region: Region) => Layout = (region: Region) => {
 	     "origin": { "x": 0, "y": 0 },
 	     "proportional_origin": { "x": 0, "y": 0 },
 	     "background_click": "clear_selections",
-	}
 }
+
 
 
 export const gwas_cat_layout: (region: Region) => Layout = (region: Region) => {
@@ -764,7 +764,7 @@ export const colocalization_layout: (region: Region) => Layout = (region: Region
 export const panel_layouts : { [ key : string] : (region: Region) => Layout } = {
 	'association' : association_layout ,
     'genes' : genes_layout ,
-	'clinvar' : clinvar_layout ,
+	'clinvar' : (region: Region) => clinvar_layout ,
 	'gwas_cat' : gwas_cat_layout ,
 	'finemapping' : finemapping_layout ,
 	 'colocalization' : colocalization_layout
