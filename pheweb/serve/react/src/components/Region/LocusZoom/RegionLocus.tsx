@@ -182,7 +182,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
     const plot : Plot = populate("#lz-1", dataSources, region_layout(region));
 
     plot.addPanel(association_layout(region));
-    plot.addPanel(clinvar_layout(region));
+    plot.addPanel(clinvar_layout);
     plot.addPanel(gwas_cat_layout(region));
     plot.addPanel(genes_layout(region));
     plot.addPanel(colocalization_layout(region));
