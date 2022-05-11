@@ -6,10 +6,7 @@ import { resolveURL } from "../Configuration/configurationModel";
 import {add_dashboard_button } from '../Region/LocusZoom/RegionLocus'
 import {clinvar_layout} from '../Region/LocusZoom/RegionLayouts'
 import {
-  ComponentsEntity,
-  Layout,
-  Plot,
-  TransformationFunctions
+  Plot
 } from "locuszoom";
 
 const element_id: string = "lz-1";
@@ -92,10 +89,10 @@ const lz_conf = {
 
 const ld_panel_version = "sisu3";
 
-const association_layout = (phenotype : string) => {
+const association_layout = (phenostring : string) => {
   return {
     "id": "association",
-/*    "title": {"text": phenotype, "x": 55, "y": 30}, */
+    "title": {"text": phenostring, "x": 55, "y": 30},
     "proportional_height": 0.3,
     "min_width": 400,
     "min_height": 100,
@@ -261,7 +258,7 @@ const association_layout = (phenotype : string) => {
         "hide": {
           "and": ["unhighlighted", "unselected"]
         },
-        html: tooltip_html.replace("PHENO", phenotype)
+        html: tooltip_html.replace("PHENO", phenostring)
       },
 
       "x_axis": {
@@ -496,7 +493,7 @@ const genes_layout =  {
   "legend": null
 }
 
-const loadLocusZoom = (phenotype: string) => {
+const loadLocusZoom = (phenotype: string,phenostring : string) => {
 
   const localBase: string = resolveURL(`/api/region/${phenotype}/lz-`);
   const remoteBase: string = "https://portaldev.sph.umich.edu/api/v1/";
@@ -640,7 +637,7 @@ const loadLocusZoom = (phenotype: string) => {
 
   const plot : Plot = populate("#lz-1", dataSources, layout);
 
-  plot.addPanel(association_layout(phenotype));
+  plot.addPanel(association_layout(phenostring));
   plot.addPanel(clinvar_layout);
   plot.addPanel(gwas_cat_layout);
   plot.addPanel(genes_layout);
@@ -655,7 +652,7 @@ const GeneLocusZoom = () => {
   const { genePhenotype, selectedPhenotype } = useContext<Partial<GeneState>>(GeneContext);
   useEffect(() => {
     if (selectedPhenotype !== undefined && selectedPhenotype !== null) {
-      loadLocusZoom(selectedPhenotype.pheno.phenocode);
+      loadLocusZoom(selectedPhenotype.pheno.phenocode,selectedPhenotype.pheno.phenostring);
     }
 
   }, [genePhenotype, selectedPhenotype]);

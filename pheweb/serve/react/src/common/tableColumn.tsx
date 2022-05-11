@@ -979,10 +979,10 @@ const phenotypeColumns = {
     finnGenPhenotype: {
       Header: () => (<span style={{ textDecoration: "underline" }}>FinnGen phenotypes p &lt; 1E-04</span>),
       filterMethod: (filter, row) => {
-          const {pheno, beta, pval, significant_phenos} = row;
+          const { significant_phenos} = row;
           const labels = (significant_phenos || []).map(c => c.phenostring.toLowerCase());
-          const betapval = [ ... (significant_phenos || []).map(c => c.pval),
-                             ... (significant_phenos || []).map(c => c.beta)]
+          const betapval = [ ...(significant_phenos || []).map(c => c.pval),
+                             ...(significant_phenos || []).map(c => c.beta)]
           const value = filter.value
           const lessThanValue = betapval.find(current => !isNaN(+current) && +current <= +value)
           const containsValue = labels.find(l => l.includes(value.toLowerCase()))
@@ -1402,9 +1402,9 @@ export const variantTableColumns = [
   phenotypeColumns.beta,
   phenotypeColumns.pValue,
   phenotypeColumns.mlogp,
-  { ... phenotypeColumns.chipAFCase, accessor: 'maf_case' },
-  { ... phenotypeColumns.chipAFControl , accessor: 'maf_control' },
-  { ... phenotypeColumns.numCases , accessor: 'n_case' },
+  { ...phenotypeColumns.chipAFCase, accessor: 'maf_case' },
+  { ...phenotypeColumns.chipAFControl , accessor: 'maf_control' },
+  { ...phenotypeColumns.numCases , accessor: 'n_case' },
   { ...phenotypeColumns.numControls, accessor: 'n_control' },
   phenotypeColumns.pip
 ]
