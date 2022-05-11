@@ -5,7 +5,7 @@ import { ConfigurationWindow } from '../../components/Configuration/configuratio
 
 declare let window: ConfigurationWindow
 const application = window?.config?.application
-const logout_url = new URL( '/logout', application?.root || window.location.origin)
+const logout_url = new URL( '/', application?.root || window.location.origin)
 
 const Logout = () => {
     const [currentUser, setCurrentUser] = useState<UserInformation| undefined>(undefined);
@@ -19,7 +19,7 @@ const Logout = () => {
     const result = (currentUser === undefined)?
         <></>:
         <li className="nav-item">
-            <a className="nav-link" onClick={clickHandler} style={{color: '#333', fontWeight: 'bold'}}>{currentUser.email}</a>
+            <a className="nav-link" onClick={clickHandler} style={{color: '#333', fontWeight: 'bold'}}>Logout ( {currentUser.email} )</a>
         </li>
     return result
 }
