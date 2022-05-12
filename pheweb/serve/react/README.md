@@ -26,13 +26,20 @@ Set the root property under application to your rest end point
 # Run UI
 
 Pull recent version
-- git pull
+
+```git pull```
+
 Remove previous libraries
-- rm -rf node_modules
+
+```rm -rf node_modules```
+
 Install npm libraries
-- npm install
+
+```npm install```
+
 Start front end
-- npm start
+
+```npm start```
 
 
 # Troubleshooting
