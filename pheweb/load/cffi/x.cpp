@@ -110,7 +110,7 @@ private:
         zs.next_out = dst + BLOCK_HEADER_LENGTH;
         zs.avail_out = dlen - BLOCK_HEADER_LENGTH - BLOCK_FOOTER_LENGTH;
         int ret = deflateInit2(&zs,
-                               Z_DEFAULT_COMPRESSION, // compression level. default is 6
+                               COMPRESSION_LEVEL, // compression level. default is 6
                                Z_DEFLATED,
                                -15, // use 2^15=32kB window and output raw (no zlib header/footer)
                                8,
@@ -156,7 +156,7 @@ private:
     size_t _uncompressed_block_size; // num bytes occupied
     static const size_t BGZF_BLOCK_SIZE = 0xff00; // 255*256
     static const size_t BGZF_MAX_BLOCK_SIZE = 0x10000; //64K
-    static const int COMPRESSION_LEVEL = 2; // default of 6 is 3x slower than 2.  2 is 10% slower than 1.
+    static const int COMPRESSION_LEVEL = 5; // default of 6 is 3x slower than 2.  2 is 10% slower than 1.
     static const int BLOCK_HEADER_LENGTH = 18;
     static const int BLOCK_FOOTER_LENGTH = 8;
     static constexpr const char* BLOCK_HEADER =
