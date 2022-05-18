@@ -19,10 +19,10 @@ def run(argv):
     )
 
 def convert(pheno):
+    sites_filepath = common_filepaths['sites']
     pheno_inpath = common_filepaths['parsed'](pheno['phenocode'])
     pheno_outpath = common_filepaths['pheno'](pheno['phenocode'])
-    sites_filepath = common_filepaths['sites']
-    convert_file(pheno_inpath, pheno_outpath, sites_filepath)
+    convert_file(sites_filepath, pheno_inpath, pheno_outpath)
 
 
 def convert_file(sites_filepath, in_filepath, out_filepath, ):
