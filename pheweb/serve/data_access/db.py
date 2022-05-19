@@ -675,7 +675,8 @@ class TabixGnomadDao(GnomadDB):
                 .replace("25", "Y")
             )
             tabix_iter = self.tabix_handles[threading.get_ident()].fetch(
-                fetch_chr, variant.pos - 1, variant.pos
+                fetch_chr, variant.pos - 1, variant.pos,
+                multiple_iterators = True
             )
             for row in tabix_iter:
                 split = row.split("\t")
@@ -710,7 +711,8 @@ class TabixGnomadDao(GnomadDB):
         chrom = "X" if str(chrom) == "23" else chrom
         try:
             tabix_iter = self.tabix_handles[threading.get_ident()].fetch(
-                chrom, start - 1, end
+                chrom, start - 1, end,
+                multiple_iterators = True
             )
         except ValueError:
             print(
@@ -761,7 +763,8 @@ class TabixResultDao(ResultDB):
     def get_variant_results_range(self, chrom, start, end):
         try:
             tabix_iter = self.tabix_files[threading.get_ident()].fetch(
-                chrom, start - 1, end
+                chrom, start - 1, end,
+                multiple_iterators = True
             )
         except ValueError:
             print(
@@ -876,7 +879,8 @@ class TabixResultDao(ResultDB):
     def get_top_per_pheno_variant_results_range(self, chrom, start, end):
         try:
             tabix_iter = self.tabix_files[threading.get_ident()].fetch(
-                chrom, start - 1, end
+                chrom, start - 1, end,
+                multiple_iterators = True
             )
         except ValueError:
             print(
@@ -1064,7 +1068,8 @@ class ExternalMatrixResultDao(ExternalResultDB):
 
                 try:
                     iter = self.tabixfiles[threading.get_ident()].fetch(
-                        var.chrom, var.pos - 1, var.pos
+                        var.chrom, var.pos - 1, var.pos,
+                        multiple_iterators = True
                     )
                     for ext_var in iter:
                         ext_var = ext_var.split("\t")
@@ -1098,7 +1103,8 @@ class ExternalMatrixResultDao(ExternalResultDB):
 
         if known_range is not None:
             iter = self.tabixfiles[threading.get_ident()].fetch(
-                "chr" + known_range[0], known_range[1] - 1, known_range[2]
+                "chr" + known_range[0], known_range[1] - 1, known_range[2],
+                multiple_iterators = True
             )
             for ext_var in iter:
                 ext_var = ext_var.split("\t")
@@ -1137,7 +1143,8 @@ class ExternalMatrixResultDao(ExternalResultDB):
                 try:
                     ## todo remove CHR when annotations fixed
                     iter = self.tabixfiles[threading.get_ident()].fetch(
-                        "chr" + str(var.chr), var.pos - 1, var.pos
+                        "chr" + str(var.chr), var.pos - 1, var.pos,
+                        multiple_iterators = True
                     )
                     for ext_var in iter:
                         ext_var = ext_var.split("\t")
@@ -1317,7 +1324,7 @@ class ExternalFileResultDao(ExternalResultDB):
                     .replace("24", "Y")
                     .replace("25", "MT")
                 )
-                iterator = tabf.fetch(fetch_chr, var.pos - 1, var.pos)
+                iterator = tabf.fetch(fetch_chr, var.pos - 1, var.pos, multiple_iterators = True)
                 for ext_var in iterator:
                     ext_split = ext_var.split("\t")
                     ### TODO: remove this once the datafiles have been regenerated
@@ -1465,7 +1472,8 @@ class TabixAnnotationDao(AnnotationDB):
 
         for variant in variants:
             tabix_iter = self.tabix_files[threading.get_ident()].fetch(
-                variant.chr, variant.pos - 1, variant.pos, parser=None
+                variant.chr, variant.pos - 1, variant.pos, parser=None,
+                multiple_iterators = True
             )
             while True:
                 try:
@@ -1503,7 +1511,8 @@ class TabixAnnotationDao(AnnotationDB):
     def get_variant_annotations_range(self, chrom, start, end, cpra):
         try:
             tabix_iter = self.tabix_files[threading.get_ident()].fetch(
-                chrom, start - 1, end
+                chrom, start - 1, end,
+                multiple_iterators = True
             )
         except ValueError:
             print(
@@ -1564,7 +1573,8 @@ class TabixAnnotationDao(AnnotationDB):
             self.last_time = time.time()
         try:
             tabix_iter = self.tabix_files[threading.get_ident()].fetch(
-                chrom.replace("X", "23"), start - 1, end
+                chrom.replace("X", "23"), start - 1, end,
+                multiple_iterators = True
             )
         except Exception as e:
             ## tabix_file stupidly throws an error when no results are found in the region. Just return empty list
