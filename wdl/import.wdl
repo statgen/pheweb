@@ -163,10 +163,10 @@ task annotation {
 
         for url in ${sep="\t" output_url}; do
 
-        /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/sites/sites.tsv"                "$url/generated-by-pheweb/sites/sites.tsv"
-        /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/resources/gene_aliases.sqlite3" "$url/generated-by-pheweb/resources/gene_aliases.sqlite3"
-        /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3"      "$url/generated-by-pheweb/sites/cpras-rsids.sqlite3"
-        /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/sites/genes/genes-b38-v37.bed"  "$url/cache/genes-b38-v37.bed"
+        /pheweb/scripts/copy_files.sh ${dir}/pheweb/generated-by-pheweb/sites/sites.tsv                $url/generated-by-pheweb/sites/sites.tsv
+        /pheweb/scripts/copy_files.sh ${dir}/pheweb/generated-by-pheweb/resources/gene_aliases.sqlite3 $url/generated-by-pheweb/resources/gene_aliases.sqlite3
+        /pheweb/scripts/copy_files.sh ${dir}/pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3      $url/generated-by-pheweb/sites/cpras-rsids.sqlite3
+        /pheweb/scripts/copy_files.sh ${dir}/pheweb/generated-by-pheweb/sites/genes/genes-b38-v37.bed  $url/cache/genes-b38-v37.bed
 
         done
 
@@ -272,10 +272,10 @@ task pheno {
 
         for url in ${sep="\t" output_url}; do
 
-        /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz"      "$url/generated-by-pheweb/pheno_gz/${pheno_name}.gz"
-	/pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi"  "$url/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi"
-	/pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/manhattan/${pheno_name}.json"   "$url/generated-by-pheweb/manhattan/${pheno_name}.json"
-	/pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/qq/${pheno_name}.json"          "$url/generated-by-pheweb/qq/${pheno_name}.json"
+        /pheweb/scripts/copy_files.sh ${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz      $url/generated-by-pheweb/pheno_gz/${pheno_name}.gz
+	/pheweb/scripts/copy_files.sh ${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi  $url/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi
+	/pheweb/scripts/copy_files.sh ${dir}pheweb/generated-by-pheweb/manhattan/${pheno_name}.json   $url/generated-by-pheweb/manhattan/${pheno_name}.json
+	/pheweb/scripts/copy_files.sh ${dir}pheweb/generated-by-pheweb/qq/${pheno_name}.json          $url/generated-by-pheweb/qq/${pheno_name}.json
 
 	done
 	>>>
@@ -416,12 +416,12 @@ EOF
 
       #skipping pheno-list.json as it is written in the the fix json step
       #/pheweb/scripts/copy_files.sh "${dir}pheweb/pheno-list.json"                                "$url/pheno-list.json")
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/matrix.tsv.gz"              "$url/generated-by-pheweb/matrix.tsv.gz"
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/matrix.tsv.gz.tbi"          "$url/generated-by-pheweb/matrix.tsv.gz.tbi"
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/top_hits.json"              "$url/generated-by-pheweb/top_hits.json"
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/top_hits.tsv"               "$url/generated-by-pheweb/top_hits.tsv"
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/top_hits_1k.json"           "$url/generated-by-pheweb/top_hits_1k.json"
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/best-phenos-by-gene.json"   "$url/generated-by-pheweb/best-phenos-by-gene.json"
+      /pheweb/scripts/copy_files.sh ${dir}pheweb/generated-by-pheweb/matrix.tsv.gz              $url/generated-by-pheweb/matrix.tsv.gz
+      /pheweb/scripts/copy_files.sh ${dir}pheweb/generated-by-pheweb/matrix.tsv.gz.tbi          $url/generated-by-pheweb/matrix.tsv.gz.tbi
+      /pheweb/scripts/copy_files.sh ${dir}pheweb/generated-by-pheweb/top_hits.json              $url/generated-by-pheweb/top_hits.json
+      /pheweb/scripts/copy_files.sh ${dir}pheweb/generated-by-pheweb/top_hits.tsv               $url/generated-by-pheweb/top_hits.tsv
+      /pheweb/scripts/copy_files.sh ${dir}pheweb/generated-by-pheweb/top_hits_1k.json           $url/generated-by-pheweb/top_hits_1k.json
+      /pheweb/scripts/copy_files.sh ${dir}pheweb/generated-by-pheweb/best-phenos-by-gene.json   $url/generated-by-pheweb/best-phenos-by-gene.json
 
       done
     >>>
@@ -518,7 +518,7 @@ CODE
      cat "${root_dir}new_pheno.json"
 
      for url in ${sep="\t" output_url}; do
-          /pheweb/scripts/copy_files.sh "${root_dir}new_pheno.json" "$url/pheno-list.json"
+          /pheweb/scripts/copy_files.sh ${root_dir}new_pheno.json $url/pheno-list.json
      done
 >>>
 

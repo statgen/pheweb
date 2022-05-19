@@ -2,7 +2,7 @@
   "import_pheweb.bed_file": "gs://r9_data_green/genes-without-M-b38-v39.bed",
   "import_pheweb.custom_json": "gs://mutaamba_bucket/meds_pheweb/sumstats/pheno-list.json",
   "import_pheweb.disk": 500,
-  "import_pheweb.docker": "eu.gcr.io/phewas-development/pheweb:wip-e8e886352fc2a3cb9e765dfd761e86aa6c5b6af9",
+  "import_pheweb.docker": "eu.gcr.io/phewas-development/pheweb:wip-feb01bc0dde8aa368445635af454577937c4d68a",
   "import_pheweb.fields": [
     "category",
     "category_index",
