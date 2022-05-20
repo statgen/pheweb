@@ -15,6 +15,7 @@ pipeline {
 	    steps {
                 withCredentials([file(credentialsId: 'jenkins-sa', variable: 'gcp')]) {
                     sh '''/root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$gcp'''
+		    sh '''echo ${BRANCH_NAME}'''
                     sh '''/root/google-cloud-sdk/bin/gcloud auth configure-docker'''
                     sh '''/root/google-cloud-sdk/bin/gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b'''
                     sh '''if helm ls | grep pheweb > /dev/null  ; then  helm upgrade staging-pheweb ./deploy/kubernetes -f ./deploy/kubernetes/staging-values.yaml --set image.tag=ci-${GIT_COMMIT} ; else helm install staging-pheweb ./deploy/kubernetes -f ./deploy/kubernetes/staging-values.yaml --set image.tag=ci-${GIT_COMMIT} ; fi ; '''
