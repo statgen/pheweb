@@ -13,6 +13,7 @@ pipeline {
 	}
     stage('Deploy') {
 	    steps {
+	    if(env.GIT_BRANCH == 'master') {
                 withCredentials([file(credentialsId: 'jenkins-sa', variable: 'gcp')]) {
                     sh '''/root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$gcp'''
                     sh '''/root/google-cloud-sdk/bin/gcloud auth configure-docker'''
@@ -20,6 +21,8 @@ pipeline {
                     sh '''if helm ls | grep pheweb > /dev/null  ; then  helm upgrade staging-pheweb ./deploy/kubernetes -f ./deploy/kubernetes/staging-values.yaml --set image.tag=ci-${GIT_COMMIT} ; else helm install staging-pheweb ./deploy/kubernetes -f ./deploy/kubernetes/staging-values.yaml --set image.tag=ci-${GIT_COMMIT} ; fi ; '''
                     sh '''kubectl delete pods --all --wait=false'''
 		}
+	    }
+
 	    }
 	}
     }
