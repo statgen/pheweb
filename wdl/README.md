@@ -13,7 +13,7 @@ the wdl to use is 'import.wdl'.
 **pheweb.summary_files** : file containing the list of summary files
 
 **pheweb.bed_file** : the bed file
-      
+
 **pheweb.disk** : disk space needed for the whole export
 
 **pheweb.matrix.cpu** : cpu's need for the matrix step
@@ -78,9 +78,8 @@ the following storage options are supported
 **NOTE** For nfs directories have to be created prior to runing the import
 
 ```
-mkdir -p {cache,generated-by-pheweb/{sites,resources,pheno_gz,manhattan,qq}}
+mkdir -p {cache,generated-by-pheweb/{sites,resources,pheno_gz,manhattan,qq}} ; chmod -R ugo+wrx .
 ```
-
 **import_pheweb.post_import**
 
 Optional commands to run after import e.g.
