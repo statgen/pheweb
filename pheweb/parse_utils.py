@@ -107,7 +107,7 @@ per_assoc_fields: Dict[str,Dict[str,Any]] = {
         'type': float,
         'nullable': True,
         'range': [0, None],
-        'sigfigs': 2,
+        'sigfigs': 3,
         'display': 'Odds Ratio',
     },
     'maf': {
