@@ -1,4 +1,4 @@
-{ "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:ci-34d828435a341b95c024aa78bb4142814a3c82b2",
+{ "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-2f2b0f97de00f9dbfac1069fd4a73376e15058db",
   "import_pheweb.summary_files":"gs://r9_data_green/development/import/ukbb-estbb-meta/pheweb.sumstat_files.1.txt",
   "import_pheweb.bed_file" : "gs://r9_data_green/development/import/ukbb-estbb-meta/genes-b38-v39.bed",
   "import_pheweb.disk" : 8000 ,
@@ -17,5 +17,6 @@
   "import_pheweb.preprocess.pval_column" : "all_inv_var_meta_p" ,
   "import_pheweb.preprocess.mlogp_column" : "all_inv_var_meta_mlogp" ,
   "import_pheweb.preprocess.beta_column" : "all_inv_var_meta_beta" ,
-  "import_pheweb.preprocess.se_beta_column" : "all_inv_var_meta_sebeta"
+  "import_pheweb.preprocess.se_beta_column" : "all_inv_var_meta_sebeta" ,
+  "import_pheweb.file_affix" : "_meta_out_filtered.tsv"
 }
