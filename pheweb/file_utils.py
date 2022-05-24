@@ -241,7 +241,10 @@ class _ivfr:
         variant = {}
         for field in self._colidxs:
             val = variant_row[self._colidxs[field]]
-            parser = conf.parse.fields[field]["_read"]
+            if field in conf.parse.fields:
+                parser = conf.parse.fields[field]["_read"]
+            else:
+                parser = lambda x : x
             try:
                 variant[field] = parser(val)
             except Exception as exc:

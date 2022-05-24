@@ -166,9 +166,10 @@ class ServerJeeves(object):
             print("Could not fetch drugs for gene {!r}. Error: {}".format(gene,traceback.extract_tb(exc.__traceback__).format() ))
             raise
 
-    def get_pheno(self, phenocode):
+    def get_pheno_manhattan(self, phenocode) -> str:
         with open(common_filepaths['manhattan'](phenocode)) as f:
-            variants = json.load(f)
+            manhattan = f.read()
+            return manhattan
 
         vars = [ Variant( d['chrom'].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25"), d['pos'], d['ref'], d['alt'] ) for d in variants['unbinned_variants'] if 'peak' in d ]
 

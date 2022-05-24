@@ -224,7 +224,7 @@ def api_pheno(phenocode):
     if phenocode not in use_phenos:
         abort(404)
     try:
-        return jsonify( jeeves.get_pheno(phenocode))
+        return jeeves.get_pheno_manhattan(phenocode)
     except Exception as exc:
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
 
