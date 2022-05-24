@@ -5,13 +5,20 @@ import loading from "../../common/Loading";
 import { resolveURL } from "../Configuration/configurationModel";
 import {add_dashboard_button } from '../Region/LocusZoom/RegionLocus'
 import {clinvar_layout} from '../Region/LocusZoom/RegionLayouts'
+import { ConfigurationWindow } from "../Configuration/configurationModel";
 import {
   Plot
 } from "locuszoom";
+import { Gene } from "./geneModel";
 
 const element_id: string = "lz-1";
 
-const tooltip_html = `
+declare let window: ConfigurationWindow;
+const { config } = window;
+const lz_config : Gene.LzConfiguration = config?.userInterface?.gene?.lz_config
+
+
+const tooltip_html : string = lz_config?.tooltip_html || `
   <strong>{{association:id}}</strong><br/>
   <strong>{{association:rsid}}</strong><br/>
   <strong>{{association:most_severe}}</strong><br/>
@@ -55,7 +62,8 @@ const tooltip_html = `
   </tbody>
   </table>
   `;
-const assoc_fields = [
+
+const assoc_fields : string[] = lz_config?.assoc_fields ||  [
   "association:id",
   "association:chr",
   "association:position",
@@ -87,7 +95,7 @@ const lz_conf = {
   "tooltip_html": tooltip_html
 };
 
-const ld_panel_version = "sisu3";
+const ld_panel_version : string = lz_config?.ld_panel_version ||  "sisu3";
 
 const association_layout = (phenostring : string) => {
   return {
