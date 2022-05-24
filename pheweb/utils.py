@@ -234,7 +234,7 @@ def beta_to_m_log_p(beta: float, se_beta: float) -> float:
     """
     if se_beta == 0:
         raise ValueError(f"m log p-value value undefined {beta} {se_beta}")
-    return abs((stats.norm.logsf(beta / se_beta) + math.log(2)) / math.log(10))
+    return abs((stats.norm.logsf(abs(beta) / se_beta) + math.log(2)) / math.log(10))
 
 
 @contextlib.contextmanager
