@@ -733,6 +733,14 @@ class TabixGnomadDao(GnomadDB):
 
         return annotations
 
+def extend_pheno_result(pr : PhenoResult,
+                        record_offset : int,
+                        field_offsets,
+                        row):
+    for key, offset in field_offsets.items():
+        if not hasattr(pr, key):
+            setattr(pr, key, row[record_offset+offset])
+    return pr
 
 class TabixResultDao(ResultDB):
     def __init__(self, phenos, matrix_path):
@@ -849,7 +857,8 @@ class TabixResultDao(ResultDB):
                     if "num_samples" in self.pheno_map[pheno[0]]
                     else "NA",
                 )
-                phenores.append(pr)
+                pr = extend_pheno_result(pr,pheno[1],self.header_offset,split)
+                pr = phenores.append(pr)
             result.append((v, phenores))
         return result
 
