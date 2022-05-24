@@ -1,8 +1,79 @@
 import { Layout, LayoutDataLayersEntity, Layouts } from "locuszoom";
 import { Region } from "../RegionModel";
+import { ConfigurationWindow } from "../../Configuration/configurationModel";
 
-// DEPENDENCIES: This js depends on custom_locuszoom.js and region_layouts.js which need to be included first in html files. We are moving to webpack to take care of the dependencies and this documentation is
-// an interim reminder
+declare let window: ConfigurationWindow;
+const { config } = window;
+const lz_config : Region.LzConfiguration = config?.userInterface?.region?.lz_config
+
+const tooltip_html : string = lz_config?.tooltip_html || `
+
+                   <strong>{{association:id}}</strong><br/>
+                   <strong>{{association:rsid}}</strong><br/>
+                   <strong>{{association:most_severe}}</strong><br/>
+                   <table>
+                      <tbody>
+                        <tr>
+                            <td>phenotype</td>
+                            <td><strong>PHENO</strong></td>
+                        </tr>
+                        <tr>
+                            <td>p-value</td>
+                            <td><strong>{{association:pvalue|scinotation}}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>beta</td>
+                            <td><strong>{{association:beta}}</strong> ({{association:sebeta}})</td>
+                        </tr>
+                        <tr>
+                            <td>-log10(p)</td>
+                            <td><strong>{{association:mlogp|scinotation}}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>MAF</td>
+                            <td><strong>{{association:maf|percent}}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>MAF controls</td>
+                            <td><strong>{{association:maf_controls|percent}}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>MAF cases</td>
+                            <td><strong>{{association:maf_cases|percent}}</strong><br></td>
+                        </tr>
+                        <tr>
+                            <td>FIN enrichment</td>
+                            <td><strong>{{association:fin_enrichment}}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>INFO</td>
+                            <td><strong>{{association:INFO}}</strong></td>
+                        </tr>
+                      </tbody>
+                   </table>
+`
+
+const assoc_fields : string[] = lz_config?.assoc_fields || [
+	"association:id",
+	"association:chr",
+	"association:position",
+	"association:ref",
+	"association:alt",
+	"association:pvalue",
+	"association:pvalue|neglog10_or_100",
+	"association:mlogp",
+	"association:beta",
+	"association:sebeta",
+	"association:rsid",
+	"association:maf",
+	"association:maf_cases",
+	"association:maf_controls",
+	"association:most_severe",
+	"association:fin_enrichment",
+	"association:INFO",
+	"ld:state",
+	"ld:isrefvar"
+]
 
 
 export const region_layout: (region: Region) => Layout = (region: Region) => {
@@ -215,7 +286,7 @@ export const association_layout: (region: Region) => Layout = (region: Region) =
 					"size": 40,
 					"label": "no r² data",
 					"class": "lz-data_layer-scatter" }],
-				  fields: region?.lz_conf?.assoc_fields,
+				  fields: assoc_fields,
 				  // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
 				  id_field: "association:id",
 				  behaviors: { onmouseover: [{ action: "set", status: "selected" }],
@@ -225,7 +296,7 @@ export const association_layout: (region: Region) => Layout = (region: Region) =
 				  tooltip: { closable: false,
 					     "show": { "or": ["highlighted", "selected"] },
 					     "hide": { "and": ["unhighlighted", "unselected"] },
-					     html: region?.lz_conf?.tooltip_html?.replace('PHENO', region.pheno.phenostring || region.pheno.phenocode) },
+					     html: tooltip_html.replace('PHENO', region.pheno.phenostring || region.pheno.phenocode) },
 				  "x_axis": { "field": "association:position", "axis": 1 },
 				  "y_axis": { "axis": 1,
 				  /*          "field": "association:pvalue|neglog10_or_100", */

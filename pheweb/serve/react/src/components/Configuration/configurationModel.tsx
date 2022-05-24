@@ -8,6 +8,7 @@ import { TopHitsConfiguration } from '../TopHits/topHitsModel'
 import { Gene } from '../Gene/geneModel'
 import { LOFConfiguration } from '../LOF/lofModel'
 import { CodingConfiguration } from '../Coding/codingModel'
+import { Region } from '../Region/RegionModel'
 
 export interface ApplicationConfiguration {
     readonly root? : string
@@ -30,6 +31,7 @@ export interface ConfigurationUserInterface {
     gene? : Gene.Configuration
     lof? : LOFConfiguration
     coding? : CodingConfiguration
+    region? : Region.Configuration
 }
 export interface ConfigurationMetaData {}
 

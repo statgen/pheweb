@@ -52,6 +52,18 @@ export interface Phenotype {
     readonly category: string };
 
 
+export namespace Region {
+    export interface LzConfiguration {
+        tooltip_html? : string
+        assoc_fields? : string[]
+        ld_panel_version: string
+    }
+
+    export interface Configuration {
+        lz_config? : LzConfiguration
+    }
+}
+
 export type layout_types = 'finemap' | 'susie' | 'association' | 'genes' | 'clinvar' | 'gwas_cat' | 'colocalization' | 'conditional'
 
 export interface CondFMRegions {
