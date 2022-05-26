@@ -1,7 +1,0 @@
-{ "fix_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-b307537991c59970e36849c6b197b8b3979f2237",
-  "fix_pheweb.pheno_json" : "gs://dev-cromwell-1/import_pheweb/062a640a-9d6a-46f6-a734-536d95b4c4dd/call-fix_json/new_pheno.json",
-  "fix_pheweb.bed_file" : "gs://r9_data_green/genes-without-M-b38-v39.bed",
-  "fix_pheweb.matrix_file" : "gs://dev-cromwell-1/import_pheweb/f13ffb9c-caef-4ed1-b364-a28083daf181/call-matrix/pheweb/generated-by-pheweb/matrix.tsv.gz",
-  "fix_pheweb.cpu" : 8 ,
-  "fix_pheweb.disk" : 8000 ,
-  "fix_pheweb.mem" : 64 }
