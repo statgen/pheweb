@@ -92,7 +92,7 @@ class Arguments:
     rename: typing.Dict[str, str]
     in_file: str
     out_file: str
-
+    m_log_p_from_betas: bool
 
 @dataclass(repr=True, eq=True, frozen=True)
 class Column:
@@ -165,6 +165,7 @@ def parse_args(argv: typing.Sequence[str]) -> Arguments:
         rename=command_flags.parse_rename_args(parsed.rename),
         out_file=parsed.out_file,
         in_file=parsed.in_file,
+        m_log_p_from_betas=False
     )
 
 
@@ -563,7 +564,9 @@ def headers_to_columns(
 
     # step 2
     if m_log_p_value_column is None:
-        if beta_value_column is not None and se_beta_column:
+        if (arguments.m_log_p_from_betas and
+            beta_value_column is not None and
+            se_beta_column):
             m_log_p_value_column = beta_to_m_log_p_value_column(
                 beta_value_column, se_beta_column
             )
