@@ -5,6 +5,14 @@
 
 the wdl to use is 'import.wdl'.
 
+## Versioning
+
+There is a variable that is prefixed by version_ that needs to
+be set appropriately to ensure the version import.wdl and json
+match.  For example `version_r9_1` is a boolean variable that
+has to be set in the configuration json to run the wdl.  Check 
+the history of import.wdl to find the appropriate version.
+
 ## Parameters
 ### Required parameters
 
