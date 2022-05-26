@@ -1,4 +1,5 @@
-{ "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-584c4fc2af41a26900cd89d06743c04599a93e7a",
+{  "import_pheweb.version_r9_production" : true,
+   "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-584c4fc2af41a26900cd89d06743c04599a93e7a",
   "import_pheweb.summary_files":"gs://r9_data_green/pheweb_import/release/R9_summary_stats.txt",
   "import_pheweb.bed_file" : "gs://r9_data_green/genes-b38-v39.bed" ,
   "import_pheweb.disk" : 8000 ,

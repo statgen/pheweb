@@ -159,14 +159,21 @@ task annotation {
 
         find ./
 
-        gcloud auth list
-
         for url in ${sep="\t" output_url}; do
 
-        /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/sites/sites.tsv"                "$url/generated-by-pheweb/sites/sites.tsv"
-        /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/resources/gene_aliases.sqlite3" "$url/generated-by-pheweb/resources/gene_aliases.sqlite3"
-        /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3"      "$url/generated-by-pheweb/sites/cpras-rsids.sqlite3"
-        /pheweb/scripts/copy_files.sh "${dir}/pheweb/generated-by-pheweb/sites/genes/genes-b38-v37.bed"  "$url/cache/genes-b38-v37.bed"
+        if [[ "$url" = http* ]]; then
+           cp_cmd='curl -T' # copy to webdav directory
+        elif [[ "$url" = gs* ]]; then
+           cp_cmd='gsutil cp' # copy to bucket
+        else
+           cp_cmd=''
+        fi
+
+        #if [[ ! -z "$cp_cmd" ]]; then
+        #   ($cp_cmd "${dir}/pheweb/generated-by-pheweb/sites/sites.tsv"                     "$url/generated-by-pheweb/sites/sites.tsv" )
+        #   ($cp_cmd "${dir}/pheweb/generated-by-pheweb/resources/gene_aliases.sqlite3"      "$url/generated-by-pheweb/resources/gene_aliases.sqlite3" )
+        #   ($cp_cmd "${dir}/pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3"           "$url/generated-by-pheweb/sites/cpras-rsids.sqlite3" )
+        #fi
 
         done
 
@@ -272,11 +279,20 @@ task pheno {
 
         for url in ${sep="\t" output_url}; do
 
-        /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz"      "$url/generated-by-pheweb/pheno_gz/${pheno_name}.gz"
-	/pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi"  "$url/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi"
-	/pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/manhattan/${pheno_name}.json"   "$url/generated-by-pheweb/manhattan/${pheno_name}.json"
-	/pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/qq/${pheno_name}.json"          "$url/generated-by-pheweb/qq/${pheno_name}.json"
+        if [[ "$url" = http* ]]; then
+           cp_cmd='curl -T' # copy to webdav directory
+        elif [[ "$url" = gs* ]]; then
+           cp_cmd='gsutil cp' # copy to bucket
+        else
+           cp_cmd=''
+        fi
 
+        #if [[ ! -z "$cp_cmd" ]]; then
+        #  ($cp_cmd "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz"      "$url/generated-by-pheweb/pheno_gz/${pheno_name}.gz" )
+        #($cp_cmd "${dir}pheweb/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi"  "$url/generated-by-pheweb/pheno_gz/${pheno_name}.gz.tbi" )
+        #($cp_cmd "${dir}pheweb/generated-by-pheweb/manhattan/${pheno_name}.json"   "$url/generated-by-pheweb/manhattan/${pheno_name}.json" )
+        #($cp_cmd "${dir}pheweb/generated-by-pheweb/qq/${pheno_name}.json"          "$url/generated-by-pheweb/qq/${pheno_name}.json" )
+        #fi
 	done
 	>>>
 
@@ -409,20 +425,29 @@ for gene in gene2phenos:
 with open('generated-by-pheweb/best-phenos-by-gene.json', 'w') as f:
     json.dump(gene2phenos, f)
 EOF
-      # TODO : verify number of columns
+      # TODOD : verify number of columns
       find "${dir}"
 
-      for url in ${sep="\t" output_url}; do
+        for url in ${sep="\t" output_url}; do
 
-      #skipping pheno-list.json as it is written in the the fix json step
-      #/pheweb/scripts/copy_files.sh "${dir}pheweb/pheno-list.json"                                "$url/pheno-list.json")
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/matrix.tsv.gz"              "$url/generated-by-pheweb/matrix.tsv.gz"
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/matrix.tsv.gz.tbi"          "$url/generated-by-pheweb/matrix.tsv.gz.tbi"
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/top_hits.json"              "$url/generated-by-pheweb/top_hits.json"
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/top_hits.tsv"               "$url/generated-by-pheweb/top_hits.tsv"
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/top_hits_1k.json"           "$url/generated-by-pheweb/top_hits_1k.json"
-      /pheweb/scripts/copy_files.sh "${dir}pheweb/generated-by-pheweb/best-phenos-by-gene.json"   "$url/generated-by-pheweb/best-phenos-by-gene.json"
+        if [[ "$url" = http* ]]; then
+           cp_cmd='curl -T' # copy to webdav directory
+        elif [[ "$url" = gs* ]]; then
+           cp_cmd='gsutil cp' # copy to bucket
+        else
+           cp_cmd=''
+        fi
 
+        #if [[ ! -z "$cp_cmd" ]]; then
+            #skipping pheno-list.json as it is written in the the fix json step
+            #curl -T "${dir}pheweb/pheno-list.json"                                "$url/pheno-list.json")
+        #    ($cp_cmd "${dir}pheweb/generated-by-pheweb/matrix.tsv.gz"              "$url/generated-by-pheweb/matrix.tsv.gz")
+        #    ($cp_cmd "${dir}pheweb/generated-by-pheweb/matrix.tsv.gz.tbi"          "$url/generated-by-pheweb/matrix.tsv.gz.tbi")
+        #    ($cp_cmd "${dir}pheweb/generated-by-pheweb/top_hits.json"              "$url/generated-by-pheweb/top_hits.json")
+        #    ($cp_cmd "${dir}pheweb/generated-by-pheweb/top_hits.tsv"               "$url/generated-by-pheweb/top_hits.tsv")
+        #    ($cp_cmd "${dir}pheweb/generated-by-pheweb/top_hits_1k.json"           "$url/generated-by-pheweb/top_hits_1k.json")
+        #    ($cp_cmd "${dir}pheweb/generated-by-pheweb/best-phenos-by-gene.json"   "$url/generated-by-pheweb/best-phenos-by-gene.json")
+        #fi
       done
     >>>
 
@@ -447,8 +472,6 @@ EOF
         preemptible: 0
     }
 }
-
-
 
 
 task fix_json {
@@ -517,8 +540,19 @@ CODE
 
      cat "${root_dir}new_pheno.json"
 
-     for url in ${sep="\t" output_url}; do
-          /pheweb/scripts/copy_files.sh "${root_dir}new_pheno.json" "$url/pheno-list.json"
+        for url in ${sep="\t" output_url}; do
+
+        if [[ "$url" = http* ]]; then
+           cp_cmd='curl -T' # copy to webdav directory
+        elif [[ "$url" = gs* ]]; then
+           cp_cmd='gsutil cp' # copy to bucket
+        else
+           cp_cmd=''
+        fi
+
+        #if [[ ! -z "$cp_cmd" ]]; then
+        # ($cp_cmd "${root_dir}new_pheno.json" "$url/pheno-list.json")
+     #fi
      done
 >>>
 
@@ -536,41 +570,13 @@ CODE
     }
 }
 
-task exec_cmd {
-  # we don't want to cache this
-  # see :
-  # https://cromwell.readthedocs.io/en/stable/optimizations/VolatileTasks/
-  # https://github.com/broadinstitute/cromwell/issues/1695
-  Array[String] cmd
-  String docker
-
-
-  command <<<
-    set -euxo pipefail
-    date
-    ${sep="&&" cmd}
-  >>>
-  runtime {
-        docker: "${docker}"
-        cpu: 1
-        memory: "2 GB"
-        disks: "local-disk 5 HDD"
-        zones: "europe-west1-b"
-        preemptible: 0
-  }
-  meta {
-    volatile: "true"
-  }
-
-
-}
 
 workflow import_pheweb {
+         Boolean version_r9_production
 	 String docker
 	 String summary_files
 	 String? file_affix
          String? sites_file
-         Array[String]? post_import = []
          Array[String]? output_url = []
 
          File custom_json
@@ -647,11 +653,4 @@ workflow import_pheweb {
 	  custom_json = custom_json ,
           fields = fields
         }
-
-        if(defined(post_import)){
-          call exec_cmd { input :
-	  docker = docker ,
-	  cmd = post_import }
-	}
-
 }
