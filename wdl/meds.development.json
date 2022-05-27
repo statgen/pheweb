@@ -1,0 +1,21 @@
+{
+  "import_pheweb.bed_file": "gs://r9_data_green/genes-without-M-b38-v39.bed",
+  "import_pheweb.custom_json": "gs://mutaamba_bucket/meds_pheweb/sumstats/pheno-list.json",
+  "import_pheweb.disk": 500,
+  "import_pheweb.docker": "eu.gcr.io/phewas-development/pheweb:wip-a5ab8d32117f656f9bc8c3006ff7816c737320de",
+  "import_pheweb.fields": [
+    "category",
+    "category_index",
+    "num_cases",
+    "num_controls",
+    "phenocode",
+    "phenostring"
+  ],
+  "import_pheweb.matrix.cpu": 8,
+  "import_pheweb.mem": 64,
+  "import_pheweb.output_url": [
+    "gs://mutaamba_bucket/drugwas/pheweb/production",
+    "nfs://10.179.247.250/vol1/pheweb/drugwas"
+  ],
+  "import_pheweb.summary_files": "gs://mutaamba_bucket/meds_pheweb/sumstats/summary_file.import.txt"
+}

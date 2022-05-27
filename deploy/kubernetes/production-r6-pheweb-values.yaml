@@ -12,8 +12,10 @@ pheweb:
   release: r6
   secretName: production-r6-secrets
   subdomain: r6
-  tag: ci-939b9f1d70035ac541019f1f8d3ebab6a4875f45
-  
+
+image:
+  tag: ci-6c5a5aebc744ddf589e7678af56ff4efa2aa3875
+
 persistentVolume:
   path: /data/nfs
   server: 10.132.0.124

@@ -1,12 +1,16 @@
-from ..utils import PheWebError
-from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, with_chrom_idx
-from .load_utils import parallelize_per_pheno
+import logging
+import sys
+from pheweb.utils import PheWebError
+from pheweb.file_utils import VariantFileReader, VariantFileWriter, common_filepaths, with_chrom_idx
+from pheweb.load.load_utils import parallelize_per_pheno
+
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
 
 
-sites_filepath = common_filepaths['sites']
 
 def run(argv):
-
+    sites_filepath = common_filepaths['sites']
     parallelize_per_pheno(
         get_input_filepaths = lambda pheno: [common_filepaths['parsed'](pheno['phenocode']), sites_filepath],
         get_output_filepaths = lambda pheno: common_filepaths['pheno'](pheno['phenocode']),
@@ -15,9 +19,19 @@ def run(argv):
     )
 
 def convert(pheno):
+    sites_filepath = common_filepaths['sites']
+    pheno_inpath = common_filepaths['parsed'](pheno['phenocode'])
+    pheno_outpath = common_filepaths['pheno'](pheno['phenocode'])
+    convert_file(sites_filepath, pheno_inpath, pheno_outpath)
+
+
+def convert_file(sites_filepath, in_filepath, out_filepath, ):
+    logging.info(f'sites_filepath :   {sites_filepath}')
+    logging.info(f'in_filepath :      {in_filepath}')
+    logging.info(f'out_filepath :     {out_filepath}')
     with VariantFileReader(sites_filepath) as sites_reader, \
-         VariantFileReader(common_filepaths['parsed'](pheno['phenocode'])) as pheno_reader, \
-         VariantFileWriter(common_filepaths['pheno'](pheno['phenocode'])) as writer:
+         VariantFileReader(in_filepath) as pheno_reader, \
+         VariantFileWriter(out_filepath) as writer:
         sites_variants = with_chrom_idx(iter(sites_reader))
         pheno_variants = with_chrom_idx(iter(pheno_reader))
 
@@ -59,3 +73,20 @@ def _which_variant_is_bigger(v1, v2):
             return 1 if v1['ref'] > v2['ref'] else 2
         return 1 if v1['pos'] > v2['pos'] else 2
     return 1 if v1['chrom_idx'] > v2['chrom_idx'] else 2
+
+
+USAGE = f"""
+         {sys.argv[0]} <sites_filepath> <pheno_inpath> <pheno_outpath>
+         sites_filepath : e.g. sites/sites.tsv
+         pheno_inpath   : e.g. generated-by-pheweb/parsed/pheno
+                          cat summary_file | zcat | sed '1 s/^#chrom/chrom/'
+         pheno_outpath  : generated-by-pheweb/pheno/pheno
+        """
+
+if __name__ == "__main__":
+
+    if len(sys.argv) == 4:
+        [sites_filepath, pheno_inpath, pheno_outpath] = sys.argv[1:]
+        convert_file(sites_filepath, pheno_inpath, pheno_outpath)
+    else:
+        logging.error(USAGE)
