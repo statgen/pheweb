@@ -97,7 +97,7 @@ update keys
 gcloud compute config-ssh
 ```
 
-Ssh into the box to exchange keys.  This will enter the
+ssh into the box to exchange keys.  This will enter the
 machine into your known-hosts.
 
 ```
