@@ -1,0 +1,19 @@
+# Default values are found in values.yaml
+
+replicaCount: 3
+
+pheweb:
+  cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
+  cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
+  directory: /mnt/nfs/pheweb/metaresults-est-ukbb
+  ipName: finngen-metaresults-est-ukbb-ip
+  mount: /mnt/nfs
+  release: r9
+  secretName: production-meta-est-ukbb-secrets
+  subdomain: metaresults-est-ukbb
+  tag: ci-0ef6b2a47f0c740fa838a8209968707fbe73f86f
+
+persistentVolume:
+  path: /data/nfs
+  server: 10.132.0.83
+  storage: 11T
