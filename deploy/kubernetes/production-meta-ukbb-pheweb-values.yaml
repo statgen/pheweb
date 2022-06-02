@@ -5,12 +5,13 @@ replicaCount: 3
 pheweb:
   cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
-  directory: /mnt/nfs/pheweb/metaresults-est-ukbb
-  ipName: finngen-metaresults-est-ukbb-ip
+  directory: /mnt/nfs/pheweb/metaresults-ukbb
+  ipName: finngen-metaresults-ukbb-ip
   mount: /mnt/nfs
   release: r9
-  secretName: production-meta-est-ukbb-secrets
-  subdomain: metaresults-est-ukbb
+  secretName: production-meta-ukbb-secrets
+  subdomain: metaresults-ukbb
+  
 image: # pheweb image
   tag: ci-bbf315009580ab1b2f006ee0bb0976a4b3dada06
   
