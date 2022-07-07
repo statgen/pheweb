@@ -1,6 +1,6 @@
 # Default values are found in values.yaml
 
-replicaCount: 1
+replicaCount: 3
 
 pheweb:
   cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
