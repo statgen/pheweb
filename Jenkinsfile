@@ -13,7 +13,7 @@ pipeline {
 	    }
 	}
     stage('Deploy') {
-            when { branch "origin/master" }
+            when { expression { env.GIT_BRANCH == 'origin/master' } }
 	    steps {
                 withCredentials([file(credentialsId: 'jenkins-sa', variable: 'gcp')]) {
                     sh '''/root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$gcp'''
