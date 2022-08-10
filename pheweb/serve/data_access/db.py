@@ -660,6 +660,7 @@ class TabixGnomadDao(GnomadDB):
         )
         self.headers = self.tabix_file.header[0].split("\t")
 
+
     def get_variant_annotations(self, var_list):
         annotations = []
         t = time.time()
@@ -674,9 +675,10 @@ class TabixGnomadDao(GnomadDB):
                 .replace("24", "Y")
                 .replace("25", "Y")
             )
-            tabix_iter = self.tabix_handles[threading.get_ident()].fetch(
-                fetch_chr, variant.pos - 1, variant.pos,
-            )
+
+            tabix_iter = pysam.TabixFile(self.matrix_path, parser=None).fetch(
+               fetch_chr, variant.pos - 1, variant.pos) 
+            
             for row in tabix_iter:
                 split = row.split("\t")
                 if split[3] == variant.ref and split[4] == variant.alt:
@@ -709,9 +711,7 @@ class TabixGnomadDao(GnomadDB):
         # gnomAD annotation still has X and not 23
         chrom = "X" if str(chrom) == "23" else chrom
         try:
-            tabix_iter = self.tabix_handles[threading.get_ident()].fetch(
-                chrom, start - 1, end,
-            )
+            tabix_iter = pysam.TabixFile(self.matrix_path).fetch(chrom, start - 1, end)
         except ValueError:
             print(
                 "No variants in the given range. {}:{}-{}".format(chrom, start - 1, end)
@@ -720,7 +720,6 @@ class TabixGnomadDao(GnomadDB):
 
         annotations = []
         for row in tabix_iter:
-
             split = row.split("\t")
             split[0] = split[0].replace("X", "23")
             v = Variant(split[0], split[1], split[3], split[4])
@@ -746,6 +745,8 @@ class TabixResultDao(ResultDB):
         self.matrix_path = matrix_path
         self.pheno_map = phenos(0)
         self.tabix_file = pysam.TabixFile(self.matrix_path, parser=None)
+
+        self.header = gzip.open(self.matrix_path,'rt').readline().split("\t")
         self.phenos = [
             (header.split("@")[1], p_col_idx)
             for p_col_idx, header in enumerate(self.tabix_file.header[0].split("\t"))
@@ -768,9 +769,9 @@ class TabixResultDao(ResultDB):
 
     def get_variant_results_range(self, chrom, start, end):
         try:
-            tabix_iter = self.tabix_files[threading.get_ident()].fetch(
-                chrom, start - 1, end,
-            )
+            tabix_iter = pysam.TabixFile(self.matrix_path, parser=None).fetch(
+                chrom, start - 1, end)
+           
         except ValueError:
             print(
                 "No variants in the given range. {}:{}-{}".format(chrom, start - 1, end)
@@ -885,14 +886,14 @@ class TabixResultDao(ResultDB):
     def get_top_per_pheno_variant_results_range(self, chrom, start, end):
         try:
             tabix_iter = pysam.TabixFile(self.matrix_path, parser=None).fetch(
-                chrom, start - 1, end,
+                chrom, start - 1, end
             )
+           
         except ValueError:
             print(
                 "No variants in the given range. {}:{}-{}".format(chrom, start - 1, end)
             )
             return []
-        print("WE HAVE {} TABIX FILES OPEN".format(len(list(self.tabix_files.keys()))))
         top = defaultdict(lambda: defaultdict(dict))
 
         n_vars = 0
@@ -1072,8 +1073,8 @@ class ExternalMatrixResultDao(ExternalResultDB):
                 t = time.time()
 
                 try:
-                    iter = self.tabixfiles[threading.get_ident()].fetch(
-                        var.chrom, var.pos - 1, var.pos,
+                    iter = pysam.TabixFile(self.matrix, parser=None).fetch(
+                        var.chrom, var.pos - 1, var.pos
                     )
                     for ext_var in iter:
                         ext_var = ext_var.split("\t")
@@ -1106,9 +1107,11 @@ class ExternalMatrixResultDao(ExternalResultDB):
         t = time.time()
 
         if known_range is not None:
-            iter = self.tabixfiles[threading.get_ident()].fetch(
-                "chr" + known_range[0], known_range[1] - 1, known_range[2],
+
+            iter = pysam.TabixFile(self.matrix, parser=None).fetch(
+                "chr" + known_range[0], known_range[1] - 1, known_range[2]
             )
+
             for ext_var in iter:
                 ext_var = ext_var.split("\t")
                 ## TODO remove all chr from annotation files and remove this replace so that error will be thrown if wrong chr type is attemptent
@@ -1145,9 +1148,13 @@ class ExternalMatrixResultDao(ExternalResultDB):
             for var, phenos in varphenodict.items():
                 try:
                     ## todo remove CHR when annotations fixed
-                    iter = self.tabixfiles[threading.get_ident()].fetch(
+                    iter = pysam.TabixFile(self.matrix, parser=None).fetch(
                         "chr" + str(var.chr), var.pos - 1, var.pos,
                     )
+
+                    #iter = self.tabixfiles[threading.get_ident()].fetch(
+                    #    "chr" + str(var.chr), var.pos - 1, var.pos,
+                    #)
                     for ext_var in iter:
                         ext_var = ext_var.split("\t")
                         chrom = (
@@ -1471,11 +1478,11 @@ class TabixAnnotationDao(AnnotationDB):
     def get_variant_annotations(self, variants: List[Variant], cpra):
         annotations = []
         t = time.time()
-
+        tabixf =pysam.TabixFile(self.matrix_path, parser=None)
         for variant in variants:
-            tabix_iter = self.tabix_files[threading.get_ident()].fetch(
-                variant.chr, variant.pos - 1, variant.pos, parser=None,
-            )
+            #tabix_iter = self.tabix_files[threading.get_ident()].fetch(
+            #    variant.chr, variant.pos - 1, variant.pos, parser=None, multiple_iterators=True
+            #)
             while True:
                 try:
                     row = next(tabix_iter)
@@ -1511,9 +1518,7 @@ class TabixAnnotationDao(AnnotationDB):
 
     def get_variant_annotations_range(self, chrom, start, end, cpra):
         try:
-            tabix_iter = self.tabix_files[threading.get_ident()].fetch(
-                chrom, start - 1, end,
-            )
+            tabix_iter =pysam.TabixFile(self.matrix_path, parser=None).fetch(chrom, start - 1, end)
         except ValueError:
             print(
                 "No variants in the given range. {}:{}-{}".format(chrom, start - 1, end)
@@ -1572,11 +1577,11 @@ class TabixAnnotationDao(AnnotationDB):
             self.start = time.time()
             self.last_time = time.time()
         try:
-            tabix_iter = self.tabix_files[threading.get_ident()].fetch(
-                chrom.replace("X", "23"), start - 1, end
+            tabix_iter =  pysam.TabixFile(self.matrix_path, parser=None).fetch(
+                chrom.replace("X", "23"), start - 1, end,            
             )
+
         except Exception as e:
-            ## tabix_file stupidly throws an error when no results are found in the region. Just return empty list
             print("Error occurred {}".format(e))
             return annotations
         for row in tabix_iter:

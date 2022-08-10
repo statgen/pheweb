@@ -241,9 +241,16 @@ class ServerJeeves(object):
         if start == 0:
             start = 1
         t = time.time()
-        # TODO tabix fetch takes forever, combine FG and gnomAD annotations and use relevant columns only, or get annotations on the fly for individual variants
+        # TODO tabix fetch takes forever, combine FG and gnomAD annotations and use relevant columns only, or get annotations on the fly for individual variant
+        print(f'getting annotation for region {chr} {start} {end}') 
         annotations = self.annotation_dao.get_variant_annotations_range(chr, start, end, self.conf.anno_cpra)
         annot_hash = { anno.varid: anno.get_annotations() for anno in annotations }
+        
+        check = self.annotation_dao.get_variant_annotations_range(chr, 112756070, 112756070, self.conf.anno_cpra)
+       ## 10:112756070:A:G
+        print(f'this is it {check}')
+        print(f'annot keys {list(annot_hash.keys())[0:4]}')
+
         gnomad = self.gnomad_dao.get_variant_annotations_range(chr, start, end)
         gnomad_hash = { anno.varid: anno.get_annotations() for anno in gnomad }
         print("getting annotations for {} bp took {} seconds".format(end-start+1, time.time()-t ) )
@@ -254,12 +261,26 @@ class ServerJeeves(object):
             d['data']['most_severe'] = []
             d['data']['AF'] = []
             d['data']['INFO'] = []
+            hasvar=True
             for i,r in enumerate(d['data']['id']):
                 varid = r.replace('X', '23').replace('_', ':').replace('/', ':')
                 d['data']['varid'].append(varid)
                 try:
+                    if not varid in annot_hash:
+                        vid = varid.split(":")
+                        if (int(vid[1])>start and int(vid[1])<end):
+                            print(f'omg it\'s not {varid}')
+                            return
+
+                        d['data']['most_severe'].append('NA')
+                        d['data']['AF'].append('NA')
+                        d['data']['INFO'].append('NA')
+                        d['data']['fin_enrichment'].append('Unknown')
+                        continue
+
                     a = annot_hash[varid]['annot']
-                    d['data']['most_severe'].append((a['most_severe'] if 'most_severe' in a else (a['consequence'] if 'consequence' in a else 'unknown')).replace('_', ' '))
+                    ms = (a['most_severe'] if 'most_severe' in a else (a['consequence'] if 'consequence' in a else 'unknown')).replace('_', ' ')
+                    d['data']['most_severe'].append(ms)
                     d['data']['AF'].append(a['AF'] if 'AF' in a else 'NA')
                     d['data']['INFO'].append(a['INFO'] if 'INFO' in a else 'NA')
                     if varid not in gnomad_hash:
@@ -276,9 +297,9 @@ class ServerJeeves(object):
                         else:
                             d['data']['fin_enrichment'].append('Unknown')
 
-                except KeyError:
-                    #print('no annotation for ' + varid + ', is annotation file out of sync or is the variant correctly id\'d?')
-                    d['data']['most_severe'].append('NA')
+                except KeyError as ke:
+                    ##print('no annotation for ' + varid + ', is annotation file out of sync or is the variant correctly id\'d?')
+                    d['data']['most_severe'].append("NA")
                     d['data']['AF'].append('NA')
                     d['data']['INFO'].append('NA')
                     d['data']['fin_enrichment'].append('Unknown')
@@ -289,6 +310,7 @@ class ServerJeeves(object):
             p_threshold = self.conf.locuszoom_conf['p_threshold']
         regions = self.finemapping_dao.get_regions_for_pheno('conditional', phenocode, chr, start, end)
         ret = []
+
         t = time.time()
         min_start = 1e30
         max_end = -1
@@ -321,11 +343,12 @@ class ServerJeeves(object):
                     # data.append(pd.read_csv(path, sep=' '))
                 except FileNotFoundError:
                     print('file ' + path + ' not found')
+        print(f'Region data taken for  {chr} {start} {end}')
         print("reading conditional files took {} seconds".format(time.time()-t ) )
         t = time.time()
         if len(ret) > 0:
             #self.add_annotations(chr, min_start, max_end, ret)
-            self.add_annotations(chr, start, end, ret)
+            ret = self.add_annotations(chr, start, end, ret)
             print("adding annotations to {} conditional results took {} seconds".format(len(ret), time.time()-t ) )
         return ret
 
