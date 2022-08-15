@@ -194,7 +194,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
             }
         } else {
             const layout :  ((region: Region) => Layout) | undefined = panel_layouts[r.type];
-            console.assert(typeof layout == undefined, `${r.type} missing layout for type`)
+            console.assert(typeof layout != undefined, `${r.type} missing layout for type`)
             layout && plot.addPanel(layout(region));
         }
     });
