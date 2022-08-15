@@ -665,6 +665,7 @@ class TabixGnomadDao(GnomadDB):
         annotations = []
         t = time.time()
         ##print("There are {} active tabix handles for gnomad".format( len(self.tabix_handles)))
+        tabix = pysam.TabixFile(self.matrix_path, parser=None)
         for var_i, variant in enumerate(var_list):
             # print("There are {} active tabix handles for gnomad. Current pid {}".format( len(self.tabix_handles), os.getpid()))
 
@@ -676,7 +677,7 @@ class TabixGnomadDao(GnomadDB):
                 .replace("25", "Y")
             )
 
-            tabix_iter = pysam.TabixFile(self.matrix_path, parser=None).fetch(
+            tabix_iter = tabix.fetch(
                fetch_chr, variant.pos - 1, variant.pos) 
             
             for row in tabix_iter:
@@ -1145,10 +1146,11 @@ class ExternalMatrixResultDao(ExternalResultDB):
                         )
                         res[var][p] = datapoints
         else:
+            tabix = pysam.TabixFile(self.matrix, parser=None)
             for var, phenos in varphenodict.items():
                 try:
                     ## todo remove CHR when annotations fixed
-                    iter = pysam.TabixFile(self.matrix, parser=None).fetch(
+                    iter = tabix.fetch(
                         "chr" + str(var.chr), var.pos - 1, var.pos,
                     )
 
