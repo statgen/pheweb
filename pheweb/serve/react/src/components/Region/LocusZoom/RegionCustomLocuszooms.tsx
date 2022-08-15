@@ -348,7 +348,6 @@ ConditionalSource.prototype.parseResponse = function(resp: string, chain: ChainR
   this.params.fields = fields;
   this.params.outnames = outnames;
   this.params.trans = trans;
-
   var res = this.params.allData;
   var lookup = {};
   for (var i = 0; i < chain.body.length; i++) {

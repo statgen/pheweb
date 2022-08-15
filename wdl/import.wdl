@@ -566,6 +566,8 @@ task exec_cmd {
 }
 
 workflow import_pheweb {
+         # this variable is to make sure the json file matches the import version
+         Boolean version_r9_1
 	 String docker
 	 String summary_files
 	 String? file_affix
