@@ -67,8 +67,8 @@ task preprocess {
   runtime {
         docker: "${docker}"
     	cpu: 2
-    	memory: "12 GB"
-        bootDiskSizeGb: 60
+    	memory: "8 GB"
+        bootDiskSizeGb: 50
         disks: "local-disk 200 HDD"
         zones: "europe-west1-b"
         preemptible: 0

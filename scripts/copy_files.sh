@@ -17,11 +17,11 @@ else
 	elif [[ "$dst" = nfs* ]]; then
 	    cp_cmd='nfs-cp' # copy to bucket
 	else
-	echo "destination expected to start with http,gs,nfs got '${dst}'"
+	    echo "dst = <gs://... , http://... , nfs://...>"
 	    exit 1
 	fi
 	($cp_cmd "$src" "$dst" )
     else
-	echo "cannot read source file ${src}"
+	echo "cannot read destination '${dst}'"
     fi
 fi
