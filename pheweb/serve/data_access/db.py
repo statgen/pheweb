@@ -654,11 +654,8 @@ class ElasticGnomadDao(GnomadDB):
 class TabixGnomadDao(GnomadDB):
     def __init__(self, matrix_path):
         self.matrix_path = matrix_path
-        self.tabix_file = pysam.TabixFile(self.matrix_path, parser=None)
-        self.tabix_handles = defaultdict(
-            lambda: pysam.TabixFile(self.matrix_path, parser=None)
-        )
-        self.headers = self.tabix_file.header[0].split("\t")
+        tabix_file = pysam.TabixFile(self.matrix_path, parser=None)
+        self.headers = tabix_file.header[0].split("\t")
 
 
     def get_variant_annotations(self, var_list):
@@ -678,8 +675,8 @@ class TabixGnomadDao(GnomadDB):
             )
 
             tabix_iter = tabix.fetch(
-               fetch_chr, variant.pos - 1, variant.pos) 
-            
+               fetch_chr, variant.pos - 1, variant.pos)
+
             for row in tabix_iter:
                 split = row.split("\t")
                 if split[3] == variant.ref and split[4] == variant.alt:
@@ -745,34 +742,30 @@ class TabixResultDao(ResultDB):
 
         self.matrix_path = matrix_path
         self.pheno_map = phenos(0)
-        self.tabix_file = pysam.TabixFile(self.matrix_path, parser=None)
+
 
         self.header = gzip.open(self.matrix_path,'rt').readline().split("\t")
         self.phenos = [
-            (header.split("@")[1], p_col_idx)
-            for p_col_idx, header in enumerate(self.tabix_file.header[0].split("\t"))
-            if header.startswith("pval")
+            (h.split("@")[1], p_col_idx)
+            for p_col_idx, h in enumerate(self.header)
+            if h.startswith("pval")
         ]
         self.header_offset = {}
         i = 0
-        for header in self.tabix_file.header[0].split("\t"):
-            s = header.split("@")
-            if "@" in header:
+        for h in self.header:
+            s = h.split("@")
+            if "@" in h:
                 if p is not None and s[1] != p:
                     break
                 self.header_offset[s[0]] = i
                 i = i + 1
             p = s[1] if len(s) > 1 else None
-        self.tabix_files = defaultdict(
-            lambda: pysam.TabixFile(self.matrix_path, parser=None)
-        )
-        self.tabix_files[threading.get_ident()] = self.tabix_file
+
 
     def get_variant_results_range(self, chrom, start, end):
         try:
             tabix_iter = pysam.TabixFile(self.matrix_path, parser=None).fetch(
                 chrom, start - 1, end)
-           
         except ValueError:
             print(
                 "No variants in the given range. {}:{}-{}".format(chrom, start - 1, end)
@@ -889,7 +882,7 @@ class TabixResultDao(ResultDB):
             tabix_iter = pysam.TabixFile(self.matrix_path, parser=None).fetch(
                 chrom, start - 1, end
             )
-           
+
         except ValueError:
             print(
                 "No variants in the given range. {}:{}-{}".format(chrom, start - 1, end)
@@ -1030,7 +1023,6 @@ class ExternalMatrixResultDao(ExternalResultDB):
                     "ncontrols": p[ncontrol_idx],
                 }
 
-        self.tabixfiles = defaultdict(lambda: pysam.TabixFile(self.matrix, parser=None))
 
         with gzip.open(self.matrix, "rt") as res:
             header = res.readline().rstrip("\n").split("\t")
@@ -1070,11 +1062,12 @@ class ExternalMatrixResultDao(ExternalResultDB):
         if phenotype in self.res_indices:
             manifestdata = self.res_indices[phenotype]
             per_variant = []
+            tabix = pysam.TabixFile(self.matrix, parser=None)
             for var in var_list:
                 t = time.time()
 
                 try:
-                    iter = pysam.TabixFile(self.matrix, parser=None).fetch(
+                    iter = tabix.fetch(
                         var.chrom, var.pos - 1, var.pos
                     )
                     for ext_var in iter:
@@ -1262,10 +1255,8 @@ class ExternalFileResultDao(ExternalResultDB):
         res = []
         if phenotype in self.results:
             manifestdata = self.results[phenotype]
-
-            tabix_iter = self._get_rows(
-                manifestdata.file, "chr" + chrom, start - 1, stop
-            )
+            tabf = pysam.TabixFile(manifestdata.file, parser=None)
+            tabix_iter = tabf.fetch("chr" + chrom, start - 1, stop)
             for var in tabix_iter:
                 var = var.split("\t")
                 varid = [
@@ -1289,29 +1280,6 @@ class ExternalFileResultDao(ExternalResultDB):
                 )
 
         return res
-
-    def _get_rows(self, file, chrom, start, end):
-
-        cmd = "tabix {} {}:{}-{}".format(file, chrom, start, end)
-        try:
-            res = subprocess.run(
-                "tabix {} {}:{}-{}".format(file, chrom, start, end),
-                shell=True,
-                stdout=subprocess.PIPE,
-                universal_newlines=True,
-            )
-        except Exception as e:
-            ## tabix throws filenotfoundexception when no variants are found even though the file exist.
-            print("exc thrown" + str(e))
-            return None
-
-        if len(res.stdout) == 0:
-            return None
-
-        res = io.StringIO(res.stdout)
-        for var in res:
-            ext_var = var.rstrip("\n").split("\t")
-            yield ext_var
 
     def get_matching_results(self, phenotype, var_list):
         res = {}
@@ -1417,10 +1385,7 @@ class TabixAnnotationDao(AnnotationDB):
         self.headers = [s for s in self.tabix_file.header[0].split("\t")]
 
         self.header_i = {header: i for i, header in enumerate(self.headers)}
-        self.tabix_files = defaultdict(
-            lambda: pysam.TabixFile(self.matrix_path, parser=None)
-        )
-        self.tabix_files[threading.get_ident()] = self.tabix_file
+
         self.n_calls = 0
         self.functional_variants = set(
             [
@@ -1482,9 +1447,6 @@ class TabixAnnotationDao(AnnotationDB):
         t = time.time()
         tabixf =pysam.TabixFile(self.matrix_path, parser=None)
         for variant in variants:
-            #tabix_iter = self.tabix_files[threading.get_ident()].fetch(
-            #    variant.chr, variant.pos - 1, variant.pos, parser=None, multiple_iterators=True
-            #)
             while True:
                 try:
                     row = next(tabix_iter)
@@ -1547,27 +1509,6 @@ class TabixAnnotationDao(AnnotationDB):
 
         return annotations
 
-    def _get_tabix_data(self, chr, start, stop):
-        cmd = "tabix {} {}:{}-{}".format(self.matrix, chr, start, end)
-        try:
-            res = subprocess.run(
-                "tabix {} {}:{}-{}".format(file, chrom, start, end),
-                shell=True,
-                stdout=subprocess.PIPE,
-                universal_newlines=True,
-            )
-        except Exception as e:
-            ## tabix throws filenotfoundexception when no variants are found even though the file exist.
-            print("exc thrown" + str(e))
-            return None
-
-        if len(res.stdout) == 0:
-            return None
-            res = io.StringIO(res.stdout)
-            for var in res:
-                ext_var = var.rstrip("\n").split("\t")
-                yield ext_var
-
     def get_gene_functional_variant_annotations(self, gene):
         if gene not in self.gene_region_mapping:
             return []
@@ -1580,9 +1521,7 @@ class TabixAnnotationDao(AnnotationDB):
             self.last_time = time.time()
         try:
             tabix_iter =  pysam.TabixFile(self.matrix_path, parser=None).fetch(
-                chrom.replace("X", "23"), start - 1, end,            
-            )
-
+                chrom.replace("X", "23"), start - 1, end)
         except Exception as e:
             print("Error occurred {}".format(e))
             return annotations
