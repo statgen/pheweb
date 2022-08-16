@@ -1,9 +1,0 @@
----
-# directory to be shared on the nfs drive
-share_directory: /data/nfs
-# directory to put pheweb data on the nfs server
-pheweb_directory: /data/nfs/pheweb
-# path to fetch pheweb data
-bucket_directory: gs://r9_data_green/development/meta
-# release
-release: meta
