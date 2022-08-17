@@ -25,23 +25,27 @@ const Component = (cond_fm_regions, dataSources , plot) => {
             const index : number = params.allData.findIndex((cur) => cur.type === selectedMethod);
             params.dataIndex = index;
             const panel = plot.panels.finemapping
-            panel.data_layers.associationpvalues.data = dataSources.sources.finemapping.parseArraysToObjects(params.allData[index].data, params.fields, params.outnames, params.trans)
+            //panel.data_layers.associationpvalues.data = dataSources.sources.finemapping.parseArraysToObjects(params.allData[index].data, params.fields, params.outnames, params.trans)
+            panel.data_layers.associationpvalues.data = params.allData[index].data
             panel.data_layers.associationpvalues.render();
         }
     },[setSelectedMethod, selectedMethod, dataSources, plot]);
 
     useEffect(() => {
-        const params = dataSources?.sources?.finemapping?.params as Params;
-        if(dataSources && params?.allData && plot?.panels && conditionalIndex) {
+        const params = dataSources?.sources?.conditional?.params as Params;
+
+        if(dataSources && params?.allData && plot?.panels && conditionalIndex!==undefined) {
             params.dataIndex = conditionalIndex;
             const panel = plot.panels.conditional;
             panel.setTitle('conditioned on ' + params.allData[conditionalIndex].conditioned_on);
             panel.data_layers.associationpvalues.data = dataSources.sources.conditional.parseArraysToObjects(params.allData[conditionalIndex].data, params.fields, params.outnames, params.trans);
+            //panel.data_layers.associationpvalues.data = arams.allData[conditionalIndex].data
             panel.data_layers.associationpvalues.render();
         }
     },[setConditionalIndex, conditionalIndex, dataSources, plot]);
 
-    const showConditional = (i : number) => () => dataSources && plot && setConditionalIndex(i);
+    const showConditional = (i : number) => () => dataSources && plot && setConditionalIndex(i) ;
+
     const showFinemapping = (s : layout_types) => () => dataSources && plot &&  setSelectedMethod(s);
 
     const signalLabel = (region : CondFMRegions) => region.type === 'finemap' ?

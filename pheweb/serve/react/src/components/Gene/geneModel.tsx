@@ -2,6 +2,12 @@ import { TableColumnConfiguration } from "../../common/tableColumn";
 
 export namespace Gene {
 
+  export interface LzConfiguration {
+    tooltip_html? : string
+    assoc_fields? : string[]
+    ld_panel_version: string
+  }
+
   export interface DrugsConfiguration {
     banner?: string
     tableColumns? : TableColumnConfiguration<GeneDrugs.Row>
@@ -31,6 +37,7 @@ export namespace Gene {
     lossOfFunction? : GeneLossOfFunctionConfiguration
     functionalVariants? : GeneFunctionalVariants
     drugs? : DrugsConfiguration
+    lz_config? : LzConfiguration
   }
 }
 export namespace FunctionalVariants {

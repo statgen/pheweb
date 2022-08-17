@@ -1,8 +1,79 @@
 import { Layout, LayoutDataLayersEntity, Layouts } from "locuszoom";
 import { Region } from "../RegionModel";
+import { ConfigurationWindow } from "../../Configuration/configurationModel";
 
-// DEPENDENCIES: This js depends on custom_locuszoom.js and region_layouts.js which need to be included first in html files. We are moving to webpack to take care of the dependencies and this documentation is
-// an interim reminder
+declare let window: ConfigurationWindow;
+const { config } = window;
+const lz_config : Region.LzConfiguration = config?.userInterface?.region?.lz_config
+
+const tooltip_html : string = lz_config?.tooltip_html || `
+
+                   <strong>{{association:id}}</strong><br/>
+                   <strong>{{association:rsid}}</strong><br/>
+                   <strong>{{association:most_severe}}</strong><br/>
+                   <table>
+                      <tbody>
+                        <tr>
+                            <td>phenotype</td>
+                            <td><strong>PHENO</strong></td>
+                        </tr>
+                        <tr>
+                            <td>p-value</td>
+                            <td><strong>{{association:pvalue|scinotation}}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>beta</td>
+                            <td><strong>{{association:beta}}</strong> ({{association:sebeta}})</td>
+                        </tr>
+                        <tr>
+                            <td>-log10(p)</td>
+                            <td><strong>{{association:mlogp|scinotation}}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>MAF</td>
+                            <td><strong>{{association:maf|percent}}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>MAF controls</td>
+                            <td><strong>{{association:maf_controls|percent}}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>MAF cases</td>
+                            <td><strong>{{association:maf_cases|percent}}</strong><br></td>
+                        </tr>
+                        <tr>
+                            <td>FIN enrichment</td>
+                            <td><strong>{{association:fin_enrichment}}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>INFO</td>
+                            <td><strong>{{association:INFO}}</strong></td>
+                        </tr>
+                      </tbody>
+                   </table>
+`
+
+const assoc_fields : string[] = lz_config?.assoc_fields || [
+	"association:id",
+	"association:chr",
+	"association:position",
+	"association:ref",
+	"association:alt",
+	"association:pvalue",
+	"association:pvalue|neglog10_or_100",
+	"association:mlogp",
+	"association:beta",
+	"association:sebeta",
+	"association:rsid",
+	"association:maf",
+	"association:maf_cases",
+	"association:maf_controls",
+	"association:most_severe",
+	"association:fin_enrichment",
+	"association:INFO",
+	"ld:state",
+	"ld:isrefvar"
+]
 
 
 export const region_layout: (region: Region) => Layout = (region: Region) => {
@@ -215,7 +286,7 @@ export const association_layout: (region: Region) => Layout = (region: Region) =
 					"size": 40,
 					"label": "no r² data",
 					"class": "lz-data_layer-scatter" }],
-				  fields: region?.lz_conf?.assoc_fields,
+				  fields: assoc_fields,
 				  // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
 				  id_field: "association:id",
 				  behaviors: { onmouseover: [{ action: "set", status: "selected" }],
@@ -225,7 +296,7 @@ export const association_layout: (region: Region) => Layout = (region: Region) =
 				  tooltip: { closable: false,
 					     "show": { "or": ["highlighted", "selected"] },
 					     "hide": { "and": ["unhighlighted", "unselected"] },
-					     html: region?.lz_conf?.tooltip_html?.replace('PHENO', region.pheno.phenostring || region.pheno.phenocode) },
+					     html: tooltip_html.replace('PHENO', region.pheno.phenostring || region.pheno.phenocode) },
 				  "x_axis": { "field": "association:position", "axis": 1 },
 				  "y_axis": { "axis": 1,
 				  /*          "field": "association:pvalue|neglog10_or_100", */
@@ -289,7 +360,7 @@ export const genes_layout: (region: Region) => Layout = (region: Region) => {
 				   "bounding_box_padding": 5,
 				   "track_vertical_spacing": 5,
 				   "hover_element": "bounding_box",
-				   "x_axis": { "axis": 1 }, 
+				   "x_axis": { "axis": 1 },
 				   "y_axis": { "axis": 1 },
 				 } ],
 		 "title": null,
@@ -341,13 +412,13 @@ export const clinvar_layout: Layout =  {
 			       "point_shape": "diamond",
 			       "point_size": { "scale_function": "if",
 					       "field": "ld:isrefvar",
-					       "parameters": { "field_value": 1, 
+					       "parameters": { "field_value": 1,
 							       "then": 80,
 							       "else": 40 }
 					     },
 			       "color": "#FF0000",
 			       fill_opacity: 0.7,
-			       
+
 			       fields: ["clinvar:id", "clinvar:trait", "clinvar:clinical_sig", "clinvar:varName", "clinvar:chr",
 					"clinvar:ref", "clinvar:alt", "clinvar:start", "clinvar:stop", "clinvar:y"],
 			       id_field: "id",
@@ -594,7 +665,7 @@ export const finemapping_layout: (region: Region) => Layout = (region: Region) =
 					                    "size": 40,
 					                    "label": "credible set > 4",
 					                    "class": "lz-data_layer-scatter" }],
-				  
+
 				           fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid",
 					                "finemapping:id", "finemapping:chr", "finemapping:position", "finemapping:ref",
 					                "finemapping:alt", "finemapping:prob", "finemapping:cs", "finemapping:most_severe",
@@ -668,9 +739,9 @@ const datalayer = (index : number,color : string) : LayoutDataLayersEntity => {
 			  "colocalization:beta1",
 			  "colocalization:beta2",
 			  "colocalization:count_cs",
-			  "colocalization:phenotype1",	
+			  "colocalization:phenotype1",
 			  "colocalization:phenotype1_description",
-			  "colocalization:phenotype2",	
+			  "colocalization:phenotype2",
 			  "colocalization:phenotype2_description" ],
     orientation: "horizontal",
     offset: -Math.log10(5e-8),
@@ -702,7 +773,7 @@ const datalayer = (index : number,color : string) : LayoutDataLayersEntity => {
 							</tbody>
 						   </table>` },
 	"x_axis": { "field": `colocalization:position`, "axis": 1 },
-	"y_axis": { "axis": 1, 
+	"y_axis": { "axis": 1,
 				"floor": -0.1,
 				"upper_buffer": 0.0,
 		        "min_extent": [-0.1, 1.1],
@@ -761,11 +832,200 @@ export const colocalization_layout: (region: Region) => Layout = (region: Region
 	}
 }
 
+
+export const conditional_layout: (region: Region) => Layout = (region: Region) => {
+	return {
+    "id": "conditional",
+    "title": { "text":"conditioned", "x":55, "y":30 } ,
+    "proportional_height": 0.2,
+    "min_width": 400,
+    "min_height": 150,
+    "y_index": 1,
+    "margin": {
+        "top": 10,
+        "right": 50,
+        "bottom": 40,
+        "left": 50
+    },
+    "inner_border": "rgb(210, 210, 210)",
+    "dashboard": {
+        "components": [{
+	    "type": "toggle_legend",
+	    "position": "right",
+	    "color": "green"
+        }]
+    },
+    "axes": {
+        "x": {
+	    "label_function": "chromosome",
+	    "label_offset": 32,
+	    "tick_format": "region",
+	    "extent": "state",
+	    "render": true,
+	    "label": "Chromosome {{chr}} (Mb)"
+        },
+        "y1": {
+	    "label": "-log10 p-value",
+	    "label_offset": 28,
+	    "render": true,
+	    "label_function": null
+        }
+    },
+    "legend": {
+        "orientation": "vertical",
+        "origin": {
+	    "x": 55,
+	    "y": 40
+        },
+        "hidden": true,
+        "width": 91.66200256347656,
+        "height": 138,
+        "padding": 5,
+        "label_size": 12
+    },
+    "interaction": {
+        "drag_background_to_pan": true,
+        "drag_x_ticks_to_scale": true,
+        "drag_y1_ticks_to_scale": true,
+        "drag_y2_ticks_to_scale": true,
+        "scroll_to_zoom": true,
+        "x_linked": true,
+        "y1_linked": false,
+        "y2_linked": false
+    },
+    "data_layers": [{
+        "id": "significance",
+        type: "orthogonal_line",
+        orientation: "horizontal",
+        offset: -Math.log10(5e-8),
+    }, {
+        "namespace": {
+	    "conditional": "conditional",
+	    "association": "association",
+	    "ld": "ld"
+        },
+        "id": "associationpvalues",
+        "type": "scatter",
+	"point_shape": {
+	    "scale_function": "categorical_bin",
+	    "field": "conditional:most_severe",
+	    "parameters": {
+		"categories": ["frameshift variant", "inframe deletion", "inframe insertion", "splice acceptor variant", "splice donor variant", "start lost", "stop gained", "stop lost", "TFBS ablation", "missense variant"],
+		"values": ["triangle-up", "triangle-down", "triangle-down", "triangle-up", "triangle-up", "triangle-down", "triangle-down", "triangle-down", "triangle-down", "square"],
+		"null_value": "circle"
+	    }
+	},
+	"point_size": {
+	    "scale_function": "if",
+	    "field": "ld:isrefvar",
+	    "parameters": {
+		"field_value": 1,
+		"then": 80,
+		"else": 40
+	    }
+	},
+	"point_size": {
+	    "scale_function": "categorical_bin",
+	    "field": "conditional:most_severe",
+	    "parameters": {
+		"categories": ["frameshift variant", "inframe deletion", "inframe insertion", "splice acceptor variant", "splice donor variant", "start lost", "stop gained", "stop lost", "TFBS ablation", "missense variant"],
+		"values": [80, 80, 80, 80, 80, 80, 80, 80, 80, 80],
+		"null_value": 40
+	    }
+	},
+        "color": [{
+	    "scale_function": "if",
+	    "field": "ld:isrefvar",
+	    "parameters": {
+                "field_value": 1,
+                "then": "#9632b8"
+	    }
+        }, {
+	    "scale_function": "numerical_bin",
+	    "field": "ld:state",
+	    "parameters": {
+                "breaks": [0, 0.2, 0.4, 0.6, 0.8],
+                "values": ["#357ebd", "#46b8da", "#5cb85c", "#eea236", "#d43f3a"]
+	    }
+        }, "#B8B8B8"],
+        fill_opacity: 0.7,
+        "legend": [{
+	    "shape": "triangle-up",
+	    "color": "#B8B8B8",
+	    "size": 80,
+	    "label": "frameshift, splice acceptor, splice donor",
+	    "class": "lz-data_layer-scatter"
+	}, {
+	    "shape": "square",
+	    "color": "#B8B8B8",
+	    "size": 80,
+	    "label": "missense",
+	    "class": "lz-data_layer-scatter"
+	}, {
+	    "shape": "triangle-down",
+	    "color": "#B8B8B8",
+	    "size": 80,
+	    "label": "inframe indel, start lost, stop lost, stop gained",
+	    "class": "lz-data_layer-scatter"
+	}, {
+	    "shape": "circle",
+	    "color": "#B8B8B8",
+	    "size": 40,
+	    "label": "other",
+	    "class": "lz-data_layer-scatter"
+	}],
+	fields: ["association:pvalue", "association:beta", "association:sebeta", "association:rsid", "conditional:id", "conditional:chr", "conditional:position", "conditional:ref", "conditional:alt", "conditional:pvalue", "conditional:pvalue|neglog10_or_100", "conditional:beta", "conditional:sebeta", "conditional:AF", "conditional:INFO", "conditional:most_severe", "conditional:fin_enrichment"],
+        id_field: "conditional:id",
+        behaviors: {
+	    onmouseover: [{action: "set", status:"selected"}],
+	    onmouseout: [{action: "unset", status:"selected"}],
+	    onclick: [{action: "link", href:"/variant/{{association:chr}}-{{association:position}}-{{association:ref}}-{{association:alt}}"}],
+        },
+        tooltip: {
+	    closable: false,
+	    "show": {
+                "or": ["highlighted", "selected"]
+	    },
+	    "hide": {
+                "and": ["unhighlighted", "unselected"]
+	    },
+	    html: '<strong>{{conditional:id}}</strong><br><strong>{{association:rsid}}</strong><br><strong>{{conditional:most_severe}}</strong><br><table><tbody><tr><td>p-value</td><td><strong>{{association:pvalue|scinotation}}</strong></td></tr><tr><td>p-value cond</td><td><strong>{{conditional:pvalue|scinotation}}</strong></td></tr><tr><td>beta</td><td><strong>{{association:beta}}</strong> ({{association:sebeta}})</td></tr><tr><td>beta cond</td><td><strong>{{conditional:beta}}</strong> ({{conditional:sebeta}})</td></tr><tr><td>AF</td><td><strong>{{conditional:AF|percent}}</strong></td></tr><tr><td>FIN enrichment</td><td><strong>{{conditional:fin_enrichment}}</strong></td></tr><tr><td>INFO</td><td><strong>{{conditional:INFO}}</strong></td></tr></tbody></table>'
+        },
+
+        "x_axis": {
+	    "field": "conditional:position",
+	    "axis": 1
+        },
+        "y_axis": {
+	    "axis": 1,
+	    "field": "conditional:pvalue|neglog10_or_100",
+	    "floor": 0,
+	    "upper_buffer": 0.1,
+	    "min_extent": [0, 10]
+        },
+        "transition": false,
+    }],
+    "description": null,
+    "origin": {
+        "x": 0,
+        "y": 0
+    },
+    "proportional_origin": {
+        "x": 0,
+        "y": 0
+    },
+    "background_click": "clear_selections",
+  }
+}
+
+
+
 export const panel_layouts : { [ key : string] : (region: Region) => Layout } = {
 	'association' : association_layout ,
     'genes' : genes_layout ,
 	'clinvar' : (region: Region) => clinvar_layout ,
 	'gwas_cat' : gwas_cat_layout ,
 	'finemapping' : finemapping_layout ,
-	 'colocalization' : colocalization_layout
+	 'colocalization' : colocalization_layout ,
+   'conditional': conditional_layout
 };

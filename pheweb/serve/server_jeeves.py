@@ -50,7 +50,7 @@ class ServerJeeves(object):
         remove_indx =[]
         chrom,start,end = self.get_gene_region_mapping()[gene]
         startt = time.time()
-        ## if there are not many functional variants and gene is large it is better to get them one by one 
+        ## if there are not many functional variants and gene is large it is better to get them one by one
         results = self.result_dao.get_variants_results( func_var_annot )
         print(" gene variant results for func annot n={} took {}".format(len(func_var_annot),time.time()-startt) )
 
@@ -58,8 +58,8 @@ class ServerJeeves(object):
 
         for i,var in enumerate(func_var_annot):
             if  var not in res_indx:
-                # variants found in annotations but they have been filtered out from results. Add in decreasing order for easy 
-                # removal 
+                # variants found in annotations but they have been filtered out from results. Add in decreasing order for easy
+                # removal
                 remove_indx.insert(0,i)
                 continue
 
@@ -67,7 +67,7 @@ class ServerJeeves(object):
             func_var_annot[i].rsids =  res_indx[var][0].rsids
             func_var_annot[i].add_annotation("nearest_gene", res_indx[var][0].get_annotation("nearest_gene"))
             res = res_indx[var]
-            phenos = res[1] 
+            phenos = res[1]
             filtered = { "rsids": res[0].get_annotation('rsids'), "significant_phenos": [res for res in phenos if res.pval is not None and res.pval < pThreshold ] }
             for ph in filtered["significant_phenos"]:
                 uk_var = self.ukbb_dao.get_matching_results(ph.phenocode, [var])
@@ -75,10 +75,10 @@ class ServerJeeves(object):
                     ph.add_matching_result("ukbb",uk_var[var])
 
             func_var_annot[i] = {'var':func_var_annot[i], **filtered}
-            
+
         for i in remove_indx:
             del func_var_annot[i]
-        
+
         vars = [v["var"] for v in func_var_annot]
         startt = time.time()
         gnomad = self.gnomad_dao.get_variant_annotations(vars)
@@ -89,7 +89,7 @@ class ServerJeeves(object):
         for v in func_var_annot:
             if v['var'] in gd:
                 v['var'].add_annotation("gnomad",gd[v['var']])
-        
+
         return func_var_annot
 
     def gene_phenos(self, gene):
@@ -110,7 +110,7 @@ class ServerJeeves(object):
         varpheno = defaultdict(lambda: [])
         for p in results:
             varpheno[p.variant].append( p.assoc.phenocode )
-        
+
         starttime = time.time()
         gnomad = self.gnomad_dao.get_variant_annotations(vars)
 
@@ -141,7 +141,7 @@ class ServerJeeves(object):
             else:
                 lof['gene_data']['phenostring'] = self.phenos[lof['gene_data']['pheno']]['phenostring']
         return lofs
-    
+
     def get_gene_lofs(self, gene):
         try:
             lofs = self.lof_dao.get_lofs(gene) if self.lof_dao is not None else []
@@ -157,7 +157,7 @@ class ServerJeeves(object):
             print("Could not fetch data for gene {!r}. Error: {}".format(gene,traceback.extract_tb(exc.__traceback__).format() ))
             raise
         return gene_data
-        
+
     def get_gene_drugs(self, gene):
         try:
             drugs = self.dbs_fact.get_drug_dao().get_drugs(gene)
@@ -166,14 +166,16 @@ class ServerJeeves(object):
             print("Could not fetch drugs for gene {!r}. Error: {}".format(gene,traceback.extract_tb(exc.__traceback__).format() ))
             raise
 
-    def get_pheno(self, phenocode):
+    def get_pheno_manhattan(self, phenocode) -> str:
         with open(common_filepaths['manhattan'](phenocode)) as f:
-            variants = json.load(f)
+            manhattan = f.read()
+            return manhattan
 
         vars = [ Variant( d['chrom'].replace("chr","").replace("X","23").replace("Y","24").replace("MT","25"), d['pos'], d['ref'], d['alt'] ) for d in variants['unbinned_variants'] if 'peak' in d ]
 
         f_annotations = self.threadpool.submit( self.annotation_dao.get_variant_annotations, vars, self.conf.anno_cpra)
         f_gnomad = self.threadpool.submit( self.gnomad_dao.get_variant_annotations, vars)
+
         annotations = f_annotations.result()
         gnomad = f_gnomad.result()
         d = { v:v  for v in annotations }
@@ -181,10 +183,10 @@ class ServerJeeves(object):
         gd = { v["variant"]:v["var_data"] for v in gnomad}
 
         ukbbvars = self.ukbb_dao.get_matching_results(phenocode, vars)
-         
+
         for variant in variants['unbinned_variants']:
             ## TODO remove chr dickery when new annots ready
-            
+
             chrom =  variant['chrom'].replace("chr","").replace('X','23').replace('Y','24').replace("MT","25")
             v = Variant( chrom, variant['pos'], variant['ref'], variant['alt'])
             if v in d:
@@ -217,7 +219,7 @@ class ServerJeeves(object):
             gnomad = self.gnomad_dao.get_variant_annotations([var])
             if len(gnomad) == 1:
                 var.add_annotation('gnomad', gnomad[0]['var_data'])
-            
+
             phenos = [ p.phenocode for p in r[1]]
             ukb = self.ukbb_matrixdao.get_multiphenoresults( {variant:phenos} )
             phenotype_pip = self.variant_phenotype_pip.get_variant_phenotype_pip(int(variant.chr),int(variant.pos),variant.ref,variant.alt) if self.variant_phenotype_pip else dict()
@@ -240,9 +242,16 @@ class ServerJeeves(object):
         if start == 0:
             start = 1
         t = time.time()
-        # TODO tabix fetch takes forever, combine FG and gnomAD annotations and use relevant columns only, or get annotations on the fly for individual variants
+        # TODO tabix fetch takes forever, combine FG and gnomAD annotations and use relevant columns only, or get annotations on the fly for individual variant
+        print(f'getting annotation for region {chr} {start} {end}')
         annotations = self.annotation_dao.get_variant_annotations_range(chr, start, end, self.conf.anno_cpra)
         annot_hash = { anno.varid: anno.get_annotations() for anno in annotations }
+
+        check = self.annotation_dao.get_variant_annotations_range(chr, 112756070, 112756070, self.conf.anno_cpra)
+       ## 10:112756070:A:G
+        print(f'this is it {check}')
+        print(f'annot keys {list(annot_hash.keys())[0:4]}')
+
         gnomad = self.gnomad_dao.get_variant_annotations_range(chr, start, end)
         gnomad_hash = { anno.varid: anno.get_annotations() for anno in gnomad }
         print("getting annotations for {} bp took {} seconds".format(end-start+1, time.time()-t ) )
@@ -253,12 +262,26 @@ class ServerJeeves(object):
             d['data']['most_severe'] = []
             d['data']['AF'] = []
             d['data']['INFO'] = []
+            hasvar=True
             for i,r in enumerate(d['data']['id']):
                 varid = r.replace('X', '23').replace('_', ':').replace('/', ':')
                 d['data']['varid'].append(varid)
                 try:
+                    if not varid in annot_hash:
+                        vid = varid.split(":")
+                        if (int(vid[1])>start and int(vid[1])<end):
+                            print(f'omg it\'s not {varid}')
+                            return
+
+                        d['data']['most_severe'].append('NA')
+                        d['data']['AF'].append('NA')
+                        d['data']['INFO'].append('NA')
+                        d['data']['fin_enrichment'].append('Unknown')
+                        continue
+
                     a = annot_hash[varid]['annot']
-                    d['data']['most_severe'].append((a['most_severe'] if 'most_severe' in a else (a['consequence'] if 'consequence' in a else 'unknown')).replace('_', ' '))
+                    ms = (a['most_severe'] if 'most_severe' in a else (a['consequence'] if 'consequence' in a else 'unknown')).replace('_', ' ')
+                    d['data']['most_severe'].append(ms)
                     d['data']['AF'].append(a['AF'] if 'AF' in a else 'NA')
                     d['data']['INFO'].append(a['INFO'] if 'INFO' in a else 'NA')
                     if varid not in gnomad_hash:
@@ -275,19 +298,20 @@ class ServerJeeves(object):
                         else:
                             d['data']['fin_enrichment'].append('Unknown')
 
-                except KeyError:
-                    #print('no annotation for ' + varid + ', is annotation file out of sync or is the variant correctly id\'d?')
-                    d['data']['most_severe'].append('NA')
+                except KeyError as ke:
+                    ##print('no annotation for ' + varid + ', is annotation file out of sync or is the variant correctly id\'d?')
+                    d['data']['most_severe'].append("NA")
                     d['data']['AF'].append('NA')
                     d['data']['INFO'].append('NA')
                     d['data']['fin_enrichment'].append('Unknown')
         return datalist
-        
+
     def get_conditional_regions_for_pheno(self, phenocode, chr, start, end, p_threshold=None):
         if p_threshold is None:
             p_threshold = self.conf.locuszoom_conf['p_threshold']
         regions = self.finemapping_dao.get_regions_for_pheno('conditional', phenocode, chr, start, end)
         ret = []
+
         t = time.time()
         min_start = 1e30
         max_end = -1
@@ -320,17 +344,18 @@ class ServerJeeves(object):
                     # data.append(pd.read_csv(path, sep=' '))
                 except FileNotFoundError:
                     print('file ' + path + ' not found')
+        print(f'Region data taken for  {chr} {start} {end}')
         print("reading conditional files took {} seconds".format(time.time()-t ) )
         t = time.time()
         if len(ret) > 0:
             #self.add_annotations(chr, min_start, max_end, ret)
-            self.add_annotations(chr, start, end, ret)
+            ret = self.add_annotations(chr, start, end, ret)
             print("adding annotations to {} conditional results took {} seconds".format(len(ret), time.time()-t ) )
         return ret
 
     def get_finemapped_region_boundaries_for_pheno(self, fm_type, phenocode, chrom, start, end):
         return self.finemapping_dao.get_regions_for_pheno(fm_type, phenocode, chrom, start, end) if self.finemapping_dao is not None else None
-    
+
     def get_finemapped_regions_for_pheno(self, phenocode, chr, start, end, prob_threshold=-1):
         regions = self.finemapping_dao.get_regions_for_pheno('finemapping', phenocode, chr, start, end)
         ret = []
@@ -404,7 +429,7 @@ class ServerJeeves(object):
 
     def get_known_hits_by_loc(self, chrom, start, end):
         return self.knownhits_dao.get_hits_by_loc(chrom,start,end)
-    
+
     def coding(self):
         return self.coding_dao.get_coding() if self.coding_dao is not None else None
 
@@ -449,8 +474,8 @@ class ServerJeeves(object):
                 data.loc[data["locus_id"]==key,"ukbb_beta"] = float(v_betas[key])
             return data.to_dict("records")
         return []
-        
-    
+
+
     def get_autoreport_variants(self, phenocode: str, locus_id: str) -> List[Dict[str,Union[str,int,float,bool]]]:
         abort = [a == None for a in [self.autoreporting_dao,self.gnomad_dao, self.annotation_dao]]
         if any(abort):
@@ -476,7 +501,7 @@ class ServerJeeves(object):
 
         # get finngen & gnomad annotations from endpoints
         fg_data = self.annotation_dao.get_variant_annotations(list_of_vars,True)
-        gnomad_data = self.gnomad_dao.get_variant_annotations(list_of_vars)  
+        gnomad_data = self.gnomad_dao.get_variant_annotations(list_of_vars)
         # flatten
         fg_data = [{"variant":a.varid,**a.get_annotations()["annot"]} for a in fg_data]
         gnomad_data = [{"variant":a["variant"].varid,**a["var_data"]} for a in gnomad_data]
@@ -485,7 +510,7 @@ class ServerJeeves(object):
         gnomad_data = pd.DataFrame(gnomad_data)
         # C:P:R:A to chrC_P_R_A
         fg_data["variant"] = "chr"+fg_data["variant"].str.replace(":","_")
-        
+
         #join that data to autoreporting dataframe
         output = pd.merge(df,fg_data,on="variant",how="left")
         if 'variant' in gnomad_data:
