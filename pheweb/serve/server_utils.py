@@ -57,7 +57,7 @@ __CHROMOSOME_POS_REF_ALT_REGEX = re.compile(__CHROMOSOME_POS_REGEX.pattern + r'[
 
 
 def parse_variant(self, query, default_chrom_pos=True):
-    match = self.__CHROMOSOME_POS_REF_ALT_REGEX.match(query) or self.__CHROMOSOME_POS_REGEX.match(query) or self.__CHROMOSOME_REGEX.match(
+    match = __CHROMOSOME_POS_REF_ALT_REGEX.match(query) or __CHROMOSOME_POS_REGEX.match(query) or self.__CHROMOSOME_REGEX.match(
         query)
     g = match.groups() if match else ()
 
