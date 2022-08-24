@@ -26,7 +26,7 @@
     "dts-gen": "^0.6.0",
     "handlebars": "^4.7.7",
     "jquery": "^3.6.0",
-    "lavaa": "github:FINNGEN/lavaa-react#d033581fddd765bafd7a48ef2a8f30f29315f3d8",
+    "lavaa": "github:FINNGEN/lavaa-react#f9ddae1fee48f2a5800e53c8d1117fe4acf3d9ca",
     "locuszoom": "^0.11.0",
     "match-sorter": "^1.8.1",
     "npm-install-all": "^1.1.6",
