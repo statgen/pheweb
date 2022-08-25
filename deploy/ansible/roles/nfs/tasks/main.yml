@@ -10,6 +10,7 @@
     name:
       - nfs-kernel-server
       - nfs-common
+      - rsync
     state: present
     update_cache: yes
 
@@ -20,7 +21,7 @@
     group: nogroup
     mode: '0777'
     state: directory
-  
+
 - name: nfs - create export configuration
   template:
     src: exports
@@ -56,4 +57,3 @@
 - name: r4 specific tasks
   import_tasks: r4.yaml
   when: release == "r4"
-
