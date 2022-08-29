@@ -1,0 +1,20 @@
+# Default values are found in values.yaml
+
+replicaCount: 2
+
+pheweb:
+  cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
+  cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
+  directory: /mnt/userresults/userresults
+  ipName: sandbox-gwas
+  mount: /mnt
+  release: userresults
+  secretName: production-userresults-secrets
+  subdomain: userresults
+
+persistentVolume:
+  path: /data/nfs/pheweb
+  server: 10.132.0.167
+
+image:
+  tag: ci-59abc6c175fd5139af2b7dcd1a9738fdee9a2609
