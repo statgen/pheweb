@@ -4,6 +4,6 @@ share_directory: /data/nfs
 # directory to put pheweb data on the nfs server
 pheweb_directory: /data/nfs/pheweb/r9
 # path to fetch pheweb data
-bucket_directory: gs://r9_data_green/production/nfs/production-r9-instance-nfs
+bucket_directory: gs://r9_data_green/production/nfs/r9
 # release
 release: r9
