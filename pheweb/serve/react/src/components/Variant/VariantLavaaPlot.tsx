@@ -7,7 +7,8 @@ import { ConfigurationWindow } from "../Configuration/configurationModel"
 
 declare let window: ConfigurationWindow
 
-const defaultLavaaConfiguration : LavaaConfiguration =  { display : true }
+const defaultDisplay : boolean = true
+const defaultLavaaConfiguration : LavaaConfiguration =  { display : defaultDisplay }
 const lavaa : LavaaConfiguration = window?.config?.userInterface?.variant?.lavaa || defaultLavaaConfiguration
 
 interface Props { variantData : Variant.Data }
@@ -15,7 +16,7 @@ interface Props { variantData : Variant.Data }
 const VariantLavaaPlot = ({ variantData } : Props) => {
   const { colorByCategory } = useContext<Partial<VariantState>>(VariantContext)
   let result
-  const display = lavaa?.display ?? true
+  const display = lavaa?.display ?? defaultDisplay
   if(display){
     result = (colorByCategory)?<Fragment>
       <Lavaa dataprop={variantData.results} colorByCategory={colorByCategory} />
