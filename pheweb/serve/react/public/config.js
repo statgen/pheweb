@@ -67,7 +67,6 @@ const userInterface = {
       </p>
     `
   },
-    variant : { lavaa : { display : true } },
   index: {
     table: {
       columns: [
