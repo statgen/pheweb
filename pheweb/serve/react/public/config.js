@@ -67,7 +67,6 @@ const userInterface = {
       </p>
     `
   },
-    variant : { lavaa : { display : true } },
   index: {
     table: {
       columns: [
@@ -100,7 +99,7 @@ const metaData = {}
 const application = {
   logo: '<img src="/images/finngen_loop1.gif" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px">',
   title: 'FREEZE 9 BETA',
-  root: 'http://localhost:9999',
+  root: 'http://localhost:8081',
   vis_conf: {
     info_tooltip_threshold: 0.8,
     loglog_threshold: 10,
