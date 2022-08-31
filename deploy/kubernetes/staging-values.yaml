@@ -7,14 +7,14 @@ pheweb:
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
   deployment: staging
   directory: /mnt/r9/pheweb
-  mount: /mnt/r9
+  mount: /mnt
   release: r9
   secretName: development-staging-secrets
   subdomain: bstaging
 
 persistentVolume:
-  path: /pheweb
-  server: 10.248.24.170
+  path: /data/nfs/pheweb
+  server: 10.132.0.162
 
 image:
   tag: ci-dec97a579de7b47e884616e945f8daaae8e70871

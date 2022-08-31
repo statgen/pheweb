@@ -4,6 +4,6 @@ share_directory: /data/nfs
 # directory to put pheweb data on the nfs server
 pheweb_directory: /data/nfs/pheweb/r8
 # path to fetch pheweb data
-bucket_directory: gs://r8_data_green/production/pheweb/r8
+bucket_directory: gs://r8_data_green/production/pheweb/drugs-meds
 # release
 release: r8

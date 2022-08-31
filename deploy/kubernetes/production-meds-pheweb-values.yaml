@@ -1,20 +1,20 @@
 # Default values are found in values.yaml
+
 replicaCount: 2
 
 pheweb:
   cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
+  directory: /mnt/drugs-meds/meds
   ipName: finngen-meds-ip
-  mount: /mnt/nfs
-  directory: /mnt/nfs/pheweb/meds
-  release: r7
-  secretName: production-meds-secrets
+  mount: /mnt
+  release: meds
+  secretName: production-drugwas-secrets
   subdomain: meds
 
 persistentVolume:
-  storage: 11T
-  path: /vol1
-  server: 10.179.247.250
+  path: /data/nfs/pheweb
+  server: 10.132.0.154
 
 image:
   tag: wip-89815c1e99028916cf9201f7d6aff31cf971efb8
