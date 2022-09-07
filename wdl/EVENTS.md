@@ -74,22 +74,31 @@ gsutil cp - gs://r9_data_green/genes-without-M-b38-v39.bed
 ## missing genes, invalid chromosomes
 
   *incident*
-  Pheweb was using an old version of the gene region file (genes-b38-v37.bed), which resulted in https://r9.finngen.fi/gene/MRPL45P2 failing. 
+  Pheweb was using an old version of the gene region file (genes-b38-v37.bed), which resulted in https://r9.finngen.fi/gene/MRPL45P2 failing.
 
   *primary solution*
   First solution was to replace genes-b38-v37.bed with the v39 bed file from gs://r9_data_green/genes-b38-v39.bed.
   However, the file contained genes in chromosome M, which caused an error in chromosome name assertion in function utils.get_gene_tuples() (https://github.com/FINNGEN/pheweb/blob/master/pheweb/utils.py#L157).
-  
+
   *Secondary solution*
   This was fixed by filtering out chromosome M genes from the region file:
   ```
-  grep -vE "^M" genes-b38-v39.bed genes-b38-v37.bed 
+  grep -vE "^M" genes-b38-v39.bed genes-b38-v37.bed
   ```
   *Notes*
-  Hardcoded gene file names are quite fragile, moving gene file to be read from config could be beneficial. And/or allowing the filename to reflect the file version.  
+  Hardcoded gene file names are quite fragile, moving gene file to be read from config could be beneficial. And/or allowing the filename to reflect the file version.
   Error propagation with more information in https://github.com/FINNGEN/pheweb/blob/master/pheweb/serve/server.py#L372-L412 could help initial investigation.
 
 ## Search autocomplete not working
 
   *incident*
   Search bar autocomplete did not work. Investigation revealed that files were copied to pheweb-folder/generated-by-pheweb/resources and pheweb-folder/generated-by-pheweb/sites, whereas pheweb looked for them in pheweb-folder/resources and pheweb-folder/sites.
+
+## r10 pheonotype load
+
+   ```
+   cromshell submit ../import.wdl r10.production.json r10.production.options.json
+
+   ```
+
+   b8bbfc7f-3ba0-45f8-a00b-8629386f2ac0
