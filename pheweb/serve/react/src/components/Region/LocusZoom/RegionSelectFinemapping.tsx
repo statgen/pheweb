@@ -1,16 +1,16 @@
 import React, { Fragment, useContext, useEffect, useState } from "react";
-import { CondFMRegions, layout_types, Params } from "../RegionModel";
+import { cond_fm_regions_types, CondFMRegions, layout_types, Params } from "../RegionModel";
 import { RegionContext, RegionState } from "../RegionContext";
 
-const Component = (cond_fm_regions, dataSources , plot) => {
-    const condRegions = cond_fm_regions.filter(region => region.type === 'conditional')
+const Component = (cond_fm_regions : cond_fm_regions_types, dataSources , plot) => {
     const finemapping_methods : layout_types[] =
       Array.from( (cond_fm_regions || [])
         .filter(r => r.type === 'susie' || r.type === 'finemap')
         .reduce((acc,value) => {acc.add(value.type); return acc; } ,
           new Set<layout_types>()))
     const [selectedMethod, setSelectedMethod] = useState<layout_types | undefined>(finemapping_methods.length > 0?finemapping_methods[0]:undefined);
-    const n_cond_signals = condRegions.length > 0 ? condRegions[0].n_signals : 0;
+    const cond_signals : CondFMRegions | undefined = (cond_fm_regions || []).find(region => region.type === 'conditional')
+    const n_cond_signals = cond_signals?.n_signals || 0
     const [conditionalIndex, setConditionalIndex] = useState<number | undefined>(n_cond_signals > 0?0:undefined);
 
     useEffect(() => {
@@ -25,7 +25,6 @@ const Component = (cond_fm_regions, dataSources , plot) => {
             const index : number = params.allData.findIndex((cur) => cur.type === selectedMethod);
             params.dataIndex = index;
             const panel = plot.panels.finemapping
-            //panel.data_layers.associationpvalues.data = dataSources.sources.finemapping.parseArraysToObjects(params.allData[index].data, params.fields, params.outnames, params.trans)
             panel.data_layers.associationpvalues.data = params.allData[index].data
             panel.data_layers.associationpvalues.render();
         }
@@ -39,7 +38,6 @@ const Component = (cond_fm_regions, dataSources , plot) => {
             const panel = plot.panels.conditional;
             panel.setTitle('conditioned on ' + params.allData[conditionalIndex].conditioned_on);
             panel.data_layers.associationpvalues.data = dataSources.sources.conditional.parseArraysToObjects(params.allData[conditionalIndex].data, params.fields, params.outnames, params.trans);
-            //panel.data_layers.associationpvalues.data = arams.allData[conditionalIndex].data
             panel.data_layers.associationpvalues.render();
         }
     },[setConditionalIndex, conditionalIndex, dataSources, plot]);
@@ -76,7 +74,7 @@ const Component = (cond_fm_regions, dataSources , plot) => {
                 <div className="row">
                     <div className="col-xs-12">
                         <p>
-                            <span>Show conditioned on { Array.from(Array(cond_fm_regions.length).keys()).map(i => conditionalLabel(i)) } variants<br/></span>
+                            <span>Show conditioned on { Array.from(Array(n_cond_signals).keys()).map(i => conditionalLabel(i)) } variants<br/></span>
                         </p>
                     </div>
                 </div>
@@ -105,9 +103,9 @@ export const RegionSelectFinemapping = () => {
 
     let summaryHTML;
     if (cond_fm_regions && cond_fm_regions.length > 0)
-    { return Component(cond_fm_regions, dataSources , plot) }
+    { summaryHTML = Component(cond_fm_regions, dataSources , plot) }
     else
-    {   summaryHTML = <Fragment/> }
+    { summaryHTML = <Fragment/> }
 
     return summaryHTML;
 }

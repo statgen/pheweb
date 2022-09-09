@@ -76,9 +76,11 @@ export interface CondFMRegions {
     type: layout_types,
     variants: string };
 
+export type cond_fm_regions_types = CondFMRegions [] | undefined | null;
+
 export interface Region {
     readonly pheno: Phenotype,
-    readonly cond_fm_regions: CondFMRegions [] | undefined | null;
+    readonly cond_fm_regions: cond_fm_regions_types;
     readonly lz_conf : LzConf | undefined | null,
     readonly ld_panel_version : string,
     readonly vis_conf : VisConf,

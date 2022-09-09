@@ -102,12 +102,145 @@ in /mnt/nfs/pheweb/r7/phenolist
 _ENDPOINTS_DF7_Final_2021-03-05.names_tagged_ordered.txt Endpoints_Controls_FINNGEN_ENDPOINTS_DF7_Final_2021-03-05.tsv n_eff.txt /mnt/nfs/
 pheweb/r7/generated-by-pheweb | python -m json.tool > /mnt/nfs/pheweb/r7/pheno-list.json`
 
+## Additional Datasets
+
+### Setup
+Setup environment
+
+Configure gcloud sql instance.
+
+`
+export DB_INSTANCE=$(read -p "name of cloud instance" tmp; echo tmp) # name of cloud sql instance
+gcloud sql instances describe ${DB_INSTANCE}                         # check definition
+`
+
+Configure database name, create database if necessary
+
+`
+export DB_NAME=$(read -p "name of database" tmp; echo tmp)          # database name
+gcloud sql databases create ${DB_NAME} --instance=${DB_INSTANCE}    # create database if needed
+gcloud sql databases describe ${DB_NAME} --instance=${DB_INSTANCE}  # check database name
+`
+
+Set the service account currently being used
+
+`
+# database service account
+export SERVICE_ACCOUNT=$(gcloud sql instances describe ${DB_INSTANCE} | yq .serviceAccountEmailAddress)
+`
+
+Grant the service account access to your bucket root. This will be needed when data is imported
+from the bucket to the database.
+
+`
+gsutil iam ch serviceAccount:${SERVICE_ACCOUNT}:legacyBucketOwner ${BUCKET_ROOT}
+gsutil iam ch serviceAccount:${SERVICE_ACCOUNT}:legacyObjectReader ${BUCKET_ROOT}
+`
+
+Create tables from [https://github.com/FINNGEN/sql](https://github.com/FINNGEN/sql) create
+the tables using the SQL scripts providied.
+
+`
+# create tables
+(echo "USE ${DB_NAME}"; cat sql/*.sql) | gcloud sql connect ${DB_INSTANCE} --user ${CLOUD_SQL_USER}
+`
+
+Set the release identifier for your release.
+
+`
+export RELEASE=$(read -p "name pheweb release" tmp; echo tmp)
+`
+
+Set the pheweb root directory
+`
+export PHEWEB_ROOT=$(read -p "pheweb root" tmp; echo tmp)
+`
+### Import Data
+
+Set you pipeline output identifier
+`
+export PIPELINE_OUTPUT_ROOT=$(read -p "pipeline output root" tmp; echo tmp)
+export PIPELINE_OUTPUT_IDENTIFIER=$(read -p "pipeline output identifier" tmp; echo tmp)
+`
+
+The given an import idenitifier `${PIPELINE_OUTPUT_IDENTIFIER}` post pipeline
+data as of r10 has the following layout.
+
+```
+#finemapping files : ${PIPELINE_OUTPUT_ROOT}/finemap/${PIPELINE_OUTPUT_IDENTIFIER}/finemap_cred_regions
+gsutil ls ${PIPELINE_OUTPUT_ROOT}/finemap/${PIPELINE_OUTPUT_IDENTIFIER}/finemap_cred_regions/*.cred* > /dev/null 2> /dev/null && echo finemapping okay || echo finemapping failed
+
+#this may change with future releases
+#conditional sql :
+gsutil ls ${PIPELINE_OUTPUT_ROOT}/conditional_analysis/cromwell-results/pheweb/*sql.merged.txt > /dev/null 2> /dev/null && echo finemapping okay || echo finemapping failed
+gsutil ls ${PIPELINE_OUTPUT_ROOT}/conditional_analysis/cromwell-results/pheweb/munge/* > /dev/null 2> /dev/null && echo finemapping okay || echo finemapping failed
+```
+
+## Finemapping
+
+
+Create data for finemapping sql tables
+
+Copy files in the `finemap_cred_regions` directory to `${PHEWEB_ROOT}/cred`.  The files should be of
+form *.cred? where the file names end in a numerical suffix :
+
+e.g. PHENOTYPE.chr10.100-110.cred1
+
+`
+export FINEMAP_CRED=${PIPELINE_OUTPUT_ROOT}/finemap/${PIPELINE_OUTPUT_IDENTIFIER}/finemap_cred_regions
+gsutil -m cp -R ${FINEMAP_CRED} ${PHEWEB_ROOT}/cred
+`
+
+Using [https://github.com/FINNGEN/sql](https://github.com/FINNGEN/sql)  run the following command.
+
+`
+export FINEMAPPING_SQL=${BUCKET_ROOT}/sql/finemap.sql.txt
+python3 scripts/finemap_to_mysql.py ${RELEASE} ${PHEWEB_ROOT}/cred/ | gsutil cp - ${FINEMAPPING_SQL}
+`
+
+Import sql to the tables.
+
+`
+gcloud sql import csv ${DB_INSTANCE} ${FINEMAPPING_SQL} --quiet --database=${DB_NAME} --table=finemapped_regions --columns=rel,type,phenocode,chr,start,end,n_signals,n_signals_prob,variants,path
+`
+
+In the finemapping portion of pheweb configuration point the `finemap` property in the `base_paths` object to `${PHEWEB_ROOT}/cred`
+
+e.g.
+`
+"base_paths": { "finemap": "${PHEWEB_ROOT}/cred" }
+`
+
+## Conditional
+
+
+
+The path of the merged sql should be `conditional_analysis/cromwell-results/pheweb/*_sql.merged.txt`
+Copy the merged sql to your bucket using the path ${CONDITIONAL_SQL}
+`
+export CONDITIONAL_SQL=${BUCKET_ROOT}/sql/conditional.sql.txt
+gcloud sql import csv ${DB_INSTANCE} ${CONDITIONAL_SQL}  --quiet --database=analysis_r10 --table=finemapped_regions --columns=rel,type,phenocode,chr,start,end,n_signals,n_signals_prob,variants,path
+`
+Copy `conditional_analysis/cromwell-results/pheweb/munge` to `${PHEWEB_ROOT}/conditional`
+
+
+In the finemapping portion of pheweb configuration point the `conditional` property in the `base_paths` object to `${PHEWEB_ROOT}/conditional`
+
+## PIP
+
+Local the pip files should be in finemap/pip/*.snp.filter.tsv
+`
+export PIP_PATH=
+export PIP_SQL=${BUCKET_ROOT}/sql/pip.sql.txt
+gsutil cat ${PIP_PATH}/*.snp.filter.tsv | grep --color=auto -v '^trait' | cut -f1,5,6,7,8,9 | tr '\t' ',' | sed s/chr//g |  gsutil cp - ${PIP_SQL}
+`
+
 # Deploying PheWeb in Google Cloud using Kubernetes
 
 ### 1. Install Docker, Google Cloud SDK, and kubectl
 
-[Docker](https://docs.docker.com/install/)  
-[Google Cloud SDK](https://cloud.google.com/sdk/downloads)  
+[Docker](https://docs.docker.com/install/)
+[Google Cloud SDK](https://cloud.google.com/sdk/downloads)
 [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
 Note that there can be at most one minor version difference between kubectl client and server versions: If the server is running v1.8, the client cannot be v1.10. Versions can be checked with `kubectl version`. If they differ too much, download a different version of the client or update the server.
@@ -116,15 +249,15 @@ Note that there can be at most one minor version difference between kubectl clie
 
 In repository root:
 
-`docker build -t gcr.io/phewas-development/pheweb:[TAG] -f deploy/Dockerfile .`  
+`docker build -t gcr.io/phewas-development/pheweb:[TAG] -f deploy/Dockerfile .`
 `gcloud docker -- push gcr.io/phewas-development/pheweb:[TAG]`
 
 ### 3. Setup the kubernetes cluster
 
-Get credentials for a running cluster:  
+Get credentials for a running cluster:
 `gcloud container clusters get-credentials [CLUSTER-NAME] --zone=europe-west1-b`
 
-Or create a new cluster:  
+Or create a new cluster:
 `gcloud container clusters create [CLUSTER-NAME] --num-nodes=1 --machine-type=n1-standard-1 --zone=europe-west1-b`
 
 Make sure you're in the right kubernetes context:
@@ -143,15 +276,15 @@ In e.g. `deploy/pheweb-deployment-r6.yaml` (or other pheweb-deployment-* file), 
 
 Then, apply the changes you made (example with dev config):
 
-`kubectl apply -f deploy/pheweb-pv-nfs.yaml` (if changed) and/or  
+`kubectl apply -f deploy/pheweb-pv-nfs.yaml` (if changed) and/or
 `kubectl apply -f deploy/pheweb-deployment-r6.yaml`
 
 Or if using a new cluster:
 
 Modify `deploy/pheweb-ingress-r6.yaml`, `deploy/pheweb-deployment-r6.yaml` and `deploy/pheweb-pv-nfs.yaml` -- or other files -- as needed. Then
 
-`kubectl create -f deploy/pheweb-ingress-r6.yaml` and  
-`kubectl create -f deploy/pheweb-pv-nfs.yaml` and  
+`kubectl create -f deploy/pheweb-ingress-r6.yaml` and
+`kubectl create -f deploy/pheweb-pv-nfs.yaml` and
 `kubectl create -f deploy/pheweb-deployment-r6.yaml`
 
 ### 5. Update running StateFulSet
@@ -179,12 +312,12 @@ kubectl create -f deploy/pheweb-deployment-r6.yaml
 
 ### 7. Useful commands
 
-`kubectl get ingress`  
-`kubectl describe ingress`  
-`kubectl get svc`  
-`kubectl describe svc`  
-`kubectl get pods`  
-`kubectl logs [POD-NAME]`  
+`kubectl get ingress`
+`kubectl describe ingress`
+`kubectl get svc`
+`kubectl describe svc`
+`kubectl get pods`
+`kubectl logs [POD-NAME]`
 `kubectl get events --sort-by=.metadata.creationTimestamp`
 
 More [here](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)

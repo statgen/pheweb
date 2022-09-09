@@ -1,0 +1,11 @@
+{ "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:ci-caf132640fa4d7871fae2abba8d72ab4881e7d47",
+  "import_pheweb.summary_files":"gs://r10-data-green/regenie/demopheno/summary_stats.txt",
+  "import_pheweb.bed_file" : "gs://r10-data-green/regenie/demopheno/genes-b38-v39.bed" ,
+  "import_pheweb.sites_file" : "gs://r10-data-green/regenie/demopheno/sites.tsv",
+  "import_pheweb.custom_json" : "gs://r10-data-green/regenie/demopheno/pheweb_import.custom.json" ,
+  "import_pheweb.disk" : 8000 ,
+  "import_pheweb.matrix.cpu" : 8 ,
+  "import_pheweb.mem" : 64 ,
+  "import_pheweb.fields" : ["category" , "category_index" , "num_cases" , "num_controls" , "phenocode", "phenostring" ] ,
+  "import_pheweb.output_url" : [ "gs://r10-data-green/production/pheweb/demopheno" ]
+}
