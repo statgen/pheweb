@@ -1,0 +1,22 @@
+{ "import_pheweb.docker" : "eu.gcr.io/phewas-development/pheweb:wip-2f2b0f97de00f9dbfac1069fd4a73376e15058db",
+  "import_pheweb.summary_files":"gs://r9_data_green/development/import/ukbb-meta/pheweb.sumstat_files.1.txt",
+  "import_pheweb.bed_file" : "gs://r9_data_green/development/import/ukbb-meta/genes-b38-v39.bed",
+  "import_pheweb.disk" : 8000 ,
+  "import_pheweb.matrix.cpu" : 8 ,
+  "import_pheweb.mem" : 64 ,
+  "import_pheweb.sites_file" : "gs://r9_data_green/production/import/sites.tsv",
+  "import_pheweb.custom_json" : "gs://r9_data_green/ukbb_meta/conf/pheweb_import.custom.json" ,
+  "import_pheweb.fields" : ["phenostring","num_cases","num_controls","uk_file","description","category"],
+  "import_pheweb.output_url" :
+  [ "gs://r9_data_green/development/meta/metaresults-ukbb" ,
+    "nfs://10.132.0.83/data/nfs/pheweb/metaresults-ukbb" ] ,
+  "import_pheweb.preprocess.chrom_column" :  "#CHR" ,
+  "import_pheweb.preprocess.pos_column" : "POS" ,
+  "import_pheweb.preprocess.ref_column" : "REF" ,
+  "import_pheweb.preprocess.alt_column" : "ALT" ,
+  "import_pheweb.preprocess.pval_column" : "all_inv_var_meta_p" ,
+  "import_pheweb.preprocess.mlogp_column" : "all_inv_var_meta_mlogp" ,
+  "import_pheweb.preprocess.beta_column" : "all_inv_var_meta_beta" ,
+  "import_pheweb.preprocess.se_beta_column" : "all_inv_var_meta_sebeta" ,
+  "import_pheweb.file_affix" : "_meta_out_filtered.tsv"
+}

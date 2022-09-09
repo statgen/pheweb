@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """ File utilities
 """
@@ -452,21 +453,27 @@ class _vfw:
 
     def write(self, variant):
         if not hasattr(self, "_writer"):
-            fields = []
-            for field in conf.parse.fields:
-                if field in variant:
-                    fields.append(field)
-            extra_fields = list(set(variant.keys()) - set(fields))
-            if extra_fields:
-                if not self._allow_extra_fields:
-                    raise PheWebError(
-                        "ERROR: found unexpected fields {!r} among the expected fields {!r} while writing {!r}.".format(
-                            extra_fields, fields, self._filepath
-                        )
-                    )
-                fields += extra_fields
+            # 
+            known_fields = conf.parse.fields.keys()
+            unexpected_fields = [v for v in variant if v not in known_fields]
+            if unexpected_fields and not self._allow_extra_fields:
+                msg = f"ERROR: unexpected fields {unexpected_fields} whereas {known_fields} are know. Writing : '{filepath}'."
+                raise PheWebError(msg)
+            #
+            # Note : fieldnames defines order with which the
+            # dict is written : see
+            #
+            # https://docs.python.org/3/library/csv.html#csv.DictWriter
+            #
+            # 'The fieldnames parameter is a sequence of
+            # 'keys that identify the order in which values
+            # 'in the dictionary passed to the writerow()
+            # 'method are written to file f.
+            #
             self._writer = csv.DictWriter(
-                self._f, fieldnames=fields, dialect="pheweb-internal-dialect"
+                self._f,
+                fieldnames=variant,
+                dialect="pheweb-internal-dialect"
             )
             self._writer.writeheader()
         self._writer.writerow(variant)

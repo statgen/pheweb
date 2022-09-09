@@ -94,6 +94,24 @@ gsutil cp - gs://r9_data_green/genes-without-M-b38-v39.bed
   *incident*
   Search bar autocomplete did not work. Investigation revealed that files were copied to pheweb-folder/generated-by-pheweb/resources and pheweb-folder/generated-by-pheweb/sites, whereas pheweb looked for them in pheweb-folder/resources and pheweb-folder/sites.
 
+
+### Meta analysis columns are out of order
+
+	*incident*
+
+	https://github.com/FINNGEN/pheweb/issues/242
+
+	The meta analysis browsers had columns that were swapped.
+
+	This is due to a bug in the import step 'agument-phenos'.
+	The summary statistics were reimported
+
+	cromshell submit import.wdl ./r9/r9.production.ukbb-estbb-meta.import.json
+	c100cffb-8a48-413d-900f-d25186b59fc7
+
+	cromshell submit import.wdl ./r9/r9.production.ukbb-meta.import.json
+	3c631220-4f83-4477-87dc-89fa8214189f
+
 ## r10 pheonotype load
 
    ```
