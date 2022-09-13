@@ -13,7 +13,7 @@ pheweb:
   secretName: production-r10-secrets
   subdomain: r10
 image:
-  tag: wip-ae66aa84c118deca3ca7475183fe073747914692
+  tag: ci-a81aa386cb3fa3a414cf8b99ee9e3be73c5797f3
 
 persistentVolume:
   path: /data/nfs
