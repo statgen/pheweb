@@ -35,6 +35,8 @@ from pathlib import Path
 from .drug_db import DrugDB, DrugDao
 
 
+
+
 class JSONifiable(object):
     @abc.abstractmethod
     def json_rep(self):
@@ -826,31 +828,32 @@ class TabixResultDao(ResultDB):
                     if "af_alt_controls" in self.header_offset
                     else maf_control
                 )
-                pr = PhenoResult(
-                    pheno[0],
-                    self.pheno_map[pheno[0]]["phenostring"],
-                    self.pheno_map[pheno[0]]["category"],
-                    self.pheno_map[pheno[0]]["category_index"]
-                    if "category_index" in self.pheno_map[pheno[0]]
-                    else None,
-                    pval,
-                    beta,
-                    maf,
-                    maf_case,
-                    maf_control,
-                    self.pheno_map[pheno[0]]["num_cases"]
-                    if "num_cases" in self.pheno_map[pheno[0]]
-                    else 0,
-                    self.pheno_map[pheno[0]]["num_controls"]
-                    if "num_controls" in self.pheno_map[pheno[0]]
-                    else 0,
-                    mlogp,
-                    self.pheno_map[pheno[0]]["num_samples"]
-                    if "num_samples" in self.pheno_map[pheno[0]]
-                    else "NA",
-                )
-                pr = extend_pheno_result(pr,pheno[1],self.header_offset,split)
-                pr = phenores.append(pr)
+                if pval is not None and not pval == "" and not pval == "NA":
+                    pr = PhenoResult(
+                        pheno[0],
+                        self.pheno_map[pheno[0]]["phenostring"],
+                        self.pheno_map[pheno[0]]["category"],
+                        self.pheno_map[pheno[0]]["category_index"]
+                        if "category_index" in self.pheno_map[pheno[0]]
+                        else None,
+                        pval,
+                        beta,
+                        maf,
+                        maf_case,
+                        maf_control,
+                        self.pheno_map[pheno[0]]["num_cases"]
+                        if "num_cases" in self.pheno_map[pheno[0]]
+                        else 0,
+                        self.pheno_map[pheno[0]]["num_controls"]
+                        if "num_controls" in self.pheno_map[pheno[0]]
+                        else 0,
+                        mlogp,
+                        self.pheno_map[pheno[0]]["num_samples"]
+                        if "num_samples" in self.pheno_map[pheno[0]]
+                        else "NA",
+                    )
+                    pr = extend_pheno_result(pr,pheno[1],self.header_offset,split)
+                    pr = phenores.append(pr)
             result.append((v, phenores))
         return result
 

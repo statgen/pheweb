@@ -26,7 +26,20 @@ const optionaCellNumberFormatter = (props) => isNaN(+props.value) ? props.value 
 const scientificCellFormatter = (props) => (+props.value).toExponential(1);
 const optionalCellScientificFormatter = (props) => isNaN(+props.value) ? props.value : scientificCellFormatter(props);
 
-const pValueCellFormatter = (props) => (props.value === pValueSentinel) ? ` << ${pValueSentinel}` :  isNaN(+props.value) ?props.value: props.value.toExponential(1);
+export const pValueCellFormatter = (props) => {
+      const value = props.value;
+      let result;
+      if(props.value == pValueSentinel){
+         result = ` << ${pValueSentinel}`
+      } else if (typeof value === 'number') {
+        result = value.toExponential(1)
+      } else if (typeof value === 'string' && !isNaN(+props.value)) {
+        result = (+value).toExponential(1)
+      } else {
+        result = value;
+      }
+      return result;
+}
 
 const arrayCellFormatter = (props) => { return props?.value?.join(" ") || "" }
 
