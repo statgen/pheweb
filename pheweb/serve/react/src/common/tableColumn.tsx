@@ -1289,7 +1289,7 @@ export const geneLossOfFunctionTableColumns = [
 
 
 export const genePhenotypeTableColumns = [
-  phenotypeColumns.rsid,
+  { ...phenotypeColumns.rsid, "minWidth": 70 , "width" : 70 },
   phenotypeColumns.finEnrichmentText,
   phenotypeColumns.genePhenotype,
   phenotypeColumns.category,
@@ -1301,11 +1301,11 @@ export const genePhenotypeTableColumns = [
 ]
 
 export const geneFunctionalVariantTableColumns = [
-  { ...phenotypeColumns.rsid, "attributes": { "minWidth": 100 } },
-  { ...phenotypeColumns.consequence, "attributes": { "minWidth": 100 } },
-  { ...phenotypeColumns.infoScore, "attributes": { "minWidth": 100 } },
-  { ...phenotypeColumns.finEnrichmentText, "attributes": { "minWidth": 100 } },
-  { ...phenotypeColumns.af, "attributes": { "minWidth": 100 } },
+  { ...phenotypeColumns.rsid, "minWidth": 70 , "width" : 70 },
+  { ...phenotypeColumns.consequence, "width" : 80 , "minWidth": 80 },
+  { ...phenotypeColumns.infoScore, "minWidth": 40 , "width" : 40 },
+  { ...phenotypeColumns.finEnrichmentText, "minWidth": 80 , "width" : 80 },
+  { ...phenotypeColumns.af, "minWidth": 50 , "width" : 50 },
   phenotypeColumns.finnGenPhenotype
 ]
 
@@ -1319,7 +1319,7 @@ export const geneDrugListTableColumns = [
 ]
 
 export const phenotypeListTableColumns = [
-  { ...phenotypeColumns.phenotype, "attributes": { "minWidth": 300 } },
+  phenotypeColumns.phenotype,
   phenotypeColumns.category,
   phenotypeColumns.numCases,
   phenotypeColumns.numControls,
