@@ -8,6 +8,7 @@ const Component = (cond_fm_regions : cond_fm_regions_types, dataSources , plot) 
         .filter(r => r.type === 'susie' || r.type === 'finemap')
         .reduce((acc,value) => {acc.add(value.type); return acc; } ,
           new Set<layout_types>()))
+
     const [selectedMethod, setSelectedMethod] = useState<layout_types | undefined>(finemapping_methods.length > 0?finemapping_methods[0]:undefined);
     const cond_signals : CondFMRegions | undefined = (cond_fm_regions || []).find(region => region.type === 'conditional')
     const n_cond_signals = cond_signals?.n_signals || 0
@@ -24,10 +25,11 @@ const Component = (cond_fm_regions : cond_fm_regions_types, dataSources , plot) 
         if(dataSources && params?.allData && plot?.panels){
             const index : number = params.allData.findIndex((cur) => cur.type === selectedMethod);
             params.dataIndex = index;
-            const panel = plot.panels.finemapping
-            panel.data_layers.associationpvalues.data = params.allData[index].data
+            const panel = plot.panels.finemapping;
+	    panel.data_layers.associationpvalues.data = dataSources.sources.finemapping.parseArraysToObjects(params.allData[index].data, params.fields, params.outnames, params.trans)
             panel.data_layers.associationpvalues.render();
-        }
+       }
+
     },[setSelectedMethod, selectedMethod, dataSources, plot]);
 
     useEffect(() => {
@@ -44,7 +46,7 @@ const Component = (cond_fm_regions : cond_fm_regions_types, dataSources , plot) 
 
     const showConditional = (i : number) => () => dataSources && plot && setConditionalIndex(i) ;
 
-    const showFinemapping = (s : layout_types) => () => dataSources && plot &&  setSelectedMethod(s);
+    const showFinemapping = (s : layout_types) => () => { console.log(s); dataSources && plot &&  setSelectedMethod(s); }
 
     const signalLabel = (region : CondFMRegions) => region.type === 'finemap' ?
       <Fragment><span>{region.n_signals} {region.type} signals (prob. {region.n_signals_prob.toFixed(3)} ) </span><br/></Fragment> :
