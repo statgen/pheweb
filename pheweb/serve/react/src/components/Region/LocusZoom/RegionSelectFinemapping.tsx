@@ -46,7 +46,7 @@ const Component = (cond_fm_regions : cond_fm_regions_types, dataSources , plot) 
 
     const showConditional = (i : number) => () => dataSources && plot && setConditionalIndex(i) ;
 
-    const showFinemapping = (s : layout_types) => () => { console.log(s); dataSources && plot &&  setSelectedMethod(s); }
+    const showFinemapping = (s : layout_types) => () => { dataSources && plot &&  setSelectedMethod(s); }
 
     const signalLabel = (region : CondFMRegions) => region.type === 'finemap' ?
       <Fragment><span>{region.n_signals} {region.type} signals (prob. {region.n_signals_prob.toFixed(3)} ) </span><br/></Fragment> :
