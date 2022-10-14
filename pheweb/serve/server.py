@@ -306,7 +306,7 @@ def api_region_page(phenocode, region):
     pheno = phenos[phenocode]
     chr_se = region.split(':')
     chrom = chr_se[0]
-    chrom = 'X' if str(chrom) == '23' else chrom
+    chrom = 23 if str(chrom) == 'X' else int(chrom)
     start_end = jeeves.get_max_finemapped_region(phenocode, chrom, chr_se[1].split('-')[0], chr_se[1].split('-')[1])
     if start_end is not None:
         cond_fm_regions = jeeves.get_finemapped_region_boundaries_for_pheno('all', phenocode, chrom, int(chr_se[1].split('-')[0]), int(chr_se[1].split('-')[1]))
@@ -354,7 +354,7 @@ def api_finemapped_region(phenocode):
     filter_param = request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
-    chrom = 'X' if str(chrom) == '23' else chrom
+    chrom = 23 if str(chrom) == 'X' else int(chrom)
     rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, prob_threshold=conf.locuszoom_conf['prob_threshold'])
     return jsonify(rv)
 
