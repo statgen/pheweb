@@ -73,6 +73,18 @@ export region=europe-west1-b
    Authorized JavaScript origins : https://${release}.finngen.fi
    Authorized redirect URIs :
 
+   When saving oauth credential look at a previous verison to
+   see how to format it and how to enable group authentication.
+   
+   Specific to FINNGEN project.  Get a list of previous secrets
+   ```
+   gcloud beta secrets list | grep -e 'production_.*oauth'
+   ```
+   
+   ```
+   gcloud beta secrets versions access latest --secret=<<secret name from above step>>
+   ```
+   
 ## Create Deployment
 
   Create deployment
@@ -166,7 +178,9 @@ ansible-playbook site.yml -i inventory.ini -u ${USER}  --limit ${enviroment}-{re
    gcloud beta secrets versions add ${environment}_${release}_mysql_conf --data-file=mysql.conf
 ```
 
-   NOTE : add the appropriate groups
+   NOTE : It is mandatory to add the appropriate groups to make the secret assible to all developers and roles
+   see the secrets in the to find the appropriate groups.
+   
    e.g. gcloud beta secrets add-iam-policy-binding my_secret --member=group:my_group --role=roles/secretmanager.viewer
 
    Pull the secrets you just installed. This step ensures the cluster can be recovered with the necessary secrets.
