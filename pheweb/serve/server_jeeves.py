@@ -370,7 +370,10 @@ class ServerJeeves(object):
                 if (self.conf.release in ['R3', 'R4', 'R5']):
                     data = pd.read_csv(region['path'], sep='\t', compression='gzip')
                     data.rename(columns={'chromosome': 'chr', 'allele1': 'ref', 'allele2': 'alt'}, inplace=True)
-                    data = data[(data.region == 'chr' + str(region['chr']) + ':' + str(region['start']) + '-' + str(region['end'])) & (data.cs > -1) & (data.prob > prob_threshold)]
+                    format_chr = lambda chr : f"""chr{chr}:{region['start']}-{region['end']}"""
+                    chromosome_key = format_chr(region['chr'])
+                    chromosome_alt = format_chr(str(region['chr']).replace('23','X')) # hack to allow 23 and X
+                    data = data[((data.region == chromosome_key) | (data.region == chromosome_key)) & (data.cs > -1) & (data.prob > prob_threshold)]
                     data['chr'] = data['chr'].str.replace('chr', '')
                     data['id'] = data['rsid'].str.replace('chr', '')
                     data['id'] = data['id'].str.replace('_', ':', n=1)

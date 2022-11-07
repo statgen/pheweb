@@ -2,6 +2,22 @@ import { createCORSPromise, Data } from "locuszoom";
 // @ts-ignore
 import { defer, when } from "q";
 
+/* This is needed to override (locuszoom:1.0.0) assets/js/app/Data.js:666
+ * for chromosome 23 as umich refers to this as 'X'.
+ */
+export const UMichGeneSource = Data.Source.extend(function(init: any) {
+  this.parseInit(init);
+}, "UMichGeneSourceLZ");
+
+UMichGeneSource.prototype.getURL = function(state: { chr: string; start: string; end: string; }, chain: any, fields: any) {
+  const analysis = chain.header.analysis || this.params.source || this.params.analysis;
+  const chr = +state.chr == 23 ? 'X' : state.chr;
+  const url = `${this.url}?filter=source in ${analysis} and chrom eq '${chr}' and start le ${state.end} and end ge ${state.start}`;
+  return url;
+};
+UMichGeneSource.prototype.normalizeResponse = LocusZoom.Data.GeneSource.prototype.normalizeResponse
+UMichGeneSource.prototype.extractFields = LocusZoom.Data.GeneSource.prototype.extractFields
+
 export const GWASCatSource = Data.Source.extend(function(init: any) {
   this.parseInit(init);
 }, "GWASCatSoureLZ");

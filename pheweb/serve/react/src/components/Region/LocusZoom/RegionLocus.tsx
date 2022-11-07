@@ -18,7 +18,7 @@ import {
     panel_layouts,
     region_layout
 } from "./RegionLayouts";
-import { ClinvarDataSource, FG_LDDataSource, GWASCatSource } from "./RegionCustomLocuszooms";
+import { ClinvarDataSource, FG_LDDataSource, GWASCatSource, GeneSource } from "./RegionCustomLocuszooms";
 import { Region } from "../RegionModel";
 import { resolveURL } from "../../Configuration/configurationModel";
 
@@ -122,7 +122,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
                                                     "phenotype1" : [],
                                                     "phenotype1_description" : [] } }`
     dataSources.add("colocalization", ["ColocalizationLZ", {url: colocalizationURL }]);
-    dataSources.add("gene", ["GeneLZ", {url: `${remoteBase}annotation/genes/`, params:{source:geneSource}}])
+    dataSources.add("gene", ["UMichGeneSourceLZ", {url: `${remoteBase}annotation/genes/`, params:{source:geneSource}}])
     dataSources.add("constraint", ["GeneConstraintLZ", { url: "http://exac.broadinstitute.org/api/constraint" }])
     dataSources.add("gwas_cat", new GWASCatSource({url: remoteBase + "annotation/gwascatalog/", params: { id:gwascatSource ,pvalue_field: "log_pvalue" }}));
     dataSources.add("clinvar", new ClinvarDataSource({url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", params: { region:region , id:[1,4] ,pvalue_field: "log_pvalue" }}));
