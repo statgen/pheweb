@@ -31,7 +31,7 @@ def convert_file(sites_filepath, in_filepath, out_filepath, ):
     logging.info(f'out_filepath :     {out_filepath}')
     with VariantFileReader(sites_filepath) as sites_reader, \
          VariantFileReader(in_filepath) as pheno_reader, \
-         VariantFileWriter(out_filepath) as writer:
+         VariantFileWriter(out_filepath, allow_extra_fields=True) as writer:
         sites_variants = with_chrom_idx(iter(sites_reader))
         pheno_variants = with_chrom_idx(iter(pheno_reader))
 
