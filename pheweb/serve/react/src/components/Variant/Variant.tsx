@@ -63,7 +63,7 @@ interface VariantSummary {
   alt : string
 }
 
-const createVariantSummary = (variantData : VariantModel.Data) => {
+const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary => {
   const nearestGenes : string [] = variantData.variant.annotation.nearest_gene.split(",");
   const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
 
@@ -323,6 +323,15 @@ declare let window: ConfigurationWindow;
 const { config } = window;
 const banner: string = config?.userInterface?.variant?.banner || default_banner;
 
+interface  BioBankURL {rsid: string, url: string}
+interface BannerData { bioBankURL : BioBankURL[] , summary : VariantSummary }
+type BioBankURLObject = {[p: string]: string} | null
+
+const bannerData = (variantData :  VariantModel.Data, bioBankURLObject: BioBankURLObject) : BannerData => {
+  const bioBankURL : BioBankURL[] = bioBankURLObject == null ? [] : Object.entries(bioBankURLObject).map(([k,v])=> { return { rsid : k , url : v}})
+  const summary = createVariantSummary(variantData)
+  return { bioBankURL , summary }
+}
 
 const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
@@ -351,14 +360,14 @@ const Variant = (props : Props) => {
 
   // the null check is on  bioBankURL == null as for some reason
   // the tool tip is not happing loading this later.
-  return variantData == null || bioBankURL == null?loading:
+  return variantData == null?loading:
     <VariantContextProvider>
     <React.Fragment>
 
       <div>
         <ReactTooltip />
              <div className="variant-info col-xs-12">
-                 {mustacheDiv(banner, { bioBankURL : Object.entries(bioBankURL).map(([k,v])=> { return { rsid : k , url : v}}), summary : createVariantSummary(variantData) } )}
+                 {mustacheDiv(banner,bannerData(variantData, bioBankURL))}
              </div>
       </div>
       <div>
@@ -375,5 +384,6 @@ const Variant = (props : Props) => {
   </React.Fragment>
   </VariantContextProvider>
 }
+
 
 export default Variant;
