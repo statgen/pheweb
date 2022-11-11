@@ -248,18 +248,19 @@ FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
   var extremeIdx = findExtremeValue(chain.body, this.params.pvalue_field, -1);
   var topvar = chain.body[extremeIdx];
   var refvar = topvar[this.params.var_id_field];
+  var url;
   chain.header.ldrefvar = topvar;
   if (this.params.region.lz_conf.ld_service.toLowerCase() === "finngen") {
     var windowSize = Math.min(state.end - state.start + 10000, this.params.region.lz_conf.ld_max_window);
-    return `${this.url}?variant=${topvar["association:chr"]}:${topvar["association:position"]}:${topvar["association:ref"]}:${topvar["association:alt"]}&window=${windowSize}&panel=${this.params.region.ld_panel_version}`;
+    url = `${this.url}?variant=${topvar["association:chr"]}:${topvar["association:position"]}:${topvar["association:ref"]}:${topvar["association:alt"]}&window=${windowSize}&panel=${this.params.region.ld_panel_version}`;
 
   } else {
-    return refvar ?
+    url = refvar ?
       `${this.url}${refvar}/${this.params.region.lz_conf.ld_ens_pop}?window_size=${this.params.region.lz_conf.ld_ens_window}`
       :
       `${this.url} lead variant has no rsid, could not get LD`;
   }
-
+  return url;
 };
 
 FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames, trans) {
@@ -274,6 +275,7 @@ FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames
     res = JSON.parse(resp);
   }
   var lookup = {};
+
   for (var resultIndex = 0; resultIndex < res.length; resultIndex++) {
     res[resultIndex].variation1 = res[resultIndex].variation1.replace(/^23:/, "X:");
     res[resultIndex].variation2 = res[resultIndex].variation2.replace(/^23:/, "X:");
@@ -285,8 +287,9 @@ FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames
 
   for (var bodyIndex = 0; bodyIndex < chain.body.length; bodyIndex++) {
     var d, isref;
+
     if (this.params.region.lz_conf.ld_service.toLowerCase() === "finngen") {
-      d = lookup[chain.body[bodyIndex][this.params.var_id_field].replace("_", ":").replace("/", ":")];
+      d = lookup[chain.body[bodyIndex][this.params.var_id_field].replace("_", ":").replace("/", ":").replace(/^23:/, "X:")];
       isref = chain.header.ldrefvar[this.params.var_id_field] === chain.body[bodyIndex][this.params.var_id_field] ? 1 : 0;
     } else {
       d = lookup[chain.body[bodyIndex][this.params.var_id_field]];
