@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 
 '''
 This script annotates `sites/sites-unannotated.tsv` with rsids (comma-separated) from `sites/dbSNP/rsids.vcf.gz`.  It prints output to `sites-rsids.tsv`.
@@ -20,19 +20,18 @@ We read one full position at a time.  When we have a position-match, we find all
 # - rename `cpra` to something else to reflect that it can also contain other per-variant fields
 
 
-from ..utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
-from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths, read_maybe_gzip
-
+from pheweb.utils import chrom_order, chrom_order_list, chrom_aliases, PheWebError
+from pheweb.file_utils import VariantFileReader, VariantFileWriter, common_filepaths, read_maybe_gzip
+import click
 import os
 import itertools
-
-in_filepath = common_filepaths['unanno']
-out_filepath = common_filepaths['sites-rsids']
-rsids_filepath = common_filepaths['rsids']
+import logging
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
 
 def mod_time(filepath): return os.stat(filepath).st_mtime
 
-def get_rsid_reader(rsids_f):
+def get_rsid_reader(rsids_f, rsids_filepath):
     prev_chrom_idx = -1
     prev_pos = -1
     for line in rsids_f:
@@ -90,23 +89,32 @@ def are_match(seq1, seq2):
         return all(b1 == b2 or b1 == 'N' or b2 == 'N' for b1, b2 in zip(seq1, seq2))
     return False
 
+@click.command()
+@click.option('--input_filepath', help='input filepath', default=common_filepaths['unanno'])
+@click.option('--rsids_filepath', help='genes filepath', default=common_filepaths['rsids'])
+@click.option('--out_filepath', help='out filepath', default=common_filepaths['sites-rsids'])
+def create_rsids(input_filepath = common_filepaths['unanno'],
+                 rsids_filepath = common_filepaths['rsids'],
+                 out_filepath = common_filepaths['sites-rsids']):
 
-def run(argv):
+    logging.info(f'input_filepath :   {input_filepath}')
+    logging.info(f'rsids_filepath :   {rsids_filepath}')
+    logging.info(f'out_filepath :     {out_filepath}')
 
     if not os.path.exists(rsids_filepath):
         print('Downloading rsids from dbSNP')
-        from . import download_rsids
+        from pheweb.load import download_rsids
         download_rsids.run([])
 
-    if os.path.exists(out_filepath) and max(mod_time(in_filepath), mod_time(rsids_filepath)) <= mod_time(out_filepath):
+    if os.path.exists(out_filepath) and max(mod_time(input_filepath), mod_time(rsids_filepath)) <= mod_time(out_filepath):
         print('rsid annotation is up-to-date!')
         return
 
-    with VariantFileReader(in_filepath) as in_reader, \
+    with VariantFileReader(input_filepath) as in_reader, \
          read_maybe_gzip(rsids_filepath) as rsids_f, \
          VariantFileWriter(out_filepath) as writer:
 
-        rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f))
+        rsid_group_reader = get_one_chr_pos_at_a_time(get_rsid_reader(rsids_f, rsids_filepath))
         cp_group_reader = get_one_chr_pos_at_a_time(in_reader)
 
         rsid_group = next(rsid_group_reader)
@@ -139,3 +147,9 @@ def run(argv):
                 for cpra in cp_group:
                     cpra['rsids'] = ''
                     writer.write(cpra)
+
+def run(argv):
+    create_rsids()
+
+if __name__=='__main__':
+    create_rsids()
