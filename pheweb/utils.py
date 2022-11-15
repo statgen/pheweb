@@ -141,7 +141,7 @@ def pad_gene(start, end):
 
 
 # CONSTANTS
-def get_gene_tuples(genes_filepath=None, include_ensg=False):
+def get_gene_tuples(include_ensg=False):
     """
     Get gene tuples.
 
@@ -151,10 +151,8 @@ def get_gene_tuples(genes_filepath=None, include_ensg=False):
     @return: 4-tuple
     """
     from .file_utils import common_filepaths
-    if genes_filepath is None:
-        genes_filepath=common_filepaths["genes"]
-    print(genes_filepath)
-    with open(genes_filepath, encoding="utf-8") as file:
+
+    with open(common_filepaths["genes"], encoding="utf-8") as file:
         for row in csv.reader(file, delimiter="\t"):
             assert row[0] in chrom_order, row[0]
             if include_ensg:

@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-import logging
-root = logging.getLogger()
-root.setLevel(logging.DEBUG)
 
 '''
 This script takes a file with the columns [chrom, pos, ...] (but no headers) and adds the field `gene`.
@@ -14,9 +10,8 @@ TODO:
 - are these gene ranges the whole transcript, including UTRs?
 '''
 
-import click
-from pheweb.utils import get_gene_tuples
-from pheweb.file_utils import VariantFileReader, VariantFileWriter, common_filepaths
+from ..utils import get_gene_tuples
+from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths
 
 import intervaltree
 import bisect
@@ -83,30 +78,24 @@ class GeneAnnotator(object):
         return nearest_gene_start[1]
 
 
-def annotate_genes(in_filepath,
-                   genes_filepath,
-                   out_filepath):
+def annotate_genes(in_filepath, out_filepath):
     '''Both args are filepaths'''
-    ga = GeneAnnotator(get_gene_tuples(genes_filepath=genes_filepath))
+    ga = GeneAnnotator(get_gene_tuples())
     with VariantFileWriter(out_filepath) as out_f, \
          VariantFileReader(in_filepath) as variants:
         for v in variants:
             v['nearest_genes'] = ga.annotate_position(v['chrom'], v['pos'])
             out_f.write(v)
 
-@click.command()
-@click.option('--input_filepath', help='input filepath', default=common_filepaths['sites-rsids'])
-@click.option('--genes_filepath', help='genes filepath', default=common_filepaths['genes'])
-@click.option('--out_filepath', help='out filepath', default=common_filepaths['sites'])
-def create_sites(input_filepath = common_filepaths['sites-rsids'],
-                 genes_filepath = common_filepaths['genes'],
-                 out_filepath = common_filepaths['sites']):
-    logging.info(f'input_filepath :   {input_filepath}')
-    logging.info(f'genes_filepath :   {genes_filepath}')
-    logging.info(f'out_filepath :     {out_filepath}')
+def run(argv):
+
+    input_filepath = common_filepaths['sites-rsids']
+    genes_filepath = common_filepaths['genes']
+    out_filepath = common_filepaths['sites']
+
     if not os.path.exists(genes_filepath):
         print('Downloading genes from GENCODE')
-        from pheweb.load import download_genes
+        from . import download_genes
         download_genes.run([])
 
     def mod_time(filepath):
@@ -114,10 +103,4 @@ def create_sites(input_filepath = common_filepaths['sites-rsids'],
     if os.path.exists(out_filepath) and max(mod_time(genes_filepath), mod_time(input_filepath)) <= mod_time(out_filepath):
         print('gene annotation is up-to-date!')
     else:
-        annotate_genes(input_filepath, genes_filepath, out_filepath)
-
-def run(argv):
-    create_sites()
-
-if __name__=='__main__':
-    create_sites()
+        annotate_genes(input_filepath, out_filepath)

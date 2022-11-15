@@ -1,14 +1,14 @@
-#!/bin/env python3
+
 '''
 This script creates json files which can be used to render Manhattan plots.
 '''
 
 # TODO: combine with QQ.
-import click
-from pheweb.utils import chrom_order
-from pheweb.conf_utils import conf
-from pheweb.file_utils import VariantFileReader, write_json, common_filepaths
-from pheweb.load.load_utils import MaxPriorityQueue, parallelize_per_pheno
+
+from ..utils import chrom_order
+from ..conf_utils import conf
+from ..file_utils import VariantFileReader, write_json, common_filepaths
+from .load_utils import MaxPriorityQueue, parallelize_per_pheno
 
 
 import numpy as np
@@ -41,11 +41,6 @@ def run(argv):
 def create_manhattan(pheno):
     make_json_file(common_filepaths['pheno'](pheno['phenocode']), common_filepaths['manhattan'](pheno['phenocode']))
 
-
-@click.command()
-@click.option('--result-file', required=True, help='summary result file')
-@click.option('--output-file', required=True, help='output file')
-@click.option('--write-as-given', default=False, help='write as given')
 @timeit
 def make_json_file(result_file, output_file, write_as_given=False):
     BIN_LENGTH = int(3e6)
@@ -208,7 +203,3 @@ def label_peaks(variants):
             peak_variants.append(best_assoc)
 
     return peak_variants
-
-
-if __name__=='__main__':
-    make_json_file()
