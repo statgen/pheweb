@@ -1450,6 +1450,16 @@ class TabixAnnotationDao(AnnotationDB):
         t = time.time()
         tabixf =pysam.TabixFile(self.matrix_path, parser=None)
         for variant in variants:
+            fetch_chr = (
+                str(variant.chr)
+                .replace("X", "23")
+                .replace("Y", "24")
+                .replace("Y", "25")
+            )
+
+            tabix_iter = tabixf.fetch(fetch_chr, variant.pos - 1, variant.pos) 
+            
+            
             while True:
                 try:
                     row = next(tabix_iter)
