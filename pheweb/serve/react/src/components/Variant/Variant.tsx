@@ -29,6 +29,7 @@ interface KeyValue {
 }
 
 interface MAF {
+  value : string
   start : string
   stop : string
   properties :  KeyValue[]
@@ -42,8 +43,9 @@ interface GnomAD {
 }
 
 interface InfoRange {
-  start : string,
-  stop : string ,
+  value: string
+  start : string
+  stop : string
   properties :  KeyValue[]
 }
 
@@ -93,14 +95,19 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
     let properties = annot === undefined || annot == null ? []  :
     Object.keys(annot).filter((key) => key.indexOf('AF_') === 0 ).map(createIndex)
 
+    const value = 'AF' in annot ? annot['AF'] : undefined
     if(mafs.length === numPhenotypesWithMaf.length){
-      maf = { start : scientificFormatter(Math.min(...mafs)) ,
+      maf = {
+        value : scientificFormatter(value),
+        start : scientificFormatter(Math.min(...mafs)) ,
         stop : scientificFormatter(Math.max(...mafs)) ,
         properties ,
         description : 'across all phenotype' }
     } else {
       //{v : variantData.variant }
-      maf = { start : scientificFormatter(Math.min(...numPhenotypesWithMaf)) ,
+      maf = {
+        value : scientificFormatter(value),
+        start : scientificFormatter(Math.min(...numPhenotypesWithMaf)) ,
         stop : scientificFormatter(Math.max(...numPhenotypesWithMaf)),
         properties ,
         description : 'for phenotypes where it is defined' }
@@ -155,7 +162,10 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
       }
       let properties = annot === undefined || annot === null ? []  : Object.keys(annot).filter(filter).map(reshape)
 
-      infoRange  = { start, stop , properties }
+      infoRange  = { value : scientificFormatter(info),
+                     start,
+                     stop ,
+                     properties }
     } else {
       infoRange = undefined
     }
@@ -226,7 +236,7 @@ const default_banner: string = `
           "
           html="true"
           data-html="true">
-          AF ( ranges from {{start}} to {{stop}} {{description}} )
+          AF {{value}} ( ranges from {{start}} to {{stop}} {{description}} )
 
        </p>
        {{/summary.maf}}
@@ -268,7 +278,7 @@ const default_banner: string = `
           "
           html="true"
           data-html="true">
-          (ranges in genotyping batches from {{start}} to {{stop}} )
+          {{value}} (ranges in genotyping batches from {{start}} to {{stop}} )
        </p>
        {{/summary.infoRange}}
 
