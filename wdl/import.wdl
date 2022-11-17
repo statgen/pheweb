@@ -153,7 +153,7 @@ task annotation {
  	cd pheweb
 
         df -h && pheweb add-rsids
-        df -h && pheweb add-genes
+        df -h && pheweb add-genes --genes-filepath ${dir}/pheweb/generated-by-pheweb/sites/genes/genes-b38-v37.bed
         df -h && pheweb make-cpras-rsids-sqlite3
         df -h && pheweb make-gene-aliases-sqlite3
 

@@ -10,14 +10,25 @@ TODO:
 - are these gene ranges the whole transcript, including UTRs?
 '''
 
-from ..utils import get_gene_tuples
-from ..file_utils import VariantFileReader, VariantFileWriter, common_filepaths
+from pheweb.utils import get_gene_tuples
+from pheweb.file_utils import VariantFileReader, VariantFileWriter, common_filepaths
 
+import argparse
 import intervaltree
 import bisect
 import os
 import os.path
 import boltons.iterutils
+import logging
+import typing
+from dataclasses import dataclass
+import sys
+
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class BisectFinder(object):
@@ -87,20 +98,83 @@ def annotate_genes(in_filepath, out_filepath):
             v['nearest_genes'] = ga.annotate_position(v['chrom'], v['pos'])
             out_f.write(v)
 
-def run(argv):
 
-    input_filepath = common_filepaths['sites-rsids']
-    genes_filepath = common_filepaths['genes']
+@dataclass(repr=True, eq=True, frozen=True)
+class Arguments:
+    sites_rsids_filepath: str
+    genes_filepath: str
+    out_filepath: str
+
+def parse_args(argv: typing.Sequence[str]) -> Arguments:
+    """
+    Parse command args.
+
+    Parse command args and return an argument object.
+
+    :param argv: commandline options
+    :returns: arguments object
+    """
+    parser = argparse.ArgumentParser(description="add genes")
+
     out_filepath = common_filepaths['sites']
 
-    if not os.path.exists(genes_filepath):
-        print('Downloading genes from GENCODE')
-        from . import download_genes
-        download_genes.run([])
+    default_sites_rsids_filepath = common_filepaths['sites-rsids']
+
+    parser.add_argument(
+        '--sites-rsids-filepath',
+        dest="sites_rsids_filepath",
+        default=default_sites_rsids_filepath,
+        action="store",
+        type=str,
+        help=f"path to sites file with rsids default : '{default_sites_rsids_filepath}'",
+    )
+
+    default_genes_filepath = common_filepaths['genes']
+
+    parser.add_argument(
+        '--genes-filepath',
+        dest="genes_filepath",
+        default=default_genes_filepath,
+        action="store",
+        type=str,
+        help=f"path to genes file default : '{default_genes_filepath}'",
+    )
+
+    default_out_filepath = common_filepaths['sites']
+    parser.add_argument(
+        '--out-filepath',
+        dest="out_filepath",
+        default=default_out_filepath,
+        action="store",
+        type=str,
+        help=f"path to out file default : '{default_out_filepath}'",
+    )
+
+    parsed = parser.parse_args(argv)
+    arguments  = Arguments(sites_rsids_filepath = parsed.sites_rsids_filepath,
+                           genes_filepath = parsed.genes_filepath,
+                           out_filepath = parsed.out_filepath)
+    return arguments
+
+def run(argv):
+
+    arguments = parse_args(argv)
+
+    sites_rsids_filepath = arguments.sites_rsids_filepath
+    genes_filepath = arguments.genes_filepath
+    out_filepath = arguments.out_filepath
+
+
+    LOGGER.info(f"sites_rsids_filepath : '{sites_rsids_filepath}'")
+    LOGGER.info(f"genes_filepath : '{genes_filepath}'")
+    LOGGER.info(f"out_filepath   : '{out_filepath}'")
 
     def mod_time(filepath):
         return os.stat(filepath).st_mtime
-    if os.path.exists(out_filepath) and max(mod_time(genes_filepath), mod_time(input_filepath)) <= mod_time(out_filepath):
+    if os.path.exists(out_filepath) and max(mod_time(genes_filepath), mod_time(sites_rsids_filepath)) <= mod_time(out_filepath):
         print('gene annotation is up-to-date!')
     else:
-        annotate_genes(input_filepath, out_filepath)
+        annotate_genes(sites_rsids_filepath, out_filepath)
+
+if __name__ == "__main__":
+    run(sys.argv[1:])  # pragma: no cover
