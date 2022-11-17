@@ -1451,22 +1451,32 @@ interface ColumnDescriptor<E extends {}> {
 type ColumnConfiguration<E> = ColumnArchetype<E> | ColumnDescriptor<E>;
 export type TableColumnConfiguration<E> = ColumnConfiguration<E>[] | undefined | null
 
+export const createHeader = (title : string | null, label : string| null) => {
+    const spanTitle = title || label || ""
+    return <span title={spanTitle} style={{textDecoration: "underline"}}>
+        {label || title}
+    </span>
+}
+export const addHeader = (value, _createHeader = createHeader) => {
+    const { title, label , ...remainder } = value;
+    const doAddHeader = (title  !== undefined) || (label  !== undefined)
+    const header = { ...(doAddHeader && { Header : _createHeader(title,label)}) }
+    const columns = { ...remainder, ...header }
+    return columns
+}
+
 const createColumn = <Type extends {}>(descriptor: ColumnConfiguration<Type>): Column<Type> => {
   let column: Column<Type>;
 
   if ("type" in descriptor) {
     column = {
       ...phenotypeColumns[descriptor.type],
-      ...("attributes" in descriptor && descriptor.attributes)
+      ...("attributes" in descriptor && addHeader(descriptor.attributes))
     };
   } else {
     const { title, label, accessor, formatter, minWidth, sorter, filter } = descriptor;
-    const header: Renderer<HeaderProps<Type>> =
-      <span title={`{title || label }`} style={{ textDecoration: "underline" }}>
-        {label || title}
-      </span>;
+    const header: Renderer<HeaderProps<Type>> = createHeader(title,label);
     column = {
-      Header: header,
       accessor: accessor,
       Cell: formatter in formatters ? formatters[formatter] : textCellFormatter,
       ...(sorter && sorter in sorters && { sortMethod: sorters[sorter] }),

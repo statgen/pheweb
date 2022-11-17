@@ -204,7 +204,9 @@ const default_banner: string = `
 <div class="variant-info col-xs-12">
         <h1 style="margin-top:0">
           {{summary.chrom}}:{{summary.pos}}:{{summary.ref}}:{{summary.alt}}
-          ({{summary.rsids}})
+          {{#summary.rsids}}
+          ({{.}})
+          {{/summary.rsids}}
         </h1>
         <p style="margin-bottom: 0px;">
           Nearest gene:

@@ -1,5 +1,7 @@
 /* eslint-env jest */
-import { pValueCellFormatter , pValueSentinel } from "./tableColumn";
+import { pValueCellFormatter , pValueSentinel , createHeader, addHeader } from "./tableColumn"
+import {render, screen} from '@testing-library/react'
+import React from "react"
 
 test("pValueCellFormatterSentinel", () => {
   const actual = pValueCellFormatter({ value : pValueSentinel});
@@ -22,3 +24,15 @@ test("pValueCellFormatterNull", () => {
   const actual = pValueCellFormatter({ value : null});
   expect(actual).toBeNull()
 });
+
+test("addHeader empty", () => {
+  const actual = addHeader({})
+  const expected  = {}
+  expect(actual).toStrictEqual(expected)
+})
+
+test("addHeader empty title", () => {
+  const actual = addHeader({ title: 'title'}, (title : string | null, label : string| null) => <span>{title}</span>)
+  const expected  = {"Header": <span>title</span> }
+  expect(actual).toStrictEqual(expected)
+})
