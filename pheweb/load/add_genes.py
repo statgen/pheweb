@@ -91,7 +91,7 @@ class GeneAnnotator(object):
 
 def annotate_genes(in_filepath, out_filepath):
     '''Both args are filepaths'''
-    ga = GeneAnnotator(get_gene_tuples())
+    ga = GeneAnnotator(get_gene_tuples(genes_filepath=genes_filepath))
     with VariantFileWriter(out_filepath) as out_f, \
          VariantFileReader(in_filepath) as variants:
         for v in variants:
