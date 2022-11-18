@@ -89,7 +89,7 @@ class GeneAnnotator(object):
         return nearest_gene_start[1]
 
 
-def annotate_genes(in_filepath, out_filepath):
+def annotate_genes(in_filepath, genes_filepath, out_filepath):
     '''Both args are filepaths'''
     ga = GeneAnnotator(get_gene_tuples(genes_filepath=genes_filepath))
     with VariantFileWriter(out_filepath) as out_f, \
@@ -174,7 +174,7 @@ def run(argv):
     if os.path.exists(out_filepath) and max(mod_time(genes_filepath), mod_time(sites_rsids_filepath)) <= mod_time(out_filepath):
         print('gene annotation is up-to-date!')
     else:
-        annotate_genes(sites_rsids_filepath, out_filepath)
+        annotate_genes(sites_rsids_filepath, genes_filepath, out_filepath)
 
 if __name__ == "__main__":
     run(sys.argv[1:])  # pragma: no cover
