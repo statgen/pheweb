@@ -342,7 +342,6 @@ const bannerData = (variantData :  VariantModel.Data, bioBankURLObject: BioBankU
   const bioBankURL : BioBankURL[] = bioBankURLObject == null ? [] : Object.entries(bioBankURLObject).map(([k,v])=> { return { rsid : k , url : v}})
   const summary = createVariantSummary(variantData)
   const data = { bioBankURL , summary }
-  console.log(data);
   return data;
 }
 
