@@ -6,7 +6,7 @@ replicaCount: 3
 pheweb:
   cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
-  directory: /mnt/nfs/pheweb/r10/demopheno
+  directory: /mnt/nfs/pheweb/r10/release
   ipName: finngen-r10-ip
   mount: /mnt/nfs
   release: r10

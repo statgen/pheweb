@@ -6,7 +6,7 @@ pheweb:
   cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
   deployment: staging
-  directory: /mnt/nfs/pheweb/r10/demopheno
+  directory: /mnt/nfs/pheweb/r10/release
   mount: /mnt/nfs
   release: r10
   secretName: development-staging-secrets
