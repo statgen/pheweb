@@ -202,7 +202,7 @@ class Pheno extends React.Component {
       return <div>{formatEror(defaultErrorMessagesTemplate, this.state)
                    || this.state.error.statusText
                    || this.state.error}</div>
-    } 
+    }
 
     if (!this.state.pheno) {
       return <div>loading</div>
@@ -328,7 +328,7 @@ class Pheno extends React.Component {
           target="_blank"/>
       </div> :
       <div>loading</div>
-
+    console.log(pheno.phenocode)
     const variantTable = <VariantTable phenotypeCode={pheno.phenocode} />
     const qq_table = this.state.qq ?
           <div>

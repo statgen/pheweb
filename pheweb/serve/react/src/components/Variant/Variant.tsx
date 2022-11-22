@@ -126,10 +126,9 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
     } else {
       afFin = undefined
     }
-
-    // af pop max
     let afPopmax :string | undefined
-    if(gnomad && 'AF_fin' in gnomad && !isNaN(+gnomad['AF_popmax']) && isFinite(+gnomad['AF_popmax'])){
+    // af pop malet
+    if(gnomad && 'AF_fin' in gnomad && 'afPopmax' in gnomad && !isNaN(+gnomad['AF_popmax']) && isFinite(+gnomad['AF_popmax'])){
       afPopmax = scientificFormatter(+gnomad['AF_popmax']);
     } else {
       afPopmax = undefined
@@ -280,7 +279,7 @@ const default_banner: string = `
           "
           html="true"
           data-html="true">
-          {{value}} (ranges in genotyping batches from {{start}} to {{stop}} )
+          INFO {{value}} (ranges in genotyping batches from {{start}} to {{stop}} )
        </p>
        {{/summary.infoRange}}
 
@@ -342,7 +341,9 @@ type BioBankURLObject = {[p: string]: string} | null
 const bannerData = (variantData :  VariantModel.Data, bioBankURLObject: BioBankURLObject) : BannerData => {
   const bioBankURL : BioBankURL[] = bioBankURLObject == null ? [] : Object.entries(bioBankURLObject).map(([k,v])=> { return { rsid : k , url : v}})
   const summary = createVariantSummary(variantData)
-  return { bioBankURL , summary }
+  const data = { bioBankURL , summary }
+  console.log(data);
+  return data;
 }
 
 const Variant = (props : Props) => {
