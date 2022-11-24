@@ -9,7 +9,7 @@ pheweb:
   ipName: finngen-meds-ip
   mount: /mnt
   release: meds
-  secretName: production-drugwas-secrets
+  secretName: production-meds-secrets
   subdomain: meds
 
 persistentVolume:
@@ -17,4 +17,4 @@ persistentVolume:
   server: 10.132.0.154
 
 image:
-  tag: wip-89815c1e99028916cf9201f7d6aff31cf971efb8
+  tag: ci-dea6c01d55aa17f763a8678124005e3bd55710ec
