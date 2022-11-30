@@ -5,16 +5,17 @@ replicaCount: 3
 pheweb:
   cloudSQLCredentialFile: /etc/gcp/cloud-sql-credentials.json
   cloudSQLProxyInstances: phewas-development:europe-west1:dev-db1=tcp:3306
-  directory: /mnt/r9/pheweb
+  directory: /mnt/nfs/pheweb/r10/release
   ipName: finngen-results-ip
-  mount: /mnt
-  release: r9
+  mount: /mnt/nfs
+  release: r10
   secretName: results-secrets
   subdomain: results
 
 persistentVolume:
-  path: /data/nfs/pheweb
-  server: 10.132.0.162
+  path: /data/nfs
+  server: 10.132.0.169
+  storage: 11T
 
 image:
-  tag: ci-1e8a096b2dad77986435e7345e910faad1a90371
+  tag: ci-0ba52ffaf940ba48c32b007ed9ab2f160b3bf01d
