@@ -1,0 +1,9 @@
+imports:
+- path: phweb-instance-jenkins.jinja
+
+resources:
+- name: phweb-instance-jenkins-template
+  type: phweb-instance-jenkins.jinja
+  properties:
+    environment: production
+    classification: green

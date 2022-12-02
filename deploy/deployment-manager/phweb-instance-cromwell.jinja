@@ -1,10 +1,24 @@
 resources:
 
-- name: {{ properties["classification"] }}-{{ properties["environment"] }}-{{ properties["release"] }}-instance-nfs
+- name: {{ properties["classification"] }}-{{ properties["environment"] }}-{{ properties["release"] }}-cromwell-storage
+  type: storage.v1.bucket
+  properties:
+    kind: storage#bucket
+    name: {{ properties["classification"] }}-{{ properties["environment"] }}-{{ properties["release"] }}-cromwell-storage
+    location: europe-west1
+    storageClass: STANDARD
+    lifecycle:
+      rule:
+        - action:
+            type: Delete
+          condition:
+            age: 60
+
+- name: {{ properties["classification"] }}-{{ properties["environment"] }}-{{ properties["release"] }}-cromwell-instance
   type: compute.v1.instance
   properties:
     zone: europe-west1-b
-    machineType: https://www.googleapis.com/compute/v1/projects/{{ env["project"] }}/zones/europe-west1-b/machineTypes/e2-medium
+    machineType: https://www.googleapis.com/compute/v1/projects/{{ env["project"] }}/zones/europe-west1-b/machineTypes/e2-standard-2
     serviceAccounts:
       - email: {{ properties["serviceAccount"] }}
         scopes:
@@ -17,9 +31,7 @@ resources:
       initializeParams:
         sourceImage: https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/family/debian-11
       labels:
-        product: {{ properties["classification"] }}-{{ properties["release"] }}-pheweb-nfs
-      diskSizeGb: {{ properties["nfsDiskSizeGb"]}}
-
+        product: {{ properties["classification"] }}-{{ properties["release"] }}-pheweb-cromwell
     networkInterfaces:
     - subnetwork: https://www.googleapis.com/compute/v1/projects/{{ env["project"] }}/regions/europe-west1/subnetworks/default
       accessConfigs:
@@ -27,9 +39,8 @@ resources:
         networkTier: PREMIUM
         type: ONE_TO_ONE_NAT
       network: https://www.googleapis.com/compute/v1/projects/{{ env["project"] }}/global/networks/default
-{% if "ipAddress" in properties %}
       networkIP: {{  properties["ipAddress"] }}
-{% endif %}
+
     startRestricted: false
     labels:
-      product: {{ properties["classification"] }}-{{ properties["release"] }}-pheweb-nfs
+      product: {{ properties["classification"] }}-{{ properties["release"] }}-pheweb-cromwell

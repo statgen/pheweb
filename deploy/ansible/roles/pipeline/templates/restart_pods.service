@@ -1,0 +1,11 @@
+[Unit]
+Description=restart service
+After=network.target
+
+[Service]
+User=pheweb
+WorkingDirectory=/opt/pipeline/data
+ExecStart=/opt/pipeline/bin/env_secrets.sh "{{restart_pods_configuration_secret_name}}" /opt/pipeline/bin/restart_pods
+Restart=always
+[Install]
+WantedBy=multi-user.target

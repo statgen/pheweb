@@ -1,15 +1,19 @@
 info:
   title: nfs instance
-  author: major seitan 
+  author: major seitan
   description: creates a nfs server instance
-  
+
 required:
+- classification
 - environment
 - release
 - serviceAccount
 - nfsDiskSizeGb
 
 properties:
+  classification:
+    type: string
+    description: data classification e.g. green
   environment:
     type: string
     description: production, development, testing, staging
@@ -20,3 +24,6 @@ properties:
     type: string
   nfsDiskSizeGb:
     type: integer
+  ipAddress:
+    description: optional ip address
+    type: string

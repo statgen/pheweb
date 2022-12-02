@@ -1,95 +1,106 @@
 ---
-- name: configure cromwell instance
-  hosts: all
-  tasks:
+- name: "set up docker"
+  include_role:
+        name: docker
 
-    # dev_cromwell_1_database
-    - name: get secret dev_cromwell_1_database
-      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_database
-      register: dev_cromwell_1_database
-    - set_fact:
-        dev_cromwell_1_database={{ dev_cromwell_1_database.stdout }}
+- name: install mariadb
+  become: true
+  apt:
+    state: latest
+    update_cache: yes
+    name:
+      - mariadb-server
+      - python3-pymysql
 
-    # dev_cromwell_1_password
-    - name: get secret dev_cromwell_1_password
-      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_password
-      register: dev_cromwell_1_password
-    - set_fact:
-        dev_cromwell_1_password={{ dev_cromwell_1_password.stdout }}
+- name: setting database facts
+  ansible.builtin.set_fact:
+    db_user: "cromwell"
+    db_name: "cromwell"
+    db_host: "localhost"
+    cromwell_zone: "europe-west1-b"
+    cromwell_project: "{{ cromwell_project }}"
+    cromwell_task_zone: "TODO array"
+    cromwell_bucket: "{{ cromwell_bucket }}"
+    docker_image: "{{ cromwell_docker_image | default('broadinstitute/cromwell:84-dbe3a31') }}"
+    docker_name: "cromwell"
+    db_password: "{{ lookup('password', '/dev/null length=15 chars=ascii_letters') }}"
 
-    # dev_cromwell_1_username
-    - name: get secret dev_cromwell_1_username
-      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_username
-      register: dev_cromwell_1_username
-    - set_fact:
-        dev_cromwell_1_username={{ dev_cromwell_1_username.stdout }}
 
-    # dev_cromwell_1_mysql
-    - name: get secret dev_cromwell_1_mysql
-      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_mysql
-      register: dev_cromwell_1_mysql
-    - set_fact:
-        dev_cromwell_1_mysql={{ dev_cromwell_1_mysql.stdout }}
+- name: template mysql configuration
+  become: yes
+  template:
+    src: roles/cromwell/templates/my.cnf
+    dest: /root/.my.cnf
+    owner: root
+    group: root
 
-    # dev_cromwell_1_zone
-    - name: get secret dev_cromwell_1_zone
-      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_zone
-      register: dev_cromwell_1_zone
-    - set_fact:
-        dev_cromwell_1_zone={{ dev_cromwell_1_zone.stdout }}
+- name: Create a new database with name 'cromwell'
+  community.mysql.mysql_db:
+    name: "{{ db_name }}"
+    login_host: 'localhost'
+    login_user: 'root'
+    login_password: ''
+    state: present
 
-    # dev_cromwell_1_project
-    - name: get secret dev_cromwell_1_project
-      shell: gcloud beta secrets versions access latest --secret=dev_cromwell_1_project
-      register: dev_cromwell_1_project
-    - set_fact:
-        dev_cromwell_1_zone={{ dev_cromwell_1_project.stdout }}
+- name: Create user with password, all database privileges
+  community.mysql.mysql_user:
+    state: present
+    name: "{{ db_user }}"
+    host: localhost
+    password: "{{ db_password }}"
+    priv:
+      "{{ db_name }}.*:ALL"
 
-    - name: Update and upgrade apt packages
-      become: true
-      apt:
-        upgrade: yes
-        update_cache: yes
+- name: add group cromwell
+  become: yes
+  group:
+    name: cromwell
+    state: present
 
-    - name: Install git and java
-      become: true
-      apt:
-        state: latest
-        name:
-          - git
-          - openjdk-11-jre
-          - docker-compose
+- name: add group cromwell
+  become: yes
+  user:
+    name: cromwell
+    groups: cromwell,docker
+    state: present
 
-    - name: add group cromwell
-      become: yes
-      group:
-        name: cromwell
-        state: present
+- name: Creates cromwell root directory
+  file:
+    path: /opt/cromwell
+    state: directory
 
-    - name: add group cromwell
-      become: yes
-      user:
-        name: cromwell
-        groups: cromwell,docker
-        state: present
+- name: Creates directory
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /opt/cromwell/cromwell-working-dir/cromwell-executions
+    - /opt/cromwell/app-config
 
-    - name: Creates directory
-      file:
-        path: /opt
-        state: directory
+- name: template configuration
+  become: yes
+  template:
+    src: roles/cromwell/templates/application.conf.j2
+    dest: /opt/cromwell/app-config/cromwell-application.conf
+    owner: cromwell
+    group: cromwell
 
-    - name: copy cromwell files
-      become: yes
-      copy:
-        src: roles/cromwell/files/cromwell
-        dest: /opt
-        owner: cromwell
-        group: cromwell
-
-    - name: template configuration
-      become: yes
-      template:
-        src: roles/cromwell/templates/application.conf.j2
-        dest: /opt/cromwell/compose/cromwell/app-config/cromwell-application.conf
-        owner: cromwell
-        group: cromwell
+- name: create a data container
+  community.docker.docker_container:
+    name: "{{ docker_name }}"
+    image: "{{ cromwell_docker_image }}"
+    restart_policy: "on-failure"
+    restart_retries: 10
+    network_mode: host
+    volumes:
+      - "/opt/cromwell/app-config:/app-config"
+      - "/opt/cromwell/cromwell-working-dir/cromwell-executions:/cromwell-working-dir/cromwell-executions"
+    ports:
+      - "80:8000"
+    entrypoint:
+      - /opt/java/openjdk/bin/java
+      - -Xmx8G
+      - -Dconfig.file=/app-config/cromwell-application.conf
+      - -jar
+      - /app/cromwell.jar
+      - server

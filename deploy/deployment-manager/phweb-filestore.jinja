@@ -1,10 +1,10 @@
 resources:
 
-- name: {{ properties["environment"] }}-{{ properties["release"] }}-pheweb-nfs
+- name: {{ properties["classification"] }}-{{ properties["environment"] }}-{{ properties["release"] }}-pheweb-nfs
   type: gcp-types/file-v1beta1:projects.locations.instances
   properties:
-    parent: projects/phewas-development/locations/europe-west1-b
-    instanceId: {{ properties["environment"] }}-{{ properties["release"] }}-pheweb-nfs
+    parent: projects/{{ env["project"] }}/locations/europe-west1-b
+    instanceId: {{ properties["classification"] }}-{{ properties["environment"] }}-{{ properties["release"] }}-pheweb-nfs
     tier: STANDARD
     description: >-
       Browser data for {{ properties["release"] }} data freeze
@@ -16,4 +16,4 @@ resources:
     - name: pheweb
       capacityGb: 1024
     labels:
-      product: {{ properties["release"] }}-pheweb-nfs
+      product: {{ properties["classification"] }}-{{ properties["release"] }}-pheweb-nfs

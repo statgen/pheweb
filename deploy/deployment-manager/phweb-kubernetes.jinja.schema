@@ -1,11 +1,12 @@
 info:
   title: kubernetes cluster
-  author: major seitan 
+  author: major seitan
   description: creates a kubernetes cluster for pheweb
-  
+
 required:
 - environment
 - release
+
 
 properties:
   environment:

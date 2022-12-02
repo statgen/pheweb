@@ -1,5 +1,8 @@
 ---
-# dev_cromwell_1_database
+- name: common role
+  include_role:
+        name: common
+
 - name: Update and upgrade apt packages
   become: true
   apt:
@@ -11,73 +14,83 @@
   apt:
     state: latest
     name:
-      - git
       - nfs-common
       - nginx
-      - direnv
-      - virtualenv
       - rsync
       - kubectl
-      - pwgen
-      - python-pip
-      - python3-pip
-
-- name: resolve hash issues
-  become: true
-  command: hash -r
-
-- name: Install packages
-  become: true
-  apt:
-    state: latest
-    name:
-      - git
-      - nfs-common
+      - jq
 
 - name: Create mount directory
   become: true
   file:
-    path: /mnt/nfs_dev
+    path: "{{ restart_pods_data_dir }}"
     state: directory
-
-- name: Check that the somefile.conf exists
-  stat:
-    path: /mnt/nfs_dev/pheweb
-  register: pheweb_result
+  when: nfs_mount is defined
 
 - name: Mount an NFS volume
   become: true
   mount:
-    src: 10.233.113.218:/vol1
-    path: /mnt/nfs_dev
+    src: "{{ restart_pods_nfs_mount }}"
+    path: "{{ restart_pods_data_dir }}"
     opts: rw,sync,hard,intr
     state: mounted
     fstype: nfs
-  when: not pheweb_result.stat.exists
+  when: nfs_mount is defined
 
 - name: Create pipeline directory
   become: true
   file:
-    path: /opt
+    path: "{{ item }}"
     state: directory
+    owner: pheweb
+    group: pheweb
+  with_items:
+   - /opt/pipeline/data
+   - /opt/pipeline/bin
 
-- name: Creates directory
-  file:
-    path: /opt
-    state: directory
+- name: copy artifact from bucket
+  ansible.builtin.command:
+    cmd: gsutil cp "{{ restart_pods_artifact }}" "/opt/pipeline/bin/restart_pods"
 
-- name: copy code
-  become: true
-  synchronize:
-    src: /home/mwm1/Work/pipeline_coordination/restart_pods
-    dest: /opt/pipeline_coordination
-    rsync_opts:
-      - "--exclude=.direnv"
+- name: Change file ownership, group and permissions
+  ansible.builtin.file:
+    path: /opt/pipeline/bin/restart_pods
+    owner: root
+    group: root
+    mode: '0555'
 
-- name: copy code
-  become: true
+- name: setup restart service
+  become: yes
   template:
-    src: templates/default
+    src: roles/pipeline/templates/restart_pods.service
+    dest: /etc/systemd/system/restart_pods.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: setup restart wrapper
+  become: yes
+  ansible.builtin.copy:
+    src: roles/pipeline/files/env_secrets.sh
+    dest: /opt/pipeline/bin/env_secrets.sh
+    owner: root
+    group: root
+    mode: '0555'
+
+
+- name: setup service
+  ansible.builtin.systemd:
+    name: restart_pods
+    enabled: yes
+    daemon_reload: yes
+    state: restarted
+
+- name: configure ngnix
+  become: yes
+  template:
+    src: roles/pipeline/templates/default
     dest: /etc/nginx/sites-enabled/default
-  notify:
-    - restart nginx
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx

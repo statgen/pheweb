@@ -1,0 +1,9 @@
+imports:
+- path: phweb-kubernetes.jinja
+
+resources:
+- name: phweb-kubernetes-template
+  type: phweb-kubernetes.jinja
+  properties:
+    release: userresults
+    environment: temporary

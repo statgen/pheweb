@@ -1,7 +1,7 @@
 imports:
 - path: phweb-instance-nfs.jinja
 - path: phweb-kubernetes.jinja
-  
+
 resources:
 - name: phweb-instance-nfs-template
   type: phweb-instance-nfs.jinja
@@ -9,10 +9,4 @@ resources:
     release: userresults
     environment: production
     nfsDiskSizeGb: 2000
-    serviceAccount: pheweb@phewas-development.iam.gserviceaccount.com
-
-- name: phweb-kubernetes-template
-  type: phweb-kubernetes.jinja
-  properties:
-    release: userresults
-    environment: production
+    serviceAccount: 1021318262546-compute@developer.gserviceaccount.com

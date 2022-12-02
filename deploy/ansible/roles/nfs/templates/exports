@@ -1,1 +1,1 @@
-{{share_directory}} 10.132.0.0/20(rw,sync,no_subtree_check)
+{{nfs_share_directory}} 10.132.0.0/20(rw,sync,no_subtree_check)

@@ -1,0 +1,17 @@
+---
+- name: create phweb group
+  become: true
+  ansible.builtin.group:
+    name: pheweb
+    gid: 5500
+    state: present
+
+- name: create phweb group
+  ansible.builtin.user:
+    name: pheweb
+    comment: phweb user
+    uid: 5500
+    group: pheweb
+    password_lock: true
+    shell: "/sbin/nologin"
+    state: present

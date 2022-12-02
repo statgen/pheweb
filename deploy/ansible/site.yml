@@ -1,12 +1,24 @@
 ---
-- name: setup nfs server
-  hosts: all
+- name: setup nfs servers
+  hosts: nfs_servers
   roles:
     - role: nfs
       become: yes
 
-- name: setup development server
-  hosts: development
+- name: setup development servers
+  hosts: development_servers
   roles:
     - role: development
+      become: yes
+
+- name: setup cromwell servers
+  hosts: cromwell_servers
+  roles:
+    - role: cromwell
+      become: yes
+
+- name: setup pipeline servers
+  hosts: pipeline_servers
+  roles:
+    - role: pipeline
       become: yes
