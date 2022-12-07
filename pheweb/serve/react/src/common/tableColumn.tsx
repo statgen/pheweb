@@ -48,7 +48,6 @@ const phenotypeCellFormatter = (props) => {
   const label = props.value === "NA" ? props.original.pheno : props.value
   return <a href={href} target="_blank" rel="noopener noreferrer" >{label}</a>
 }
-
 const variantListCellFormatter = (prop) => {
   let cell : JSX.Element[]= []
   const variants = prop.value
@@ -202,14 +201,17 @@ const stringToCountSorter = (a, b) => {
 
 const sorters = {
   "variant": variantSorter,
-  "number": naSorter,
+  "naNumber": naSorter,
   "numberNASmall": naSmallSorter,
-  "string": stringToCountSorter
+  "string": stringToCountSorter,
+  "number" : numberStringSorter
 };
 
 
 const idFilter = (filter, row) => row[filter.id] <= filter.value;
-const numberFilter = (filter, row) => Math.abs(row[filter.id]) > +filter.value
+const absoluteValueFilter = (filter, row) => Math.abs(row[filter.id]) > +filter.value
+const numberFilter = (filter, row) => row[filter.id] > +filter.value
+const numberGEFilter = (filter, row) => row[filter.id] >= +filter.value
 export const wordFilter = (filter, row) => row[filter.id].toLowerCase().includes(filter.value.toLowerCase())
 
 
@@ -217,8 +219,9 @@ export const wordFilter = (filter, row) => row[filter.id].toLowerCase().includes
 
 const filters = {
   "id": idFilter,
-  "number" : numberFilter,
-  "word" : wordFilter
+  "number" : absoluteValueFilter,
+  "word" : wordFilter,
+  "numberGE" : numberGEFilter
 };
 
 const maxTableWidth = 1600;
@@ -519,7 +522,7 @@ const phenotypeColumns = {
         Header: () => (<span title="odds ratio" style={{ textDecoration: "underline" }}>OR</span>),
         label: "odds ratio",
         accessor: "beta",
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         Cell: props => {
           const beta = +props.value
           const label = Math.exp(props.value).toFixed(2)
@@ -578,7 +581,7 @@ const phenotypeColumns = {
         label: "number of cases",
         accessor: "num_cases",
         Cell: props => props.value,
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         minWidth: 50
       },
 
@@ -589,7 +592,7 @@ const phenotypeColumns = {
         label: 'number of cases in previous release',
         accessor: "num_cases_prev",
         Cell: props => props.value,
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         minWidth: 50
       },
 
@@ -600,7 +603,7 @@ const phenotypeColumns = {
         label: "number of controls",
         accessor: "num_controls",
         Cell: props => props.value,
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         minWidth: 50
       },
 
@@ -611,7 +614,7 @@ const phenotypeColumns = {
         label: "number of genome-wide significant hits",
         accessor: "num_gw_significant",
         Cell: props => props.value,
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         minWidth: 50
       },
 
@@ -621,7 +624,7 @@ const phenotypeColumns = {
         label: `number of genome-wide significant hits previous release`,
         accessor: "num_gw_significant_prev",
         Cell: props => props.value,
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         minWidth: 50
       },
 
@@ -632,7 +635,7 @@ const phenotypeColumns = {
         label: "genomic control lambda 0.5",
         accessor: "lambda",
         Cell: props => props.value,
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         minWidth: 50
       },
 
@@ -655,7 +658,7 @@ const phenotypeColumns = {
         label: "number of samples",
         accessor: "num_samples",
         Cell: props => props.value,
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         minWidth: 100
       },
 
@@ -666,7 +669,7 @@ const phenotypeColumns = {
         label: "number of purchases",
         accessor: "num_events",
         Cell: props => props.value,
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         minWidth: 100
       },
 
@@ -676,7 +679,7 @@ const phenotypeColumns = {
         label: "number of cohorts",
         accessor: "cohorts",
         Cell: props => +props.value.length,
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         minWidth: 50
       },
 
@@ -796,7 +799,7 @@ const phenotypeColumns = {
         Header: () => (<span title="odds ratio" style={{ textDecoration: "underline" }}>OR</span>),
         label: "odds ratio",
         accessor: "beta",
-        filterMethod: numberFilter,
+        filterMethod: absoluteValueFilter,
         Cell: props => Math.exp(props.value).toFixed(2),
         minWidth: 80
       },
@@ -825,9 +828,9 @@ const phenotypeColumns = {
         Header: () => (<span title="AF enrichment FIN / Non-Finnish-non-Estonian European"
                              style={{ textDecoration: "underline" }}>FIN enrichment</span>),
         accessor: "fin_enrichment",
-        filterMethod: (filter, row) => row[filter.id] > +filter.value,
+        filterMethod: numberFilter,
         Cell: textCellFormatter,
-        sortMethod: numberStringSorter,
+        sortMethod: naSmallSorter,
         minWidth: 120
       },
 
@@ -863,7 +866,7 @@ const phenotypeColumns = {
         Header: () => (<span title="allele frequency" style={{ textDecoration: "underline" }}>af</span>),
         accessor: "maf",
         filterMethod: (filter, row) => row[filter.id] < +filter.value,
-        Cell: props => props.value.toPrecision(3),
+        Cell: optionalCellDecimalFormatter,
         minWidth: 110
       },
 
@@ -1477,6 +1480,7 @@ const createColumn = <Type extends {}>(descriptor: ColumnConfiguration<Type>): C
     const { title, label, accessor, formatter, minWidth, sorter, filter } = descriptor;
     const header: Renderer<HeaderProps<Type>> = createHeader(title,label);
     column = {
+      Header : header,
       accessor: accessor,
       Cell: formatter in formatters ? formatters[formatter] : textCellFormatter,
       ...(sorter && sorter in sorters && { sortMethod: sorters[sorter] }),

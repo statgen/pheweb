@@ -93,7 +93,8 @@ const userInterface = {
         { type: 'controlLambda' }
       ]
     }
-  }
+  },
+   gene: { lossOfFunction: null , lz_config : { ld_panel_version : "sisu4" } }
 }
 const metaData = {}
 const application = {

@@ -7,8 +7,12 @@ import GeneDrugs from "./GeneDrugs";
 import GeneLocusZoom from "./GeneLocusZoom";
 import GeneContextProvider from "./GeneContext";
 import GeneBanner from "./GeneBanner";
+import { ConfigurationWindow } from "../Configuration/configurationModel";
 
 interface Props {}
+declare let window: ConfigurationWindow;
+const { config } = window;
+const hideLOF : boolean = config?.userInterface?.gene?.lossOfFunction == null;
 
 const Gene = (props : Props) =>
   <GeneContextProvider>
@@ -17,7 +21,7 @@ const Gene = (props : Props) =>
       <GeneDownload/>
       <GenePhenotypeAssociation />
       <GeneLocusZoom />
-      <GeneLossOfFunction/>
+      { hideLOF && <GeneLossOfFunction/> }
       <GeneFunctionalVariants/>
       <GeneDrugs/>
     </div>
