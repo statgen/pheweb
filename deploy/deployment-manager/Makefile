@@ -7,11 +7,11 @@ list:
 	gcloud deployment-manager deployments list --project phewas-development
 
 create-red-development-userresults-pheweb:
-	gcloud deployment-manager deployments create red-development-pipeline-pheweb   --config red-development-pipeline-pheweb-values.yaml   --project finngen-refinery-dev -q --automatic-rollback-on-error
+	gcloud deployment-manager deployments create red-development-userresults-pheweb   --config red-development-userresults-pheweb-values.yaml   --project finngen-refinery-dev -q --automatic-rollback-on-error
 
 delete-red-development-userresults-pheweb:
 	gsutil -m rm -r gs://red-development-userresults-cromwell-storage ;\
-	gcloud deployment-manager deployments delete red-development-pipeline-pheweb --project finngen-refinery-dev -q
+	gcloud deployment-manager deployments delete red-development-userresults-pheweb --project finngen-refinery-dev -q
 
 create-green-development-userresults-pheweb:
 	gcloud deployment-manager deployments create green-development-userresults-pheweb --config green-development-userresults-pheweb-values.yaml --project phewas-development -q --automatic-rollback-on-error
