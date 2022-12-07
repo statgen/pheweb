@@ -91,6 +91,7 @@
     image: "{{ cromwell_docker_image }}"
     restart_policy: "on-failure"
     restart_retries: 10
+    restart: true
     network_mode: host
     volumes:
       - "/opt/cromwell/app-config:/app-config"
