@@ -175,4 +175,5 @@ export interface VariantConfiguration {
     columns: TableColumnConfiguration<Variant.Result> ,
     defaultSorted : SortingRule<Variant.Result>[] }
   banner?: string;
+  locusZoom? : { toolTipHTML? : string }
 }

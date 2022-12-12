@@ -233,8 +233,7 @@ const default_banner: string = `
                               <span style='text-align: left; float: left;'>{{key}}</span>
                          </div>
                     {{/properties}}
-                    </div>
-          "
+                    </div>"
           html="true"
           data-html="true">
           AF {{value}} ( ranges from {{start}} to {{stop}} {{description}} )
@@ -253,16 +252,13 @@ const default_banner: string = `
                               <span style='text-align: left; float: left;'>{{key}}</span>
                          </div>
                     {{/properties}}
-                    </div>
-          "
+                    </div>"
           html="true"
           data-html="true">
           AF in gnomAD genomes 2.1: FIN {{afFin}} POPMAX {{afPopmax}} FIN enrichment vs. NFEE:  {{finEnrichment}}
        </p>
        {{/summary.gnomAD}}
-       {{^summary.gnomAD}}
-          No data found in gnomAD 2.1.1
-       {{/summary.gnomAD}}
+       {{^summary.gnomAD}} No data found in gnomAD 2.1.1 {{/summary.gnomAD}}
 
        {{#summary.infoRange}}
        <p id="info-range"
@@ -275,8 +271,7 @@ const default_banner: string = `
                               <span style='text-align: left; float: left;'>{{key}}</span>
                          </div>
                     {{/properties}}
-                    </div>
-          "
+                    </div>"
           html="true"
           data-html="true">
           INFO {{value}} (ranges in genotyping batches from {{start}} to {{stop}} )
@@ -284,45 +279,34 @@ const default_banner: string = `
        {{/summary.infoRange}}
 
        {{#summary.numberAlternativeHomozygotes}}
-       <p id="info-range"
+       <p id="alt-homozygotes"
           style="margin-bottom: 0px;">
           Number of alt homozygotes:  {{.}}
        </p>
        {{/summary.numberAlternativeHomozygotes}}
 
 
-
+       <div>
 
        <p style="margin-bottom: 0px;">View in
-          <a href="https://genetics.opentargets.org/variant/{{ summary.chrom }}_{{ summary.pos}}_{{ summary.ref}}_{{ summary.alt }}">Open Targets</a> ,
-          <a href="https://gnomad.broadinstitute.org/variant/{{ summary.chrom }}-{{ summary.pos}}-{{ summary.ref}}-{{ summary.alt }}?dataset=gnomad_r3">gnomAD</a> ,
-          <a href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&highlight=hg38.chr{{ chrom }}%3A{{ summary.pos }}-{{ summary.pos }}&position=chr{{ summary.chrom }}%3A{{ summary.posStart }}-{{ summary.posStop }}">UCSC</a>
+          <a target="_blank" href="https://genetics.opentargets.org/variant/{{ summary.chrom }}_{{ summary.pos}}_{{ summary.ref}}_{{ summary.alt }}">Open Targets</a> ,
+          <a target="_blank" href="https://gnomad.broadinstitute.org/variant/{{ summary.chrom }}-{{ summary.pos}}-{{ summary.ref}}-{{ summary.alt }}?dataset=gnomad_r3">gnomAD</a> ,
+          <a target="_blank" href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&highlight=hg38.chr{{ chrom }}%3A{{ summary.pos }}-{{ summary.pos }}&position=chr{{ summary.chrom }}%3A{{ summary.posStart }}-{{ summary.posStop }}">UCSC</a>
 
-          {{#summary.rsids.length}}
-          , GWAS Catalog for
-          {{/summary.rsids.length}}
-
+          {{#summary.rsids.length}} , GWAS Catalog for {{/summary.rsids.length}}
+          {{#summary.rsids}} <a target="_blank" href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a> {{/summary.rsids}}
+          {{#summary.rsids.length}} , dbSNP for {{/summary.rsids.length}}
           {{#summary.rsids}}
-          <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a>
+          <a id="urlDbSNP" target="_blank" href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a>
           {{/summary.rsids}}
-
-          {{#summary.rsids.length}}
-          , dbSNP for
-          {{/summary.rsids.length}}
-
-          {{#summary.rsids}}
-          <a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a>
-          {{/summary.rsids}}
+          {{#bioBankURL.length}} , UMich UK Biobank {{/bioBankURL.length}}
 
 
-          {{#bioBankURL.length}}
-          , UMich UK Biobank
-          {{/bioBankURL.length}}
           {{#bioBankURL}}
-            <a href="{{url}}" target='_blank'>{{rsid}}</a>
+            <a href="{{url}}" target="_blank">{{rsid}}</a>
           {{/bioBankURL}}
-
        </p>
+
        <p style="margin-bottom: 0px;">
           p-values smaller than 1e-10 are shown on a log-log scale
        </p>
@@ -348,39 +332,40 @@ const bannerData = (variantData :  VariantModel.Data, bioBankURLObject: BioBankU
 const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
   const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : string }| null>(null);
-
+  const [loadedBioBank, setLoadedBioBank] = useState<boolean>(false);
   useEffect(() => {
     const variant = createVariant()
     variant && getVariant(variant, setVariantData)
   },[]);
 
   useEffect(() => {
-    if(variantData && bioBankURL == null) {
+    if(variantData && bioBankURL == null && loadedBioBank === false) {
       const variant = createVariant()
       const summary = createVariantSummary(variantData)
       summary?.rsids?.forEach((rsid) => {
-        getEnsembl(rsid, (e: Ensembl.Data) => {
+        (async () => getEnsembl(rsid, (e: Ensembl.Data) => {
           if (e && e.mappings && e.mappings.length > 0) {
             const mapping: Ensembl.Mapping = e.mappings[0]
             const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${variant.reference}-${variant.alternate}`
             setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } })
           }
-        })
+        }))();
       })
+      setLoadedBioBank(true);
     }
-  },[variantData, setBioBankURL,bioBankURL]);
+  },[variantData, setBioBankURL,bioBankURL,loadedBioBank, setLoadedBioBank]);
 
   // the null check is on  bioBankURL == null as for some reason
   // the tool tip is not happing loading this later.
-  return variantData == null?loading:
+  return variantData == null || bioBankURL == null?loading:
     <VariantContextProvider>
     <React.Fragment>
 
       <div>
-        <ReactTooltip />
              <div className="variant-info col-xs-12">
                  {mustacheDiv(banner,bannerData(variantData, bioBankURL))}
              </div>
+        <ReactTooltip className={'variant-tooltip'} multiline={true} html={true} />
       </div>
       <div>
         <VariantLavaaPlot variantData={variantData}/>

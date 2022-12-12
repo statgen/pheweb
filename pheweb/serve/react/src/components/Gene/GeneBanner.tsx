@@ -7,26 +7,26 @@ import { GeneContext, GeneState } from "./GeneContext";
 import loading from "../../common/Loading";
 
 const default_banner: string = `
-  
+
   <h3>{{summary.symbol}}</h3>
   <p id="gene-description">{{summary.name}}</p>
   <p id="gene-summary" style="background-color: rgb(244, 244, 244); padding: 10px;">
   {{#summary.entrezgene}}
   [<a href="https://www.ncbi.nlm.nih.gov/gene/{{.}}" target="_blank">NCBI</a>]
   {{/summary.entrezgene}}
-  
+
   {{#summary.summary}}
       {{.}}
   {{/summary.summary}}
   {{^summary.summary}}
   No description
   {{/summary.summary}}
-  
+
   </p>
 
   <div>
     <span style="float: left; margin-right: 2px;">See gene in : </span>
-    
+
     <ul class="comma-list" >
     <!-- OMIM -->
     {{#summary.MIM}}
@@ -45,24 +45,24 @@ const default_banner: string = `
     <li>
         <a target="_blank" href="https://www.gtexportal.org/home/eqtls/byGene?tissueName=All&geneId='{{summary.symbol}}'">GTEx</a>
     </li>
-    
+
     <!-- gnomAD -->
     {{#summary.ensembl.gene}}
     <li>
-        <a href="http://gnomad.broadinstitute.org/gene/{{.}}" target="_blank">gnomAD</a>
+        <a target="_blank" href="http://gnomad.broadinstitute.org/gene/{{.}}" target="_blank">gnomAD</a>
     </li>
     <li>
-        <a href="https://www.targetvalidation.org/target/{{.}}" target="_blank">Opentarget</a>
+        <a target="_blank" href="https://www.targetvalidation.org/target/{{.}}" target="_blank">Opentarget</a>
     </li>
     {{/summary.ensembl.gene}}
-    
+
     {{#summary.entrezgene}}
     <li>
-        <a href="https://www.ncbi.nlm.nih.gov/gene/{{.}}" target="_blank">NCBI</a>
+        <a target="_blank" href="https://www.ncbi.nlm.nih.gov/gene/{{.}}" target="_blank">NCBI</a>
     </li>
     </ul>
     {{/summary.entrezgene}}
-    </div>    
+    </div>
  </div>
 `
 type GeneSummary =  MyGene.Hit

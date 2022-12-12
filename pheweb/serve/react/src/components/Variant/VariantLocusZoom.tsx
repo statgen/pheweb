@@ -4,6 +4,41 @@ import * as LocusZoom from "locuszoom";
 import { Data, DataSources, Layouts, populate } from "locuszoom";
 import * as d3 from "d3";
 import { VariantContext, VariantState } from "./VariantContext";
+import { ConfigurationWindow } from "../Configuration/configurationModel";
+
+declare let window: ConfigurationWindow;
+const { config } = window;
+
+const defaultTooltipHTML = `
+{{#if rsid}}<strong>{{rsid}}</strong><br>{{/if}}
+{{#if pheno}}phenotype: <strong>{{trait:pheno}}</strong><br>{{/if}}
+{{#if trait:pvalue}}p-value: <strong>{{trait:pvalue|scinotation}}</strong><br>{{/if}}
+{{#if trait:pval}}p-value: <strong>{{trait:pval|scinotation}}</strong><br>{{/if}}
+mlog10p: <strong>{{trait:mlogp|scinotation}}</strong><br>
+{{#if beta}}beta: <strong>{{trait:beta}}</strong>{{#if trait:sebeta}} ({{trait:sebeta}}){{/if}}<br>{{/if}}
+{{#if or}}Odds Ratio: <strong>{{or}}</strong><br>{{/if}}
+{{#if af_alt}}AF: <strong>{{af_alt|percent}}</strong><br>{{/if}}
+{{#if af_alt_cases}}AF cases: <strong>{{af_alt_cases|percent}}</strong><br>{{/if}}
+{{#if af_alt_controls}}AF controls: <strong>{{af_alt_controls|percent}}</strong><br>{{/if}}
+{{#if maf}}AF: <strong>{{maf|percent}}</strong><br>{{/if}}
+{{#if maf_cases}}AF cases: <strong>{{maf_cases|percent}}</strong><br>{{/if}}
+{{#if maf_controls}}AF controls: <strong>{{maf_controls|percent}}</strong><br>{{/if}}
+{{#if af}}AF: <strong>{{af|percent}}</strong><br>{{/if}}
+{{#if ac}}AC: <strong>{{ac}}</strong><br>{{/if}}
+{{#if r2}}R2: <strong>{{r2}}</strong><br>{{/if}}
+{{#if tstat}}Tstat: <strong>{{tstat}}</strong><br>{{/if}}
+{{#if n_cohorts}}n_cohorts: <strong>{{n_cohorts}}</strong><br>{{/if}}
+{{#if n_hom_cases}}n_hom_cases: <strong>{{n_hom_cases}}</strong><br>{{/if}}
+{{#if n_hom_ref_cases}}n_hom_ref_cases: <strong>{{n_hom_ref_cases}}</strong><br>{{/if}}
+{{#if n_het_cases}}n_het_cases: <strong>{{n_het_cases}}</strong><br>{{/if}}
+{{#if n_hom_controls}}n_hom_controls: <strong>{{n_hom_controls}}</strong><br>{{/if}}
+{{#if n_hom_ref_controls}}n_hom_ref_controls: <strong>{{n_hom_ref_controls}}</strong><br>{{/if}}
+{{#if n_het_controls}}n_het_controls: <strong>{{n_het_controls}}</strong><br>{{/if}}
+{{#if n_case}}#cases: <strong>{{n_case}}</strong><br>{{/if}}
+{{#if n_control}}#controls: <strong>{{n_control}}</strong><br>{{/if}}
+{{#if num_samples}}#samples: <strong>{{num_samples}}</strong><br>{{/if}}
+`;
+const toolTipHTML: string = config?.userInterface?.variant?.locusZoom?.toolTipHTML || defaultTooltipHTML;
 
 interface Props { variantData : Variant.Data }
 
@@ -101,9 +136,7 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       uniqueCategories.forEach(category => categoryToColor[category] = colorByCategory(category))
       setColorByCategory(categoryToColor)
       reshapeResult(results, colorByCategory)
-      // 1. get pScaled values
-      // 2. harness
-      // 3. compare
+
       const logLogThreshold = variantData.vis_conf.loglog_threshold;
       results.forEach(addPScaled(logLogThreshold))
 
@@ -137,13 +170,14 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       dataSources.add("phewas", ['PheWASLZ', {url: '/this/is/not/used'}])
 
       const phewasPanel = Layouts.get("panel", "phewas",undefined);
-      const sigDataLayer = phewasPanel.data_layers[0]
-
+      const sigDataLayer = phewasPanel.data_layers[0]; //significance line
+      const pvalDataLayer = phewasPanel.data_layers[1];
 
       const significanceThreshold = 0.05 / results.length;
       const neglog10SignificanceThreshold = -Math.log10(significanceThreshold);
-      sigDataLayer.offset = neglog10SignificanceThreshold;
 
+      // Make sig line, and always show it.
+      sigDataLayer.offset = neglog10SignificanceThreshold;
       sigDataLayer.tooltip = {
         //TODO: modify LZ to support tooltips on a line. right now this doesn't do anything.
         closable: true,
@@ -153,15 +187,17 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       };
 
       const pValueDataLayer = phewasPanel.data_layers[1]
-      //pValueDataLayer.y_axis.min_extent = [0, neglog10SignificanceThreshold*1.05]; TODO
-      //pValueDataLayer.y_axis.upper_buffer = 0.1; TODO
+      pValueDataLayer.y_axis.min_extent = [0, neglog10SignificanceThreshold*1.05];
+      pValueDataLayer.y_axis.upper_buffer = 0.1;
+
+      // tooltips
       pValueDataLayer.tooltip.html = `
-      <div><strong>{{phewas_string}}</strong></div>
-      <div><strong style='color:{{color}}'>{{category_name}}</strong></div>
-      `
+      {{#if phewas_string}}<div><strong>{{phewas_string}}</strong></div>{{/if}}
+      {{#if category_name}}<div><strong style='color:{{color}}'>{{category_name}}</strong></div>{{/if}}
+      `+ toolTipHTML
+      pValueDataLayer.tooltip.closable = false;
       pValueDataLayer.y_axis.field = 'pScaled';
 
-      // -- this is where it breaks --
       const negativeLog10Handle = (x : number) => {
         let log
         if (x === 0) {
@@ -172,20 +208,19 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       };
       LocusZoom.TransformationFunctions.set("negativeLog10Handle", negativeLog10Handle);
       LocusZoom.ScaleFunctions.add("effect_direction", effectDirection);
-
+      pValueDataLayer.label.text = '{{phewas_string}} ';
       pValueDataLayer.label.filters = [
-        {field:"pval|negativeLog10Handle", operator:">", value:neglog10SignificanceThreshold * 3/4},
-        {field:"pval|negativeLog10Handle", operator:">", value:bestNegativeLog10PValue / 4},
+          {field:"mlogp", operator:">", value:neglog10SignificanceThreshold * 3/4},
+          {field:"mlogp", operator:">", value:bestNegativeLog10PValue / 4},
       ];
-
       if (results.length > 10) {
         const topMLogPValue10 = (r :  Variant.ResultLZ[]) => {
-          const mLogPValue = r.map((a) => a['mlogp']);
-          mLogPValue.sort();
+          const mLogPValue = r.map((a) => +a['mlogp']).filter(x => !isNaN(x));
+          mLogPValue.sort((a, b)  => b - a);
           return mLogPValue[10];
         }
-        pValueDataLayer.label.filters.push(
-          {field:"mlogp", operator:"<", value:topMLogPValue10(results)});
+        const filter = {field:"mlogp", operator:">", value:topMLogPValue10(results)};
+        pValueDataLayer.label.filters.push(filter);
       }
 
       pValueDataLayer.color[0].parameters.categories = uniqueCategories

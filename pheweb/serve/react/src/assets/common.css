@@ -203,7 +203,10 @@ border {}
   margin-bottom: 10px;
 }
 /* ---- */
-
+.variant-tooltip {
+    max-width: none;
+    width: 100%;
+}
 /* LocusZoom */
 .lz-data_layer-tooltip {
     pointer-events: none;
