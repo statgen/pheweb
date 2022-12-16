@@ -484,6 +484,8 @@ class ServerJeeves(object):
         if any(abort):
             return None
         data=self.autoreporting_dao.get_group_variants(phenocode, locus_id)
+        if not data:
+            return []
         df=pd.DataFrame(data)
         agg_dict = dict.fromkeys(df,"first")
         agg_dict["trait"]=";".join
