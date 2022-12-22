@@ -11,6 +11,24 @@ interface PhewebWindow extends Window {
 
 declare let window: PhewebWindow;
 
+// https://stackoverflow.com/questions/10463518/converting-em-to-px-in-javascript-and-getting-default-font-size
+function getSize(size = '1em', parent = document.body) {
+    let l = document.createElement('div')
+    l.style.visibility = 'hidden'
+    l.style.boxSize = 'content-box'
+    l.style.position = 'absolute'
+    l.style.maxHeight = 'none'
+    l.style.height = size
+    parent.appendChild(l)
+    size = l.clientHeight
+    l.remove()
+    return size
+}
+/* react table sizes in pixels and we need to size in em to ensure the columns
+ * are displayed.
+ */
+const emsize = getSize();
+
 
 export const pValueSentinel = 5e-324;
 
@@ -773,7 +791,8 @@ const phenotypeColumns = {
         Cell: props => (
           <a
             href={`/variant/${props.original.chrom}-${props.original.pos}-${props.original.ref}-${props.original.alt}`}>{props.value}</a>),
-        minWidth: 110
+	minWidth: 10 * emsize ,
+	width : 10 * emsize
       },
 
     nearestGene:
@@ -831,7 +850,8 @@ const phenotypeColumns = {
         filterMethod: numberFilter,
         Cell: textCellFormatter,
         sortMethod: naSmallSorter,
-        minWidth: 120
+	width : 8 * emsize ,
+	minWidth: 8 * emsize
       },
 
     finEnrichment:
@@ -1305,7 +1325,7 @@ export const geneLossOfFunctionTableColumns = [
 
 
 export const genePhenotypeTableColumns = [
-  { ...phenotypeColumns.rsid, "minWidth": 70 , "width" : 70 },
+  phenotypeColumns.rsid,
   phenotypeColumns.finEnrichmentText,
   phenotypeColumns.genePhenotype,
   phenotypeColumns.category,
@@ -1317,11 +1337,11 @@ export const genePhenotypeTableColumns = [
 ]
 
 export const geneFunctionalVariantTableColumns = [
-  { ...phenotypeColumns.rsid, "minWidth": 70 , "width" : 70 },
-  { ...phenotypeColumns.consequence, "width" : 80 , "minWidth": 80 },
-  { ...phenotypeColumns.infoScore, "minWidth": 40 , "width" : 40 },
-  { ...phenotypeColumns.finEnrichmentText, "minWidth": 80 , "width" : 80 },
-  { ...phenotypeColumns.af, "minWidth": 50 , "width" : 50 },
+  phenotypeColumns.rsid,
+  { ...phenotypeColumns.consequence, "width" : 8 * emsize , "minWidth": 8 * emsize },
+  { ...phenotypeColumns.infoScore, "width" : 6 * emsize , "minWidth": 6 * emsize  },
+  phenotypeColumns.finEnrichmentText,
+  { ...phenotypeColumns.af, "width" : 6 * emsize , "minWidth": 6 * emsize },
   phenotypeColumns.finnGenPhenotype
 ]
 
