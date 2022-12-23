@@ -65,7 +65,7 @@ interface VariantSummary {
   alt : string
 }
 
-const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary => {
+const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary | undefined => {
   const nearestGenes : string [] = variantData.variant.annotation.nearest_gene.split(",");
   const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
 
@@ -341,19 +341,25 @@ const Variant = (props : Props) => {
   useEffect(() => {
     if(variantData && bioBankURL == null && loadedBioBank === false) {
       const variant = createVariant()
-      const summary = createVariantSummary(variantData)
-      summary?.rsids?.forEach((rsid) => {
-        (async () => getEnsembl(rsid, (e: Ensembl.Data) => {
-          if (e && e.mappings && e.mappings.length > 0) {
-            const mapping: Ensembl.Mapping = e.mappings[0]
-            const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${variant.reference}-${variant.alternate}`
-            setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } })
-          }
-        }))();
-      })
+      const summary : VariantSummary | undefined = createVariantSummary(variantData)
+      const rsids : string[] | undefined  = summary?.rsids
+      if(rsids === undefined || rsids.length == 0){
+        summary?.rsids?.forEach((rsid) => {
+          (async () => getEnsembl(rsid, (e: Ensembl.Data) => {
+            if (e && e.mappings && e.mappings.length > 0) {
+              const mapping: Ensembl.Mapping = e.mappings[0]
+              const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${variant.reference}-${variant.alternate}`
+              setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } })
+            }
+          }))();
+        });
+      } else {
+        setBioBankURL({});
+      }
       setLoadedBioBank(true);
     }
   },[variantData, setBioBankURL,bioBankURL,loadedBioBank, setLoadedBioBank]);
+
 
   // the null check is on  bioBankURL == null as for some reason
   // the tool tip is not happing loading this later.
