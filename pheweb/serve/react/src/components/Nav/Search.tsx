@@ -18,10 +18,23 @@ const onChange = (selected) => {
   }
 }
 
-const reshapeResult = (result : SearchResult) => { return { label : result.display , value : result } }
+const reshapeResult = (formatter) => (result : SearchResult) => { return { label : formatter(result.display) , value : result } }
 
+export const checkXChromsome = (query : string) => {
+     const pattern =  /^(x|X):/;
+     return pattern.test(query);
+}
+
+export const xFormatter = (query : string) => query.replace(/^23:/,"X:");
+export const identityFormatter = (x : string) => x;
+export const resultFormatter = (query : string) => checkXChromsome(query)?xFormatter:identityFormatter;
+
+
+export const queryFormatter = (query : string) => query.replace(/^(x|X):/,"23:");
 const loadOptions = (query: string,callBack) => {
-  getAutocomplete(query,(results : SearchResult[])=> callBack(results.map(reshapeResult)))
+  console.log(checkXChromsome(query));
+  const formatter = resultFormatter(query);
+  getAutocomplete(queryFormatter(query),(results : SearchResult[])=> callBack(results.map(reshapeResult(formatter))))
 }
 const customStyles = {
   container: provided => ({
@@ -45,4 +58,3 @@ const Search = () => <form className="form-inline">
 </form>
 
 export default Search
-
