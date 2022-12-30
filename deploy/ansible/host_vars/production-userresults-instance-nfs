@@ -1,9 +1,0 @@
----
-# directory to be shared on the nfs drive
-share_directory: /data/nfs
-# directory to put pheweb data on the nfs server
-pheweb_directory: /data/nfs/pheweb/userresults
-# path to fetch pheweb data
-bucket_directory: gs://r7_data_green/production/nfs/production-userresults-instance-nfs
-# release
-release: userresults

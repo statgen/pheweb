@@ -1,5 +1,0 @@
----
-share_directory: /data/nfs
-pheweb_directory: /data/nfs/pheweb/r7
-bucket_directory: gs://r7_data_green/production/pheweb
-release: r7

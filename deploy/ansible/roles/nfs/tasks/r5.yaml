@@ -1,9 +1,0 @@
----
-- name: nfs - create symlink
-  ansible.builtin.file:
-    src: /data/nfs/pheweb/r5/ukbb_neale
-    dest: /data/nfs/ukbb_neale
-    owner: nobody
-    group: nogroup
-    state: link
-    force: true

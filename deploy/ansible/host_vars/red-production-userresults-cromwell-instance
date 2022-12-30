@@ -1,4 +1,0 @@
----
-cromwell_project: "finngen-refinery-dev"
-cromwell_bucket: "gs://red-production-userresults-cromwell-storage/"
-cromwell_docker_image: "broadinstitute/cromwell:84-dbe3a31"

@@ -12,19 +12,26 @@ pipeline {
 
 	    }
 	}
-    stage('Deploy') {
+
+    stage('Staging') {
             when { expression { env.GIT_BRANCH == 'origin/master' } }
 	    steps {
                 withCredentials([file(credentialsId: 'jenkins-sa', variable: 'gcp')]) {
+		    sh '''helm plugin list | grep gcs || helm plugin install https://github.com/hayorov/helm-gcs.git --version 0.4.0'''
                     sh '''/root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$gcp'''
-		    sh '''echo ${BRANCH_NAME}'''
-                    sh '''/root/google-cloud-sdk/bin/gcloud auth configure-docker'''
+		    sh '''helm repo add production_jenkins_storage_green gs://production_jenkins_storage_green/helm/charts'''
+		    sh '''helm repo update'''
+		    sh '''helm fetch production_jenkins_storage_green/finngen-pheweb'''
                     sh '''/root/google-cloud-sdk/bin/gcloud container clusters get-credentials staging-pheweb --zone europe-west1-b'''
-                    sh '''if helm ls | grep pheweb > /dev/null  ; then  helm upgrade staging-pheweb ./deploy/kubernetes -f ./deploy/kubernetes/staging-values.yaml --set image.tag=ci-${GIT_COMMIT} ; else helm install staging-pheweb ./deploy/kubernetes -f ./deploy/kubernetes/staging-values.yaml --set image.tag=ci-${GIT_COMMIT} ; fi ; '''
-                    sh '''kubectl delete pods --all --wait=false'''
+                    sh '''if helm ls | grep staging-pheweb > /dev/null  ; then
+		          helm get values staging-pheweb | grep -v USER-SUPPLIED > ./staging-values.yaml ;
+			  helm upgrade staging-pheweb production_jenkins_storage_green/finngen-pheweb -f ./staging-values.yaml  --set image.tag=ci-${GIT_COMMIT} ;
+			  kubectl delete pods --all --wait=false
+			  fi'''
 		}
 
 	    }
 	}
+
     }
 }

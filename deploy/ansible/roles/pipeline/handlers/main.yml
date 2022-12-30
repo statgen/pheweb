@@ -1,7 +1,0 @@
-- name: restart nginx
-  become: true
-  service: name=nginx state=restarted
-
-- name: restart pods
-  become: true
-  service: name=restart_pods state=restarted

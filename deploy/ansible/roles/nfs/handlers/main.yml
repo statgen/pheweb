@@ -1,9 +1,0 @@
----
-# handlers file for nfs
-- name: restart nfs
-  service:
-    name: "nfs-kernel-server"
-    state: "restarted"
-    enabled: true
-  become: true
-

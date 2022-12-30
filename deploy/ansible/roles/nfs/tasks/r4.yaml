@@ -1,9 +1,0 @@
----
-- name: nfs - create symlink
-  ansible.builtin.file:
-    src: /etc/gcp/cloud-sql-credentials.json
-    dest: /data/nfs/pheweb/phewas.sql.credentials.json
-    owner: nobody
-    group: nogroup
-    state: link
-    force: true
