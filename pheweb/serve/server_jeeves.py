@@ -38,6 +38,7 @@ class ServerJeeves(object):
         self.variant_phenotype_pip = self.dbs_fact.get_variant_phenotype_pip_dao()
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
+        self.autocompleter = self.dbs_fact.get_autocompleter()
 
     def gene_functional_variants(self, gene, pThreshold=None):
 

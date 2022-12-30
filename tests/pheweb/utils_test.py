@@ -178,4 +178,4 @@ def test_beta_to_m_log_p() -> None:
 
     @return: None
     """
-    assert beta_to_m_log_p(1.0, 1.0) == -0.4985155458279891
+    assert beta_to_m_log_p(1.0, 1.0) == 0.4985155458279891

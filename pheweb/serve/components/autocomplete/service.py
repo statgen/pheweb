@@ -1,37 +1,33 @@
 import json
 from flask import Blueprint, current_app as app, g, request, jsonify
-from .tries_dao import create_autocompleter as tries_dao_create_autocompleter
-from .sqlite_dao import create_autocompleter as sqlite_dao_create_autocompleter
+from .dao import AutocompleterDAO, QUERY_LIMIT
 
-def createAutocompleter(phenos):
+
+def get_dao(current_app=app) -> AutocompleterDAO:
     """
-    Attempt to construct autocomplete
+    Get DAO
     """
-    result = None
-    if result is None:
-        result = sqlite_dao_create_autocompleter(phenos)
-    if result is None:
-        result = tries_dao_create_autocompleter(phenos)
+    dao: typing.Optional[AutocompleterDAO] = current_app.jeeves.autocompleter
+    if dao is None:
+        result = None
+        abort(404, "Autocompleter not available")
+    else:
+        result = dao
     return result
     
 autocomplete = Blueprint('autocomplete', __name__)
 
-def create_autocompleter():
-    if not hasattr(autocomplete, 'autocompleter'):
-        autocomplete.autocompleter = createAutocompleter(app.use_phenos)
-        assert not autocomplete.autocompleter is None, "could not configure auto complete"
-    return autocomplete.autocompleter
-
 @autocomplete.route('/api/autocomplete', methods=["GET"])
 def get_autocomplete():
-    query = request.args.get('query', '')
-    suggestions = create_autocompleter().autocomplete(query)
+    queries = request.args.getlist('query', type=str)
+    suggestions = [ suggestion for query in queries for suggestion in sorted(get_dao().autocomplete(query), key=lambda sugg: sugg['display']) ]
+    suggestions = suggestions[0:QUERY_LIMIT]
     if suggestions:
-        return jsonify(sorted(suggestions, key=lambda sugg: sugg['display']))
+        return jsonify(suggestions)
     return jsonify([])
 
 @autocomplete.route('/api/go', methods=["GET"])
 def api_go():
     query = request.args.get('query', '')
-    best_suggestion = create_autocompleter().get_best_completion(query)
+    best_suggestion = get_dao().get_best_completion(query)
     return json.dumps(best_suggestion)

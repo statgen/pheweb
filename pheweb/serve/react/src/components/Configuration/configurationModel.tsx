@@ -44,11 +44,25 @@ export interface ConfigurationWindow extends  Window {
 
 declare let window: ConfigurationWindow;
 
-export const resolveURL = (relativeURL : string,params : { [ key : string ] : string } | undefined = undefined) : string => {
+export const searchParams = (params : { [ key : string ] : (string | string[]) }) : string => {
+       const urlSearchParams = new URLSearchParams()
+        const keys = Object.keys(params).sort()
+	keys.forEach(key => {
+	   const value = params[key];
+            if(Array.isArray(value)){
+                value.forEach(v => urlSearchParams.append(key,v));
+            } else {
+                urlSearchParams.append(key,value);
+            }
+        })
+	return urlSearchParams.toString();
+}
+
+export const resolveURL = (relativeURL : string,params : { [ key : string ] : (string | string[]) } | undefined = undefined) : string => {
     const root = window?.config?.application?.root
     const url = new URL(relativeURL,root?root:window.location.origin)
     if(params !== undefined){
-        url.search = new URLSearchParams(params).toString()
+        url.search = searchParams(params);
     }
     return url.toString()
 }

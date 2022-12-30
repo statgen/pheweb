@@ -1,2 +1,2 @@
 variant	pval	beta	sebeta	af_alt	af_alt_cases	af_alt_controls	rsid	gene_most_severe	most_severe	enrichment_nfsee	fin_AF	nfsee_AF	pheno	HW_exact_p_value	missing_proportion	INFO_sisu4	het_ex_ch	LONGNAME	FET_p	pval_imp
-1:1:A:C	1.0e-1	0.1	0.2	0.3	0.4	0.5	rs6	AA	missense_variant	0.7e+00	0.8e-03	0.9	PHENO	0.11	0.12	0.13	14/15/16	PHENO	0.17	0.18e-40
+1:1:A:C	1.0e-1	0.1	0.2	0.3	0.4	0.5	rs6	AA	missense_variant	0.7e+00	0.8e-03	0.9	PHENO	0.11	0.12	0.13	14/15/16	PHENO	0.17	1.0e-40

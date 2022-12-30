@@ -14,6 +14,7 @@ import json
 import math
 import os
 import sys
+import typing
 import urllib.parse
 
 import boltons.mathutils
@@ -93,7 +94,7 @@ def get_phenolist():
     return phenotype_list
 
 
-def get_use_phenos():
+def get_use_phenocode_list() -> typing.List[str]:
     """
     Get used phenotypes.
 
@@ -116,6 +117,11 @@ def get_use_phenos():
     except PermissionError as error:
         raise PheWebError(f" {filepath} could not be read") from error
     return phenotype_list
+
+
+def get_use_phenocode_pheno_map() -> typing.Mapping[str, object]:
+    phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
+    return {phenocode: phenos[phenocode] for phenocode in get_use_phenocode_list()}
 
 
 def pad_gene(start, end):

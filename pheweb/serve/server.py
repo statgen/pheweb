@@ -1,4 +1,4 @@
-from ..utils import get_phenolist, get_use_phenos, get_gene_tuples, pad_gene
+from ..utils import get_phenolist, get_use_phenocode_pheno_map, get_gene_tuples, pad_gene
 from ..conf_utils import conf
 from ..file_utils import common_filepaths
 from .server_utils import get_pheno_region
@@ -40,6 +40,8 @@ from .components.autocomplete.service import autocomplete
 from .components.chip.service import chip
 from flask_cors import CORS
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__,
             # this is hack so this it doesn't get confused on the static subdirectory
@@ -110,7 +112,7 @@ if os.path.isdir(conf.custom_templates):
     app.jinja_loader.searchpath.insert(0, conf.custom_templates)
 
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
-use_phenos = {phenocode: phenos[phenocode] for phenocode in get_use_phenos()}
+use_phenos = get_use_phenocode_pheno_map()
 app.use_phenos = use_phenos
 
 threadpool = ThreadPoolExecutor(max_workers=4)

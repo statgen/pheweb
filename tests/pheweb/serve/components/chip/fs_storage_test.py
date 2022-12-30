@@ -33,6 +33,7 @@ def test_fetch_chip_data() -> None:
 
     :return: None
     """
+    
     expected = ChipData(
         columns=[
             "variant",
@@ -80,7 +81,7 @@ def test_fetch_chip_data() -> None:
                 "het_ex_ch": "14/15/16",
                 "LONGNAME": "PHENO",
                 "FET_p": 0.17,
-                "pval_imp": 1.8e-41,
+                "pval_imp": 1.0e-40,
                 "is_top": 1,
             }
         ],
@@ -95,7 +96,7 @@ def test_read_path() -> None:
     :return: None
     """
     file_bytes: bytes = read_path(CHIP_CODING_FILE)
-    assert hashlib.md5(file_bytes).hexdigest() == "3beca4a6551ab7d164d57376e21363b8"
+    assert hashlib.md5(file_bytes).hexdigest() == "41c8388a9e4d481606b9d819bc4f51b3"
 
 
 def test_read_path_bad_path() -> None:

@@ -32,10 +32,14 @@ export const resultFormatter = (query : string) => checkXChromsome(query)?xForma
 
 export const queryFormatter = (query : string) => query.replace(/^(x|X):/,"23:");
 const loadOptions = (query: string,callBack) => {
-  console.log(checkXChromsome(query));
-  const formatter = resultFormatter(query);
-  getAutocomplete(queryFormatter(query),(results : SearchResult[])=> callBack(results.map(reshapeResult(formatter))))
+  if(/^(x|X)$/.test(query)){
+     getAutocomplete(['X','23'],(results : SearchResult[])=> callBack(results.map(reshapeResult(xFormatter))))
+  } else {
+    const formatter = resultFormatter(query);
+    getAutocomplete([queryFormatter(query)],(results : SearchResult[])=> callBack(results.map(reshapeResult(formatter))))
+  }
 }
+
 const customStyles = {
   container: provided => ({
     ...provided,

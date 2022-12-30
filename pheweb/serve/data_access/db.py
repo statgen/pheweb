@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import abc
 import attr
+import copy
 from importlib import import_module
 from collections import defaultdict
 from elasticsearch import Elasticsearch
@@ -15,7 +16,7 @@ import pymysql
 import imp
 from typing import List, Tuple, Dict
 from ...file_utils import MatrixReader, common_filepaths
-from ...utils import get_phenolist, get_gene_tuples, pvalue_to_mlogp
+from ...utils import get_phenolist, get_gene_tuples, pvalue_to_mlogp, get_use_phenocode_pheno_map
 
 from collections import namedtuple
 import requests
@@ -33,6 +34,8 @@ from .variant_phenotype_pip import  VariantPhenotypePipDao
 from ..components.chip.fs_storage import FileChipDAO
 from pathlib import Path
 from .drug_db import DrugDB, DrugDao
+from ..components.autocomplete.tries_dao import AutocompleterTriesDAO
+from ..components.autocomplete.sqlite_dao import AutocompleterSqliteDAO
 
 
 
@@ -1457,9 +1460,9 @@ class TabixAnnotationDao(AnnotationDB):
                 .replace("Y", "25")
             )
 
-            tabix_iter = tabixf.fetch(fetch_chr, variant.pos - 1, variant.pos) 
-            
-            
+            tabix_iter = tabixf.fetch(fetch_chr, variant.pos - 1, variant.pos)
+
+
             while True:
                 try:
                     row = next(tabix_iter)
@@ -1886,6 +1889,7 @@ class DataFactory(object):
         "PHEWEB_PHENOS": lambda _: {
             pheno["phenocode"]: pheno for pheno in get_phenolist()
         },
+        "PHEWEB_USE_PHENOS": lambda : copy.deepcopy(get_use_phenocode_pheno_map()),
         "MATRIX_PATH": common_filepaths["matrix"],
         "ANNOTATION_MATRIX_PATH": common_filepaths["annotation-matrix"],
         "GNOMAD_MATRIX_PATH": common_filepaths["gnomad-matrix"],
@@ -1915,6 +1919,9 @@ class DataFactory(object):
         if "externalresult" not in self.dao_impl:
             ## if external results not configured initialize dao always returning empty results
             self.dao_impl["externalresult"] = ExternalFileResultDao(None)
+
+    def get_autocompleter(self):
+        return self.dao_impl["autocompleter"] if "autocompleter" in self.dao_impl else None
 
     def get_annotation_dao(self):
         return self.dao_impl["annotation"]

@@ -1,10 +1,9 @@
-from typing import Optional                                                                                                                                                  
 import json
 import abc
 from typing import List,Dict,Any,Optional,Iterator
+from dataclasses import dataclass
 
-
-class Autocompleter:
+class AutocompleterDAO:
 
 
     @abc.abstractmethod
@@ -21,3 +20,6 @@ class Autocompleter:
         Return matches
         """
         raise NotImplementedError
+
+"""Max number of results to return"""
+QUERY_LIMIT = 10

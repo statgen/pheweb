@@ -1,7 +1,6 @@
-
 from ....file_utils import get_filepath
 from ...server_utils import parse_variant
-
+from .dao import AutocompleterDAO, QUERY_LIMIT
 from flask import url_for
 from pathlib import Path
 import urllib.parse
@@ -10,6 +9,11 @@ import re
 import copy
 import sqlite3
 from typing import List,Dict,Any,Optional,Iterator
+
+import logging
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
+logger.setLevel(logging.DEBUG)
 
 # TODO: sort suggestions better.
 # - It's good that hitting enter sends you to the thing with the highest token-ratio.
@@ -25,12 +29,17 @@ def get_sqlite3_readonly_connection(filepath:str):
     # `check_same_thread=False` lets WSGI work. Readonly makes me feel better about disabling `check_same_thread`.
     return sqlite3.connect('file:{}?mode=ro'.format(urllib.parse.quote(filepath)), uri=True, check_same_thread=False)
 
-class SQLiteAutocompleter(object):
-    def __init__(self, phenos:Dict[str,Dict[str,Any]]):
-        self._phenos = copy.deepcopy(phenos)
+class AutocompleterSqliteDAO(AutocompleterDAO):
+    def __init__(self,
+                 phenos,
+                 cpras_rsids_path = Path(get_filepath('cpras-rsids-sqlite3', must_exist=False)),
+                 gene_aliases_path = Path(get_filepath('gene-aliases-sqlite3', must_exist=False)())):
+        logger.info(f"autocomplete:'AutocompleterSqliteDAO'")
+        logger.info(f"cpras_rsids_path:'{cpras_rsids_path}'")
+        logger.info(f"gene_aliases_path:{gene_aliases_path}'")
+
+        self._phenos = copy.deepcopy(phenos())
         self._preprocess_phenos()
-        cpras_rsids_path = Path(get_filepath('cpras-rsids-sqlite3', must_exist=False))
-        gene_aliases_path = Path(get_filepath('gene-aliases-sqlite3', must_exist=False)())
 
         self._cpras_rsids_sqlite3 = get_sqlite3_readonly_connection(str(cpras_rsids_path))
         self._cpras_rsids_sqlite3.row_factory = sqlite3.Row
@@ -50,7 +59,7 @@ class SQLiteAutocompleter(object):
         query = query.strip()
         result = []
         for autocompleter in self._autocompleters:
-            result = list(itertools.islice(autocompleter(query), 0, 10))
+            result = list(itertools.islice(autocompleter(query), 0, QUERY_LIMIT))
             if result: break
         return result
 
@@ -84,13 +93,14 @@ class SQLiteAutocompleter(object):
         # chrom-pos-ref-alt format
         query = query.replace(',', '')
         chrom, pos, ref, alt = parse_variant(query, default_chrom_pos = False)
+        
         if chrom is not None:
             key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
-
+            like = f'{key}%'
             # In Python's sort, chr1:23-A-T comes before chr1:23-A-TG, so this should always put exact matches first.
             cpra_rsid_pairs = list(self._cpras_rsids_sqlite3.execute(
                 'SELECT cpra,rsid FROM cpras_rsids WHERE cpra LIKE ? ORDER BY ROWID LIMIT 100',  # Input was sorted by cpra, so ROWID will sort by cpra
-                (key+'%',)
+                (like,)
             ))
             if cpra_rsid_pairs:
                 for cpra, rows in itertools.groupby(cpra_rsid_pairs, key=lambda row:row['cpra']):
@@ -164,15 +174,3 @@ class SQLiteAutocompleter(object):
                         'display' : '{} (alias for {})'.format(alias, canonical_symbols[0]),
                     }
 
-def create_autocompleter(phenos):
-    try:
-        autocompleter = SQLiteAutocompleter(phenos)
-        # random test query
-        autocompleter.autocomplete("2a593769-f25f-4658-a21d-aa372d52a6ae")
-        return autocompleter
-    except Exception as e:
-        print("attempted creating sqlite autocomplete and failed ...")
-        import sys
-        import traceback
-        print(traceback.format_exc(), file=sys.stderr)
-        return None
