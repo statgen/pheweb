@@ -10,6 +10,7 @@ from ..file_utils import common_filepaths
 import json
 import pandas as pd
 import glob
+import math
 
 from typing import List, Dict,Tuple, Union
 
@@ -450,34 +451,45 @@ class ServerJeeves(object):
             return json.load(f)
 
     def get_autoreport(self, phenocode) -> List[Dict[str,Union[str,int,float,bool]]] :
-        if (self.autoreporting_dao == None) or (self.ukbb_dao == None):
+        """Get autoreporting group report data.
+        If autoreporting dao is available, returns a list of records for that endpoint, otherwise None.
+        If UKBB dao is available, augments loci with matching UKBB pvals and betas.
+        """
+        if (self.autoreporting_dao == None):
             return None
-        data = pd.DataFrame(self.autoreporting_dao.get_group_report(phenocode))
-        #JSON doesn't implement floating point numbers correctly, so no infinite or nan values even though they are available in both python and js... >_<
-        data=data.replace(to_replace={
-            float('inf'): 'inf',
-            float('-inf'):'-inf'
-        })
-        data=data.fillna("NA")
-        if not data.empty:
-            #add ukbb data
-            vars=[]
-            for t in data.itertuples():
-                v=t.locus_id.replace("chr","").split("_")
-                vars.append(Variant(v[0],v[1],v[2],v[3]))
-            ukbbvars = self.ukbb_dao.get_matching_results(phenocode, vars)
-            v_pvals={}
-            v_betas={}
-            for var in ukbbvars.keys():
-                v_pvals["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["pval"]#TODO: If locus_id spec changes, this has to change
-                v_betas["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = ukbbvars[var]["beta"]
-            data["ukbb_pval"]="NA"
-            data["ukbb_beta"]="NA"
-            for key in v_pvals:#same key as in betas
-                data.loc[data["locus_id"]==key,"ukbb_pval"] = float(v_pvals[key])
-                data.loc[data["locus_id"]==key,"ukbb_beta"] = float(v_betas[key])
-            return data.to_dict("records")
-        return []
+        data = self.autoreporting_dao.get_group_report(phenocode)
+        #fix data representation
+        for record in data:
+            #replace float inf & nan values with strings
+            for key in record.keys():
+                if isinstance(record[key],float):
+                    if math.isnan(record[key]):
+                        record[key] = "NA"
+                    elif record[key] == float("inf"):
+                        record[key] = "inf"
+                    elif record[key] == float("-inf"):
+                        record[key] = "-inf"
+            record["ukbb_pval"]="NA"
+            record["ukbb_beta"]="NA"
+        #if no UKBB DAO, return as is
+        if self.ukbb_dao == None:
+            return data
+        # fill in ukbb data
+        var_strs = [a["locus_id"].replace("chr","").split("_") for a in data]
+        variants = [Variant(v[0],v[1],v[2],v[3]) for v in var_strs]
+        ukbbvars: Dict[Variant,Dict[str,str]] = self.ukbb_dao.get_matching_results(phenocode, variants)
+        ukbb_vals = {}
+        for var in ukbbvars.keys():
+            ukbb_vals["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = {
+                "pval":ukbbvars[var]["pval"],
+                "beta":ukbbvars[var]["beta"]
+
+            }
+        for r in data:
+            if r["locus_id"] in ukbb_vals:
+                r["ukbb_pval"] = ukbb_vals[r["locus_id"]]["pval"]
+                r["ukbb_pval"] = ukbb_vals[r["locus_id"]]["beta"]
+        return data
 
 
     def get_autoreport_variants(self, phenocode: str, locus_id: str) -> List[Dict[str,Union[str,int,float,bool]]]:
