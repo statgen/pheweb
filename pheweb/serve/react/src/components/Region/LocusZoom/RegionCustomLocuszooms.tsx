@@ -24,7 +24,7 @@ export const GWASCatSource = Data.Source.extend(function(init: any) {
 
 GWASCatSource.prototype.getURL = function(state: { chr: string; start: string; end: string; }, chain: any, fields: any) {
   const chr = +state.chr == 23 ? 'X' : state.chr;
-  return  `${this.url}results/?format=objects&filter=id in ${this.params.id} and chrom eq  ${chr} and pos ge ${state.start} and pos le ${state.end}`;
+  return  `${this.url}results/?format=objects&filter=id in ${this.params.id} and chrom eq '${chr}' and pos ge ${state.start} and pos le ${state.end}`;
 };
 
 GWASCatSource.prototype.parseResponse = function(resp: string, chain: { header: Object }, fields: string[], outnames: string[], trans: ((v: any) => any)[]) {
