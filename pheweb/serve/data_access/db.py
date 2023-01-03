@@ -1896,20 +1896,15 @@ class AutoreportingDao(AutorepVariantDB):
                     )
                     #join trait cols
                     if "specific_efo_trait_associations_relaxed" in hdr:
-                        all_traits_strict = ";".join(list(filter(
-                            lambda x: x !=  "NA",
-                            [
-                                cols[hdi["specific_efo_trait_associations_strict"]],
-                                cols[hdi["found_associations_strict"]]
-                            ]
-                        )))
-                        all_traits_relaxed = ";".join(list(filter(
-                            lambda x: x !=  "NA",
-                            [
-                                cols[hdi["specific_efo_trait_associations_relaxed"]],
-                                cols[hdi["found_associations_relaxed"]]
-                            ]
-                        )))
+                        merge_func = lambda a,b : ";".join(list(filter(lambda x:x!="NA",[a,b])))
+                        all_traits_strict = merge_func(
+                            cols[hdi["specific_efo_trait_associations_strict"]],
+                            cols[hdi["found_associations_strict"]]
+                        )
+                        all_traits_relaxed = merge_func(
+                            cols[hdi["specific_efo_trait_associations_relaxed"]],
+                            cols[hdi["found_associations_relaxed"]]
+                        )
                         all_traits_strict = "NA" if all_traits_strict == "" else all_traits_strict
                         all_traits_relaxed = "NA" if all_traits_relaxed == "" else all_traits_relaxed
                     else:
