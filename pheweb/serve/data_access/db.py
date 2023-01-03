@@ -1916,7 +1916,7 @@ class AutoreportingDao(AutorepVariantDB):
                         all_traits_strict = cols[hdi["found_associations_strict"]]
                         all_traits_relaxed = cols[hdi["found_associations_relaxed"]]
                     record["all_traits_strict"] = all_traits_strict
-                    record["all_traits_relazed"] = all_traits_relaxed
+                    record["all_traits_relaxed"] = all_traits_relaxed
                     data.append(record)
             return data
         return []
