@@ -1866,8 +1866,8 @@ class AutoreportingDao(AutorepVariantDB):
                         record = {
                             "chrom":cols[hdi["chr"]],
                             "pval":float(cols[hdi["lead_pval"]]),
-                            "lead_enrichment":float(cols[hdi["enrichment"]]),
-                            "lead_af_alt":float(cols[hdi["lead_AF"]]),
+                            "lead_enrichment":float(cols[hdi["enrichment"]]) if cols[hdi["enrichment"]] != "NA" else float("nan"),
+                            "lead_af_alt":float(cols[hdi["lead_AF"]]) if cols[hdi["lead_AF"]] != "NA" else float("nan"),
                             "lead_most_severe_gene":cols[hdi["most_severe_gene"]],
                             
                         }
@@ -1875,8 +1875,8 @@ class AutoreportingDao(AutorepVariantDB):
                         record = {
                             "chrom":cols[hdi["chrom"]],
                             "pval":float(cols[hdi["pval"]]),
-                            "lead_enrichment":float(cols[hdi["lead_enrichment"]]),
-                            "lead_af_alt":float(cols[hdi["lead_af_alt"]]),
+                            "lead_enrichment":float(cols[hdi["lead_enrichment"]]) if cols[hdi["lead_enrichment"]] != "NA" else float("nan"),
+                            "lead_af_alt":float(cols[hdi["lead_af_alt"]]) if cols[hdi["lead_af_alt"]] != "NA" else float("nan"),
                             "lead_most_severe_gene":cols[hdi["lead_most_severe_gene"]],
                         }
                     #common cols
@@ -1890,7 +1890,7 @@ class AutoreportingDao(AutorepVariantDB):
                             "functional_variants_strict":cols[hdi["functional_variants_strict"]],
                             "credible_set_variants":cols[hdi["credible_set_variants"]],
                             "cs_size":int(cols[hdi["cs_size"]]),
-                            "cs_log_bayes_factor":float(cols[hdi["cs_log_bayes_factor"]])
+                            "cs_log_bayes_factor":float(cols[hdi["cs_log_bayes_factor"]]) if cols[hdi["cs_lob_bayes_factor"]] != "NA" else float("nan")
 
                         }
                     )
