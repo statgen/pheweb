@@ -477,7 +477,7 @@ class ServerJeeves(object):
         # fill in ukbb data
         var_strs = [a["locus_id"].replace("chr","").split("_") for a in data]
         variants = [Variant(v[0],v[1],v[2],v[3]) for v in var_strs]
-        ukbbvars: Dict[Variant,Dict[str,str]] = self.ukbb_dao.get_matching_results(phenocode, variants)
+        ukbbvars = self.ukbb_dao.get_matching_results(phenocode, variants)
         ukbb_vals = {}
         for var in ukbbvars.keys():
             ukbb_vals["chr{}_{}_{}_{}".format(var.chr,var.pos,var.ref,var.alt)] = {
