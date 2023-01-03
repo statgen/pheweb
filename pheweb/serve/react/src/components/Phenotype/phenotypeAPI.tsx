@@ -4,7 +4,8 @@ import { PhenotypeVariantData } from "./phenotypeModel";
 import { resolveURL } from "../Configuration/configurationModel";
 
 export const getManhattan= (phenotypeCode: string,
-                            sink: (s: PhenotypeVariantData) => void, getURL = get) : void => {
+                            sink: (s: PhenotypeVariantData) => void,
+                            getURL = get) : void => {
   getURL(resolveURL(`/api/manhattan/pheno/${phenotypeCode}`), sink)
 }
 

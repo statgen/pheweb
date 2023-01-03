@@ -16,6 +16,11 @@ export function compose<A, B, C>(
   return (x) => g(f(x));
 }
 
+export type Handler = (url : string) => (e : Error) => void
+const defaultHandler : Handler = (url : string) => (e : Error) => {
+  warn(url,e)
+}
+
 /**
  * Get url
  *
@@ -27,14 +32,23 @@ export function compose<A, B, C>(
  * @param sink
  * @param fetchURL
  */
-export const get: <X>(url: string, sink: (x: X) => void) => Promise<void> = (
+export const get: <X>(url: string,
+                      sink: (x: X) => void,
+                      handler? :  Handler) => Promise<void> = (
   url,
-  sink
+  sink,
+  handler = defaultHandler
 ) =>
   fetch(url)
-    .then((response) => response.json())
+    .then((response) => {
+      if (response.status == 200) {
+        return response.json();
+      } else {
+        throw new Error(response.statusText);
+      }
+    })
     .then(sink)
-    .catch((e) => warn(url, e));
+    .catch(handler(url));
 
 /**
  * Delete url
@@ -47,14 +61,25 @@ export const get: <X>(url: string, sink: (x: X) => void) => Promise<void> = (
  * @param sink
  * @param fetchURL
  */
-export const deleteRequest : <X>(url: string, sink: (x: X) => void) => Promise<void> = (
+
+
+export const deleteRequest : <X>(url: string,
+                                 sink: (x: X) => void,
+                                 handler? :  Handler) => Promise<void> = (
     url,
-    sink
+    sink,
+    handler = defaultHandler
 ) =>
     fetch(url, { method : 'DELETE' })
-        .then((response) => response.json())
+        .then((response) => {
+          if (response.status == 200) {
+            return response.json();
+          } else {
+            throw new Error(response.statusText);
+          }
+        })
         .then(sink)
-        .catch((e) => warn(url, e));
+        .catch(handler(url));
 
 
 /**

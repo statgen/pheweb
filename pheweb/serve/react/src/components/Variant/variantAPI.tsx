@@ -1,11 +1,14 @@
 import { Ensembl, NCBI, PubMed, Variant as ModelVariant } from "./variantModel";
-import { get } from "../../common/Utilities";
+import { get, warn, Handler } from "../../common/Utilities";
 import { Variant, variantToPheweb } from "../../common/Model";
 import { resolveURL } from "../Configuration/configurationModel";
 
 export const getVariant= (variant: Variant,
-                          sink: (s: ModelVariant.Data) => void,getURL = get) : void => {
-  getURL(resolveURL(`/api/variant/${variantToPheweb(variant)}`), sink)
+                          sink: (s: ModelVariant.Data) => void,
+                          setError: (s: string | null) => void,
+                          getURL = get) : void => {
+  const handler : Handler = (url : string) => (e : Error) => setError(`Loading variant ${variantToPheweb(variant)} ${e.message}`);
+  getURL(resolveURL(`/api/variant/${variantToPheweb(variant)}`), sink,handler)
 }
 
 export  const getEnsembl = (rsid : String,

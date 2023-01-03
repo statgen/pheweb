@@ -1,25 +1,34 @@
-import React, { useEffect, useState } from "react";
-import { Variant as CommonVariantModel, variantFromStr } from "../../common/Model";
-import { Ensembl, Variant as VariantModel } from "./variantModel";
-import { getEnsembl, getVariant } from "./variantAPI";
-import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { mustacheDiv } from "../../common/Utilities";
-import loading from "../../common/Loading";
-import VariantTable from "./VariantTable";
-import VariantLocusZoom from "./VariantLocusZoom";
-import { numberFormatter, scientificFormatter } from "../../common/Formatter";
-import ReactTooltip from "react-tooltip";
-import { finEnrichmentLabel } from "../Finngen/gnomad";
-import VariantContextProvider from "./VariantContext";
-import VariantLavaaPlot from "./VariantLavaaPlot";
+import React, { useEffect, useState } from "react"
+import { Variant as CommonVariantModel, variantFromStr } from "../../common/Model"
+import { Ensembl, Variant as VariantModel } from "./variantModel"
+import { getEnsembl, getVariant } from "./variantAPI"
+import { ConfigurationWindow } from "../Configuration/configurationModel"
+import { mustacheDiv } from "../../common/Utilities"
+import { hasError, isLoading } from "../../common/Loading"
+import VariantTable from "./VariantTable"
+import VariantLocusZoom from "./VariantLocusZoom"
+import { numberFormatter, scientificFormatter } from "../../common/Formatter"
+import ReactTooltip from "react-tooltip"
+import { finEnrichmentLabel } from "../Finngen/gnomad"
+import VariantContextProvider from "./VariantContext"
+import VariantLavaaPlot from "./VariantLavaaPlot"
+import { Either, Left, Right } from "purify-ts/Either"
+
 interface Props {}
 
-export const createVariant = (href : string = window.location.href) : CommonVariantModel | undefined  => {
-  const match = href.match("/variant/(.+)$")
+
+export const createVariant = (pathanme : string = window.location.pathname) : Either<string,CommonVariantModel>  => {
+  const match = pathanme.match("^/variant/(.+)$")
   if(match){
     const [, variantString ] : Array<string> = match;
     const variant : CommonVariantModel | undefined = variantFromStr(variantString)
-    return variant
+    if(variant == null){
+      return Left(`Could not parse variant from '${variantString}'`)
+    } else {
+      return Right(variant);
+    }
+  } else {
+    Left(`Could not parse variant from url '${pathanme}'`)
   }
 }
 
@@ -333,9 +342,10 @@ const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
   const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : string }| null>(null);
   const [loadedBioBank, setLoadedBioBank] = useState<boolean>(false);
+  const [error, setError] = useState<string|null>(null);
+
   useEffect(() => {
-    const variant = createVariant()
-    variant && getVariant(variant, setVariantData)
+    createVariant().bimap(setError, variant => getVariant(variant, setVariantData, setError));
   },[]);
 
   useEffect(() => {
@@ -343,8 +353,10 @@ const Variant = (props : Props) => {
       const variant = createVariant()
       const summary : VariantSummary | undefined = createVariantSummary(variantData)
       const rsids : string[] | undefined  = summary?.rsids
-      if(rsids === undefined || rsids.length == 0){
-        summary?.rsids?.forEach((rsid) => {
+      if(rsids === undefined || rsids === null || rsids.length == 0){
+        setBioBankURL({});
+      } else {
+        rsids.forEach((rsid) => {
           (async () => getEnsembl(rsid, (e: Ensembl.Data) => {
             if (e && e.mappings && e.mappings.length > 0) {
               const mapping: Ensembl.Mapping = e.mappings[0]
@@ -353,24 +365,19 @@ const Variant = (props : Props) => {
             }
           }))();
         });
-      } else {
-        setBioBankURL({});
       }
       setLoadedBioBank(true);
     }
   },[variantData, setBioBankURL,bioBankURL,loadedBioBank, setLoadedBioBank]);
 
 
-  // the null check is on  bioBankURL == null as for some reason
-  // the tool tip is not happing loading this later.
-  return variantData == null || bioBankURL == null?loading:
-    <VariantContextProvider>
+  // lazy load
+  const content = () => <VariantContextProvider>
     <React.Fragment>
-
       <div>
-             <div className="variant-info col-xs-12">
-                 {mustacheDiv(banner,bannerData(variantData, bioBankURL))}
-             </div>
+        <div className="variant-info col-xs-12">
+          {mustacheDiv(banner,bannerData(variantData, bioBankURL))}
+        </div>
         <ReactTooltip className={'variant-tooltip'} multiline={true} html={true} />
       </div>
       <div>
@@ -378,14 +385,16 @@ const Variant = (props : Props) => {
       </div>
 
       <div>
-           <VariantLocusZoom variantData={variantData} />
+        <VariantLocusZoom variantData={variantData} />
       </div>
 
       <div>
-           <VariantTable variantData={variantData} />
+        <VariantTable variantData={variantData} />
       </div>
-  </React.Fragment>
+    </React.Fragment>
   </VariantContextProvider>
+  return hasError(error,isLoading(variantData == null || bioBankURL == null,content));
+
 }
 
 
