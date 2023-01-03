@@ -1883,7 +1883,7 @@ class AutoreportingDao(AutorepVariantDB):
                     record.update(
                         {
                             "locus_id":cols[hdi["locus_id"]],
-                            "phenocode":cols[hdi["phenotype"]],
+                            "phenocode":phenotype,
                             "good_cs":bool(cols[hdi["good_cs"]]),
                             "lead_mlogp":float(cols[hdi["lead_mlogp"]]),
                             "lead_beta":float(cols[hdi["lead_beta"]]),
