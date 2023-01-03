@@ -23,11 +23,8 @@ export const GWASCatSource = Data.Source.extend(function(init: any) {
 }, "GWASCatSoureLZ");
 
 GWASCatSource.prototype.getURL = function(state: { chr: string; start: string; end: string; }, chain: any, fields: any) {
-
-  return this.url + "results/?format=objects&filter=id in " + this.params.id +
-    " and chrom eq  '" + state.chr + "'" +
-    " and pos ge " + state.start +
-    " and pos le " + state.end;
+  const chr = +state.chr == 23 ? 'X' : state.chr;
+  return  `${this.url}results/?format=objects&filter=id in ${this.params.id} and chrom eq  ${chr} and pos ge ${state.start} and pos le ${state.end}`;
 };
 
 GWASCatSource.prototype.parseResponse = function(resp: string, chain: { header: Object }, fields: string[], outnames: string[], trans: ((v: any) => any)[]) {
@@ -66,7 +63,9 @@ ClinvarDataSource.prototype.getURL = function(state: any, chain: any, fields: an
 ClinvarDataSource.prototype.fetchRequest = function(state: any, chain: any, fields: any) {
 
   var url = this.getURL(state, chain, fields);
-  var requrl = url + "esearch.fcgi?db=clinvar&retmode=json&term=" + state.chr + "[chr]" + state.start + ":" + state.end + "[" + (this.params?.region?.genome_build === 37 ? "chrpos37" : "chrpos") + "]%22clinsig%20pathogenic%22[Properties]&retmax=500";
+  const chr = state.chr == '23' ? 'X' : state.chr;
+  const chrpos = this.params?.region?.genome_build === 37 ? "chrpos37" : "chrpos";
+  var requrl = `${url}esearch.fcgi?db=clinvar&retmode=json&term=${chr}[chr]${state.start}:${state.end}[${chrpos}]%22clinsig%20pathogenic%22[Properties]&retmax=500`;
   return createCORSPromise("GET", requrl).then(function(resp: unknown) {
 
       var data = JSON.parse(resp as string);
