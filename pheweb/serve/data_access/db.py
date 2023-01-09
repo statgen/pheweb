@@ -14,7 +14,7 @@ import pandas as pd
 import numpy as np
 import pymysql
 import imp
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union
 from ...file_utils import MatrixReader, common_filepaths
 from ...utils import get_phenolist, get_gene_tuples, pvalue_to_mlogp, get_use_phenocode_pheno_map
 
@@ -1832,57 +1832,89 @@ class AutoreportingDao(AutorepVariantDB):
         finally:
             conn.close()
 
-    def _merge_traits(self, a, b):
-        if a != "NA" and b != "NA":
-            return "{};{}".format(a, b)
-        elif a == "NA" and b != "NA":
-            return b
-        elif a != "NA" and b == "NA":
-            return a
-        else:
-            return "NA"
 
-    def get_group_report(self, phenotype):
-        fpath = self.group_report_path
-        files = glob.glob(fpath + "/" + phenotype + ".top.out")
-        if len(files) == 1:
-            data = pd.read_csv(files[0], sep="\t").fillna("NA")
-            print(files[0])
-            # the renaming is support r5 which has diffent names for the fields
-            data = data.rename(
-                columns={
-                    "chr": "chrom",
-                    "lead_pval": "pval",
-                    "enrichment": "lead_enrichment",
-                    "lead_AF": "lead_af_alt",
-                    "most_severe_gene": "lead_most_severe_gene",
-                    "maf": "af_alt",
-                    "maf_cases": "af_alt_cases",
-                    "FG_INFO": "INFO",
-                    "GENOME_FI_enrichment_nfe_est": "enrichment_nfsee",
-                    "variant_id": "variant",
-                }
-            )
-            data["phenocode"] = phenotype
-            if "specific_efo_trait_associations_strict" in data.columns:
-                data["all_traits_strict"] = data[
-                    [
-                        "specific_efo_trait_associations_strict",
-                        "found_associations_strict",
-                    ]
-                ].apply(lambda x: self._merge_traits(*x), axis=1)
-                data["all_traits_relaxed"] = data[
-                    [
-                        "specific_efo_trait_associations_relaxed",
-                        "found_associations_relaxed",
-                    ]
-                ].apply(lambda x: self._merge_traits(*x), axis=1)
-            else:
-                data["all_traits_strict"] = data["found_associations_strict"]
-                data["all_traits_relaxed"] = data["found_associations_relaxed"]
-            return data.reset_index(drop=True).to_dict("records")
+    def get_group_report(self,phenotype) -> List[Dict[str,Union[str,int,float,bool]]]:
+        """Returns the records in a group report as a list of dictionaries, one for each group.
+        Dictionary keys, with value: value identifier (key):
+        locus lead variant: locus_id
+        phenotype name: phenocode
+        cs quality: good_cs
+        chromosome : chrom
+        pvalue: pval
+        lead mlogp: lead_mlogp
+        lead beta: lead_beta
+        lead Finnish enrichment: lead_enrichment
+        lead alt allele af: lead_af_alt
+        lead most severe gene: lead_most_severe_gene
+        functional variants in cs: functional_variants_strict
+        cs variants: credible_set_variants
+        cs size: cs_size
+        cs log10bf: cs_log_bayes_factor
+
+        """
+
+        filename = os.path.join(self.group_report_path,f"{phenotype}.top.out")
+        if os.path.exists(filename):
+            with open(filename) as f:
+                hdr = f.readline().strip("\n").split("\t")
+                hdi = {a:i for i,a in enumerate(hdr)}
+                data = []
+                for _line in f:
+                    cols = _line.strip("\n").split("\t")
+                    #some columns are named differently in R5
+                    if self.release == 5:
+                        record = {
+                            "chrom":cols[hdi["chr"]],
+                            "pval":float(cols[hdi["lead_pval"]]),
+                            "lead_enrichment":float(cols[hdi["enrichment"]]) if cols[hdi["enrichment"]] != "NA" else float("nan"),
+                            "lead_af_alt":float(cols[hdi["lead_AF"]]) if cols[hdi["lead_AF"]] != "NA" else float("nan"),
+                            "lead_most_severe_gene":cols[hdi["most_severe_gene"]],
+                            
+                        }
+                    else:
+                        record = {
+                            "chrom":cols[hdi["chrom"]],
+                            "pval":float(cols[hdi["pval"]]),
+                            "lead_enrichment":float(cols[hdi["lead_enrichment"]]) if cols[hdi["lead_enrichment"]] != "NA" else float("nan"),
+                            "lead_af_alt":float(cols[hdi["lead_af_alt"]]) if cols[hdi["lead_af_alt"]] != "NA" else float("nan"),
+                            "lead_most_severe_gene":cols[hdi["lead_most_severe_gene"]],
+                        }
+                    #common cols
+                    record.update(
+                        {
+                            "locus_id":cols[hdi["locus_id"]],
+                            "phenocode":phenotype,
+                            "good_cs":bool(cols[hdi["good_cs"]]),
+                            "lead_mlogp":float(cols[hdi["lead_mlogp"]]),
+                            "lead_beta":float(cols[hdi["lead_beta"]]),
+                            "functional_variants_strict":cols[hdi["functional_variants_strict"]],
+                            "credible_set_variants":cols[hdi["credible_set_variants"]],
+                            "cs_size":int(cols[hdi["cs_size"]]),
+                            "cs_log_bayes_factor":float(cols[hdi["cs_log_bayes_factor"]]) if cols[hdi["cs_log_bayes_factor"]] != "NA" else float("nan")
+
+                        }
+                    )
+                    #join trait cols
+                    if "specific_efo_trait_associations_relaxed" in hdr:
+                        merge_func = lambda a,b : ";".join(list(filter(lambda x:x!="NA",[a,b])))
+                        all_traits_strict = merge_func(
+                            cols[hdi["specific_efo_trait_associations_strict"]],
+                            cols[hdi["found_associations_strict"]]
+                        )
+                        all_traits_relaxed = merge_func(
+                            cols[hdi["specific_efo_trait_associations_relaxed"]],
+                            cols[hdi["found_associations_relaxed"]]
+                        )
+                        all_traits_strict = "NA" if all_traits_strict == "" else all_traits_strict
+                        all_traits_relaxed = "NA" if all_traits_relaxed == "" else all_traits_relaxed
+                    else:
+                        all_traits_strict = cols[hdi["found_associations_strict"]]
+                        all_traits_relaxed = cols[hdi["found_associations_relaxed"]]
+                    record["all_traits_strict"] = all_traits_strict
+                    record["all_traits_relaxed"] = all_traits_relaxed
+                    data.append(record)
+            return data
         return []
-
 
 class DataFactory(object):
     arg_definitions = {
