@@ -884,6 +884,7 @@ class TabixResultDao(ResultDB):
         return results
 
     def get_top_per_pheno_variant_results_range(self, chrom, start, end):
+        chrom = "23" if chrom == "X" else chrom
         try:
             tabix_iter = pysam.TabixFile(self.matrix_path, parser=None).fetch(
                 chrom, start - 1, end
