@@ -10,7 +10,7 @@ import { GeneDrugs as GeneDrugsModel } from "./geneModel";
 import { GeneContext, GeneState } from "./GeneContext";
 
 const default_banner: string = `
-<h3>Drugs targeting Drug Name</h3>
+<h3>Drugs targeting {{gene}}</h3>
 `
 declare let window: ConfigurationWindow;
 const { config } = window;
@@ -43,9 +43,10 @@ const GeneDrugs = () => {
     tableProperties,
     defaultSorted
   }
+  const context = { gene }
 
   return geneDrugData == null ? loading: <div>
-    {mustacheDiv(banner, [])}
+    {mustacheDiv(banner, context)}
     <DownloadTable {...prop}/>
   </div>
 }
