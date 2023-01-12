@@ -9,7 +9,11 @@ import loading from "../../common/Loading";
 const default_banner: string = `
 
   <h3>{{summary.symbol}}</h3>
-  <p id="gene-description">{{summary.name}}</p>
+  {{#summary.name}}
+  <p id="gene-description">{{.}}</p>
+  {{/summary.name}}
+
+
   <p id="gene-summary" style="background-color: rgb(244, 244, 244); padding: 10px;">
   {{#summary.entrezgene}}
   [<a href="https://www.ncbi.nlm.nih.gov/gene/{{.}}" target="_blank">NCBI</a>]
@@ -67,7 +71,15 @@ const default_banner: string = `
 `
 type GeneSummary =  MyGene.Hit
 
-const createSummary = (geneInformation : MyGene.Data | null) => geneInformation?.hits[0]
+export const createSummary = (geneName : string, geneInformation : MyGene.Data | null) : MyGene.Hit | undefined => {
+  /* We know from #317 the best match
+   * does not work.  So this uses exact
+   * match.
+   */
+
+   const geneHit : MyGene.Hit | undefined = geneInformation?.hits?.find((g : MyGene.Hit) => g.symbol === geneName) ||  { symbol : geneName }
+  return geneHit;
+}
 
 declare let window: ConfigurationWindow;
 const { config } = window;
@@ -83,7 +95,7 @@ const GeneBanner = (props : Props) => {
   if(myGeneData == null){
     return loading
   } else {
-    const summary = createSummary(myGeneData)
+    const summary : MyGene.Hit | undefined = createSummary(gene, myGeneData)
     return mustacheDiv(banner, { summary })
   }
 }

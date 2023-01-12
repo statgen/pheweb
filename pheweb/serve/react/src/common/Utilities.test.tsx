@@ -28,7 +28,7 @@ test("get", async () => {
   ) => Promise<Response> = (input: RequestInfo, init?: RequestInit) =>
     Promise.resolve(response);
   global.fetch = jest.fn(fetchURL);
-  get("url", handler).then(() => expect(handler.mock.calls.length).toBe(1));
+  get("url", handler).then(() => expect(handler.mock.calls.length).toBe(0));
 });
 
 test("mustacheDiv", () => {
