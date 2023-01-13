@@ -1,0 +1,84 @@
+\documentclass{article}
+\usepackage{geometry}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{ragged2e}
+\geometry{left=1in}
+\usepackage{pdflscape}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\begin{document}
+\title {FINNGEN gene report for ((( gene ))) }
+\author{FINNGEN}
+\maketitle
+\newpage
+\newpage
+((* set math = imp0rt('math') *))
+\section{ Basic gene info }
+\textbf{GENE}: ((( gene ))) \\
+\medskip
+\textbf{Location}: ((( geneinfo["maploc"] ))) BP: ((( geneinfo["start"] )))-((( geneinfo["stop"] ))) \\
+\medskip
+\textbf{Description:} ((( geneinfo["description"] ))) \\
+\medskip
+\textbf{SUMMARY:} \\
+((( geneinfo["summary"] )))
+\newpage
+
+
+\begin{landscape}
+\begingroup
+\renewcommand{\arraystretch}{1.5}
+\section{ Functional variants }
+\begin{longtable}{p{1.5cm}|c|c|c|C{1.3cm}|C{1.3cm}|C{1.2cm}|L{4.8cm} }
+\caption{ Functional variant associations }\\
+Variant & rsid & Consequence & MAF & MAF FIN & MAF NFE & N phenos p\textless((( "{:.0e}".format(func_var_assoc_threshold | float ) ))) & top phenos \\
+\hline
+((* for var in functionalVars *))
+    ((( var.variant | escape_tex))) & ((( var.rsid ))) & (((  var.consequence | escape_tex))) & ((( "{:.2e}".format(var.maf | float) ))) & ((( "{:.2e}".format(var.gnomad.AF_fin | float) if "gnomad" in var and var.gnomad != none else "N/A" ))) & ((( "{:.2e}".format(var.gnomad.AF_nfe | float) if "gnomad" in var and var.gnomad is not none else "N/A" ))) & ((( var.nSigPhenos ))) & (((var.sigPhenos| escape_tex)))  \\
+((* endfor *))
+
+\end{longtable}
+ \end{landscape}
+\newpage
+\begin{landscape}
+\section{ Top associations in the gene region }
+\begin{longtable}{ >{\RaggedRight}p{3cm}|>{\RaggedRight}p{3cm}|c|c|c|c|c|c|c }
+\caption{ Phenotype associations p\textless (((gene_top_assoc_threshold))) }\\
+    Variant & pheno & cases & controls & MAF case & MAF control & OR & p-value & UKBB \\
+\hline
+((* for var in topAssoc *))
+    ((( var[0].variant.id.replace(":"," ") | escape_tex))) \newline ((( var[0].variant.rsids ))) & ((( var[0].assoc.phenostring | escape_tex))) & (((var[0].assoc.n_case ))) & (((var[0].assoc.n_control))) & ((( "{:.2e}".format(var[0].assoc.maf_case | float) ))) & ((( "{:.2e}".format(var[0].assoc.maf_control | float) ))) & ((( "{:.2e}".format(math.exp(var[0].assoc.beta | float)) ))) & ((( "{:.2e}".format(var[0].assoc.pval | float) ))) & (((var[1])))\\
+((* endfor *))
+\end{longtable}
+\end{landscape}
+
+
+\newpage
+
+\section{ Known GWAS hits in the region}
+\begin{longtable}{ >{\RaggedRight}p{3cm}|L{3cm}|c|c|c|c|>{\RaggedRight}p{3cm} }
+\caption{ Known GWAS hits in the region }\\
+Variant & pheno & effective allele & EAF & beta/or & -10 log p-value & reference \\
+\hline
+((* for var in knownhits *))
+((( var.variant.replace(":"," ") | escape_tex))) \newline ((( var.rsid ))) & ((( var.trait | escape_tex))) & ((( var.risk_allele ))) & ((( var.risk_frq ))) & ((( var.or_beta ))) & ((( var.log_pvalue ))) & (((var.study | escape_tex))) \\
+((* endfor *))
+\end{longtable}
+
+
+
+\newpage
+
+\section{ Known drugs }
+\begin{longtable}{ >{\RaggedRight}p{3cm}|L{3cm}|c|c|c|c|>{\RaggedRight}p{3cm} }
+\caption{ Known drugs }\\
+Molecule & type & action & disease & phase \\
+\hline
+((* for d in drugs *))
+((( d.approvedName | escape_tex))) & ((( d.targetClass | join(' ') | escape_tex))) & ((( d.mechanismOfAction |escape_tex ))) & ((( d.diseaseName | escape_tex ))) & ((( d.phase ))) \\
+((* endfor *))
+\end{longtable}
+\endgroup
+
+\end{document}
