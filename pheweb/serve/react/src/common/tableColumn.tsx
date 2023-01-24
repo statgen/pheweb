@@ -24,11 +24,12 @@ function getSize(size = '1em', parent = document.body) {
     l.remove()
     return size
 }
-/* react table sizes in pixels and we need to size in em to ensure the columns
- * are displayed.
+/* React table sizes in pixels and we need to size in em to ensure the columns
+ * are displayed.  Note this is height and most fonts have an aspect ratio of ~.5
+ *
  */
 const emsize = getSize();
-
+console.log(emsize);
 
 export const pValueSentinel = 5e-324;
 
@@ -380,7 +381,8 @@ const phenotypeColumns = {
       accessor: "beta",
       filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
       Cell: optionalCellScientificFormatter,
-      width: columnWith(60)
+      minWidth: 5 * emsize ,
+      width: 5 * emsize
     },
     chipBeta: {
       Header: () => (<span title="effect size beta in chip EWAS" style={{ textDecoration: "underline" }}>beta</span>),
@@ -401,14 +403,16 @@ const phenotypeColumns = {
       accessor: "af_alt_cases",
       filterMethod: (filter, row) => row[filter.id] <= filter.value,
       Cell: scientificCellFormatter,
-      width: columnWith(60)
+      minWidth: 5 * emsize ,
+      width: 5 * emsize
     },
     chipAFControl: {
       Header: () => (<span title="allele frequency (controls)" style={{ textDecoration: "underline" }}>af_ctrl</span>),
       accessor: "af_alt_controls",
       filterMethod: (filter, row) => row[filter.id] <= filter.value,
       Cell: scientificCellFormatter,
-      width: columnWith(60)
+      minWidth: 8 * emsize ,
+      width: 8 * emsize
     },
     chipAFFinn: {
       Header: () => (<span title="FIN allele frequency in gnomAD 2.0 exomes"
@@ -600,7 +604,7 @@ const phenotypeColumns = {
         accessor: "num_cases",
         Cell: props => props.value,
         filterMethod: absoluteValueFilter,
-        minWidth: 50
+      	minWidth: 6 * emsize
       },
 
     numCasesPrev:
@@ -622,7 +626,8 @@ const phenotypeColumns = {
         accessor: "num_controls",
         Cell: props => props.value,
         filterMethod: absoluteValueFilter,
-        minWidth: 50
+	minWidth: 6 * emsize
+
       },
 
     numGwSignificant:
@@ -829,7 +834,7 @@ const phenotypeColumns = {
         accessor: "pval",
         filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
         Cell: pValueCellFormatter,
-        minWidth: 80,
+	minWidth: 5 * emsize ,
         id: "pval"
       },
 
@@ -916,7 +921,7 @@ const phenotypeColumns = {
         accessor: "mlogp",
         filterMethod: (filter, row) => row[filter.id] >= +filter.value,
         Cell: props => isNaN(+props.value) ? "NA" : (+props.value).toPrecision(3),
-        minWidth: 80,
+        minWidth: emsize * 5,
         id: "mlogp"
       },
 
@@ -1225,7 +1230,7 @@ const phenotypeColumns = {
       Header: () => (
         <span title="posterior inclusion probability in FinnGen" style={{ textDecoration: 'underline' }}>PIP</span>),
       accessor: 'pip',
-      width: Math.min(60, 60 / maxTableWidth * window.innerWidth),
+      minWidth: 5 * emsize
       filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
       sortMethod: naSmallSorter,
       Cell: optionalCellScientificFormatter

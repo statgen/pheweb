@@ -21,7 +21,7 @@ const VariantLavaaPlot = ({ variantData } : Props) => {
   let result
   const display = lavaa?.display ?? defaultDisplay
   const plot = () => <Lavaa dataprop={variantData.results} colorByCategory={colorByCategory} />
-  const button = () => <button class="btn btn-primary" onClick={toggle} >{ showPlot? "hide lavaa plot" : "show lavaa plot" }</button>
+  const button = () => <button className="btn btn-primary" onClick={toggle} >{ showPlot? "hide lavaa plot" : "show lavaa plot" }</button>
   const content = () => <Fragment>
   	{ button () }
 	{ showPlot && plot() }

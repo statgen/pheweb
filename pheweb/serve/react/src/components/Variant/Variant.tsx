@@ -209,7 +209,7 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
 }
 
 const default_banner: string = `
-<div class="variant-info col-xs-12">
+<div className="variant-info col-xs-12">
         <h1 style="margin-top:0">
           {{summary.chrom}}:{{summary.pos}}:{{summary.ref}}:{{summary.alt}}
           {{#summary.rsids}}
