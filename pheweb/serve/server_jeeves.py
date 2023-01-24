@@ -540,26 +540,17 @@ class ServerJeeves(object):
         missing_columns = [a for a in required_columns if a not in data[0].keys()]
         missing_info = True if missing_columns == ["INFO"] else False
         if missing_columns not in [[],["INFO"]]:
-            msg = f"Error in server_jeeves.get_autoreport_variants: Missing columns {missing_columns}, when only INFO is allowed to be missing."
+            msg = f"Error in server_jeeves.get_autoreport_variants: Output of autoreporting_dao.get_group_variants is missing columns {missing_columns}, when only INFO is allowed to be missing. Check autoreporting db contents."
             print(msg)
             raise Exception(msg)
         #limit records to required columns
-        limited_data = []
-        for rec in data:
-            record = {}
-            for c in required_columns:
-                try:
-                    record[c] = rec[c]
-                except KeyError:
-                    if c == "INFO" and missing_info:
-                        record["INFO"] = "NA"
-                    else:
-                        raise
-            limited_data.append(record)
-        
+        limited_data = [
+            {c:record.get(c,"NA") for c in required_columns}
+            for record in data
+        ]
         #aggregate trait names by ;
         aggregated = {}
-        trait_merge_func = lambda a,b: ";".join(filter(lambda x: x != "NA" and x != "",[a,b]))
+        trait_merge_func = lambda a,b: ";".join( filter( lambda x: x != "NA" and x != "",set( (a,b) ) ) )
         for row in limited_data:
             if row["variant"] not in aggregated:
                 aggregated[row["variant"]] = row
