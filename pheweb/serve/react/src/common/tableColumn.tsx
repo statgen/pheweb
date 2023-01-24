@@ -1230,7 +1230,7 @@ const phenotypeColumns = {
       Header: () => (
         <span title="posterior inclusion probability in FinnGen" style={{ textDecoration: 'underline' }}>PIP</span>),
       accessor: 'pip',
-      minWidth: 5 * emsize
+      minWidth: 5 * emsize,
       filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
       sortMethod: naSmallSorter,
       Cell: optionalCellScientificFormatter
