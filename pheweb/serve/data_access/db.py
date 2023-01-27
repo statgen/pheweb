@@ -1813,20 +1813,7 @@ class AutoreportingDao(AutorepVariantDB):
         try:
             conn = self.get_connection()
             with conn.cursor(pymysql.cursors.DictCursor) as cursori:
-                if self.release == 5:
-                    sql = (
-                        "SELECT * , "
-                        " chrom chr , "
-                        " null af_alt , "
-                        " null af_alt_cases , "
-                        " GENOME_FI_enrichment_nfe_est af_alt_controls , "
-                        " FG_INFO INFO , "
-                        " null enrichment_nfsee "
-                        "FROM autoreporting_variants "
-                        "WHERE rel=%s AND phenotype=%s AND locus_id=%s"
-                    )
-                else:
-                    sql = "SELECT * FROM autoreporting_variants WHERE rel=%s AND phenotype=%s AND locus_id=%s"
+                sql = "SELECT * FROM autoreporting_variants WHERE rel=%s AND phenotype=%s AND locus_id=%s"
                 cursori.execute(sql, ["r{}".format(self.release), phenotype, locus_id])
                 result = cursori.fetchall()
             return result
