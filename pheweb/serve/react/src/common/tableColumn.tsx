@@ -29,7 +29,6 @@ function getSize(size = '1em', parent = document.body) {
  *
  */
 const emsize = getSize();
-console.log(emsize);
 
 export const pValueSentinel = 5e-324;
 

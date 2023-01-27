@@ -157,6 +157,7 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
   {
     const info = 'INFO' in annot ? annot['INFO'] : undefined
     if(annot && info){
+
       let infos : number[] = Object.keys(annot).filter(function(key) {
         return key.indexOf('INFO_') === 0
       })
@@ -164,9 +165,9 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
       .map(x => +x).filter(x => !isNaN(x));
       let [start, stop] = [ scientificFormatter(Math.min(...infos)),
                             scientificFormatter(Math.max(...infos))];
-      const filter = (key) => key.indexOf('AF_') === 0
+      const filter = (key) => key.indexOf('INFO_') === 0
       const reshape = (key) => {
-        return { key : key.replace(/AF_|\.calls|_Drem|_R[1-9]/g, ''), value : scientificFormatter(+annot[key]) }
+        return { key : key.replace(/INFO_|\.calls|_Drem|_R[1-9]/g, ''), value : scientificFormatter(+annot[key]) }
       }
       let properties = annot === undefined || annot === null ? []  : Object.keys(annot).filter(filter).map(reshape)
 
@@ -303,7 +304,7 @@ const default_banner: string = `
           <a target="_blank" href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&highlight=hg38.chr{{ chrom }}%3A{{ summary.pos }}-{{ summary.pos }}&position=chr{{ summary.chrom }}%3A{{ summary.posStart }}-{{ summary.posStop }}">UCSC</a>
 
           {{#summary.rsids.length}} , GWAS Catalog for {{/summary.rsids.length}}
-          {{#summary.rsids}} <a target="_blank" href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a> {{/summary.rsids}}
+          {{#summary.rsids}} <a target="_blank" href="https://www.ebi.ac.uk/gwas/search?query={{ . }}">{{.}}</a> {{/summary.rsids}}
           {{#summary.rsids.length}} , dbSNP for {{/summary.rsids.length}}
           {{#summary.rsids}}
           <a id="urlDbSNP" target="_blank" href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a>
@@ -360,8 +361,10 @@ const Variant = (props : Props) => {
           (async () => getEnsembl(rsid, (e: Ensembl.Data) => {
             if (e && e.mappings && e.mappings.length > 0) {
               const mapping: Ensembl.Mapping = e.mappings[0]
-              const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${variant.reference}-${variant.alternate}`
+	      variant.map(v => {
+	      const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${v.reference}-${v.alternate}`
               setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } })
+	      })
             }
           }))();
         });
