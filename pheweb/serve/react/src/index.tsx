@@ -40,6 +40,7 @@ if (typeof (element) !== 'undefined' && element != null) {
             <Route exact path='/notfound' component={NotFoundEntity('entity')} />
             <Route exact path='/lof' component={LoF} />
             <Route exact path='/chip' component={Chip} />
+            <Route exact path='/chip/:query' component={Chip} />
             <Route exact path='/coding' component={Coding} />
             <Route path='/variant/:variant' component={Variant} />
             <Route path='/pheno/:pheno' component={Pheno} />

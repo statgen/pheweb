@@ -47,7 +47,7 @@ const optionalCellScientificFormatter = (props) => isNaN(+props.value) ? props.v
 export const pValueCellFormatter = (props) => {
       const value = props.value;
       let result;
-      if(props.value == pValueSentinel){
+      if(props.value === pValueSentinel){
          result = ` << ${pValueSentinel}`
       } else if (typeof value === 'number') {
         result = value.toExponential(1)

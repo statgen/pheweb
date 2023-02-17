@@ -1,0 +1,69 @@
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600,700");
+
+body {
+  font-family: "Open Sans", sans-serif;
+  font-size: 0.8vw;
+}
+
+.__react_component_tooltip {
+  pointer-events: auto !important;
+}
+
+#reactEntry,
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+.maintable table {
+  width: "100%";
+  border: 0;
+}
+
+.maintable > tbody > tr:nth-of-type(even) {
+  background: #eeeeee;
+}
+
+th {
+  text-align: left;
+  white-space: nowrap;
+}
+
+td {
+  white-space: nowrap;
+}
+
+tr:hover {
+  font-weight: 700;
+}
+
+.title {
+  font-weight: bold;
+  align-self: center;
+}
+
+.buttonGroup {
+  padding-right: 20px;
+}
+
+.button {
+  background-color: white;
+  cursor: pointer;
+  border-color: black;
+}
+
+.input {
+  border-radius: 0px;
+  border-color: black;
+}
+
+.loading {
+  background-color: #dddddd;
+}
+
+.help {
+  font-weight: bold;
+  font-size: 1.5em;
+  cursor: help;
+}

@@ -82,7 +82,8 @@ setup(
         'SQLAlchemy~=1.3.19',
         'PyMySQL>=0.10.1',
         'mysqlclient>=2.0.1',
-        'smart_open[gcs]~=5.2.1'
+        'smart_open[gcs]~=5.2.1',
+        'tiledb==0.18.3',
     ],
     dependency_links=[
         'https://github.com/FINNGEN/finngen-common-data-model.git@7a3d457cdcccdbd7e8be173259150ec98e2737ad#egg=finngen_common_data_model'
