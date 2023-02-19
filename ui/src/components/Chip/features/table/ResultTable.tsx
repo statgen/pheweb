@@ -184,7 +184,7 @@ export const ResultTable = () => {
                     <img
                       style={{ maxWidth: "100%", maxHeight: "100%" }}
                       id="cplot"
-                      src={`/api/v1/cluster_plot/${e.value}`}
+                      src={`/api/v1/chip/cluster_plot/${e.value.replaceAll("-", "_")}`}
                     />
                   )}
                   data-for="tooltip-clusterplot"
