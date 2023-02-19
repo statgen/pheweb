@@ -101,8 +101,8 @@ RUN git config --system credential.'https://source.developers.google.com'.helper
 # ---- OPC
 
 # create react js bundle
-RUN cd /pheweb/pheweb/serve/react && npm install
-RUN cd /pheweb/pheweb/serve/react && npm run build
+RUN cd /pheweb/ui && npm install
+RUN cd /pheweb/ui && npm run build
 RUN cp -R /pheweb/pheweb/serve/static/* /usr/local/lib/python3.7/dist-packages/pheweb/serve/static/
 RUN rm -r /pheweb
 
