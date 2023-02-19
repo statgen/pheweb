@@ -12,7 +12,7 @@ const typedConfig: { [key: string]: any } = chipConfig;
 
 const Chip = (props : { } ) =>
   <Provider store={store}>
-  <div style={{ padding: "10px" }}>
+  <div className="chip">
         <div
           style={{
             display: "flex",
@@ -26,7 +26,7 @@ const Chip = (props : { } ) =>
             arrowColor="transparent"
             html={true}
           />
-          <div className={"container"}>
+          <div>
             <SearchForm />
             <ResultTable />
           </div>

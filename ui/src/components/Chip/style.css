@@ -1,68 +1,68 @@
 @import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600,700");
 
-body {
+.chip div {
   font-family: "Open Sans", sans-serif;
   font-size: 0.8vw;
+  padding: 10px;
 }
 
-.__react_component_tooltip {
+.chip .container {
+    margin-left: 10px;
+    margin-right: 10px;
+    width: 90% !important;
+}
+
+.chip .__react_component_tooltip {
   pointer-events: auto !important;
 }
 
-#reactEntry,
-html,
-body {
-  height: 100%;
-  margin: 0;
-}
-
-.maintable table {
-  width: "100%";
+.chipTable table {
+  width: 90%;
   border: 0;
 }
 
-.maintable > tbody > tr:nth-of-type(even) {
+.chipTable > tbody > tr:nth-of-type(even) {
   background: #eeeeee;
 }
 
-th {
+.chip th {
   text-align: left;
   white-space: nowrap;
 }
 
-td {
+.chip td {
   white-space: nowrap;
 }
 
-tr:hover {
+.chip tr:hover {
   font-weight: 700;
 }
 
-.title {
+.chip .title {
   font-weight: bold;
   align-self: center;
 }
 
-.buttonGroup {
+.chip .buttonGroup {
   padding-right: 20px;
 }
 
-.button {
+.chip .button {
   background-color: white;
   cursor: pointer;
   border-color: black;
 }
 
-.input {
+.chip .input {
   border-radius: 0px;
   border-color: black;
 }
 
-.loading {
+.chip .loading {
   background-color: #dddddd;
 }
 
-.help {
+.chip .help {
   font-weight: bold;
   font-size: 1.5em;
   cursor: help;

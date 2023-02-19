@@ -581,7 +581,7 @@ const phenotypeColumns = {
         }}
                            href={"https://risteys.finngen.fi/phenocode/" + props.value.replace("_EXALLC", "").replace("_EXMORE", "")}>RISTEYS</a>),
         Filter: ({ filter, onChange }) => null,
-        minWidth: 50
+        minWidth: emsize * 5
       },
     category:
       {

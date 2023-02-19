@@ -643,7 +643,7 @@ export const ResultTable = () => {
           arrowColor="transparent"
           html={true}
         />
-        <table className="maintable" {...getTableProps()}>
+        <table className="chipTable" {...getTableProps()}>
           <thead>
             {headerGroups.map((headerGroup) => (
               <tr {...headerGroup.getHeaderGroupProps()}>

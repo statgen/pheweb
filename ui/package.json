@@ -80,7 +80,7 @@
     "watch": "npm-watch",
     "test": "react-scripts test --env=jsdom",
     "start": "env-cmd -r env-cmdrc.json -e development react-scripts start",
-    "build": "env-cmd -r env-cmdrc.json -e production react-scripts build && cp -R build/* ../static/",
+    "build": "env-cmd -r env-cmdrc.json -e production react-scripts build && cp -R build/* ../pheweb/serve/static/",
     "eject": "react-scripts eject"
   },
   "author": "",
