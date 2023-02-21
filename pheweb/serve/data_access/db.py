@@ -32,6 +32,7 @@ import glob
 from pheweb_colocalization.model_db import ColocalizationDAO
 from .variant_phenotype_pip import  VariantPhenotypePipDao
 from ..components.chip.fs_storage import FileChipDAO
+from ..components.coding.fs_storage import FileCodingDAO
 from pathlib import Path
 from .drug_db import DrugDB, DrugDao
 from ..components.autocomplete.tries_dao import AutocompleterTriesDAO
