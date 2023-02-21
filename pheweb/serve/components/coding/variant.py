@@ -1,5 +1,5 @@
 import re
-from pheweb.serve.components.chip.exceptions import ParseException
+from pheweb.serve.components.coding.exceptions import ParseException
 
 var_re = re.compile('-|_|:|\\|')
 

@@ -5,7 +5,7 @@ import NotFoundEntity from './components/NotFound/NotFoundEntity'
 import Index from './components/Index/Index'
 import LoF from './components/LOF/LOF'
 import Chip from './components/Chip/ChipIndex'
-import Coding from './components/Coding/Coding'
+import Coding from './components/Coding/CodingIndex'
 import Variant from './components/Variant/Variant'
 import Pheno from './components/Pheno'
 import Region from './components/Region/RegionIndex'
@@ -40,8 +40,8 @@ if (typeof (element) !== 'undefined' && element != null) {
             <Route exact path='/notfound' component={NotFoundEntity('entity')} />
             <Route exact path='/lof' component={LoF} />
             <Route exact path='/chip' component={Chip} />
-            <Route exact path='/chip/:query' component={Chip} />
             <Route exact path='/coding' component={Coding} />
+            <Route exact path='/coding/:query' component={Coding} />
             <Route path='/variant/:variant' component={Variant} />
             <Route path='/pheno/:pheno' component={Pheno} />
             <Route path='/region/:region' component={Region} />

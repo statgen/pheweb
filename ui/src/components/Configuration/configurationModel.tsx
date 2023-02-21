@@ -1,5 +1,6 @@
 import { NotFoundConfiguration } from '../NotFound/notFoundModel'
 import { ChipConfiguration } from '../Chip/chipModel'
+import { CodingConfiguration } from '../Coding/codingModel'
 import { IndexConfiguration } from '../Index/indexModel'
 import { PhenotypeConfiguration } from '../Phenotype/phenotypeModel'
 import { AboutConfiguration } from '../About/aboutModel'
@@ -7,7 +8,6 @@ import { VariantConfiguration } from '../Variant/variantModel'
 import { TopHitsConfiguration } from '../TopHits/topHitsModel'
 import { Gene } from '../Gene/geneModel'
 import { LOFConfiguration } from '../LOF/lofModel'
-import { CodingConfiguration } from '../Coding/codingModel'
 import { Region } from '../Region/RegionModel'
 
 export interface ApplicationConfiguration {
@@ -17,7 +17,6 @@ export interface ApplicationConfiguration {
     vis_conf : object
     model : { locuszoomTooltip : string }
 }
-
 
 export interface ConfigurationUserInterface {
     application? : ApplicationConfiguration

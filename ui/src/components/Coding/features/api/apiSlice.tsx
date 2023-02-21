@@ -21,7 +21,7 @@ const query = (query) => query ?`/results/${query}`: '/top';
 
 export const apiSlice = createApi({
   reducerPath: "api",
-  baseQuery: fetchBaseQuery({ baseUrl: resolveURL("/api/v1/chip") }) as BaseQueryFn<
+  baseQuery: fetchBaseQuery({ baseUrl: resolveURL("/api/v1/coding") }) as BaseQueryFn<
     string | FetchArgs,
     unknown,
     ApiError,

@@ -1,4 +1,4 @@
-const chipConfig = {
+const codingConfig = {
   "title": "FinnGen freeze 10 coding variant results",
   "help": "FinnGen freeze 10 coding variant results<br/><br/>By default you will see top coding variant association results (all results with a p-value < 1e-5).<br/><br/>Search by gene name to get all results of coding variants in that gene for all analyzed binary phenotypes<br/>(more precisely variants whose most severe consequence from VEP annotation is for that gene).<br/>If you can't find your gene, try with another name.<br/><br/>The result table contains association statistics from additive and recessive analysis<br/>of imputed data (412,181 samples from the FinnGen chip and legacy data)<br/>and from additive analysis of chip genotyped data (328,883 samples from the FinnGen chip).<br/><br/>You can hover over the column names to see their explanations and sort the table by the different p-values and other columns.<br/>Hover over a variant id to see the cluster plot for that variant.<br/>Click on \"only top phenotype per variant\" to see only the top association for each variant.<br/>Click on \"only chip\" to see variants that are on the chip and not in the imputation panel.<br/><br/>Not all variants have results for all three analyses:<br/><br/><div style=\"padding-left: 20px\">Additive analysis results of imputed data are available for all variants in the SiSu4.2<br/>imputation panel with imputation INFO score &gt; 0.6 except for variants with a very low MAC<br/>among the cases and controls of each phenotype.<br/><br/>Recessive analysis results of imputed data are available for all variants with at least two<br/>hard-called minor allele homozygotes and imputation INFO score &gt; 0.6.<br/><br/>Additive analysis results of chip genotyped data are available for all variants that passed QC<br/>except for variants with a very low MAC among the cases and controls of each phenotype.</div>",
   "tip": {
@@ -19,4 +19,4 @@ const chipConfig = {
   }
 }
 
-export default chipConfig;
+export default codingConfig;

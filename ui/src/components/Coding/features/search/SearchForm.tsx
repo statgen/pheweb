@@ -5,9 +5,9 @@ import { useLocation, Link } from "react-router-dom";
 export const SearchForm = () => {
   const [value, setValue] = useState("");
 
-  const actionURL = value === ''?'/chip':`/chip/${value}`;
+  const actionURL = value === ''?'/coding':`/coding/${value}`;
   const { pathname } = useLocation();
-  const top = !pathname.startsWith("/chip/");
+  const top = !pathname.startsWith("/coding/");
 
   return (
     <div style={{ paddingBottom: "10px" }}>
@@ -29,7 +29,7 @@ export const SearchForm = () => {
       </form>
       <span style={{ padding: "20px" }}>or</span>
       <Link
-        to="/chip"
+        to="/coding"
         style={
           top ? { color: "#777777", cursor: "not-allowed" } : { color: "black" }
         }

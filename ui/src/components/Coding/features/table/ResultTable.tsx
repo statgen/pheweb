@@ -1,4 +1,4 @@
-// import chipConfig from
+// import codingConfig from
 // } from
 import * as React from "react";
 import { useMemo, useState } from "react";
@@ -14,7 +14,7 @@ import {
   Row,
   CellProps,
   FilterTypes,
-} from "react-table-chip";
+} from "react-table-coding";
 import ReactTooltip from "react-tooltip";
 import { useGetVariantResultsQuery } from "../api/apiSlice";
 import { TableProps, VariantResult } from "../../types/types";
@@ -28,9 +28,14 @@ import {
   filterLessThan,
   filterAbsGreaterThan,
 } from "./Filters";
-import config from "../../chipConfig";
 
-const typedConfig: { [key: string]: any } = config;
+import { ConfigurationWindow } from "../../../Configuration/configurationModel";
+import { resolveURL }          from "../../../Configuration/configurationModel";
+import { defaultConfig } from "../../codingModel";
+
+declare let window: ConfigurationWindow;
+
+const typedConfig: { [key: string]: any } = window?.config?.userInterface?.coding?.config || defaultConfig;
 
 const pval_repr = (mlogp: number) => {
   const p = Math.pow(10, -mlogp);
@@ -174,6 +179,7 @@ export const ResultTable = () => {
         width: 2,
         Filter: VariantFilter,
         Cell: (e: CellProps<VariantResult>) => {
+	  const src = resolveURL(`/api/v1/coding/cluster_plot/${e.value.replaceAll("-", "_")}`)
           if (e.cell.row.original.mlogp_chip) {
             return (
               <>
@@ -184,7 +190,7 @@ export const ResultTable = () => {
                     <img
                       style={{ maxWidth: "100%", maxHeight: "100%" }}
                       id="cplot"
-                      src={`/api/v1/chip/cluster_plot/${e.value.replaceAll("-", "_")}`}
+                      src={src}
                     />
                   )}
                   data-for="tooltip-clusterplot"
@@ -643,7 +649,7 @@ export const ResultTable = () => {
           arrowColor="transparent"
           html={true}
         />
-        <table className="chipTable" {...getTableProps()}>
+        <table className="codingTable" {...getTableProps()}>
           <thead>
             {headerGroups.map((headerGroup) => (
               <tr {...headerGroup.getHeaderGroupProps()}>

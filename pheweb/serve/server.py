@@ -38,6 +38,7 @@ from .server_auth import before_request
 from pheweb_colocalization.view import colocalization
 from .components.autocomplete.service import autocomplete
 from .components.chip.service import chip
+from .components.coding.service import coding
 from flask_cors import CORS
 
 import logging
@@ -123,6 +124,7 @@ app.jeeves = jeeves
 app.register_blueprint(colocalization)
 app.register_blueprint(autocomplete)
 app.register_blueprint(chip)
+app.register_blueprint(coding)
 
 
 # static resources
@@ -284,16 +286,6 @@ def api_pheno_qq(phenocode):
     if phenocode not in use_phenos:
         abort(404)
     return send_from_directory(common_filepaths['qq'](''), phenocode + '.json')
-
-@app.route('/api/coding_data')
-def coding_data():
-    data = [d for d in jeeves.coding() if d['pheno'] in use_phenos]
-    return jsonify(data)
-
-@app.route('/api/chip_data')
-def chip_data():
-    data = [d for d in jeeves.chip() if d['pheno'] in use_phenos]
-    return jsonify(data)
 
 @app.route('/api/ukbb_n/<phenocode>')
 def ukbb_ns(phenocode):
