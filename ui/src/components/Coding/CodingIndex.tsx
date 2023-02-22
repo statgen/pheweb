@@ -4,8 +4,12 @@ import { SearchForm } from "./features/search/SearchForm";
 import { ResultTable } from "./features/table/ResultTable";
 import store from "./app/store";
 import { Provider } from "react-redux";
+import { ConfigurationWindow } from "./../Configuration/configurationModel";
+import { defaultConfig } from "./codingModel";
 
 import './style.css';
+
+const config: { [key: string]: any } = window?.config?.userInterface?.coding?.config || defaultConfig;
 
 const Chip = (props : { } ) =>
   <Provider store={store}>
@@ -15,6 +19,7 @@ const Chip = (props : { } ) =>
             display: "flex",
             justifyContent: "space-between",
             paddingBottom: "10px",
+	    flexDirection: "column"
           }}
         >
           <ReactTooltip
@@ -23,6 +28,10 @@ const Chip = (props : { } ) =>
             arrowColor="transparent"
             html={true}
           />
+	  <div>
+	   <span className="title">{config.title}</span>
+           <span className="help" data-tip={config.help}>?</span>
+	  </div>
           <div>
             <SearchForm />
             <ResultTable />
