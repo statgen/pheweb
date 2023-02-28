@@ -37,6 +37,7 @@ from pathlib import Path
 from .drug_db import DrugDB, DrugDao
 from ..components.autocomplete.tries_dao import AutocompleterTriesDAO
 from ..components.autocomplete.sqlite_dao import AutocompleterSqliteDAO
+from ..components.autocomplete.mysql_dao import AutocompleterMYSQLDAO
 
 
 

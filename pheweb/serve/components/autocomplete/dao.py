@@ -22,4 +22,4 @@ class AutocompleterDAO:
         raise NotImplementedError
 
 """Max number of results to return"""
-QUERY_LIMIT = 10
+QUERY_LIMIT : int = 10

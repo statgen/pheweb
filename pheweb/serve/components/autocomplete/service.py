@@ -1,5 +1,5 @@
 import json
-from flask import Blueprint, current_app as app, g, request, jsonify
+from flask import Blueprint, current_app as app, g, request, jsonify, abort
 from .dao import AutocompleterDAO, QUERY_LIMIT
 
 
@@ -10,7 +10,7 @@ def get_dao(current_app=app) -> AutocompleterDAO:
     dao: typing.Optional[AutocompleterDAO] = current_app.jeeves.autocompleter
     if dao is None:
         result = None
-        abort(404, "Autocompleter not available")
+        abort(500, "Autocompleter not available")
     else:
         result = dao
     return result

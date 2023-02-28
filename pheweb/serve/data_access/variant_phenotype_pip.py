@@ -2,6 +2,7 @@ import importlib.machinery
 import typing
 import abc
 import pymysql
+from pheweb.serve.data_access.db_util import MysqlDAO
 from contextlib import closing
 
 class VariantPhenotypePipDB(object):
@@ -23,32 +24,11 @@ class VariantPhenotypePipDB(object):
         raise NotImplementedError
 
 
-def load_mysql_authentication(obj : object, authentication_file : str) -> object:
-    loader = importlib.machinery.SourceFileLoader('mysql_auth', authentication_file)
-    auth_module = loader.load_module()
-    obj.user = getattr(auth_module, 'mysql')['user']
-    obj.password = getattr(auth_module, 'mysql')['password']
-    obj.host = getattr(auth_module, 'mysql')['host']
-    obj.db = getattr(auth_module, "mysql")['db']
-    return obj
-
-
-class MysqlDAO:
-    def __init__(self, authentication_file : str):
-            self.authentication_file = authentication_file
-            load_mysql_authentication(self, self.authentication_file)
-
-    def get_connection(self):
-        return pymysql.connect(
-            host=self.host, user=self.user, password=self.password, db=self.db
-        )
-
-
 class VariantPhenotypePipDao(VariantPhenotypePipDB, MysqlDAO):
     """
-        Variant Phenotype DAO.
+        Variant Phenotype PIP DAO.
 
-        DAO for fetch drug data from open targets.
+        DAO to get pip data.
     """
     def __init__(self, authentication_file : str):
         super(VariantPhenotypePipDB, self).__init__(authentication_file=authentication_file)
