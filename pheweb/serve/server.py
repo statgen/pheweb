@@ -209,16 +209,13 @@ def api_variant(query):
         variantdat = jeeves.get_single_variant_data(v)
         if variantdat is None:
             die("Sorry, I couldn't find the variant {}".format(query))
-        variantdat = (variantdat[0], [pheno for pheno in variantdat[1] if pheno.phenocode in use_phenos])
+        variantdat = (variantdat[0], [pheno.json_rep() for pheno in variantdat[1] if pheno.phenocode in use_phenos])
         regions = jeeves.get_finemapped_regions(v)
         if regions is not None:
             regions = [region for region in regions if region['phenocode'] in use_phenos]
         result = { "variant" : variantdat[0] ,
                    "results" : variantdat[1] ,
-                   "regions" : regions ,
-                   "tooltip_lztemplate" : conf.parse.tooltip_lztemplate ,
-                   "var_top_pheno_export_fields" : conf.var_top_pheno_export_fields ,
-                   "vis_conf" : conf.vis_conf }
+                   "regions" : regions }
         return result
     except Exception as exc:
         die('Oh no, something went wrong', exc)
@@ -228,7 +225,7 @@ def api_pheno(phenocode):
     if phenocode not in use_phenos:
         abort(404)
     try:
-        return jeeves.get_pheno_manhattan(phenocode)
+        return json.loads(jeeves.get_pheno_manhattan(phenocode))
     except Exception as exc:
         die("Sorry, your manhattan request for phenocode {!r} didn't work".format(phenocode), exception=exc)
 

@@ -30,7 +30,7 @@ import subprocess
 import sys
 import glob
 from pheweb_colocalization.model_db import ColocalizationDAO
-from .variant_phenotype_pip import  VariantPhenotypePipDao
+from .variant_phenotype import  VariantPhenotypeDao
 from ..components.chip.fs_storage import FileChipDAO
 from ..components.coding.fs_storage import FileCodingDAO
 from pathlib import Path
@@ -38,9 +38,6 @@ from .drug_db import DrugDB, DrugDao
 from ..components.autocomplete.tries_dao import AutocompleterTriesDAO
 from ..components.autocomplete.sqlite_dao import AutocompleterSqliteDAO
 from ..components.autocomplete.mysql_dao import AutocompleterMYSQLDAO
-
-
-
 
 class JSONifiable(object):
     @abc.abstractmethod
@@ -142,7 +139,7 @@ class PhenoResult(JSONifiable):
         n_control,
         mlogp,
         n_sample=None,
-        pip=None
+        suplementary=None
     ):
         self.phenocode = phenocode
         self.phenostring = phenostring
@@ -159,8 +156,8 @@ class PhenoResult(JSONifiable):
         self.category_index = category_index
         self.n_case = n_case
         self.n_control = n_control
-        if pip is not None:
-            self.pip = pip
+        if suplementary is not None:
+            self.suplementary = suplementary
         if n_sample is None:
             self.n_sample = n_case + n_control
         else:
@@ -185,13 +182,16 @@ class PhenoResult(JSONifiable):
             else None
         )
 
-    def set_pip(self, pip : float):
-        if pip is not None:
-            self.pip = pip
+    def set_suplementary(self, suplementary):
+        if suplementary is not None:
+            self.spuplementary = suplementary
 
     def json_rep(self):
-        return self.__dict__
-
+        suplementary = {} if not hasattr(self, "suplementary") or self.suplementary is None else self.suplementary
+        rep = {**suplementary, **self.__dict__}
+        if "suplementary" in rep:
+            del rep["suplementary"]
+        return rep
 
 @attr.s
 class PhenoResults(JSONifiable):
@@ -1996,5 +1996,5 @@ class DataFactory(object):
     def get_chip_dao(self):
         return self.dao_impl["chip"] if "chip" in self.dao_impl else None
 
-    def get_variant_phenotype_pip_dao(self):
-        return self.dao_impl["variant_phenotype_pip"] if "variant_phenotype_pip" in self.dao_impl else None
+    def get_variant_phenotype_dao(self):
+        return self.dao_impl["variant_phenotype"] if "variant_phenotype" in self.dao_impl else None
