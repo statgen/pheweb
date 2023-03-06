@@ -36,7 +36,7 @@ class ServerJeeves(object):
         self.knownhits_dao = self.dbs_fact.get_knownhits_dao()
         self.autoreporting_dao = self.dbs_fact.get_autoreporting_dao()
         self.colocalization = self.dbs_fact.get_colocalization_dao()
-        self.variant_phenotype_pip = self.dbs_fact.get_variant_phenotype_pip_dao()
+        self.variant_phenotype = self.dbs_fact.get_variant_phenotype_dao()
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
         self.autocompleter = self.dbs_fact.get_autocompleter()
@@ -224,10 +224,10 @@ class ServerJeeves(object):
 
             phenos = [ p.phenocode for p in r[1]]
             ukb = self.ukbb_matrixdao.get_multiphenoresults( {variant:phenos} )
-            phenotype_pip = self.variant_phenotype_pip.get_variant_phenotype_pip(int(variant.chr),int(variant.pos),variant.ref,variant.alt) if self.variant_phenotype_pip else dict()
+            phenotype = self.variant_phenotype.get_variant_phenotype(int(variant.chr),int(variant.pos),variant.ref,variant.alt) if self.variant_phenotype else dict()
             for res in r[1]:
-                if res.phenocode in phenotype_pip:
-                    res.set_pip(phenotype_pip[res.phenocode])
+                if res.phenocode in phenotype:
+                    res.set_suplementary(phenotype[res.phenocode])
 
             if var in ukb:
                 ukb_idx = { u:u for u in ukb[var] }
