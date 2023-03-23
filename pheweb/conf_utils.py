@@ -872,8 +872,6 @@ def _ensure_conf():
     conf.set_default_value("lof_threshold", 1e-3)
     conf.set_default_value("noindex", True)
     conf.set_default_value("anno_cpra", True)
-    conf.set_default_value("show_ukbb", False)
-    conf.set_default_value("show_risteys", False)
     conf.set_default_value("lof_threshold", 1e-3)
     conf.set_default_value("GLOBAL_SITE_TAG_ID", None)
     conf.set_default_value("STRICT_SCHEMA", False)

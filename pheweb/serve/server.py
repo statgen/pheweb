@@ -73,40 +73,6 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 9
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 
-if 'GOOGLE_ANALYTICS_TRACKING_ID' in conf:
-    app.config['GOOGLE_ANALYTICS_TRACKING_ID'] = conf['GOOGLE_ANALYTICS_TRACKING_ID']
-if 'GLOBAL_SITE_TAG_ID' in conf:
-    app.config['GLOBAL_SITE_TAG_ID'] = conf['GLOBAL_SITE_TAG_ID']
-if 'SENTRY_DSN' in conf:
-    app.config['SENTRY_DSN'] = conf['SENTRY_DSN']
-app.config['PHEWEB_VERSION'] = pheweb_version
-app.config['browser'] = conf['browser']
-app.config['show_ukbb'] = conf['show_ukbb']
-app.config['show_risteys'] = conf['show_risteys']
-if 'noindex' in conf:
-    app.config['noindex'] = conf['noindex']
-app.config['release'] = conf['release']
-app.config['logo'] = conf['logo']
-if 'genome_build' in conf:
-    app.config['genome_build'] = conf['genome_build']
-else:
-    app.config['genome_build'] = 38
-
-app.config['release_prev'] = conf['release_prev']
-app.config['title'] = conf['title']
-app.config['page_title'] = conf['page_title']
-if 'endpoint_def' in conf:
-    app.config['endpoint_def'] = conf['endpoint_def']
-
-app.config['ukbb'] = False
-for c in conf.database_conf:
-    if 'coding' in c:
-        app.config['coding'] = True
-    if 'chip' in c:
-        app.config['chip'] = True
-    if 'externalresult' in c and 'ExternalFileResultDao' in c['externalresult']:
-        app.config['ukbb'] = True
-
 app.json_encoder = FGJSONEncoder
 
 if os.path.isdir(conf.custom_templates):
@@ -172,6 +138,11 @@ def homepage(path):
     else:
         return send_from_directory(app.static_folder, 'index.html')
 
+@app.route('/api/<path:path>')
+def api_404(path):
+   abort(404, description="Resource not found")
+
+    
 @app.route('/api/autoreport/<phenocode>')
 def autoreport(phenocode):
     return jsonify(jeeves.get_autoreport(phenocode))
@@ -307,13 +278,7 @@ def api_region_page(phenocode, region):
     pheno['phenocode'] = phenocode
     data = { 'pheno' : pheno ,
              'region' : region,
-             'cond_fm_regions' : cond_fm_regions ,
-             'tooltip_lztemplate' : conf.parse.tooltip_lztemplate,
-             'lz_conf' : conf.locuszoom_conf,
-             'ld_panel_version' : conf.ld_panel_version,
-             'vis_conf' : conf.vis_conf ,
-             'genome_build' : app.config['genome_build'] ,
-             'browser' : app.config['browser'] }
+             'cond_fm_regions' : cond_fm_regions }
     return jsonify(data)
 
 @app.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
@@ -385,14 +350,7 @@ def gene_api(genename):
                              "gene_symbol" : genename,
                              "region" : f'{chrom}-{start}-{end}',
                              "start" : start ,
-                             "end" : end ,
-                             "tooltip_lztemplate" : conf.parse.tooltip_lztemplate,
-                             "lz_conf" : conf.locuszoom_conf,
-                             "ld_panel_version" : conf.ld_panel_version,
-                             "gene_pheno_export_fields" : conf.gene_pheno_export_fields,
-                             "drug_export_fields" : conf.drug_export_fields,
-                             "lof_export_fields" : conf.lof_export_fields,
-                              "func_var_report_p_threshold" : conf.report_conf["func_var_assoc_threshold"] }
+                             "end" : end }
 
         return jsonify(gene_information)
     except Exception as exc:
