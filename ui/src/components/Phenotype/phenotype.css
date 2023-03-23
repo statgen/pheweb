@@ -1,0 +1,15 @@
+a.risteys {
+    font-size: 1.25rem;
+    padding: 0.25rem 0.5rem;
+    background-color: rgb(39, 121, 189);
+    color: rgb(255, 255, 255);
+    border-radius: 0.25rem;
+    font-weight: 700;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+}
+
+
+.phenotype-tab {
+    height: 100%;
+    width: 100%;
+}

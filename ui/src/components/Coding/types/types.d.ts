@@ -3,7 +3,7 @@ export type TableProps = {
 };
 
 export interface ApiError {
-  status: string;
+  status: number;
   data: {
     message: string;
     status: number;

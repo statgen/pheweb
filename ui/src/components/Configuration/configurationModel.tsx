@@ -10,12 +10,25 @@ import { Gene } from '../Gene/geneModel'
 import { LOFConfiguration } from '../LOF/lofModel'
 import { Region } from '../Region/RegionModel'
 
+
+export interface VisConfiguration {
+    readonly info_tooltip_threshold : number,
+    readonly loglog_threshold : number,
+    readonly manhattan_colors : string[]
+    readonly tooltip_template : string
+}
+
 export interface ApplicationConfiguration {
     readonly root? : string
-    title: string
-    logo : string
-    vis_conf : object
-    model : { locuszoomTooltip : string }
+    readonly title: string
+    readonly logo : string
+    readonly vis_conf : VisConfiguration
+    readonly ld_panel_version : string
+    readonly genome_build : number
+    readonly browser: string
+    readonly ld_service: string
+    readonly ld_server : string
+
 }
 
 export interface ConfigurationUserInterface {
@@ -32,7 +45,9 @@ export interface ConfigurationUserInterface {
     coding? : CodingConfiguration
     region? : Region.Configuration
 }
-export interface ConfigurationMetaData {}
+export interface ConfigurationMetaData {
+    genome_build : number
+}
 
 export interface ConfigurationWindow extends  Window {
     config? : { userInterface? : ConfigurationUserInterface

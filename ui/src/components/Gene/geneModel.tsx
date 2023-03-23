@@ -34,7 +34,7 @@ export namespace Gene {
   export interface Configuration {
     banner?: string
     phenotype? : GenePhenotypeConfiguration
-    lossOfFunction? | null : GeneLossOfFunctionConfiguration
+    lossOfFunction?  : GeneLossOfFunctionConfiguration | null
     functionalVariants? : GeneFunctionalVariants
     drugs? : DrugsConfiguration
     lz_config? : LzConfiguration
@@ -239,6 +239,13 @@ export namespace GenePhenotypes {
 
 
 }
+
+export interface GeneParams {
+  gene : string
+  phenotype : string
+}
+
+
 export namespace MyGene {
   export interface Data {
     took: number;

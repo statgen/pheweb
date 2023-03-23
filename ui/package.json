@@ -50,7 +50,7 @@
     "react-tooltip": "^4.2.21",
     "regenerator-runtime": "^0.13.9",
     "ts-loader": "^8.0.11",
-    "typescript": "^3.9.6",
+    "typescript": "^4.9.5",
     "underscore": "^1.13.2",
     "uuid": "^8.3.2",
     "validator": "^13.1.17"
@@ -81,7 +81,8 @@
     "test": "react-scripts test --env=jsdom",
     "start": "env-cmd -r env-cmdrc.json -e development react-scripts start",
     "build": "env-cmd -r env-cmdrc.json -e production react-scripts build && cp -R build/* ../pheweb/serve/static/",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "check-types": "tsc --noemit"
   },
   "author": "",
   "license": "ISC",
@@ -98,18 +99,10 @@
     ]
   },
   "standard": {
-    "ignore": [
-      "js/pheno.js",
-      "js/components/Variant.js",
-      "js/components/Pheno.js",
-      "js/components/Chip.js",
-      "js/components/Coding.js",
-      "js/components/index.js",
-      "js/components/Index.js",
-      "js/components/LoF.js",
-      "js/components/Pheno.js",
-      "js/components/Variant.js",
-      "js/tables.js"
+      "ignore": [
+	  "src/components/Pheno.js",
+	  "src/tables.js",
+	  "src/pheno.js"
     ]
   },
   "browserslist": {

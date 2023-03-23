@@ -79,7 +79,8 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
   const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
 
   const isNumber = function(d) { return typeof d == "number"; };
-  const mafs : number[] = variantData.results.map(function(v) {
+
+  const extractMAFS = (v) => {
     if (isNumber(v.maf_control))  { return v.maf_control; }
     else if ('af' in v && isNumber(v['af'])) { return v['af']; }
     else if ('af_alt' in v && isNumber(v['af_alt'])) { return v['af_alt']; }
@@ -90,7 +91,9 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
              v['ac'] !== 0 &&
              isNumber(v['num_samples'])) { return v['ac'] / v['num_samples']; }
     else { return undefined; }
-  });
+  };
+
+  const mafs : number[] = variantData.results.map(extractMAFS);
   const numPhenotypesWithMaf = mafs.filter(isNumber)
   const annot = variantData?.variant?.annotation?.annot
 

@@ -1,4 +1,5 @@
 import { Locus, locusFromStr } from "../../common/Model";
+import { VisConfiguration } from "../Configuration/configurationModel";
 
 export type DataSourceKeys = "association" | "conditional" | "finemapping" | "colocalization" |
     "gene" | "constraint" | "gwas_cat" | "clinvar" | "ld" | "recomb"
@@ -12,36 +13,15 @@ export interface Params { allData : { type : layout_types , data : unknown , con
     handlers : ((position : number | undefined) => void)[] | undefined
 };
 
-
-export interface RegionParameter {
-    readonly locus : Locus,
+export interface RegionParams<regionType = string> {
+    readonly locus : regionType,
     readonly phenotype : string ,
 };
 
-export const createParameter = (href : string = window.location.href) : RegionParameter | undefined  => {
-    const match = href.match("/region/([^/]+)/([^/]+)$")
-    if(match){
-        const [, phenotype, locusString ] : Array<string> = match;
-        const locus : Locus | undefined = locusFromStr(locusString)
-        return locus?{ phenotype, locus  } : undefined
-    }
+export const createParameter = (parameter : RegionParams) : RegionParams<Locus> | undefined  => {
+    const locus : Locus | undefined = locusFromStr(parameter.locus)
+    return locus?{ phenotype : parameter.phenotype, locus  } : undefined
 }
-
-export interface VisConf {
-    readonly info_tooltip_threshold : number,
-    readonly loglog_threshold : number,
-    readonly manhattan_colors : Array<string>
-}
-
-export interface LzConf {
-    readonly p_threshold : number
-    readonly assoc_fields: Array<string>,
-    readonly ld_ens_pop: string,
-    readonly ld_ens_window: number,
-    readonly ld_max_window: number,
-    readonly ld_service: string,
-    readonly prob_threshold: number,
-    readonly tooltip_html: string };
 
 export interface Phenotype {
     readonly num_cases: number,
@@ -51,17 +31,23 @@ export interface Phenotype {
     readonly phenostring: string,
     readonly category: string };
 
-
 export namespace Region {
-    export interface LzConfiguration {
-        tooltip_html? : string
-        assoc_fields? : string[]
-        ld_panel_version: string
-    }
+export interface LzConfiguration {
+    readonly p_threshold : number
+    readonly assoc_fields: Array<string>,
+    readonly ld_ens_pop: string,
+    readonly ld_ens_window: number,
+    readonly ld_max_window: number,
+    readonly ld_service: string,
+    readonly prob_threshold: number,
+    readonly ld_panel_version: string
+    readonly tooltip_html: string };
 
     export interface Configuration {
-        lz_config? : LzConfiguration
+        readonly vs_configuration? : VisConfiguration
+        readonly lz_configuration? : LzConfiguration
     }
+
 }
 
 export type layout_types = 'finemap' | 'susie' | 'association' | 'genes' | 'clinvar' | 'gwas_cat' | 'colocalization' | 'conditional'
@@ -74,17 +60,13 @@ export interface CondFMRegions {
     path: string,
     start: number,
     type: layout_types,
-    variants: string };
+    variants: string
+};
 
 export type cond_fm_regions_types = CondFMRegions [] | undefined | null;
 
 export interface Region {
     readonly pheno: Phenotype,
     readonly cond_fm_regions: cond_fm_regions_types;
-    readonly lz_conf : LzConf | undefined | null,
-    readonly ld_panel_version : string,
-    readonly vis_conf : VisConf,
-    readonly genome_build : number,
     readonly region: string,
-    readonly browser: string
 };

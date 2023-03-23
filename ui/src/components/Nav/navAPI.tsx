@@ -3,7 +3,7 @@ import { resolveURL } from "../Configuration/configurationModel";
 import { get , deleteRequest} from '../../common/Utilities'
 
 export const getAuthentication = (sink: (u: UserInformation) => void, getURL = get) : void => {
-    getURL(resolveURL(`/api/authentication`), sink)
+    getURL(resolveURL(`/api/authentication`), sink, (url : string) => (e : Error) =>  {})
 }
 
 

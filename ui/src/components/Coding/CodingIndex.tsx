@@ -9,9 +9,10 @@ import { defaultConfig } from "./codingModel";
 
 import './style.css';
 
+declare let window: ConfigurationWindow
 const config: { [key: string]: any } = window?.config?.userInterface?.coding?.config || defaultConfig;
 
-const Chip = (props : { } ) =>
+const Chip = () =>
   <Provider store={store}>
   <div className={"coding"}>
         <div

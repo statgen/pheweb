@@ -37,7 +37,7 @@ const processData = (phenocode : string,data  : PhenotypeVariantData) => {
     variant.phenocode = phenocode
     if (!variant.gnomad) {
       variant.fin_enrichment = -1
-    } else if (variant.gnomad.AF_fin === 0) {
+    } else if (+variant.gnomad.AF_fin === 0) {
       variant.fin_enrichment = 0
     } else if (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu'] === 0) {
       variant.fin_enrichment = 1e6

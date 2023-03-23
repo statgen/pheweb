@@ -1,14 +1,16 @@
 import React, { createContext, useEffect, useState } from "react";
-import { CasualVariant, Colocalization } from "../../../common/Model";
+import { CasualVariant, Colocalization, Locus } from "../../../common/Model";
 import { LocusZoomData, SearchSummary } from "./ColocalizationModel";
 import { getLocusZoomData, getSearchResults, getSummary } from "./ColocalizationAPI";
-import { createParameter, RegionParameter } from "../RegionModel";
+import { createParameter, RegionParams } from "../RegionModel";
 
-interface Props { children: React.ReactNode }
-
+interface Props {
+  readonly  children: React.ReactNode
+  readonly params : RegionParams
+}
 
 export interface ColocalizationState {
-    readonly parameter : RegionParameter
+    readonly parameter : RegionParams<Locus>
     readonly colocalization : Colocalization []
     readonly locusZoomData : LocusZoomData
     readonly searchSummary : SearchSummary
@@ -21,20 +23,20 @@ export interface ColocalizationState {
 export const ColocalizationContext = createContext<Partial<ColocalizationState>>({});
 
 
-const ColocalizationContextProvider = (props : Props) => {
+const ColocalizationContextProvider = ({ params , children} :  Props) => {
     const [colocalization, setColocalization] = useState<Colocalization[]| undefined>(undefined);
     const [locusZoomData, setLocusZoomData] = useState<LocusZoomData| undefined>(undefined);
     const [selectedColocalization, setSelectedColocalization] = useState<Colocalization | undefined>(undefined);
     const [searchSummary, setSearchSummary] = useState<SearchSummary | undefined>(undefined);
     const [casualVariant, selectedCasualVariant] = useState<CasualVariant | undefined>(undefined);
         useEffect(() => {
-        const parameter : RegionParameter| undefined = createParameter();
+        const parameter : RegionParams<Locus>| undefined = createParameter(params);
         getSearchResults(parameter, setColocalization);
         getLocusZoomData(parameter, setLocusZoomData);
         getSummary(parameter, setSearchSummary)
     },[]);
 
-    const parameter : RegionParameter| undefined = createParameter();
+    const parameter : RegionParams<Locus>| undefined = createParameter(params);
     return (<ColocalizationContext.Provider value={{ parameter ,
                                                      colocalization ,
                                                      locusZoomData ,
@@ -43,7 +45,7 @@ const ColocalizationContextProvider = (props : Props) => {
                                                      searchSummary,
                                                      casualVariant,
                                                      selectedCasualVariant }}>
-                {props.children}
+                { children }
             </ColocalizationContext.Provider>);
 }
 

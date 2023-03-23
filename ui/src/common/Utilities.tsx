@@ -44,7 +44,8 @@ export const get: <X>(url: string,
       if (response.status == 200) {
         return response.json();
       } else {
-        throw new Error(response.statusText);
+        const msg = `${response.statusText}`;
+        throw new Error(msg);
       }
     })
     .then(sink)
@@ -136,4 +137,5 @@ export const fatal = (msg : string, context : {} ={}) : never =>{
 
 export const warn = (msg : string, context : {} ={}) : void =>{
   console.warn(msg);
+  console.log(context);
 }

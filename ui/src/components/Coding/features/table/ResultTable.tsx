@@ -17,7 +17,7 @@ import {
 } from "react-table-coding";
 import ReactTooltip from "react-tooltip";
 import { useGetVariantResultsQuery } from "../api/apiSlice";
-import { TableProps, VariantResult } from "../../types/types";
+import { ApiError, TableProps, VariantResult } from "../../types/types";
 import {
   PhenoFilter,
   SearchFilter,
@@ -317,7 +317,7 @@ export const ResultTable = () => {
         Filter: NumberFilter,
         filter: filterAbsGreaterThan,
         Cell: ({ value }) => {
-          const repr = pval_repr(value);
+          const repr = typeof value === 'number' ? pval_repr(value) : 'NA';
           return (
             <span
               style={
@@ -326,7 +326,7 @@ export const ResultTable = () => {
                   : {}
               }
             >
-              {value == null ? "NA" : repr}
+              {repr}
             </span>
           );
         },
@@ -342,7 +342,7 @@ export const ResultTable = () => {
           const p = Math.pow(10, -value);
           let repr = p.toExponential(2);
           // in case of underflow hack the string together
-          if (p == 0) {
+          if (p == 0 && typeof value === 'number') {
             const digits =
               Math.round(1000 * Math.pow(10, -(value - Math.floor(value)))) /
               100;
@@ -367,7 +367,7 @@ export const ResultTable = () => {
           const p = Math.pow(10, -value);
           let repr = p.toExponential(2);
           // in case of underflow hack the string together
-          if (p == 0) {
+          if (p == 0 && typeof value === 'number') {
             const digits =
               Math.round(1000 * Math.pow(10, -(value - Math.floor(value)))) /
               100;
@@ -617,7 +617,7 @@ export const ResultTable = () => {
       </div>
     );
   } else if (isError) {
-    if(error.status == 404) {
+    if((error as ApiError).status === 404) {
       return <div style={{ height: "100%" }}>Not Found</div>;
     } else if ("data" in error!) {
       return <div style={{ height: "100%" }}>{error.status}</div>;

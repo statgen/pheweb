@@ -1,16 +1,15 @@
 import { TableColumnConfiguration } from '../../common/tableColumn'
 import { SortingRule } from 'react-table'
+import { VisConfiguration } from "../Configuration/configurationModel";
 
 export namespace Variant {
 
   export interface Data {
     regions:                     any[];
     results:                     Result[];
-    tooltip_lztemplate:          string;
     var_top_pheno_export_fields: string[];
     variant:                     Variant;
     variant_name:                string;
-    vis_conf:                    VisConf;
   }
 
   export interface Result {
@@ -61,14 +60,6 @@ export namespace Variant {
     nearest_gene: string;
     rsids:        string;
   }
-
-  export interface VisConf {
-    info_tooltip_threshold: number;
-    loglog_threshold:       number;
-    manhattan_colors:       string[];
-  }
-
-
 }
 
 export namespace Ensembl {
@@ -175,5 +166,5 @@ export interface VariantConfiguration {
     columns: TableColumnConfiguration<Variant.Result> ,
     defaultSorted : SortingRule<Variant.Result>[] }
   banner?: string;
-  locusZoom? : { toolTipHTML? : string }
+  locusZoom? : VisConfiguration
 }

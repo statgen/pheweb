@@ -5,6 +5,9 @@ import { Panel } from "locuszoom";
 import { LocusZoomContext } from "../LocusZoom/RegionLocus";
 import { updateMousehandler } from "../LocusZoom/MouseHandler";
 
+type colocalization_data_layers = { colocalization_pip1 : { data : any , render : () => void } ,
+                                    colocalization_pip2 : { data : any , render : () => void } }
+
 export const refreshLocusZoom = (setSelectedPosition : (position : number | undefined) => void,
                           colocalization : Colocalization | undefined,
                           locusZoomData : LocusZoomData,
@@ -23,12 +26,13 @@ export const refreshLocusZoom = (setSelectedPosition : (position : number | unde
     const data2 : CasualVariantVector = filterCasualVariantVector(row => row.beta2 != null && row.pip2 != null,data);
 
 
+    const data_layers : colocalization_data_layers = panel.data_layers as unknown as colocalization_data_layers;
     const render = () => {
-        panel.data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data1, params.fields, params.outnames, params.trans);
-        panel.data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data2, params.fields, params.outnames, params.trans);
+        data_layers.colocalization_pip1.data = dataSource.parseArraysToObjects(data1, params.fields, params.outnames, params.trans);
+        data_layers.colocalization_pip2.data = dataSource.parseArraysToObjects(data2, params.fields, params.outnames, params.trans);
 
-        panel.data_layers.colocalization_pip1.render();
-        panel.data_layers.colocalization_pip2.render();
+	data_layers.colocalization_pip1.render();
+	data_layers.colocalization_pip2.render();
         panel.render();
     }
 
@@ -43,4 +47,3 @@ export const refreshLocusZoom = (setSelectedPosition : (position : number | unde
     panel.on('data_rendered',  render);
     updateMousehandler(setSelectedPosition,dataSources,'colocalization');
 }
-

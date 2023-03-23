@@ -2,6 +2,8 @@ import { createCORSPromise, Data } from "locuszoom";
 // @ts-ignore
 import { defer, when } from "q";
 
+declare let LocusZoom : { Data : any };
+
 /* This is needed to override (locuszoom:1.0.0) assets/js/app/Data.js:666
  * for chromosome 23 as umich refers to this as 'X'.
  */
@@ -250,7 +252,7 @@ FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
   var url;
   chain.header.ldrefvar = topvar;
   if (this.params.region.lz_conf.ld_service.toLowerCase() === "finngen") {
-    var windowSize = Math.min(state.end - state.start + 10000, this.params.region.lz_conf.ld_max_window);
+    const windowSize = Math.min(state.end - state.start + 10000, this.params.region.lz_conf.ld_max_window);
     url = `${this.url}?variant=${topvar["association:chr"]}:${topvar["association:position"]}:${topvar["association:ref"]}:${topvar["association:alt"]}&window=${windowSize}&panel=${this.params.region.ld_panel_version}`;
 
   } else {

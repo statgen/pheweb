@@ -7,8 +7,8 @@ import LoF from './components/LOF/LOF'
 import Chip from './components/Chip/ChipIndex'
 import Coding from './components/Coding/CodingIndex'
 import Variant from './components/Variant/Variant'
-import Pheno from './components/Pheno'
-import Region from './components/Region/RegionIndex'
+import Pheno from './components/Phenotype/Phenotype'
+import Region from './components/Region/Region'
 import About from './components/About/About'
 import Gene from './components/Gene/Gene'
 import TopHits from './components/TopHits/TopsHits'
@@ -44,10 +44,10 @@ if (typeof (element) !== 'undefined' && element != null) {
             <Route exact path='/coding/:query' component={Coding} />
             <Route path='/variant/:variant' component={Variant} />
             <Route path='/pheno/:pheno' component={Pheno} />
-            <Route path='/region/:region' component={Region} />
+            <Route path='/region/:phenotype/:locus' component={Region} />
             <Route path='/about' component={About} />
             <Route path='/gene/:gene' component={Gene} />
-            <Route path='/gene/:gene/pheno/:pheno' component={Gene} />
+            <Route path='/gene/:gene/pheno/:phenotype' component={Gene} />
             <Route path='/top_hits' component={TopHits} />
             <Route component={NotFoundEntity('page')} />
           </Switch>

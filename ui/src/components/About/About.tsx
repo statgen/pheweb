@@ -11,7 +11,7 @@ interface Props {}
 
 const { config } = window;
 
-const About = (props : Props) => {
+const About = () => {
 
   const banner: string = config?.userInterface?.about?.banner || default_banner;
   return <div>

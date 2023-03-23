@@ -10,8 +10,8 @@ export const isLoading = (isLoading : boolean, content: () =>  JSX.Element) :  J
   }
 }
 
-export const hasError = (errorMessage : string | null, content:  JSX.Element) :  JSX.Element => {
-  if(errorMessage == null){
+export const hasError = (errorMessage : string | null | undefined, content:  JSX.Element) :  JSX.Element => {
+  if(errorMessage === null || errorMessage === undefined){
     return content
   } else {
     return <div><b>Error</b> : {errorMessage}</div>

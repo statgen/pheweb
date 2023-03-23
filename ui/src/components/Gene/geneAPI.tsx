@@ -1,4 +1,4 @@
-import { get } from "../../common/Utilities";
+import { get, Handler } from "../../common/Utilities";
 import { FunctionalVariants, GeneDrugs, GenePhenotypes, LossOfFunction, MyGene } from "./geneModel";
 import { resolveURL } from "../Configuration/configurationModel";
 
@@ -23,9 +23,11 @@ export const getLossOfFunction =(gene : string,
 
 export const getGenePhenotypes = (gene : string,
                                   sink: (s: GenePhenotypes.Data) => void,
+                                  setError: (s: string | null) => void,
                                   getURL = get) : void => {
+  const handler : Handler = (url : string) => (e : Error) => setError(`Loading gene '${gene}' ${e.message}`);
   const url = resolveURL(`/api/gene_phenos/${gene}`)
-  getURL(url, sink)
+  getURL(url, sink, handler)
 }
 
 export const getMyGene = (gene : string,

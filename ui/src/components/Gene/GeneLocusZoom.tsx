@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { Dashboard, DataSources, populate, positionIntToString } from "locuszoom";
+import { Dashboard, DataSources, populate, positionIntToString, Panel ,Layout } from "locuszoom";
 import { GeneContext, GeneState } from "./GeneContext";
 import loading from "../../common/Loading";
 import { resolveURL } from "../Configuration/configurationModel";
@@ -97,7 +97,7 @@ const lz_conf = {
 
 const ld_panel_version : string = lz_config?.ld_panel_version ||  "sisu3";
 
-const association_layout = (phenostring : string) => {
+const association_layout = (phenostring : string) :  Layout => {
   return {
     "id": "association",
     "title": {"text": phenostring, "x": 55, "y": 30},

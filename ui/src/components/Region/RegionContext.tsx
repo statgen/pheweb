@@ -1,13 +1,17 @@
-import { createParameter, Region, RegionParameter } from "./RegionModel";
+import { createParameter, Region, RegionParams } from "./RegionModel";
 import React, { createContext, useEffect, useState } from "react";
 import { LocusZoomContext } from "./LocusZoom/RegionLocus";
 import { getRegion } from "./RegionAPI";
+import { Locus } from "../../common/Model";
 
-interface Props { children: React.ReactNode }
+interface Props {
+  readonly  children: React.ReactNode
+  readonly params : RegionParams
+}
 
 export interface RegionState {
     readonly region : Region;
-    readonly regionParameter : RegionParameter;
+    readonly regionParameter : RegionParams<Locus>;
     readonly locusZoomContext : LocusZoomContext;
     readonly setLocusZoomContext : (locusZoomContext : LocusZoomContext) => void;
     readonly selectedPosition : number | undefined;
@@ -16,19 +20,19 @@ export interface RegionState {
 
 export const RegionContext = createContext<Partial<RegionState>>({});
 
-const RegionContextProvider = (props : Props) => {
+const RegionContextProvider = ({ params , children} : Props) => {
     const [region, setRegion] = useState<Region| undefined>(undefined);
     const [ locusZoomContext, setLocusZoomContext] = useState<LocusZoomContext | undefined>(undefined);
     const [ selectedPosition , setSelectedPosition] = useState<number | undefined>(undefined);
     useEffect(() => {
-      const parameter : RegionParameter| undefined = createParameter()
+      const parameter : RegionParams<Locus>| undefined = createParameter(params)
       getRegion(parameter,setRegion); },[]);
     return (<RegionContext.Provider value={{ region,
                                              locusZoomContext,
                                              setLocusZoomContext,
                                              selectedPosition,
                                              setSelectedPosition}}>
-        {props.children}
+        { children }
     </RegionContext.Provider>);
 
 }
