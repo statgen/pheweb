@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { Tab, TabList, TabPanel, Tabs } from 'react-tabs'
 import { PhenotypeContext, PhenotypeState } from "./PhenotypeContext";
 import VariantTable from './PhenotypeVariantTable';

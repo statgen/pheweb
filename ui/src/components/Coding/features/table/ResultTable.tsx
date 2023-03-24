@@ -1,7 +1,7 @@
 // import codingConfig from
 // } from
 import * as React from "react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import ReactDOMServer from "react-dom/server";
 import { useParams, useLocation } from "react-router-dom";
 import {
@@ -41,7 +41,7 @@ const pval_repr = (mlogp: number) => {
   const p = Math.pow(10, -mlogp);
   let repr = p.toExponential(2);
   // in case of underflow hack the string together
-  if (p == 0) {
+  if (p === 0) {
     const digits =
       Math.round(1000 * Math.pow(10, -(mlogp - Math.floor(mlogp)))) / 100;
     const exp = Math.ceil(mlogp);
@@ -132,7 +132,6 @@ export const ResultTable = () => {
     () => [
       {
         Header: "phenotype",
-        // @ts-ignore
         accessor: "pheno.name",
         filter: "phenoFilter",
         disableSortBy: true,
@@ -152,10 +151,9 @@ export const ResultTable = () => {
           return (
             <span>
               {arr}
-              <a
-                target="_blank"
-                href={`https://risteys.finngen.fi/phenocode/${e.cell.row.original.pheno.code}`}
-              >
+              <a target="_blank"
+                 href={`https://risteys.finngen.fi/phenocode/${e.cell.row.original.pheno.code}`}
+		 rel="noopener noreferrer">
                 {e.value}
               </a>
             </span>
@@ -165,8 +163,6 @@ export const ResultTable = () => {
       },
       {
         Header: "gene",
-        // @ts-ignore
-        // TODO how to not ignore these
         accessor: "anno.gene_most_severe",
         disableSortBy: true,
         width: 1,
@@ -188,6 +184,7 @@ export const ResultTable = () => {
                   data-html={true}
                   data-tip={ReactDOMServer.renderToString(
                     <img
+		      alt={src}
                       style={{ maxWidth: "100%", maxHeight: "100%" }}
                       id="cplot"
                       src={src}
@@ -218,7 +215,6 @@ export const ResultTable = () => {
       },
       {
         Header: "rsid",
-        // @ts-ignore
         accessor: "anno.rsid",
         disableSortBy: true,
         width: 2,
@@ -226,7 +222,6 @@ export const ResultTable = () => {
       },
       {
         Header: "consequence",
-        // @ts-ignore
         accessor: "anno.most_severe",
         disableSortBy: true,
         width: 2,
@@ -236,7 +231,6 @@ export const ResultTable = () => {
       },
       {
         Header: "resources",
-        // @ts-ignore
         accessor: "anno.chr", // an otherwise unused field needs to be used here
         width: 1,
         disableFilters: true,
@@ -249,6 +243,7 @@ export const ResultTable = () => {
                   ? { paddingRight: "5px" }
                   : { paddingRight: "5px", visibility: "hidden" }
               }
+	      rel="noopener noreferrer"
               target="_blank"
               href={`https://results.finngen.fi/variant/${e.cell.row.original.variant}`}
             >
@@ -257,12 +252,14 @@ export const ResultTable = () => {
             <a
               style={{ paddingRight: "5px" }}
               target="_blank"
+	      rel="noopener noreferrer"
               href={`https://gnomad.broadinstitute.org/variant/${e.cell.row.original.variant}?dataset=gnomad_r3`}
             >
               gn
             </a>
             <a
               target="_blank"
+	      rel="noopener noreferrer"
               href={`https://genetics.opentargets.org/variant/${e.cell.row.original.variant.replace(
                 /-/g,
                 "_"
@@ -275,7 +272,6 @@ export const ResultTable = () => {
       },
       {
         Header: "INFO",
-        // @ts-ignore
         accessor: "anno.INFO",
         width: 1,
         disableSortBy: true,
@@ -283,14 +279,13 @@ export const ResultTable = () => {
       },
       {
         Header: "MAF",
-        // @ts-ignore
         accessor: "anno.AF",
         sortType: naInfSort,
         width: 1,
         Filter: NumberFilter,
         filter: filterLessThan,
         Cell: ({ value }: { value: number | string }) =>
-          value == "NA"
+          value === "NA"
             ? "NA"
             : value < 0.5
             ? Number(value).toExponential(2)
@@ -298,14 +293,13 @@ export const ResultTable = () => {
       },
       {
         Header: "FIN enr.",
-        // @ts-ignore
         accessor: "anno.enrichment",
         sortType: naInfSort,
         width: 1,
         Filter: NumberFilter,
         filter: filterAbsGreaterThan,
         Cell: ({ value }: { value: number | string }) =>
-          value == "NA" || value == "inf"
+          value === "NA" || value === "inf"
             ? value
             : Number(value).toPrecision(3),
       },
@@ -342,7 +336,7 @@ export const ResultTable = () => {
           const p = Math.pow(10, -value);
           let repr = p.toExponential(2);
           // in case of underflow hack the string together
-          if (p == 0 && typeof value === 'number') {
+          if (p === 0 && typeof value === 'number') {
             const digits =
               Math.round(1000 * Math.pow(10, -(value - Math.floor(value)))) /
               100;
@@ -350,8 +344,8 @@ export const ResultTable = () => {
             repr = `${digits}e-${exp}`;
           }
           return (
-            <span style={value == null || p > 5e-8 ? { color: "#777777" } : {}}>
-              {value == null ? "NA" : repr}
+            <span style={value === null || p > 5e-8 ? { color: "#777777" } : {}}>
+              {value === null ? "NA" : repr}
             </span>
           );
         },
@@ -367,7 +361,7 @@ export const ResultTable = () => {
           const p = Math.pow(10, -value);
           let repr = p.toExponential(2);
           // in case of underflow hack the string together
-          if (p == 0 && typeof value === 'number') {
+          if (p === 0 && typeof value === 'number') {
             const digits =
               Math.round(1000 * Math.pow(10, -(value - Math.floor(value)))) /
               100;
@@ -469,7 +463,7 @@ export const ResultTable = () => {
               cols[0] = cols[0]
                 .split(":")
                 .map((f, i) => {
-                  return i == 0 && f == "23" ? "X" : f;
+                  return i === 0 && f === "23" ? "X" : f;
                 })
                 .join("-");
               const compare =
@@ -486,7 +480,7 @@ export const ResultTable = () => {
               <td style="padding-left: 10px">${pval_repr(
                 Number(cols[1])
               )}</td><td style="padding-left: 10px">${
-                cols[2] == "NA" ? cols[2] : Number(cols[2]).toPrecision(3)
+                cols[2] === "NA" ? cols[2] : Number(cols[2]).toPrecision(3)
               }</td>
               </tr>`;
             });
@@ -551,7 +545,6 @@ export const ResultTable = () => {
           });
         }
         return rows.filter((row) => {
-          // @ts-ignore
           const rowValue = row.values[id];
           return rowValue !== undefined
             ? String(rowValue)

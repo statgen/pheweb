@@ -19,7 +19,10 @@ const Logout = () => {
     const result = (currentUser === undefined)?
         <></>:
         <li className="nav-item">
-            <a className="nav-link" onClick={clickHandler} style={{color: '#333', fontWeight: 'bold'}}>Logout ( {currentUser.email} )</a>
+            <a href="."
+	       className="nav-link"
+	       onClick={clickHandler}
+	       style={{color: '#333', fontWeight: 'bold'}}>Logout ( {currentUser.email} )</a>
         </li>
     return result
 }

@@ -1,9 +1,7 @@
 import React, { createContext, useEffect, useState } from "react";
 import { CredibleSet, PhenotypeParams, PhenotypeVariantData, QQ } from "./phenotypeModel";
 import { Phenotype } from "../Index/indexModel";
-import { getUKBBN, getManhattan, getPhenotype, getGroup, getCredibleSets, getQQ } from "./phenotypeAPI";
-import { get } from "../../common/Utilities";
-import { resolveURL } from "../Configuration/configurationModel";
+import { getUKBBN, getManhattan, getPhenotype, getCredibleSets, getQQ } from "./phenotypeAPI";
 
 export interface PhenotypeState {
   phenotypeVariantData : PhenotypeVariantData
@@ -40,7 +38,7 @@ const PhenotypeContextProvider = (props : Props) => {
     getPhenotype(phenotypeCode, setPhenotype, setErrorMessage);
     getCredibleSets(phenotypeCode, setCredibleSets);
     getQQ(phenotypeCode, setQQ);;
-  },[setPhenotypeVariantData, setUKBBN, setPhenotype]);
+  },[setPhenotypeVariantData, setUKBBN, setPhenotype, phenotypeCode]);
 
   useEffect(() => {
     setLoading(phenotype=== undefined);

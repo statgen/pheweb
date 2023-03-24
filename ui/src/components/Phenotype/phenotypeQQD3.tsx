@@ -37,8 +37,8 @@ export const createQQPlot = (mafRanges : QQPlotParam[]) => {
   const runOnce = document.getElementById("qq_svg") != null;
   if(root == null || runOnce) return; // wait until page loaded
   console.log("createQQPlot");
-  const expMax = Math.max( ... mafRanges.map(range => Math.max(... range.qq.map(qq => qq[0]))))
-  const tmpMax = Math.max( ... mafRanges.map(range => Math.max(... range.qq.map(qq => qq[1]))))
+  const expMax = d3.max(mafRanges, function (maf_range) { return d3.max(maf_range.qq, (d) => d[0]) })
+  const tmpMax = d3.max(mafRanges, function (maf_range) { return d3.max(maf_range.qq, (d) => d[1]) })
 
   // Constrain obs_max in [exp_max, 9.01]. `9.01` preserves the tick `9`.
   const obsMax = Math.max(expMax, Math.min(9.01, tmpMax))
@@ -132,8 +132,8 @@ export const createQQPlot = (mafRanges : QQPlotParam[]) => {
 
   */
   // Axes
-  const xAxis = d3.
-  axisBottom(x_scale)
+  const xAxis = d3
+    .axisBottom(x_scale)
     .tickSizeInner(-plotHeight) // this approach to a grid is taken from <http://bl.ocks.org/hunzy/11110940>
     .tickSizeOuter(0)
     .tickPadding(7)
@@ -147,8 +147,8 @@ export const createQQPlot = (mafRanges : QQPlotParam[]) => {
     .attr('transform', `translate(0,${plotHeight})`)
     .call(xAxis)
 
-  var yAxis = d3.
-  axisLeft(y_scale)
+  var yAxis = d3
+    .axisLeft(y_scale)
     .tickSizeInner(-plotWidth)
     .tickSizeOuter(0)
     .tickPadding(7)

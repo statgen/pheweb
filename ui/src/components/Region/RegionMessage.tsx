@@ -1,5 +1,4 @@
-import React, { useContext } from "react";
-import { RegionContext, RegionState } from "./RegionContext";
+import React from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 
 interface Props {}

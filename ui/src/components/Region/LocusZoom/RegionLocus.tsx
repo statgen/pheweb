@@ -27,7 +27,6 @@ import { resolveURL } from "../../Configuration/configurationModel";
 declare let window: ConfigurationWindow;
 const { application } = window?.config;
 const { region : config } = window?.config?.userInterface;
-const lz_configuration : Region.LzConfiguration = { ... application , ... config?.lz_configuration , }
 
 TransformationFunctions.set<number,number>("neglog10_or_100", (x : number) => (x === 0)?100:-Math.log(x) / Math.LN10);
 TransformationFunctions.set<string | null | undefined,string>("na", (x: string | null | undefined) => x??"NA");
@@ -82,7 +81,6 @@ export function add_dashboard_button(name : string, func : (layout : ComponentsE
         Dashboard.Component.apply(this, arguments as any);
         this.update = function(){
             if (this.button)return this;
-            // @ts-ignore
             this.button = new Dashboard.Component.Button(this)
                 .setColor(layout.color).setText(layout.text).setTitle(layout.title)
                 .setOnclick(func(layout).bind(this));
@@ -183,7 +181,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
 	dataSources.add("ld", new FG_LDDataSource({url: resolveURL("/api/ld"),
 						   params: { id:[1,4] ,
 
-                   region : { region ,  ... default_configuration , ... application },
+                   region : { region ,  ...default_configuration , ...application },
                    pvalue_field: "association:pvalue",
 							     var_id_field: "association:id" }}));
     } else {
@@ -192,7 +190,7 @@ export const init_locus_zoom = (region : Region) : LocusZoomContext =>  {
 
 	dataSources.add("ld", new FG_LDDataSource({url: "https://rest.ensembl.org/ld/homo_sapiens/",
 							 params: { id:[1,4] ,
-								       region : { region ,  ... default_configuration , ... application },
+								       region : { region ,  ...default_configuration , ...application },
 								       pvalue_field: "association:pvalue",
 								       var_id_field: "association:rsid" }}));
     }

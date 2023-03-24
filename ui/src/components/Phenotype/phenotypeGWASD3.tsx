@@ -5,7 +5,7 @@ import * as d3 from 'd3'
 import { mustacheText } from '../../common/Utilities'
 import { numberFormatter, scientificFormatter } from '../../common/Formatter'
 import { ConfigurationWindow, VisConfiguration } from "../Configuration/configurationModel";
-import { QQPlotParam, UnbinnedVariant, VariantBin } from "./phenotypeModel";
+import { UnbinnedVariant, VariantBin } from "./phenotypeModel";
 import { ScaleOrdinal } from "d3";
 
 function fmt (format) {
@@ -53,8 +53,8 @@ const defaultVisConfiguration : VisConfiguration = {
         `
 }
 
-const vis_conf : VisConfiguration = { ... defaultVisConfiguration ,
-  ... (config?.userInterface?.phenotype?.vis_conf || {}) }
+const vis_conf : VisConfiguration = { ...defaultVisConfiguration ,
+                                      ...(config?.userInterface?.phenotype?.vis_conf || {}) }
 
 interface OffSets {
   chrom_extents: { } ,
@@ -184,11 +184,11 @@ const createGWASPlot = (phenotypeCode : string,
     const highest_plot_neglog10_pval = -1.03 *
       Math.min(Math.log10(significance_threshold * 0.8),
         (() => {
-          const bestUnbinnedPValue = Math.min(... unbinnedVariants.filter(d => d.pval !== undefined).map(d => (d.pScaled === 0) ? 1 : -d.pScaled))
+          const bestUnbinnedPValue : number = d3.min< UnbinnedVariant,number>(unbinnedVariants, (d) => (d.pScaled === 0) ? 1 : -d.pScaled);
           if(bestUnbinnedPValue === undefined){
-            return Math.max(... variantBins.map(b => + Math.max(... b.neglog10_pvals)))
+	              return d3.max<VariantBin,number>(variantBins,  (bin) => d3.max(bin.neglog10_pvals));
           } else {
-            return bestUnbinnedPValue;
+                return bestUnbinnedPValue;
           }
         })())
 

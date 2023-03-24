@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { Dashboard, DataSources, populate, positionIntToString, Panel ,Layout } from "locuszoom";
+import { Dashboard, DataSources, populate, positionIntToString, Layout } from "locuszoom";
 import { GeneContext, GeneState } from "./GeneContext";
 import loading from "../../common/Loading";
 import { resolveURL } from "../Configuration/configurationModel";

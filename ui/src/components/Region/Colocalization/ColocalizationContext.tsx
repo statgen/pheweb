@@ -34,7 +34,7 @@ const ColocalizationContextProvider = ({ params , children} :  Props) => {
         getSearchResults(parameter, setColocalization);
         getLocusZoomData(parameter, setLocusZoomData);
         getSummary(parameter, setSearchSummary)
-    },[]);
+    },[params]);
 
     const parameter : RegionParams<Locus>| undefined = createParameter(params);
     return (<ColocalizationContext.Provider value={{ parameter ,

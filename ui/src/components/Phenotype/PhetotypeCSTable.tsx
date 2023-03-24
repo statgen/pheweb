@@ -1,19 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
-import ReactTable  from "react-table";
+import ReactTable  from "react-table-v6";
 import { CSVLink } from "react-csv";
 import { csTableCols ,csInsideTableCols } from './../../common/tableColumn'
 import { PhenotypeContext, PhenotypeState } from "./PhenotypeContext";
 import { LocusGroupEntry } from "./phenotypeModel";
 import { getGroup } from "./phenotypeAPI";
-import { Column, SortingRule } from "react-table";
 
 interface Link extends HTMLAnchorElement { link : HTMLAnchorElement }
 
 const defaultSorted = [{ id: 'pval', desc: false }];
-const defaultSortedSubComponenet = [{ id: 'cs_prob', desc: true },
-                                    { id: 'functional_category', desc: false },
-                                    { id: 'trait_name', desc: false }];
-
 type LocusGroups =  { [locus_id: string]: LocusGroupEntry };
 
 const PhenotypeCSTable = () => {
@@ -55,7 +50,6 @@ const PhenotypeCSTable = () => {
   const subComponent = row => {
     const locus_id = row['original']['locus_id'];
     const data = getLocusGroupData(locus_id);
-    // @ts-ignore
     return <ReactTable data={data || [] }
                        loading={data == null}
                        columns={csInsideTableCols}
@@ -66,7 +60,6 @@ const PhenotypeCSTable = () => {
     />
   }
 
-  // @ts-ignore
   const reactTable = <ReactTable
     ref={setReactTableRef}
     data={credibleSets}

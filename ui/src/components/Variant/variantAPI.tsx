@@ -1,5 +1,5 @@
 import { Ensembl, NCBI, PubMed, Variant as ModelVariant } from "./variantModel";
-import { get, warn, Handler } from "../../common/Utilities";
+import { get, Handler } from "../../common/Utilities";
 import { Variant, variantToPheweb } from "../../common/Model";
 import { resolveURL } from "../Configuration/configurationModel";
 

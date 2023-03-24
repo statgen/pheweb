@@ -41,7 +41,7 @@ export const get: <X>(url: string,
 ) =>
   fetch(url)
     .then((response) => {
-      if (response.status == 200) {
+      if (response.status === 200) {
         return response.json();
       } else {
         const msg = `${response.statusText}`;
@@ -73,7 +73,7 @@ export const deleteRequest : <X>(url: string,
 ) =>
     fetch(url, { method : 'DELETE' })
         .then((response) => {
-          if (response.status == 200) {
+          if (response.status === 200) {
             return response.json();
           } else {
             throw new Error(response.statusText);

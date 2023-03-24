@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { isLoading } from "../../common/Loading";
 import { mustacheDiv } from "../../common/Utilities"
 import { ConfigurationWindow } from "../Configuration/configurationModel"
@@ -11,27 +11,27 @@ const default_banner = `
         {{phenostring}}
         </h2>
         <p>{{category}}</p>
-        
-        {{#risteys}}        
+
+        {{#risteys}}
         <p style="margin-bottom: 10px;">
-           <a href="https://risteys.finngen.fi/phenocode/{{.}}" 
-              target="_blank" 
+           <a href="https://risteys.finngen.fi/phenocode/{{.}}"
+              target="_blank"
               class="risteys">RISTEYS
            </a>
         </p>
         {{/risteys}}
-        
+
         <table class="column_spacing">
            <tbody>
               {{#num_cases}}
               <tr><td><b>{{.}}</b> cases</td></tr>
               {{/num_cases}}
-              
+
               {{#num_controls}}
               <tr><td><b>{{.}}</b> controls</td></tr>
               {{/num_controls}}
            </tbody>
-        </table>        
+        </table>
   `
 
 declare let window: ConfigurationWindow;
@@ -40,8 +40,8 @@ const banner: string = config?.userInterface?.phenotype?.banner || default_banne
 
 const PhenotypeBanner = (props : Props) => {
   const { phenotype } = useContext<Partial<PhenotypeState>>(PhenotypeContext);
-  const content = () => mustacheDiv<Phenotype>(default_banner, phenotype)
-  return isLoading(phenotype == null || phenotype == undefined,content);
+  const content = () => mustacheDiv<Phenotype>(banner, phenotype)
+  return isLoading(phenotype === null || phenotype === undefined,content);
 
 }
 

@@ -63,9 +63,7 @@ export const pValueCellFormatter = (props) => {
       return result;
 }
 
-const stringToCount= (a) => {
-    return a.split(";").filter(x=> x != 'NA').length
-}
+const stringToCount= (a) => a.split(";").filter(x=> x !== 'NA').length
 
 const truncateString = (s,l) => {
     return s.split(";").length > l ? s.split(";").slice(0,l).join(";")+"...": s
@@ -1562,10 +1560,10 @@ export const csInsideTableCols = [
 //},
 {Header: () => (<span title="Variant ID" style={{textDecoration: 'underline'}}>Variant ID</span>),
 accessor: 'variant',
-Cell: props => (<a href={"/variant/" +props.value.replace("chr","").replace(/_/g,"-")} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
+Cell: props => (<a href={"/variant/" +props.value.replace("chr","").replace(/_/g,"-")} target="_blank" rel="noopener noreferrer">{props.value.replace("chr","").replace(/_/g,":")}</a>),
 minWidth: 60,
-}, { ... phenotypeColumns.pValue , minWidth: 50,
-}, { ... phenotypeColumns.mlogp , minWidth: 50,
+}, { ...phenotypeColumns.pValue , minWidth: 50,
+}, { ...phenotypeColumns.mlogp , minWidth: 50,
 }, {
 Header: () => (<span title="effect size" style={{textDecoration: 'underline'}}>effect size</span>),
 accessor: 'beta',
@@ -1575,13 +1573,13 @@ minWidth: 50,
 }, {
 Header: () => (<span title="Gene" style={{textDecoration: 'underline'}}>Gene</span>),
 accessor: 'most_severe_gene',
-filterMethod: (filter, row) => row[filter.id] == +filter.value,
-Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value} target="_blank">{props.value}</a>):"NA",
+filterMethod: (filter, row) => row[filter.id] === +filter.value,
+Cell: props => props.value !== "NA" ? (<a href={"/gene/" + props.value} target="_blank" rel="noopener noreferrer">{props.value}</a>):"NA",
 minWidth: 50,
 }, {
 Header: () => (<span title="Consequence" style={{textDecoration: 'underline'}}>Consequence</span>),
 accessor: 'most_severe_consequence',
-filterMethod: (filter, row) => row[filter.id] == +filter.value,
+filterMethod: (filter, row) => row[filter.id] === +filter.value,
 Cell: props => props.value ,
 minWidth: 50,
 }, {
@@ -1623,7 +1621,7 @@ minWidth: 40
 }, {
 Header: () => (<span title="Functional Category" style={{textDecoration: 'underline'}}>Functional variant</span>),
 accessor: 'functional_category',
-filterMethod: (filter, row) => row[filter.id] == +filter.value,
+filterMethod: (filter, row) => row[filter.id] === +filter.value,
 Cell: props => props.value,
 minWidth: 40
 }, {
@@ -1645,23 +1643,22 @@ export const csTableCols = [{
     accessor: 'locus_id',
     filterMethod: (filter,rows) => {const fstr = "chr"+filter.value.replace("chr","").replace(/:/g,"_");return matchSorter(rows,fstr,{keys:[row => row[filter.id]]})},
     filterAll:true,
-    Cell: props => (<a href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank">{props.value.replace("chr","").replace(/_/g,":")}</a>),
-    //width: Math.min(270, 270/maxTableWidth*window.innerWidth),
+    Cell: props => (<a href={"/region/" + props.original.phenocode+"/"+regionBuilder(props.value,250000)} target="_blank" rel="noopener noreferrer">{props.value.replace("chr","").replace(/_/g,":")}</a>),
     minWidth: 60,
 },{
     Header: () => (<span title="CS quality" style={{textDecoration: 'underline'}}>CS quality</span>),
     accessor: 'good_cs',
-    filterMethod: (filter,row) => (filter.value=="true"?1:(filter.value=="false"?0:2)) == row[filter.id],
+    filterMethod: (filter,row) => (filter.value === "true"?1:(filter.value === "false"?0:2)) === row[filter.id],
     Cell: props => String(props.value),
     minWidth: 60,
 }, {
     Header: () => (<span title="chromosome" style={{textDecoration: 'underline'}}>chromosome</span>),
     accessor: 'chrom',
-    filterMethod: (filter,row) => filter.value == row[filter.id],
+    filterMethod: (filter,row) => filter.value === row[filter.id],
     Cell: props => props.value,
     minWidth: 50,
-}, { ... phenotypeColumns.pValue , minWidth: 50,
-}, { ... phenotypeColumns.mlogp , accessor: 'lead_mlogp',  minWidth: 50,
+}, { ...phenotypeColumns.pValue , minWidth: 50,
+}, { ...phenotypeColumns.mlogp , accessor: 'lead_mlogp',  minWidth: 50,
 }, {
     Header: () => (<span title="effect size (beta)" style={{textDecoration: 'underline'}}>effect size (beta)</span>),
     accessor: 'lead_beta',
@@ -1685,7 +1682,7 @@ export const csTableCols = [{
     accessor: 'lead_most_severe_gene',
     filterMethod: (filter,rows) => matchSorter(rows,filter.value,{keys:[row=>row[filter.id]]}),
     filterAll: true,
-    Cell: props => props.value != "NA" ? (<a href={"/gene/" + props.value} target="_blank">{props.value}</a>):"NA",
+    Cell: props => props.value !== "NA" ? (<a href={"/gene/" + props.value} target="_blank" rel="noopener noreferrer">{props.value}</a>):"NA",
     minWidth: 50,
 }, {
     Header: () => (<span title="number of coding variants in the credible set. Tooltip shows variant name, most severe consequence, R² to lead variant" style={{textDecoration: 'underline'}}># coding in cs</span>),

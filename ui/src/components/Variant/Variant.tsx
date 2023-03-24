@@ -357,7 +357,7 @@ const Variant = (props : Props) => {
       const variant = createVariant()
       const summary : VariantSummary | undefined = createVariantSummary(variantData)
       const rsids : string[] | undefined  = summary?.rsids
-      if(rsids === undefined || rsids === null || rsids.length == 0){
+      if(rsids === undefined || rsids === null || rsids.length === 0){
         setBioBankURL({});
       } else {
         rsids.forEach((rsid) => {
@@ -366,7 +366,8 @@ const Variant = (props : Props) => {
               const mapping: Ensembl.Mapping = e.mappings[0]
 	      variant.map(v => {
 	      const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${v.reference}-${v.alternate}`
-              setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } })
+              setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } });
+	      return v;
 	      })
             }
           }))();

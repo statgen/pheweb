@@ -181,7 +181,6 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
 
       const phewasPanel = Layouts.get("panel", "phewas",undefined);
       const sigDataLayer = phewasPanel.data_layers[0]; //significance line
-      const pvalDataLayer = phewasPanel.data_layers[1];
 
       const significanceThreshold = 0.05 / results.length;
       const neglog10SignificanceThreshold = -Math.log10(significanceThreshold);

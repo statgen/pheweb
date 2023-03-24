@@ -26,7 +26,7 @@ const RegionContextProvider = ({ params , children} : Props) => {
     const [ selectedPosition , setSelectedPosition] = useState<number | undefined>(undefined);
     useEffect(() => {
       const parameter : RegionParams<Locus>| undefined = createParameter(params)
-      getRegion(parameter,setRegion); },[]);
+      getRegion(parameter,setRegion); }, [params]);
     return (<RegionContext.Provider value={{ region,
                                              locusZoomContext,
                                              setLocusZoomContext,

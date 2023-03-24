@@ -1,6 +1,5 @@
 import { Colocalization } from "../../../common/Model";
 import { CasualVariantVector, EMPTY, filterCasualVariantVector, LocusZoomData } from "./ColocalizationModel";
-// @ts-ignore
 import { Panel } from "locuszoom";
 import { LocusZoomContext } from "../LocusZoom/RegionLocus";
 import { updateMousehandler } from "../LocusZoom/MouseHandler";

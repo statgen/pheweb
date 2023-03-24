@@ -1,5 +1,4 @@
 import { createCORSPromise, Data } from "locuszoom";
-// @ts-ignore
 import { defer, when } from "q";
 
 declare let LocusZoom : { Data : any };
@@ -13,7 +12,7 @@ export const UMichGeneSource = Data.Source.extend(function(init: any) {
 
 UMichGeneSource.prototype.getURL = function(state: { chr: string; start: string; end: string; }, chain: any, fields: any) {
   const analysis = chain.header.analysis || this.params.source || this.params.analysis;
-  const chr = +state.chr == 23 ? 'X' : state.chr;
+  const chr = +state.chr === 23 ? 'X' : state.chr;
   const url = `${this.url}?filter=source in ${analysis} and chrom eq '${chr}' and start le ${state.end} and end ge ${state.start}`;
   return url;
 };
@@ -25,7 +24,7 @@ export const GWASCatSource = Data.Source.extend(function(init: any) {
 }, "GWASCatSoureLZ");
 
 GWASCatSource.prototype.getURL = function(state: { chr: string; start: string; end: string; }, chain: any, fields: any) {
-  const chr = +state.chr == 23 ? 'X' : state.chr;
+  const chr = +state.chr === 23 ? 'X' : state.chr;
   return  `${this.url}results/?format=objects&filter=id in ${this.params.id} and chrom eq '${chr}' and pos ge ${state.start} and pos le ${state.end}`;
 };
 
@@ -65,7 +64,7 @@ ClinvarDataSource.prototype.getURL = function(state: any, chain: any, fields: an
 ClinvarDataSource.prototype.fetchRequest = function(state: any, chain: any, fields: any) {
 
   var url = this.getURL(state, chain, fields);
-  const chr = state.chr == '23' ? 'X' : state.chr;
+  const chr = state.chr === '23' ? 'X' : state.chr;
   const chrpos = this.params?.region?.genome_build === 37 ? "chrpos37" : "chrpos";
   var requrl = `${url}esearch.fcgi?db=clinvar&retmode=json&term=${chr}[chr]${state.start}:${state.end}[${chrpos}]%22clinsig%20pathogenic%22[Properties]&retmax=500`;
   return createCORSPromise("GET", requrl).then(function(resp: unknown) {
@@ -371,7 +370,6 @@ ConditionalSource.prototype.parseResponse = function(resp: string, chain: ChainR
   var res = this.params.allData;
   var lookup = {};
   for (var i = 0; i < chain.body.length; i++) {
-    // @ts-ignore
     lookup[chain.body[i]["id"]] = i;
   }
   for (var f = 0; f < this.params.trait_fields.length; f++) {
@@ -379,10 +377,8 @@ ConditionalSource.prototype.parseResponse = function(resp: string, chain: ChainR
     for (var r = 0; r < res.length; r++) {
       res[r].data[field] = [];
       for (var j = 0; j < res[r].data.id.length; j++) {
-        // @ts-ignore
         const idx = lookup[res[r].data.id[j]];
         if (idx !== undefined) {
-          // @ts-ignore
           res[r].data[field].push(chain.body[idx][field]);
         } else {
           res[r].data[field].push("n/a");
@@ -409,11 +405,9 @@ const ColocalizationSource = Data.Source.extend(function(init) {
   this.parseInit(init);
 }, "ColocalizationLZ");
 
-ColocalizationSource.prototype.getURL = function(// @ts-ignore
+ColocalizationSource.prototype.getURL = function(
   state: StateResponse,
-  // @ts-ignore
   chain: ChainResponse,
-  // @ts-ignore
   fields: string[]) {
   const that = this as { url: string };
   return that.url;

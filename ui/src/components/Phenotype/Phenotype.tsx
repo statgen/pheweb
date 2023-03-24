@@ -1,5 +1,4 @@
 import React, { useContext } from "react";
-import { ConfigurationWindow } from "../Configuration/configurationModel";
 import PhenotypeContextProvider, { PhenotypeContext, PhenotypeState } from "./PhenotypeContext";
 import PhenotypeBanner from "./PhenotypeBanner";
 import { RouteComponentProps } from "react-router-dom";
@@ -27,7 +26,7 @@ const PhenotypeContent = () => {
   <PhenotypeQQPlot/>
   </div>;
 
-  return hasError(errorMessage, isLoading(phenotype == null || phenotype == undefined, content));
+  return hasError(errorMessage, isLoading(phenotype === null || phenotype === undefined, content));
 
 }
 export default Phenotype;

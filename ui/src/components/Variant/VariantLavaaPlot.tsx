@@ -28,7 +28,7 @@ const VariantLavaaPlot = ({ variantData } : Props) => {
   </Fragment>
 
   if(display){
-    result = isLoading(colorByCategory == undefined,content)
+    result = isLoading(colorByCategory === undefined,content)
   } else {
     result = <></>
   }

@@ -1,7 +1,5 @@
 import React, { useContext, useEffect } from "react";
 import { PhenotypeContext, PhenotypeState } from "./PhenotypeContext";
-import { PhenotypeVariantData } from "./phenotypeModel";
-import { isLoading } from "../../common/Loading";
 import { createGWASPlot } from "./phenotypeGWASD3";
 
 const PhenotypeGWASPlot = () => {
