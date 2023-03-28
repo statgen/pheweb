@@ -369,35 +369,20 @@ class ServerJeeves(object):
             if region['end'] > max_end:
                 max_end = region['end']
             if region['type'] == 'susie':
-                if (self.conf.release in ['R3', 'R4', 'R5']):
-                    data = pd.read_csv(region['path'], sep='\t', compression='gzip')
-                    data.rename(columns={'chromosome': 'chr', 'allele1': 'ref', 'allele2': 'alt'}, inplace=True)
-                    format_chr = lambda chr : f"""chr{chr}:{region['start']}-{region['end']}"""
-                    chromosome_key = format_chr(region['chr'])
-                    chromosome_alt = format_chr(str(region['chr']).replace('23','X')) # hack to allow 23 and X
-                    data = data[((data.region == chromosome_key) | (data.region == chromosome_key)) & (data.cs > -1) & (data.prob > prob_threshold)]
-                    data['chr'] = data['chr'].str.replace('chr', '').replace('X','23')
-                    data['id'] = data['rsid'].str.replace('chr', '')
-                    data['id'] = data['id'].str.replace('_', ':', n=1).replace('X','23')
-                    data['id'] = data['id'].apply(lambda x: x[::-1]).str.replace('_', '/', n=1).apply(lambda x: x[::-1])
-                    data.prob = data.prob.round(3)
-                    data = data[['id', 'rsid', 'chr', 'position', 'ref', 'alt', 'maf', 'prob', 'cs']]
-                    ret.append({'type': region['type'], 'data': data.reset_index().to_dict(orient='list'), 'lastpage': None})
-                else:
-                    # TODO fix - chr X is 0 in the db, everything should be 23
-                    if region['chr'] == 0 or region['chr'] == 23:
-                        region['chr'] = 'X'
-                    data = pd.read_csv(region['path'], sep='\t')
-                    data.rename(columns={'chromosome': 'chr', 'allele1': 'ref', 'allele2': 'alt', 'v': 'id', 'cs_specific_prob': 'prob'}, inplace=True)
-                    data = data[(data.region == 'chr' + str(region['chr']) + ':' + str(region['start']) + '-' + str(region['end'])) & (data.prob > prob_threshold)]
-                    data['chr'] = data['chr'].str.replace('chr', '').replace('X','23')
-                    data['rsid'] = data['id']
-                    data['id'] = data['id'].str.replace(':', '_').replace('X','23')
-                    data['id'] = data['id'].str.replace('_', ':', n=1)
-                    data['id'] = data['id'].apply(lambda x: x[::-1]).str.replace('_', '/', n=1).apply(lambda x: x[::-1])
-                    data.prob = data.prob.round(3)
-                    data = data[['id', 'rsid', 'chr', 'position', 'ref', 'alt', 'maf', 'prob', 'cs']]
-                    ret.append({'type': region['type'], 'data': data.reset_index().to_dict(orient='list'), 'lastpage': None})
+                # TODO fix - chr X is 0 in the db, everything should be 23
+                if region['chr'] == 0 or region['chr'] == 23:
+                    region['chr'] = 'X'
+                data = pd.read_csv(region['path'], sep='\t')
+                data.rename(columns={'chromosome': 'chr', 'allele1': 'ref', 'allele2': 'alt', 'v': 'id', 'cs_specific_prob': 'prob'}, inplace=True)
+                data = data[(data.region == 'chr' + str(region['chr']) + ':' + str(region['start']) + '-' + str(region['end'])) & (data.prob > prob_threshold)]
+                data['chr'] = data['chr'].str.replace('chr', '').replace('X','23')
+                data['rsid'] = data['id']
+                data['id'] = data['id'].str.replace(':', '_').replace('X','23')
+                data['id'] = data['id'].str.replace('_', ':', n=1)
+                data['id'] = data['id'].apply(lambda x: x[::-1]).str.replace('_', '/', n=1).apply(lambda x: x[::-1])
+                data.prob = data.prob.round(3)
+                data = data[['id', 'rsid', 'chr', 'position', 'ref', 'alt', 'maf', 'prob', 'cs']]
+                ret.append({'type': region['type'], 'data': data.reset_index().to_dict(orient='list'), 'lastpage': None})
             elif region['type'] == 'finemap':
                 data = {'id': [], 'chr': [], 'position': [], 'ref': [], 'alt': [], 'prob': [], 'cs': []}
                 with open(region['path']) as f:
