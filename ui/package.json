@@ -83,7 +83,8 @@
     "start": "env-cmd -r env-cmdrc.json -e development react-scripts start",
     "build": "env-cmd -r env-cmdrc.json -e production react-scripts build && cp -R build/* ../pheweb/serve/static/",
     "eject": "react-scripts eject",
-    "check-types": "tsc --noemit"
+    "check-types": "tsc --noemit",
+    "prepare": "cd .. && husky install ui/.husky"
   },
   "author": "",
   "license": "ISC",

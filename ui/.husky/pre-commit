@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
-
-npm test
+cd ui
+[ -d "node_modules" ] && npm test -- --watchAll=false || echo "npm not installed skipping ..."
