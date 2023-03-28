@@ -1337,7 +1337,7 @@ const pqtColumns = {
     minWidth: columnWith(200)
   },
   pqtlCS: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>cs</span>),
+    Header: () => (<span style={{ textDecoration: "underline" }}>CS</span>),
     accessor: "cs",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: numberCellFormatter,
@@ -1346,7 +1346,6 @@ const pqtColumns = {
   pqtlVar: {
     Header: () => (<span style={{ textDecoration: "underline" }}>variant</span>),
     accessor: "v",
-    // filterMethod: (filter, row) => row[filter.id] == filter.value,
     sortMethod: variantSorter,
     filterMethod: (filter, row) => {
       return (row[filter.id].includes(filter.value));
@@ -1361,21 +1360,21 @@ const pqtColumns = {
     minWidth: columnWith(200)
   },
   pqtlCSProb: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>cs prob</span>),
+    Header: () => (<span style={{ textDecoration: "underline" }}>CS prob</span>),
     accessor: "cs_specific_prob",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
     Cell: scientificCellFormatter,
     maxWidth: columnWith(80)
   },
   pqtlCSLogBF: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>cs log10(bf)</span>),
+    Header: () => (<span style={{ textDecoration: "underline" }}>CS bayes factor (log10)</span>),
     accessor: "cs_log10bf",
     filterMethod: (filter, row) => row[filter.id] >= filter.value,
     Cell: scientificCellFormatter,
     minWidth: columnWith(80)
   },
   pqtlCSMinR2: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>cs_min_r2</span>),
+    Header: () => (<span style={{ textDecoration: "underline" }}>CS min r2</span>),
     accessor: "cs_min_r2",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: decimalCellFormatter,
@@ -1389,7 +1388,7 @@ const pqtColumns = {
     minWidth: columnWith(80)
   },
   pqtlPval: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>pval</span>),
+    Header: () => (<span style={{ textDecoration: "underline" }}>p-value</span>),
     accessor: "p",
     filterMethod: (filter, row) => row[filter.id] <= filter.value,
     Cell: pValueCellFormatter,
