@@ -39,6 +39,8 @@ from ..components.autocomplete.tries_dao import AutocompleterTriesDAO
 from ..components.autocomplete.sqlite_dao import AutocompleterSqliteDAO
 from ..components.autocomplete.mysql_dao import AutocompleterMYSQLDAO
 
+from .pqtl_colocalization import PqtlColocalisationDao
+
 class JSONifiable(object):
     @abc.abstractmethod
     def json_rep(self):
@@ -1998,3 +2000,6 @@ class DataFactory(object):
 
     def get_variant_phenotype_dao(self):
         return self.dao_impl["variant_phenotype"] if "variant_phenotype" in self.dao_impl else None
+
+    def get_pqtl_colocalization_dao(self):
+        return self.dao_impl["pqtl_colocalization"] if "pqtl_colocalization" in self.dao_impl else None
