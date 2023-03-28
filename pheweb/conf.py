@@ -164,6 +164,7 @@ def get_top_hits_pval_cutoff() -> float: return _get_config_float('top_hits_pval
 
 ## Pheno correlation config
 def should_show_correlations() -> bool: return _get_config_bool('show_correlations', False)
+def pval_is_neglog10() -> bool: return _get_config_bool('pval_is_neglog10', False)
 def get_pheno_correlations_pvalue_threshold() -> float: return _get_config_float('pheno_correlations_pvalue_threshold', 0.05)
 
 
