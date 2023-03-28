@@ -1,15 +1,21 @@
 /* eslint-env jest */
 import { createSummary } from "./GeneBanner";
+import { MyGene } from "./geneModel";
 
 test('createSummary', () => {
-  const match =
-    {"MIM":"604655","_id":"9020","_score":91.48833,"ensembl":[{"gene":"ENSG00000006062"},{"gene":"ENSG00000282637"}],"entrezgene":"9020","name":"mitogen-activated protein kinase kinase kinase 14","summary":"This gene encodes mitogen-activated protein kinase kinase kinase 14, which is a serine/threonine protein-kinase. This kinase binds to TRAF2 and stimulates NF-kappaB activity. It shares sequence similarity with several other MAPKK kinases. It participates in an NF-kappaB-inducing signalling cascade common to receptors of the tumour-necrosis/nerve-growth factor (TNF/NGF) family and to the interleukin-1 type-I receptor. [provided by RefSeq, Jul 2008].","symbol":"MAP3K14"};
-  const hits = { hits : [{"_id":"100133991","_score":103.37414,"entrezgene":"100133991","name":"MAP3K14 antisense RNA 1","symbol":"MAP3K14-AS1"},
-                {"_id":"ENSG00000267278","_score":103.37414,"ensembl":{"gene":"ENSG00000267278"},"name":"MAP3K14 antisense RNA 1","symbol":"MAP3K14-AS1"},
-                match] };
+  const match  = {"MIM":"191170",
+                  "_id":"7157",
+                  "_score":90.133484,
+                  "ensembl":{"gene":"ENSG00000141510"},
+                  "entrezgene":"7157",
+                  "name":"tumor protein p53",
+                  "summary":"This gene encodes a tumor suppressor protein containing transcriptional activation, DNA binding, and oligomerization domains. The encoded protein responds to diverse cellular stresses to regulate expression of target genes, thereby inducing cell cycle arrest, apoptosis, senescence, DNA repair, or changes in metabolism. Mutations in this gene are associated with a variety of human cancers, including hereditary cancers such as Li-Fraumeni syndrome. Alternative splicing of this gene and the use of alternate promoters result in multiple transcript variants and isoforms. Additional isoforms have also been shown to result from the use of alternate translation initiation codons from identical transcript variants (PMIDs: 12032546, 20937277). [provided by RefSeq, Dec 2016].",
+                  "symbol":"TP53"};
+
+  const hits : MyGene.Data = {"took":29,
+    "total":394,"max_score":90.133484,"hits":[ match] };
   expect(createSummary("APOE", null)).toStrictEqual({"symbol": "APOE"})
-  expect(createSummary("APOE", [])).toStrictEqual({"symbol": "APOE"})
   expect(createSummary("APOE", hits)).toStrictEqual({"symbol": "APOE"})
-  expect(createSummary("MAP3K14", hits)).toStrictEqual(match)
+  expect(createSummary("TP53", hits)).toStrictEqual(match)
   expect(createSummary("MAP3K14-X", hits)).toStrictEqual({ "symbol" : "MAP3K14-X"})
 })

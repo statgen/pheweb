@@ -7,7 +7,6 @@
     "@reduxjs/toolkit": "^1.4.0",
     "@types/d3": "^5.7.2",
     "@types/es6-promise": "^3.3.0",
-    "@types/handlebars": "^4.1.0",
     "@types/jquery": "^3.5.0",
     "@types/mustache": "^4.1.2",
     "@types/node": "^14.0.23",
@@ -41,7 +40,7 @@
     "react-dom-coding": "npm:react@^17.0.2",
     "react-plotly.js": "^2.5.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "^3.3.0",
+    "react-scripts": "^5.0.1",
     "react-select": "^5.3.0",
     "react-table": "^6.8.6",
     "react-table-coding": "npm:react-table@^7.7.0",
@@ -59,6 +58,7 @@
     "@testing-library/react": "^12.1.2",
     "@types/enzyme": "^3.10.7",
     "@types/enzyme-adapter-react-16": "^1.0.6",
+    "@types/jest": "^29.5.0",
     "@types/q": "^1.5.4",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
@@ -67,6 +67,7 @@
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",
     "enzyme-to-json": "^3.6.2",
+    "husky": "^8.0.3",
     "prettier": "2.5.0",
     "react-redux": "^7.2.1",
     "react-test-renderer": "^16.13.1",
@@ -78,7 +79,7 @@
   },
   "scripts": {
     "watch": "npm-watch",
-    "test": "react-scripts test --env=jsdom",
+    "test": "react-scripts test",
     "start": "env-cmd -r env-cmdrc.json -e development react-scripts start",
     "build": "env-cmd -r env-cmdrc.json -e production react-scripts build && cp -R build/* ../pheweb/serve/static/",
     "eject": "react-scripts eject",
@@ -87,10 +88,7 @@
   "author": "",
   "license": "ISC",
   "eslintConfig": {
-    "rules": {
-      "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": "error"
-    }
+    "rules": {}
   },
   "standardx": {
     "parser": "@typescript-eslint/parser",
@@ -99,10 +97,10 @@
     ]
   },
   "standard": {
-      "ignore": [
-	  "src/components/Pheno.js",
-	  "src/tables.js",
-	  "src/pheno.js"
+    "ignore": [
+      "src/components/Pheno.js",
+      "src/tables.js",
+      "src/pheno.js"
     ]
   },
   "browserslist": {

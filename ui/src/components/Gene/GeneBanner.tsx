@@ -1,10 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { mustacheDiv } from "../../common/Utilities";
+import { mustacheDiv } from "../../common/commonUtilities";
 import { MyGene } from "./geneModel";
 import { getMyGene } from "./geneAPI";
 import { GeneContext, GeneState } from "./GeneContext";
-import loading from "../../common/Loading";
+import commonLoading from "../../common/CommonLoading";
 
 const default_banner: string = `
 
@@ -94,7 +94,7 @@ const GeneBanner = () => {
   useEffect(() => { getMyGene(gene,setMyGeneData); },[gene]);
 
   if(myGeneData == null){
-    return loading
+    return commonLoading
   } else {
     const summary : SummaryType = createSummary(gene, myGeneData)
     return mustacheDiv(banner, { summary })

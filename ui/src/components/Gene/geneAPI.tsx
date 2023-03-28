@@ -1,4 +1,4 @@
-import { get, Handler } from "../../common/Utilities";
+import { get, Handler } from "../../common/commonUtilities";
 import { FunctionalVariants, GeneDrugs, GenePhenotypes, LossOfFunction, MyGene } from "./geneModel";
 import { resolveURL } from "../Configuration/configurationModel";
 

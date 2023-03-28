@@ -1,8 +1,8 @@
 import { Column, HeaderProps, Renderer } from "react-table";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import { variantFromStr, variantToPheweb, variantToStr } from "./Model";
-import { scientificFormatter, shortNumberFormatter } from "./Formatter";
+import { variantFromStr, variantToPheweb, variantToStr } from "./commonModel";
+import { scientificFormatter, shortNumberFormatter } from "./commonFormatter";
 import { LabelKeyObject , Headers } from "react-csv/components/CommonPropTypes";
 import matchSorter from 'match-sorter';
 

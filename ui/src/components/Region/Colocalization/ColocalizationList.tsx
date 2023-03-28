@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
-import { CasualVariant, Colocalization, variantToStr } from "../../../common/Model";
+import { CasualVariant, Colocalization, variantToStr } from "../../../common/commonModel";
 import ReactTable, { Cell, Column, Row } from "react-table-v6";
 import { ColocalizationContext, ColocalizationState } from "./ColocalizationContext";
 import selectTableHOC from "react-table/lib/hoc/selectTable";
 import { CSVLink } from "react-csv";
-import { cellNumber, cellText, variantLink } from "../../../common/Formatter";
-import { compose } from "../../../common/Utilities";
+import { cellNumber, cellText, variantLink } from "../../../common/commonFormatter";
+import { compose } from "../../../common/commonUtilities";
 import { refreshLocusZoom } from "./ColocalizationLocusZoom";
 import { RegionContext, RegionState } from "../RegionContext";
 

@@ -10,8 +10,8 @@ import {
   variantFromStr,
   variantToPheweb,
   variantToStr
-} from "./Model";
-import { variantLink } from "./Formatter";
+} from "./commonModel";
+import { variantLink } from "./commonFormatter";
 
 test('serialize variant 1', () => {
   const variant : Variant = { chromosome: 1, position: 1, reference: 'A', alternate: 'G' }

@@ -1,6 +1,6 @@
 import { Ensembl, NCBI, PubMed, Variant as ModelVariant } from "./variantModel";
-import { get, Handler } from "../../common/Utilities";
-import { Variant, variantToPheweb } from "../../common/Model";
+import { get, Handler } from "../../common/commonUtilities";
+import { Variant, variantToPheweb } from "../../common/commonModel";
 import { resolveURL } from "../Configuration/configurationModel";
 
 export const getVariant= (variant: Variant,

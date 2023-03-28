@@ -1,6 +1,6 @@
 import React from 'react'
 import { ConfigurationWindow } from '../../components/Configuration/configurationModel'
-import { mustacheSpan } from '../../common/Utilities'
+import { mustacheSpan } from '../../common/commonUtilities'
 import Search from './Search'
 import Logout from './Logout'
 

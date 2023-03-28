@@ -1,10 +1,10 @@
 import React from "react";
 
-const loading:  JSX.Element = <div>... loading ...</div>
+const commonLoading:  JSX.Element = <div>... loading ...</div>
 
 export const isLoading = (isLoading : boolean, content: () =>  JSX.Element) :  JSX.Element => {
   if (isLoading) {
-    return loading;
+    return commonLoading;
   } else {
     return content();
   }
@@ -17,4 +17,4 @@ export const hasError = (errorMessage : string | null | undefined, content:  JSX
     return <div><b>Error</b> : {errorMessage}</div>
   }
 }
-export default loading
+export default commonLoading

@@ -1,9 +1,11 @@
-import { mustacheDiv } from "../../common/Utilities";
+import React from "react";
+import { mustacheDiv } from "../../common/commonUtilities";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { NotFoundReferentType } from "./notFoundModel";
 
 interface Props {
-  location: { search: string }
+  location?: { search?: string };
+  referentType?: NotFoundReferentType;
 }
 interface QueryResult {}
 
@@ -16,16 +18,26 @@ const default_message_template: string = `
       </p>
       `;
 
-const NotFoundEntity = (referentType : NotFoundReferentType) => (props: Props) => {
-  const { config } = window;
-  const query = new URLSearchParams(props.location.search).get("query") || window.location.pathname;
-  // NOTE: Empty value is set by backtick quotes and not mustache
+const NotFoundEntity =
+  (referentType: NotFoundReferentType) =>
+  ({ location }: Props) => {
+    const { config } = window;
+    const query =
+      (location?.search &&
+        new URLSearchParams(location?.search).get("query")) ||
+      window.location.pathname;
+    // NOTE: Empty value is set by backtick quotes and not mustache
 
-  const message_template: string =
-    config?.userInterface?.notFound?.[referentType]?.message ||
-    default_message_template;
-  const parameters = { query };
-  return mustacheDiv(message_template, parameters);
-}
+    const message_template: string =
+      (referentType &&
+        config?.userInterface?.notFound?.[referentType]?.message) ||
+      default_message_template;
+    const parameters = { query };
+    return (
+      <React.Fragment>
+        {mustacheDiv(message_template, parameters)}
+      </React.Fragment>
+    );
+  };
 
 export default NotFoundEntity;

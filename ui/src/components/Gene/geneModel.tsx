@@ -1,4 +1,4 @@
-import { TableColumnConfiguration } from "../../common/tableColumn";
+import { TableColumnConfiguration } from "../../common/commonTableColumn";
 
 export namespace Gene {
 

@@ -1,5 +1,5 @@
 import React from "react";
-import * as Handlebars from "handlebars";
+import * as Handlebars from "handlebars/dist/cjs/handlebars";
 
 /**
  * Compose fuction

@@ -1,4 +1,4 @@
-import { TableColumnConfiguration } from "../../common/tableColumn";
+import { TableColumnConfiguration } from "../../common/commonTableColumn";
 import { SortingRule } from "react-table";
 import { VisConfiguration } from "../Configuration/configurationModel";
 
@@ -27,7 +27,7 @@ export interface CredibleSet {
   pval: number
   ukbb_beta: string
   ukbb_pval: string
-};
+}
 
 export interface QQPlotParam {
   maf_range:  number[]

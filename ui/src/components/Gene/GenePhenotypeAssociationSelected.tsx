@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { GeneContext, GeneState } from "./GeneContext";
-import { mustacheDiv } from "../../common/Utilities";
+import { mustacheDiv } from "../../common/commonUtilities";
 
 interface Props {}
 

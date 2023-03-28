@@ -606,7 +606,7 @@ export const ResultTable = () => {
   } else if (isFetching) {
     return (
       <div className="loading" style={{ height: "100%" }}>
-        loading...
+        commonLoading...
       </div>
     );
   } else if (isError) {

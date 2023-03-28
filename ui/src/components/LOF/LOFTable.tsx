@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { LOF } from "./lofModel";
-import { createTableColumns, LOFTableColumns } from "../../common/tableColumn";
+import { createTableColumns, LOFTableColumns } from "../../common/commonTableColumn";
 import { Column } from "react-table";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
-import loading from "../../common/Loading";
+import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
+import commonLoading from "../../common/CommonLoading";
 import { getLOF } from "./lofAPI";
 
 declare let window: ConfigurationWindow;
@@ -29,7 +29,7 @@ const LOFTable = () => {
 
   let body
   if(tableData == null) {
-    body = loading
+    body = commonLoading
   } else {
     const prop : DownloadTableProps<LOF.Data , LOF.GeneData> = {
       filename,
@@ -39,7 +39,7 @@ const LOFTable = () => {
       tableProperties,
       defaultSorted
     }
-    body = <DownloadTable {...prop} />
+    body = <CommonDownloadTable {...prop} />
   }
   return body
 }

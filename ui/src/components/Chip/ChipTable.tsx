@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ReactTable from "react-table-v6";
 import { fetchData, setData, State } from "./features/chipTableSlice";
-import { chipTableColumns, createTableColumns } from "../../common/tableColumn";
-import { mustacheDiv } from "../../common/Utilities";
+import { chipTableColumns, createTableColumns } from "../../common/commonTableColumn";
+import { mustacheDiv } from "../../common/commonUtilities";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import loading from "../../common/Loading";
+import commonLoading from "../../common/CommonLoading";
 
 
 declare let window: ConfigurationWindow;
@@ -31,13 +31,13 @@ export const Table = (props : Props) => {
       const stored = sessionStorage.getItem(`${props?.match?.params?.data}`);
       if (stored) {
         dispatch(setData(JSON.parse(stored)));
-      } else if (data?.status !== "loading") {
+      } else if (data?.status !== "commonLoading") {
         dispatch(fetchData(`/api/v1/chip_data`));
       }
     }
   }, [props, data, dispatch]);
 
-  return !data?.data ? loading
+  return !data?.data ? commonLoading
         :
           <div style={{ width: "100%" }}>
               {mustacheDiv(banner, {})}

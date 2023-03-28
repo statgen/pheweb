@@ -6,9 +6,9 @@ declare module 'locuszoom' {
 	right: number;
 	bottom: number;
 	left: number;
-    };
+    }
 
-    export interface Origin { x: number; y: number; };
+    export interface Origin { x: number; y: number; }
 
     export class Dashboard { constructor(parent: Plot| Panel);
 	                     destroy(force: boolean): Dashboard;
@@ -118,7 +118,7 @@ declare module 'locuszoom' {
 	render(): void;
 	show(): void;
 
-    };
+    }
 
     export class Panel {
 	title?: LayoutTitle

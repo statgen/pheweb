@@ -13,14 +13,16 @@ declare let window: ConfigurationWindow;
 test("not found includes search term", () => {
   const uuid = v4();
   const search = `?query=${uuid}`;
-  const wrapper = mount(<NotFoundEntity location={{ search }} />);
+  const Temp = NotFoundEntity("entity");
+  const wrapper = mount(<Temp location={{ search }} />);
   const text = wrapper.text();
   //expect(text).toContain(uuid);
 });
 
 test("not found missing search term", () => {
   const search = `noquery`;
-  const wrapper = mount(<NotFoundEntity location={{ search }} />);
+  const Temp = NotFoundEntity("entity");
+  const wrapper = mount(<Temp location={{ search }} />);
   //expect(wrapper.text()).toContain("empty query");
 });
 
@@ -29,11 +31,12 @@ test("not found includes search term : configured", () => {
   const salt = v4();
 
   window.config = {
-    userInterface: { notFound: { message: `{{query}} : ${salt}` } },
+    userInterface: { notFound: { page: { message: `{{query}} : ${salt}` } } },
   };
 
   const search = `?query=${uuid}`;
-  const wrapper = mount(<NotFoundEntity location={{ search }} />);
+  const Temp = NotFoundEntity("entity");
+  const wrapper = mount(<Temp location={{ search }} />);
   //expect(wrapper.text()).toContain(uuid);
   //expect(wrapper.text()).toContain(salt);
 });

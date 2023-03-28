@@ -1,7 +1,7 @@
 import React, { Fragment, useContext, useState } from "react"
 import { LavaaConfiguration, Variant } from "./variantModel"
 import { VariantContext, VariantState } from "./VariantContext"
-import { isLoading } from "../../common/Loading"
+import { isLoading } from "../../common/CommonLoading"
 import { Lavaa } from "lavaa"
 import { ConfigurationWindow } from "../Configuration/configurationModel"
 

@@ -1,8 +1,8 @@
 import { Phenotype } from "../Index/indexModel";
-import { compose, get, Handler } from "../../common/Utilities";
+import { compose, get, Handler } from "../../common/commonUtilities";
 import { CredibleSet, LocusGroupEntry, PhenotypeVariantData, QQ } from "./phenotypeModel";
 import { resolveURL } from "../Configuration/configurationModel";
-import { pValueSentinel } from "../../common/tableColumn";
+import { pValueSentinel } from "../../common/commonTableColumn";
 
 const reshapeManhattan = (phenotypeCode: string) =>(data : PhenotypeVariantData) : PhenotypeVariantData => {
   if(data === null || data === undefined) return data;

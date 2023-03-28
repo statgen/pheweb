@@ -1,6 +1,6 @@
 import { useContext } from "react";
-import { isLoading } from "../../common/Loading";
-import { mustacheDiv } from "../../common/Utilities"
+import { isLoading } from "../../common/CommonLoading";
+import { mustacheDiv } from "../../common/commonUtilities"
 import { ConfigurationWindow } from "../Configuration/configurationModel"
 import { PhenotypeContext, PhenotypeState } from "./PhenotypeContext";
 import { Phenotype } from "../Index/indexModel";

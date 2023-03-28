@@ -1,7 +1,7 @@
 import { LocusZoomData, SearchResults, searchResultsColocalization, SearchSummary } from "./ColocalizationModel";
 import { RegionParams } from "../RegionModel";
-import { Colocalization, Locus } from "../../../common/Model";
-import { compose, get } from "../../../common/Utilities";
+import { Colocalization, Locus } from "../../../common/commonModel";
+import { compose, get } from "../../../common/commonUtilities";
 import { resolveURL } from "../../Configuration/configurationModel";
 
 /**

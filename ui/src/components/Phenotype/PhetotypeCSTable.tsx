@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import ReactTable  from "react-table-v6";
 import { CSVLink } from "react-csv";
-import { csTableCols ,csInsideTableCols } from './../../common/tableColumn'
+import { csTableCols ,csInsideTableCols } from '../../common/commonTableColumn'
 import { PhenotypeContext, PhenotypeState } from "./PhenotypeContext";
 import { LocusGroupEntry } from "./phenotypeModel";
 import { getGroup } from "./phenotypeAPI";

@@ -49,7 +49,7 @@ const userInterface = {
     banner: `
     <h2 style="margin-top: 0;">
         {{phenostring}}
-        </h2>
+       </h2>
         <p>{{category}}</p>
         <p style="margin-bottom: 10px;">
         <a style="
@@ -94,18 +94,17 @@ const userInterface = {
       ]
     }
   },
-  gene: { lossOfFunction: null , lz_config : { ld_panel_version : "sisu4" } }
+  gene: { lossOfFunction: null , lz_config : { ld_panel_version : "sisu42" } }
 }
 const metaData = {}
 const application = {
+    ld_service : "http://api.finngen.fi/api/ld",
     vis_conf : { info_tooltip_threshold:0.8,
 		 loglog_threshold:10,
 		 manhattan_colors:["rgb(53,0,212)","rgb(40, 40, 40)"] },
     genome_build : 37,
     browser: "pheweb-dev" ,
-    ld_service: "finngen" ,
-    ld_server: "http://api.finngen.fi",
-    ld_panel_version : "sisu4",
+    ld_panel_version : "sisu42",
     logo: '<img src="/images/finngen_loop1.gif" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px">',
     title: 'FREEZE 9 BETA',
     root: 'http://localhost:8081',

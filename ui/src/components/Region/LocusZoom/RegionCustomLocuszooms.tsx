@@ -1,5 +1,6 @@
 import { createCORSPromise, Data } from "locuszoom";
 import { defer, when } from "q";
+import { isFinngenServer } from "../../Finngen/finngenUtilities";
 
 declare let LocusZoom : { Data : any };
 
@@ -30,7 +31,7 @@ GWASCatSource.prototype.getURL = function(state: { chr: string; start: string; e
 
 GWASCatSource.prototype.parseResponse = function(resp: string, chain: { header: Object }, fields: string[], outnames: string[], trans: ((v: any) => any)[]) {
 
-  var res: { data: any[] } = { data: [] };
+  let res: { data: any[] } = { data: [] };
   try {
     res = JSON.parse(resp);
   } catch (e) {
@@ -40,7 +41,7 @@ GWASCatSource.prototype.parseResponse = function(resp: string, chain: { header: 
 
   if (res.data.length === 0) {
     // gotta have mock variant in correct format so LD search does not internal server error
-    var dat = outnames.reduce(function(acc: any, curr: any, i: number) {
+    const dat = outnames.reduce(function(acc: any, curr: any, i: number) {
       acc[curr] = "0:0_a/t";
       return acc;
     }, {});
@@ -63,16 +64,16 @@ ClinvarDataSource.prototype.getURL = function(state: any, chain: any, fields: an
 
 ClinvarDataSource.prototype.fetchRequest = function(state: any, chain: any, fields: any) {
 
-  var url = this.getURL(state, chain, fields);
+  const url = this.getURL(state, chain, fields);
   const chr = state.chr === '23' ? 'X' : state.chr;
   const chrpos = this.params?.region?.genome_build === 37 ? "chrpos37" : "chrpos";
-  var requrl = `${url}esearch.fcgi?db=clinvar&retmode=json&term=${chr}[chr]${state.start}:${state.end}[${chrpos}]%22clinsig%20pathogenic%22[Properties]&retmax=500`;
+  const requrl = `${url}esearch.fcgi?db=clinvar&retmode=json&term=${chr}[chr]${state.start}:${state.end}[${chrpos}]%22clinsig%20pathogenic%22[Properties]&retmax=500`;
   return createCORSPromise("GET", requrl).then(function(resp: unknown) {
 
-      var data = JSON.parse(resp as string);
+      const data = JSON.parse(resp as string);
 
       if (+data.esearchresult.count === 0) {
-        var res = defer();
+        const res = defer();
         res.resolve("{ \"noresults\":\"\",\"pos\":" + state.start + " }");
         return res.promise;
       }
@@ -95,14 +96,14 @@ ClinvarDataSource.prototype.parseResponse = function(resp: string, chain, fields
   if (resp === "") {
     // locuszoom does not show even axis titles if there are no data visible.
     // make a mock element with id-1 which is set to invisible in the layout
-    var dat = fields.reduce(function(acc, curr, i) {
+    const dat = fields.reduce(function(acc, curr, i) {
       acc[curr] = -1;
       return acc;
     }, {});
     return { header: chain.header, body: [dat] };
   }
 
-  var data = JSON.parse(resp);
+  const data = JSON.parse(resp);
 
   if (data.noresults != null) {
     // locuszoom does not show even axis titles if there are no data visible.
@@ -154,7 +155,7 @@ ClinvarDataSource.prototype.parseResponse = function(resp: string, chain, fields
       }).join(":");
       const y = 5;
       const id = val.uid;
-      const clinvar_id = chr + ":" + start + "_" + ref + "/" + alt;
+      const clinvar_id = `${chr}:${start}_${ref}/${alt}`;
       const object = {
         start,
         stop,
@@ -245,12 +246,13 @@ FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
     return extremeIdx;
   };
 
-  var extremeIdx = findExtremeValue(chain.body, this.params.pvalue_field, -1);
-  var topvar = chain.body[extremeIdx];
-  var refvar = topvar[this.params.var_id_field];
-  var url;
+  const extremeIdx = findExtremeValue(chain.body, this.params.pvalue_field, -1);
+  const topvar = chain.body[extremeIdx];
+  const refvar = topvar[this.params.var_id_field];
+  let url : string;
   chain.header.ldrefvar = topvar;
-  if (this.params.region.lz_conf.ld_service.toLowerCase() === "finngen") {
+  console.log(this.params.region.lz_conf.ld_service);
+  if (isFinngenServer(this.params.region.lz_conf.ld_service)) {
     const windowSize = Math.min(state.end - state.start + 10000, this.params.region.lz_conf.ld_max_window);
     url = `${this.url}?variant=${topvar["association:chr"]}:${topvar["association:position"]}:${topvar["association:ref"]}:${topvar["association:alt"]}&window=${windowSize}&panel=${this.params.region.ld_panel_version}`;
 
@@ -269,7 +271,7 @@ FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames
   if (!resp) return chain;
 
   var res;
-  if (this.params.region.lz_conf.ld_service.toLowerCase() === "finngen") {
+  if (isFinngenServer(this.params.region.lz_conf.ld_service)) {
     res = JSON.parse(resp)["ld"];
   } else {
     res = JSON.parse(resp);
@@ -288,7 +290,7 @@ FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames
   for (var bodyIndex = 0; bodyIndex < chain.body.length; bodyIndex++) {
     var d, isref;
 
-    if (this.params.region.lz_conf.ld_service.toLowerCase() === "finngen") {
+    if (isFinngenServer(this.params.region.lz_conf.ld_service)) {
       d = lookup[chain.body[bodyIndex][this.params.var_id_field].replace("_", ":").replace("/", ":").replace(/^23:/, "X:")];
       isref = chain.header.ldrefvar[this.params.var_id_field] === chain.body[bodyIndex][this.params.var_id_field] ? 1 : 0;
     } else {
@@ -306,7 +308,7 @@ FG_LDDataSource.prototype.parseResponse = function(resp, chain, fields, outnames
       chain.body[bodyIndex][reffield] = isref;
     }
   }
-  ;
+
 
   return { header: chain.header, body: chain.body };
 
@@ -367,16 +369,16 @@ ConditionalSource.prototype.parseResponse = function(resp: string, chain: ChainR
   this.params.fields = fields;
   this.params.outnames = outnames;
   this.params.trans = trans;
-  var res = this.params.allData;
+  const res = this.params.allData;
   var lookup = {};
-  for (var i = 0; i < chain.body.length; i++) {
+  for (let i = 0; i < chain.body.length; i++) {
     lookup[chain.body[i]["id"]] = i;
   }
-  for (var f = 0; f < this.params.trait_fields.length; f++) {
+  for (let f = 0; f < this.params.trait_fields.length; f++) {
     var field = this.params.trait_fields[f];
-    for (var r = 0; r < res.length; r++) {
+    for (let r = 0; r < res.length; r++) {
       res[r].data[field] = [];
-      for (var j = 0; j < res[r].data.id.length; j++) {
+      for (let j = 0; j < res[r].data.id.length; j++) {
         const idx = lookup[res[r].data.id[j]];
         if (idx !== undefined) {
           res[r].data[field].push(chain.body[idx][field]);

@@ -1,4 +1,4 @@
-import { Colocalization } from "../../../common/Model";
+import { Colocalization } from "../../../common/commonModel";
 import { CasualVariantVector, EMPTY, filterCasualVariantVector, LocusZoomData } from "./ColocalizationModel";
 import { Panel } from "locuszoom";
 import { LocusZoomContext } from "../LocusZoom/RegionLocus";

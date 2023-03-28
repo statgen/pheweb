@@ -10,7 +10,7 @@ import GeneBanner from "./GeneBanner";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { GeneParams } from "./geneModel";
 import { RouteComponentProps } from "react-router-dom";
-import { hasError, isLoading } from "../../common/Loading";
+import { hasError, isLoading } from "../../common/CommonLoading";
 
 declare let window: ConfigurationWindow;
 const { config } = window;

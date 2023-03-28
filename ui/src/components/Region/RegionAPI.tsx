@@ -1,7 +1,7 @@
 import { Region, RegionParams } from "./RegionModel";
-import { get } from "../../common/Utilities";
+import { get } from "../../common/commonUtilities";
 import { resolveURL } from "../Configuration/configurationModel";
-import { Locus } from "../../common/Model";
+import { Locus } from "../../common/commonModel";
 
 /**
  * Given a colocalization parameter

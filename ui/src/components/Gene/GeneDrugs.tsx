@@ -1,11 +1,11 @@
-import { mustacheDiv } from "../../common/Utilities";
+import { mustacheDiv } from "../../common/commonUtilities";
 import React, { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { getGeneDrugs } from "./geneAPI";
-import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
-import loading from "../../common/Loading";
+import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
+import commonLoading from "../../common/CommonLoading";
 import { Column } from "react-table";
-import { createTableColumns, geneDrugListTableColumns } from "../../common/tableColumn";
+import { createTableColumns, geneDrugListTableColumns } from "../../common/commonTableColumn";
 import { GeneDrugs as GeneDrugsModel } from "./geneModel";
 import { GeneContext, GeneState } from "./GeneContext";
 
@@ -45,9 +45,9 @@ const GeneDrugs = () => {
   }
   const context = { gene }
 
-  return geneDrugData == null ? loading: <div>
+  return geneDrugData == null ? commonLoading: <div>
     {mustacheDiv(banner, context)}
-    <DownloadTable {...prop}/>
+    <CommonDownloadTable {...prop}/>
   </div>
 }
 

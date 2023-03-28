@@ -2,8 +2,8 @@ import d3Tip from 'd3-tip'
 import _ from 'underscore'
 import $ from 'jquery'
 import * as d3 from 'd3'
-import { mustacheText } from '../../common/Utilities'
-import { numberFormatter, scientificFormatter } from '../../common/Formatter'
+import { mustacheText } from '../../common/commonUtilities'
+import { numberFormatter, scientificFormatter } from '../../common/commonFormatter'
 import { ConfigurationWindow, VisConfiguration } from "../Configuration/configurationModel";
 import { UnbinnedVariant, VariantBin } from "./phenotypeModel";
 import { ScaleOrdinal } from "d3";
@@ -417,7 +417,7 @@ interface Reshaped {
   n_case? : string
   n_control? : string
   num_samples? : string
-};
+}
 
 const reshape = (d) => {
   const result : Reshaped = {}

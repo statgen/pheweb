@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { PhenotypeContext, PhenotypeState } from "./PhenotypeContext";
-import { isLoading } from "../../common/Loading";
+import { isLoading } from "../../common/CommonLoading";
 import createQQPlot from "./phenotypeQQD3";
 
 const PhenotypeQQPlot = () => {

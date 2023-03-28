@@ -1,5 +1,5 @@
 import { Cell } from "react-table";
-import { Variant } from "./Model";
+import { Variant } from "./commonModel";
 import React from "react";
 
 export const cellText = (props : Cell<{}, string>) : string =>

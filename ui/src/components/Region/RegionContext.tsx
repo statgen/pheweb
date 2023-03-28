@@ -2,7 +2,7 @@ import { createParameter, Region, RegionParams } from "./RegionModel";
 import React, { createContext, useEffect, useState } from "react";
 import { LocusZoomContext } from "./LocusZoom/RegionLocus";
 import { getRegion } from "./RegionAPI";
-import { Locus } from "../../common/Model";
+import { Locus } from "../../common/commonModel";
 
 interface Props {
   readonly  children: React.ReactNode

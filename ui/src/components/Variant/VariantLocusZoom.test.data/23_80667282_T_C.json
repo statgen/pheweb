@@ -1,4 +1,4 @@
-{
+[{
   "model": {},
   "variant": {
     "alt": "C",
@@ -43452,27 +43452,5 @@
       "pval": 0.862
     }
   ],
-  "regions": [],
-  "tooltip_lztemplate": "{{#if rsid}}<strong>{{rsid}}</strong><br>{{/if}}\n{{#if pheno}}phenotype: <strong>{{trait:pheno}}</strong><br>{{/if}}\n{{#if trait:pvalue}}p-value: <strong>{{trait:pvalue|scinotation}}</strong><br>{{/if}}\n{{#if trait:pval}}p-value: <strong>{{trait:pval|scinotation}}</strong><br>{{/if}}\nmlog10p-value: <strong>{{trait:mlogp|scinotation}}</strong><br>\n{{#if beta}}beta: <strong>{{trait:beta}}</strong>{{#if trait:sebeta}} ({{trait:sebeta}}){{/if}}<br>{{/if}}\n{{#if or}}Odds Ratio: <strong>{{or}}</strong><br>{{/if}}\n{{#if af_alt}}AF: <strong>{{af_alt|percent}}</strong><br>{{/if}}\n{{#if af_alt_cases}}AF cases: <strong>{{af_alt_cases|percent}}</strong><br>{{/if}}\n{{#if af_alt_controls}}AF controls: <strong>{{af_alt_controls|percent}}</strong><br>{{/if}}\n{{#if maf}}AF: <strong>{{maf|percent}}</strong><br>{{/if}}\n{{#if maf_cases}}AF cases: <strong>{{maf_cases|percent}}</strong><br>{{/if}}\n{{#if maf_controls}}AF controls: <strong>{{maf_controls|percent}}</strong><br>{{/if}}\n{{#if af}}AF: <strong>{{af|percent}}</strong><br>{{/if}}\n{{#if ac}}AC: <strong>{{ac}}</strong><br>{{/if}}\n{{#if r2}}R2: <strong>{{r2}}</strong><br>{{/if}}\n{{#if tstat}}Tstat: <strong>{{tstat}}</strong><br>{{/if}}\n{{#if n_cohorts}}n_cohorts: <strong>{{n_cohorts}}</strong><br>{{/if}}\n{{#if n_hom_cases}}n_hom_cases: <strong>{{n_hom_cases}}</strong><br>{{/if}}\n{{#if n_hom_ref_cases}}n_hom_ref_cases: <strong>{{n_hom_ref_cases}}</strong><br>{{/if}}\n{{#if n_het_cases}}n_het_cases: <strong>{{n_het_cases}}</strong><br>{{/if}}\n{{#if n_hom_controls}}n_hom_controls: <strong>{{n_hom_controls}}</strong><br>{{/if}}\n{{#if n_hom_ref_controls}}n_hom_ref_controls: <strong>{{n_hom_ref_controls}}</strong><br>{{/if}}\n{{#if n_het_controls}}n_het_controls: <strong>{{n_het_controls}}</strong><br>{{/if}}\n{{#if n_case}}#cases: <strong>{{n_case}}</strong><br>{{/if}}\n{{#if n_control}}#controls: <strong>{{n_control}}</strong><br>{{/if}}\n{{#if num_samples}}#samples: <strong>{{num_samples}}</strong><br>{{/if}}\n",
-  "var_top_pheno_export_fields": [
-    "phenocode",
-    "phenostring",
-    "category",
-    "pval",
-    "beta",
-    "maf",
-    "maf_case",
-    "maf_control",
-    "n_case",
-    "n_control"
-  ],
-  "vis_conf": {
-    "info_tooltip_threshold": 0.8,
-    "loglog_threshold": 10,
-    "manhattan_colors": [
-      "rgb(53,0,212)",
-      "rgb(40, 40, 40)"
-    ]
-  },
-  "browser": "FINNGEN"
-}
+  "regions": []
+}]

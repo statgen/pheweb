@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
-import { CasualVariant, Colocalization, Locus } from "../../../common/Model";
+import { CasualVariant, Colocalization, Locus } from "../../../common/commonModel";
 import { LocusZoomData, SearchSummary } from "./ColocalizationModel";
 import { getLocusZoomData, getSearchResults, getSummary } from "./ColocalizationAPI";
 import { createParameter, RegionParams } from "../RegionModel";

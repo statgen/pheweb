@@ -1,6 +1,6 @@
 import React, { createContext, useState } from "react";
-import { fatal } from "../../common/Utilities";
-import { Variant, variantFromStr } from "../../common/Model";
+import { fatal } from "../../common/commonUtilities";
+import { Variant, variantFromStr } from "../../common/commonModel";
 
 export interface VariantState {
   colorByCategory :  { [name: string]: string }

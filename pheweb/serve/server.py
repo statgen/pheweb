@@ -151,15 +151,6 @@ def autoreport(phenocode):
 def autoreport_variants(phenocode,locus_id):
     return jsonify(jeeves.get_autoreport_variants(phenocode,locus_id))
 
-@app.route('/api/ld')
-def ld():
-    url = conf.ld_server + '/api/ld?'
-    url_parts = list(urlparse.urlparse(url))
-    query = {param: request.args.get(param) for param in request.args}
-    url_parts[3] = urlencode(query)
-    print(urlparse.urlunparse(url_parts).replace(';', '?'))
-    return urllib.request.urlopen(urlparse.urlunparse(url_parts).replace(';', '?')).read()
-
 @app.route('/api/pheno/<phenocode>')
 def pheno(phenocode):
     if phenocode not in use_phenos:

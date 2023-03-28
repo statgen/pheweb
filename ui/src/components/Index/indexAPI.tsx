@@ -1,5 +1,5 @@
 import { addLambda, Phenotype } from "./indexModel";
-import { get } from "../../common/Utilities";
+import { get } from "../../common/commonUtilities";
 import { resolveURL } from "../Configuration/configurationModel";
 
 export const getPhenotypes = (sink: (s: Phenotype[]) => void,

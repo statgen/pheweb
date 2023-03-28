@@ -37,7 +37,7 @@ const PhenotypeContextProvider = (props : Props) => {
     getUKBBN(phenotypeCode,setUKBBN);
     getPhenotype(phenotypeCode, setPhenotype, setErrorMessage);
     getCredibleSets(phenotypeCode, setCredibleSets);
-    getQQ(phenotypeCode, setQQ);;
+    getQQ(phenotypeCode, setQQ);
   },[setPhenotypeVariantData, setUKBBN, setPhenotype, phenotypeCode]);
 
   useEffect(() => {

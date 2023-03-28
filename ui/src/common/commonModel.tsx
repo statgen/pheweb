@@ -18,7 +18,7 @@ export interface CasualVariant {
   readonly varid2 : string,
   readonly count_cs : number;
   readonly membership_cs : number;
-};
+}
 
 export interface Colocalization {
   readonly colocalization_id : number,
@@ -60,7 +60,7 @@ export interface Colocalization {
   readonly count_cs: number;
   readonly membership_cs: string;
   readonly x: number;
-};
+}
 
 export interface Variant {
   readonly chromosome : number
@@ -174,9 +174,9 @@ export function locusToStr (locus : Locus) {
  * @param str
  * @returns Locus if string could be parsed undefined otherwise
  */
-export function locusFromStr (str : string) : Locus | undefined {
+export function locusFromStr (locusString : string) : Locus | undefined {
   let result : Locus | undefined
-  const match = str.match('^([A-Za-z0-9]+):([0-9]+)-([0-9]+)$')
+  const match = locusString && locusString.match('^([A-Za-z0-9]+):([0-9]+)-([0-9]+)$');
   if (match) {
     const [, chromosomeString, start, stop] : Array<string> = match
     const chromosome = stringToChromosome(chromosomeString)

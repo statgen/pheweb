@@ -7,7 +7,7 @@ import PhenotypeGWASPlot from "./PhenotypeGWASPlot";
 import './phenotype.css';
 import PhenotypeTab from "./PhenotypeTab";
 import PhenotypeQQPlot from "./PhenotypeQQPlot";
-import { hasError, isLoading } from "../../common/Loading";
+import { hasError, isLoading } from "../../common/CommonLoading";
 
 type Props = RouteComponentProps<PhenotypeParams>;
 

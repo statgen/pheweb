@@ -1,4 +1,4 @@
-import { TableColumnConfiguration } from '../../common/tableColumn'
+import { TableColumnConfiguration } from '../../common/commonTableColumn'
 import { SortingRule } from 'react-table'
 import { VisConfiguration } from "../Configuration/configurationModel";
 
@@ -27,7 +27,7 @@ export namespace Variant {
     phenocode:        string;
     phenostring:      string;
     pval:             number | null;
-    pip:              number | null | undefined;
+    pip?:              number | null | undefined;
   }
 
   export interface  MatchingResults {}

@@ -1,4 +1,4 @@
-import { CasualVariant, Colocalization, Variant, variantFromStr } from "../../../common/Model";
+import { CasualVariant, Colocalization, Variant, variantFromStr } from "../../../common/commonModel";
 
 export interface CasualVariantVector {
     causal_variant_id : number[]
