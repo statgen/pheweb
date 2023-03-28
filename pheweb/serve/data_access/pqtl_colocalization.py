@@ -24,8 +24,6 @@ class PqtlColocalisationDao(PqtlColocalisationDB, MysqlDAO):
         
     def get_pqtl_colocalization(self, gene_name: str):
 
-        print(f'\n[sanastas] pqtl_colocalization.py :: Called get_pqtl_colocalization of the class PqtlColocalisationDao')  
-
         with closing(self.get_connection()) as conn:
             fields = self._fields
             tables = [field['table'] for field in fields]
