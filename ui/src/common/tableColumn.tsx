@@ -1408,12 +1408,15 @@ const pqtColumns = {
   }
 }
 
+// <a href="url">{props.value.pheno}</a>
 const colocColumns = {
   pheno: {
     Header: () => (<span style={{ textDecoration: "underline" }}>phenotype</span>),
-    accessor: "phenotype1",
-    filterMethod: (filter, row) => row[filter.id] == filter.value,
-    Cell: textCellFormatter,
+    accessor: "phenotype1_",
+    filterMethod: (filter, row) => row[filter.id] == filter.value.pheno,
+    Cell: (props : { value : any }) => (
+      <a href={`${window.location.origin}/region/${props.value.pheno}/${props.value.region}`} target="_blank">{props.value.pheno}</a>
+    ),
     minWidth: 200
   },
   description: {

@@ -33,20 +33,31 @@ const defaultSorted = [{
 
 const colocalizationSubTable = ( prop ) => {
   const value = prop.original.disease_colocalizations[0];
+  
+  var chrPos = prop.original.v.split(':', 2);
+  var chrom = chrPos[0];
+  var pos: number = +chrPos[1];
+  var region = `${chrom}:${pos - 200}-${pos + 200}`;
   const pageSize = Math.min(5, Object.keys(value).length);
+
+  for (var i=0; i < Object.keys(value).length; i++){
+    value[i]['phenotype1_'] = {
+      'pheno': value[i].phenotype1,
+      'region': region
+    }
+  }
+
   return (
-      <div style={{ padding: "20px" }}>
-        <h5>Disease Colocalizations</h5>
-        {
-          Object.keys(value).length > 0 ?
-            <ReactTable  
-              data={value}  
-              columns={colocSubTable} 
-              defaultPageSize={pageSize}
-            />  : 
-            null
-        }
-    </div>
+      Object.keys(value).length > 0 ?
+        <div style={{ padding: "20px" }}>
+          <h5>Disease Colocalizations</h5>
+          <ReactTable  
+            data={value}  
+            columns={colocSubTable} 
+            defaultPageSize={pageSize}
+          /> 
+      </div> : 
+      <div style={{ padding: "20px" }}> No disease colocalizations found. </div>
   )
 }
 

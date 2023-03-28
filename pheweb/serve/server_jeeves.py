@@ -40,8 +40,6 @@ class ServerJeeves(object):
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
         self.autocompleter = self.dbs_fact.get_autocompleter()
-        
-        # sanastas: dev
         self.pqtl_colocalization = self.dbs_fact.get_pqtl_colocalization_dao()
 
     def gene_functional_variants(self, gene, pThreshold=None):
