@@ -68,6 +68,7 @@
     "enzyme-adapter-react-16": "^1.15.6",
     "enzyme-to-json": "^3.6.2",
     "husky": "^8.0.3",
+    "lint-staged": "^13.2.0",
     "prettier": "2.5.0",
     "react-redux": "^7.2.1",
     "react-test-renderer": "^16.13.1",
@@ -84,7 +85,8 @@
     "build": "env-cmd -r env-cmdrc.json -e production react-scripts build && cp -R build/* ../pheweb/serve/static/",
     "eject": "react-scripts eject",
     "check-types": "tsc --noemit",
-    "prepare": "cd .. && husky install ui/.husky"
+    "prepare": "cd .. && husky install ui/.husky",
+    "lint": "eslint . --ext .tsx"
   },
   "author": "",
   "license": "ISC",
@@ -123,5 +125,8 @@
       ],
       "extensions": "js,jsx,tsx"
     }
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
   }
 }
