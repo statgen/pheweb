@@ -1346,7 +1346,17 @@ const pqtColumns = {
   pqtlVar: {
     Header: () => (<span style={{ textDecoration: "underline" }}>variant</span>),
     accessor: "v",
-    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    // filterMethod: (filter, row) => row[filter.id] == filter.value,
+    sortMethod: variantSorter,
+    filterMethod: (filter, row) => {
+      return (row[filter.id].includes(filter.value));
+    },  
+    Filter: ({ filter, onChange }) => {
+      return (<div>
+        <input style={{ float: "left", width: "140px" }} type="text"
+                 onChange={event => onChange(event.target.value)} />
+        </div>);
+    },
     Cell: textCellFormatter,
     minWidth: columnWith(200)
   },
@@ -1392,15 +1402,8 @@ const pqtColumns = {
     Cell: scientificCellFormatter,
     minWidth: columnWith(80)
   },
-  pqtlMostSevere: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>most severe</span>),
-    accessor: "most_severe",
-    filterMethod: (filter, row) => row[filter.id] == filter.value,
-    Cell: textCellFormatter,
-    minWidth: columnWith(200)
-  },
   pqtlGeneMostSevere: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>Gene</span>),
+    Header: () => (<span style={{ textDecoration: "underline" }}>gene</span>),
     accessor: "gene_most_severe",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
@@ -1408,14 +1411,13 @@ const pqtColumns = {
   }
 }
 
-// <a href="url">{props.value.pheno}</a>
 const colocColumns = {
   pheno: {
     Header: () => (<span style={{ textDecoration: "underline" }}>phenotype</span>),
     accessor: "phenotype1_",
     filterMethod: (filter, row) => row[filter.id] == filter.value.pheno,
     Cell: (props : { value : any }) => (
-      <a href={`${window.location.origin}/region/${props.value.pheno}/${props.value.region}`} target="_blank">{props.value.pheno}</a>
+      <a href={`/region/${props.value.pheno}/${props.value.region}`} target="_blank" rel="noopener noreferrer">{props.value.pheno}</a>
     ),
     minWidth: 200
   },
@@ -1485,7 +1487,7 @@ export const genePqtlTableColumns = [
   pqtColumns.pqtlBeta,
   pqtColumns.pqtlPval,
   pqtColumns.pqtlProb,
-  pqtColumns.pqtlMostSevere,
+  phenotypeColumns.codingMostServe,
   pqtColumns.pqtlGeneMostSevere
 ]
 

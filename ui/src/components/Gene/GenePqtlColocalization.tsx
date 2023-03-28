@@ -13,7 +13,7 @@ import ReactTable from 'react-table-v6';
 import 'react-table-v6/react-table.css';
 
 const default_banner: string = `
-<h3>pQTL and Disease Colocalizations</h3>
+<h3>pQTL and disease colocalizations</h3>
 `
 
 declare let window: ConfigurationWindow;
