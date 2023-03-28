@@ -4,6 +4,7 @@ import GenePhenotypeAssociation from "./GenePhenotypeAssociation";
 import GeneLossOfFunction from "./GeneLossOfFunction";
 import GeneFunctionalVariants from "./GeneFunctionalVariants";
 import GeneDrugs from "./GeneDrugs";
+import GenePqtls from "./GenePqtlColocalization"
 import GeneLocusZoom from "./GeneLocusZoom";
 import GeneContextProvider from "./GeneContext";
 import GeneBanner from "./GeneBanner";
@@ -24,6 +25,7 @@ const Gene = (props : Props) =>
       { showLOF && <GeneLossOfFunction/> }
       <GeneFunctionalVariants/>
       <GeneDrugs/>
+      <GenePqtls/>
     </div>
   </GeneContextProvider>
 

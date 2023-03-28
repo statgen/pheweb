@@ -34,6 +34,7 @@ const GeneContextProvider = (props : Props) => {
   const [selectedPhenotype, setSelectedPhenotype] = useState<GenePhenotypes.Phenotype| undefined>(undefined);
 
   useEffect(() => { getGenePhenotypes(parameter.gene,setGenePhenotype) },[parameter.gene, setGenePhenotype]);
+
   useEffect(() => {
     if(genePhenotype){
       const search = genePhenotype.phenotypes.find(p => p.pheno.phenocode === parameter.phenotype)

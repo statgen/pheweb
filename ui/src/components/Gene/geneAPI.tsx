@@ -1,5 +1,5 @@
 import { get } from "../../common/Utilities";
-import { FunctionalVariants, GeneDrugs, GenePhenotypes, LossOfFunction, MyGene } from "./geneModel";
+import { FunctionalVariants, GeneDrugs, GenePhenotypes, LossOfFunction, MyGene, PqtlColocalizations } from "./geneModel";
 import { resolveURL } from "../Configuration/configurationModel";
 
 export const getGeneDrugs =(geneName : string,
@@ -34,3 +34,10 @@ export const getMyGene = (gene : string,
   getURL(`https://mygene.info/v3/query?q=${gene}&fields=symbol%2Cname%2Centrezgene%2Censembl.gene%2CMIM%2Csummary&species=human`, sink)
 }
 
+
+export const getGenePqtlColocalisations = (gene : string,
+  sink: (s: PqtlColocalizations.Data) => void,
+  getURL = get) : void => {
+const url = resolveURL(`/api/gene_pqtl_colocalization/${gene}`)
+getURL(url, sink)
+}
