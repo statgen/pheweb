@@ -1,5 +1,5 @@
 import { mustacheDiv } from "../../common/Utilities";
-import React, { useContext, useEffect, useState } from "react";
+import React, { FC, useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { getGenePqtlColocalisations } from "./geneAPI";
 import loading from "../../common/Loading";
@@ -31,13 +31,15 @@ const defaultSorted = [{
   desc: false
 }]
 
-const colocalizationSubTable = ( prop ) => {
+// const colocalizationSubTable = ( prop ) => {
+const colocalizationSubTable = ( prop : FC ) => {
+
   const value = prop.original.disease_colocalizations[0];
   
   var chrPos = prop.original.v.split(':', 2);
   var chrom = chrPos[0];
   var pos: number = +chrPos[1];
-  var region = `${chrom}:${pos - 200}-${pos + 200}`;
+  var region = `${chrom}:${pos - 200000}-${pos + 200000}`;
   const pageSize = Math.min(5, Object.keys(value).length);
 
   for (var i=0; i < Object.keys(value).length; i++){

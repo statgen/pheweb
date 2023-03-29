@@ -1442,10 +1442,10 @@ const colocColumns = {
     minWidth: 100
   },
   lenInter: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>len interval</span>),
-    accessor: "description",
+    Header: () => (<span style={{ textDecoration: "underline" }}>len intersect</span>),
+    accessor: "len_inter",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
-    Cell: decimalCellFormatter,
+    Cell: numberCellFormatter,
     minWidth: 100
   },
   lenCS1: {

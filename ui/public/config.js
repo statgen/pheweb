@@ -94,7 +94,7 @@ const userInterface = {
       ]
     }
   },
-   gene: { lossOfFunction: null , lz_config : { ld_panel_version : "sisu4" } }
+   gene: { lossOfFunction: null , lz_config : { ld_panel_version : "sisu4" }, pqtlColocalizations: null}
 }
 const metaData = {}
 const application = {

@@ -43,7 +43,7 @@ export namespace Gene {
     functionalVariants? : GeneFunctionalVariants
     drugs? : DrugsConfiguration
     lz_config? : LzConfiguration
-    pqtlColocalizations?: PqtlColocalizationsConfiguration
+    pqtlColocalizations? | null : PqtlColocalizationsConfiguration
   }
 }
 export namespace FunctionalVariants {
