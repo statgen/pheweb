@@ -4,6 +4,7 @@ import abc
 import pymysql
 from pheweb.serve.data_access.db_util import MysqlDAO
 from contextlib import closing
+import re
 
 
 class PqtlColocalisationDB(object):
@@ -30,7 +31,7 @@ class PqtlColocalisationDao(PqtlColocalisationDB, MysqlDAO):
             if tables.index('colocalization') == 0:
                 fields.reverse()
 
-            # fetch pqtls from the sql server
+            # fetch pqtls from mysql
             with conn.cursor(pymysql.cursors.DictCursor) as cursor:
                 table = fields[0]["table"]
                 columns = fields[0]["columns"]
@@ -40,24 +41,28 @@ class PqtlColocalisationDao(PqtlColocalisationDB, MysqlDAO):
                 cursor.execute(sql, parameters)
                 pqtls = cursor.fetchall() # list of dict
             
-            # # fetch colocalizaion
+            # fetch colocalizaion from mysql
             result = []      
             for pqtl in pqtls:
                 gene_name = pqtl["gene_name"]
                 source = f'FinnGen {pqtl["source"]}'
+                v = pqtl['trait'].split(' ')
+                trait =  re.sub("[\(\)]", "", v[1]) if len(v) > 1 else v[0]
                 var = pqtl["v"]
                 var_colocs = []
                 with conn.cursor(pymysql.cursors.DictCursor) as cursor:
                     table = fields[1]["table"]
                     columns = fields[1]["columns"]
                     columns = ", ".join(columns)
-                    sql = f"""SELECT {columns} FROM {table} WHERE phenotype2_description=%s AND
+                    sql = f"""SELECT {columns} FROM {table} WHERE 
+                                    phenotype2_description=%s AND
+                                    phenotype2=%s AND
                                     source2=%s AND
                                     locus_id2_chromosome=%s AND
                                     locus_id2_position=%s AND 
                                     locus_id2_ref=%s AND 
                                     locus_id2_alt=%s """
-                    parameters = [gene_name, source] + var.split(':')     
+                    parameters = [gene_name, trait, source] + var.split(':')     
                     cursor.execute(sql, parameters)
                     colocs = cursor.fetchall()
                     var_colocs.append(colocs)
