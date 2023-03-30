@@ -91,11 +91,11 @@ const variantListCellFormatter = (prop) => {
   for (const variantString of fragments) {
     const variant = variantFromStr(variantString)
     if(variant === undefined){
-      const body = <span> <span style={{ color : '#fee'}}>{variantString}</span> </span>
+      const body = <span> <span style={{ color : '#fee'}}>{variantString} &nbsp; </span> </span>
       cell.push(body)
     } else {
       const phewebVariant = variantToPheweb(variant)
-      cell.push(<span> <a href={`/variant/${phewebVariant}`}>{phewebVariant}</a> </span>)
+      cell.push(<span> <a href={`/variant/${phewebVariant}`}>{phewebVariant}</a> &nbsp; </span>)
     }
   }
   return cell
