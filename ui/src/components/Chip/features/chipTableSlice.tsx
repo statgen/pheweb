@@ -46,10 +46,10 @@ export const fetchData = createAsyncThunk('table/fetchData', async (url : string
     }
 })
 
-
 const pending = (state: State, action) => {
-	    state.status = 'loading'
-	    console.log('load')
+    console.log(action)
+    state.status = 'loading'
+    console.log('load')
 }
 
 const fulfilled = (state: State, action) => {
@@ -61,7 +61,7 @@ const fulfilled = (state: State, action) => {
 	try {
 	    sessionStorage.setItem(`, ${action.payload.data}}`, JSON.stringify(action.payload))
 	} catch(e) {
-	    if (isQuotaExceeded(e)) {
+	    if (isQuotaExceeded(e as QuotaException)) {
 		console.warn('sessionstorage quota exceeded (tableSlice), clear storage!')
 		sessionStorage.clear()
 	    } else {

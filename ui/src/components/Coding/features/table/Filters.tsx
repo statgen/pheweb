@@ -65,7 +65,6 @@ export const SearchFilter = ({
     onChange={(e) => {
       setFilter(e.target.value || undefined); // Set undefined to remove the filter entirely
     }}
-    // @ts-ignore
     placeholder={`search`}
     style={{ width: "90%" }}
   />
@@ -95,7 +94,7 @@ export const VariantFilter = ({
 export const INFOFilter = ({
   column: { filterValue, setFilter },
 }: FilterProps<any>) => {
-  const [checked, setChecked] = React.useState(filterValue == "NA");
+  const [checked, setChecked] = React.useState(filterValue === "NA");
   return (
     <>
       <input
@@ -169,7 +168,7 @@ export const filterAbsGreaterThan = (
     const rowValue = row.values[id[0]];
     if (
       typeof rowValue == "string" &&
-      (rowValue.startsWith("inf") || rowValue == "NA")
+      (rowValue.startsWith("inf") || rowValue === "NA")
     ) {
       return true;
     }

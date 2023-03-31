@@ -1,8 +1,8 @@
 /* eslint-env jest */
 // https://stackoverflow.com/questions/59833839/swap-one-typescript-type-with-another-inside-an-object
 import React from "react";
-import { variantFromStr } from "./Model";
-import { cellNumber, cellText, variantLink } from "./Formatter";
+import { variantFromStr } from "./commonModel";
+import { cellNumber, cellText, variantLink } from "./commonFormatter";
 import { Cell } from "react-table";
 
 test('get search results : trivial', () => {

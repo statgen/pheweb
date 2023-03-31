@@ -1,5 +1,5 @@
 import React from "react";
-import { mustacheDiv } from "../../common/Utilities";
+import { mustacheDiv } from "../../common/commonUtilities";
 import LOFTable from "./LOFTable";
 
 interface Props {}

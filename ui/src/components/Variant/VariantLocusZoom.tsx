@@ -7,7 +7,6 @@ import { VariantContext, VariantState } from "./VariantContext";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 
 declare let window: ConfigurationWindow;
-const { config } = window;
 
 const defaultTooltipHTML = `
 {{#if rsid}}<strong>{{rsid}}</strong><br>{{/if}}
@@ -38,7 +37,18 @@ mlog10p: <strong>{{trait:mlogp|scinotation}}</strong><br>
 {{#if n_control}}#controls: <strong>{{n_control}}</strong><br>{{/if}}
 {{#if num_samples}}#samples: <strong>{{num_samples}}</strong><br>{{/if}}
 `;
-const toolTipHTML: string = config?.userInterface?.variant?.locusZoom?.toolTipHTML || defaultTooltipHTML;
+
+const config = window?.config?.userInterface?.variant?.locusZoom ||  {
+  "info_tooltip_threshold": 0.8,
+  "loglog_threshold": 10,
+  "manhattan_colors": [
+    "rgb(53,0,212)",
+    "rgb(40, 40, 40)"
+  ],
+  tooltip_template : defaultTooltipHTML
+};
+
+const toolTipHTML: string = config?.tooltip_template || defaultTooltipHTML;
 
 interface Props { variantData : Variant.Data }
 
@@ -137,7 +147,7 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
       setColorByCategory(categoryToColor)
       reshapeResult(results, colorByCategory)
 
-      const logLogThreshold = variantData.vis_conf.loglog_threshold;
+      const logLogThreshold = config.loglog_threshold;
       results.forEach(addPScaled(logLogThreshold))
 
       const bestNegativeLog10PValue = d3.max(results.map(function(x) { return LocusZoom.TransformationFunctions.get('neglog10')(x.pval); }));
@@ -171,7 +181,6 @@ const VariantLocusZoom = ({ variantData } : Props ) => {
 
       const phewasPanel = Layouts.get("panel", "phewas",undefined);
       const sigDataLayer = phewasPanel.data_layers[0]; //significance line
-      const pvalDataLayer = phewasPanel.data_layers[1];
 
       const significanceThreshold = 0.05 / results.length;
       const neglog10SignificanceThreshold = -Math.log10(significanceThreshold);

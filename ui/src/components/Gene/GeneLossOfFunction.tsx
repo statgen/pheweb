@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { mustacheDiv } from "../../common/Utilities";
-import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
+import { mustacheDiv } from "../../common/commonUtilities";
+import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 import { LossOfFunction } from "./geneModel";
 import { getLossOfFunction } from "./geneAPI";
 import { Column } from "react-table";
-import { wordFilter, createTableColumns, geneLossOfFunctionTableColumns } from "../../common/tableColumn";
-import loading from "../../common/Loading";
+import { wordFilter, createTableColumns, geneLossOfFunctionTableColumns } from "../../common/commonTableColumn";
+import commonLoading from "../../common/CommonLoading";
 import { GeneContext, GeneState } from "./GeneContext";
 
 
@@ -93,7 +93,7 @@ const GeneLossOfFunction = () => {
 
   let view;
   if (data == null){
-    view = loading;
+    view = commonLoading;
   } else if(dataToTableRows(data).length === 0){
     view = <div>
       {mustacheDiv(banner, context)}
@@ -103,7 +103,7 @@ const GeneLossOfFunction = () => {
   } else {
     view = <div>
       {mustacheDiv(banner, context)}
-      <DownloadTable {...prop}/>
+      <CommonDownloadTable {...prop}/>
     </div>
   }
   return view;

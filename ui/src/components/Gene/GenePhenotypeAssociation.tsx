@@ -1,12 +1,12 @@
 import React, { useContext } from "react";
-import { mustacheDiv } from "../../common/Utilities";
+import { mustacheDiv } from "../../common/commonUtilities";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { GenePhenotypes } from "./geneModel";
 import { Column } from "react-table";
-import { wordFilter, createTableColumns, genePhenotypeTableColumns } from "../../common/tableColumn";
-import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
-import { finEnrichmentLabel } from "../Finngen/gnomad";
-import loading from "../../common/Loading";
+import { wordFilter, createTableColumns, genePhenotypeTableColumns } from "../../common/commonTableColumn";
+import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
+import { finEnrichmentLabel } from "../Finngen/finngenGnomad";
+import commonLoading from "../../common/CommonLoading";
 import { GeneContext, GeneState } from "./GeneContext";
 import GenePhenotypeAssociationSelected from "./GenePhenotypeAssociationSelected";
 import "./gene.css";
@@ -87,11 +87,11 @@ const GenePhenotypeAssociation = () => {
   let view
 
   if(genePhenotype == null || genePhenotype === undefined || selectedPhenotype === undefined){
-    view = loading
+    view = commonLoading
   } else {
     view = <React.Fragment>
       { mustacheDiv(banner, { }) }
-      <DownloadTable {...prop  }/>
+      <CommonDownloadTable {...prop  }/>
       <GenePhenotypeAssociationSelected/>
     </React.Fragment>
   }

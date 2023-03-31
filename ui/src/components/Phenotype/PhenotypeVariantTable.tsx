@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { createTableColumns, phenotypeTableColumns, pValueSentinel } from "../../common/tableColumn";
+import { createTableColumns, phenotypeTableColumns, pValueSentinel } from "../../common/commonTableColumn";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { Column } from "react-table";
-import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
+import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 import { PhenotypeVariantData, PhenotypeVariantRow } from "./phenotypeModel";
 import { getManhattan } from "./phenotypeAPI";
 
@@ -37,7 +37,7 @@ const processData = (phenocode : string,data  : PhenotypeVariantData) => {
     variant.phenocode = phenocode
     if (!variant.gnomad) {
       variant.fin_enrichment = -1
-    } else if (variant.gnomad.AF_fin === 0) {
+    } else if (+variant.gnomad.AF_fin === 0) {
       variant.fin_enrichment = 0
     } else if (+variant.gnomad['AC_nfe_nwe'] + +variant.gnomad['AC_nfe_onf'] + +variant.gnomad['AC_nfe_seu'] === 0) {
       variant.fin_enrichment = 1e6
@@ -75,7 +75,7 @@ const PhenotypeVariantTable = ({ phenotypeCode} : Props ) => {
     tableProperties,
     defaultSorted  }
   return <div>
-    <DownloadTable {...props} />
+    <CommonDownloadTable {...props} />
   </div>
 }
 export default PhenotypeVariantTable

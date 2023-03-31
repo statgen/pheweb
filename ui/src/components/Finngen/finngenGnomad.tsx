@@ -1,5 +1,5 @@
-import { scientificFormatter } from "../../common/Formatter";
-import { warn } from "../../common/Utilities";
+import { scientificFormatter } from "../../common/commonFormatter";
+import { warn } from "../../common/commonUtilities";
 
 export const finEnrichmentLabel = (gnomad : { [key : string ] : (string | number)}) : string => {
 

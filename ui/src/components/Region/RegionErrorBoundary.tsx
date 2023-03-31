@@ -1,5 +1,5 @@
 import React, { ErrorInfo } from "react";
-import { warn } from "../../common/Utilities";
+import { warn } from "../../common/commonUtilities";
 
 interface Props { children: React.ReactNode }
 

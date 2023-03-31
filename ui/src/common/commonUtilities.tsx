@@ -1,5 +1,5 @@
 import React from "react";
-import * as Handlebars from "handlebars";
+import * as Handlebars from "handlebars/dist/cjs/handlebars";
 
 /**
  * Compose fuction
@@ -41,10 +41,11 @@ export const get: <X>(url: string,
 ) =>
   fetch(url)
     .then((response) => {
-      if (response.status == 200) {
+      if (response.status === 200) {
         return response.json();
       } else {
-        throw new Error(response.statusText);
+        const msg = `${response.statusText}`;
+        throw new Error(msg);
       }
     })
     .then(sink)
@@ -72,7 +73,7 @@ export const deleteRequest : <X>(url: string,
 ) =>
     fetch(url, { method : 'DELETE' })
         .then((response) => {
-          if (response.status == 200) {
+          if (response.status === 200) {
             return response.json();
           } else {
             throw new Error(response.statusText);
@@ -136,4 +137,5 @@ export const fatal = (msg : string, context : {} ={}) : never =>{
 
 export const warn = (msg : string, context : {} ={}) : void =>{
   console.warn(msg);
+  console.log(context);
 }

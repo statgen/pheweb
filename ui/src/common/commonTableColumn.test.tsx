@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { pValueCellFormatter , pValueSentinel , createHeader, addHeader } from "./tableColumn"
+import { pValueCellFormatter , pValueSentinel , createHeader, addHeader } from "./commonTableColumn"
 import {render, screen} from '@testing-library/react'
 import React from "react"
 

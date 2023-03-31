@@ -1,6 +1,7 @@
-import { Region, RegionParameter } from "./RegionModel";
-import { get } from "../../common/Utilities";
+import { Region, RegionParams } from "./RegionModel";
+import { get } from "../../common/commonUtilities";
 import { resolveURL } from "../Configuration/configurationModel";
+import { Locus } from "../../common/commonModel";
 
 /**
  * Given a colocalization parameter
@@ -9,7 +10,7 @@ import { resolveURL } from "../Configuration/configurationModel";
  *
  * @param parameter
  */
-export const region_url = (parameter : RegionParameter) : string =>  `/api/region/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}`
+export const region_url = (parameter : RegionParams<Locus>) : string =>  `/api/region/${parameter.phenotype}/${parameter.locus.chromosome}:${parameter.locus.start}-${parameter.locus.stop}`
 
 /**
  * Given a parameter return the region matching
@@ -19,7 +20,9 @@ export const region_url = (parameter : RegionParameter) : string =>  `/api/regio
  * @param sink
  * @param getURL
  */
-export const getRegion = (parameter: RegionParameter | undefined,
+export const getRegion = (parameter: RegionParams<Locus> | undefined,
                           sink: (s: Region) => void,
                           getURL = get) =>
     parameter &&  getURL<Region>(resolveURL(region_url(parameter)),sink);
+
+

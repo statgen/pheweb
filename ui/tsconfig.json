@@ -5,16 +5,6 @@
         "name": "typescript-plugin-css-modules"
       }
     ],
-    "module": "esnext",
-    "jsx": "react",
-    "target": "es6",
-    "noImplicitThis": false,
-    "esModuleInterop": true,
-    "preserveConstEnums": true,
-    "strictNullChecks": false,
-    "sourceMap": true,
-    "skipLibCheck": true,
-    "noImplicitAny": false,
     "lib": [
       "dom",
       "es6",
@@ -24,20 +14,36 @@
     ],
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "alwaysStrict": true,
+    "checkJs": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true
+    "jsx": "react",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "noEmitOnError": false,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    //"noUnusedLocals": true,
+    //"noUnusedParameters": true,
+    "preserveConstEnums": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "target": "es6",
   },
   "include": [
-    "js/**/*",
+    "src/**/*",
     "types/**/*"
   ],
   "exclude": [
     "typings",
     "node_modules",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "**/*.js",
   ]
 }

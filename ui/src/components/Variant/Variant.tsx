@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react"
-import { Variant as CommonVariantModel, variantFromStr } from "../../common/Model"
+import { Variant as CommonVariantModel, variantFromStr } from "../../common/commonModel"
 import { Ensembl, Variant as VariantModel } from "./variantModel"
 import { getEnsembl, getVariant } from "./variantAPI"
 import { ConfigurationWindow } from "../Configuration/configurationModel"
-import { mustacheDiv } from "../../common/Utilities"
-import { hasError, isLoading } from "../../common/Loading"
+import { mustacheDiv } from "../../common/commonUtilities"
+import { hasError, isLoading } from "../../common/CommonLoading"
 import VariantTable from "./VariantTable"
 import VariantLocusZoom from "./VariantLocusZoom"
-import { numberFormatter, scientificFormatter } from "../../common/Formatter"
+import { numberFormatter, scientificFormatter } from "../../common/commonFormatter"
 import ReactTooltip from "react-tooltip"
-import { finEnrichmentLabel } from "../Finngen/gnomad"
+import { finEnrichmentLabel } from "../Finngen/finngenGnomad"
 import VariantContextProvider from "./VariantContext"
 import VariantLavaaPlot from "./VariantLavaaPlot"
 import { Either, Left, Right } from "purify-ts/Either"
@@ -79,7 +79,8 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
   const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
 
   const isNumber = function(d) { return typeof d == "number"; };
-  const mafs : number[] = variantData.results.map(function(v) {
+
+  const extractMAFS = (v) => {
     if (isNumber(v.maf_control))  { return v.maf_control; }
     else if ('af' in v && isNumber(v['af'])) { return v['af']; }
     else if ('af_alt' in v && isNumber(v['af_alt'])) { return v['af_alt']; }
@@ -90,7 +91,9 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
              v['ac'] !== 0 &&
              isNumber(v['num_samples'])) { return v['ac'] / v['num_samples']; }
     else { return undefined; }
-  });
+  };
+
+  const mafs : number[] = variantData.results.map(extractMAFS);
   const numPhenotypesWithMaf = mafs.filter(isNumber)
   const annot = variantData?.variant?.annotation?.annot
 
@@ -354,7 +357,7 @@ const Variant = (props : Props) => {
       const variant = createVariant()
       const summary : VariantSummary | undefined = createVariantSummary(variantData)
       const rsids : string[] | undefined  = summary?.rsids
-      if(rsids === undefined || rsids === null || rsids.length == 0){
+      if(rsids === undefined || rsids === null || rsids.length === 0){
         setBioBankURL({});
       } else {
         rsids.forEach((rsid) => {
@@ -363,7 +366,8 @@ const Variant = (props : Props) => {
               const mapping: Ensembl.Mapping = e.mappings[0]
 	      variant.map(v => {
 	      const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${v.reference}-${v.alternate}`
-              setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } })
+              setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } });
+	      return v;
 	      })
             }
           }))();

@@ -1,6 +1,6 @@
 /* eslint-env jest */
 // https://stackoverflow.com/questions/59833839/swap-one-typescript-type-with-another-inside-an-object
-import { compose, get, mustacheDiv, mustacheSpan, mustacheText } from "./Utilities";
+import { compose, get, mustacheDiv, mustacheSpan, mustacheText } from "./commonUtilities";
 import { configure, mount } from "enzyme";
 import { v4 } from "uuid";
 
@@ -25,10 +25,9 @@ test("get", async () => {
   const fetchURL: (
     input: RequestInfo,
     init?: RequestInit
-  ) => Promise<Response> = (input: RequestInfo, init?: RequestInit) =>
-    Promise.resolve(response);
-  global.fetch = jest.fn(fetchURL);
-  get("url", handler).then(() => expect(handler.mock.calls.length).toBe(0));
+  ) => Promise<Response> = (input: RequestInfo, init?: RequestInit) => Promise.resolve(response);
+  global.fetch = jest.fn(fetchURL) as unknown as (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+  get("url", handler, (url : string) => (e : Error) => {}).then(() => expect(handler.mock.calls.length).toBe(0));
 });
 
 test("mustacheDiv", () => {

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { wordFilter, createTableColumns, phenotypeListTableColumns } from '../../common/tableColumn'
+import { wordFilter, createTableColumns, phenotypeListTableColumns } from '../../common/commonTableColumn'
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import loading from "../../common/Loading";
+import commonLoading from "../../common/CommonLoading";
 import { Phenotype } from "./indexModel";
 import { getPhenotypes } from "./indexAPI";
-import { mustacheDiv } from "../../common/Utilities";
-import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
+import { mustacheDiv } from "../../common/commonUtilities";
+import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 import { Column } from "react-table";
 interface Props { }
 
@@ -43,9 +43,9 @@ export const Table = (props: Props) => {
     tableProperties,
     defaultSorted
   }
-  return phenotypes == null ? loading: <div style={{ width : "100%"}}>
+  return phenotypes == null ? commonLoading: <div style={{ width : "100%"}}>
     {mustacheDiv(banner, [])}
-    <DownloadTable {...prop}/>
+    <CommonDownloadTable {...prop}/>
   </div>
 
 };

@@ -6,9 +6,9 @@ declare module 'locuszoom' {
 	right: number;
 	bottom: number;
 	left: number;
-    };
+    }
 
-    export interface Origin { x: number; y: number; };
+    export interface Origin { x: number; y: number; }
 
     export class Dashboard { constructor(parent: Plot| Panel);
 	                     destroy(force: boolean): Dashboard;
@@ -19,7 +19,7 @@ declare module 'locuszoom' {
 	                     show(): Dashboard;
 	                     update(): void; }
 
-    export class DataLayer {
+    export type DataLayer = {
 	render () : void;
 	data : object[];
 	layout : Layout;
@@ -93,7 +93,7 @@ declare module 'locuszoom' {
 	    menu_antiverbs: 'unhighlight' | 'deselect' | 'unfade' | 'show';
 	};
 
-    }
+    } | LayoutDataLayersEntity;
 
     export class DataSources {
 	constructor();
@@ -118,10 +118,10 @@ declare module 'locuszoom' {
 	render(): void;
 	show(): void;
 
-    };
+    }
 
     export class Panel {
-
+	title?: LayoutTitle
 	/** @member {LocusZoom.Plot|null} */
 	parent : Plot | null;
 	/** @member {LocusZoom.Plot|null} */
@@ -143,7 +143,7 @@ declare module 'locuszoom' {
 	 */
 	layout : Layout;
 	/** @member {Object} */
-	data_layers : { [key: string]: DataLayer };
+	data_layers : { [key: string]: DataLayer } | DataLayer[];
 	/** @member {String[]} */
 	data_layer_ids_by_z_index : string[];
 	/**
@@ -785,6 +785,7 @@ declare module 'locuszoom' {
 	text: string;
 	x: number;
 	y: number;
+	style?: any;
     }
 
     export interface ComponentsEntity {
@@ -813,7 +814,7 @@ declare module 'locuszoom' {
 	label_function?: null | string;
 	label_offset?: number;
 	render?: boolean;
-
+	ticks? : string[];
 	tick_format?: string;
     }
     export interface LayoutLegend {
@@ -860,12 +861,16 @@ declare module 'locuszoom' {
     export interface ValueMap<V> {
 	scale_function: string;
 	field: string;
-	parameters: { categories?: (string | number)[] | null,
-		      values?: V[] | null,
-		      null_value: V } |
+	parameters:
+	{ breaks?: number[],
+	  values?: number | number[] | string | string[] | null,
+	  categories?: (string | number)[] | null,
+	  values?: V[] | null | V | number | number[] | string | string[],
+	  null_value?: V
+	} |
 	    { field_value: string | number,
-	      then: V,
-	      else: V };
+	      then?: V,
+	      else?: V };
     }
 
 
@@ -878,14 +883,14 @@ declare module 'locuszoom' {
 
     export interface LayoutParameters {
 	categories?: (string)[] | null;
-	values?: (string)[] | null;
-	null_value: string;
+	values?: number | number[] | string | string[] | null;
+	null_value?: number | number[] | string | string[];
     }
 
     export interface LayoutPointSizeParameters {
 	categories?: (string)[] | null;
-	values?: (number)[] | null;
-	null_value: number;
+	values?: number | number[] | string | string[] | null;
+	null_value?: number | number[] | string | string[];
     }
 
     export interface LayoutLegendEntity {
@@ -912,6 +917,7 @@ declare module 'locuszoom' {
 	href?: string;
 	status?: string;
 	exclusive?: boolean;
+	target?: string;
     }
 
     export interface LayoutTooltip {

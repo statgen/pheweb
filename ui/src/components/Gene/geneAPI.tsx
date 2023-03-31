@@ -1,4 +1,4 @@
-import { get } from "../../common/Utilities";
+import { get, Handler } from "../../common/commonUtilities";
 import { FunctionalVariants, GeneDrugs, GenePhenotypes, LossOfFunction, MyGene, PqtlColocalizations } from "./geneModel";
 import { resolveURL } from "../Configuration/configurationModel";
 
@@ -23,9 +23,11 @@ export const getLossOfFunction =(gene : string,
 
 export const getGenePhenotypes = (gene : string,
                                   sink: (s: GenePhenotypes.Data) => void,
+                                  setError: (s: string | null) => void,
                                   getURL = get) : void => {
+  const handler : Handler = (url : string) => (e : Error) => setError(`Loading gene '${gene}' ${e.message}`);
   const url = resolveURL(`/api/gene_phenos/${gene}`)
-  getURL(url, sink)
+  getURL(url, sink, handler)
 }
 
 export const getMyGene = (gene : string,
@@ -33,7 +35,6 @@ export const getMyGene = (gene : string,
                           getURL = get) : void => {
   getURL(`https://mygene.info/v3/query?q=${gene}&fields=symbol%2Cname%2Centrezgene%2Censembl.gene%2CMIM%2Csummary&species=human`, sink)
 }
-
 
 export const getGenePqtlColocalisations = (gene : string,
   sink: (s: PqtlColocalizations.Data) => void,

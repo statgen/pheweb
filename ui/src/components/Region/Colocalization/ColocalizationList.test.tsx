@@ -1,7 +1,7 @@
 /* eslint-env jest */
 
 import { Row } from "react-table";
-import { CasualVariant, Colocalization, variantFromStr } from "../../../common/Model";
+import { CasualVariant, Colocalization, variantFromStr } from "../../../common/commonModel";
 import { cell_locus_id1, cell_variant } from "./ColocalizationList";
 
 test("locus id1", () => {

@@ -1,7 +1,7 @@
 import React from "react";
-import { mustacheDiv } from "../../common/Utilities";
+import { mustacheDiv } from "../../common/commonUtilities";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { commit_sha } from "../../common/constants";
+import { commit_sha } from "../../common/commonConstants";
 
 const default_banner: string = `About Pheweb`
 
@@ -11,7 +11,7 @@ interface Props {}
 
 const { config } = window;
 
-const About = (props : Props) => {
+const About = () => {
 
   const banner: string = config?.userInterface?.about?.banner || default_banner;
   return <div>

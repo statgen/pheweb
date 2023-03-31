@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { createTableColumns, topHitTableColumns } from "../../common/tableColumn";
-import { mustacheDiv } from "../../common/Utilities";
+import { createTableColumns, topHitTableColumns } from "../../common/commonTableColumn";
+import { mustacheDiv } from "../../common/commonUtilities";
 import { TopHitsData, TopHitsRow } from "./topHitsModel";
 import { getTopHits } from "./topHitsAPI";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { Column } from "react-table";
-import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
+import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 
 interface Props {}
 
@@ -51,7 +51,7 @@ const TopHits = (props : Props) => {
   return <div className="row" style={{ width: '100%' }}>
       <div className="variant-info col-xs-12">
         {mustacheDiv(banner, { }) }
-        <DownloadTable {...prop}/>
+        <CommonDownloadTable {...prop}/>
       </div>
   </div>
 }

@@ -6,7 +6,7 @@ import { Table } from "./ChipTable";
 
 interface Props {}
 
-const Chip = (props : Props) => {
+const Chip = () => {
   return (
     <Provider store={store}>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

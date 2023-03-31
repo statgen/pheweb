@@ -1,15 +1,17 @@
-import React, { useContext } from "react";
-import { RegionContext, RegionState } from "./RegionContext";
+import React from "react";
+import { ConfigurationWindow } from "../Configuration/configurationModel";
 
 interface Props {}
 
+declare let window: ConfigurationWindow;
+const { region : config } = window?.config?.userInterface;
+const p_threshold = config?.lz_configuration?.p_threshold;
+
 const RegionMessage =  (props : Props) => {
-    const { region } = useContext<Partial<RegionState>>(RegionContext);
-    if(region?.lz_conf) {
-        const {lz_conf} = region;
+    if(p_threshold) {
         return (<div className="row">
                     <div className="col-xs-12">
-                        <p>Variants with a p-value smaller {lz_conf.p_threshold} than are shown</p>
+                        <p>Variants with a p-value smaller {p_threshold} than are shown</p>
                     </div>
                 </div>);
     } else {

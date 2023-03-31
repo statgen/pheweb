@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
-import { CasualVariant, Colocalization, variantToStr } from "../../../common/Model";
-import ReactTable, { Cell, Column, Row } from "react-table";
+import { CasualVariant, Colocalization, variantToStr } from "../../../common/commonModel";
+import ReactTable, { Cell, Column, Row } from "react-table-v6";
 import { ColocalizationContext, ColocalizationState } from "./ColocalizationContext";
 import selectTableHOC from "react-table/lib/hoc/selectTable";
 import { CSVLink } from "react-csv";
-import { cellNumber, cellText, variantLink } from "../../../common/Formatter";
-import { compose } from "../../../common/Utilities";
+import { cellNumber, cellText, variantLink } from "../../../common/commonFormatter";
+import { compose } from "../../../common/commonUtilities";
 import { refreshLocusZoom } from "./ColocalizationLocusZoom";
 import { RegionContext, RegionState } from "../RegionContext";
 
@@ -61,7 +61,6 @@ const subComponentMetadata = [ { title: "Variant" , accessor: "varid1" , label: 
                                { title: "pip2" , accessor: "pip2" , label:"PIP 2"  , Cell : cellNumber },
                                { title: "beta2" , accessor: "beta2" , label:"Beta 2"  , Cell : cellNumber } ]
 
-// @ts-ignore
 const columns = (metadata : Metadata[]) => metadata.map(c => ({ ...c , Header: () => (<span title={ c.title} style={{textDecoration: 'underline'}}>{ c.label }</span>) }))
 const headers = (metadata : Metadata[]) => columns(metadata).map(c => ({ ...c , key: c.accessor }))
 
@@ -69,10 +68,8 @@ const subComponent = (row : Row<Colocalization>) => {
     const colocalization : Colocalization = row.original;
     const causalvariant : CasualVariant[] = colocalization.variants;
 
-    // @ts-ignore
     const reactTable =         <ReactTable
         data={ causalvariant }
-        // @ts-ignore
         columns={ columns(subComponentMetadata) }
         defaultPageSize={5}
         showPagination={true} />

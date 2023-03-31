@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+cd ui
+if( -d "node_modules" )
+then
+    npm test -- --watchAll=false
+    command -v  npx && npx lint-staged
+else
+    echo "npm packages not installed skipping ..."
+fi

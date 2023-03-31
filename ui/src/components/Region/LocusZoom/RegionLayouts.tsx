@@ -3,10 +3,11 @@ import { Region } from "../RegionModel";
 import { ConfigurationWindow } from "../../Configuration/configurationModel";
 
 declare let window: ConfigurationWindow;
-const { config } = window;
-const lz_config : Region.LzConfiguration = config?.userInterface?.region?.lz_config
+const { application } = window?.config;
+const { region : config } = window?.config?.userInterface;
+const lz_configuration : Region.LzConfiguration = config?.lz_configuration
 
-const tooltip_html : string = lz_config?.tooltip_html || `
+const tooltip_html : string = lz_configuration?.tooltip_html || `
 
                    <strong>{{association:id}}</strong><br/>
                    <strong>{{association:rsid}}</strong><br/>
@@ -53,7 +54,7 @@ const tooltip_html : string = lz_config?.tooltip_html || `
                    </table>
 `
 
-const assoc_fields : string[] = lz_config?.assoc_fields || [
+const assoc_fields : string[] = lz_configuration?.assoc_fields || [
 	"association:id",
 	"association:chr",
 	"association:position",
@@ -131,7 +132,7 @@ export const region_layout: (region: Region) => Layout = (region: Region) => {
 
 export const association_layout: (region: Region) => Layout = (region: Region) => {
 	return { "id": "association",
-		 "title": { "text": region.browser, "x": 55, "y": 30 },
+		 "title": { "text": application.browser || "pheweb", "x": 55, "y": 30 },
 		 "proportional_height": 0.2,
 		 "min_width": 400,
 		 "min_height": 100,
@@ -915,6 +916,7 @@ export const conditional_layout: (region: Region) => Layout = (region: Region) =
 		"null_value": "circle"
 	    }
 	},
+	/*
 	"point_size": {
 	    "scale_function": "if",
 	    "field": "ld:isrefvar",
@@ -923,7 +925,7 @@ export const conditional_layout: (region: Region) => Layout = (region: Region) =
 		"then": 80,
 		"else": 40
 	    }
-	},
+	},*/
 	"point_size": {
 	    "scale_function": "categorical_bin",
 	    "field": "conditional:most_severe",

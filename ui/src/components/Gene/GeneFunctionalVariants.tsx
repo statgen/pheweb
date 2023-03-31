@@ -1,13 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { mustacheDiv } from "../../common/Utilities";
+import { mustacheDiv } from "../../common/commonUtilities";
 import { FunctionalVariants } from "./geneModel";
 import { getGeneFunctionalVariants } from "./geneAPI";
 import { Column } from "react-table";
-import { wordFilter, createTableColumns, geneFunctionalVariantTableColumns } from "../../common/tableColumn";
-import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
-import loading from "../../common/Loading";
-import { finEnrichmentLabel } from "../Finngen/gnomad";
+import { wordFilter, createTableColumns, geneFunctionalVariantTableColumns } from "../../common/commonTableColumn";
+import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
+import commonLoading from "../../common/CommonLoading";
+import { finEnrichmentLabel } from "../Finngen/finngenGnomad";
 import { GeneContext, GeneState } from "./GeneContext";
 
 const default_banner : string =`
@@ -70,7 +70,7 @@ const GeneFunctionalVariants = () => {
 
   let view;
   if (data == null){
-    view = loading;
+    view = commonLoading;
   } else if(dataToTableRows(data).length === 0){
     view = <div>
       {mustacheDiv(banner, context)}
@@ -80,7 +80,7 @@ const GeneFunctionalVariants = () => {
   } else {
     view = <div>
       {mustacheDiv(banner, context)}
-      <DownloadTable {...prop}/>
+      <CommonDownloadTable {...prop}/>
     </div>
   }
   return view;

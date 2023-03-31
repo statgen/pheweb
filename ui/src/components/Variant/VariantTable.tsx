@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
 import { Column } from "react-table";
-import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
+import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 import { Variant } from "../Variant/variantModel";
-import { wordFilter, createTableColumns, variantTableColumns } from "../../common/tableColumn";
+import { wordFilter, createTableColumns, variantTableColumns } from "../../common/commonTableColumn";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { VariantContext, VariantState } from "./VariantContext";
-import loading from "../../common/Loading";
+import commonLoading from "../../common/CommonLoading";
 
 const dataToTableRows = (colorByCategory : { [name: string]: string }) => (variantData : Variant.Data | null) : Variant.Result[] =>
   variantData?.results.map(v => { return {color : colorByCategory[v.category], ...v}}) || []
@@ -38,9 +38,9 @@ const VariantTable = ({ variantData } : Props ) => {
       tableProperties,
       defaultSorted
     }
-    return <DownloadTable {...prop} />
+    return <CommonDownloadTable {...prop} />
   } else {
-    return loading
+    return commonLoading
   }
 }
 

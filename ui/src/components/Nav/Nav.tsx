@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { ConfigurationWindow } from '../../components/Configuration/configurationModel'
-import { mustacheSpan } from '../../common/Utilities'
+import { mustacheSpan } from '../../common/commonUtilities'
 import Search from './Search'
 import Logout from './Logout'
 
@@ -13,13 +13,6 @@ export const navLink = (href : string, label : string) => <li className="nav-ite
 </li>
 const show = <X,>(toogle : boolean) => (value :X) => toogle?value:<></>
 
-/* This assumes the email in
- * the cookie and tries to parse
- * for it
- */
-const emailFromCookie =/"([^|]+)/
-const cookie = document.cookie
-
 const Nav = () => {
 
   const logo = mustacheSpan(application?.logo || 'LOGO',{}) // mustacheSpan('', {});
@@ -27,9 +20,7 @@ const Nav = () => {
   const hasLOF = userInterface?.lof !== undefined,
     hasCoding = userInterface?.coding !== undefined,
     hasChip = userInterface?.chip !== undefined,
-    hasAbout = userInterface?.about !== undefined,
-    hasCurrentUser : string | undefined = emailFromCookie.test(cookie) && document.cookie.match(cookie)[1];
-
+    hasAbout = userInterface?.about !== undefined;
 
   return <nav className="navbar navbar-expand-lg navbar-light bg-light">
     <a className="navbar-brand" href="/">{ logo }</a>

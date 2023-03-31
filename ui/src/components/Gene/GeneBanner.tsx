@@ -1,10 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { mustacheDiv } from "../../common/Utilities";
+import { mustacheDiv } from "../../common/commonUtilities";
 import { MyGene } from "./geneModel";
 import { getMyGene } from "./geneAPI";
 import { GeneContext, GeneState } from "./GeneContext";
-import loading from "../../common/Loading";
+import commonLoading from "../../common/CommonLoading";
 
 const default_banner: string = `
 
@@ -71,14 +71,15 @@ const default_banner: string = `
 `
 type GeneSummary =  MyGene.Hit
 
-export const createSummary = (geneName : string, geneInformation : MyGene.Data | null) : MyGene.Hit | undefined => {
+type SummaryType = MyGene.Hit | {symbol: string}
+export const createSummary = (geneName : string, geneInformation : MyGene.Data | null) : SummaryType => {
   /* We know from #317 the best match
    * does not work.  So this uses exact
    * match.
    */
-
-   const geneHit : MyGene.Hit | undefined = geneInformation?.hits?.find((g : MyGene.Hit) => g.symbol === geneName) ||  { symbol : geneName }
+  const geneHit : SummaryType = geneInformation?.hits?.find((g : MyGene.Hit) => g.symbol === geneName) ||  { symbol : geneName }
   return geneHit;
+
 }
 
 declare let window: ConfigurationWindow;
@@ -87,15 +88,15 @@ const banner: string = config?.userInterface?.gene?.banner || default_banner;
 
 
 interface Props {}
-const GeneBanner = (props : Props) => {
+const GeneBanner = () => {
   const { gene } = useContext<Partial<GeneState>>(GeneContext);
   const [myGeneData, setMyGeneData] = useState<MyGene.Data | null>(null);
   useEffect(() => { getMyGene(gene,setMyGeneData); },[gene]);
 
   if(myGeneData == null){
-    return loading
+    return commonLoading
   } else {
-    const summary : MyGene.Hit | undefined = createSummary(gene, myGeneData)
+    const summary : SummaryType = createSummary(gene, myGeneData)
     return mustacheDiv(banner, { summary })
   }
 }

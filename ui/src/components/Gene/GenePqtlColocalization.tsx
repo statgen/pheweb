@@ -1,13 +1,14 @@
-import { mustacheDiv } from "../../common/Utilities";
+import { mustacheDiv } from "../../common/commonUtilities";
 import React, { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { getGenePqtlColocalisations } from "./geneAPI";
-import loading from "../../common/Loading";
 import { PqtlColocalizations as PqtlColocalizationsModel } from "./geneModel";
 import { GeneContext, GeneState } from "./GeneContext";
 import { Column } from "react-table";
-import { createTableColumns, genePqtlTableColumns, colocSubTable } from "../../common/tableColumn";
-import DownloadTable, { DownloadTableProps } from "../../common/DownloadTable";
+import { createTableColumns, genePqtlTableColumns, colocSubTable } from "../../common/commonTableColumn";
+import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
+import commonLoading from "../../common/CommonLoading";
+
 
 import ReactTable from 'react-table-v6';
 import 'react-table-v6/react-table.css';
@@ -32,22 +33,24 @@ const defaultSorted = [{
 }]
 
 
-const colocalizationSubTable = ( prop : PqtlColocalizationsModel.Data ) : JSX.Element | any => {
 
-  const value = prop.original.disease_colocalizations[0];
-  var chrPos = prop.original.v.split(':', 2);
+const colocalizationSubTable = ( row :  ReactTable ) : JSX.Element | any => {
+
+  const value = row.original.disease_colocalizations[0];
+  var chrPos = row.original.v.split(':', 2);  
   var chrom = chrPos[0];
   var pos: number = +chrPos[1];
   var region = `${chrom}:${pos - 200000}-${pos + 200000}`;
   const pageSize = Math.min(5, Object.keys(value).length);
 
+  // add region to the henotype description for creating a link
   for (var i=0; i < Object.keys(value).length; i++){
-    value[i]['phenotype1_'] = {
+    value[i]['phenotype1_region'] = {
       'pheno': value[i].phenotype1,
       'region': region
     }
   }
-
+  
   return (
       Object.keys(value).length > 0 ?
         <div style={{ padding: "20px" }}>
@@ -80,10 +83,11 @@ const GenePqtls = () => {
   }
 
   const context = { gene }
-  return genePqtlColocalizationData == null ? loading: <div>
+  return genePqtlColocalizationData == null ? commonLoading: <div>
     {mustacheDiv(banner, context)}
-    <DownloadTable {...prop}/>
+    <CommonDownloadTable {...prop}/>
   </div>
+
 }
 
 export default GenePqtls

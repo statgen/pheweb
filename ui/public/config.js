@@ -49,7 +49,7 @@ const userInterface = {
     banner: `
     <h2 style="margin-top: 0;">
         {{phenostring}}
-        </h2>
+       </h2>
         <p>{{category}}</p>
         <p style="margin-bottom: 10px;">
         <a style="
@@ -62,7 +62,7 @@ const userInterface = {
     box-shadow: 0 0 5px rgba(0,0,0,.5);"
            rel="noopener noreferrer"
            href="https://risteys.finngen.fi/phenocode/{{risteys}}"
-           target="_blank">RISTEYS
+           target="_blank">RISTTEYS
         </a>
       </p>
     `
@@ -94,14 +94,21 @@ const userInterface = {
       ]
     }
   },
-   gene: { lossOfFunction: null , lz_config : { ld_panel_version : "sisu4" }}
+  gene: { lossOfFunction: null , lz_config : { ld_panel_version : "sisu42" }}
 }
 const metaData = {}
 const application = {
-  logo: '<img src="/images/finngen_loop1.gif" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px">',
-  title: 'FREEZE 9 BETA',
-  root: 'http://localhost:8081',
-  vis_conf: {
+    ld_service : "http://api.finngen.fi/api/ld",
+    vis_conf : { info_tooltip_threshold:0.8,
+		 loglog_threshold:10,
+		 manhattan_colors:["rgb(53,0,212)","rgb(40, 40, 40)"] },
+    genome_build : 37,
+    browser: "pheweb-dev" ,
+    ld_panel_version : "sisu42",
+    logo: '<img src="/images/finngen_loop1.gif" style="float: left; width: 60px; height: 60px; margin: -10px; margin-top: 8px">',
+    title: 'FREEZE 9 BETA',
+    root: 'http://localhost:8081',
+    vis_conf: {
     info_tooltip_threshold: 0.8,
     loglog_threshold: 10,
     manhattan_colors: [
