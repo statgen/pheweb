@@ -8,8 +8,6 @@ import { Column } from "react-table";
 import { createTableColumns, genePqtlTableColumns, colocSubTable } from "../../common/commonTableColumn";
 import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 import commonLoading from "../../common/CommonLoading";
-
-
 import ReactTable from 'react-table-v6';
 import 'react-table-v6/react-table.css';
 
@@ -32,8 +30,6 @@ const defaultSorted = [{
   desc: false
 }]
 
-
-
 const colocalizationSubTable = ( row :  ReactTable ) : JSX.Element | any => {
 
   const value = row.original.disease_colocalizations[0];
@@ -43,7 +39,7 @@ const colocalizationSubTable = ( row :  ReactTable ) : JSX.Element | any => {
   var region = `${chrom}:${pos - 200000}-${pos + 200000}`;
   const pageSize = Math.min(5, Object.keys(value).length);
 
-  // add region to the henotype description for creating a link
+  // add region to the phenotype description for creating a link
   for (var i=0; i < Object.keys(value).length; i++){
     value[i]['phenotype1_region'] = {
       'pheno': value[i].phenotype1,
