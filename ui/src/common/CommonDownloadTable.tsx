@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 import ReactTable from "react-table-v6";
 import commonLoading from "./CommonLoading";
 import { createCSVLinkHeaders } from "./commonTableColumn";
@@ -21,7 +21,8 @@ export interface Props <TableData, RowType extends  {},
   tableColumns : Column<RowType>[]
   tableProperties? : ReactProperties,
   linkProperties? : LinkProperties,
-  defaultSorted : SortingRule<string>[]
+  defaultSorted : SortingRule<string>[],
+  subComponent? : ( JSX.Element | any )
 }
 
 export type DownloadTableProps<TableData,
@@ -35,7 +36,8 @@ const CommonDownloadTable = <TableData,RowType extends {}>
      tableColumns ,
      tableProperties,
      linkProperties,
-     defaultSorted
+     defaultSorted,
+     subComponent
    } : Props<TableData, RowType>) => {
 
     const [download, setDownload] = useState<RowType[] | null>(null);
@@ -59,6 +61,7 @@ const CommonDownloadTable = <TableData,RowType extends {}>
         filterable
         columns={tableColumns}
         defaultSorted={defaultSorted}
+        SubComponent={subComponent}
         {...tableProperties  } />
 
       <p>

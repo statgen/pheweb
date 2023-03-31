@@ -1,4 +1,4 @@
-import { Column, HeaderProps, Renderer } from "react-table";
+import { Column, HeaderProps, Renderer } from "react-table"; 
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { variantFromStr, variantToPheweb, variantToStr } from "./commonModel";
@@ -1328,11 +1328,185 @@ const phenotypeColumns = {
                href={"https://gnomad.broadinstitute.org/variant/" + grch37}
                target="_blank">gn</a></span>
     </div>) }
-  }
+  },
 }
 
 
+const pqtColumns = {
+  pqtlTrait: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>trait</span>),
+    accessor: "trait",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: textCellFormatter,
+    minWidth: columnWith(120)
+  },
+  pqtlSource: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>source</span>),
+    accessor: "source",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: textCellFormatter,
+    minWidth: columnWith(120)
+  },
+  pqtlRegion: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>region</span>),
+    accessor: "region",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: textCellFormatter,
+    minWidth: columnWith(200)
+  },
+  pqtlCS: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>CS</span>),
+    accessor: "cs",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: numberCellFormatter,
+    minWidth: columnWith(80)
+  },
+  pqtlVar: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>variant</span>),
+    accessor: "v",
+    sortMethod: variantSorter,
+    filterMethod: (filter, row) => {
+      return (row[filter.id].includes(filter.value));
+    },  
+    Filter: ({ filter, onChange }) => {
+      return (<div>
+        <input style={{ float: "left", width: "140px" }} type="text"
+                 onChange={event => onChange(event.target.value)} />
+        </div>);
+    },
+    Cell: textCellFormatter,
+    minWidth: columnWith(200)
+  },
+  pqtlCSProb: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>CS prob</span>),
+    accessor: "cs_specific_prob",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: scientificCellFormatter,
+    maxWidth: columnWith(80)
+  },
+  pqtlCSLogBF: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>CS bayes factor (log10)</span>),
+    accessor: "cs_log10bf",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,
+    Cell: scientificCellFormatter,
+    minWidth: columnWith(80)
+  },
+  pqtlCSMinR2: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>CS min r2</span>),
+    accessor: "cs_min_r2",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: decimalCellFormatter,
+    minWidth: columnWith(80)
+  },
+  pqtlBeta: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>beta</span>),
+    accessor: "beta",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,
+    Cell: decimalCellFormatter,
+    minWidth: columnWith(80)
+  },
+  pqtlPval: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>p-value</span>),
+    accessor: "p",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,
+    Cell: pValueCellFormatter,
+    minWidth: columnWith(80)
+  },
+  pqtlProb: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>CS PIP</span>),
+    accessor: "prob",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,
+    Cell: scientificCellFormatter,
+    minWidth: columnWith(80)
+  },
+  pqtlGeneMostSevere: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>gene</span>),
+    accessor: "gene_most_severe",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: textCellFormatter,
+    minWidth: columnWith(80)
+  }
+}
 
+const colocColumns = {
+  pheno: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>phenotype</span>),
+    accessor: "phenotype1_region",
+    filterMethod: (filter, row) => row[filter.id] == filter.value.pheno,
+    Cell: (props : { value : any }) => (
+      <a href={`/region/${props.value.pheno}/${props.value.region}`} target="_blank" rel="noopener noreferrer">{props.value.pheno}</a>
+    ),
+    minWidth: 200
+  },
+  description: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>description</span>),
+    accessor: "phenotype1_description",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: textCellFormatter,
+    minWidth: 400
+  },
+  clpp: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>clpp</span>),
+    accessor: "clpp",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: decimalCellFormatter,
+    minWidth: 100
+  },
+  clpa: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>clpa</span>),
+    accessor: "clpa",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: decimalCellFormatter,
+    minWidth: 100
+  },
+  lenInter: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>len intersect</span>),
+    accessor: "len_inter",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: numberCellFormatter,
+    minWidth: 100
+  },
+  lenCS1: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>len cs1</span>),
+    accessor: "len_cs1",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: numberCellFormatter,
+    minWidth: 100
+  },
+  lenCS2: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>len cs2</span>),
+    accessor: "len_cs2",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: numberCellFormatter,
+    minWidth: 100
+  }
+}
+
+export const colocSubTable = [
+  colocColumns.pheno,
+  colocColumns.description,
+  colocColumns.clpp,
+  colocColumns.clpa,
+  colocColumns.lenInter,
+  colocColumns.lenCS1,
+  colocColumns.lenCS2
+]
+
+export const genePqtlTableColumns = [
+  pqtColumns.pqtlTrait,
+  pqtColumns.pqtlSource,
+  pqtColumns.pqtlRegion,
+  pqtColumns.pqtlCS,
+  pqtColumns.pqtlVar,
+  pqtColumns.pqtlCSProb,
+  pqtColumns.pqtlCSLogBF,
+  pqtColumns.pqtlCSMinR2,
+  pqtColumns.pqtlBeta,
+  pqtColumns.pqtlPval,
+  pqtColumns.pqtlProb,
+  phenotypeColumns.codingMostServe,
+  pqtColumns.pqtlGeneMostSevere
+]
 
 export const geneLossOfFunctionTableColumns = [
   phenotypeColumns.phenotype,
@@ -1477,6 +1651,7 @@ export const topHitTableColumns = [
   phenotypeColumns.mlogp
 ]
 
+
 interface ColumnArchetype<E extends {}> {
   type: string,
   attributes: Column<E>
@@ -1491,7 +1666,6 @@ interface ColumnDescriptor<E extends {}> {
   sorter: string,
   filter: string
 }
-
 
 type ColumnConfiguration<E> = ColumnArchetype<E> | ColumnDescriptor<E>;
 export type TableColumnConfiguration<E> = ColumnConfiguration<E>[] | undefined | null

@@ -40,6 +40,7 @@ class ServerJeeves(object):
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
         self.autocompleter = self.dbs_fact.get_autocompleter()
+        self.pqtl_colocalization = self.dbs_fact.get_pqtl_colocalization_dao()
 
     def gene_functional_variants(self, gene, pThreshold=None):
 
@@ -572,4 +573,10 @@ class ServerJeeves(object):
                     elif record[key] == float("-inf"):
                         record[key] = "-inf"
         return values
-    
+
+    def get_pqtl_colocalization_by_gene_name(self, gene_name: str):
+        """
+            Get pqtl and colocalization data by the gene name
+        """
+        dat = self.pqtl_colocalization.get_pqtl_colocalization(gene_name) if self.pqtl_colocalization else dict()
+        return dat 

@@ -305,8 +305,15 @@ def api_finemapped_region(phenocode):
     rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, prob_threshold=conf.locuszoom_conf['prob_threshold'])
     return jsonify(rv)
 
+
+@app.route('/api/gene_pqtl_colocalization/<genename>')
+def api_gene_pqtl_colocalization(genename):
+    pqtldat = jeeves.get_pqtl_colocalization_by_gene_name(genename)
+    return jsonify(pqtldat)
+
 @app.route('/api/gene/<genename>')
 def gene_api(genename):
+
     phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")

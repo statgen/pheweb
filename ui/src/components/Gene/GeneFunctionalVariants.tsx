@@ -57,7 +57,7 @@ const GeneFunctionalVariants = () => {
   useEffect(() => {
     getGeneFunctionalVariants(gene,setData)
   },[gene, setData]);
-
+  
   const prop : DownloadTableProps<FunctionalVariants.Data, FunctionalVariants.ViewRow> = {
     filename,
     tableData : data,
