@@ -110,10 +110,11 @@ export const INFOFilter = ({
           setChecked(!checked);
         }}
       />
-      <span style={{ fontWeight: 400 }}>only chip</span>
+      <span id={"only-chip-label"} style={{ fontWeight: 400 }}>only chip</span>
     </>
   );
 };
+
 
 export const SelectColumnFilter = ({
   column: { filterValue, setFilter, preFilteredRows, id },

@@ -1,5 +1,9 @@
 @import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600,700");
 
+div:has(> #only-chip-label) {
+  margin-left: 0px !important;
+  padding-left: 0px !important;
+}
 .coding div {
   font-family: "Open Sans", sans-serif;
   font-size: 0.8vw;
