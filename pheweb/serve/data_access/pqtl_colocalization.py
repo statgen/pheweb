@@ -10,7 +10,7 @@ import re
 class PqtlColocalisationDB(object):
     @abc.abstractmethod
     def get_pqtl_colocalization(self, gene_name):
-        """Retrieve a given gene pqtls
+        """Retrieve a given gene pqtls and disease colocalizations
         """
         return
 
@@ -39,7 +39,7 @@ class PqtlColocalisationDao(PqtlColocalisationDB, MysqlDAO):
                 sql = f"""SELECT {columns} FROM {table} WHERE gene_name=%s """
                 parameters = [gene_name]                       
                 cursor.execute(sql, parameters)
-                pqtls = cursor.fetchall() # list of dict
+                pqtls = cursor.fetchall() 
             
             # fetch colocalizaion from mysql
             result = []      

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 import ReactTable from "react-table-v6";
 import loading from "./Loading";
 import { createCSVLinkHeaders } from "./tableColumn";
@@ -22,7 +22,7 @@ export interface Props <TableData, RowType extends  {},
   tableProperties? : ReactProperties,
   linkProperties? : LinkProperties,
   defaultSorted : SortingRule<string>[],
-  subComponent? : (ReactTable| null)
+  subComponent? : ( JSX.Element | any )
 }
 
 export type DownloadTableProps<TableData,

@@ -1,5 +1,5 @@
 import { mustacheDiv } from "../../common/Utilities";
-import React, { FC, useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { getGenePqtlColocalisations } from "./geneAPI";
 import loading from "../../common/Loading";
@@ -31,11 +31,10 @@ const defaultSorted = [{
   desc: false
 }]
 
-// const colocalizationSubTable = ( prop ) => {
-const colocalizationSubTable = ( prop : FC ) => {
+
+const colocalizationSubTable = ( prop : PqtlColocalizationsModel.Data ) : JSX.Element | any => {
 
   const value = prop.original.disease_colocalizations[0];
-  
   var chrPos = prop.original.v.split(':', 2);
   var chrom = chrPos[0];
   var pos: number = +chrPos[1];
@@ -68,7 +67,7 @@ const GenePqtls = () => {
   const [genePqtlColocalizationData, setGenePqtlColocalizationData] = useState<PqtlColocalizationsModel.Data | null>(null);
   useEffect(() => { getGenePqtlColocalisations(gene, setGenePqtlColocalizationData) },[gene]);
 
-  const filename = `${gene}_pqtl_coloc.tsv`;
+  const filename = `${gene}_pqtl.tsv`;
 
   const prop : DownloadTableProps<PqtlColocalizationsModel.Data, PqtlColocalizationsModel.Row> = {
     filename,
