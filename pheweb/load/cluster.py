@@ -9,8 +9,6 @@ import sys, argparse
 from boltons.iterutils import chunked
 from typing import List,Dict,Any
 
-N_AT_A_TIME = 5
-
 header_template = {
     'slurm': '''\
 #!/bin/bash
@@ -46,6 +44,7 @@ def run(argv:List[str]) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--engine', choices=['slurm', 'sge'], required=True)
     parser.add_argument('--step', choices=['parse', 'augment-phenos', 'manhattan', 'qq'], required=True)
+    parser.add_argument('--N_per_job', default=5)
     args = parser.parse_args(argv)
 
     def should_process(pheno:Dict[str,Any]) -> bool:
@@ -77,7 +76,7 @@ def run(argv:List[str]) -> None:
         print('All phenos are up-to-date!')
         exit(0)
 
-    jobs = chunked(idxs, N_AT_A_TIME)
+    jobs = chunked(idxs, args.N_per_job)
     batch_filepath = get_dated_tmp_path('{}-{}'.format(args.engine, args.step)) + '.sh'
     tmp_path = get_tmp_path(args.step)
     mkdir_p(tmp_path)
