@@ -4,6 +4,7 @@ import { ConfigurationWindow } from "../../Configuration/configurationModel";
 
 declare let window: ConfigurationWindow;
 const config = window?.config?.userInterface?.region;
+const application = window?.config?.application;
 const lz_configuration : Region.LzConfiguration = config?.lz_configuration
 
 const tooltip_html : string = lz_configuration?.tooltip_html || `
