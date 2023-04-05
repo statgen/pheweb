@@ -59,6 +59,7 @@ test("nearest gene formatter : undefined", () => {
 test("nearest gene formatter : undefined", () => {
   const actual = nearestGeneFormatter("APOE,MAP3K14");
   const expected = [<a href="/gene/APOE">APOE</a> ,
+  <span> , </span> ,
     <a href="/gene/MAP3K14">MAP3K14</a> ,];
   expect(actual).toStrictEqual(expected);
 })
