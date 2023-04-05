@@ -3,8 +3,7 @@ import { Region } from "../RegionModel";
 import { ConfigurationWindow } from "../../Configuration/configurationModel";
 
 declare let window: ConfigurationWindow;
-const { application } = window?.config;
-const { region : config } = window?.config?.userInterface;
+const config = window?.config?.userInterface?.region;
 const lz_configuration : Region.LzConfiguration = config?.lz_configuration
 
 const tooltip_html : string = lz_configuration?.tooltip_html || `
