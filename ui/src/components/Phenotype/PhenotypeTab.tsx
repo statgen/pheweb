@@ -2,15 +2,13 @@ import React, { useContext } from "react";
 import { Tab, TabList, TabPanel, Tabs } from 'react-tabs'
 import { PhenotypeContext, PhenotypeState } from "./PhenotypeContext";
 import VariantTable from './PhenotypeVariantTable';
-import PhenotypeCSTable from "./PhetotypeCSTable";
+import PhenotypeCSTable from "./PhenotypeCSTable";
 
 const PhenotypeTab = () => {
   const { phenotypeCode ,
+          credibleSets ,
           selectedTab,
           setSelectedTab } = useContext<Partial<PhenotypeState>>(PhenotypeContext);
-
-  const variantTable = <VariantTable phenotypeCode={phenotypeCode} />
-  const csTable = <PhenotypeCSTable/>
 
   return <>
     <h3>Lead variants</h3>
@@ -21,17 +19,17 @@ const PhenotypeTab = () => {
       style={{ width: '100%' }}
     >
       <TabList>
-        <Tab>Credible Sets</Tab>
+        { credibleSets && <Tab>Credible Sets</Tab> }
         <Tab>Traditional</Tab>
       </TabList>
-      <TabPanel>
+      { credibleSets && <TabPanel>
         <div id='cs table' className='phenotype-tab'>
-          {csTable}
+          <PhenotypeCSTable/>
         </div>
-      </TabPanel>
+      </TabPanel> }
       <TabPanel>
         <div id='traditional table' className='phenotype-tab'>
-          {variantTable}
+          <VariantTable phenotypeCode={phenotypeCode} />
         </div>
       </TabPanel>
     </Tabs>

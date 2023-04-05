@@ -117,5 +117,9 @@ export interface PhenotypeConfiguration {
     table : { columns: TableColumnConfiguration<PhenotypeVariantRow> ,
               defaultSorted : SortingRule<PhenotypeVariantRow>[] }
   }
+  credibleSet : {
+    table : { columns: TableColumnConfiguration<CredibleSet> ,
+              defaultSorted : SortingRule<CredibleSet>[] }
+  }
   vis_conf : VisConfiguration;
 }
