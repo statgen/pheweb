@@ -48,8 +48,10 @@ const optionaCellNumberFormatter = (props) => isNaN(+props.value) ? props.value 
 const scientificCellFormatter = (props) => (+props.value).toExponential(1);
 const optionalCellScientificFormatter = (props) => isNaN(+props.value) ? props.value : scientificCellFormatter(props);
 
-export const nearestGeneFormatter = (geneName : string | null | undefined) => geneName?.split(",")?.map(geneName => <a href={`/gene/${geneName}`}>{geneName}</a>).flatMap(element => [<span> , </span>, element]).slice(1) || <></>
-
+export const nearestGeneFormatter = (geneName : string | null | undefined) => {
+       const geneLabels = geneName?.split(",")?.map(geneName => <a href={`/gene/${geneName}`}>{geneName}</a>);
+       return geneLabels?[].concat(...geneLabels.map(element => [<span> , </span>, element])).slice(1):<></>;
+}
 export const pValueCellFormatter = (props) => {
       const value = props.value;
       let result;
