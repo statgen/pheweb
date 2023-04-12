@@ -28,8 +28,10 @@ class PqtlColocalisationDao(PqtlColocalisationDB, MysqlDAO):
         with closing(self.get_connection()) as conn:
             fields = self._fields
             tables = [field['table'] for field in fields]
-            if tables.index('colocalization') == 0:
-                fields.reverse()
+            id = [i for i,t in enumerate(tables) if 'colocalization' in t]
+            if len(id) > 0:
+                if id[0] == 0:
+                    fields.reverse()
 
             # fetch pqtls from mysql
             with conn.cursor(pymysql.cursors.DictCursor) as cursor:
