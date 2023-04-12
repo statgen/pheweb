@@ -547,8 +547,7 @@ const phenotypeColumns = {
           const href = `/gene/${props.original.gene}/pheno/${props.original.phenocode || props.original.pheno}`
           const label = props.value === "NA" ? props.original.pheno : props.value
           return <a href={href}
-                    rel="noopener noreferrer"
-                    target="_blank">{label}</a>
+                    rel="noopener noreferrer">{label}</a>
         },
         minWidth: 300
       },

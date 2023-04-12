@@ -46,8 +46,8 @@ if (typeof (element) !== 'undefined' && element != null) {
             <Route path='/pheno/:pheno' component={Pheno} />
             <Route path='/region/:phenotype/:locus' component={Region} />
             <Route path='/about' component={About} />
-            <Route path='/gene/:gene' component={Gene} />
-            <Route path='/gene/:gene/pheno/:phenotype' component={Gene} />
+            <Route exact path='/gene/:gene' component={Gene} />
+            <Route exact path='/gene/:gene/pheno/:phenotype' component={Gene} />
             <Route path='/top_hits' component={TopHits} />
             <Route component={NotFoundEntity('page')} />
           </Switch>
