@@ -52,13 +52,16 @@ class ServerJeeves(object):
         print(" gene functional variants took {}".format( time.time()-startt) )
         remove_indx =[]
         chrom,start,end = self.get_gene_region_mapping()[gene]
-        startt = time.time()
+
         ## if there are not many functional variants and gene is large it is better to get them one by one
-        results = self.result_dao.get_variants_results( func_var_annot )
-        print(" gene variant results for func annot n={} took {}".format(len(func_var_annot),time.time()-startt) )
-
+        startt = time.time()
+        results = self.result_dao.get_variant_results_range( chrom, start, end )
+        vars_anno = self.annotation_dao.get_variant_annotations_range(chrom, start, end, True)
+        rsids = {v : v.annotation['annot']['rsid'] for v in vars_anno }
+        for r in results:
+            if r[0] in rsids:
+                r[0].add_annotation("rsids", rsids[r[0]])
         res_indx = { v:(v,p) for v,p in results }
-
         for i,var in enumerate(func_var_annot):
             if  var not in res_indx:
                 # variants found in annotations but they have been filtered out from results. Add in decreasing order for easy
@@ -67,16 +70,17 @@ class ServerJeeves(object):
                 continue
 
             ## nearest gene and rsids are in result file although logically would belong to annotations. override variant to get the annotations.
-            func_var_annot[i].rsids =  res_indx[var][0].rsids
+            if var in rsids:
+                func_var_annot[i].add_annotation("rsids", rsids[var])
             func_var_annot[i].add_annotation("nearest_gene", res_indx[var][0].get_annotation("nearest_gene"))
             res = res_indx[var]
             phenos = res[1]
+
             filtered = { "rsids": res[0].get_annotation('rsids'), "significant_phenos": [res for res in phenos if res.pval is not None and res.pval < pThreshold ] }
             for ph in filtered["significant_phenos"]:
                 uk_var = self.ukbb_dao.get_matching_results(ph.phenocode, [var])
                 if(len(uk_var)>0):
                     ph.add_matching_result("ukbb",uk_var[var])
-
             func_var_annot[i] = {'var':func_var_annot[i], **filtered}
 
         for i in remove_indx:
@@ -103,9 +107,17 @@ class ServerJeeves(object):
             return []
         chrom, start, end = gene_region_mapping[gene]
         start, end = pad_gene(start, end)
+
         starttime = time.time()
         results = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)
+        # add rsids to the results
+        vars_anno = self.annotation_dao.get_variant_annotations_range(chrom, start, end, True)
+        rsids = {v : v.annotation['annot']['rsid'] for v in vars_anno }
+        for r in results:
+            if r.variant in rsids:
+                r.variant.add_annotation("rsids", rsids[r.variant])
         print("get top per pheno variants  took {} seconds".format(time.time()-starttime))
+        
         vars = list(set([pheno.variant for pheno in results]))
         if len(results)==0:
             print("no variants in gene {}. Chr: {} pos:{}".format(gene,start,end))
@@ -116,11 +128,10 @@ class ServerJeeves(object):
 
         starttime = time.time()
         gnomad = self.gnomad_dao.get_variant_annotations(vars)
-
         print("gnomad variant annos took {} seconds".format(time.time()-starttime))
+
         gd = { g['variant']:g['var_data'] for g in gnomad}
         starttime = time.time()
-
         ukbbs = self.ukbb_matrixdao.get_multiphenoresults(varpheno, known_range=(chrom,start,end))
         print("UKB fetching for {} variants took {}".format( len( list(varpheno.keys()) ),time.time()-starttime) )
         for pheno in results:
