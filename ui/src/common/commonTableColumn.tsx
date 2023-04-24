@@ -114,6 +114,25 @@ const variantCell = (value : string) => {
   }
 }
 
+
+// export const pValRepr = (mlogp: number): string => {
+export const pValRepr = (props) => {
+  var mlogp = props.original['mlogp'];
+  if (mlogp <= 0) {
+    return "1";
+  }
+  const p = Math.pow(10, -mlogp);
+  let repr = p.toExponential(2);
+  // in case of underflow put the string together
+  if (p == 0) {
+    const digits = Math.round(1000 * Math.pow(10, -(mlogp - Math.floor(mlogp)))) / 100;
+    const exp = Math.ceil(mlogp);
+    repr = `${digits}e-${exp}`;
+  }
+  return repr;
+};
+
+
 interface FunctionalVariantFinnGen {
   pheno : string
   beta : number
@@ -847,7 +866,7 @@ const phenotypeColumns = {
         Cell: props => Math.exp(props.value).toFixed(2),
         minWidth: 80
       },
-
+      
     pValue:
       {
         Header: () => (<span title="p-value" style={{ textDecoration: "underline" }}>p-value</span>),
@@ -857,6 +876,15 @@ const phenotypeColumns = {
 	minWidth: 5 * emsize ,
         id: "pval"
       },
+      
+      pvalFromMplog:
+        {
+          Header: () => (<span title="p-value" style={{ textDecoration: "underline" }}>p-value</span>),
+          accessor: "mplog",
+          filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+          Cell: pValRepr,
+          minWidth: 5 * emsize 
+        },
 
     infoScore:
       {
@@ -1530,7 +1558,7 @@ export const genePhenotypeTableColumns = [
   phenotypeColumns.category,
   phenotypeColumns.geneOddRatio,
   phenotypeColumns.mlogp,
-  phenotypeColumns.pValue,
+  phenotypeColumns.pvalFromMplog,
   phenotypeColumns.numCases
 
 ]
