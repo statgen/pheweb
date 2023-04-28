@@ -15,7 +15,7 @@ import numpy as np
 import pymysql
 import imp
 from typing import List, Tuple, Dict, Union
-from ...file_utils import MatrixReader, common_filepaths
+from ...file_utils import common_filepaths
 from ...utils import get_phenolist, get_gene_tuples, pvalue_to_mlogp, get_use_phenocode_pheno_map
 
 from collections import namedtuple
@@ -186,7 +186,7 @@ class PhenoResult(JSONifiable):
 
     def set_suplementary(self, suplementary):
         if suplementary is not None:
-            self.spuplementary = suplementary
+            self.suplementary = suplementary
 
     def json_rep(self):
         suplementary = {} if not hasattr(self, "suplementary") or self.suplementary is None else self.suplementary
@@ -733,6 +733,7 @@ class TabixGnomadDao(GnomadDB):
             v.add_annotation(
                 "gnomad", {self.headers[i]: split[i] for i in range(0, len(split))}
             )
+            
             annotations.append(v)
 
         return annotations
@@ -752,7 +753,6 @@ class TabixResultDao(ResultDB):
         self.matrix_path = matrix_path
         header = gzip.open(self.matrix_path,'rt').readline().split("\t")
         self.header = {item.split('\n')[0]: i for i, item in enumerate(header)}
-        self.header_i = {header: i for i, header in enumerate(self.header)}
 
     def get_variant_results_range(self, chrom, start, end):
 
@@ -768,8 +768,8 @@ class TabixResultDao(ResultDB):
         maf_col = "af_alt" if "af_alt" in self.header else "maf"
         maf_cases_col = "af_alt_cases" if "af_alt_cases" in self.header else "maf_case"
         maf_controls_col = "af_alt_controls" if "af_alt_controls" in self.header else "maf_controls"
-        ind = [self.header_i[k] for k in self.header_i.keys() if 'chr' in k][0]
-        
+        ind = [self.header[k] for k in self.header.keys() if 'chr' in k][0]
+
         result_dict = {}
         for row in tabix_iter:
             split = row.split("\t")
@@ -845,7 +845,7 @@ class TabixResultDao(ResultDB):
                     else "NA",
                 )
 
-                pr = extend_pheno_result(pr, self.header_i, split)
+                pr = extend_pheno_result(pr, self.header, split)
                 if v in result_dict.keys():
                     result_dict[v].append(pr)
                 else:
@@ -896,17 +896,10 @@ class TabixResultDao(ResultDB):
         maf_cases_col = "af_alt_cases" if "af_alt_cases" in self.header else "maf_case"
         maf_controls_col = "af_alt_controls" if "af_alt_controls" in self.header else "maf_controls"
 
-        ind = [self.header_i[k] for k in self.header_i.keys() if 'chr' in k][0]
+        ind = [self.header[k] for k in self.header.keys() if 'chr' in k][0]
         variants = []
         for row in tabix_iter:
             split = row.split("\t")
-            chrom = (
-                split[ind]
-                .replace("chr", "")
-                .replace("X", "23")
-                .replace("Y", "24")
-                .replace("MT", "25")
-            )
             beta = split[self.header["beta"]]
             pheno = (
                 split[self.header["#pheno"]]
@@ -978,12 +971,14 @@ class TabixResultDao(ResultDB):
                     if "num_samples" in self.pheno_map[pheno]
                     else "NA",
                 )
-                variants.append(':'.join([chrom, split[ind+1], split[ind+2], split[ind+3]]))
+                varname = ':'.join([chrom, split[ind+1], split[ind+2], split[ind+3]])
+                if varname not in variants:
+                    variants.append(varname)
                 v = Variant(chrom, split[ind+1], split[ind+2], split[ind+3])
                 v.add_annotation("nearest_gene", None)
                 top[pheno] = (v, pr)
 
-        print(f" {len(set(variants))} variants iterated to get top per pheno variant in range")
+        print(f" {len(set(variants))} variants iterated to get top-per-pheno variant in range")
 
         top = [
             PhenoResults(pheno=self.pheno_map[pheno], assoc=dat, variant=v)
@@ -1491,6 +1486,7 @@ class TabixAnnotationDao(AnnotationDB):
         )
         return annotations
 
+
     def get_variant_annotations_range(self, chrom, start, end, cpra):
         try:
             tabix_iter =pysam.TabixFile(self.matrix_path, parser=None).fetch(chrom, start - 1, end)
@@ -1516,6 +1512,7 @@ class TabixAnnotationDao(AnnotationDB):
                     for i in range(0, len(split))
                 },
             )
+            
             annotations.append(v)
 
         return annotations

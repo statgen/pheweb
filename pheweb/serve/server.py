@@ -356,7 +356,7 @@ def gene_api(genename):
 
 @app.route('/api/genereport/<genename>')
 def gene_report(genename):
-    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
+    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene(genename) if pheno in use_phenos]
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     func_vars = jeeves.gene_functional_variants( genename,  conf.report_conf['func_var_assoc_threshold'])
@@ -376,6 +376,7 @@ def gene_report(genename):
 
     for var in func_vars:
         i = 0
+
         if len(var['significant_phenos'])==0:
             funcvar.append( { 'rsid': var['var'].get_annotation('rsids'),
                               'variant': var['var'].id.replace(':', ' '),
@@ -401,6 +402,7 @@ def gene_report(genename):
                               'info': var['var'].get_annotation('annot')['INFO'],
                               'sigPhenos': sigphenos })
             i = i + chunk_size
+
     top_phenos = [res for res in jeeves.gene_phenos(genename) if res.pheno['phenocode'] in use_phenos]
     top_assoc = [ assoc for assoc in top_phenos if assoc.assoc.pval < conf.report_conf['gene_top_assoc_threshold']  ]
     ukbb_match=[]

@@ -61,6 +61,7 @@ class ServerJeeves(object):
         for r in results:
             if r[0] in rsids:
                 r[0].add_annotation("rsids", rsids[r[0]])
+       
         res_indx = { v:(v,p) for v,p in results }
         for i,var in enumerate(func_var_annot):
             if  var not in res_indx:
@@ -110,6 +111,7 @@ class ServerJeeves(object):
 
         starttime = time.time()
         results = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)
+        
         # add rsids to the results
         vars_anno = self.annotation_dao.get_variant_annotations_range(chrom, start, end, True)
         rsids = {v : v.annotation['annot']['rsid'] for v in vars_anno }
@@ -220,6 +222,9 @@ class ServerJeeves(object):
         ## TODO.... would be better to just return the results but currently rsid and nearest genes are stored alongside the result
         ## chaining variants like these retain all the existing annotations.
         r = self.result_dao.get_single_variant_results(variant)
+
+        # sort by mlogp
+        r[1].sort(key=lambda x: x.mlogp, reverse=True)
         v_annot = self.annotation_dao.get_single_variant_annotations(r[0], self.conf.anno_cpra)
 
         if r is not None:
@@ -233,7 +238,7 @@ class ServerJeeves(object):
             gnomad = self.gnomad_dao.get_variant_annotations([var])
             if len(gnomad) == 1:
                 var.add_annotation('gnomad', gnomad[0]['var_data'])
-
+            
             phenos = [ p.phenocode for p in r[1]]
             ukb = self.ukbb_matrixdao.get_multiphenoresults( {variant:phenos} )
             phenotype = self.variant_phenotype.get_variant_phenotype(int(variant.chr),int(variant.pos),variant.ref,variant.alt) if self.variant_phenotype else dict()
@@ -443,9 +448,16 @@ class ServerJeeves(object):
         return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
 
     @functools.lru_cache(None)
-    def get_best_phenos_by_gene(self):
-        with open(common_filepaths['best-phenos-by-gene']) as f:
-            return json.load(f)
+    def get_best_phenos_by_gene(self, gene):
+
+        # get top variants for the gene
+        chrom,start,end = self.get_gene_region_mapping()[gene]
+        gene_top_variants = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)
+        
+        # select best phenos with mlogp 15.8 (pval 5e-8)
+        phenolist = [r.assoc.phenocode for r in results if r.assoc.mlogp > 16.8]
+        
+        return phenolist
 
     def get_autoreport(self, phenocode) -> List[Dict[str,Union[str,int,float,bool]]] :
         """Get autoreporting group report data.
