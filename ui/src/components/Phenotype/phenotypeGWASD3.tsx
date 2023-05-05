@@ -339,12 +339,12 @@ const createGWASPlot = (phenotypeCode : string,
 
     // Axes
 
-    const yAxis = d3.axisLeft(y_scale)
-      .ticks(
-        function (d: d3.NumberValue, index: number) : number {
-          const x = d.valueOf();
-          return (x <= vis_conf.loglog_threshold) ? x : Math.round(Math.pow(vis_conf.loglog_threshold, x / vis_conf.loglog_threshold))
-        })
+    var yAxis = d3.axisLeft(y_scale)
+      .tickFormat(function (d: d3.NumberValue) : string {
+        const x = d.valueOf();
+        const res = (x <= vis_conf.loglog_threshold) ? x : Math.round(Math.pow(vis_conf.loglog_threshold, x / vis_conf.loglog_threshold));
+        return res.toString()
+    });
 
     GWASPlot.append('g')
       .attr('class', 'y axis')
