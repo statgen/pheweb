@@ -14,7 +14,7 @@ const variant = window?.config?.userInterface?.variant;
 
 const tableColumns : Column<Variant.Result>[] = createTableColumns(variant?.table?.columns) || (variantTableColumns as Column<Variant.Result>[])
 const defaultSorted = variant?.table?.defaultSorted || [{
-  id: 'category_index',
+  id: 'pval',
   desc: false
 }]
 

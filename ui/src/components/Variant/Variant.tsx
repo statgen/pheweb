@@ -75,7 +75,7 @@ interface VariantSummary {
 }
 
 const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary | undefined => {
-  const nearestGenes : string [] = variantData.variant.annotation.nearest_gene.split(",");
+  const nearestGenes : string [] = variantData.variant.annotation.annot.nearest_gene.split(",");
   const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
 
   const isNumber = function(d) { return typeof d == "number"; };
