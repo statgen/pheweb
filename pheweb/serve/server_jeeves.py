@@ -57,7 +57,7 @@ class ServerJeeves(object):
         results = self.result_dao.get_variant_results_range( chrom, start, end )
         
         # add rsids
-        vars_anno = self.annotation_dao.get_variant_annotations_range(chrom, start, end, True)
+        vars_anno = self.annotation_dao.get_variant_annotations_range(chrom, start, end, self.conf.anno_cpra)
         rsids = { v : v.annotation['annot']['rsid'] for v in vars_anno }
         for r in results:
             if r[0] in rsids:
@@ -115,7 +115,7 @@ class ServerJeeves(object):
         results = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)
         
         # add rsids 
-        vars_anno = self.annotation_dao.get_variant_annotations_range(chrom, start, end, True)
+        vars_anno = self.annotation_dao.get_variant_annotations_range(chrom, start, end, self.conf.anno_cpra)
         rsids = {v : v.annotation['annot']['rsid'] for v in vars_anno }
         for r in results:
             if r.variant in rsids:
