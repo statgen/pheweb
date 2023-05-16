@@ -314,7 +314,7 @@ def api_gene_pqtl_colocalization(genename):
 @app.route('/api/gene/<genename>')
 def gene_api(genename):
 
-    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
+    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene(genename) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     try:

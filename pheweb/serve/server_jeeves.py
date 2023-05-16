@@ -450,15 +450,10 @@ class ServerJeeves(object):
     
     @functools.lru_cache(None)
     def get_best_phenos_by_gene(self, gene):
-        # get top variants for the gene
-        if 'best-phenos-by-gene' in common_filepaths:
-            with open(common_filepaths['best-phenos-by-gene']) as f:
-                return json.load(f)
-        else:
-            chrom,start,end = self.get_gene_region_mapping()[gene]
-            gene_top_variants = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)        
-            phenolist = [r.assoc.phenocode for r in results if r.assoc.mlogp > 16.8]
-            return phenolist
+        chrom,start,end = self.get_gene_region_mapping()[gene]
+        gene_top_variants = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)        
+        phenolist = [r.assoc.phenocode for r in results if r.assoc.mlogp > 16.8]
+        return phenolist
 
     def get_autoreport(self, phenocode) -> List[Dict[str,Union[str,int,float,bool]]] :
         """Get autoreporting group report data.
