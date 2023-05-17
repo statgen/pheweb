@@ -747,11 +747,11 @@ def extend_pheno_result(pr : PhenoResult,
     return pr
 
 class TabixResultDao(ResultDB):
-    def __init__(self, phenos, matrix_path):
+    def __init__(self, phenos, matrix_path, columns):
 
         self.matrix_path = matrix_path
         self.pheno_map = phenos(0)
-
+        self.columns = columns
         self.header = gzip.open(self.matrix_path,'rt').readline().split("\t")
         self.phenos = [
             (h.split("@")[1], p_col_idx)
@@ -778,22 +778,6 @@ class TabixResultDao(ResultDB):
                 "No variants in the given range. {}:{}-{}".format(chrom, start - 1, end)
             )
             return []
-        
-        maf_col = (
-            "af_alt" 
-            if "af_alt" in self.header_offset 
-            else "maf"
-        )
-        maf_cases_col = (
-            "af_alt_cases" 
-            if "af_alt_cases" in self.header_offset 
-            else "maf_case"
-        )
-        maf_controls_col = (
-            "af_alt_controls" 
-            if "af_alt_controls" in self.header_offset 
-            else "maf_controls"
-        )
 
         ind = [i for i,e in enumerate(self.header) if 'chr' in e][0]
         result = {}
@@ -808,31 +792,31 @@ class TabixResultDao(ResultDB):
             )
             v = Variant(chrom, split[ind+1], split[ind+2], split[ind+3])
             for pheno in self.phenos:
-                phenotype = pheno[0] if pheno[0] else split[self.header_offset["#pheno"]]
-                beta = split[pheno[1] + self.header_offset["beta"]]
+                phenotype = pheno[0] if pheno[0] else split[self.header_offset[self.columns['pheno']]]
+                beta = split[pheno[1] + self.header_offset[self.columns['beta']]]
                 maf = (
-                    split[pheno[1] + self.header_offset[maf_col]]
-                    if maf_col in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['maf']]]
+                    if 'maf' in self.columns
                     else None
                 )
                 maf_case = (
-                    split[pheno[1] + self.header_offset[maf_cases_col]]
-                    if maf_cases_col in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['maf_cases']]]
+                    if 'maf_cases' in self.columns
                     else None
                 )
                 maf_control = (
-                    split[pheno[1] + self.header_offset[maf_controls_col]]
-                    if maf_controls_col in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['maf_controls']]]
+                    if 'maf_controls' in self.columns
                     else None
                 )
                 mlogp = (
-                    split[pheno[1] + self.header_offset["mlogp"]]
-                    if "mlogp" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['mlogp']]]
+                    if 'mlogp' in self.columns
                     else None
                 )
                 pval = (
-                    split[pheno[1] + self.header_offset["pval"]]
-                    if "pval" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['pval']]]
+                    if 'pval' in self.columns
                     else None
                 )
                 if mlogp is not None and mlogp is not "" and mlogp != "NA":
@@ -906,22 +890,6 @@ class TabixResultDao(ResultDB):
             )
             return []
         top = defaultdict(lambda: defaultdict(dict))
-        
-        maf_col = (
-            "af_alt" 
-            if "af_alt" in self.header_offset 
-            else "maf"
-        )
-        maf_cases_col = (
-            "af_alt_cases" 
-            if "af_alt_cases" in self.header_offset 
-            else "maf_case"
-        )
-        maf_controls_col = (
-            "af_alt_controls" 
-            if "af_alt_controls" in self.header_offset 
-            else "maf_controls"
-        )
 
         n_vars = 0
         ind = [i for i,e in enumerate(self.header) if 'chr' in e][0]
@@ -929,31 +897,31 @@ class TabixResultDao(ResultDB):
             n_vars = n_vars + 1
             split = variant_row.split("\t")
             for pheno in self.phenos:
-                phenotype = pheno[0] if pheno[0] else split[self.header_offset["#pheno"]]
-                beta = split[pheno[1] + self.header_offset["beta"]]
+                phenotype = pheno[0] if pheno[0] else split[self.header_offset[self.columns['pheno']]]
+                beta = split[pheno[1] + self.header_offset[self.columns['beta']]]
                 maf = (
-                    split[pheno[1] + self.header_offset[maf_col]]
-                    if maf_col in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['maf']]]
+                    if 'maf' in self.columns
                     else None
                 )
                 maf_case = (
-                    split[pheno[1] + self.header_offset[maf_cases_col]]
-                    if maf_cases_col in self.header_offset
-                    else None
-                )
-                mlogp = (
-                    split[pheno[1] + self.header_offset["mlogp"]]
-                    if "mlogp" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['maf_cases']]]
+                    if 'maf_cases' in self.columns
                     else None
                 )
                 maf_control = (
-                    split[pheno[1] + self.header_offset[maf_controls_col]]
-                    if maf_controls_col in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['maf_controls']]]
+                    if 'maf_controls' in self.columns
+                    else None
+                )
+                mlogp = (
+                    split[pheno[1] + self.header_offset[self.columns['mlogp']]]
+                    if 'mlogp' in self.columns
                     else None
                 )
                 pval = (
-                    split[pheno[1] + self.header_offset["pval"]]
-                    if "pval" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['pval']]]
+                    if 'pval' in self.columns
                     else None
                 )
                 # Pick the smaller of values.  First try using mlog which
@@ -1017,8 +985,9 @@ class TabixResultDao(ResultDB):
         return top
 
 class TabixResultFiltDao(TabixResultDao):
-    def __init__(self, phenos, matrix_path):        
+    def __init__(self, phenos, matrix_path, columns):        
         self.matrix_path = matrix_path
+        self.columns = columns
         self.header = gzip.open(self.matrix_path,'rt').readline().split("\t")
         self.header_offset = {item.split('\n')[0]: i for i, item in enumerate(self.header)}
         self.phenos = [(None, 0)]
