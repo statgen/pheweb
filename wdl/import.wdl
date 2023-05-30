@@ -565,6 +565,219 @@ task exec_cmd {
 
 }
 
+task munge_sumstat {
+
+    File sumstat
+    String docker
+    String pheno_col
+    Float pval_thres
+
+    String fname_prefix = sub(basename(sumstat), ".gz", "")
+    Int disk_size = ceil(size(sumstat, "GB") * 3) + 5
+
+    command <<<
+
+    header=$(echo -e "${pheno_col}\t$(zcat ${sumstat} | head -1)");
+
+    set -euxo pipefail
+
+    # input:  a (gzipped) tab-delimited sumstat uri
+    # output: a headerless p-value filtered bgzipped sumstat file
+    #
+    # filters the sumstat to p-values below the given threshold (threshold can be 1 for no filtering)
+    # possibly convert p-value to -log10(p-value)
+    # outputs only unique rows (in the input data variants with several rsids might be duplicated for example)
+    # sort order in the output will be chromosome, position, alleles and pheno
+    # 
+    # possible chr prefix will be removed, possible 23 will be changed to X
+
+    catcmd() {
+        zcat -f ${sumstat}
+    }
+    pheno=`basename ${sumstat} | sed 's/.gz$//'`    
+    catcmd() {
+        zcat -f ${sumstat} | awk -v pheno=$pheno 'BEGIN {FS=OFS="\t"} NR==1 {print "${pheno_col}",$0} NR>1 {print pheno,$0}'
+    }
+
+    catcmd | awk '
+    BEGIN {FS=OFS="\t"}
+    NR==1 {
+        for(i=1;i<=NF;i++) {
+            h[$i]=i;
+            echo "header: h[$i]";
+        }
+    }    
+
+    split("$header", col_arr, "\t");
+    NR>1 && $h["pval"] <= ${pval_thres} {
+        # in chromosome name remove chr prefix and replace 23 with X
+        chr=$h["#chrom"];
+        sub("^chr", "", chr);
+        if(chr==23) chr="X";
+        $h["#chrom"]=chr;
+        for(i=1;i in col_arr;i++){
+            if (i == 1) printf $h[col_arr[i]];
+            else printf "\t"$h[col_arr[i]];
+        }
+    printf "\n";
+    }' | \
+    sort -k2,2V -k3,3g -k4,5 -k1,1 | \
+    uniq | \
+    bgzip > ${fname_prefix}.munged.tsv.gz
+
+    >>>    
+
+    output {
+        File out = "${fname_prefix}.munged.tsv.gz"
+        Float out_sumstat_size = size("${fname_prefix}.munged.tsv.gz", "GB")
+    }
+
+    runtime {
+        docker: "${docker}"
+        memory: "2 GB"
+        cpu: "1"
+        bootDiskSizeGb: 50
+        disks: "local-disk ${disk_size} SSD"
+        zones: "europe-west1-b"
+        preemptible: 0
+    }
+
+}
+
+task get_phenolist {
+
+    Array[File] pheno_gz
+    Array[File] manhattan
+    File bed_file
+    String docker
+    Int disk
+
+    command <<<
+
+    set -euxo pipefail
+    n_cpu=`grep -c ^processor /proc/cpuinfo`
+
+    mkdir -p pheweb/generated-by-pheweb/tmp && \
+        echo "placeholder" > pheweb/generated-by-pheweb/tmp/placeholder.txt && \
+        mkdir -p pheweb/generated-by-pheweb/pheno_gz && \
+        mkdir -p pheweb/generated-by-pheweb/manhattan && \
+        mkdir -p /root/.pheweb/cache && \
+        [[ -z "${bed_file}" ]] || mv ${bed_file} /root/.pheweb/cache/genes-b38-v37.bed && \
+        mv ${sep=" " pheno_gz} pheweb/generated-by-pheweb/pheno_gz/ && \
+        mv ${sep=" " manhattan} pheweb/generated-by-pheweb/manhattan/ && \
+        cd pheweb && \
+        pheweb phenolist glob generated-by-pheweb/pheno_gz/* && \
+        pheweb phenolist extract-phenocode-from-filepath --simple
+
+    >>>    
+
+    output {
+        File phenolist = "pheweb/pheno-list.json"
+        Array[File] tmp = glob("pheweb/generated-by-pheweb/tmp/*")
+    }
+
+    runtime {
+        docker: "${docker}"
+        memory: "8 GB"
+        cpu: "2"
+        bootDiskSizeGb: 50
+        zones: "europe-west1-b"
+        disks: "local-disk ${disk} HDD"
+        preemptible: 0
+    }
+
+}
+
+
+task merge_sumstats {
+
+    Array[File] sumstats
+    Array[String] output_url
+    Int batch_size
+    String docker
+    String out_columns
+    Int disk
+    Int cpu
+    Int mem
+
+    String dir = '/cromwell_root/'
+    String filename = "long.tsv.gz"
+
+    command <<<
+
+    set -euxo pipefail
+    n_cpu=`grep -c ^processor /proc/cpuinfo`
+
+    echo `date` decompress
+
+    in_file=$(echo "${sep=',' sumstats}" | cut -f 1 -d',');
+    in_dir=$(echo $in_file | sed 's/^gs:\/\///' | cut -f 3 -d'/');
+    find "/cromwell_root/$in_dir" -name "*.tsv.gz" | xargs -P $n_cpu -I{} gzip -d --force {}
+    find "/cromwell_root/$in_dir" -name "*.tsv" | tr '\n' '\0' > merge_these
+    
+    echo `date` merge
+    time \
+    cat \
+    <(echo "${out_columns}" | tr ' ' '\t') \
+    <(sort \
+    -m \
+    -T . \
+    --parallel=$n_cpu \
+    --compress-program=gzip \
+    --files0-from=merge_these \
+    --batch-size=${batch_size} \
+    -k2,2V -k3,3g -k4,5 -k1,1) \
+    | bgzip -@$n_cpu > ${filename}
+
+    echo `date` tabix
+    tabix -s 2 -b 3 -e 3 ${filename}
+
+    echo `date` end
+
+    find "${dir}"
+    for url in ${sep="\t" output_url}; do
+        /pheweb/scripts/copy_files.sh "${filename}"              $url/generated-by-pheweb/"${filename}"
+        /pheweb/scripts/copy_files.sh "${filename}.tbi"          $url/generated-by-pheweb/"${filename}.tbi"
+    done
+
+    >>>    
+
+    runtime {
+        docker: "${docker}"
+        cpu: "${cpu}"
+        memory: "${mem} GB"
+        bootDiskSizeGb: 50
+        zones: "europe-west1-b"
+        disks: "local-disk ${disk} HDD"
+        preemptible: 0
+    }
+
+}
+
+# calculating sum of elements in the array
+# This task is needed for getting total size of array
+task sum {
+
+  Array[Float] values
+  String docker
+
+  command <<<
+    python3 -c "print(${sep="+" values})"
+  >>>
+
+  output {
+    Float out = read_float(stdout())
+  }
+
+  runtime {
+    docker: "${docker}"
+    memory: "1 GB"
+    cpu: "1"
+    disks: "local-disk 1 SSD"
+  }
+
+}
+
 workflow import_pheweb {
          # this variable is to make sure the json file matches the import version
 	 String docker
@@ -585,6 +798,9 @@ workflow import_pheweb {
          # https://resources.pheweb.org/genes-v37-hg38.bed
 	 File bed_file
 	 File? rsids_file
+
+    # for merging sumstats files into a long format file
+    Float pval_thres
 
          call webdav_directories { input :
  	     output_url = output_url ,
@@ -627,20 +843,50 @@ workflow import_pheweb {
 	 	 }
 	}
 
-        call matrix { input:
-	              sites=annotation.sites_list ,
-		      pheno_gz=pheno.pheno_gz,
-		      manhattan=pheno.pheno_manhattan,
-		      bed_file = bed_file,
-		      docker=docker,
-	              mem = mem ,
-                      disk=disk ,
-	              output_url = output_url
+        # call matrix { input:
+	    #           sites=annotation.sites_list ,
+		#       pheno_gz=pheno.pheno_gz,
+		#       manhattan=pheno.pheno_manhattan,
+		#       bed_file = bed_file,
+		#       docker=docker,
+	    #           mem = mem ,
+        #               disk=disk ,
+	    #           output_url = output_url
+        # }
+
+    call get_phenolist{
+        input: pheno_gz = pheno.pheno_gz,
+               manhattan = pheno.pheno_manhattan,
+               bed_file = bed_file,
+               disk = disk,
+               docker = docker
+    }
+
+    scatter(file in pheno.pheno_gz) {
+        call munge_sumstat{
+            input: sumstat = file,
+                   pval_thres = pval_thres,
+                   docker = docker
         }
+    }
+
+    # get total size of pheno_gz files
+    call sum as pheno_files_size {
+        input:  values = munge_sumstat.out_sumstat_size,
+                docker = docker
+    }
+ 
+    call merge_sumstats {
+        input:  sumstats = munge_sumstat.out,
+                output_url = output_url,
+                disk = ceil(pheno_files_size.out * 5) + 20,
+                mem =  mem,
+                docker = docker
+    }
 
 	call fix_json{
         input:
-          pheno_json = matrix.phenolist ,
+          pheno_json = get_phenolist.phenolist ,
           qq_jsons = pheno.pheno_qq ,
           man_jsons = pheno.pheno_manhattan ,
           docker = docker ,

@@ -53,7 +53,7 @@ common_filepaths = {
     "sites": get_generated_path("sites/sites.tsv"),
     "cpra-to-rsids-trie": get_generated_path("sites/cpra_to_rsids_trie.marisa"),
     "rsid-to-cpra-trie": get_generated_path("sites/rsid_to_cpra_trie.marisa"),
-    "matrix": get_generated_path("finngen_R10_sumstats_p0.05.af.tsv.gz"),
+    "matrix": get_generated_path("long.tsv.gz"),
     "annotation-matrix": os.path.join(
         conf.data_dir, "annotations/finngen/annotated_variants.gz"
     ),
