@@ -1561,7 +1561,7 @@ export const phenotypeListTableColumns = [
   phenotypeColumns.numGwSignificant,
   phenotypeColumns.controlLambda];
 
-export const phenotypeTableColumns = [
+export const phenotypeBinaryTableColumns = [
   phenotypeColumns.chrom,
   phenotypeColumns.pos,
   phenotypeColumns.ref,
@@ -1579,6 +1579,25 @@ export const phenotypeTableColumns = [
   phenotypeColumns.pValue,
   phenotypeColumns.mlogp
 ]
+
+export const phenotypeQuantitativeTableColumns = [
+  phenotypeColumns.chrom,
+  phenotypeColumns.pos,
+  phenotypeColumns.ref,
+  phenotypeColumns.alt,
+  phenotypeColumns.locus,
+  phenotypeColumns.rsid,
+  phenotypeColumns.nearestGene,
+  phenotypeColumns.consequence,
+  phenotypeColumns.infoScore,
+  phenotypeColumns.finEnrichment,
+  phenotypeColumns.af,
+  phenotypeColumns.beta,
+  phenotypeColumns.pValue,
+  phenotypeColumns.mlogp
+]
+
+
 
 export const chipTableColumns = [
   phenotypeColumns.chipPhenotype,

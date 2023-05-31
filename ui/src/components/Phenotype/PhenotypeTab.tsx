@@ -29,7 +29,7 @@ const PhenotypeTab = () => {
       </TabPanel> }
       <TabPanel>
         <div id='traditional table' className='phenotype-tab'>
-          <VariantTable phenotypeCode={phenotypeCode} />
+          <VariantTable/>
         </div>
       </TabPanel>
     </Tabs>

@@ -110,16 +110,19 @@ export interface PhenotypeVariantData {
 
 }
 
+export interface VariantTableConfiguration<RowType> {
+     columns: TableColumnConfiguration<RowType>
+     defaultSorted : SortingRule<RowType>[]
+}
+
 export interface PhenotypeConfiguration {
   banner?: string
   variant : {
     banner?: string
-    table : { columns: TableColumnConfiguration<PhenotypeVariantRow> ,
-              defaultSorted : SortingRule<PhenotypeVariantRow>[] }
+    binary? : { table : VariantTableConfiguration<PhenotypeVariantRow> }
+    quantitative? : { table : VariantTableConfiguration<PhenotypeVariantRow> }
   }
-  credibleSet : {
-    table : { columns: TableColumnConfiguration<CredibleSet> ,
-              defaultSorted : SortingRule<CredibleSet>[] }
-  }
+
+  credibleSet : { table : VariantTableConfiguration<CredibleSet> }
   vis_conf : VisConfiguration;
 }
