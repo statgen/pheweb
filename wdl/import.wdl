@@ -565,7 +565,7 @@ task exec_cmd {
 
 }
 
-task munge_sumstat {
+task filter_sumstat {
 
     File sumstat
     String docker
@@ -585,8 +585,6 @@ task munge_sumstat {
     # output: a headerless p-value filtered bgzipped sumstat file
     #
     # filters the sumstat to p-values below the given threshold (threshold can be 1 for no filtering)
-    # possibly convert p-value to -log10(p-value)
-    # outputs only unique rows (in the input data variants with several rsids might be duplicated for example)
     # sort order in the output will be chromosome, position, alleles and pheno
     # 
     # possible chr prefix will be removed, possible 23 will be changed to X
@@ -623,13 +621,13 @@ task munge_sumstat {
     }' | \
     sort -k2,2V -k3,3g -k4,5 -k1,1 | \
     uniq | \
-    bgzip > ${fname_prefix}.munged.tsv.gz
+    bgzip > ${fname_prefix}.filtered.tsv.gz
 
     >>>    
 
     output {
-        File out = "${fname_prefix}.munged.tsv.gz"
-        Float out_sumstat_size = size("${fname_prefix}.munged.tsv.gz", "GB")
+        File out = "${fname_prefix}.filtered.tsv.gz"
+        Float out_sumstat_size = size("${fname_prefix}.filtered.tsv.gz", "GB")
     }
 
     runtime {
@@ -689,7 +687,7 @@ task get_phenolist {
 }
 
 
-task merge_sumstats {
+task matrix_longformat {
 
     Array[File] sumstats
     Array[String] output_url
@@ -782,6 +780,8 @@ workflow import_pheweb {
          # this variable is to make sure the json file matches the import version
 	 String docker
 	 String summary_files
+     Boolean generate_longformat_matrix
+
 	 String? file_affix
          String? sites_file
          Array[String]? post_import = []
@@ -843,50 +843,56 @@ workflow import_pheweb {
 	 	 }
 	}
 
-        # call matrix { input:
-	    #           sites=annotation.sites_list ,
-		#       pheno_gz=pheno.pheno_gz,
-		#       manhattan=pheno.pheno_manhattan,
-		#       bed_file = bed_file,
-		#       docker=docker,
-	    #           mem = mem ,
-        #               disk=disk ,
-	    #           output_url = output_url
-        # }
-
-    call get_phenolist{
-        input: pheno_gz = pheno.pheno_gz,
-               manhattan = pheno.pheno_manhattan,
-               bed_file = bed_file,
-               disk = disk,
-               docker = docker
-    }
-
-    scatter(file in pheno.pheno_gz) {
-        call munge_sumstat{
-            input: sumstat = file,
-                   pval_thres = pval_thres,
-                   docker = docker
+    if (!generate_longformat_matrix) {
+        call matrix { 
+            input: sites=annotation.sites_list ,
+                   pheno_gz=pheno.pheno_gz,
+                   manhattan=pheno.pheno_manhattan,
+                   bed_file = bed_file,
+                   docker=docker,
+                   mem = mem ,
+                   disk=disk ,
+                   output_url = output_url
         }
     }
 
-    # get total size of pheno_gz files
-    call sum as pheno_files_size {
-        input:  values = munge_sumstat.out_sumstat_size,
-                docker = docker
+    if (generate_longformat_matrix) {
+        call get_phenolist{
+            input: pheno_gz = pheno.pheno_gz,
+                   manhattan = pheno.pheno_manhattan,
+                   bed_file = bed_file,
+                   disk = disk,
+                   docker = docker
+        }
+
+        scatter(file in pheno.pheno_gz) {
+            call filter_sumstat{
+                input: sumstat = file,
+                       pval_thres = pval_thres,
+                       docker = docker
+            }
+        }
+
+        # get total size of filtered pheno_gz files
+        call sum as pheno_files_size {
+            input:  values = filter_sumstat.out_sumstat_size,
+                    docker = docker
+        }
+    
+        call matrix_longformat {
+            input:  sumstats = filter_sumstat.out,
+                    output_url = output_url,
+                    disk = ceil(pheno_files_size.out * 5) + 20,
+                    mem =  mem,
+                    docker = docker
+        }
     }
- 
-    call merge_sumstats {
-        input:  sumstats = munge_sumstat.out,
-                output_url = output_url,
-                disk = ceil(pheno_files_size.out * 5) + 20,
-                mem =  mem,
-                docker = docker
-    }
+    
+    File phenolist = select_first([get_phenolist.phenolist, matrix.phenolist])
 
 	call fix_json{
         input:
-          pheno_json = get_phenolist.phenolist ,
+          pheno_json = phenolist ,
           qq_jsons = pheno.pheno_qq ,
           man_jsons = pheno.pheno_manhattan ,
           docker = docker ,
