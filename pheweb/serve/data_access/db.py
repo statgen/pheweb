@@ -1888,7 +1888,8 @@ class AutoreportingDao(AutorepVariantDB):
                     )
                     #join trait cols
                     if "specific_efo_trait_associations_relaxed" in hdr:
-                        merge_func = lambda a,b : ";".join(list(filter(lambda x:x!="NA",[a,b])))
+                        #filter out empty and missing entries
+                        merge_func = lambda a,b : ";".join(list(filter(lambda x:(x!="NA" and x != ""),[a,b])))
                         all_traits_strict = merge_func(
                             cols[hdi["specific_efo_trait_associations_strict"]],
                             cols[hdi["found_associations_strict"]]
@@ -1904,6 +1905,10 @@ class AutoreportingDao(AutorepVariantDB):
                         all_traits_relaxed = cols[hdi["found_associations_relaxed"]]
                     record["all_traits_strict"] = all_traits_strict
                     record["all_traits_relaxed"] = all_traits_relaxed
+                    #fill in NA for missing values
+                    for key in record:
+                        if record[key] == "":
+                            record[key] = "NA"
                     data.append(record)
             return data
         return []
