@@ -602,7 +602,7 @@ const phenotypeColumns = {
           fontWeight: 700,
           boxShadow: "0 0 5px rgba(0,0,0,.5)"
         }}
-                           href={"https://risteys.finngen.fi/phenocode/" + props.value.replace("_EXALLC", "").replace("_EXMORE", "")}>RISTEYS</a>),
+                           href={"https://risteys.finregistry.fi/phenocode/" + props.value.replace("_EXALLC", "").replace("_EXMORE", "")}>RISTEYS</a>),
         Filter: () => null,
         minWidth: emsize * 5
       },

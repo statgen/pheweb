@@ -13,7 +13,7 @@ const RegionBanner =  (props : Props) => {
             { /* RegionBanner */ }
                 <h1>{pheno && pheno.phenostring} </h1>
                     <p>
-                        <a href={`https://risteys.finngen.fi/phenocode/${pheno.phenocode}`}
+                        <a href={`https://risteys.finregistry.fi/phenocode/${pheno.phenocode}`}
                            rel="noopener noreferrer"
 			   target="_blank">RISTEYS</a>
                     </p>
