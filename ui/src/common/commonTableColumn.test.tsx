@@ -1,13 +1,53 @@
 /* eslint-env jest */
-import { pValueCellFormatter,
-         pValueSentinel,
-	 createHeader,
-	 addHeader,
-	 nearestGeneFormatter,
-	 createCSVLinkHeaders,
-	 filterDownload } from "./commonTableColumn";
+import {
+  pValueCellFormatter,
+  pValueSentinel,
+  createHeader,
+  addHeader,
+  nearestGeneFormatter,
+  createCSVLinkHeaders,
+  filterDownload, optionalCellScientificFormatter,
+  optionalCellNumberFormatter, optionalCellDecimalFormatter,
+} from './commonTableColumn';
 import {render, screen} from '@testing-library/react'
 import React from "react"
+
+test("optionalCellScientificFormatter handles empty string", () => {
+  const actual = optionalCellScientificFormatter({ value : "" })
+  const expected = ""
+  expect(actual).toBe(expected)
+});
+
+test("optionalCellScientificFormatter handles numbers", () => {
+  const actual = optionalCellScientificFormatter({ value : "1.0" })
+  const expected = "1.0e+0"
+  expect(actual).toBe(expected)
+});
+
+
+test("optionaCellNumberFormatter handles empty string", () => {
+  const actual = optionalCellNumberFormatter({ value : "" })
+  const expected = ""
+  expect(actual).toBe(expected)
+});
+
+test("optionalCellScientificFormatter handles numbers", () => {
+  const actual = optionalCellNumberFormatter({ value : "1.0" })
+  const expected = 1
+  expect(actual).toBe(expected)
+});
+
+test("optionalCellDecimalFormatter handles empty string", () => {
+  const actual = optionalCellDecimalFormatter({ value : "" })
+  const expected = ""
+  expect(actual).toBe(expected)
+});
+
+test("optionalCellDecimalFormatter handles numbers", () => {
+  const actual = optionalCellDecimalFormatter({ value : "1.0" })
+  const expected = "1.00"
+  expect(actual).toBe(expected)
+});
 
 test("null filterDownload", () => {
   const actual = filterDownload(null)

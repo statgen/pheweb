@@ -5,6 +5,7 @@ import { variantFromStr, variantToPheweb, variantToStr } from "./commonModel";
 import { scientificFormatter, shortNumberFormatter } from "./commonFormatter";
 import { LabelKeyObject , Headers } from "react-csv/components/CommonPropTypes";
 import matchSorter from 'match-sorter';
+import { string } from 'purify-ts';
 
 interface PhewebWindow extends Window {
   release_prev: number;
@@ -33,20 +34,19 @@ const emsize = getSize();
 
 export const pValueSentinel = 5e-324;
 
-const textCellFormatter = (props : { value : any }) => props.value;
-
-const decimalCellFormatter = (props) => (+props.value).toPrecision(3);
-const optionalCellDecimalFormatter = (props) => isNaN(+props.value) ? props.value : decimalCellFormatter(props);
+const textCellFormatter : <X>( props : {value : X}) => X = (props) => props.value;
+const decimalCellFormatter : <X>( props : {value : X}) => string = (props) => (+props.value).toPrecision(3);
+export const optionalCellDecimalFormatter = (props) => isNaN(+props.value) || props.value === "" ? props.value : decimalCellFormatter(props);
 
 const tofixed = (v,n) => {
     return typeof(v) == typeof(0) ? v.toFixed(n) : v
 }
 
-const numberCellFormatter = (props) => +props.value;
-const optionaCellNumberFormatter = (props) => isNaN(+props.value) ? props.value : numberCellFormatter;
+const numberCellFormatter = (props) : number => +props.value;
+export const optionalCellNumberFormatter = (props) => isNaN(+props.value) || props.value === "" ? props.value : numberCellFormatter(props);
 
-const scientificCellFormatter = (props) => (+props.value).toExponential(1);
-const optionalCellScientificFormatter = (props) => isNaN(+props.value) ? props.value : scientificCellFormatter(props);
+const scientificCellFormatter = (props) : string => (+props.value).toExponential(1);
+export const optionalCellScientificFormatter = (props) => isNaN(+props.value) || props.value === "" ? props.value : scientificCellFormatter(props);
 
 export const nearestGeneFormatter = (geneName : string | null | undefined) => {
        const geneLabels = geneName?.split(",")?.map(geneName => <a href={`/gene/${geneName}`}>{geneName}</a>);
@@ -162,7 +162,7 @@ const formatters = {
   "optionalDecimal": decimalCellFormatter,
 
   "number": numberCellFormatter,
-  "optionalNumber": optionaCellNumberFormatter,
+  "optionalNumber": optionalCellNumberFormatter,
 
   "scientific": scientificCellFormatter,
   "optionalScientific": optionalCellScientificFormatter,
