@@ -1,7 +1,43 @@
 /* eslint-env jest */
-import { pValueCellFormatter, pValueSentinel, createHeader, addHeader, nearestGeneFormatter } from "./commonTableColumn";
+import { pValueCellFormatter,
+         pValueSentinel,
+	 createHeader,
+	 addHeader,
+	 nearestGeneFormatter,
+	 createCSVLinkHeaders,
+	 filterDownload } from "./commonTableColumn";
 import {render, screen} from '@testing-library/react'
 import React from "react"
+
+test("null filterDownload", () => {
+  const actual = filterDownload(null)
+  expect(actual).toBe(true)
+});
+
+test("false filterDownload", () => {
+  const actual = filterDownload({ accessor : "test" , download : false})
+  expect(actual).toBe(false)
+});
+
+test("true filterDownload", () => {
+  const actual = filterDownload({ accessor : "test", download : true})
+  expect(actual).toBe(true)
+});
+
+test("implicit CSV Link Header", () => {
+  const actual = createCSVLinkHeaders([{ accessor : "test" }])
+  expect(actual).toStrictEqual([{"key": "test", "label": "test"}])
+});
+
+test("create CSV Link Header", () => {
+  const actual = createCSVLinkHeaders([{download : true, accessor : "test" }])
+  expect(actual).toStrictEqual([{"key": "test", "label": "test"}])
+});
+
+test("skip CSV Link Header", () => {
+  const actual = createCSVLinkHeaders([{download : false, accessor : "test" }])
+  expect(actual).toStrictEqual([])
+});
 
 test("pValueCellFormatterSentinel", () => {
   const actual = pValueCellFormatter({ value : pValueSentinel});

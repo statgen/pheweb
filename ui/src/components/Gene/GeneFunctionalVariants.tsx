@@ -1,14 +1,20 @@
 import React, { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { mustacheDiv } from "../../common/commonUtilities";
-import { FunctionalVariants } from "./geneModel";
+import {defaultEmptyArray, flatten, mustacheDiv} from '../../common/commonUtilities';
+import { FunctionalVariants } from './geneModel';
 import { getGeneFunctionalVariants } from "./geneAPI";
 import { Column } from "react-table";
-import { wordFilter, createTableColumns, geneFunctionalVariantTableColumns } from "../../common/commonTableColumn";
+import {
+  wordFilter,
+  createTableColumns,
+  geneFunctionalVariantTableColumns,
+  finnGenPhenotypeSubsetValues,
+} from '../../common/commonTableColumn';
 import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 import commonLoading from "../../common/CommonLoading";
 import { finEnrichmentLabel } from "../Finngen/finngenGnomad";
 import { GeneContext, GeneState } from "./GeneContext";
+import ViewRow = FunctionalVariants.ViewRow;
 
 const default_banner : string =`
 <div class="row">
@@ -47,7 +53,12 @@ const reshapeRow = (r : FunctionalVariants.Row) : FunctionalVariants.ViewRow => 
 
   return { rsids , alt , chrom , pos , ref , most_severe , info , maf , fin_enrichment , significant_phenos }
 }
-const dataToTableRows = (data : FunctionalVariants.Data) : FunctionalVariants.ViewRow[] => data.map(reshapeRow)
+const dataToTableRows = (data : FunctionalVariants.Data) : FunctionalVariants.ViewRow[] => data.map(reshapeRow);
+
+/* Create a row for significant_phenos when
+ * downloading.
+ */
+const tableRowToDownloadRow = (columns : ViewRow[]) => flatten(columns.map(x => defaultEmptyArray(finnGenPhenotypeSubsetValues<FunctionalVariants.SignificantPheno>(x.significant_phenos),[x]).map(p => {  return { ...x, ...p}})   ));
 
 interface Props { }
 const GeneFunctionalVariants = () => {
@@ -64,7 +75,8 @@ const GeneFunctionalVariants = () => {
     dataToTableRows ,
     tableColumns ,
     tableProperties,
-    defaultSorted
+    defaultSorted,
+    tableRowToDownloadRow
   }
   const context = { gene }
 

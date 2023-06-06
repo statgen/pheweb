@@ -22,7 +22,8 @@ export interface Props <TableData, RowType extends  {},
   tableProperties? : ReactProperties,
   linkProperties? : LinkProperties,
   defaultSorted : SortingRule<string>[],
-  subComponent? : ( JSX.Element | any )
+  subComponent? : ( JSX.Element | any ),
+  tableRowToDownloadRow? : (columns : RowType[]) => RowType[] /* default to identity */
 }
 
 export type DownloadTableProps<TableData,
@@ -37,7 +38,8 @@ const CommonDownloadTable = <TableData,RowType extends {}>
      tableProperties,
      linkProperties,
      defaultSorted,
-     subComponent
+     subComponent,
+     tableRowToDownloadRow = (columns) => columns
    } : Props<TableData, RowType>) => {
 
     const [download, setDownload] = useState<RowType[] | null>(null);
@@ -51,7 +53,7 @@ const CommonDownloadTable = <TableData,RowType extends {}>
 
     const downloadHandler = () => {
       if (reactTableRef != null) {
-        setDownload(reactTableRef.getResolvedState().sortedData)
+        setDownload(tableRowToDownloadRow(reactTableRef.getResolvedState().sortedData))
       }
     }
     const body = <div>
@@ -69,9 +71,7 @@ const CommonDownloadTable = <TableData,RowType extends {}>
       </p>
       <div className="row">
         <div className="col-xs-12">
-          <div className="btn btn-primary"
-               onClick={downloadHandler}>Download table
-          </div>
+          <div className="btn btn-primary" onClick={downloadHandler}>Download table</div>
         </div>
       </div>
 

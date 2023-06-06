@@ -139,3 +139,10 @@ export const warn = (msg : string, context : {} ={}) : void =>{
   console.warn(msg);
   console.log(context);
 }
+/**
+ * flatten a list.
+ * note this assumes expressions are well-typed and excludes null and undefined.
+ * switch to .flat when upgrade to js 2019.
+ */
+export const flatten : <X>(a : X[][]) => X[] = (l) => l.reduce((a, v) =>a.concat(v),[]);
+export const defaultEmptyArray : <X,Y>(a : X[],defaultArray :Y[]) => (X|Y)[] = (a,defaultArray) => a.length == 0?defaultArray:a;

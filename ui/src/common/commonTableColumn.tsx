@@ -115,17 +115,19 @@ const variantCell = (value : string) => {
 }
 
 interface FunctionalVariantFinnGen {
-  pheno : string
   beta : number
   pval : number
   phenocode : string
   phenostring : string
 }
 
+export const finnGenPhenotypeSubsetValues = <E extends FunctionalVariantFinnGen>(row : E[]) => {
+  const values = row.filter(v => +v.pval < 1.0e-4)
+  values.sort(function(pheno1, pheno2) { return naSorter(+pheno1.pval, +pheno2.pval) })
+  return values;
+}
 const finnGenPhenotypeCell = (prop : {  value :  FunctionalVariantFinnGen[]}) => {
-  const value = prop.value.filter(v => +v.pval < 1.0e-4)
-  value.sort(function(pheno1, pheno2) { return naSorter(+pheno1.pval, +pheno2.pval) })
-
+  const value = finnGenPhenotypeSubsetValues<FunctionalVariantFinnGen>(prop.value);
   return <table>
     <tbody>
     { value.map(finnGenPhenotypeCellRow) }
@@ -1049,6 +1051,7 @@ const phenotypeColumns = {
           const containsValue = labels.find(l => l.includes(value.toLowerCase()))
           return lessThanValue || containsValue
       },
+      download : false, /* can't be downloaded as the objects will render incorrectly */
       Cell: finnGenPhenotypeCell,
       accessor: "significant_phenos"
     },
@@ -1541,7 +1544,24 @@ export const geneFunctionalVariantTableColumns = [
   { ...phenotypeColumns.infoScore, "width" : 6 * emsize , "minWidth": 6 * emsize  },
   phenotypeColumns.finEnrichmentText,
   { ...phenotypeColumns.af, "width" : 6 * emsize , "minWidth": 6 * emsize },
-  phenotypeColumns.finnGenPhenotype
+  phenotypeColumns.finnGenPhenotype,
+
+  { show : false , accessor: "phenocode" },
+  { show : false , accessor: "phenostring" },
+
+  { show : false , accessor: "n_case" },
+  { show : false , accessor: "n_sample" },
+
+  { show : false , accessor: "af_alt" },
+  { show : false , accessor: "af_alt_cases" },
+  { show : false , accessor: "af_alt_controls" },
+
+  { show : false , accessor: "maf_control" },
+  { show : false , accessor: "maf_case" },
+
+  { show : false , accessor: "mlogp" },
+  { ...phenotypeColumns.pValue , show : false },
+  { ...phenotypeColumns.or , show : false }
 ]
 
 export const geneDrugListTableColumns = [
@@ -1664,7 +1684,6 @@ export const variantTableColumns = [
 ]
 
 export const topHitTableColumns = [
-  //Top variant in loci	Phenotype	Nearest Gene(s)	MAF
   { ...phenotypeColumns.phenotype, accessor: "phenocode" },
   phenotypeColumns.variant,
   phenotypeColumns.rsid,
@@ -1732,7 +1751,6 @@ const createColumn = <Type extends {}>(descriptor: ColumnConfiguration<Type>): C
 export const createTableColumns = <Type extends {}>(param: TableColumnConfiguration<Type>): Column<Type>[] | null =>
   (param) ? param.map(createColumn) : null
 
-
 const reshape = <Type extends {}>(column: Column<Type>): LabelKeyObject => {
   let result: LabelKeyObject;
   if (typeof column.accessor == "string") {
@@ -1744,16 +1762,17 @@ const reshape = <Type extends {}>(column: Column<Type>): LabelKeyObject => {
   return result;
 };
 
-export const createCSVLinkHeaders = <Type extends {}>(columns: Column<Type>[] | null): Headers =>
-  columns?.map(reshape) || []
+/* Filter out columns that have the optional
+ * property : download = false
+ */
+export const filterDownload = <Type extends {}>(column: Column<Type> & { download? : boolean } ) => column?.download != false
+/* Create the CSV link headers from the React Table Headers.
+ */
+export const createCSVLinkHeaders = <Type extends {}>(columns: (Column<Type> & { download? : boolean })[] | null): Headers =>
+  columns?.filter(filterDownload<Type>)?.map(reshape<Type>) || []
 
 
 export const csInsideTableCols = [
-//{Header: () => (<span title="Group ID" style={{textDecoration: 'underline'}}>Group ID</span>),
-//accessor: 'locus_id',
-//Cell: props => props.value,
-//minWidth: 60,
-//},
 {Header: () => (<span title="Variant ID" style={{textDecoration: 'underline'}}>Variant ID</span>),
 accessor: 'variant',
 Cell: props => (<a href={"/variant/" +props.value.replace("chr","").replace(/_/g,"-")} target="_blank" rel="noopener noreferrer">{props.value.replace("chr","").replace(/_/g,":")}</a>),
