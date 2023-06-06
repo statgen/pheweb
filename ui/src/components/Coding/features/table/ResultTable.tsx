@@ -152,7 +152,7 @@ export const ResultTable = () => {
             <span>
               {arr}
               <a target="_blank"
-                 href={`https://risteys.finngen.fi/phenocode/${e.cell.row.original.pheno.code}`}
+                 href={`https://risteys.finregistry.fi/phenocode/${e.cell.row.original.pheno.code}`}
 		 rel="noopener noreferrer">
                 {e.value}
               </a>
