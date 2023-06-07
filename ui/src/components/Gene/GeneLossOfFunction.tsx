@@ -19,7 +19,7 @@ const default_banner : string =`
 `
 
 const default_empty: string =`                                                                                                              
-    No loss of function variants for {{gene}}                                                                                               
+    No burden results for gene {{gene}}                                                                                               
   `
 
 const defaultSorted = [{
