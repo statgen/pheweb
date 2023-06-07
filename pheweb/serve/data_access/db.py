@@ -186,7 +186,7 @@ class PhenoResult(JSONifiable):
 
     def set_suplementary(self, suplementary):
         if suplementary is not None:
-            self.spuplementary = suplementary
+            self.suplementary = suplementary
 
     def json_rep(self):
         suplementary = {} if not hasattr(self, "suplementary") or self.suplementary is None else self.suplementary
