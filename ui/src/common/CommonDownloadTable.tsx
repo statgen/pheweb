@@ -22,7 +22,8 @@ export interface Props <TableData, RowType extends  {},
   tableProperties? : ReactProperties,
   linkProperties? : LinkProperties,
   defaultSorted : SortingRule<string>[],
-  subComponent? : ( JSX.Element | any )
+  subComponent? : ( JSX.Element | any ),
+  getTrProps? : ReactProperties
 }
 
 export type DownloadTableProps<TableData,
@@ -37,7 +38,8 @@ const CommonDownloadTable = <TableData,RowType extends {}>
      tableProperties,
      linkProperties,
      defaultSorted,
-     subComponent
+     subComponent,
+     getTrProps
    } : Props<TableData, RowType>) => {
 
     const [download, setDownload] = useState<RowType[] | null>(null);
@@ -62,8 +64,8 @@ const CommonDownloadTable = <TableData,RowType extends {}>
         columns={tableColumns}
         defaultSorted={defaultSorted}
         SubComponent={subComponent}
+        getTrProps={getTrProps}
         {...tableProperties  } />
-
       <p>
 
       </p>

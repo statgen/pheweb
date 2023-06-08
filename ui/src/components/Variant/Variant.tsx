@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { Variant as CommonVariantModel, variantFromStr } from "../../common/commonModel"
-import { Ensembl, Variant as VariantModel } from "./variantModel"
-import { getEnsembl, getVariant } from "./variantAPI"
+import { Ensembl, Variant as VariantModel, Sumstats } from "./variantModel"
+import { getEnsembl, getVariant, getVariantPhenotype } from "./variantAPI"
 import { ConfigurationWindow } from "../Configuration/configurationModel"
 import { mustacheDiv } from "../../common/commonUtilities"
 import { hasError, isLoading } from "../../common/CommonLoading"
@@ -342,17 +342,56 @@ const bannerData = (variantData :  VariantModel.Data, bioBankURLObject: BioBankU
   return data;
 }
 
+
 const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
   const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : string }| null>(null);
   const [loadedBioBank, setLoadedBioBank] = useState<boolean>(false);
   const [error, setError] = useState<string|null>(null);
-
+  const [varSumstats, setSumstats] = useState<Sumstats.Data | null>(null);
+  const [rowId, setRowid] = useState<number | null>(null);
+  const [phenocode, setPheno] = useState<string | null>(null);
+  const [variantDataPlots, setVariantDataPlots] = useState<VariantModel.Data | null>(null);
+  const [initialState, setInitialState] = useState<boolean>(true);
+  
   useEffect(() => {
     createVariant().bimap(setError, variant => getVariant(variant, setVariantData, setError));
   },[]);
 
+  // get summary statistics for a specific phenotype
+  const getSumstats = useCallback((rowid: number, varid: string, pheno: string) => {
+    setPheno(pheno);
+    setRowid(rowid);
+    getVariantPhenotype(varid, pheno, setSumstats);
+  }, []);
+
+  // update summary statistics for a specific row
+  const updatePhenoResultsRow = (row: VariantModel.Result, varSumstats: Sumstats.Data ) => {
+    var rowUpdated = { ...row, ...varSumstats?.results };
+    return rowUpdated
+  };
+
   useEffect(() => {
+    var results = variantData?.results.map((item, index) => (
+      index === rowId ? updatePhenoResultsRow(item, varSumstats) : item
+    ));
+    if (variantData){
+      var variantDataNew = {...variantData, 
+              regions: variantData?.regions, 
+              results: results, 
+              variant: variantData?.variant};
+
+      setVariantData(variantDataNew);  
+      setSumstats(null);
+      setInitialState(false);
+    }
+  }, [varSumstats, phenocode, rowId]);
+
+  useEffect(() => {
+    // inititalize variant data to be passed to the lavaa and zoomLocus plots 
+    if (variantData && initialState) {
+      setVariantDataPlots(variantData);
+    }
     if(variantData && bioBankURL == null && loadedBioBank === false) {
       const variant = createVariant()
       const summary : VariantSummary | undefined = createVariantSummary(variantData)
@@ -387,16 +426,17 @@ const Variant = (props : Props) => {
         </div>
         <ReactTooltip className={'variant-tooltip'} multiline={true} html={true} />
       </div>
+
       <div>
-        <VariantLavaaPlot variantData={variantData}/>
+        <VariantLavaaPlot variantData={variantDataPlots}/>
       </div>
 
       <div>
-        <VariantLocusZoom variantData={variantData} />
+        <VariantLocusZoom variantData={variantDataPlots}/>
       </div>
 
       <div>
-        <VariantTable variantData={variantData} />
+        <VariantTable variantData={variantData} getSumstats={getSumstats} />
       </div>
     </React.Fragment>
   </VariantContextProvider>

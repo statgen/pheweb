@@ -1,4 +1,4 @@
-import { Ensembl, NCBI, PubMed, Variant as ModelVariant } from "./variantModel";
+import { Ensembl, NCBI, PubMed, Variant as ModelVariant, Sumstats } from "./variantModel";
 import { get, Handler } from "../../common/commonUtilities";
 import { Variant, variantToPheweb } from "../../common/commonModel";
 import { resolveURL } from "../Configuration/configurationModel";
@@ -26,3 +26,10 @@ export  const getPubMed = (rsid : string,
                             sink: (s: PubMed.Data) => void,getURL = get) : void => {
   getURL(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=1&retmode=xml&term=${rsid}`, sink)
 }
+
+export const getVariantPhenotype = (variant : string, pheno: string,
+                                   sink: (s: Sumstats.Data) => void,
+                                   getURL = get) : void => {
+                                   getURL(resolveURL(`/api/variant/${variant}/${pheno}`), sink)
+}
+

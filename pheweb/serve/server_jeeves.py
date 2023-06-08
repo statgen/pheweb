@@ -13,6 +13,7 @@ import glob
 import math
 
 from typing import List, Dict,Tuple, Union
+from .server_utils import get_pheno_region
 
 class ServerJeeves(object):
     '''
@@ -216,6 +217,24 @@ class ServerJeeves(object):
             if v in ukbbvars:
                 variant['ukbb'] = ukbbvars[v]
         return variants
+    
+    def get_single_variant_pheno_data(self, variant: Variant, pheno: str):
+        """
+            Returns summary statistics for a single variant and a single phenotype. 
+        """
+        variants = get_pheno_region(pheno, str(variant.chr), variant.pos, variant.pos)['data']
+        
+        # get cols from results by get_pheno_region function and reaname
+        cols = {'beta': 'beta', 'mlogp': 'mlogp', 'pvalue': 'pval', 'maf_cases': 'maf_case', 'maf_controls': 'maf_control'}
+        if len(variants.items()) > 0:
+            for i in range(len(variants['ref'])):
+                if variants['ref'][i] == variant.ref and variants['alt'][i] == variant.alt:
+                    res = {j:variants[j][i] for j in variants}
+                    res = {cols[key]: res[key] for key in cols if key in res }
+                    break
+            return res
+        else:
+            return {}
 
     def get_single_variant_data(self, variant: Variant)-> Tuple[Variant, List[PhenoResult]]:
         """
@@ -225,6 +244,12 @@ class ServerJeeves(object):
         ## TODO.... would be better to just return the results but currently rsid and nearest genes are stored alongside the result
         ## chaining variants like these retain all the existing annotations.
         r = self.result_dao.get_single_variant_results(variant)
+
+        # if matrix is of longformat append rest of the phenotypes for which summary stats were filtered
+        if self.result_dao.longformat:
+            print("\n\nlongformat: true")
+            r = self.result_dao.append_filt_phenos(r)
+
         v_annot = self.annotation_dao.get_single_variant_annotations(r[0], self.conf.anno_cpra)
 
         if r is not None:
@@ -252,6 +277,7 @@ class ServerJeeves(object):
                 for res in r[1]:
                     if res.phenocode in ukb_idx:
                         res.add_matching_result('ukbb',ukb[var][res.phenocode])
+
             return var,r[1]
         else:
             return None
@@ -451,8 +477,11 @@ class ServerJeeves(object):
     @functools.lru_cache(None)
     def get_best_phenos_by_gene(self, gene):
         chrom,start,end = self.get_gene_region_mapping()[gene]
-        gene_top_variants = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)        
-        phenolist = [r.assoc.phenocode for r in results if r.assoc.mlogp > 16.8]
+        results = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)  
+        if 'pval' in r.assoc:
+            phenolist = [r.assoc.phenocode for r in results if r.assoc.pval < 1e-08]
+        else:
+            phenolist = [r.assoc.phenocode for r in results if r.assoc.mlogp > 16.8]
         return phenolist
 
     def get_autoreport(self, phenocode) -> List[Dict[str,Union[str,int,float,bool]]] :

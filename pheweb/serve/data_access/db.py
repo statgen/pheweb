@@ -381,6 +381,13 @@ class ResultDB(object):
         Returns all results and annotations for given variant. Returns tuple of Variant (including updated annotations if any) and phenotype results.
         Returns None if variant does not exist.
         """
+    
+    def append_filt_phenos(
+        self, varaint_phenores: Tuple[Variant, List[PhenoResult]]
+    ) -> Tuple[Variant, List[PhenoResult]]:
+        """For a single variant appends phenotypes filtered in longformat matrix.
+           Populates missing summary stats with none.
+        """
 
 
 class CodingDB(object):
@@ -768,6 +775,8 @@ class TabixResultDao(ResultDB):
                 self.header_offset[s[0]] = i
                 i = i + 1
             p = s[1] if len(s) > 1 else None
+
+        self.longformat = False
     
     def get_variant_results_range(self, chrom, start, end):
         try:
@@ -851,6 +860,7 @@ class TabixResultDao(ResultDB):
                         result[v].append(pr)
                     else:
                         result[v] = [pr]
+
         return result.items()
 
     def get_single_variant_results(
@@ -984,6 +994,44 @@ class TabixResultDao(ResultDB):
 
         return top
 
+    def append_filt_phenos(
+        self, varaint_phenores: Tuple[Variant, PhenoResult]
+    ) -> Tuple[Variant, PhenoResult]:
+        '''For a single variant append phenotypes filtered in longformat matrix.
+           Populates missing summary stats with none'''
+
+        phenolist = varaint_phenores[1]
+        var_phenocodes = [r.phenocode for r in phenolist]
+        
+        for phenotype in self.pheno_map:
+            if phenotype not in var_phenocodes:
+                pr = PhenoResult(
+                    phenotype,
+                    self.pheno_map[phenotype]["phenostring"],
+                    self.pheno_map[phenotype]["category"],
+                    self.pheno_map[phenotype]["category_index"]
+                    if "category_index" in self.pheno_map[phenotype]
+                    else None,
+                    'NA', # pval
+                    None, # beta
+                    None, # maf
+                    None, # maf_case
+                    None, # maf_control
+                    self.pheno_map[phenotype]["num_cases"]
+                    if "num_cases" in self.pheno_map[phenotype]
+                    else 0,
+                    self.pheno_map[phenotype]["num_controls"]
+                    if "num_controls" in self.pheno_map[phenotype]
+                    else 0,
+                    'NA', # mlogp
+                    self.pheno_map[phenotype]["num_samples"]
+                    if "num_samples" in self.pheno_map[phenotype]
+                    else "NA",
+                )
+                phenolist.append(pr)
+        
+        return (varaint_phenores[0], phenolist)
+
 class TabixResultFiltDao(TabixResultDao):
     def __init__(self, phenos, matrix_path, columns):        
         self.matrix_path = matrix_path
@@ -992,6 +1040,7 @@ class TabixResultFiltDao(TabixResultDao):
         self.header_offset = {item.split('\n')[0]: i for i, item in enumerate(self.header)}
         self.phenos = [(None, 0)]
         self.pheno_map = phenos(0)
+        self.longformat = True
 
 class ExternalMatrixResultDao(ExternalResultDB):
     def __init__(self, matrix, metadatafile):

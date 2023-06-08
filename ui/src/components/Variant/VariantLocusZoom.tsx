@@ -56,8 +56,9 @@ const element_id : string = 'lz-1'
 
 
 export const sortPhenotypes = (orginal : Variant.Result[]) :  Variant.ResultLZ[]  => {
-// sort phenotypes
-  const results : Variant.ResultLZ[]  = JSON.parse(JSON.stringify(orginal))
+  // sort phenotypes
+  const results_tot : Variant.ResultLZ[]  = JSON.parse(JSON.stringify(orginal))
+  const results = results_tot.filter((d) => d.mlogp !== null && d.pval != null && d.beta != null)
 
   if (results.every((d) => d.category_index !== undefined)) {
     results.sort((a, b) => a.category_index - b.category_index)
@@ -121,13 +122,14 @@ const effectDirection = (parameters, input) => {
 
 
 const addPScaled = (logLogThreshold : number) => (phenotype : Variant.ResultLZ) => {
-  phenotype.pScaled = phenotype.mlogp? phenotype.mlogp : -Math.log10(phenotype.pval)
-  if (phenotype.pScaled > logLogThreshold) {
+  phenotype.pScaled = phenotype.mlogp?  phenotype.mlogp : phenotype.pval ? -Math.log10(phenotype.pval) : null
+  if (phenotype.pScaled > logLogThreshold && phenotype.pScaled !== null) {
     phenotype.pScaled = logLogThreshold * Math.log10(phenotype.pScaled) / Math.log10(logLogThreshold)
   }
 }
 
 const VariantLocusZoom = ({ variantData } : Props ) => {
+  
   const { setColorByCategory } = useContext<Partial<VariantState>>(VariantContext);
   useEffect(() => {
     if(variantData){

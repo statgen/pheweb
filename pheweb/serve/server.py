@@ -182,6 +182,24 @@ def api_variant(query):
     except Exception as exc:
         die('Oh no, something went wrong', exc)
 
+@app.route('/api/variant/<query>/<phenocode>')
+def api_variant_pheno(query, phenocode):
+    try:
+        q=re.split('-|:|/|_',query)
+        if len(q)!=4:
+            die("Malformed variant query. Use chr-pos-ref-alt")
+        v = Variant(q[0].replace('X', '23'),q[1],q[2], q[3])
+
+        # get single variant data
+        variantdat = jeeves.get_single_variant_pheno_data(v, phenocode)     
+        if variantdat is None:
+            die("Sorry, I couldn't find the variant {}".format(query))
+        result = { "results" : variantdat }
+        return result
+    except Exception as exc:
+        die('Oh no, something went wrong', exc)
+
+
 @app.route('/api/manhattan/pheno/<phenocode>')
 def api_pheno(phenocode):
     if phenocode not in use_phenos:
