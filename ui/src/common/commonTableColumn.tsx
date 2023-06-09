@@ -159,7 +159,7 @@ const formatters = {
   "text": textCellFormatter,
 
   "decimal": decimalCellFormatter,
-  "optionalDecimal": decimalCellFormatter,
+  "optionalDecimal": optionalCellDecimalFormatter,
 
   "number": numberCellFormatter,
   "optionalNumber": optionalCellNumberFormatter,
