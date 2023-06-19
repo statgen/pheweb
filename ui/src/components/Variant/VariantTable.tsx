@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { Column } from "react-table";
 import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 import { Variant } from "../Variant/variantModel";
@@ -6,9 +6,9 @@ import { wordFilter, createTableColumns, variantTableColumns } from "../../commo
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { VariantContext, VariantState } from "./VariantContext";
 import commonLoading from "../../common/CommonLoading";
-import { useState } from "react"
+import './style.css';
 
-interface Props { variantData : Variant.Data, getSumstats : any }
+interface Props { variantData : Variant.Data, getSumstats : any, activePage : any}
 
 const dataToTableRows = (colorByCategory : { [name: string]: string }) => (variantData : Variant.Data | null) : Variant.Result[] =>
   variantData?.results.map(v => { return {color : colorByCategory[v.category], variant: variantData?.variant, ...v}}) || []
@@ -26,16 +26,35 @@ const tableProperties = {
   defaultFilterMethod : wordFilter
 }
 
-const VariantTable = ({ variantData, getSumstats } : Props ) => {
+const VariantTable = ({ variantData, getSumstats, activePage } : Props ) => {
   const { colorByCategory } = useContext<Partial<VariantState>>(VariantContext);
   const tableData : Variant.Data = variantData;
-
+  
   const getTrProps = (state, rowInfo, column) => {
-    return {
-      onClick: e => {
-        if (rowInfo.original.mlogp === null && rowInfo.original.pval === null && rowInfo.original.beta == null){
-          getSumstats(rowInfo.index, rowInfo.original.variant.varid, rowInfo.original.phenocode)
-        }
+
+    if (rowInfo){
+      // hightlight selected row
+      var styleRow = rowInfo.original.clicked ? { 
+        WebkitAnimation: 'updateRow', 
+        WebkitAnimationDuration: '2.5s', 
+        WebkitAnimationIterationCount: '1',
+        WebkitAnimationDelay: '0.1s'
+      } : {}
+      return {
+        onClick: e => {
+          if (rowInfo.original.mlogp === null && rowInfo.original.pval === null && rowInfo.original.beta == null){
+            var sortedOptions = {'id': state.sorted[0]['id'], 
+                          'desc': state.sorted[0]['desc'], 
+                          'currentPage': state.page, 
+                          'pageSize': state.pageSize}
+            getSumstats(rowInfo.index, rowInfo.original.variant.varid, rowInfo.original.phenocode, sortedOptions);
+          }
+        },
+        style: styleRow
+      }
+    } else {
+      return {
+        style: {}
       }
     }
   }
@@ -47,7 +66,7 @@ const VariantTable = ({ variantData, getSumstats } : Props ) => {
       tableData,
       dataToTableRows : dataToTableRows(colorByCategory),
       tableColumns ,
-      tableProperties,
+      tableProperties: activePage !== null ? { ...tableProperties, page: activePage }  : tableProperties,
       defaultSorted : defaultSorted,
       getTrProps: getTrProps
     }

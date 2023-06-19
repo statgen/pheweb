@@ -186,5 +186,6 @@ export namespace Sumstats {
     maf?:         number;
     maf_case:     number;
     maf_control:  number;
+    clicked:      boolean;
   }
 }

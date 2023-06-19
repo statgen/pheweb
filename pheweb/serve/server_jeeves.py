@@ -247,7 +247,6 @@ class ServerJeeves(object):
 
         # if matrix is of longformat append rest of the phenotypes for which summary stats were filtered
         if self.result_dao.longformat:
-            print("\n\nlongformat: true")
             r = self.result_dao.append_filt_phenos(r)
 
         v_annot = self.annotation_dao.get_single_variant_annotations(r[0], self.conf.anno_cpra)

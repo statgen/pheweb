@@ -1379,10 +1379,11 @@ const phenotypeColumns = {
 
   betaVariant: {
     Header: () => (<span title="effect size beta" style={{ textDecoration: "underline" }}>beta (se)</span>),
-    filterMethod: (filter, row) =>  row[filter.id] !== null && Math.abs(row[filter.id]) > filter.value,
+    filterMethod: (filter, row) => row[filter.id] !== null && Math.abs(row[filter.id]) > +filter.value,
     Cell: betaVariantTableFormatter,
     sortMethod: nullToBottomSorter,
     accessor: "beta",
+    id: 'beta',
     minWidth: 5 * emsize ,
     width: 5 * emsize
   }

@@ -342,6 +342,12 @@ const bannerData = (variantData :  VariantModel.Data, bioBankURLObject: BioBankU
   return data;
 }
 
+interface sortOptionsObj {
+  id: string;
+  desc: boolean;
+  currentPage: number;
+  pageSize: number;
+}
 
 const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
@@ -353,39 +359,83 @@ const Variant = (props : Props) => {
   const [phenocode, setPheno] = useState<string | null>(null);
   const [variantDataPlots, setVariantDataPlots] = useState<VariantModel.Data | null>(null);
   const [initialState, setInitialState] = useState<boolean>(true);
+  const [sortOptions, setSortOptions] = useState< sortOptionsObj| null >(null);
+  const [activePage, setActivePage] = useState<number | null>(null);
   
   useEffect(() => {
     createVariant().bimap(setError, variant => getVariant(variant, setVariantData, setError));
   },[]);
 
   // get summary statistics for a specific phenotype
-  const getSumstats = useCallback((rowid: number, varid: string, pheno: string) => {
-    setPheno(pheno);
-    setRowid(rowid);
-    getVariantPhenotype(varid, pheno, setSumstats);
+  const getSumstats = useCallback(( rowid: number, varid: string, pheno: string, sorted: sortOptionsObj ) => {
+      setPheno(pheno);
+      setRowid(rowid);
+      setSortOptions(sorted);
+      getVariantPhenotype(varid, pheno, setSumstats);
   }, []);
 
   // update summary statistics for a specific row
-  const updatePhenoResultsRow = (row: VariantModel.Result, varSumstats: Sumstats.Data ) => {
-    var rowUpdated = { ...row, ...varSumstats?.results };
-    return rowUpdated
+  const updatePhenoResultsRow = ( row: VariantModel.Result, varSumstats: Sumstats.Data, index: number ) => {
+      var rowUpdated = { ...row, ...varSumstats?.results, 'clicked': true, 'index': index};
+      return rowUpdated
   };
+  
+  // update variant data 
+  const updateVariantData = (variantData: VariantModel.Data) => {
+    var results = variantData.results.map((item, index) => (
+      index === rowId ? updatePhenoResultsRow(item, varSumstats, index) : {...item, 'clicked': false, 'index': index}
+    ));
+    var variantDataNew = {...variantData, 
+                          regions: variantData?.regions, 
+                          results: results, 
+                          variant: variantData?.variant};
+    return variantDataNew
+  }
+
+  const getJumpToPage = (variantData:  VariantModel.Data, sortOptionsTable: sortOptionsObj, rowId: number) => {
+    
+    // return current page if sorting column id is not amongst var sumstats cols
+    var page = null;
+    if (sortOptionsTable['id'] === 'pval' || sortOptionsTable['id'] === 'mlogp' || 
+        sortOptionsTable['id'] === 'beta' || sortOptionsTable['id'] === 'af_cases' ||
+        sortOptionsTable['id'] === 'af_controls'){
+      
+      var result = variantData.results.filter(
+        item => item.mlogp !== null && item.pval !== null && item.beta !== null
+      );
+
+      var sortBy = sortOptionsTable['id'];
+      var resultSorted = sortOptionsTable['desc'] ? 
+        result.sort(function(a, b){return b[sortBy]-a[sortBy]}) : 
+        result.sort(function(a, b){return a[sortBy]-b[sortBy]});
+  
+      // calculate page number based on the position in the sorted table
+      page = sortOptionsTable['currentPage'];
+      for (var i in resultSorted){
+        if (result[i]['index'] == rowId ) {
+          page = Math.floor( Number(i) / sortOptionsTable['pageSize']);
+        }
+      }
+    } 
+    return page;
+  }
 
   useEffect(() => {
-    var results = variantData?.results.map((item, index) => (
-      index === rowId ? updatePhenoResultsRow(item, varSumstats) : item
-    ));
     if (variantData){
-      var variantDataNew = {...variantData, 
-              regions: variantData?.regions, 
-              results: results, 
-              variant: variantData?.variant};
-
-      setVariantData(variantDataNew);  
+      const dataNew = updateVariantData(variantData);
+      setVariantData(dataNew);  
       setSumstats(null);
       setInitialState(false);
+      setActivePage(getJumpToPage(dataNew, sortOptions, rowId));
     }
   }, [varSumstats, phenocode, rowId]);
+
+  // reset active page - needed to be able to click next/previous page selection
+  useEffect(() => {
+    if (activePage){
+      setActivePage(null);
+    }
+  }, [activePage]);
 
   useEffect(() => {
     // inititalize variant data to be passed to the lavaa and zoomLocus plots 
@@ -414,8 +464,8 @@ const Variant = (props : Props) => {
       }
       setLoadedBioBank(true);
     }
+    
   },[variantData, setBioBankURL,bioBankURL,loadedBioBank, setLoadedBioBank]);
-
 
   // lazy load
   const content = () => <VariantContextProvider>
@@ -436,7 +486,7 @@ const Variant = (props : Props) => {
       </div>
 
       <div>
-        <VariantTable variantData={variantData} getSumstats={getSumstats} />
+        <VariantTable variantData={variantData} getSumstats={getSumstats} activePage={activePage} />
       </div>
     </React.Fragment>
   </VariantContextProvider>
