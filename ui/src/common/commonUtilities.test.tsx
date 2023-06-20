@@ -1,10 +1,11 @@
 /* eslint-env jest */
 // https://stackoverflow.com/questions/59833839/swap-one-typescript-type-with-another-inside-an-object
-import { compose, get, mustacheDiv, mustacheSpan, mustacheText } from "./commonUtilities";
+import { defaultEmptyArray, compose, flatten, get, mustacheDiv, mustacheSpan, mustacheText } from './commonUtilities';
 import { configure, mount } from "enzyme";
 import { v4 } from "uuid";
 
 import Adapter from "enzyme-adapter-react-16";
+import { variantToPheweb } from './commonModel';
 
 configure({ adapter: new Adapter() });
 
@@ -45,4 +46,33 @@ test("mustacheSpan", () => {
 test("mustacheText", () => {
   const uuid = v4();
   expect(mustacheText("{{uuid}}", { uuid })).toContain(uuid);
+});
+
+
+
+test("flatten empty", () => {
+  expect(flatten<number>([])).toStrictEqual([]);
+});
+
+test("flatten singleton", () => {
+  const uuid = v4();
+  expect(flatten<string>([[uuid]])).toStrictEqual([uuid]);
+});
+
+test("flatten list flattens", () => {
+  const uuid1 = v4();
+  const uuid2 = v4();
+  expect(flatten<string>([[uuid1],[uuid2]])).toStrictEqual([uuid1,uuid2]);
+});
+
+
+test("default empty array defaults", () => {
+  const uuid1 = v4();
+  expect(defaultEmptyArray([],[uuid1])).toStrictEqual([uuid1]);
+});
+
+test("default empty array does not default", () => {
+  const uuid1 = v4();
+  const uuid2 = v4();
+  expect(defaultEmptyArray([uuid1],[uuid2])).toStrictEqual([uuid1]);
 });

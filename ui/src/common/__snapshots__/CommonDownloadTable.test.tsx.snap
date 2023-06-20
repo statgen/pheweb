@@ -1,0 +1,1105 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders table link 1`] = `
+<div>
+  <div
+    className="ReactTable"
+    style={Object {}}
+  >
+    <div
+      className="rt-table"
+      role="grid"
+    >
+      <div
+        className="rt-thead -header"
+        style={
+          Object {
+            "minWidth": "200px",
+          }
+        }
+      >
+        <div
+          className="rt-tr"
+          role="row"
+        >
+          <div
+            className="rt-th rt-resizable-header -cursor-pointer"
+            onClick={[Function]}
+            role="columnheader"
+            style={
+              Object {
+                "flex": "100 0 auto",
+                "maxWidth": null,
+                "width": "100px",
+              }
+            }
+            tabIndex="-1"
+          >
+            <div
+              className="rt-resizable-header-content"
+            />
+            <div
+              className="rt-resizer"
+              onMouseDown={[Function]}
+              onTouchStart={[Function]}
+            />
+          </div>
+          <div
+            className="rt-th rt-resizable-header -cursor-pointer"
+            onClick={[Function]}
+            role="columnheader"
+            style={
+              Object {
+                "flex": "100 0 auto",
+                "maxWidth": null,
+                "width": "100px",
+              }
+            }
+            tabIndex="-1"
+          >
+            <div
+              className="rt-resizable-header-content"
+            />
+            <div
+              className="rt-resizer"
+              onMouseDown={[Function]}
+              onTouchStart={[Function]}
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="rt-thead -filters"
+        style={
+          Object {
+            "minWidth": "200px",
+          }
+        }
+      >
+        <div
+          className="rt-tr"
+          role="row"
+        >
+          <div
+            className="rt-th"
+            onClick={[Function]}
+            role="columnheader"
+            style={
+              Object {
+                "flex": "100 0 auto",
+                "maxWidth": null,
+                "width": "100px",
+              }
+            }
+            tabIndex="-1"
+          >
+            <input
+              onChange={[Function]}
+              style={
+                Object {
+                  "width": "100%",
+                }
+              }
+              type="text"
+              value=""
+            />
+          </div>
+          <div
+            className="rt-th"
+            onClick={[Function]}
+            role="columnheader"
+            style={
+              Object {
+                "flex": "100 0 auto",
+                "maxWidth": null,
+                "width": "100px",
+              }
+            }
+            tabIndex="-1"
+          >
+            <input
+              onChange={[Function]}
+              style={
+                Object {
+                  "width": "100%",
+                }
+              }
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="rt-tbody"
+        style={
+          Object {
+            "minWidth": "200px",
+          }
+        }
+      >
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -odd"
+            role="row"
+          >
+            <div
+              className="rt-td"
+              onClick={[Function]}
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              1
+            </div>
+            <div
+              className="rt-td"
+              onClick={[Function]}
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              2
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -even"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -odd"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -even"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -odd"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -even"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -odd"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -even"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -odd"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -even"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -odd"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -even"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -odd"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -even"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -odd"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -even"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -odd"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -even"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -odd"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="rt-tr-group"
+          role="rowgroup"
+        >
+          <div
+            className="rt-tr -padRow -even"
+            role="row"
+            style={Object {}}
+          >
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+            <div
+              className="rt-td"
+              role="gridcell"
+              style={
+                Object {
+                  "flex": "100 0 auto",
+                  "maxWidth": null,
+                  "width": "100px",
+                }
+              }
+            >
+              <span>
+                 
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="pagination-bottom"
+    >
+      <div
+        className="-pagination"
+      >
+        <div
+          className="-previous"
+        >
+          <button
+            className="-btn"
+            disabled={true}
+            onClick={[Function]}
+            type="button"
+          >
+            Previous
+          </button>
+        </div>
+        <div
+          className="-center"
+        >
+          <span
+            className="-pageInfo"
+          >
+            Page
+             
+            <div
+              className="-pageJump"
+            >
+              <input
+                onBlur={[Function]}
+                onChange={[Function]}
+                onKeyPress={[Function]}
+                type="number"
+                value={1}
+              />
+            </div>
+             
+            of
+             
+            <span
+              className="-totalPages"
+            >
+              1
+            </span>
+          </span>
+          <span
+            className="select-wrap -pageSizeOptions"
+          >
+            <select
+              onChange={[Function]}
+              value={20}
+            >
+              <option
+                value={5}
+              >
+                5
+                 
+                rows
+              </option>
+              <option
+                value={10}
+              >
+                10
+                 
+                rows
+              </option>
+              <option
+                value={20}
+              >
+                20
+                 
+                rows
+              </option>
+              <option
+                value={25}
+              >
+                25
+                 
+                rows
+              </option>
+              <option
+                value={50}
+              >
+                50
+                 
+                rows
+              </option>
+              <option
+                value={100}
+              >
+                100
+                 
+                rows
+              </option>
+            </select>
+          </span>
+        </div>
+        <div
+          className="-next"
+        >
+          <button
+            className="-btn"
+            disabled={true}
+            onClick={[Function]}
+            type="button"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      className="-loading"
+    >
+      <div
+        className="-loading-inner"
+      >
+        Loading...
+      </div>
+    </div>
+  </div>
+  <p />
+  <div
+    className="row"
+  >
+    <div
+      className="col-xs-12"
+    >
+      <div
+        className="btn btn-primary"
+        onClick={[Function]}
+      >
+        Download table
+      </div>
+    </div>
+  </div>
+  <a
+    className="hidden"
+    download=""
+    href="data:text/csv;charset=utf-8,﻿a	b"
+    onClick={[Function]}
+    target="_self"
+  />
+</div>
+`;

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { createTableColumns, phenotypeTableColumns, pValueSentinel } from "../../common/commonTableColumn";
+import React, { useContext, useEffect, useState } from "react";
+import { createTableColumns, phenotypeBinaryTableColumns , phenotypeQuantitativeTableColumns , pValueSentinel } from "../../common/commonTableColumn";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { Column } from "react-table";
 import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 import { PhenotypeVariantData, PhenotypeVariantRow } from "./phenotypeModel";
 import { getManhattan } from "./phenotypeAPI";
+import { PhenotypeContext, PhenotypeState } from "./PhenotypeContext";
 
 const defaultSorted = [{
   id: 'pval',
@@ -53,10 +54,13 @@ const dataToTableRows = (data : PhenotypeVariantData| null) => data?.unbinned_va
 declare let window: ConfigurationWindow;
 
 const variant = window?.config?.userInterface?.phenotype?.variant;
-const tableColumns : Column<PhenotypeVariantRow>[] = createTableColumns<PhenotypeVariantRow>(variant?.table?.columns) || phenotypeTableColumns as Column<PhenotypeVariantRow>[]
+
+const quantitativeTableColumns : Column<PhenotypeVariantRow>[] = createTableColumns<PhenotypeVariantRow>(variant?.quantitative?.table?.columns) || phenotypeQuantitativeTableColumns as Column<PhenotypeVariantRow>[];
+const binaryTableColumns : Column<PhenotypeVariantRow>[] = createTableColumns<PhenotypeVariantRow>(variant?.binary?.table?.columns) || phenotypeBinaryTableColumns as Column<PhenotypeVariantRow>[];
 
 interface Props { phenotypeCode : string }
-const PhenotypeVariantTable = ({ phenotypeCode} : Props ) => {
+const PhenotypeVariantTable = () => {
+  const {  phenotype , phenotypeCode } = useContext<Partial<PhenotypeState>>(PhenotypeContext);
   const [tableData, setTableData] = useState<PhenotypeVariantData| null>(null);
 
   useEffect(() => {
@@ -65,6 +69,8 @@ const PhenotypeVariantTable = ({ phenotypeCode} : Props ) => {
       setTableData(processData(phenotypeCode,variantData))
     })
     },[phenotypeCode, setTableData]);
+
+  const tableColumns = phenotype.isBinary == false?quantitativeTableColumns : binaryTableColumns;
 
   const filename : string = `${phenotypeCode}.tsv`
   const props : DownloadTableProps<PhenotypeVariantData, PhenotypeVariantRow>  = {

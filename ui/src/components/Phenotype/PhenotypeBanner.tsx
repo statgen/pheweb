@@ -14,7 +14,7 @@ const default_banner = `
 
         {{#risteys}}
         <p style="margin-bottom: 10px;">
-           <a href="https://risteys.finngen.fi/phenocode/{{.}}"
+           <a href="https://risteys.finregistry.fi/phenocode/{{.}}"
               target="_blank"
               class="risteys">RISTEYS
            </a>

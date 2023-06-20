@@ -12,6 +12,7 @@ export interface Phenotype {
   phenocode: string
   phenostring: string
   risteys?: string
+  isBinary?: boolean
 }
 
 export interface GcLambda {

@@ -5,6 +5,7 @@ import { variantFromStr, variantToPheweb, variantToStr } from "./commonModel";
 import { scientificFormatter, shortNumberFormatter } from "./commonFormatter";
 import { LabelKeyObject , Headers } from "react-csv/components/CommonPropTypes";
 import matchSorter from 'match-sorter';
+import { string } from 'purify-ts';
 
 interface PhewebWindow extends Window {
   release_prev: number;
@@ -33,20 +34,19 @@ const emsize = getSize();
 
 export const pValueSentinel = 5e-324;
 
-const textCellFormatter = (props : { value : any }) => props.value;
-
-const decimalCellFormatter = (props) => (+props.value).toPrecision(3);
-const optionalCellDecimalFormatter = (props) => isNaN(+props.value) ? props.value : decimalCellFormatter(props);
+const textCellFormatter : <X>( props : {value : X}) => X = (props) => props.value;
+const decimalCellFormatter : <X>( props : {value : X}) => string = (props) => (+props.value).toPrecision(3);
+export const optionalCellDecimalFormatter = (props) => isNaN(+props.value) || props.value === "" ? props.value : decimalCellFormatter(props);
 
 const tofixed = (v,n) => {
     return typeof(v) == typeof(0) ? v.toFixed(n) : v
 }
 
-const numberCellFormatter = (props) => +props.value;
-const optionaCellNumberFormatter = (props) => isNaN(+props.value) ? props.value : numberCellFormatter;
+const numberCellFormatter = (props) : number => +props.value;
+export const optionalCellNumberFormatter = (props) => isNaN(+props.value) || props.value === "" ? props.value : numberCellFormatter(props);
 
-const scientificCellFormatter = (props) => (+props.value).toExponential(1);
-const optionalCellScientificFormatter = (props) => isNaN(+props.value) ? props.value : scientificCellFormatter(props);
+const scientificCellFormatter = (props) : string => (+props.value).toExponential(1);
+export const optionalCellScientificFormatter = (props) => isNaN(+props.value) || props.value === "" ? props.value : scientificCellFormatter(props);
 
 export const nearestGeneFormatter = (geneName : string | null | undefined) => {
        const geneLabels = geneName?.split(",")?.map(geneName => <a href={`/gene/${geneName}`}>{geneName}</a>);
@@ -135,17 +135,19 @@ const variantCell = (value : string) => {
 }
 
 interface FunctionalVariantFinnGen {
-  pheno : string
   beta : number
   pval : number
   phenocode : string
   phenostring : string
 }
 
+export const finnGenPhenotypeSubsetValues = <E extends FunctionalVariantFinnGen>(row : E[]) => {
+  const values = row.filter(v => +v.pval < 1.0e-4)
+  values.sort(function(pheno1, pheno2) { return naSorter(+pheno1.pval, +pheno2.pval) })
+  return values;
+}
 const finnGenPhenotypeCell = (prop : {  value :  FunctionalVariantFinnGen[]}) => {
-  const value = prop.value.filter(v => +v.pval < 1.0e-4)
-  value.sort(function(pheno1, pheno2) { return naSorter(+pheno1.pval, +pheno2.pval) })
-
+  const value = finnGenPhenotypeSubsetValues<FunctionalVariantFinnGen>(prop.value);
   return <table>
     <tbody>
     { value.map(finnGenPhenotypeCellRow) }
@@ -177,10 +179,10 @@ const formatters = {
   "text": textCellFormatter,
 
   "decimal": decimalCellFormatter,
-  "optionalDecimal": decimalCellFormatter,
+  "optionalDecimal": optionalCellDecimalFormatter,
 
   "number": numberCellFormatter,
-  "optionalNumber": optionaCellNumberFormatter,
+  "optionalNumber": optionalCellNumberFormatter,
 
   "scientific": scientificCellFormatter,
   "optionalScientific": optionalCellScientificFormatter,
@@ -642,7 +644,7 @@ const phenotypeColumns = {
           fontWeight: 700,
           boxShadow: "0 0 5px rgba(0,0,0,.5)"
         }}
-                           href={"https://risteys.finngen.fi/phenocode/" + props.value.replace("_EXALLC", "").replace("_EXMORE", "")}>RISTEYS</a>),
+                           href={"https://risteys.finregistry.fi/phenocode/" + props.value.replace("_EXALLC", "").replace("_EXMORE", "")}>RISTEYS</a>),
         Filter: () => null,
         minWidth: emsize * 5
       },
@@ -1093,6 +1095,7 @@ const phenotypeColumns = {
           const containsValue = labels.find(l => l.includes(value.toLowerCase()))
           return lessThanValue || containsValue
       },
+      download : false, /* can't be downloaded as the objects will render incorrectly */
       Cell: finnGenPhenotypeCell,
       accessor: "significant_phenos"
     },
@@ -1596,7 +1599,24 @@ export const geneFunctionalVariantTableColumns = [
   { ...phenotypeColumns.infoScore, "width" : 6 * emsize , "minWidth": 6 * emsize  },
   phenotypeColumns.finEnrichmentText,
   { ...phenotypeColumns.af, "width" : 6 * emsize , "minWidth": 6 * emsize },
-  phenotypeColumns.finnGenPhenotype
+  phenotypeColumns.finnGenPhenotype,
+
+  { show : false , accessor: "phenocode" },
+  { show : false , accessor: "phenostring" },
+
+  { show : false , accessor: "n_case" },
+  { show : false , accessor: "n_sample" },
+
+  { show : false , accessor: "af_alt" },
+  { show : false , accessor: "af_alt_cases" },
+  { show : false , accessor: "af_alt_controls" },
+
+  { show : false , accessor: "maf_control" },
+  { show : false , accessor: "maf_case" },
+
+  { show : false , accessor: "mlogp" },
+  { ...phenotypeColumns.pValue , show : false },
+  { ...phenotypeColumns.or , show : false }
 ]
 
 export const geneDrugListTableColumns = [
@@ -1616,7 +1636,7 @@ export const phenotypeListTableColumns = [
   phenotypeColumns.numGwSignificant,
   phenotypeColumns.controlLambda];
 
-export const phenotypeTableColumns = [
+export const phenotypeBinaryTableColumns = [
   phenotypeColumns.chrom,
   phenotypeColumns.pos,
   phenotypeColumns.ref,
@@ -1634,6 +1654,25 @@ export const phenotypeTableColumns = [
   phenotypeColumns.pValue,
   phenotypeColumns.mlogp
 ]
+
+export const phenotypeQuantitativeTableColumns = [
+  phenotypeColumns.chrom,
+  phenotypeColumns.pos,
+  phenotypeColumns.ref,
+  phenotypeColumns.alt,
+  phenotypeColumns.locus,
+  phenotypeColumns.rsid,
+  phenotypeColumns.nearestGene,
+  phenotypeColumns.consequence,
+  phenotypeColumns.infoScore,
+  phenotypeColumns.finEnrichment,
+  phenotypeColumns.af,
+  phenotypeColumns.beta,
+  phenotypeColumns.pValue,
+  phenotypeColumns.mlogp
+]
+
+
 
 export const chipTableColumns = [
   phenotypeColumns.chipPhenotype,
@@ -1700,7 +1739,6 @@ export const variantTableColumns = [
 ]
 
 export const topHitTableColumns = [
-  //Top variant in loci	Phenotype	Nearest Gene(s)	MAF
   { ...phenotypeColumns.phenotype, accessor: "phenocode" },
   phenotypeColumns.variant,
   phenotypeColumns.rsid,
@@ -1768,7 +1806,6 @@ const createColumn = <Type extends {}>(descriptor: ColumnConfiguration<Type>): C
 export const createTableColumns = <Type extends {}>(param: TableColumnConfiguration<Type>): Column<Type>[] | null =>
   (param) ? param.map(createColumn) : null
 
-
 const reshape = <Type extends {}>(column: Column<Type>): LabelKeyObject => {
   let result: LabelKeyObject;
   if (typeof column.accessor == "string") {
@@ -1780,16 +1817,17 @@ const reshape = <Type extends {}>(column: Column<Type>): LabelKeyObject => {
   return result;
 };
 
-export const createCSVLinkHeaders = <Type extends {}>(columns: Column<Type>[] | null): Headers =>
-  columns?.map(reshape) || []
+/* Filter out columns that have the optional
+ * property : download = false
+ */
+export const filterDownload = <Type extends {}>(column: Column<Type> & { download? : boolean } ) => column?.download != false
+/* Create the CSV link headers from the React Table Headers.
+ */
+export const createCSVLinkHeaders = <Type extends {}>(columns: (Column<Type> & { download? : boolean })[] | null): Headers =>
+  columns?.filter(filterDownload<Type>)?.map(reshape<Type>) || []
 
 
 export const csInsideTableCols = [
-//{Header: () => (<span title="Group ID" style={{textDecoration: 'underline'}}>Group ID</span>),
-//accessor: 'locus_id',
-//Cell: props => props.value,
-//minWidth: 60,
-//},
 {Header: () => (<span title="Variant ID" style={{textDecoration: 'underline'}}>Variant ID</span>),
 accessor: 'variant',
 Cell: props => (<a href={"/variant/" +props.value.replace("chr","").replace(/_/g,"-")} target="_blank" rel="noopener noreferrer">{props.value.replace("chr","").replace(/_/g,":")}</a>),

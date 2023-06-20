@@ -61,8 +61,8 @@ const userInterface = {
         font-weight: 700;
     box-shadow: 0 0 5px rgba(0,0,0,.5);"
            rel="noopener noreferrer"
-           href="https://risteys.finngen.fi/phenocode/{{risteys}}"
-           target="_blank">RISTTEYS
+           href="https://risteys.finregistry.fi/phenocode/{{risteys}}"
+           target="_blank">RISTEYS
         </a>
       </p>
     `

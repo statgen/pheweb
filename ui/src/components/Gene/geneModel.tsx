@@ -220,10 +220,10 @@ export namespace GenePhenotypes {
     readonly category_index?:         number;
     readonly gc_lambda:               { [key: string]: number };
     readonly num_cases:               number;
-    readonly num_cases_prev:          "NA" | number;
+    readonly num_cases_prev?:          "NA" | number;
     readonly num_controls:            number;
     readonly num_gw_significant:      number;
-    readonly num_gw_significant_prev: "NA" | number;
+    readonly num_gw_significant_prev?: "NA" | number;
     readonly phenocode:               string;
     readonly phenostring:             string;
   }
@@ -294,7 +294,7 @@ export namespace PqtlColocalizations {
     p: number
     prob: number
     most_severe: string
-    gene_most_severe: string 
+    gene_most_severe: string
     disease_colocalizations: Colocalization[]
   }
 
@@ -305,8 +305,7 @@ export namespace PqtlColocalizations {
     clpa: number
     len_inter: number
     len_cs1: number
-    len_cs2: number 
+    len_cs2: number
   }
-  
-}
 
+}

@@ -1,7 +1,83 @@
 /* eslint-env jest */
-import { pValueCellFormatter, pValueSentinel, createHeader, addHeader, nearestGeneFormatter } from "./commonTableColumn";
+import {
+  pValueCellFormatter,
+  pValueSentinel,
+  createHeader,
+  addHeader,
+  nearestGeneFormatter,
+  createCSVLinkHeaders,
+  filterDownload, optionalCellScientificFormatter,
+  optionalCellNumberFormatter, optionalCellDecimalFormatter,
+} from './commonTableColumn';
 import {render, screen} from '@testing-library/react'
 import React from "react"
+
+test("optionalCellScientificFormatter handles empty string", () => {
+  const actual = optionalCellScientificFormatter({ value : "" })
+  const expected = ""
+  expect(actual).toBe(expected)
+});
+
+test("optionalCellScientificFormatter handles numbers", () => {
+  const actual = optionalCellScientificFormatter({ value : "1.0" })
+  const expected = "1.0e+0"
+  expect(actual).toBe(expected)
+});
+
+
+test("optionaCellNumberFormatter handles empty string", () => {
+  const actual = optionalCellNumberFormatter({ value : "" })
+  const expected = ""
+  expect(actual).toBe(expected)
+});
+
+test("optionalCellScientificFormatter handles numbers", () => {
+  const actual = optionalCellNumberFormatter({ value : "1.0" })
+  const expected = 1
+  expect(actual).toBe(expected)
+});
+
+test("optionalCellDecimalFormatter handles empty string", () => {
+  const actual = optionalCellDecimalFormatter({ value : "" })
+  const expected = ""
+  expect(actual).toBe(expected)
+});
+
+test("optionalCellDecimalFormatter handles numbers", () => {
+  const actual = optionalCellDecimalFormatter({ value : "1.0" })
+  const expected = "1.00"
+  expect(actual).toBe(expected)
+});
+
+test("null filterDownload", () => {
+  const actual = filterDownload(null)
+  expect(actual).toBe(true)
+});
+
+test("false filterDownload", () => {
+  const actual = filterDownload({ accessor : "test" , download : false})
+  expect(actual).toBe(false)
+});
+
+test("true filterDownload", () => {
+  const actual = filterDownload({ accessor : "test", download : true})
+  expect(actual).toBe(true)
+});
+
+test("implicit CSV Link Header", () => {
+  const actual = createCSVLinkHeaders([{ accessor : "test" }])
+  expect(actual).toStrictEqual([{"key": "test", "label": "test"}])
+});
+
+test("create CSV Link Header", () => {
+  const actual = createCSVLinkHeaders([{download : true, accessor : "test" }])
+  expect(actual).toStrictEqual([{"key": "test", "label": "test"}])
+});
+
+test("skip CSV Link Header", () => {
+  const actual = createCSVLinkHeaders([{download : false, accessor : "test" }])
+  expect(actual).toStrictEqual([])
+});
 
 test("pValueCellFormatterSentinel", () => {
   const actual = pValueCellFormatter({ value : pValueSentinel});
