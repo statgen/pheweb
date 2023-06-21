@@ -1797,6 +1797,16 @@ class FineMappingMySQLDao(FineMappingDB):
         return result
 
 
+def _safe_bool(boolstr:str) -> bool:
+
+    if boolstr.upper()== "FALSE":
+        return  False
+    elif boolstr.upper()== "TRUE":
+        return True 
+    else:
+        raise Exception("Expected boolean string FALSE,TRUE in any casing.")
+    
+
 class AutoreportingDao(AutorepVariantDB):
     def __init__(self, authentication_file, group_report_path):
         self.authentication_file = authentication_file
@@ -1824,6 +1834,7 @@ class AutoreportingDao(AutorepVariantDB):
         finally:
             conn.close()
 
+    
 
     def get_group_report(self,phenotype) -> List[Dict[str,Union[str,int,float,bool]]]:
         """Returns the records in a group report as a list of dictionaries, one for each group.
@@ -1876,7 +1887,7 @@ class AutoreportingDao(AutorepVariantDB):
                         {
                             "locus_id":cols[hdi["locus_id"]],
                             "phenocode":phenotype,
-                            "good_cs":bool(cols[hdi["good_cs"]]),
+                            "good_cs":_safe_bool(cols[hdi["good_cs"]]),
                             "lead_mlogp":float(cols[hdi["lead_mlogp"]]),
                             "lead_beta":float(cols[hdi["lead_beta"]]),
                             "functional_variants_strict":cols[hdi["functional_variants_strict"]],
@@ -1909,6 +1920,7 @@ class AutoreportingDao(AutorepVariantDB):
                     for key in record:
                         if record[key] == "":
                             record[key] = "NA"
+                    
                     data.append(record)
             return data
         return []
