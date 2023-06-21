@@ -47,7 +47,7 @@ class PqtlColocalisationDao(PqtlColocalisationDB, MysqlDAO):
             result = []      
             for pqtl in pqtls:
                 gene_name = pqtl["gene_name"]
-                source = f'FinnGen {pqtl["source"]}'
+                source = pqtl["source"]
                 v = pqtl['trait'].split(' ')
                 trait =  re.sub("[\(\)]", "", v[1]) if len(v) > 1 else v[0]
                 var = pqtl["v"]
