@@ -407,6 +407,14 @@ const phenotypeColumns = {
       minWidth: 5 * emsize ,
       width: 5 * emsize
     },
+    sebeta: {
+      Header: () => (<span title="standard error of effect size" style={{ textDecoration: "underline" }}>sebeta</span>),
+      accessor: "sebeta",
+      filterMethod: (filter, row) => Math.abs(row[filter.id]) > filter.value,
+      Cell: optionalCellScientificFormatter,
+      minWidth: 5 * emsize ,
+      width: 5 * emsize
+    },
     chipBeta: {
       Header: () => (<span title="effect size beta in chip EWAS" style={{ textDecoration: "underline" }}>beta</span>),
       accessor: "beta",
@@ -1532,6 +1540,7 @@ export const genePhenotypeTableColumns = [
   phenotypeColumns.genePhenotype,
   phenotypeColumns.category,
   phenotypeColumns.geneOddRatio,
+  { ...phenotypeColumns.sebeta, show : false},
   phenotypeColumns.mlogp,
   phenotypeColumns.pValue,
   phenotypeColumns.numCases
@@ -1674,6 +1683,7 @@ export const variantTableColumns = [
   phenotypeColumns.category,
   phenotypeColumns.phenotype,
   phenotypeColumns.beta,
+  { ...phenotypeColumns.sebeta, show : false},
   phenotypeColumns.pValue,
   phenotypeColumns.mlogp,
   { ...phenotypeColumns.chipAFCase, accessor: 'maf_case' },
@@ -1872,6 +1882,12 @@ export const csTableCols = [{
     filterMethod: (filter,row) => filter.value === row[filter.id],
     Cell: props => props.value,
     minWidth: 50,
+}, {
+  Header: () => (<span title="position" style={{textDecoration: 'underline'}}>position</span>),
+  accessor: 'pos',
+  filterMethod: (filter,row) => filter.value === row[filter.id],
+  Cell: props => props.value,
+  minWidth: 50,
 }, { ...phenotypeColumns.pValue , minWidth: 50,
 }, { ...phenotypeColumns.mlogp , accessor: 'lead_mlogp',  minWidth: 50,
 }, {
@@ -1880,6 +1896,13 @@ export const csTableCols = [{
     filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
     Cell: props => tofixed(props.value,3),
     minWidth: 50,
+},{
+  Header: () => (<span title="standard error of effect size (sebeta)" style={{textDecoration: 'underline'}}>se effect size (sebeta)</span>),
+  accessor: 'lead_sebeta',
+  filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
+  Cell: props => tofixed(props.value,3),
+  minWidth: 50,
+  show: false
 }, {
     Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish Enrichment</span>),
     accessor: 'lead_enrichment',

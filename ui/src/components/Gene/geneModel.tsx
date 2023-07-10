@@ -165,6 +165,7 @@ export namespace GenePhenotypes {
   export interface ViewRow {
     readonly num_cases : number
     readonly beta : number
+    readonly sebeta?: number
     readonly rsids: string
     readonly fin_enrichment: string
     readonly mlogp : number
@@ -198,6 +199,7 @@ export namespace GenePhenotypes {
 
   export interface Association {
     readonly beta:             number;
+    readonly sebeta?:          number;
     readonly category:         string;
     readonly category_index:   number | null;
     readonly maf:              number;

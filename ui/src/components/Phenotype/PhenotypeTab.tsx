@@ -9,7 +9,7 @@ const PhenotypeTab = () => {
           credibleSets ,
           selectedTab,
           setSelectedTab } = useContext<Partial<PhenotypeState>>(PhenotypeContext);
-
+          
   return <>
     <h3>Lead variants</h3>
     <Tabs
