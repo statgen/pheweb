@@ -1,4 +1,5 @@
 import { TableColumnConfiguration } from "../../common/commonTableColumn";
+import {Phenotype as IndexPhenotype } from "../Index/indexModel";
 
 export namespace Gene {
 
@@ -216,19 +217,7 @@ export namespace GenePhenotypes {
   }
 
 
-  export interface PhenotypeDetail {
-    readonly assoc_files:             string[];
-    readonly category:                string;
-    readonly category_index?:         number;
-    readonly gc_lambda:               { [key: string]: number };
-    readonly num_cases:               number;
-    readonly num_cases_prev?:          "NA" | number;
-    readonly num_controls:            number;
-    readonly num_gw_significant:      number;
-    readonly num_gw_significant_prev?: "NA" | number;
-    readonly phenocode:               string;
-    readonly phenostring:             string;
-  }
+  export type PhenotypeDetail = IndexPhenotype;
 
   export interface Variant {
     readonly alt:        string;
