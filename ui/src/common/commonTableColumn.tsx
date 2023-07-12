@@ -1606,7 +1606,9 @@ export const phenotypeBinaryTableColumns = [
   phenotypeColumns.afControls,
   phenotypeColumns.or,
   phenotypeColumns.pValue,
-  phenotypeColumns.mlogp
+  phenotypeColumns.mlogp,
+  {...phenotypeColumns.sebeta, show:false }
+  
 ]
 
 export const phenotypeQuantitativeTableColumns = [
