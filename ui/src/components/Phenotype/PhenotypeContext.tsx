@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useState } from "react";
 import { CredibleSet, PhenotypeParams, PhenotypeVariantData, QQ } from "./phenotypeModel";
-import { Phenotype } from "../Index/indexModel";
+import { Phenotype } from "./../../common/commonModel";
 import { getUKBBN, getManhattan, getPhenotype, getCredibleSets, getQQ } from "./phenotypeAPI";
 
 export interface PhenotypeState {

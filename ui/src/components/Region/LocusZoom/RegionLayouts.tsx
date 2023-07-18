@@ -1,11 +1,11 @@
 import { Layout, LayoutDataLayersEntity, Layouts } from "locuszoom";
-import { Region } from "../RegionModel";
+import { RegionModel, Region } from '../RegionModel';
 import { ConfigurationWindow } from "../../Configuration/configurationModel";
 
 declare let window: ConfigurationWindow;
 const config = window?.config?.userInterface?.region;
 const application = window?.config?.application;
-const lz_configuration : Region.LzConfiguration = config?.lz_configuration
+const lz_configuration : RegionModel.LzConfiguration = config?.lz_configuration
 
 const tooltip_html : string = lz_configuration?.tooltip_html || `
 
@@ -54,7 +54,8 @@ const tooltip_html : string = lz_configuration?.tooltip_html || `
                    </table>
 `
 
-const assoc_fields : string[] = lz_configuration?.assoc_fields || [
+
+const default_assoc_fields_common : string [] = [
 	"association:id",
 	"association:chr",
 	"association:position",
@@ -67,18 +68,30 @@ const assoc_fields : string[] = lz_configuration?.assoc_fields || [
 	"association:sebeta",
 	"association:rsid",
 	"association:maf",
-	"association:maf_cases",
-	"association:maf_controls",
 	"association:most_severe",
 	"association:fin_enrichment",
 	"association:INFO",
 	"ld:state",
 	"ld:isrefvar"
-]
+];
+const default_assoc_fields_common_binary : string [] = [
+	"association:maf_cases",
+	"association:maf_controls",
+	...default_assoc_fields_common ]
 
+const default_assoc_fields_common_quantitative : string [] = [
+	...default_assoc_fields_common ]
+
+const assoc_fields_binary : string[] = lz_configuration?.assoc_fields?.binary ||
+	default_assoc_fields_common_binary;
+const assoc_fields_quantitative : string[] = lz_configuration?.assoc_fields?.quantitative ||
+	default_assoc_fields_common_quantitative;
+
+export const assoc_fields: (region: Region) => string[] = (region: Region) =>
+	region?.pheno?.is_binary == false? assoc_fields_quantitative : assoc_fields_binary
 
 export const region_layout: (region: Region) => Layout = (region: Region) => {
-	var width = Math.round(window.innerWidth * 0.95);
+	const width : number = Math.round(window.innerWidth * 0.95);
 	return {
 
 		width: width,
@@ -287,7 +300,7 @@ export const association_layout: (region: Region) => Layout = (region: Region) =
 					"size": 40,
 					"label": "no r² data",
 					"class": "lz-data_layer-scatter" }],
-				  fields: assoc_fields,
+				  fields: assoc_fields(region),
 				  // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
 				  id_field: "association:id",
 				  behaviors: { onmouseover: [{ action: "set", status: "selected" }],

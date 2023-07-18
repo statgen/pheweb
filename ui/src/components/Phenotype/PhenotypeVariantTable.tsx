@@ -70,7 +70,7 @@ const PhenotypeVariantTable = () => {
     })
     },[phenotypeCode, setTableData]);
 
-  const tableColumns = phenotype.isBinary == false?quantitativeTableColumns : binaryTableColumns;
+  const tableColumns = phenotype.is_binary == false?quantitativeTableColumns : binaryTableColumns;
 
   const filename : string = `${phenotypeCode}.tsv`
   const props : DownloadTableProps<PhenotypeVariantData, PhenotypeVariantRow>  = {

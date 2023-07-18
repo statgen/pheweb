@@ -3,7 +3,7 @@ import { isLoading } from "../../common/CommonLoading";
 import { mustacheDiv } from "../../common/commonUtilities"
 import { ConfigurationWindow } from "../Configuration/configurationModel"
 import { PhenotypeContext, PhenotypeState } from "./PhenotypeContext";
-import { Phenotype } from "../Index/indexModel";
+import { Phenotype } from "./../../common/commonModel";
 
 interface Props {}
 const default_banner = `
