@@ -1,5 +1,5 @@
 import { TableColumnConfiguration } from "../../common/commonTableColumn";
-import {Phenotype as IndexPhenotype } from "../Index/indexModel";
+import {Phenotype as CommonPhenotype } from "../../common/commonModel";
 
 export namespace Gene {
 
@@ -217,7 +217,7 @@ export namespace GenePhenotypes {
   }
 
 
-  export type PhenotypeDetail = IndexPhenotype;
+  export type PhenotypeDetail = CommonPhenotype;
 
   export interface Variant {
     readonly alt:        string;

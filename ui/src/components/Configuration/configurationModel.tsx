@@ -8,7 +8,7 @@ import { VariantConfiguration } from "../Variant/variantModel";
 import { TopHitsConfiguration } from "../TopHits/topHitsModel";
 import { Gene } from "../Gene/geneModel";
 import { LOFConfiguration } from "../LOF/lofModel";
-import { Region } from "../Region/RegionModel";
+import { RegionModel } from '../Region/RegionModel';
 
 export interface VisConfiguration {
   readonly info_tooltip_threshold: number;
@@ -42,7 +42,7 @@ export interface ConfigurationUserInterface {
   gene?: Gene.Configuration;
   lof?: LOFConfiguration;
   coding?: CodingConfiguration;
-  region?: Region.Configuration;
+  region?: RegionModel.Configuration;
 }
 export interface ConfigurationMetaData {
   genome_build: number;

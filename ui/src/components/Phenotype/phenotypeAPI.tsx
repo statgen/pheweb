@@ -1,4 +1,4 @@
-import { Phenotype } from "../Index/indexModel";
+import { Phenotype } from "./../../common/commonModel";
 import { compose, get, Handler } from "../../common/commonUtilities";
 import { CredibleSet, LocusGroupEntry, PhenotypeVariantData, QQ } from "./phenotypeModel";
 import { resolveURL } from "../Configuration/configurationModel";

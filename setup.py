@@ -60,7 +60,7 @@ setup(
         'google-auth-httplib2~=0.1.0',
         'google-compute-engine~=2.8.13',
         'rauth~=0.7',
-        'pysam~=0.19.0',
+        'pysam~=0.21.0',
         'marisa-trie~=0.7',
         'intervaltree~=2.1',
         'tqdm~=4.14',

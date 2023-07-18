@@ -19,7 +19,7 @@ ENV LC_CTYPE en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
-RUN apt-get update
+RUN apt-get update --allow-releaseinfo-change
 RUN apt-get install make gcc libz-dev libbz2-dev liblzma-dev zlib1g-dev --yes
 RUN apt-get install cmake libcurl4-openssl-dev  --yes
 

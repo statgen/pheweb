@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { wordFilter, createTableColumns, phenotypeListTableColumns } from '../../common/commonTableColumn'
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import commonLoading from "../../common/CommonLoading";
-import { Phenotype } from "./indexModel";
+import { Phenotype } from "./../../common/commonModel";
 import { getPhenotypes } from "./indexAPI";
 import { mustacheDiv } from "../../common/commonUtilities";
 import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
