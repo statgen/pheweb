@@ -5,6 +5,7 @@ task preprocess {
 
   File summary_file
   String docker
+  Int mem
 
   String? preprocessor
 
@@ -67,7 +68,7 @@ task preprocess {
   runtime {
         docker: "${docker}"
     	cpu: 2
-    	memory: "8 GB"
+    	memory: "${mem} GB"
         bootDiskSizeGb: 50
         disks: "local-disk 200 HDD"
         zones: "europe-west1-b"
