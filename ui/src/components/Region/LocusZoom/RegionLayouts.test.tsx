@@ -46,6 +46,6 @@ test('check assoc fields quant ', () => {
 		'association:INFO',
 		'ld:state',
 		'ld:isrefvar'];
-	const region : Region = ({ pheno : { isBinary : false } } as unknown as Region);
+	const region : Region = ({ pheno : { is_binary : false } } as unknown as Region);
 	expect(assoc_fields(region)).toStrictEqual(expected);
 });

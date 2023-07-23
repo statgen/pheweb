@@ -5,7 +5,10 @@ export namespace Gene {
 
   export interface LzConfiguration {
     tooltip_html? : string
-    assoc_fields? : string[]
+    readonly assoc_fields: {
+      readonly quantitative : Array<string>;
+      readonly binary : Array<string>;
+    };
     ld_panel_version: string
   }
 

@@ -40,8 +40,8 @@ export namespace RegionModel {
 	export interface LzConfiguration {
 		readonly p_threshold: number;
 		readonly assoc_fields: {
-			quantitative : Array<string>;
-			binary : Array<string>;
+			readonly quantitative : Array<string>;
+			readonly binary : Array<string>;
 		};
 		readonly ld_ens_pop: string;
 		readonly ld_ens_window: number;
