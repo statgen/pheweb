@@ -83,7 +83,7 @@ ClinvarDataSource.prototype.fetchRequest = function(state: any, chain: any, fiel
         return createCORSPromise("GET", requrl);
       } else {
         const resultFailed = defer();
-        console.log("Failed to query clinvar" + JSON.stringify(data, null, 4));
+        console.warn("Failed to query clinvar" + JSON.stringify(data, null, 4));
         resultFailed.reject("Failed to query clinvar" + JSON.stringify(data, null, 4));
         return resultFailed;
       }
@@ -251,7 +251,6 @@ FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
   const refvar = topvar[this.params.var_id_field];
   let url : string;
   chain.header.ldrefvar = topvar;
-  console.log(this.params.region.lz_conf.ld_service);
   if (isFinngenServer(this.params.region.lz_conf.ld_service)) {
     const windowSize = Math.min(state.end - state.start + 10000, this.params.region.lz_conf.ld_max_window);
     url = `${this.url}?variant=${topvar["association:chr"]}:${topvar["association:position"]}:${topvar["association:ref"]}:${topvar["association:alt"]}&window=${windowSize}&panel=${this.params.region.ld_panel_version}`;

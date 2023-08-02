@@ -59,6 +59,7 @@ const PhenotypeCSTable = () => {
     dataToTableRows,
     tableColumns,
     tableProperties,
+    subComponent,
     defaultSorted  }
 
   return <div>

@@ -49,8 +49,8 @@ const scientificCellFormatter = (props) : string => (+props.value).toExponential
 export const optionalCellScientificFormatter = (props) => isNaN(+props.value) || props.value === "" ? props.value : scientificCellFormatter(props);
 
 export const nearestGeneFormatter = (geneName : string | null | undefined) => {
-       const geneLabels = geneName?.split(",")?.map(geneName => <a href={`/gene/${geneName}`}>{geneName}</a>);
-       return geneLabels?[].concat(...geneLabels.map(element => [<span> , </span>, element])).slice(1):<></>;
+       const geneLabels = geneName?.split(",")?.map(geneName => <a key={geneName} href={`/gene/${geneName}`}>{geneName}</a>);
+       return geneLabels?[].concat(...geneLabels.map((element,i) => [<span key={i}> , </span>, element])).slice(1):<></>;
 }
 export const pValueCellFormatter = (props) => {
       const value = props.value;
@@ -1608,7 +1608,7 @@ export const phenotypeBinaryTableColumns = [
   phenotypeColumns.pValue,
   phenotypeColumns.mlogp,
   {...phenotypeColumns.sebeta, show:false }
-  
+
 ]
 
 export const phenotypeQuantitativeTableColumns = [

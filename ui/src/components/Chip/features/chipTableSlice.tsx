@@ -46,14 +46,9 @@ export const fetchData = createAsyncThunk('table/fetchData', async (url : string
     }
 })
 
-const pending = (state: State, action) => {
-    console.log(action)
-    state.status = 'loading'
-    console.log('load')
-}
+const pending = (state: State, action) => { state.status = 'loading' }
 
 const fulfilled = (state: State, action) => {
-    console.log(action)
     state.status = 'done'
     state.data = action.payload.data
     state.columns = action.payload.columns
@@ -72,7 +67,6 @@ const fulfilled = (state: State, action) => {
 }
 
 const rejected = (state: State, action) => {
-    console.log(action)
     state.status = 'failed'
     state.error = action.payload
 }
@@ -93,7 +87,6 @@ export const tableSlice = createSlice<State, SliceCaseReducers<State>>({
     },
     reducers: {
 	setData: (state: State, action) => {
-	    console.log('setting data')
 	    state.data = action.payload.data
 	    state.columns = action.payload.columns
 	}
