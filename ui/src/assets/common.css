@@ -63,6 +63,10 @@ border {}
     margin-top: 17px;
 }
 
+.nav-bg {
+    background-color: white
+}
+
 #navbar-searchbox-input {
     margin-top: 7px;
 }

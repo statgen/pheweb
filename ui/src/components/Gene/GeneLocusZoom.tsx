@@ -14,6 +14,7 @@ import { clinvar_layout } from "../Region/LocusZoom/RegionLayouts";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { Plot } from "locuszoom";
 import { Gene } from "./geneModel";
+import {Phenotype} from "../../common/commonModel";
 
 const element_id: string = "lz-1";
 
@@ -69,7 +70,7 @@ const tooltip_html: string =
   </table>
   `;
 
-const assoc_fields: string[] = lz_config?.assoc_fields || [
+const default_assoc_fields_common: string[] = [
   "association:id",
   "association:chr",
   "association:position",
@@ -82,8 +83,6 @@ const assoc_fields: string[] = lz_config?.assoc_fields || [
   "association:sebeta",
   "association:rsid",
   "association:maf",
-  "association:maf_cases",
-  "association:maf_controls",
   "association:most_severe",
   "association:fin_enrichment",
   "association:INFO",
@@ -91,21 +90,40 @@ const assoc_fields: string[] = lz_config?.assoc_fields || [
   "ld:isrefvar",
 ];
 
+const default_assoc_fields_common_binary : string [] = [
+  "association:maf_cases",
+  "association:maf_controls",
+  ...default_assoc_fields_common ]
+
+const default_assoc_fields_common_quantitative : string [] = [
+  ...default_assoc_fields_common ]
+
+const assoc_fields_binary : string[] = lz_config?.assoc_fields?.binary ||
+    default_assoc_fields_common_binary;
+const assoc_fields_quantitative : string[] = lz_config?.assoc_fields?.quantitative ||
+    default_assoc_fields_common_quantitative;
+
+export const assoc_fields: (phenotype : Phenotype) => string[] = (phenotype : Phenotype) =>
+    phenotype?.is_binary == false? assoc_fields_quantitative : assoc_fields_binary
+
 const ld_panel_version: string =
   lz_config?.ld_panel_version || application?.ld_panel_version || "sisu3";
 
-const lz_conf = {
-  p_threshold: 0.05,
-  prob_threshold: 0.0001,
-  ld_service: application.ld_service,
-  ld_max_window: 5000000,
-  ld_ens_pop: "1000GENOMES:phase_3:FIN",
-  ld_ens_window: 500,
-  assoc_fields: assoc_fields,
-  tooltip_html: tooltip_html,
-};
+export  const lz_conf = (phenotype : Phenotype) => {
+  return {
+    p_threshold: 0.05,
+    prob_threshold: 0.0001,
+    ld_service: application.ld_service,
+    ld_max_window: 5000000,
+    ld_ens_pop: "1000GENOMES:phase_3:FIN",
+    ld_ens_window: 500,
+    assoc_fields: assoc_fields(phenotype),
+    tooltip_html: tooltip_html,
+  };
+}
+export const association_layout = (selectedPhenotype: Phenotype): Layout => {
+  const phenostring: string =  selectedPhenotype.phenostring;
 
-const association_layout = (phenostring: string): Layout => {
   return {
     id: "association",
     title: { text: phenostring, x: 55, y: 30 },
@@ -271,7 +289,7 @@ const association_layout = (phenostring: string): Layout => {
           },
         ],
 
-        fields: assoc_fields,
+        fields: assoc_fields(selectedPhenotype),
         // ldrefvar can only be chosen if "pvalue|neglog10_or_100" is present.  I forget why.
         id_field: "association:id",
         behaviors: {
@@ -557,7 +575,10 @@ const genes_layout = {
   legend: null,
 };
 
-const loadLocusZoom = (phenotype: string, phenostring: string) => {
+const loadLocusZoom = (selectedPhenotype: Phenotype) => {
+  const phenotype: string = selectedPhenotype.phenocode;
+  const phenostring: string =  selectedPhenotype.phenostring
+
   const localBase: string = resolveURL(`/api/region/${phenotype}/lz-`);
   const remoteBase: string = "https://portaldev.sph.umich.edu/api/v1/";
 
@@ -743,7 +764,7 @@ const loadLocusZoom = (phenotype: string, phenostring: string) => {
 
   const plot: Plot = populate("#lz-1", dataSources, layout);
 
-  plot.addPanel(association_layout(phenostring));
+  plot.addPanel(association_layout(selectedPhenotype));
   plot.addPanel(clinvar_layout);
   plot.addPanel(gwas_cat_layout);
   plot.addPanel(genes_layout);
@@ -760,10 +781,7 @@ const GeneLocusZoom = () => {
       !loadedLocusZoom
     ) {
       setLoadedLocusZoom(true);
-      loadLocusZoom(
-        selectedPhenotype.pheno.phenocode,
-        selectedPhenotype.pheno.phenostring
-      );
+      loadLocusZoom(selectedPhenotype.pheno);
     }
   }, [genePhenotype, selectedPhenotype, loadedLocusZoom, setLoadedLocusZoom]);
 

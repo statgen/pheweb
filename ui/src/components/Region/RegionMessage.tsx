@@ -4,7 +4,7 @@ import { ConfigurationWindow } from "../Configuration/configurationModel";
 interface Props {}
 
 declare let window: ConfigurationWindow;
-const { region : config } = window?.config?.userInterface;
+const config = window?.config?.userInterface?.region;
 const p_threshold = config?.lz_configuration?.p_threshold;
 
 const RegionMessage =  (props : Props) => {

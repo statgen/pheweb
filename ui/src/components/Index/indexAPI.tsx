@@ -1,4 +1,4 @@
-import { addLambda, Phenotype } from "./indexModel";
+import { addLambda, Phenotype } from "../../common/commonModel";
 import { get } from "../../common/commonUtilities";
 import { resolveURL } from "../Configuration/configurationModel";
 

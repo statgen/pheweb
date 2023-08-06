@@ -30,8 +30,8 @@ import { resolveURL } from "../../Configuration/configurationModel";
 import { isFinngenServer } from "../../Finngen/finngenUtilities";
 
 declare let window: ConfigurationWindow;
-const { application } = window?.config;
-const { region: config } = window?.config?.userInterface;
+const application = window?.config?.application;
+const config = window?.config?.userInterface?.region;
 
 TransformationFunctions.set<number, number>("neglog10_or_100", (x: number) =>
   x === 0 ? 100 : -Math.log(x) / Math.LN10

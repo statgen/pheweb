@@ -12,6 +12,7 @@ export interface CredibleSet {
   all_traits_relaxed: string
   all_traits_strict: string
   chrom: string
+  pos: number
   credible_set_variants: string
   cs_log_bayes_factor: number
   cs_size: number
@@ -19,6 +20,7 @@ export interface CredibleSet {
   good_cs: boolean
   lead_af_alt: number
   lead_beta: number
+  lead_sebeta: number
   lead_enrichment: any
   lead_mlogp: number
   lead_most_severe_gene: string

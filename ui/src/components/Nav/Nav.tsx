@@ -22,7 +22,7 @@ const Nav = () => {
     hasChip = userInterface?.chip !== undefined,
     hasAbout = userInterface?.about !== undefined;
 
-  return <nav className="navbar navbar-expand-lg navbar-light bg-light">
+  return <nav className="navbar navbar-expand-lg navbar-light nav-bg">
     <a className="navbar-brand" href="/">{ logo }</a>
     <a className="navbar-brand" href="/"> <span className='logo-header'>{ title }</span></a>
     <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"

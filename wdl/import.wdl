@@ -5,6 +5,7 @@ task preprocess {
 
   File summary_file
   String docker
+  Int mem
 
   String? preprocessor
 
@@ -67,7 +68,7 @@ task preprocess {
   runtime {
         docker: "${docker}"
     	cpu: 2
-    	memory: "8 GB"
+        memory: "${mem} GB"
         bootDiskSizeGb: 50
         disks: "local-disk 200 HDD"
         zones: "europe-west1-b"
@@ -576,9 +577,7 @@ task filter_sumstat {
     Int disk_size = ceil(size(sumstat, "GB") * 3) + 5
 
     command <<<
-
-    header=$(echo -e "${pheno_col}\t$(zcat ${sumstat} | head -1)");
-
+    
     set -euxo pipefail
 
     # input:  a (gzipped) tab-delimited sumstat uri
@@ -594,34 +593,38 @@ task filter_sumstat {
     }
     pheno=`basename ${sumstat} | sed 's/.gz$//'`    
     catcmd() {
-        zcat -f ${sumstat} | awk -v pheno=$pheno 'BEGIN {FS=OFS="\t"} NR==1 {print "${pheno_col}",$0} NR>1 {print pheno,$0}'
+        zcat -f ${sumstat} | awk -v pheno=$pheno -v col=${pheno_col} 'BEGIN {FS=OFS="\t"} NR==1 {print col,$0} NR>1 {print pheno,$0}'
     }
+
 
     catcmd | awk '
     BEGIN {FS=OFS="\t"}
     NR==1 {
         for(i=1;i<=NF;i++) {
             h[$i]=i;
-            echo "header: h[$i]";
         }
-    }    
+    }
 
-    split("$header", col_arr, "\t");
-    NR>1 && $h["pval"] <= ${pval_thres} {
-        # in chromosome name remove chr prefix and replace 23 with X
-        chr=$h["#chrom"];
-        sub("^chr", "", chr);
-        if(chr==23) chr="X";
-        $h["#chrom"]=chr;
-        for(i=1;i in col_arr;i++){
-            if (i == 1) printf $h[col_arr[i]];
-            else printf "\t"$h[col_arr[i]];
+    NR>1 {
+        split($0, col_arr, " ");
+        if ( col_arr[h["pval"]] <= ${pval_thres} ) {
+        
+            chr=$h["#chrom"];
+            sub("^chr", "", chr);
+            if(chr==23) chr="X";
+            $h["#chrom"]=chr;
+
+            for(i=1;i in col_arr;i++){
+                if (i == 1) printf col_arr[i]
+                else printf "\t"col_arr[i]
+            }
+            printf "\n";
         }
-    printf "\n";
     }' | \
     sort -k2,2V -k3,3g -k4,5 -k1,1 | \
     uniq | \
     bgzip > ${fname_prefix}.filtered.tsv.gz
+
 
     >>>    
 
@@ -703,13 +706,14 @@ task matrix_longformat {
 
     command <<<
 
+    in_file=$(echo "${sep=',' sumstats}" | cut -f 1 -d',');
+    in_dir=$(echo $in_file | sed 's/^gs:\/\///' | cut -f 3 -d'/');
+
     set -euxo pipefail
     n_cpu=`grep -c ^processor /proc/cpuinfo`
 
     echo `date` decompress
 
-    in_file=$(echo "${sep=',' sumstats}" | cut -f 1 -d',');
-    in_dir=$(echo $in_file | sed 's/^gs:\/\///' | cut -f 3 -d'/');
     find "/cromwell_root/$in_dir" -name "*.tsv.gz" | xargs -P $n_cpu -I{} gzip -d --force {}
     find "/cromwell_root/$in_dir" -name "*.tsv" | tr '\n' '\0' > merge_these
     
@@ -730,13 +734,15 @@ task matrix_longformat {
     echo `date` tabix
     tabix -s 2 -b 3 -e 3 ${filename}
 
-    echo `date` end
+    echo `date` copy_files
 
     find "${dir}"
     for url in ${sep="\t" output_url}; do
         /pheweb/scripts/copy_files.sh "${filename}"              $url/generated-by-pheweb/"${filename}"
         /pheweb/scripts/copy_files.sh "${filename}.tbi"          $url/generated-by-pheweb/"${filename}.tbi"
     done
+
+    echo `date` end
 
     >>>    
 
@@ -749,30 +755,6 @@ task matrix_longformat {
         disks: "local-disk ${disk} HDD"
         preemptible: 0
     }
-
-}
-
-# calculating sum of elements in the array
-# This task is needed for getting total size of array
-task sum {
-
-  Array[Float] values
-  String docker
-
-  command <<<
-    python3 -c "print(${sep="+" values})"
-  >>>
-
-  output {
-    Float out = read_float(stdout())
-  }
-
-  runtime {
-    docker: "${docker}"
-    memory: "1 GB"
-    cpu: "1"
-    disks: "local-disk 1 SSD"
-  }
 
 }
 
@@ -865,7 +847,7 @@ workflow import_pheweb {
                    docker = docker
         }
 
-        scatter(file in pheno.pheno_gz) {
+        scatter (file in preprocess.out_file) {
             call filter_sumstat{
                 input: sumstat = file,
                        pval_thres = pval_thres,
@@ -873,17 +855,10 @@ workflow import_pheweb {
             }
         }
 
-        # get total size of filtered pheno_gz files
-        call sum as pheno_files_size {
-            input:  values = filter_sumstat.out_sumstat_size,
-                    docker = docker
-        }
-    
         call matrix_longformat {
             input:  sumstats = filter_sumstat.out,
                     output_url = output_url,
-                    disk = ceil(pheno_files_size.out * 5) + 20,
-                    mem =  mem,
+                    disk = disk,
                     docker = docker
         }
     }

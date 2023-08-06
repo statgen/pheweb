@@ -134,6 +134,7 @@ class PhenoResult(JSONifiable):
         category_index,
         pval,
         beta,
+        sebeta,
         maf,
         maf_case,
         maf_control,
@@ -150,6 +151,7 @@ class PhenoResult(JSONifiable):
             sys.float_info.min * sys.float_info.epsilon if self.pval == 0 else self.pval
         )
         self.beta = float(beta) if beta is not None and beta != "NA" else None
+        self.sebeta = float(sebeta) if sebeta is not None and sebeta != "NA" else None
         self.maf = optional_float(maf)
         self.maf_case = optional_float(maf_case)
         self.maf_control = optional_float(maf_control)
@@ -803,6 +805,11 @@ class TabixResultDao(ResultDB):
             for pheno in self.phenos:
                 phenotype = pheno[0] if pheno[0] else split[self.header_offset[self.columns['pheno']]]
                 beta = split[pheno[1] + self.header_offset[self.columns['beta']]]
+                sebeta = (
+                    split[pheno[1] + self.header_offset[self.columns['sebeta']]]
+                    if "sebeta" in self.columns
+                    else None
+                )
                 maf = (
                     split[pheno[1] + self.header_offset[self.columns['maf']]]
                     if 'maf' in self.columns
@@ -841,6 +848,7 @@ class TabixResultDao(ResultDB):
                         else None,
                         pval,
                         beta,
+                        sebeta,
                         maf,
                         maf_case,
                         maf_control,
@@ -909,6 +917,11 @@ class TabixResultDao(ResultDB):
             for pheno in self.phenos:
                 phenotype = pheno[0] if pheno[0] else split[self.header_offset[self.columns['pheno']]]
                 beta = split[pheno[1] + self.header_offset[self.columns['beta']]]
+                sebeta = (
+                    split[pheno[1] + self.header_offset[self.columns['sebeta']]]
+                    if "sebeta" in self.columns
+                    else None
+                )
                 maf = (
                     split[pheno[1] + self.header_offset[self.columns['maf']]]
                     if 'maf' in self.columns
@@ -963,6 +976,7 @@ class TabixResultDao(ResultDB):
                         else None,
                         pval,
                         beta,
+                        sebeta,
                         maf,
                         maf_case,
                         maf_control,
@@ -1014,6 +1028,7 @@ class TabixResultDao(ResultDB):
                     else None,
                     'NA', # pval
                     None, # beta
+                    None, # sebeta
                     None, # maf
                     None, # maf_case
                     None, # maf_control
@@ -1833,6 +1848,16 @@ class FineMappingMySQLDao(FineMappingDB):
         return result
 
 
+def _safe_bool(boolstr:str) -> bool:
+
+    if boolstr.upper()== "FALSE":
+        return  False
+    elif boolstr.upper()== "TRUE":
+        return True 
+    else:
+        raise Exception("Expected boolean string FALSE,TRUE in any casing.")
+    
+
 class AutoreportingDao(AutorepVariantDB):
     def __init__(self, authentication_file, group_report_path):
         self.authentication_file = authentication_file
@@ -1860,6 +1885,7 @@ class AutoreportingDao(AutorepVariantDB):
         finally:
             conn.close()
 
+    
 
     def get_group_report(self,phenotype) -> List[Dict[str,Union[str,int,float,bool]]]:
         """Returns the records in a group report as a list of dictionaries, one for each group.
@@ -1878,6 +1904,7 @@ class AutoreportingDao(AutorepVariantDB):
         cs variants: credible_set_variants
         cs size: cs_size
         cs log10bf: cs_log_bayes_factor
+        lead sebeta: lead_sebeta
 
         """
 
@@ -1897,7 +1924,6 @@ class AutoreportingDao(AutorepVariantDB):
                             "lead_enrichment":float(cols[hdi["enrichment"]]) if cols[hdi["enrichment"]] != "NA" else float("nan"),
                             "lead_af_alt":float(cols[hdi["lead_AF"]]) if cols[hdi["lead_AF"]] != "NA" else float("nan"),
                             "lead_most_severe_gene":cols[hdi["most_severe_gene"]],
-                            
                         }
                     else:
                         record = {
@@ -1912,14 +1938,15 @@ class AutoreportingDao(AutorepVariantDB):
                         {
                             "locus_id":cols[hdi["locus_id"]],
                             "phenocode":phenotype,
-                            "good_cs":bool(cols[hdi["good_cs"]]),
+                            "good_cs":_safe_bool(cols[hdi["good_cs"]]),
                             "lead_mlogp":float(cols[hdi["lead_mlogp"]]),
                             "lead_beta":float(cols[hdi["lead_beta"]]),
                             "functional_variants_strict":cols[hdi["functional_variants_strict"]],
                             "credible_set_variants":cols[hdi["credible_set_variants"]],
                             "cs_size":int(cols[hdi["cs_size"]]),
-                            "cs_log_bayes_factor":float(cols[hdi["cs_log_bayes_factor"]]) if cols[hdi["cs_log_bayes_factor"]] != "NA" else float("nan")
-
+                            "cs_log_bayes_factor":float(cols[hdi["cs_log_bayes_factor"]]) if cols[hdi["cs_log_bayes_factor"]] != "NA" else float("nan"),
+                            "lead_sebeta": cols[hdi["lead_sebeta"]],
+                            "pos":cols[hdi["pos"]],
                         }
                     )
                     #join trait cols
@@ -1945,6 +1972,7 @@ class AutoreportingDao(AutorepVariantDB):
                     for key in record:
                         if record[key] == "":
                             record[key] = "NA"
+                    
                     data.append(record)
             return data
         return []

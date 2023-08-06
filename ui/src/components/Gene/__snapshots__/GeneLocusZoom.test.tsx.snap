@@ -1,0 +1,313 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`check assoc layout 1`] = `
+Object {
+  "axes": Object {
+    "x": Object {
+      "extent": "state",
+      "label": "Chromosome {{chr}} (Mb)",
+      "label_function": "chromosome",
+      "label_offset": 32,
+      "render": true,
+      "tick_format": "region",
+    },
+    "y1": Object {
+      "label": "-log10 p-value",
+      "label_function": null,
+      "label_offset": 28,
+      "render": true,
+    },
+  },
+  "background_click": "clear_selections",
+  "dashboard": Object {
+    "components": Array [
+      Object {
+        "color": "green",
+        "position": "right",
+        "type": "toggle_legend",
+      },
+    ],
+  },
+  "data_layers": Array [
+    Object {
+      "id": "significance",
+      "offset": 7.301029995663981,
+      "orientation": "horizontal",
+      "type": "orthogonal_line",
+    },
+    Object {
+      "behaviors": Object {
+        "onclick": Array [
+          Object {
+            "action": "link",
+            "href": "/variant/{{association:chr}}-{{association:position}}-{{association:ref}}-{{association:alt}}",
+          },
+        ],
+        "onmouseout": Array [
+          Object {
+            "action": "unset",
+            "status": "selected",
+          },
+        ],
+        "onmouseover": Array [
+          Object {
+            "action": "set",
+            "status": "selected",
+          },
+        ],
+      },
+      "color": Array [
+        Object {
+          "field": "ld:isrefvar",
+          "parameters": Object {
+            "field_value": 1,
+            "then": "#9632b8",
+          },
+          "scale_function": "if",
+        },
+        Object {
+          "field": "ld:state",
+          "parameters": Object {
+            "breaks": Array [
+              0,
+              0.2,
+              0.4,
+              0.6,
+              0.8,
+            ],
+            "values": Array [
+              "#357ebd",
+              "#46b8da",
+              "#5cb85c",
+              "#eea236",
+              "#d43f3a",
+            ],
+          },
+          "scale_function": "numerical_bin",
+        },
+        "#B8B8B8",
+      ],
+      "fields": Array [
+        "association:maf_cases",
+        "association:maf_controls",
+        "association:id",
+        "association:chr",
+        "association:position",
+        "association:ref",
+        "association:alt",
+        "association:pvalue",
+        "association:pvalue|neglog10_or_100",
+        "association:mlogp",
+        "association:beta",
+        "association:sebeta",
+        "association:rsid",
+        "association:maf",
+        "association:most_severe",
+        "association:fin_enrichment",
+        "association:INFO",
+        "ld:state",
+        "ld:isrefvar",
+      ],
+      "fill_opacity": 0.7,
+      "id": "associationpvalues",
+      "id_field": "association:id",
+      "legend": Array [
+        Object {
+          "class": "lz-data_layer-scatter",
+          "color": "#9632b8",
+          "label": "LD Ref Var",
+          "shape": "diamond",
+          "size": 40,
+        },
+        Object {
+          "class": "lz-data_layer-scatter",
+          "color": "#d43f3a",
+          "label": "1.0 > r² ≥ 0.8",
+          "shape": "circle",
+          "size": 40,
+        },
+        Object {
+          "class": "lz-data_layer-scatter",
+          "color": "#eea236",
+          "label": "0.8 > r² ≥ 0.6",
+          "shape": "circle",
+          "size": 40,
+        },
+        Object {
+          "class": "lz-data_layer-scatter",
+          "color": "#5cb85c",
+          "label": "0.6 > r² ≥ 0.4",
+          "shape": "circle",
+          "size": 40,
+        },
+        Object {
+          "class": "lz-data_layer-scatter",
+          "color": "#46b8da",
+          "label": "0.4 > r² ≥ 0.2",
+          "shape": "circle",
+          "size": 40,
+        },
+        Object {
+          "class": "lz-data_layer-scatter",
+          "color": "#357ebd",
+          "label": "0.2 > r² ≥ 0.0",
+          "shape": "circle",
+          "size": 40,
+        },
+        Object {
+          "class": "lz-data_layer-scatter",
+          "color": "#B8B8B8",
+          "label": "no r² data",
+          "shape": "circle",
+          "size": 40,
+        },
+      ],
+      "namespace": Object {
+        "default": "",
+        "ld": "ld",
+      },
+      "point_shape": Object {
+        "field": "ld:isrefvar",
+        "parameters": Object {
+          "else": "circle",
+          "field_value": 1,
+          "then": "diamond",
+        },
+        "scale_function": "if",
+      },
+      "point_size": Object {
+        "field": "ld:isrefvar",
+        "parameters": Object {
+          "else": 40,
+          "field_value": 1,
+          "then": 80,
+        },
+        "scale_function": "if",
+      },
+      "tooltip": Object {
+        "closable": false,
+        "hide": Object {
+          "and": Array [
+            "unhighlighted",
+            "unselected",
+          ],
+        },
+        "html": "
+  <strong>{{association:id}}</strong><br/>
+  <strong>{{association:rsid}}</strong><br/>
+  <strong>{{association:most_severe}}</strong><br/>
+  <table>
+  <tbody
+    <tr>
+       <td>phenotype</td>
+       <td><strong>Type II</strong></td>
+    </tr>
+    <tr>
+      <td>p-value</td>
+      <td><strong>{{association:pvalue|scinotation}}</strong></td>
+    </tr>
+    <tr>
+      <td>beta</td>
+      <td><strong>{{association:beta}}</strong> ({{association:sebeta}})</td>
+    </tr>
+    <tr>
+      <td>-log10(p)</td>
+      <td><strong>{{association:mlogp|scinotation}}</strong></td>
+    </tr>
+    <tr>
+      <td>MAF</td>
+      <td><strong>{{association:maf|percent}}</strong></td>
+    </tr>
+    <tr>
+      <td>MAF controls</td>
+      <td><strong>{{association:maf_controls|percent}}</strong></td>
+    </tr>
+    <tr>
+      <td>MAF cases</td>
+      <td><strong>{{association:maf_cases|percent}}</strong><br></td>
+    <tr>
+      <td>FIN enrichment</td>
+      <td><strong>{{association:fin_enrichment}}</strong></td>
+    </tr>
+    <tr>
+      <td>INFO</td>
+      <td><strong>{{association:INFO}}</strong></td>
+    </tr>
+  </tbody>
+  </table>
+  ",
+        "show": Object {
+          "or": Array [
+            "highlighted",
+            "selected",
+          ],
+        },
+      },
+      "transition": false,
+      "type": "scatter",
+      "x_axis": Object {
+        "axis": 1,
+        "field": "association:position",
+      },
+      "y_axis": Object {
+        "axis": 1,
+        "field": "association:mlogp",
+        "floor": 0,
+        "min_extent": Array [
+          0,
+          10,
+        ],
+        "upper_buffer": 0.1,
+      },
+    },
+  ],
+  "description": null,
+  "id": "association",
+  "inner_border": "rgb(210, 210, 210)",
+  "interaction": Object {
+    "drag_background_to_pan": true,
+    "drag_x_ticks_to_scale": true,
+    "drag_y1_ticks_to_scale": true,
+    "drag_y2_ticks_to_scale": true,
+    "scroll_to_zoom": true,
+    "x_linked": true,
+    "y1_linked": false,
+    "y2_linked": false,
+  },
+  "legend": Object {
+    "height": 138,
+    "hidden": true,
+    "label_size": 12,
+    "orientation": "vertical",
+    "origin": Object {
+      "x": 55,
+      "y": 40,
+    },
+    "padding": 5,
+    "width": 91.66200256347656,
+  },
+  "margin": Object {
+    "bottom": 40,
+    "left": 50,
+    "right": 50,
+    "top": 10,
+  },
+  "min_height": 100,
+  "min_width": 400,
+  "origin": Object {
+    "x": 0,
+    "y": 0,
+  },
+  "proportional_height": 0.3,
+  "proportional_origin": Object {
+    "x": 0,
+    "y": 0,
+  },
+  "title": Object {
+    "text": "Type II",
+    "x": 55,
+    "y": 30,
+  },
+  "y_index": 0,
+}
+`;

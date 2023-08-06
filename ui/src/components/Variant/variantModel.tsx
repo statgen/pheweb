@@ -29,6 +29,7 @@ export namespace Variant {
     phenostring:      string;
     pval:             number | null;
     pip?:              number | null | undefined;
+    sebeta?:          number | null;
   }
 
   export interface  MatchingResults {}

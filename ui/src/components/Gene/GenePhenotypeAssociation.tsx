@@ -45,6 +45,7 @@ const reshapeRow =
   const pval = d.assoc.pval
   const fin_enrichment = finEnrichmentLabel(d.variant.annotation.gnomad)
   const beta = d.assoc.beta
+  const sebeta = d.assoc.sebeta
   const num_cases = d.assoc.n_case
 
   const chrom = d.variant.chr
@@ -52,7 +53,7 @@ const reshapeRow =
   const ref = d.variant.ref
   const alt = d.variant.alt
 
-  return  { chrom, pos, ref, alt , num_cases, beta, pval ,
+  return  { chrom, pos, ref, alt , num_cases, beta, sebeta, pval ,
             rsids , mlogp , phenostring , category ,
             fin_enrichment , phenocode , gene}
 }
