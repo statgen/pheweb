@@ -68,7 +68,7 @@ export const chunk : <X>(arr : X[],size : number) =>X[][] = (arr, size : number)
   Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
 export const empty = { "header": { "type": "esummary", "version": "0.3" }, "result": {}, "uids": [] }
 const merge = (left, right) => {
-  const uids = ([] || left?.result?.uids).concat(([] || right?.result?.uids).uids);
+  const uids = (left?.result?.uids || []).concat(right?.result?.uids || []);
   return  { ... left , ... right , uids};
 }
 export const clinvarlESearchCollect = x=>x.reduce(merge,empty)
