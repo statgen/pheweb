@@ -190,10 +190,10 @@ export const init_locus_zoom = (region: Region): LocusZoomContext => {
     `/api/region/${region.pheno.phenocode}/lz-`
   );
   const localCondBase: string = resolveURL(
-    "/api/conditional_region/" + region.pheno.phenocode + "/lz-"
+    `/api/conditional_region/${region.pheno.phenocode}/lz-`
   );
   const localFMBase: string = resolveURL(
-    "/api/finemapped_region/" + region.pheno.phenocode + "/lz-"
+    `/api/finemapped_region/${region.pheno.phenocode}/lz-`
   );
   const remoteBase: string = "https://portaldev.sph.umich.edu/api/v1/";
   const dataSources: DataSources = new DataSources();
