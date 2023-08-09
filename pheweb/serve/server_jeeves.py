@@ -251,6 +251,10 @@ class ServerJeeves(object):
 
         v_annot = self.annotation_dao.get_single_variant_annotations(r[0], self.conf.anno_cpra)
 
+        # add rsids from varaint annotation if wasn't available in the merged sumstat matrix
+        if self.result_dao.longformat and v_annot.rsids is None:
+            v_annot.add_annotation("rsids", v_annot.annotation['annot']['rsid'])
+
         if r is not None:
             if v_annot is None:
                 ## no annotations found even results were found. Should not happen except if the results and annotation files are not in sync
