@@ -123,8 +123,7 @@ export  const lz_conf = (phenotype : Phenotype) => {
 }
 export const association_layout = (selectedPhenotype: Phenotype): Layout => {
   const phenostring: string =  selectedPhenotype.phenostring;
-
-  return {
+  const layout = {
     id: "association",
     title: { text: phenostring, x: 55, y: 30 },
     proportional_height: 0.3,
@@ -338,6 +337,7 @@ export const association_layout = (selectedPhenotype: Phenotype): Layout => {
     },
     background_click: "clear_selections",
   };
+  return layout;
 };
 const gwas_cat_layout = {
   id: "gwas_catalog",
@@ -612,16 +612,17 @@ const loadLocusZoom = (selectedPhenotype: Phenotype) => {
   ]);
 
   // region:region Region
+  const ld_params = {
+    id: [1, 4],
+    region: { ld_panel_version, lz_conf : lz_conf(selectedPhenotype) },
+    pvalue_field: "association:pvalue",
+    var_id_field: "association:id",
+  }
   dataSources.add("ld", [
     "FG_LDDataSourceLZ",
     {
       url: application?.ld_service,
-      params: {
-        id: [1, 4],
-        region: { ld_panel_version, lz_conf },
-        pvalue_field: "association:pvalue",
-        var_id_field: "association:id",
-      },
+      params: ld_params,
     },
   ]);
   // dashboard components

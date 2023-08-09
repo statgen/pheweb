@@ -36,7 +36,6 @@ export const createQQPlot = (mafRanges : QQPlotParam[]) => {
   const root = document.getElementById("qq_plot_container");
   const runOnce = document.getElementById("qq_svg") != null;
   if(root == null || runOnce) return; // wait until page loaded
-  console.log("createQQPlot");
   const expMax = d3.max(mafRanges, function (maf_range) { return d3.max(maf_range.qq, (d) => d[0]) })
   const tmpMax = d3.max(mafRanges, function (maf_range) { return d3.max(maf_range.qq, (d) => d[1]) })
 

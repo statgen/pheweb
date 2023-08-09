@@ -38,8 +38,6 @@ const GeneContextProvider = ({ params : { gene , phenotype }, children } : Props
     }
   },[genePhenotype, phenotype]);
 
-    console.log({ selectedPhenotype , genePhenotype })
-
   return (<GeneContext.Provider value={{ gene,
                                          selectedPhenotype ,
                                          genePhenotype ,

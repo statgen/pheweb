@@ -62,8 +62,18 @@ ClinvarDataSource.prototype.getURL = function(state: any, chain: any, fields: an
   return this.url;
 };
 
-ClinvarDataSource.prototype.fetchRequest = function(state: any, chain: any, fields: any) {
+export const clinvarlESearchURL = (url : string) => (ids : string[]) => `${url}esummary.fcgi?db=clinvar&retmode=json&id=${ids.join(",")}`;
+//#Source https://bit.ly/2neWfJ2
+export const chunk : <X>(arr : X[],size : number) =>X[][] = (arr, size : number) =>
+  Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
+export const empty = { "header": { "type": "esummary", "version": "0.3" }, "result": {}, "uids": [] }
+const merge = (left, right) => {
+  const uids = (left?.result?.uids || []).concat(right?.result?.uids || []);
+  return  { ... left , ... right , uids};
+}
+export const clinvarlESearchCollect = x=>x.reduce(merge,empty)
 
+ClinvarDataSource.prototype.fetchRequest = function(state: any, chain: any, fields: any) {
   const url = this.getURL(state, chain, fields);
   const chr = state.chr === '23' ? 'X' : state.chr;
   const chrpos = this.params?.region?.genome_build === 37 ? "chrpos37" : "chrpos";
@@ -79,11 +89,11 @@ ClinvarDataSource.prototype.fetchRequest = function(state: any, chain: any, fiel
       }
 
       if (data.esearchresult.idlist != null) {
-        const requrl = url + "esummary.fcgi?db=clinvar&retmode=json&id=" + data.esearchresult.idlist.join(",");
-        return createCORSPromise("GET", requrl);
+        const promises = chunk(data.esearchresult.idlist,410).map(ids => clinvarlESearchURL(url)(ids as string[])).map(url => createCORSPromise("GET", url));
+        return Promise.all(promises).then(x => x.map((x)=> JSON.parse(x as string) )).then(clinvarlESearchCollect).then(JSON.stringify);
       } else {
         const resultFailed = defer();
-        console.log("Failed to query clinvar" + JSON.stringify(data, null, 4));
+        console.warn("Failed to query clinvar" + JSON.stringify(data, null, 4));
         resultFailed.reject("Failed to query clinvar" + JSON.stringify(data, null, 4));
         return resultFailed;
       }
@@ -251,7 +261,6 @@ FG_LDDataSource.prototype.getURL = function(state, chain, fields) {
   const refvar = topvar[this.params.var_id_field];
   let url : string;
   chain.header.ldrefvar = topvar;
-  console.log(this.params.region.lz_conf.ld_service);
   if (isFinngenServer(this.params.region.lz_conf.ld_service)) {
     const windowSize = Math.min(state.end - state.start + 10000, this.params.region.lz_conf.ld_max_window);
     url = `${this.url}?variant=${topvar["association:chr"]}:${topvar["association:position"]}:${topvar["association:ref"]}:${topvar["association:alt"]}&window=${windowSize}&panel=${this.params.region.ld_panel_version}`;

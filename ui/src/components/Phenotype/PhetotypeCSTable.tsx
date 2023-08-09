@@ -43,7 +43,6 @@ const PhenotypeCSTable = () => {
         if (!cur.startsWith('_')) acc[cur] = datum[cur]
         return acc
       }, {}));
-      console.log(data);
       setDownload(data);
     }
   }
