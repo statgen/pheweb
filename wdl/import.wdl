@@ -572,6 +572,7 @@ task filter_sumstat {
     String docker
     String pheno_col
     Float pval_thres
+    String columns
 
     String fname_prefix = sub(basename(sumstat), ".gz", "")
     Int disk_size = ceil(size(sumstat, "GB") * 3) + 5
@@ -596,8 +597,7 @@ task filter_sumstat {
         zcat -f ${sumstat} | awk -v pheno=$pheno -v col=${pheno_col} 'BEGIN {FS=OFS="\t"} NR==1 {print col,$0} NR>1 {print pheno,$0}'
     }
 
-
-    catcmd | awk '
+    catcmd | awk -v columns="${columns}"  '
     BEGIN {FS=OFS="\t"}
     NR==1 {
         for(i=1;i<=NF;i++) {
@@ -606,25 +606,26 @@ task filter_sumstat {
     }
 
     NR>1 {
-        split($0, col_arr, " ");
+        split($0, col_arr, "\t");
+        split(columns, select_columns, " ");
         if ( col_arr[h["pval"]] <= ${pval_thres} ) {
-        
+
             chr=$h["#chrom"];
             sub("^chr", "", chr);
             if(chr==23) chr="X";
             $h["#chrom"]=chr;
 
-            for(i=1;i in col_arr;i++){
-                if (i == 1) printf col_arr[i]
-                else printf "\t"col_arr[i]
+            for(i=1;i in select_columns;i++){
+                if (i == 1) printf col_arr[h[select_columns[i]]]
+                else printf "\t"col_arr[h[select_columns[i]]]
             }
-            printf "\n";
+            printf "\n"
         }
-    }' | \
+    }
+    '  | \
     sort -k2,2V -k3,3g -k4,5 -k1,1 | \
     uniq | \
     bgzip > ${fname_prefix}.filtered.tsv.gz
-
 
     >>>    
 
