@@ -21,7 +21,7 @@ import json
 import os
 import os.path
 import sqlite3
-from typing import Dict,Tuple,List,Any
+from typing import Dict,Tuple,List,Any,Optional
 
 
 bp = Blueprint('bp', __name__, template_folder='templates', static_folder='static')
@@ -49,8 +49,10 @@ if conf.get_custom_templates_dir():
 phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
 
 
-def email_is_allowed(user_email:str = None) -> bool:
-    if user_email is None: user_email = current_user.email
+def email_is_allowed(user_email:Optional[str] = None) -> bool:
+    if user_email is None:
+        user_email = current_user.email
+        assert isinstance(user_email, str), user_email
     user_email = user_email.lower()
     if not conf.get_login_allowlist():  # anybody gets in!
         return True
