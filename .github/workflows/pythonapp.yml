@@ -23,6 +23,6 @@ jobs:
         python3 -m pip install pytest
         python3 -m pip freeze
         python3 setup.py sdist bdist_wheel
-        python3 -m pip freeze
         sh -c "cd /tmp && python3 -m pip install $PWD/dist/*.whl" # must be in a new dir to avoid finding build artifacts
+        python3 -m pip freeze
         sh -c "cd /tmp && pytest $PWD/tests" # must be in a new dir to avoid finding source code
