@@ -45,7 +45,7 @@ shown.  If you want all hits, use `pheweb top-hits`.
 ))
         exit(1)
 
-    loci = sorted(get_loci(), key=lambda l: l['pval'])
+    loci = sorted(get_loci(), key=lambda d: d['pval'])
     write_json(filepath=out_filepath_json, data=loci, sort_keys=True)
     print("wrote {} loci to {}".format(len(loci), out_filepath_json))
 
