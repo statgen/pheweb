@@ -5,7 +5,7 @@ First, try:
 ```bash
 python3 -m pip install -U cython wheel pip setuptools
 python3 -m pip install pheweb
-pheweb --help
+pheweb
 ```
 
 *(Note: In most cases this is equivalent to `pip3 install pheweb`, but if you have a bad version of `pip3` on your `$PATH`, using `python3 -m pip` will avoid it.)*
@@ -14,7 +14,7 @@ pheweb --help
 
 - If you get an error related to pysam, run `python3 -m pip install -U cython; python3 -m pip install https://github.com/pysam-developers/pysam/archive/master.zip` and try again.
 
-- If installation was successful but the command `pheweb --help` is not found, you need to add `pheweb` to your PATH.  You should be able to just run `echo 'PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`, start a new terminal, and try `pheweb --help` again.  If you're on macOS, you might need `echo 'source "$HOME/.bashrc" >> ~/.bash_profile`.
+- If installation was successful but running `pheweb` results in "command not found", you need to add `pheweb` to your PATH.  You should be able to just add the line `PATH="$HOME/.local/bin:$PATH"` to the end of `~/.bashrc`, start a new terminal, and run `pheweb` again.  If you're on macOS, you might need to add the line `source "$HOME/.bashrc"` to `~/.bash_profile`.
 
 - If that command fails in a different way, then use one of the approaches below.
 
@@ -43,9 +43,10 @@ Then run:
 ```bash
 sudo python3 -m pip install wheel cython
 sudo python3 -m pip install pheweb
+sudo pheweb
 ```
 
-If this doesn't work, email me or try the miniconda3 approach instead.
+If this doesn't work, try the miniconda3 approach instead.
 
 
 ### Installing on Linux or Mac with Miniconda3:
@@ -65,3 +66,5 @@ Then run:
 ```bash
 python3 -m pip install pheweb
 ```
+
+If none of these work, open a Github issue.
