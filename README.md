@@ -31,7 +31,7 @@ This directory will store all the files pheweb makes for your dataset. All `phew
 
 Make `config.py` in this directory. In it, either set `hg_build_number = 19` or `hg_build_number = 38`.  Other options you can set are listed [here](etc/detailed-loading-instructions.md#configuration-options).
 
-### 3. Prepare your association files
+### 3. Check that your GWAS summary statistics files will work
 
 You need one file for each phenotype.  Most common GWAS file formats should work.  Here are the requirements:
 
