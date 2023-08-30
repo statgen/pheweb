@@ -277,6 +277,7 @@ export namespace PqtlColocalizations {
   export interface Row {
     gene_name: string
     source: string
+    source_displayname?: string
     trait: string
     region: string
     cs: number

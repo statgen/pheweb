@@ -30,6 +30,14 @@ const defaultSorted = [{
   desc: false
 }]
 
+export const hasError = (errorMessage : string | null | undefined, content:  JSX.Element) :  JSX.Element => {
+  if(errorMessage === null || errorMessage === undefined){
+    return content
+  } else {
+    return <div>{errorMessage}</div>
+  }
+}
+
 const colocalizationSubTable = ( row :  ReactTable ) : JSX.Element | any => {
 
   const value = row.original.disease_colocalizations[0];
@@ -64,7 +72,9 @@ const colocalizationSubTable = ( row :  ReactTable ) : JSX.Element | any => {
 const GenePqtls = () => {
   const { gene } = useContext<Partial<GeneState>>(GeneContext);
   const [genePqtlColocalizationData, setGenePqtlColocalizationData] = useState<PqtlColocalizationsModel.Data | null>(null);
-  useEffect(() => { getGenePqtlColocalisations(gene, setGenePqtlColocalizationData) },[gene]);
+  const [error, setError] = useState<string|null>(null);
+
+  useEffect(() => { getGenePqtlColocalisations(gene, setGenePqtlColocalizationData, setError) },[gene]);
 
   const filename = `${gene}_pqtl.tsv`;
 
@@ -79,10 +89,10 @@ const GenePqtls = () => {
   }
 
   const context = { gene }
-  return genePqtlColocalizationData == null ? commonLoading: <div>
-    {mustacheDiv(banner, context)}
-    <CommonDownloadTable {...prop}/>
-  </div>
+  const content = (
+    <div>{mustacheDiv(banner, context)} <CommonDownloadTable {...prop}/> </div>
+  )
+  return genePqtlColocalizationData == null && error == null ? commonLoading : hasError(error, content)
 
 }
 

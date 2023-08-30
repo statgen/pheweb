@@ -38,7 +38,9 @@ export const getMyGene = (gene : string,
 
 export const getGenePqtlColocalisations = (gene : string,
   sink: (s: PqtlColocalizations.Data) => void,
+  setError: (s: string | null) => void,
   getURL = get) : void => {
-const url = resolveURL(`/api/gene_pqtl_colocalization/${gene}`)
-getURL(url, sink)
+    const handler : Handler = (url : string) => (e : Error) => setError(`pQTL data ${e.message}`);
+    const url = resolveURL(`/api/gene_pqtl_colocalization/${gene}`)
+    getURL(url, sink, handler)
 }
