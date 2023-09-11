@@ -28,21 +28,18 @@ class PqtlColocalisationDao(PqtlColocalisationDB, MysqlDAO):
         with closing(self.get_connection()) as conn:
             fields = self._fields
             tables = [field['table'] for field in fields]
-            id = [i for i,t in enumerate(tables) if 'colocalization' in t]
-            if len(id) > 0:
-                if id[0] == 0:
-                    fields.reverse()
+            coloc_table_id = tables.index([t for t in tables if 'coloc' in t][0])
 
             # fetch pqtls from mysql
             with conn.cursor(pymysql.cursors.DictCursor) as cursor:
-                table = fields[0]["table"]
-                columns = fields[0]["columns"]
+                table = fields[:-coloc_table_id][0]["table"]
+                columns = fields[:-coloc_table_id][0]["columns"]
                 columns = ", ".join(columns)
                 sql = f"""SELECT {columns} FROM {table} WHERE gene_name=%s """
                 parameters = [gene_name]                       
                 cursor.execute(sql, parameters)
                 pqtls = cursor.fetchall() 
-            
+
             # fetch colocalizaion from mysql
             result = []      
             for pqtl in pqtls:
@@ -53,8 +50,8 @@ class PqtlColocalisationDao(PqtlColocalisationDB, MysqlDAO):
                 var = pqtl["v"]
                 var_colocs = []
                 with conn.cursor(pymysql.cursors.DictCursor) as cursor:
-                    table = fields[1]["table"]
-                    columns = fields[1]["columns"]
+                    table = fields[coloc_table_id]["table"]
+                    columns = fields[coloc_table_id]["columns"]
                     columns = ", ".join(columns)
                     sql = f"""SELECT {columns} FROM {table} WHERE 
                                     phenotype2_description=%s AND

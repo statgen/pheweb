@@ -1411,7 +1411,7 @@ const pqtColumns = {
   },
   pqtlSource: {
     Header: () => (<span style={{ textDecoration: "underline" }}>source</span>),
-    accessor: "source",
+    accessor: "source_displayname",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
     minWidth: columnWith(120)
