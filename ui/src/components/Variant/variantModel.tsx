@@ -10,6 +10,7 @@ export namespace Variant {
     var_top_pheno_export_fields: string[];
     variant:                     Variant;
     variant_name:                string;
+    updateRow:                   any;
   }
 
   export interface Result {
@@ -61,6 +62,7 @@ export namespace Variant {
     nearest_gene: string;
     rsids:        string;
   }
+  
 }
 
 export namespace Ensembl {
@@ -168,4 +170,23 @@ export interface VariantConfiguration {
     defaultSorted : SortingRule<Variant.Result>[] }
   banner?: string;
   locusZoom? : VisConfiguration
+}
+
+
+export namespace Sumstats {
+
+  export interface Data {
+    results: Row[];
+  }
+  
+  export interface Row {
+    beta:         number;
+    sebeta:       number;
+    mlogp?:       number;
+    pval:         number;
+    maf?:         number;
+    maf_case:     number;
+    maf_control:  number;
+    clicked:      boolean;
+  }
 }

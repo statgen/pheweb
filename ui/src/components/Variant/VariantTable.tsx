@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { Column } from "react-table";
 import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 import { Variant } from "../Variant/variantModel";
@@ -6,15 +6,19 @@ import { wordFilter, createTableColumns, variantTableColumns } from "../../commo
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { VariantContext, VariantState } from "./VariantContext";
 import commonLoading from "../../common/CommonLoading";
+import './style.css';
+
+interface Props { variantData : Variant.Data, getSumstats : any, activePage : any}
 
 const dataToTableRows = (colorByCategory : { [name: string]: string }) => (variantData : Variant.Data | null) : Variant.Result[] =>
-  variantData?.results.map(v => { return {color : colorByCategory[v.category], ...v}}) || []
+  variantData?.results.map(v => { return {color : colorByCategory[v.category], variant: variantData?.variant, ...v}}) || []
+
 declare let window: ConfigurationWindow;
 const variant = window?.config?.userInterface?.variant;
 
 const tableColumns : Column<Variant.Result>[] = createTableColumns(variant?.table?.columns) || (variantTableColumns as Column<Variant.Result>[])
 const defaultSorted = variant?.table?.defaultSorted || [{
-  id: 'category_index',
+  id: 'pval',
   desc: false
 }]
 
@@ -22,11 +26,38 @@ const tableProperties = {
   defaultFilterMethod : wordFilter
 }
 
-interface Props { variantData : Variant.Data }
-
-const VariantTable = ({ variantData } : Props ) => {
+const VariantTable = ({ variantData, getSumstats, activePage } : Props ) => {
   const { colorByCategory } = useContext<Partial<VariantState>>(VariantContext);
   const tableData : Variant.Data = variantData;
+  
+  const getTrProps = (state, rowInfo, column) => {
+
+    if (rowInfo){
+      // hightlight selected row
+      var styleRow = rowInfo.original.clicked ? { 
+        WebkitAnimation: 'updateRow', 
+        WebkitAnimationDuration: '2.5s', 
+        WebkitAnimationIterationCount: '1',
+        WebkitAnimationDelay: '0.1s'
+      } : {}
+      return {
+        onClick: e => {
+          if (rowInfo.original.mlogp === null && rowInfo.original.pval === null && rowInfo.original.beta == null){
+            var sortedOptions = {'id': state.sorted[0]['id'], 
+                          'desc': state.sorted[0]['desc'], 
+                          'currentPage': state.page, 
+                          'pageSize': state.pageSize}
+            getSumstats(rowInfo.index, rowInfo.original.variant.varid, rowInfo.original.phenocode, sortedOptions);
+          }
+        },
+        style: styleRow
+      }
+    } else {
+      return {
+        style: {}
+      }
+    }
+  }
 
   const filename = `${variantData?.variant?.chr}_${variantData?.variant?.pos}_${variantData?.variant?.ref}_${variantData?.variant?.alt}_phenotype_associations.tsv`
   if(colorByCategory){
@@ -35,8 +66,9 @@ const VariantTable = ({ variantData } : Props ) => {
       tableData,
       dataToTableRows : dataToTableRows(colorByCategory),
       tableColumns ,
-      tableProperties,
-      defaultSorted
+      tableProperties: activePage !== null ? { ...tableProperties, page: activePage }  : tableProperties,
+      defaultSorted : defaultSorted,
+      getTrProps: getTrProps
     }
     return <CommonDownloadTable {...prop} />
   } else {

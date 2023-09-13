@@ -1,0 +1,16 @@
+@-webkit-keyframes updateRow {
+    from { background-color: #D3D3D3; }
+    to { background-color: inherit; }
+  }
+  @-moz-keyframes updateRow {
+    from { background-color: #D3D3D3; }
+    to { background-color: inherit; }
+  }
+  @-o-keyframes updateRow {
+    from { background-color: #D3D3D3; }
+    to { background-color: inherit; }
+  }
+  @keyframes updateRow {
+    from { background-color: #D3D3D3; }
+    to { background-color: inherit; }
+  }

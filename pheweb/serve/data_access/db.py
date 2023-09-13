@@ -383,6 +383,13 @@ class ResultDB(object):
         Returns all results and annotations for given variant. Returns tuple of Variant (including updated annotations if any) and phenotype results.
         Returns None if variant does not exist.
         """
+    
+    def append_filt_phenos(
+        self, varaint_phenores: Tuple[Variant, List[PhenoResult]]
+    ) -> Tuple[Variant, List[PhenoResult]]:
+        """For a single variant appends phenotypes filtered in longformat matrix.
+           Populates missing summary stats with none.
+        """
 
 
 class CodingDB(object):
@@ -749,12 +756,11 @@ def extend_pheno_result(pr : PhenoResult,
     return pr
 
 class TabixResultDao(ResultDB):
-    def __init__(self, phenos, matrix_path):
+    def __init__(self, phenos, matrix_path, columns):
 
         self.matrix_path = matrix_path
         self.pheno_map = phenos(0)
-
-
+        self.columns = columns
         self.header = gzip.open(self.matrix_path,'rt').readline().split("\t")
         self.phenos = [
             (h.split("@")[1], p_col_idx)
@@ -772,7 +778,8 @@ class TabixResultDao(ResultDB):
                 i = i + 1
             p = s[1] if len(s) > 1 else None
 
-
+        self.longformat = False
+    
     def get_variant_results_range(self, chrom, start, end):
         try:
             tabix_iter = pysam.TabixFile(self.matrix_path, parser=None).fetch(
@@ -783,72 +790,61 @@ class TabixResultDao(ResultDB):
             )
             return []
 
-        result = []
+        ind = [i for i,e in enumerate(self.header) if 'chr' in e][0]
+        result = {}
         for variant_row in tabix_iter:
             split = variant_row.split("\t")
             chrom = (
-                split[0]
+                split[ind]
                 .replace("chr", "")
                 .replace("X", "23")
                 .replace("Y", "24")
                 .replace("MT", "25")
             )
-            v = Variant(chrom, split[1], split[2], split[3])
-            if split[4] is not "":
-                v.rsids = split[4]
-            v.add_annotation("nearest_gene", split[5])
-            phenores = []
+            v = Variant(chrom, split[ind+1], split[ind+2], split[ind+3])
             for pheno in self.phenos:
-
-                pval = split[pheno[1]]
-                beta = split[pheno[1] + self.header_offset["beta"]]
+                phenotype = pheno[0] if pheno[0] else split[self.header_offset[self.columns['pheno']]]
+                beta = split[pheno[1] + self.header_offset[self.columns['beta']]]
                 sebeta = (
-                    split[pheno[1] + self.header_offset["sebeta"]]
-                    if "sebeta" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['sebeta']]]
+                    if "sebeta" in self.columns
                     else None
                 )
                 maf = (
-                    split[pheno[1] + self.header_offset["maf"]]
-                    if "maf" in self.header_offset
-                    else None
-                )
-                maf = (
-                    split[pheno[1] + self.header_offset["af_alt"]]
-                    if "af_alt" in self.header_offset
-                    else maf
-                )
-                maf_case = (
-                    split[pheno[1] + self.header_offset["maf_cases"]]
-                    if "maf_cases" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['maf']]]
+                    if 'maf' in self.columns
                     else None
                 )
                 maf_case = (
-                    split[pheno[1] + self.header_offset["af_alt_cases"]]
-                    if "af_alt_cases" in self.header_offset
-                    else maf_case
+                    split[pheno[1] + self.header_offset[self.columns['maf_cases']]]
+                    if 'maf_cases' in self.columns
+                    else None
                 )
                 maf_control = (
-                    split[pheno[1] + self.header_offset["maf_controls"]]
-                    if "maf_controls" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['maf_controls']]]
+                    if 'maf_controls' in self.columns
                     else None
                 )
                 mlogp = (
-                    split[pheno[1] + self.header_offset["mlogp"]]
-                    if "mlogp" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['mlogp']]]
+                    if 'mlogp' in self.columns
                     else None
                 )
-                maf_control = (
-                    split[pheno[1] + self.header_offset["af_alt_controls"]]
-                    if "af_alt_controls" in self.header_offset
-                    else maf_control
+                pval = (
+                    split[pheno[1] + self.header_offset[self.columns['pval']]]
+                    if 'pval' in self.columns
+                    else None
                 )
+                if mlogp is not None and mlogp is not "" and mlogp != "NA":
+                    if pval is None:
+                        pval = str(math.pow(10, -1 * float(mlogp)))
                 if pval is not None and not pval == "" and not pval == "NA":
                     pr = PhenoResult(
-                        pheno[0],
-                        self.pheno_map[pheno[0]]["phenostring"],
-                        self.pheno_map[pheno[0]]["category"],
-                        self.pheno_map[pheno[0]]["category_index"]
-                        if "category_index" in self.pheno_map[pheno[0]]
+                        phenotype,
+                        self.pheno_map[phenotype]["phenostring"],
+                        self.pheno_map[phenotype]["category"],
+                        self.pheno_map[phenotype]["category_index"]
+                        if "category_index" in self.pheno_map[phenotype]
                         else None,
                         pval,
                         beta,
@@ -856,21 +852,24 @@ class TabixResultDao(ResultDB):
                         maf,
                         maf_case,
                         maf_control,
-                        self.pheno_map[pheno[0]]["num_cases"]
-                        if "num_cases" in self.pheno_map[pheno[0]]
+                        self.pheno_map[phenotype]["num_cases"]
+                        if "num_cases" in self.pheno_map[phenotype]
                         else 0,
-                        self.pheno_map[pheno[0]]["num_controls"]
-                        if "num_controls" in self.pheno_map[pheno[0]]
+                        self.pheno_map[phenotype]["num_controls"]
+                        if "num_controls" in self.pheno_map[phenotype]
                         else 0,
                         mlogp,
-                        self.pheno_map[pheno[0]]["num_samples"]
-                        if "num_samples" in self.pheno_map[pheno[0]]
+                        self.pheno_map[phenotype]["num_samples"]
+                        if "num_samples" in self.pheno_map[phenotype]
                         else "NA",
                     )
                     pr = extend_pheno_result(pr,pheno[1],self.header_offset,split)
-                    pr = phenores.append(pr)
-            result.append((v, phenores))
-        return result
+                    if v in result:
+                        result[v].append(pr)
+                    else:
+                        result[v] = [pr]
+
+        return result.items()
 
     def get_single_variant_results(
         self, variant: Variant
@@ -896,6 +895,7 @@ class TabixResultDao(ResultDB):
         return results
 
     def get_top_per_pheno_variant_results_range(self, chrom, start, end):
+
         chrom = "23" if chrom == "X" else chrom
         try:
             tabix_iter = pysam.TabixFile(self.matrix_path, parser=None).fetch(
@@ -910,59 +910,52 @@ class TabixResultDao(ResultDB):
         top = defaultdict(lambda: defaultdict(dict))
 
         n_vars = 0
+        ind = [i for i,e in enumerate(self.header) if 'chr' in e][0]
         for variant_row in tabix_iter:
             n_vars = n_vars + 1
             split = variant_row.split("\t")
             for pheno in self.phenos:
-                pval = split[pheno[1]]
-                beta = split[pheno[1] + self.header_offset["beta"]]
+                phenotype = pheno[0] if pheno[0] else split[self.header_offset[self.columns['pheno']]]
+                beta = split[pheno[1] + self.header_offset[self.columns['beta']]]
                 sebeta = (
-                    split[pheno[1] + self.header_offset["sebeta"]]
-                    if "sebeta" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['sebeta']]]
+                    if "sebeta" in self.columns
                     else None
                 )
                 maf = (
-                    split[pheno[1] + self.header_offset["maf"]]
-                    if "maf" in self.header_offset
-                    else None
-                )
-                maf = (
-                    split[pheno[1] + self.header_offset["af_alt"]]
-                    if "af_alt" in self.header_offset
-                    else maf
-                )
-                maf_case = (
-                    split[pheno[1] + self.header_offset["maf_cases"]]
-                    if "maf_cases" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['maf']]]
+                    if 'maf' in self.columns
                     else None
                 )
                 maf_case = (
-                    split[pheno[1] + self.header_offset["af_alt_cases"]]
-                    if "af_alt_cases" in self.header_offset
-                    else maf_case
+                    split[pheno[1] + self.header_offset[self.columns['maf_cases']]]
+                    if 'maf_cases' in self.columns
+                    else None
+                )
+                maf_control = (
+                    split[pheno[1] + self.header_offset[self.columns['maf_controls']]]
+                    if 'maf_controls' in self.columns
+                    else None
                 )
                 mlogp = (
-                    split[pheno[1] + self.header_offset["mlogp"]]
-                    if "mlogp" in self.header_offset
+                    split[pheno[1] + self.header_offset[self.columns['mlogp']]]
+                    if 'mlogp' in self.columns
                     else None
                 )
-                maf_control = (
-                    split[pheno[1] + self.header_offset["maf_controls"]]
-                    if "maf_controls" in self.header_offset
+                pval = (
+                    split[pheno[1] + self.header_offset[self.columns['pval']]]
+                    if 'pval' in self.columns
                     else None
-                )
-                maf_control = (
-                    split[pheno[1] + self.header_offset["af_alt_controls"]]
-                    if "af_alt_controls" in self.header_offset
-                    else maf_control
                 )
                 # Pick the smaller of values.  First try using mlog which
                 # maybe absent in earlier releases.  In this case fall back
                 # to using pval to order.
                 if mlogp is not None and mlogp is not "" and mlogp != "NA":
+                    if pval is None:
+                        pval = str(math.pow(10, -1 * float(mlogp)))
                     # have mlogp compare mlog
                     is_less_than = (
-                        pheno[0] not in top or (float(mlogp)) > top[pheno[0]][1].mlogp
+                        phenotype not in top or (float(mlogp)) > top[phenotype][1].mlogp
                     )
                 else:
                     # we don't have mlogp use pval
@@ -970,16 +963,16 @@ class TabixResultDao(ResultDB):
                         pval is not ""
                         and pval != "NA"
                         and (
-                            pheno[0] not in top or (float(pval)) < top[pheno[0]][1].pval
+                            phenotype not in top or (float(pval)) < top[phenotype][1].pval
                         )
                     )
                 if is_less_than:
                     pr = PhenoResult(
-                        pheno[0],
-                        self.pheno_map[pheno[0]]["phenostring"],
-                        self.pheno_map[pheno[0]]["category"],
-                        self.pheno_map[pheno[0]]["category_index"]
-                        if "category_index" in self.pheno_map[pheno[0]]
+                        phenotype,
+                        self.pheno_map[phenotype]["phenostring"],
+                        self.pheno_map[phenotype]["category"],
+                        self.pheno_map[phenotype]["category_index"]
+                        if "category_index" in self.pheno_map[phenotype]
                         else None,
                         pval,
                         beta,
@@ -987,30 +980,26 @@ class TabixResultDao(ResultDB):
                         maf,
                         maf_case,
                         maf_control,
-                        self.pheno_map[pheno[0]]["num_cases"]
-                        if "num_cases" in self.pheno_map[pheno[0]]
+                        self.pheno_map[phenotype]["num_cases"]
+                        if "num_cases" in self.pheno_map[phenotype]
                         else 0,
-                        self.pheno_map[pheno[0]]["num_controls"]
-                        if "num_controls" in self.pheno_map[pheno[0]]
+                        self.pheno_map[phenotype]["num_controls"]
+                        if "num_controls" in self.pheno_map[phenotype]
                         else 0,
                         mlogp,
-                        self.pheno_map[pheno[0]]["num_samples"]
-                        if "num_samples" in self.pheno_map[pheno[0]]
+                        self.pheno_map[phenotype]["num_samples"]
+                        if "num_samples" in self.pheno_map[phenotype]
                         else "NA",
                     )
-                    v = Variant(
-                        split[0].replace("X", "23"), split[1], split[2], split[3]
-                    )
-                    if split[4] != "":
-                        v.add_annotation("rsids", split[4])
-                    v.add_annotation("nearest_gene", split[5])
-                    top[pheno[0]] = (v, pr)
+                    v = Variant(chrom, split[ind+1], split[ind+2], split[ind+3])
+                    top[phenotype] = (v, pr)
 
         print(str(n_vars) + " variants iterated")
         top = [
             PhenoResults(pheno=self.pheno_map[pheno], assoc=dat, variant=v)
             for pheno, (v, dat) in top.items()
         ]
+
         # A hack to handle missing mlogp
         # as sort is stable it should return
         # with the the pval order.
@@ -1019,6 +1008,54 @@ class TabixResultDao(ResultDB):
 
         return top
 
+    def append_filt_phenos(
+        self, varaint_phenores: Tuple[Variant, PhenoResult]
+    ) -> Tuple[Variant, PhenoResult]:
+        '''For a single variant append phenotypes filtered in longformat matrix.
+           Populates missing summary stats with none'''
+
+        phenolist = varaint_phenores[1]
+        var_phenocodes = [r.phenocode for r in phenolist]
+        
+        for phenotype in self.pheno_map:
+            if phenotype not in var_phenocodes:
+                pr = PhenoResult(
+                    phenotype,
+                    self.pheno_map[phenotype]["phenostring"],
+                    self.pheno_map[phenotype]["category"],
+                    self.pheno_map[phenotype]["category_index"]
+                    if "category_index" in self.pheno_map[phenotype]
+                    else None,
+                    'NA', # pval
+                    None, # beta
+                    None, # sebeta
+                    None, # maf
+                    None, # maf_case
+                    None, # maf_control
+                    self.pheno_map[phenotype]["num_cases"]
+                    if "num_cases" in self.pheno_map[phenotype]
+                    else 0,
+                    self.pheno_map[phenotype]["num_controls"]
+                    if "num_controls" in self.pheno_map[phenotype]
+                    else 0,
+                    'NA', # mlogp
+                    self.pheno_map[phenotype]["num_samples"]
+                    if "num_samples" in self.pheno_map[phenotype]
+                    else "NA",
+                )
+                phenolist.append(pr)
+        
+        return (varaint_phenores[0], phenolist)
+
+class TabixResultFiltDao(TabixResultDao):
+    def __init__(self, phenos, matrix_path, columns):        
+        self.matrix_path = matrix_path
+        self.columns = columns
+        self.header = gzip.open(self.matrix_path,'rt').readline().split("\t")
+        self.header_offset = {item.split('\n')[0]: i for i, item in enumerate(self.header)}
+        self.phenos = [(None, 0)]
+        self.pheno_map = phenos(0)
+        self.longformat = True
 
 class ExternalMatrixResultDao(ExternalResultDB):
     def __init__(self, matrix, metadatafile):
@@ -1468,6 +1505,7 @@ class TabixAnnotationDao(AnnotationDB):
         return None
 
     def get_variant_annotations(self, variants: List[Variant], cpra):
+        
         annotations = []
         t = time.time()
         tabixf =pysam.TabixFile(self.matrix_path, parser=None)
@@ -1480,7 +1518,6 @@ class TabixAnnotationDao(AnnotationDB):
             )
 
             tabix_iter = tabixf.fetch(fetch_chr, variant.pos - 1, variant.pos)
-
 
             while True:
                 try:
@@ -1990,7 +2027,7 @@ class DataFactory(object):
 
     def get_result_dao(self):
         return self.dao_impl["result"]
-
+    
     def get_geneinfo_dao(self):
         return self.dao_impl["geneinfo"]
 
@@ -2035,3 +2072,4 @@ class DataFactory(object):
 
     def get_pqtl_colocalization_dao(self):
         return self.dao_impl["pqtl_colocalization"] if "pqtl_colocalization" in self.dao_impl else None
+

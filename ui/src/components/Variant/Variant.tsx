@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { Variant as CommonVariantModel, variantFromStr } from "../../common/commonModel"
-import { Ensembl, Variant as VariantModel } from "./variantModel"
-import { getEnsembl, getVariant } from "./variantAPI"
+import { Ensembl, Variant as VariantModel, Sumstats } from "./variantModel"
+import { getEnsembl, getVariant, getVariantPhenotype } from "./variantAPI"
 import { ConfigurationWindow } from "../Configuration/configurationModel"
 import { mustacheDiv } from "../../common/commonUtilities"
 import { hasError, isLoading } from "../../common/CommonLoading"
@@ -75,7 +75,8 @@ interface VariantSummary {
 }
 
 const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary | undefined => {
-  const nearestGenes : string [] = variantData.variant.annotation.nearest_gene.split(",");
+  
+  const nearestGenes : string [] = variantData.variant.annotation.annot.nearest_gene.split(",");
   const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
 
   const isNumber = function(d) { return typeof d == "number"; };
@@ -342,17 +343,106 @@ const bannerData = (variantData :  VariantModel.Data, bioBankURLObject: BioBankU
   return data;
 }
 
+interface sortOptionsObj {
+  id: string;
+  desc: boolean;
+  currentPage: number;
+  pageSize: number;
+}
+
 const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
   const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : string }| null>(null);
   const [loadedBioBank, setLoadedBioBank] = useState<boolean>(false);
   const [error, setError] = useState<string|null>(null);
-
+  const [varSumstats, setSumstats] = useState<Sumstats.Data | null>(null);
+  const [rowId, setRowid] = useState<number | null>(null);
+  const [phenocode, setPheno] = useState<string | null>(null);
+  const [variantDataPlots, setVariantDataPlots] = useState<VariantModel.Data | null>(null);
+  const [initialState, setInitialState] = useState<boolean>(true);
+  const [sortOptions, setSortOptions] = useState< sortOptionsObj| null >(null);
+  const [activePage, setActivePage] = useState<number | null>(null);
+  
   useEffect(() => {
     createVariant().bimap(setError, variant => getVariant(variant, setVariantData, setError));
   },[]);
 
+  // get summary statistics for a specific phenotype
+  const getSumstats = useCallback(( rowid: number, varid: string, pheno: string, sorted: sortOptionsObj ) => {
+      setPheno(pheno);
+      setRowid(rowid);
+      setSortOptions(sorted);
+      getVariantPhenotype(varid, pheno, setSumstats);
+  }, []);
+
+  // update summary statistics for a specific row
+  const updatePhenoResultsRow = ( row: VariantModel.Result, varSumstats: Sumstats.Data, index: number ) => {
+      var rowUpdated = { ...row, ...varSumstats?.results, 'clicked': true, 'index': index};
+      return rowUpdated
+  };
+  
+  // update variant data 
+  const updateVariantData = (variantData: VariantModel.Data) => {
+    var results = variantData.results.map((item, index) => (
+      index === rowId ? updatePhenoResultsRow(item, varSumstats, index) : {...item, 'clicked': false, 'index': index}
+    ));
+    var variantDataNew = {...variantData, 
+                          regions: variantData?.regions, 
+                          results: results, 
+                          variant: variantData?.variant};
+    return variantDataNew
+  }
+
+  const getJumpToPage = (variantData:  VariantModel.Data, sortOptionsTable: sortOptionsObj, rowId: number) => {
+    
+    // return current page if sorting column id is not amongst var sumstats cols
+    var page = null;
+    if (sortOptionsTable['id'] === 'pval' || sortOptionsTable['id'] === 'mlogp' || 
+        sortOptionsTable['id'] === 'beta' || sortOptionsTable['id'] === 'af_cases' ||
+        sortOptionsTable['id'] === 'af_controls'){
+      
+      var result = variantData.results.filter(
+        item => item.mlogp !== null && item.pval !== null && item.beta !== null
+      );
+
+      var sortBy = sortOptionsTable['id'];
+      var resultSorted = sortOptionsTable['desc'] ? 
+        result.sort(function(a, b){return b[sortBy]-a[sortBy]}) : 
+        result.sort(function(a, b){return a[sortBy]-b[sortBy]});
+  
+      // calculate page number based on the position in the sorted table
+      page = sortOptionsTable['currentPage'];
+      for (var i in resultSorted){
+        if (result[i]['index'] == rowId ) {
+          page = Math.floor( Number(i) / sortOptionsTable['pageSize']);
+        }
+      }
+    } 
+    return page;
+  }
+
   useEffect(() => {
+    if (variantData){
+      const dataNew = updateVariantData(variantData);
+      setVariantData(dataNew);  
+      setSumstats(null);
+      setInitialState(false);
+      setActivePage(getJumpToPage(dataNew, sortOptions, rowId));
+    }
+  }, [varSumstats, phenocode, rowId]);
+
+  // reset active page - needed to be able to click next/previous page selection
+  useEffect(() => {
+    if (activePage){
+      setActivePage(null);
+    }
+  }, [activePage]);
+
+  useEffect(() => {
+    // inititalize variant data to be passed to the lavaa and zoomLocus plots 
+    if (variantData && initialState) {
+      setVariantDataPlots(variantData);
+    }
     if(variantData && bioBankURL == null && loadedBioBank === false) {
       const variant = createVariant()
       const summary : VariantSummary | undefined = createVariantSummary(variantData)
@@ -375,8 +465,8 @@ const Variant = (props : Props) => {
       }
       setLoadedBioBank(true);
     }
+    
   },[variantData, setBioBankURL,bioBankURL,loadedBioBank, setLoadedBioBank]);
-
 
   // lazy load
   const content = () => <VariantContextProvider>
@@ -387,16 +477,17 @@ const Variant = (props : Props) => {
         </div>
         <ReactTooltip className={'variant-tooltip'} multiline={true} html={true} />
       </div>
+
       <div>
-        <VariantLavaaPlot variantData={variantData}/>
+        <VariantLavaaPlot variantData={variantDataPlots}/>
       </div>
 
       <div>
-        <VariantLocusZoom variantData={variantData} />
+        <VariantLocusZoom variantData={variantDataPlots}/>
       </div>
 
       <div>
-        <VariantTable variantData={variantData} />
+        <VariantTable variantData={variantData} getSumstats={getSumstats} activePage={activePage} />
       </div>
     </React.Fragment>
   </VariantContextProvider>

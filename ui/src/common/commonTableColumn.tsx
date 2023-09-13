@@ -67,6 +67,26 @@ export const pValueCellFormatter = (props) => {
       return result;
 }
 
+const betaVariantTableFormatter = (props) => {
+  
+  let result;
+
+  if (isNaN(+props.value)){
+    result = "NA";
+  } else if (typeof props.value === 'string' && !isNaN(+props.value)){
+    result =  (+props.value).toExponential(1);
+  } else if (props.value === null ){
+    result =  (
+      <p style={{ fontWeight: 'bold', minWidth: props.width * 3, 
+                  textAlign: 'center', position: 'absolute', 
+                  overflow: 'overlay'}}>Not significant. Click to see stats</p>
+    )
+  } else {
+    result = props.value;
+  }
+  return result
+}
+
 const stringToCount= (a) => a.split(";").filter(x=> x !== 'NA').length
 
 const truncateString = (s,l) => {
@@ -212,6 +232,7 @@ const naSmallSorter = (a, b) => {
   return a - b;
 };
 
+
 const isString = (x : any) => (typeof x === 'string' || x instanceof String)
 
 const numberStringSorter = (a, b) => {
@@ -240,6 +261,26 @@ const stringToCountSorter = (a, b) => {
   const d = b.split(";").filter(x => x !== "NA").length;
   return d - c;
 };
+
+const nullToBottomSorter = (a, b, desc) => {
+  /**
+   * These first 3 conditions keep null values at the bottom
+   */
+  if (a === null && b !== null) {
+    return desc ? -1 : 1;
+  }
+
+  if (a !== null && b === null) {
+    return desc ? 1 : -1;
+  }
+
+  if (a === null && b === null) {
+    return 0;
+  }
+
+  return a -b
+}
+
 
 const sorters = {
   "variant": variantSorter,
@@ -270,6 +311,7 @@ const maxTableWidth = 1600;
 const columnWith = (size) => Math.min(size, size / maxTableWidth * window.innerWidth);
 
 const phenotypeColumns = {
+    
     chipPhenotype: {
       Header: () => (<span title="phenotype" style={{ textDecoration: "underline" }}>pheno</span>),
       accessor: "LONGNAME",
@@ -432,7 +474,7 @@ const phenotypeColumns = {
     chipAFCase: {
       Header: () => (<span title="allele frequency (cases)" style={{ textDecoration: "underline" }}>af_case</span>),
       accessor: "af_alt_cases",
-      filterMethod: (filter, row) => row[filter.id] <= filter.value,
+      filterMethod: (filter, row) =>  row[filter.id] !== null && row[filter.id] <= filter.value,
       Cell: scientificCellFormatter,
       minWidth: 5 * emsize ,
       width: 5 * emsize
@@ -440,7 +482,7 @@ const phenotypeColumns = {
     chipAFControl: {
       Header: () => (<span title="allele frequency (controls)" style={{ textDecoration: "underline" }}>af_ctrl</span>),
       accessor: "af_alt_controls",
-      filterMethod: (filter, row) => row[filter.id] <= filter.value,
+      filterMethod: (filter, row) =>  row[filter.id] !== null && row[filter.id] <= filter.value,
       Cell: scientificCellFormatter,
       minWidth: 8 * emsize ,
       width: 8 * emsize
@@ -857,12 +899,12 @@ const phenotypeColumns = {
         Cell: props => Math.exp(props.value).toFixed(2),
         minWidth: 80
       },
-
+      
     pValue:
       {
         Header: () => (<span title="p-value" style={{ textDecoration: "underline" }}>p-value</span>),
         accessor: "pval",
-        filterMethod: (filter, row) => Math.abs(row[filter.id]) < +filter.value,
+        filterMethod: (filter, row) => row[filter.id] !== null && Math.abs(row[filter.id]) < +filter.value,
         Cell: pValueCellFormatter,
 	minWidth: 5 * emsize ,
         id: "pval"
@@ -949,8 +991,10 @@ const phenotypeColumns = {
       {
         Header: () => (<span title="mlog" style={{ textDecoration: "underline" }}>-log10(p)</span>),
         accessor: "mlogp",
-        filterMethod: (filter, row) => row[filter.id] >= +filter.value,
-        Cell: props => isNaN(+props.value) ? "NA" : (+props.value).toPrecision(3),
+        filterMethod: (filter, row) =>  row[filter.id] !== null && row[filter.id] >= +filter.value, 
+        Cell: (props) =>  isNaN(+props.value) ? "NA" : 
+          typeof props.value === 'string' && !isNaN(+props.value) ? (+props.value).toPrecision(3) : 
+          props.value,
         minWidth: emsize * 5,
         id: "mlogp"
       },
@@ -1343,8 +1387,19 @@ const phenotypeColumns = {
                target="_blank">gn</a></span>
     </div>) }
   },
-}
 
+  betaVariant: {
+    Header: () => (<span title="effect size beta" style={{ textDecoration: "underline" }}>beta (se)</span>),
+    filterMethod: (filter, row) => row[filter.id] !== null && Math.abs(row[filter.id]) > +filter.value,
+    Cell: betaVariantTableFormatter,
+    sortMethod: nullToBottomSorter,
+    accessor: "beta",
+    id: 'beta',
+    minWidth: 5 * emsize ,
+    width: 5 * emsize
+  }
+
+}
 
 const pqtColumns = {
   pqtlTrait: {
@@ -1684,12 +1739,12 @@ export const LOFTableColumns = [
 export const variantTableColumns = [
   phenotypeColumns.category,
   phenotypeColumns.phenotype,
-  phenotypeColumns.beta,
+  phenotypeColumns.betaVariant,
   { ...phenotypeColumns.sebeta, show : false},
-  phenotypeColumns.pValue,
-  phenotypeColumns.mlogp,
-  { ...phenotypeColumns.chipAFCase, accessor: 'maf_case' },
-  { ...phenotypeColumns.chipAFControl , accessor: 'maf_control' },
+  { ...phenotypeColumns.pValue, sortMethod: nullToBottomSorter },
+  { ...phenotypeColumns.mlogp, sortMethod: nullToBottomSorter },
+  { ...phenotypeColumns.chipAFCase, accessor: 'maf_case', sortMethod: nullToBottomSorter },
+  { ...phenotypeColumns.chipAFControl , accessor: 'maf_control', sortMethod: nullToBottomSorter },
   { ...phenotypeColumns.numCases , accessor: 'n_case' },
   { ...phenotypeColumns.numControls, accessor: 'n_control' },
   phenotypeColumns.pip
