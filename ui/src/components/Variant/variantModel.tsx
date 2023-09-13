@@ -59,10 +59,10 @@ export namespace Variant {
   export interface Annotation {
     annot:        { [key: string]: string };
     gnomad:       { [key: string]: number };
-    nearest_gene: string;
+    nearest_gene?: string;
     rsids:        string;
   }
-  
+
 }
 
 export namespace Ensembl {
@@ -178,7 +178,7 @@ export namespace Sumstats {
   export interface Data {
     results: Row[];
   }
-  
+
   export interface Row {
     beta:         number;
     sebeta:       number;

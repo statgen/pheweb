@@ -75,8 +75,8 @@ interface VariantSummary {
 }
 
 const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary | undefined => {
-  
-  const nearestGenes : string [] = variantData.variant.annotation.annot.nearest_gene.split(",");
+
+  const nearestGenes : string [] = variantData?.variant?.annotation?.annot?.nearest_gene?.split(",") || [];
   const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
 
   const isNumber = function(d) { return typeof d == "number"; };
@@ -362,7 +362,7 @@ const Variant = (props : Props) => {
   const [initialState, setInitialState] = useState<boolean>(true);
   const [sortOptions, setSortOptions] = useState< sortOptionsObj| null >(null);
   const [activePage, setActivePage] = useState<number | null>(null);
-  
+
   useEffect(() => {
     createVariant().bimap(setError, variant => getVariant(variant, setVariantData, setError));
   },[]);
@@ -380,36 +380,36 @@ const Variant = (props : Props) => {
       var rowUpdated = { ...row, ...varSumstats?.results, 'clicked': true, 'index': index};
       return rowUpdated
   };
-  
-  // update variant data 
+
+  // update variant data
   const updateVariantData = (variantData: VariantModel.Data) => {
     var results = variantData.results.map((item, index) => (
       index === rowId ? updatePhenoResultsRow(item, varSumstats, index) : {...item, 'clicked': false, 'index': index}
     ));
-    var variantDataNew = {...variantData, 
-                          regions: variantData?.regions, 
-                          results: results, 
+    var variantDataNew = {...variantData,
+                          regions: variantData?.regions,
+                          results: results,
                           variant: variantData?.variant};
     return variantDataNew
   }
 
   const getJumpToPage = (variantData:  VariantModel.Data, sortOptionsTable: sortOptionsObj, rowId: number) => {
-    
+
     // return current page if sorting column id is not amongst var sumstats cols
     var page = null;
-    if (sortOptionsTable['id'] === 'pval' || sortOptionsTable['id'] === 'mlogp' || 
+    if (sortOptionsTable['id'] === 'pval' || sortOptionsTable['id'] === 'mlogp' ||
         sortOptionsTable['id'] === 'beta' || sortOptionsTable['id'] === 'af_cases' ||
         sortOptionsTable['id'] === 'af_controls'){
-      
+
       var result = variantData.results.filter(
         item => item.mlogp !== null && item.pval !== null && item.beta !== null
       );
 
       var sortBy = sortOptionsTable['id'];
-      var resultSorted = sortOptionsTable['desc'] ? 
-        result.sort(function(a, b){return b[sortBy]-a[sortBy]}) : 
+      var resultSorted = sortOptionsTable['desc'] ?
+        result.sort(function(a, b){return b[sortBy]-a[sortBy]}) :
         result.sort(function(a, b){return a[sortBy]-b[sortBy]});
-  
+
       // calculate page number based on the position in the sorted table
       page = sortOptionsTable['currentPage'];
       for (var i in resultSorted){
@@ -417,14 +417,14 @@ const Variant = (props : Props) => {
           page = Math.floor( Number(i) / sortOptionsTable['pageSize']);
         }
       }
-    } 
+    }
     return page;
   }
 
   useEffect(() => {
     if (variantData){
       const dataNew = updateVariantData(variantData);
-      setVariantData(dataNew);  
+      setVariantData(dataNew);
       setSumstats(null);
       setInitialState(false);
       setActivePage(getJumpToPage(dataNew, sortOptions, rowId));
@@ -439,7 +439,7 @@ const Variant = (props : Props) => {
   }, [activePage]);
 
   useEffect(() => {
-    // inititalize variant data to be passed to the lavaa and zoomLocus plots 
+    // inititalize variant data to be passed to the lavaa and zoomLocus plots
     if (variantData && initialState) {
       setVariantDataPlots(variantData);
     }
@@ -465,7 +465,7 @@ const Variant = (props : Props) => {
       }
       setLoadedBioBank(true);
     }
-    
+
   },[variantData, setBioBankURL,bioBankURL,loadedBioBank, setLoadedBioBank]);
 
   // lazy load
