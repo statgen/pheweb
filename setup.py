@@ -46,8 +46,8 @@ setup(
         'pytest-runner~=4.0',
     ],
     install_requires=[
-        'finngen_common_data_model@git+https://github.com/FINNGEN/finngen-common-data-model.git@7a3d457cdcccdbd7e8be173259150ec98e2737ad#egg=finngen_common_data_model',
-        'pheweb_colocalization@git+https://github.com/FINNGEN/pheweb-colocalization.git@f2a707f6d74049a235a9eede5c81ce7679bb2a9b#egg=pheweb_colocalization',
+        'finngen_common_data_model@git+https://github.com/FINNGEN/finngen-common-data-model.git@1696ee5e38d93ba77327a45ab4bc83b88d13d52e#egg=finngen_common_data_model',
+        'pheweb_colocalization@git+https://github.com/FINNGEN/pheweb-colocalization.git@ff20635deb1d700a6dea470dba69b30eb7b8af77#egg=pheweb_colocalization',
         'Jinja2~=3.0.3',
         'Flask~=2.0.3',
         'Flask-Compress~=1.10.1',
@@ -86,8 +86,8 @@ setup(
         'tiledb==0.18.3',
     ],
     dependency_links=[
-        'https://github.com/FINNGEN/finngen-common-data-model.git@7a3d457cdcccdbd7e8be173259150ec98e2737ad#egg=finngen_common_data_model'
-        'https://github.com/FINNGEN/pheweb-colocalization.git@f2a707f6d74049a235a9eede5c81ce7679bb2a9b#egg=pheweb_colocalization',
+        'https://github.com/FINNGEN/finngen-common-data-model.git@1696ee5e38d93ba77327a45ab4bc83b88d13d52e#egg=finngen_common_data_model'
+        'https://github.com/FINNGEN/pheweb-colocalization.git@ff20635deb1d700a6dea470dba69b30eb7b8af77#egg=pheweb_colocalization',
     ],
     tests_require=[
         'pytest~=3.4',

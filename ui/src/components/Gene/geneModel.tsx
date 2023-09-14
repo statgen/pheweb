@@ -301,6 +301,7 @@ export namespace PqtlColocalizations {
     len_inter: number
     len_cs1: number
     len_cs2: number
+    source2_displayname?: string
   }
 
 }

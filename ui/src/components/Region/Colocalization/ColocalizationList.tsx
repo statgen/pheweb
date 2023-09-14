@@ -31,7 +31,7 @@ interface Metadata { accessor: string
 
 
 const listMetadata : Metadata[] = [
-    { title: "source" , accessor: "source2" , label:"Source", flexBasis: "max-content" },
+    { title: "source" , accessor: "source2_displayname" , label:"Source", flexBasis: "max-content" },
     { title: "locus id 1", accessor: "locus_id1" , label:"Locus ID 1",
       Cell: compose(cell_locus_id1,variantLink) },
     { title: "locus id 2", accessor: "locus_id1" , label:"Locus ID 2",

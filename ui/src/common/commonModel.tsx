@@ -60,6 +60,8 @@ export interface Colocalization {
   readonly count_cs: number;
   readonly membership_cs: string;
   readonly x: number;
+
+  readonly source2_displayname? : string
 }
 
 export interface Variant {
