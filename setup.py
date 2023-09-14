@@ -46,8 +46,7 @@ setup(
         'pytest-runner~=4.0',
     ],
     install_requires=[
-        'finngen_common_data_model@git+https://github.com/FINNGEN/finngen-common-data-model.git@1696ee5e38d93ba77327a45ab4bc83b88d13d52e#egg=finngen_common_data_model',
-        'pheweb_colocalization@git+https://github.com/FINNGEN/pheweb-colocalization.git@ff20635deb1d700a6dea470dba69b30eb7b8af77#egg=pheweb_colocalization',
+        'pheweb_colocalization@git+https://github.com/FINNGEN/pheweb-colocalization.git@fcea03fd32e89b0f61a6016485533a1f85b329c7#egg=pheweb_colocalization',
         'Jinja2~=3.0.3',
         'Flask~=2.0.3',
         'Flask-Compress~=1.10.1',
