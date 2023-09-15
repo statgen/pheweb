@@ -29,9 +29,15 @@ database_conf = (
             "TabixAnnotationDao": { "matrix_path": "/mnt/nfs/annotations/r4/annotated_variants.gz" }
         }
     }, {
-        # pheweb-created matrix.tsv.gz
-        "result": {
-            "TabixResultDao": { 'const_arguments': [("phenos","PHEWEB_PHENOS"), ("matrix_path","MATRIX_PATH")] }
+        # pheweb-created wide/long matrix with combined summary statistics - choose one of the two modes 
+        "result": { 
+            # wide matrix configs (matrix.tsv.gz)
+            "TabixResultDao": { "const_arguments": [ ("phenos","PHEWEB_PHENOS"), ("matrix_path", "MATRIX_PATH") ],  
+                                "columns" : {"pval": "pval", "mlogp": "mlogp", "beta": "beta", "sebeta": "sebeta", "maf": "af_alt", "maf_cases": "af_alt_cases", "maf_controls": "af_alt_controls"} } 
+            
+            # longformat matrix configs (long.tsv.gz)
+            # "TabixResultFiltDao": { "const_arguments": [ ("phenos","PHEWEB_PHENOS"), ("matrix_path","MATRIX_PATH") ], 
+            #                         "columns" : {"pheno": "#pheno", "mlogp": "mlogp", "beta": "beta", "sebeta": "sebeta", "maf": "af_alt", "maf_cases": "af_alt_cases", "maf_controls": "af_alt_controls"} } 
         }
     }, {
         # gnomad variant annotation (af in different populations)
@@ -63,7 +69,25 @@ database_conf = (
         "finemapping" : {
             "FineMappingMySQLDao": { "authentication_file": "/mnt/nfs/pheweb/r4/mysql.conf", "base_paths": {"conditional": "/mnt/nfs/finemapping/r4/conditional", "susie": "/mnt/nfs/finemapping/r4/susie/snp", "finemap": "/mnt/nfs/finemapping/r4/finemap/cred"} }
         }
+    }, { 
+        # pqtl / colocalization table, optional
+        "pqtl_colocalization": { 
+            "PqtlColocalisationDao": { 
+                "authentication_file": "/etc/gcp/mysql.conf",
+                "fields": [ 
+                    {
+                        "table": "pqtl_finemap",
+                        "columns": [ "trait","region","cs","v","cs_specific_prob", "cs_log10bf", "cs_min_r2", "beta", "p", "prob",  "most_severe", "gene_name", "gene_most_severe", "source", "source_displayname"] 
+                    },
+                    {
+                        "table": "colocalization",
+                        "columns": ["source2", "phenotype1", "phenotype1_description", "clpp", "clpa", "len_inter", "len_cs1", "len_cs2"]
+                    } 
+                ] 
+            } 
+        } 
     }
+
 )
 
 # number of workers for pheweb/serve/server_jeeves.py
