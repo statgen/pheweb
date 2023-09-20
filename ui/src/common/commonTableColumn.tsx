@@ -937,6 +937,7 @@ const phenotypeColumns = {
                              style={{ textDecoration: "underline" }}>FIN enrichment</span>),
         accessor: "fin_enrichment",
         filterMethod: (filter, row) => row[filter.id] > +filter.value,
+        sortMethod: naSmallSorter,
         Cell: props => {
           return isNaN(+props.value) ? "" :
             <div style={{
@@ -1964,6 +1965,7 @@ export const csTableCols = [{
     Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish Enrichment</span>),
     accessor: 'lead_enrichment',
     filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
+    sortMethod: naSmallSorter,
     Cell: props => tofixed(props.value,3),
     minWidth: 50,
 },{
