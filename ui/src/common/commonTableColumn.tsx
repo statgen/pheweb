@@ -1990,10 +1990,10 @@ export const csTableCols = [{
     minWidth: 40
 }, {
     Header: () => (<span title="# Credible set variants" style={{textDecoration: 'underline'}}># credible variants</span>),
-    accessor: 'credible_set_variants',
-    sortMethod: stringToCountSorter,
-    filterMethod: (filter,row) => stringToCount(row[filter.id]) >= filter.value,
-    Cell: props => <div><span title={truncateString(props.value,4)}>{props.original.cs_size}</span></div>,
+    accessor: 'cs_size',
+    filterMethod: (filter,row) => row[filter.id] >= filter.value,
+    sortMethod: numberStringSorter,
+    Cell: props => <div><span title={truncateString(props.original.credible_set_variants,4)}>{props.value}</span></div>,
     minWidth: 50,
 },{
     Header: () => (<span title="Credible set Log10 bayes factor" style={{textDecoration: 'underline'}}>Credible set bayes factor (log10)</span>),
