@@ -281,6 +281,23 @@ const nullToBottomSorter = (a, b, desc) => {
   return a -b
 }
 
+const naToBottomSorter = (a, b, desc) => {  
+  if (isNaN(a) && !isNaN(b) ) {
+    return desc ? -1 : 1;
+  }
+
+  if (!isNaN(a) && isNaN(b)) {
+    return desc ? 1 : -1;
+  }
+
+  if (isNaN(a) && isNaN(b)) {
+    return 0;
+  }
+
+  return a -b
+}
+
+
 
 const sorters = {
   "variant": variantSorter,
@@ -1965,7 +1982,7 @@ export const csTableCols = [{
     Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish Enrichment</span>),
     accessor: 'lead_enrichment',
     filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
-    sortMethod: naSmallSorter,
+    sortMethod: naToBottomSorter,
     Cell: props => tofixed(props.value,3),
     minWidth: 50,
 },{
