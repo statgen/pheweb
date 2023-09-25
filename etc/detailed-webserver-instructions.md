@@ -1,23 +1,24 @@
 ## Hosting a pheweb and accessing it from your browser
 
-Run `pheweb serve --open`.  That command should either open a browser to your new PheWeb, or it should give you a URL that you can open in your browser to access your new PheWeb.  If it doesn't, follow the directions for [hosting a PheWeb and accessing it from your browser](etc/detailed-webserver-instructions.md).
+Run `pheweb serve --open`.  That command should either open a web browser showing your PheWeb, or it should give you a URL that you can open in your web browser.  If that doesn't work, try these:
 
-- If port 5000 is already taken, run `pheweb serve --open --port=5001` instead, or choose some other port.
+- If pheweb's output says that port 5000 is already taken, run `pheweb serve --open --port=5001` instead.  Or try some other port.
 
-- If the server works but you can't open it in a web browser, you have two options:
+- If `pheweb serve` is running fine, but you can't open it in a web browser, you have two options:
 
-  1. Option 1: Run PheWeb on the open internet.
+  1. Option 1: Serve PheWeb on port 80.
 
      You need a port that can get through your firewall.  80 or 443 probably work.
 
      To use port 80 or 443 you'll need root permissions.  Run  `sudo $(which python3) $(which pheweb) serve --open --port=80`.
      Then open the URLs that they suggest.
 
-  3. Option 2: Run PheWeb with the default settings, then use an SSH tunnel to connect to it from your computer.
+  3. Option 2: Run PheWeb with the default settings, then connect an SSH tunnel between your computer and your server.
 
-     For example, if you normally ssh with `ssh me@example.com`, then the command you should run (on the computer you're sitting at) is `ssh -N -L localhost:5000:localhost:5000 me@example.com`.
+     Here's how to do that on Mac/Linux:
 
-     Then open <http://localhost:5000> in your web browser.  It should connect straight to port 5000 on the server through your ssh tunnel, allowing you to access your site.
+     Suppose you normally ssh in with `ssh me@example.com`.  Instead, run `ssh -N -L localhost:5000:localhost:5000 me@example.com`.
+     Then open <http://localhost:5000> in your web browser.
 
      Sometimes MacOS itself uses port 5000, so you might need to use a different port.
 
