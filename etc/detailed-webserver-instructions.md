@@ -15,12 +15,12 @@ Run `pheweb serve --open`.  That command should either open a web browser showin
 
   3. Option 2: Run PheWeb with the default settings, then connect an SSH tunnel between your computer and your server.
 
-     Here's how to do that on Mac/Linux:
+     Here's how to do that if your laptop runs Mac or Linux:
 
      Suppose you normally ssh in with `ssh me@example.com`.  Instead, run `ssh -N -L localhost:5000:localhost:5000 me@example.com`.
      Then open <http://localhost:5000> in your web browser.
 
-     Sometimes MacOS itself uses port 5000, so you might need to use a different port.
+     Sometimes MacOS itself uses port 5000, so I usually use port 8000.
 
 
 
