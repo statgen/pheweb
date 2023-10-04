@@ -482,6 +482,9 @@ export const ResultTable = () => {
               )}</td><td style="padding-left: 10px">${
                 cols[2] === "NA" ? cols[2] : Number(cols[2]).toPrecision(3)
               }</td>
+              </td><td style="padding-left: 10px">${
+                cols[4] === "NA" ? cols[4] : Number(cols[4]).toPrecision(3)
+              }</td>
               </tr>`;
             });
             tt = `<div>
@@ -492,6 +495,7 @@ export const ResultTable = () => {
                   <th>lead variant</th>
                   <th style="padding-left: 10px">p-val</th>
                   <th style="padding-left: 10px">LD r2 to coding</th>
+                  <th style="padding-left: 10px">AF</th>
                   </tr>
                   </thead>
                   <tbody>
