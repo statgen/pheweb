@@ -1494,7 +1494,14 @@ const pqtColumns = {
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
     minWidth: columnWith(80)
-  }
+  },
+  pqtlColocNumber: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>number of colocalizations</span>),
+    accessor: "disease_colocalizations",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,    
+    Cell: props => <div>{props.original.disease_colocalizations[0].length}</div>,
+    minWidth: columnWith(120)
+  },
 }
 
 const colocColumns = {
@@ -1574,7 +1581,8 @@ export const genePqtlTableColumns = [
   pqtColumns.pqtlPval,
   pqtColumns.pqtlProb,
   phenotypeColumns.codingMostServe,
-  pqtColumns.pqtlGeneMostSevere
+  pqtColumns.pqtlGeneMostSevere,
+  pqtColumns.pqtlColocNumber
 ]
 
 export const geneLossOfFunctionTableColumns = [
