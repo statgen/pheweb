@@ -281,6 +281,23 @@ const nullToBottomSorter = (a, b, desc) => {
   return a -b
 }
 
+const naToBottomSorter = (a, b, desc) => {  
+  if (isNaN(a) && !isNaN(b) ) {
+    return desc ? -1 : 1;
+  }
+
+  if (!isNaN(a) && isNaN(b)) {
+    return desc ? 1 : -1;
+  }
+
+  if (isNaN(a) && isNaN(b)) {
+    return 0;
+  }
+
+  return a -b
+}
+
+
 
 const sorters = {
   "variant": variantSorter,
@@ -937,6 +954,7 @@ const phenotypeColumns = {
                              style={{ textDecoration: "underline" }}>FIN enrichment</span>),
         accessor: "fin_enrichment",
         filterMethod: (filter, row) => row[filter.id] > +filter.value,
+        sortMethod: naSmallSorter,
         Cell: props => {
           return isNaN(+props.value) ? "" :
             <div style={{
@@ -1972,6 +1990,7 @@ export const csTableCols = [{
     Header: () => (<span title="Finnish Enrichment" style={{textDecoration: 'underline'}}>Finnish Enrichment</span>),
     accessor: 'lead_enrichment',
     filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
+    sortMethod: naToBottomSorter,
     Cell: props => tofixed(props.value,3),
     minWidth: 50,
 },{
@@ -1996,10 +2015,10 @@ export const csTableCols = [{
     minWidth: 40
 }, {
     Header: () => (<span title="# Credible set variants" style={{textDecoration: 'underline'}}># credible variants</span>),
-    accessor: 'credible_set_variants',
-    sortMethod: stringToCountSorter,
-    filterMethod: (filter,row) => stringToCount(row[filter.id]) >= filter.value,
-    Cell: props => <div><span title={truncateString(props.value,4)}>{props.original.cs_size}</span></div>,
+    accessor: 'cs_size',
+    filterMethod: (filter,row) => row[filter.id] >= filter.value,
+    sortMethod: numberStringSorter,
+    Cell: props => <div><span title={truncateString(props.original.credible_set_variants,4)}>{props.value}</span></div>,
     minWidth: 50,
 },{
     Header: () => (<span title="Credible set Log10 bayes factor" style={{textDecoration: 'underline'}}>Credible set bayes factor (log10)</span>),
