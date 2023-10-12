@@ -1514,12 +1514,12 @@ const pqtColumns = {
     minWidth: columnWith(80)
   },
   pqtlColocNumber: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>number of colocalizations</span>),
+    Header: () => (<span style={{ textDecoration: "underline" }}>number of disease colocalizations</span>),
     accessor: "disease_colocalizations",
     filterMethod: (filter, row) => row[filter.id] >= filter.value,    
     Cell: props => <div>{props.original.disease_colocalizations[0].length}</div>,
-    minWidth: columnWith(120)
-  },
+    minWidth: columnWith(80)
+  },  
 }
 
 const colocColumns = {
@@ -1573,7 +1573,35 @@ const colocColumns = {
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: numberCellFormatter,
     minWidth: 100
-  }
+  },
+  beta1: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>beta cs1</span>),
+    accessor: "beta1",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,    
+    Cell: decimalCellFormatter,
+    minWidth: columnWith(80)
+  },
+  beta2: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>beta cs2</span>),
+    accessor: "beta2",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,    
+    Cell: decimalCellFormatter,
+    minWidth: columnWith(80)
+  },
+  pval1: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>p-value cs1</span>),
+    accessor: "pval1",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,    
+    Cell: pValueCellFormatter,
+    minWidth: columnWith(80)
+  },
+  pval2: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>p-value cs2</span>),
+    accessor: "pval2",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,    
+    Cell: pValueCellFormatter,
+    minWidth: columnWith(80)
+  },
 }
 
 export const colocSubTable = [
@@ -1583,7 +1611,11 @@ export const colocSubTable = [
   colocColumns.clpa,
   colocColumns.lenInter,
   colocColumns.lenCS1,
-  colocColumns.lenCS2
+  colocColumns.lenCS2,
+  colocColumns.beta1,
+  colocColumns.beta2,
+  colocColumns.pval1,
+  colocColumns.pval2
 ]
 
 export const genePqtlTableColumns = [
