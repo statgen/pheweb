@@ -1432,7 +1432,7 @@ const pqtColumns = {
     accessor: "source_displayname",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
-    minWidth: columnWith(120)
+    minWidth: columnWith(200)
   },
   pqtlRegion: {
     Header: () => (<span style={{ textDecoration: "underline" }}>region</span>),
@@ -1530,49 +1530,49 @@ const colocColumns = {
     Cell: (props : { value : any }) => (
       <a href={`/region/${props.value.pheno}/${props.value.region}`} target="_blank" rel="noopener noreferrer">{props.value.pheno}</a>
     ),
-    minWidth: 200
+    minWidth: 150
   },
   description: {
     Header: () => (<span style={{ textDecoration: "underline" }}>description</span>),
     accessor: "phenotype1_description",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
-    minWidth: 400
+    minWidth: 200
   },
   clpp: {
     Header: () => (<span style={{ textDecoration: "underline" }}>clpp</span>),
     accessor: "clpp",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: decimalCellFormatter,
-    minWidth: 100
+    minWidth: 80
   },
   clpa: {
     Header: () => (<span style={{ textDecoration: "underline" }}>clpa</span>),
     accessor: "clpa",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: decimalCellFormatter,
-    minWidth: 100
+    minWidth: 80
   },
   lenInter: {
     Header: () => (<span style={{ textDecoration: "underline" }}>len intersect</span>),
     accessor: "len_inter",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: numberCellFormatter,
-    minWidth: 100
+    minWidth: 80
   },
   lenCS1: {
     Header: () => (<span style={{ textDecoration: "underline" }}>len cs1</span>),
     accessor: "len_cs1",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: numberCellFormatter,
-    minWidth: 100
+    minWidth: 80
   },
   lenCS2: {
     Header: () => (<span style={{ textDecoration: "underline" }}>len cs2</span>),
     accessor: "len_cs2",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: numberCellFormatter,
-    minWidth: 100
+    minWidth: 80
   },
   beta1: {
     Header: () => (<span style={{ textDecoration: "underline" }}>beta cs1</span>),
@@ -1602,6 +1602,28 @@ const colocColumns = {
     Cell: pValueCellFormatter,
     minWidth: columnWith(80)
   },
+  leadingVariantCS1: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>lead variant cs1</span>),
+    accessor: "locus_id1_chromosome",
+    Cell: (props) => <div>{
+      [props.original.locus_id1_chromosome, 
+       props.original.locus_id1_position, 
+       props.original.locus_id1_ref, 
+       props.original.locus_id1_alt].join(":") 
+    }</div>,
+    minWidth: columnWith(120)
+  },
+  leadingVariantCS2: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>lead variant cs2</span>),
+    accessor: "locus_id2_chromosome",
+    Cell: (props) => <div>{
+      [props.original.locus_id2_chromosome, 
+       props.original.locus_id2_position, 
+       props.original.locus_id2_ref, 
+       props.original.locus_id2_alt].join(":") 
+    }</div>,
+    minWidth: columnWith(120)
+  },
 }
 
 export const colocSubTable = [
@@ -1612,6 +1634,8 @@ export const colocSubTable = [
   colocColumns.lenInter,
   colocColumns.lenCS1,
   colocColumns.lenCS2,
+  colocColumns.leadingVariantCS1,
+  colocColumns.leadingVariantCS2,
   colocColumns.beta1,
   colocColumns.beta2,
   colocColumns.pval1,
