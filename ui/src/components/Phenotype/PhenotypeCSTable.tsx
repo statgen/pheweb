@@ -43,8 +43,20 @@ const PhenotypeCSTable = () => {
   const subComponent = row => {
     const locus_id = row['original']['locus_id'];
     const data = getLocusGroupData(locus_id);
-    return <ReactTable data={data || [] }
-                       loading={data == null}
+
+    let dataFilt = [];
+    if (data !== null){
+      var count = 0;
+      for (var i in Object.entries(data)){
+        if (data[i]['r2_to_lead'] > 0.6){
+          dataFilt[count] = data[i]
+          count += 1;
+        }
+      }
+    }
+    
+    return <ReactTable data={dataFilt || [] }
+                       loading={dataFilt == null}
                        columns={csInsideTableCols}
                        defaultSorted={defaultSorted}
                        defaultPageSize={10}
