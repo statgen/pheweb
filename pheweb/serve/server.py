@@ -1,11 +1,12 @@
+# -*- coding: utf-8 -*-
 from ..utils import get_phenolist, get_use_phenocode_pheno_map, get_gene_tuples, pad_gene
 from ..conf_utils import conf
 from ..file_utils import common_filepaths
 from .server_utils import get_pheno_region
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
-
 from flask import Blueprint
+from pheweb.serve.components.health.service import add_status_check
 
 from .data_access.db import Variant
 
@@ -36,10 +37,17 @@ from .group_based_auth  import verify_membership
 from .server_auth import before_request
 
 from pheweb_colocalization.view import colocalization
-from .components.autocomplete.service import autocomplete
 from .components.chip.service import chip
 from .components.coding.service import coding
 from flask_cors import CORS
+
+
+from pheweb.serve.components.autocomplete.service import component as component_autocomplete
+from pheweb.serve.components.health.service import component as component_health
+
+components = [ component_autocomplete, component_health ]
+
+
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -88,10 +96,12 @@ jeeves = ServerJeeves( conf )
 
 app.jeeves = jeeves
 app.register_blueprint(colocalization)
-app.register_blueprint(autocomplete)
 app.register_blueprint(chip)
 app.register_blueprint(coding)
 
+for c in components:
+    app.register_blueprint(c.blueprint)
+    add_status_check(c.status_check)
 
 # static resources
 resource_dir = None
@@ -142,7 +152,7 @@ def homepage(path):
 def api_404(path):
    abort(404, description="Resource not found")
 
-    
+
 @app.route('/api/autoreport/<phenocode>')
 def autoreport(phenocode):
     return jsonify(jeeves.get_autoreport(phenocode))
@@ -181,24 +191,6 @@ def api_variant(query):
         return result
     except Exception as exc:
         die('Oh no, something went wrong', exc)
-
-@app.route('/api/variant/<query>/<phenocode>')
-def api_variant_pheno(query, phenocode):
-    try:
-        q=re.split('-|:|/|_',query)
-        if len(q)!=4:
-            die("Malformed variant query. Use chr-pos-ref-alt")
-        v = Variant(q[0].replace('X', '23'),q[1],q[2], q[3])
-
-        # get single variant data
-        variantdat = jeeves.get_single_variant_pheno_data(v, phenocode)     
-        if variantdat is None:
-            die("Sorry, I couldn't find the variant {}".format(query))
-        result = { "results" : variantdat }
-        return result
-    except Exception as exc:
-        die('Oh no, something went wrong', exc)
-
 
 @app.route('/api/manhattan/pheno/<phenocode>')
 def api_pheno(phenocode):
@@ -323,18 +315,16 @@ def api_finemapped_region(phenocode):
     rv = jeeves.get_finemapped_regions_for_pheno(phenocode, chrom, pos_start, pos_end, prob_threshold=conf.locuszoom_conf['prob_threshold'])
     return jsonify(rv)
 
+
 @app.route('/api/gene_pqtl_colocalization/<genename>')
 def api_gene_pqtl_colocalization(genename):
-    try:
-        pqtldat = jeeves.get_pqtl_colocalization_by_gene_name(genename)
-    except Exception as e:
-        die(f"\nSorry, pQTL data for the gene {genename} is not available: {e}\n")
+    pqtldat = jeeves.get_pqtl_colocalization_by_gene_name(genename)
     return jsonify(pqtldat)
 
 @app.route('/api/gene/<genename>')
 def gene_api(genename):
 
-    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene(genename) if pheno['phenocode'] in use_phenos]
+    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     try:
@@ -376,7 +366,7 @@ def gene_api(genename):
 
 @app.route('/api/genereport/<genename>')
 def gene_report(genename):
-    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene(genename) if pheno in use_phenos]
+    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene().get(genename, []) if pheno['phenocode'] in use_phenos]
     if not phenos_in_gene:
         die("Sorry, that gene doesn't appear to have any associations in any phenotype")
     func_vars = jeeves.gene_functional_variants( genename,  conf.report_conf['func_var_assoc_threshold'])
@@ -396,7 +386,6 @@ def gene_report(genename):
 
     for var in func_vars:
         i = 0
-
         if len(var['significant_phenos'])==0:
             funcvar.append( { 'rsid': var['var'].get_annotation('rsids'),
                               'variant': var['var'].id.replace(':', ' '),
@@ -422,7 +411,6 @@ def gene_report(genename):
                               'info': var['var'].get_annotation('annot')['INFO'],
                               'sigPhenos': sigphenos })
             i = i + chunk_size
-
     top_phenos = [res for res in jeeves.gene_phenos(genename) if res.pheno['phenocode'] in use_phenos]
     top_assoc = [ assoc for assoc in top_phenos if assoc.assoc.pval < conf.report_conf['gene_top_assoc_threshold']  ]
     ukbb_match=[]

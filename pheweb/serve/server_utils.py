@@ -1,5 +1,5 @@
 
-from ..file_utils import IndexedVariantFileReader
+from ..file_utils import MatrixReader, IndexedVariantFileReader
 
 import re
 import itertools

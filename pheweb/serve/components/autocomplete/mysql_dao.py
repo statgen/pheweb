@@ -1,19 +1,15 @@
-from ....file_utils import get_filepath
 from ...server_utils import parse_variant
 from .dao import AutocompleterDAO, QUERY_LIMIT
-from flask import url_for
-from pathlib import Path
-import urllib.parse
 import itertools
 import re
 import copy
-import sqlite3
-from typing import List,Dict,Any,Optional,Iterator
+from typing import List,Dict,Optional,Iterator
 from pheweb.serve.data_access.db_util import MysqlDAO
 from contextlib import closing
 import pymysql
-
+from pheweb.serve.components.model import ComponentStatus
 import logging
+
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 logger.setLevel(logging.DEBUG)
@@ -23,7 +19,7 @@ class AutocompleterMYSQLDAO(AutocompleterDAO, MysqlDAO):
                  phenos,
                  authentication_file : str,
                  limit : int = QUERY_LIMIT):
-        logger.info(f"autocomplete:'AutocompleterMYSQLDAO'")
+        logger.info(f"autocomplete:{AutocompleterMYSQLDAO.__name__}")
         super(AutocompleterDAO, self).__init__(authentication_file)
         self._limit = limit
         self._phenos = copy.deepcopy(phenos())
@@ -80,7 +76,6 @@ class AutocompleterMYSQLDAO(AutocompleterDAO, MysqlDAO):
         
         if chrom is not None:
             key = '-'.join(str(e) for e in [chrom,pos,ref,alt] if e is not None)
-            like = f'{key}%'
             with closing(self.get_connection()) as conn:
                 with conn.cursor(pymysql.cursors.DictCursor) as cursor:
                     sql = """
@@ -200,3 +195,16 @@ class AutocompleterMYSQLDAO(AutocompleterDAO, MysqlDAO):
                                 'display' : '{} (alias for {})'.format(alias, canonical_symbols[0]),
                             }
 
+
+    def get_name(self,) -> str:
+        return "autocomplete mysql"
+    
+    def get_status(self,) -> ComponentStatus:
+        try:
+            with closing(self.get_connection()) as conn:
+                with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+                    sql ="select 1"
+                    cursor.execute(sql)
+        except Exception as ex:
+            return ComponentStatus.from_exception(ex)
+        return super().get_status()

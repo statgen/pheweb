@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .data_access import DataFactory
 from .data_access.db import Variant, PhenoResult
 from concurrent.futures import ThreadPoolExecutor
@@ -13,7 +14,6 @@ import glob
 import math
 
 from typing import List, Dict,Tuple, Union
-from .server_utils import get_pheno_region
 
 class ServerJeeves(object):
     '''
@@ -40,10 +40,11 @@ class ServerJeeves(object):
         self.variant_phenotype = self.dbs_fact.get_variant_phenotype_dao()
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
-        self.autocompleter = self.dbs_fact.get_autocompleter()
+        self.autocompleter_dao = self.dbs_fact.get_autocompleter_dao()
         self.pqtl_colocalization = self.dbs_fact.get_pqtl_colocalization_dao()
-
+        self.health_dao = self.dbs_fact.get_health_dao()
     def gene_functional_variants(self, gene, pThreshold=None):
+
         if pThreshold is None:
             pThreshold = self.conf.report_conf["func_var_assoc_threshold"]
 
@@ -52,18 +53,9 @@ class ServerJeeves(object):
         print(" gene functional variants took {}".format( time.time()-startt) )
         remove_indx =[]
         chrom,start,end = self.get_gene_region_mapping()[gene]
-        
         startt = time.time()
         ## if there are not many functional variants and gene is large it is better to get them one by one
-        results = self.result_dao.get_variant_results_range( chrom, start, end )
-        
-        # add rsids
-        vars_anno = self.annotation_dao.get_variant_annotations_range(chrom, start, end, self.conf.anno_cpra)
-        rsids = { v : v.annotation['annot']['rsid'] for v in vars_anno }
-        for r in results:
-            if r[0] in rsids:
-                r[0].add_annotation("rsids", rsids[r[0]])
-
+        results = self.result_dao.get_variants_results( func_var_annot )
         print(" gene variant results for func annot n={} took {}".format(len(func_var_annot),time.time()-startt) )
 
         res_indx = { v:(v,p) for v,p in results }
@@ -114,15 +106,7 @@ class ServerJeeves(object):
         start, end = pad_gene(start, end)
         starttime = time.time()
         results = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)
-        
-        # add rsids 
-        vars_anno = self.annotation_dao.get_variant_annotations_range(chrom, start, end, self.conf.anno_cpra)
-        rsids = {v : v.annotation['annot']['rsid'] for v in vars_anno }
-        for r in results:
-            if r.variant in rsids:
-                r.variant.add_annotation("rsids", rsids[r.variant])
-
-        print(" get top per pheno variants  took {} seconds".format(time.time()-starttime))
+        print("get top per pheno variants  took {} seconds".format(time.time()-starttime))
         vars = list(set([pheno.variant for pheno in results]))
         if len(results)==0:
             print("no variants in gene {}. Chr: {} pos:{}".format(gene,start,end))
@@ -217,24 +201,6 @@ class ServerJeeves(object):
             if v in ukbbvars:
                 variant['ukbb'] = ukbbvars[v]
         return variants
-    
-    def get_single_variant_pheno_data(self, variant: Variant, pheno: str):
-        """
-            Returns summary statistics for a single variant and a single phenotype. 
-        """
-        variants = get_pheno_region(pheno, str(variant.chr), variant.pos, variant.pos)['data']
-        
-        # get cols from results by get_pheno_region function and reaname
-        cols = {'beta': 'beta', 'mlogp': 'mlogp', 'pvalue': 'pval', 'maf_cases': 'maf_case', 'maf_controls': 'maf_control'}
-        if len(variants.items()) > 0:
-            for i in range(len(variants['ref'])):
-                if variants['ref'][i] == variant.ref and variants['alt'][i] == variant.alt:
-                    res = {j:variants[j][i] for j in variants}
-                    res = {cols[key]: res[key] for key in cols if key in res }
-                    break
-            return res
-        else:
-            return {}
 
     def get_single_variant_data(self, variant: Variant)-> Tuple[Variant, List[PhenoResult]]:
         """
@@ -244,16 +210,7 @@ class ServerJeeves(object):
         ## TODO.... would be better to just return the results but currently rsid and nearest genes are stored alongside the result
         ## chaining variants like these retain all the existing annotations.
         r = self.result_dao.get_single_variant_results(variant)
-
-        # if matrix is of longformat append rest of the phenotypes for which summary stats were filtered
-        if self.result_dao.longformat:
-            r = self.result_dao.append_filt_phenos(r)
-
         v_annot = self.annotation_dao.get_single_variant_annotations(r[0], self.conf.anno_cpra)
-
-        # add rsids from varaint annotation if wasn't available in the merged sumstat matrix
-        if self.result_dao.longformat and v_annot.rsids is None:
-            v_annot.add_annotation("rsids", v_annot.annotation['annot']['rsid'])
 
         if r is not None:
             if v_annot is None:
@@ -269,7 +226,6 @@ class ServerJeeves(object):
 
             phenos = [ p.phenocode for p in r[1]]
             ukb = self.ukbb_matrixdao.get_multiphenoresults( {variant:phenos} )
-
             phenotype = self.variant_phenotype.get_variant_phenotype(int(variant.chr),int(variant.pos),variant.ref,variant.alt) if self.variant_phenotype else dict()
             for res in r[1]:
                 if res.phenocode in phenotype:
@@ -280,7 +236,6 @@ class ServerJeeves(object):
                 for res in r[1]:
                     if res.phenocode in ukb_idx:
                         res.add_matching_result('ukbb',ukb[var][res.phenocode])
-
             return var,r[1]
         else:
             return None
@@ -476,16 +431,11 @@ class ServerJeeves(object):
     @functools.lru_cache(None)
     def get_gene_region_mapping(self):
         return {genename: (chrom, pos1, pos2) for chrom, pos1, pos2, genename in get_gene_tuples()}
-    
+
     @functools.lru_cache(None)
-    def get_best_phenos_by_gene(self, gene):
-        chrom,start,end = self.get_gene_region_mapping()[gene]
-        results = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)  
-        if 'pval' in r.assoc:
-            phenolist = [r.assoc.phenocode for r in results if r.assoc.pval < 1e-08]
-        else:
-            phenolist = [r.assoc.phenocode for r in results if r.assoc.mlogp > 16.8]
-        return phenolist
+    def get_best_phenos_by_gene(self):
+        with open(common_filepaths['best-phenos-by-gene']) as f:
+            return json.load(f)
 
     def get_autoreport(self, phenocode) -> List[Dict[str,Union[str,int,float,bool]]] :
         """Get autoreporting group report data.
@@ -596,10 +546,10 @@ class ServerJeeves(object):
         values = [a for a in aggregated.values()]
 
         if missing_info:
-            
+
             #missing info, replace it from annotation file
             print("Warning: Missing INFO in autoreporting group variant table. Please update autoreporting mysql db with new import script.")
-            
+
             list_of_vars = []
             variants = list(set([a["variant"] for a in values]))
             for variant in variants:
@@ -630,4 +580,4 @@ class ServerJeeves(object):
             Get pqtl and colocalization data by the gene name
         """
         dat = self.pqtl_colocalization.get_pqtl_colocalization(gene_name) if self.pqtl_colocalization else dict()
-        return dat 
+        return dat

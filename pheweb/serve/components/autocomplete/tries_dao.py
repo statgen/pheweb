@@ -5,7 +5,7 @@ import itertools
 import re
 import marisa_trie
 import copy
-from pathlib import Path
+from pheweb.serve.components.model import ComponentStatus
 
 import logging
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class AutocompleterTriesDAO(AutocompleterDAO):
                  cpra_to_rsids_trie=common_filepaths['cpra-to-rsids-trie'],
                  rsid_to_cpra_trie=common_filepaths['rsid-to-cpra-trie'],
                  gene_alias_trie=common_filepaths['gene-aliases-trie']):
-        logger.info(f"autocomplete:'AutocompleterTriesDAO'")
+        logger.info(f"autocomplete:{AutocompleterTriesDAO.__name__}")
         logger.info(f"cpra_to_rsids_trie:'{cpra_to_rsids_trie}'")
         logger.info(f"rsid_to_cpra_trie:'{rsid_to_cpra_trie}'")
         logger.info(f"gene_alias_trie:'{gene_alias_trie}'")
