@@ -1420,6 +1420,36 @@ const phenotypeColumns = {
 }
 
 const pqtColumns = {
+  phenotype: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>phenotype</span>),
+    accessor: "phenotype",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: textCellFormatter,
+    minWidth: columnWith(120)
+  },
+  pheno: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>phenotype</span>),
+    accessor: "phenotype1_region",
+    filterMethod: (filter, row) => row[filter.id] == filter.value.pheno,
+    Cell: (props : { value : any }) => (
+      <a href={`/region/${props.value.pheno}/${props.value.region}`} target="_blank" rel="noopener noreferrer">{props.value.pheno}</a>
+    ),
+    minWidth: 150
+  },
+  phenotypeDescription: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>description</span>),
+    accessor: "description",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: textCellFormatter,
+    minWidth: columnWith(120)
+  },
+  n_colocs : {
+    Header: () => (<span style={{ textDecoration: "underline" }}>n colocalizations</span>),
+    accessor: "n_colocs",
+    filterMethod: (filter, row) => row[filter.id] > filter.value,
+    Cell: numberCellFormatter,
+    minWidth: columnWith(80)
+  },
   pqtlTrait: {
     Header: () => (<span style={{ textDecoration: "underline" }}>trait</span>),
     accessor: "trait",
@@ -1523,14 +1553,32 @@ const colocColumns = {
     Cell: (props : { value : any }) => (
       <a href={`/region/${props.value.pheno}/${props.value.region}`} target="_blank" rel="noopener noreferrer">{props.value.pheno}</a>
     ),
-    minWidth: 200
+    minWidth: 150
   },
   description: {
     Header: () => (<span style={{ textDecoration: "underline" }}>description</span>),
     accessor: "phenotype1_description",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
-    minWidth: 400
+    minWidth: 250
+  },
+  source: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>source</span>),
+    accessor: "source2_displayname",
+    Cell: textCellFormatter,
+    minWidth: 300
+  },
+  phenotype2: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>trait</span>),
+    accessor: "phenotype2",
+    Cell: textCellFormatter,
+    minWidth: 100
+  },
+  phenotype2Description: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>description</span>),
+    accessor: "phenotype2_description",
+    Cell: textCellFormatter,
+    minWidth: 100
   },
   clpp: {
     Header: () => (<span style={{ textDecoration: "underline" }}>clpp</span>),
@@ -1566,6 +1614,56 @@ const colocColumns = {
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: numberCellFormatter,
     minWidth: 100
+  },
+  beta1: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>beta cs1</span>),
+    accessor: "beta1",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,    
+    Cell: decimalCellFormatter,
+    minWidth: columnWith(80)
+  },
+  beta2: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>beta cs2</span>),
+    accessor: "beta2",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,    
+    Cell: decimalCellFormatter,
+    minWidth: columnWith(80)
+  },
+  pval1: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>p-value cs1</span>),
+    accessor: "pval1",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,    
+    Cell: pValueCellFormatter,
+    minWidth: columnWith(80)
+  },
+  pval2: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>p-value cs2</span>),
+    accessor: "pval2",
+    filterMethod: (filter, row) => row[filter.id] <= filter.value,    
+    Cell: pValueCellFormatter,
+    minWidth: columnWith(80)
+  },
+  leadingVariantCS1: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>lead variant cs1</span>),
+    accessor: "locus_id1_chromosome",
+    Cell: (props) => <div>{
+      [props.original.locus_id1_chromosome, 
+       props.original.locus_id1_position, 
+       props.original.locus_id1_ref, 
+       props.original.locus_id1_alt].join(":") 
+    }</div>,
+    minWidth: columnWith(120)
+  },
+  leadingVariantCS2: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>lead variant cs2</span>),
+    accessor: "locus_id2_chromosome",
+    Cell: (props) => <div>{
+      [props.original.locus_id2_chromosome, 
+       props.original.locus_id2_position, 
+       props.original.locus_id2_ref, 
+       props.original.locus_id2_alt].join(":") 
+    }</div>,
+    minWidth: columnWith(120)
   }
 }
 
@@ -1576,8 +1674,31 @@ export const colocSubTable = [
   colocColumns.clpa,
   colocColumns.lenInter,
   colocColumns.lenCS1,
-  colocColumns.lenCS2
+  colocColumns.lenCS2,
+  colocColumns.leadingVariantCS1,
+  colocColumns.leadingVariantCS2,
+  colocColumns.beta1,
+  colocColumns.beta2,
+  colocColumns.pval1,
+  colocColumns.pval2
 ]
+
+export const phenoColocSubTable = [
+  colocColumns.source,
+  colocColumns.phenotype2,
+  colocColumns.clpp,
+  colocColumns.clpa,
+  colocColumns.lenInter,
+  colocColumns.lenCS1,
+  colocColumns.lenCS2,
+  { ...colocColumns.leadingVariantCS1, minWidth : 200},
+  { ...colocColumns.leadingVariantCS2, minWidth : 200},
+  colocColumns.beta1,
+  colocColumns.beta2,
+  colocColumns.pval1,
+  colocColumns.pval2
+]
+
 
 export const genePqtlTableColumns = [
   pqtColumns.pqtlTrait,
@@ -1593,6 +1714,13 @@ export const genePqtlTableColumns = [
   pqtColumns.pqtlProb,
   phenotypeColumns.codingMostServe,
   pqtColumns.pqtlGeneMostSevere
+]
+
+
+export const geneColocTableColumns = [
+  { ...pqtColumns.phenotype, minWidth : 150},
+  { ...pqtColumns.phenotypeDescription, minWidth : 200},
+  pqtColumns.n_colocs
 ]
 
 export const geneLossOfFunctionTableColumns = [

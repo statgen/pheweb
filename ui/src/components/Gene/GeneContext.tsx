@@ -17,6 +17,8 @@ export interface GeneState {
   readonly genePhenotype : GenePhenotypes.Data
   readonly selectedPhenotype : GenePhenotypes.Phenotype
   readonly errorMessage : string
+  selectedTab : number
+  setSelectedTab: React.Dispatch<React.SetStateAction<number>>
 }
 
 export const GeneContext = createContext<Partial<GeneState>>({})
@@ -25,6 +27,7 @@ const GeneContextProvider = ({ params : { gene , phenotype }, children } : Props
   const [genePhenotype, setGenePhenotype] = useState<GenePhenotypes.Data| undefined>(undefined);
   const [selectedPhenotype, setSelectedPhenotype] = useState<GenePhenotypes.Phenotype| undefined>(undefined);
   const [errorMessage, setErrorMessage] = useState<string| undefined>(undefined);
+  const [selectedTab, setSelectedTab] = useState<number>(0)
 
   useEffect(() => { getGenePhenotypes(gene,setGenePhenotype, setErrorMessage) },[gene, setGenePhenotype]);
   useEffect(() => {
@@ -41,7 +44,9 @@ const GeneContextProvider = ({ params : { gene , phenotype }, children } : Props
   return (<GeneContext.Provider value={{ gene,
                                          selectedPhenotype ,
                                          genePhenotype ,
-                                         errorMessage }}>
+                                         errorMessage,
+                                         selectedTab,
+                                         setSelectedTab }}>
     { children }
   </GeneContext.Provider>)
 }

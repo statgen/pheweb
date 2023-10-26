@@ -7,16 +7,17 @@ import GeneDrugs from "./GeneDrugs";
 import GeneLocusZoom from "./GeneLocusZoom";
 import GeneContextProvider, { GeneContext, GeneState } from "./GeneContext";
 import GeneBanner from "./GeneBanner";
-import GenePqtls from "./GenePqtlColocalization"
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { GeneParams } from "./geneModel";
 import { RouteComponentProps } from "react-router-dom";
 import { hasError, isLoading } from "../../common/CommonLoading";
+import GenePqtlColocsTab from "./GenePqtlColocalizationTab";
 
 declare let window: ConfigurationWindow;
 const { config } = window;
 const showLOF : boolean = config?.userInterface?.gene?.lossOfFunction != null;
 const showPqtl : boolean = config?.userInterface?.gene?.pqtlColocalizations != null;
+const showGeneColocs : boolean = config?.userInterface?.gene?.geneColocalizations != null;
 
 type Props = RouteComponentProps<GeneParams>;
 
@@ -31,7 +32,7 @@ const GeneContent = () => {
     { showLOF && <GeneLossOfFunction/> }
     <GeneFunctionalVariants/>
     <GeneDrugs/>
-    { showPqtl && <GenePqtls/> }
+    { (showPqtl || showGeneColocs) && <GenePqtlColocsTab/> }
   </div>
 
   return hasError(errorMessage, isLoading(genePhenotype === null || genePhenotype === undefined, content));

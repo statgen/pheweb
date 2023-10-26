@@ -1,4 +1,3 @@
-import { mustacheDiv } from "../../common/commonUtilities";
 import React, { useContext, useEffect, useState } from "react";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { getGenePqtlColocalisations } from "./geneAPI";
@@ -11,13 +10,8 @@ import commonLoading from "../../common/CommonLoading";
 import ReactTable from 'react-table-v6';
 import 'react-table-v6/react-table.css';
 
-const default_banner: string = `
-<h3>pQTL and disease colocalizations</h3>
-`
-
 declare let window: ConfigurationWindow;
 const { config } = window;
-const banner: string = config?.userInterface?.gene?.pqtlColocalizations?.banner || default_banner;
 const { config : { userInterface } = { userInterface : undefined } } = window;
 
 const tableColumns : Column<PqtlColocalizationsModel.Row>[] = createTableColumns(userInterface?.gene?.pqtlColocalizations?.tableColumns) || (genePqtlTableColumns as Column<PqtlColocalizationsModel.Row>[])
@@ -88,9 +82,8 @@ const GenePqtls = () => {
     subComponent: colocalizationSubTable
   }
 
-  const context = { gene }
   const content = (
-    <div>{mustacheDiv(banner, context)} <CommonDownloadTable {...prop}/> </div>
+    <div> <CommonDownloadTable {...prop}/> </div>
   )
   return genePqtlColocalizationData == null && error == null ? commonLoading : hasError(error, content)
 

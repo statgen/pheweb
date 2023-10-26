@@ -40,6 +40,11 @@ export namespace Gene {
     tableColumns? : TableColumnConfiguration<PqtlColocalizations.Row>
   }
 
+  export interface GeneColocalizationsConfiguration {
+    banner?: string
+    tableColumns? : TableColumnConfiguration<GeneColocalizations.Row>
+  }
+
   export interface Configuration {
     banner?: string
     phenotype? : GenePhenotypeConfiguration
@@ -48,6 +53,7 @@ export namespace Gene {
     drugs? : DrugsConfiguration
     lz_config? : LzConfiguration
     pqtlColocalizations? : PqtlColocalizationsConfiguration | null
+    geneColocalizations? : GeneColocalizationsConfiguration | null
   }
 }
 export namespace FunctionalVariants {
@@ -270,6 +276,21 @@ export namespace MyGene {
   }
 }
 
+export interface Colocalization {
+  phenotype1: string
+  phenotype1_description: string
+  clpp: number
+  clpa: number
+  len_inter: number
+  len_cs1: number
+  len_cs2: number
+  source2_displayname?: string
+  beta1?: number
+  beta2?: number
+  pval1?: number
+  pval2?: number
+}
+
 export namespace PqtlColocalizations {
 
   export type Data = Row[]
@@ -293,15 +314,18 @@ export namespace PqtlColocalizations {
     disease_colocalizations: Colocalization[]
   }
 
-  export interface Colocalization {
-    phenotype1: string
-    phenotype1_description: string
-    clpp: number
-    clpa: number
-    len_inter: number
-    len_cs1: number
-    len_cs2: number
-    source2_displayname?: string
-  }
+}
 
+
+
+export namespace GeneColocalizations {
+
+  export type Data = Row[]
+
+  export interface Row {
+    phenotpe: string
+    description: string
+    n_colocs: number
+    disease_colocalizations: Colocalization[]
+  }
 }
