@@ -39,7 +39,7 @@ def get_health():
     else:
         summary = dao.get_summary()
         status_code = 200 if summary.is_okay else 503
-        return jsonify(summary.messages), status_code
+        return jsonify(summary), status_code
 
 class HealthCheck(ComponentCheck):
     def get_name(self,) -> str:
