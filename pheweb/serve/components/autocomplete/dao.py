@@ -28,5 +28,6 @@ class AutocompleterDAO(ComponentCheck):
             return ComponentStatus.from_exception(ex) 
         return ComponentStatus(True, [])
     
-"""Max number of results to return"""
+
+# Max number of results to return
 QUERY_LIMIT : int = 10

@@ -1,8 +1,10 @@
 import pytest
+from flask import Flask
 from pheweb.serve.components.model import ComponentCheck, ComponentStatus
 from pheweb.serve.components.health.dao import HealthDAO, HealthSummary
 from pheweb.serve.components.health.health_check import total_check, HealthSimpleDAO, HealthNotificationDAO
-from pheweb.serve.components.health.service import _components_checks as components_checks, add_status_check
+from pheweb.serve.components.health.service import _components_checks as components_checks, add_status_check, get_health, component
+
 
 error_service_status = ComponentStatus(is_okay=False, messages=["this is an error"])
 error_service_label = "error"
@@ -64,7 +66,12 @@ def test_simple_status() -> None:
     expected = HealthNotificationDAO.__name__
     assert name == expected
 
-
+def test_get_health() -> None:
+    app = Flask(__name__)
+    app.register_blueprint(component.blueprint, url_prefix='/')
+    web = app.test_client()
+    response = web.get("/api/health")
+    assert response.status == "200 OK"
 
     
 

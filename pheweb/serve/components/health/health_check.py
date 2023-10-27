@@ -1,16 +1,17 @@
 import requests
 from pheweb.serve.components.model import ComponentCheck, ComponentStatus
 from pheweb.serve.components.health.dao import HealthDAO, HealthSummary
-from typing import Tuple, Dict
+from typing import Tuple
 import json
 from pheweb.serve.components.health.service import get_status_check
 import logging
-import time
 import socket
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 logger.setLevel(logging.DEBUG)
+
+REQUEST_TIMEOUT=10 # 10 seconds
 
 def total_check(check: ComponentCheck) -> Tuple[str, ComponentStatus]:
     """
@@ -60,7 +61,6 @@ class HealthNotificationDAO(HealthSimpleDAO):
         """
         Make a healthcheck manager.
 
-        This 
         """
         self.server_name=server_name
         self.url=url
@@ -72,7 +72,7 @@ class HealthNotificationDAO(HealthSimpleDAO):
         """
         headers = {'Content-type': 'application/json'}
         json_data = { 'text' : json.dumps({"messages": messages }) }
-        response = requests.post(self.url, headers=headers, json=json_data)
+        response = requests.post(self.url, headers=headers, json=json_data, timeout=REQUEST_TIMEOUT)
         if response.status_code == 200:
             result=ComponentStatus(True, [])
         else:
@@ -82,8 +82,8 @@ class HealthNotificationDAO(HealthSimpleDAO):
     
     
     def get_summary(self, ) -> HealthSummary:
-        summary = super().get_summary()
-        if self.status is not None and summary.is_okay == False and self.url is not None:
+        summary = super(HealthNotificationDAO, self).get_summary()
+        if self.status is not None and summary.is_okay is False and self.url is not None:
             logger.info(summary.to_json())
             self.send(summary.to_json())
         return summary
@@ -98,7 +98,7 @@ class HealthNotificationDAO(HealthSimpleDAO):
         """
         if self.status is None:
             if self.url is None:
-                super.get_status()
+                self.status=super(HealthSimpleDAO ,self).get_status()
             else:
                 start_message=f"starting {self.server_name}"
                 self.status=self.send(start_message)

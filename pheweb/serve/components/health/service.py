@@ -1,5 +1,5 @@
 from pheweb.serve.components.model import ComponentStatus, ComponentCheck
-from flask import Blueprint, current_app as app, jsonify, abort, make_response
+from flask import Blueprint, current_app as app, jsonify, abort
 import typing
 from pheweb.serve.components.health.dao import HealthDAO
 from pheweb.serve.components.model import ComponentDTO
@@ -12,8 +12,8 @@ logger.setLevel(logging.DEBUG)
 # stores list of check
 _components_checks = []
 
-def add_status_check(component_check: ComponentStatus) -> None:
-    logger.info(f"status check {component_check.get_name()}")
+def add_status_check(component_check: ComponentCheck) -> None:
+    logger.info("status check %s", component_check.get_name())
     _components_checks.append(component_check)
 
 def get_status_check():
@@ -25,6 +25,7 @@ def get_dao(current_app=app) -> typing.Optional[HealthDAO]:
     """
     dao: typing.Optional[HealthDAO] = current_app.jeeves.health_dao
     return dao
+
 
 health = Blueprint("health", __name__)
 
@@ -41,6 +42,7 @@ def get_health():
         status_code = 200 if summary.is_okay else 503
         return jsonify(summary), status_code
 
+
 class HealthCheck(ComponentCheck):
     def get_name(self,) -> str:
         return "health"
@@ -52,5 +54,6 @@ class HealthCheck(ComponentCheck):
         else:
             result = dao.get_status()
         return result
+
 
 component = ComponentDTO(health, HealthCheck())
