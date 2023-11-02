@@ -8,10 +8,14 @@ import { getGenePqtlColocalisations, getGeneColocalisations } from "./geneAPI";
 import { PqtlColocalizations, GeneColocalizations } from "./geneModel";
 import 'react-table-v6/react-table.css';
 
+
 declare let window: ConfigurationWindow;
 const { config } = window;
 const showPqtl : boolean = config?.userInterface?.gene?.pqtlColocalizations != null;
 const showGeneColocs : boolean = config?.userInterface?.gene?.geneColocalizations != null;
+
+
+
 
 const GenePqtlColocsTab = () => {
 
@@ -26,7 +30,10 @@ const GenePqtlColocsTab = () => {
   useEffect(() => { getGeneColocalisations(gene, setGeneColocalizationData, setErrorColoc) },[gene]);
 
   const { selectedTab, setSelectedTab } = useContext<Partial<GeneState>>(GeneContext);
-  
+  var arr = genePqtlColocalizationData?.map(element => { return element['source_displayname'] }).sort();
+  var totalCounts = {};
+  arr?.forEach( element => totalCounts[element] = 1  + (totalCounts[element] || 0));
+
   return <>
     <h3>pQTL and disease colocalizations</h3>
     <Tabs
@@ -39,12 +46,18 @@ const GenePqtlColocsTab = () => {
         { showGeneColocs && <Tab>Phenotype</Tab> }
       </TabList>
         { showPqtl && <TabPanel>
+          <div style={{margin: '20px'}}>
+            <b>Data sources</b>
+            <ul style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', width: 'fit-content'}}>
+              {Object.keys(totalCounts).map((key, i) => <li key={key}> {key}: <b>{totalCounts[key]}</b> </li>)}
+            </ul>
             <div id='pqtl table'> 
               <GenePqtls 
                 genePqtlColocalizationData={genePqtlColocalizationData} 
                 error={errorPqtl} 
               /> 
             </div>
+          </div>
         </TabPanel> }
         { showGeneColocs && <TabPanel>
           <div id='colocalization table'> 

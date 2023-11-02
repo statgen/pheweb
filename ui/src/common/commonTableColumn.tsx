@@ -1515,6 +1515,13 @@ const pqtColumns = {
     Cell: decimalCellFormatter,
     minWidth: columnWith(80)
   },
+  pqtlColocNumber: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>number of disease colocalizations</span>),
+    accessor: "disease_colocalizations",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,    
+    Cell: props => <div>{props.original.disease_colocalizations[0].length}</div>,
+    minWidth: columnWith(80)
+  },  
   pqtlBeta: {
     Header: () => (<span style={{ textDecoration: "underline" }}>beta</span>),
     accessor: "beta",
@@ -1713,7 +1720,8 @@ export const genePqtlTableColumns = [
   pqtColumns.pqtlPval,
   pqtColumns.pqtlProb,
   phenotypeColumns.codingMostServe,
-  pqtColumns.pqtlGeneMostSevere
+  pqtColumns.pqtlGeneMostSevere,
+  pqtColumns.pqtlColocNumber
 ]
 
 

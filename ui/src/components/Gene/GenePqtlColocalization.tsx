@@ -16,7 +16,7 @@ const tableColumns : Column<PqtlColocalizationsModel.Row>[] = createTableColumns
 const dataToTableRows = (d : PqtlColocalizationsModel.Data| null) : PqtlColocalizationsModel.Row[] => d || []
 
 const tableProperties = {
-  defaultPageSize : 5
+  defaultPageSize : 10
 }
 
 const defaultSorted = [{
