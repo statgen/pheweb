@@ -1,8 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
-import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { getGeneColocalisations } from "./geneAPI";
-import { GeneColocalizations as GeneColocalizationsModel } from "./geneModel";
+import React, { useContext } from "react";
 import { GeneContext, GeneState } from "./GeneContext";
+import { ConfigurationWindow } from "../Configuration/configurationModel";
+import { GeneColocalizations as GeneColocalizationsModel } from "./geneModel";
 import { Column } from "react-table";
 import { createTableColumns, geneColocTableColumns, phenoColocSubTable } from "../../common/commonTableColumn";
 import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
@@ -12,7 +11,6 @@ import 'react-table-v6/react-table.css';
 
 
 declare let window: ConfigurationWindow;
-const { config } = window;
 const { config : { userInterface } = { userInterface : undefined } } = window;
 
 const tableColumns : Column<GeneColocalizationsModel.Row>[] = createTableColumns(userInterface?.gene?.geneColocalizations?.tableColumns) || (geneColocTableColumns as Column<GeneColocalizationsModel.Row>[])
@@ -30,10 +28,8 @@ export const hasError = (errorMessage : string | null | undefined, content:  JSX
 }
 
 const colocalizationSubTable = ( row :  ReactTable ) : JSX.Element | any => {
-
   const value = row.original.disease_colocalizations;
   const pageSize = Math.min(10, Object.values(value).length);  
-
   return (
     <div style={{ padding: "20px" }}>
         <ReactTable  
@@ -45,19 +41,14 @@ const colocalizationSubTable = ( row :  ReactTable ) : JSX.Element | any => {
   )
 }
 
-
-const GeneColocs = () => {
-  const { gene } = useContext<Partial<GeneState>>(GeneContext);
-  const [geneColocalizationData, setGeneColocalizationData] = useState<GeneColocalizationsModel.Data | null>(null);
-  const [error, setError] = useState<string|null>(null);
+const GeneColocs = (props) => {
   
-  useEffect(() => { getGeneColocalisations(gene, setGeneColocalizationData, setError) },[gene]);
-
-  const filename = `${gene}_disease_colocs.tsv`;
+  const { gene } = useContext<Partial<GeneState>>(GeneContext);
+  const filename=`${gene}_disease_colocs.tsv`
 
   const prop : DownloadTableProps<GeneColocalizationsModel.Data, GeneColocalizationsModel.Row> = {
     filename,
-    tableData : geneColocalizationData,
+    tableData : props.geneColocalizationData,
     dataToTableRows,
     tableColumns ,
     tableProperties,
@@ -68,7 +59,7 @@ const GeneColocs = () => {
   const content = (
     <div> <CommonDownloadTable {...prop}/> </div>
   )
-  return geneColocalizationData == null && error == null ? commonLoading : hasError(error, content)
+  return props.geneColocalizationData == null && props.error == null ? commonLoading : hasError(props.error, content)
 
 }
 

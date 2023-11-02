@@ -1,8 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
-import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { getGenePqtlColocalisations } from "./geneAPI";
-import { PqtlColocalizations as PqtlColocalizationsModel } from "./geneModel";
+import React, { useContext } from "react";
 import { GeneContext, GeneState } from "./GeneContext";
+import { ConfigurationWindow } from "../Configuration/configurationModel";
+import { PqtlColocalizations as PqtlColocalizationsModel } from "./geneModel";
 import { Column } from "react-table";
 import { createTableColumns, genePqtlTableColumns, colocSubTable } from "../../common/commonTableColumn";
 import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
@@ -11,14 +10,15 @@ import ReactTable from 'react-table-v6';
 import 'react-table-v6/react-table.css';
 
 declare let window: ConfigurationWindow;
-const { config } = window;
 const { config : { userInterface } = { userInterface : undefined } } = window;
 
 const tableColumns : Column<PqtlColocalizationsModel.Row>[] = createTableColumns(userInterface?.gene?.pqtlColocalizations?.tableColumns) || (genePqtlTableColumns as Column<PqtlColocalizationsModel.Row>[])
+const dataToTableRows = (d : PqtlColocalizationsModel.Data| null) : PqtlColocalizationsModel.Row[] => d || []
+
 const tableProperties = {
   defaultPageSize : 5
 }
-const dataToTableRows = (d : PqtlColocalizationsModel.Data| null) : PqtlColocalizationsModel.Row[] => d || []
+
 const defaultSorted = [{
   id: 'p',
   desc: false
@@ -35,11 +35,12 @@ export const hasError = (errorMessage : string | null | undefined, content:  JSX
 const colocalizationSubTable = ( row :  ReactTable ) : JSX.Element | any => {
 
   const value = row.original.disease_colocalizations[0];
+  const pageSize = Math.min(10, Object.keys(value).length);
+
   var chrPos = row.original.v.split(':', 2);  
   var chrom = chrPos[0];
   var pos: number = +chrPos[1];
   var region = `${chrom}:${pos - 200000}-${pos + 200000}`;
-  const pageSize = Math.min(5, Object.keys(value).length);
 
   // add region to the phenotype description for creating a link
   for (var i=0; i < Object.keys(value).length; i++){
@@ -63,18 +64,14 @@ const colocalizationSubTable = ( row :  ReactTable ) : JSX.Element | any => {
   )
 }
 
-const GenePqtls = () => {
+const GenePqtls = ( props ) => {
+
   const { gene } = useContext<Partial<GeneState>>(GeneContext);
-  const [genePqtlColocalizationData, setGenePqtlColocalizationData] = useState<PqtlColocalizationsModel.Data | null>(null);
-  const [error, setError] = useState<string|null>(null);
-
-  useEffect(() => { getGenePqtlColocalisations(gene, setGenePqtlColocalizationData, setError) },[gene]);
-
-  const filename = `${gene}_pqtl.tsv`;
+  const filename=`${gene}_pqtl.tsv`
 
   const prop : DownloadTableProps<PqtlColocalizationsModel.Data, PqtlColocalizationsModel.Row> = {
     filename,
-    tableData : genePqtlColocalizationData,
+    tableData : props.genePqtlColocalizationData,
     dataToTableRows,
     tableColumns ,
     tableProperties,
@@ -85,7 +82,7 @@ const GenePqtls = () => {
   const content = (
     <div> <CommonDownloadTable {...prop}/> </div>
   )
-  return genePqtlColocalizationData == null && error == null ? commonLoading : hasError(error, content)
+  return props.genePqtlColocalizationData == null && props.error == null ? commonLoading : hasError(props.error, content)
 
 }
 
