@@ -336,10 +336,8 @@ class FileCodingDAO(CodingDAO):
             pheno_var_id = res['pheno']['code'] + '_' + res['variant']
             if pheno_var_id in top_list.index:
                 res['possible_explaining_signals'] = top_list.loc[pheno_var_id]['possible_explaining_signals']
-            else:
-                res['possible_explaining_signals'] = 'NA'
-
             results_munged.append(res)
+            
         time_munge = timeit.default_timer() - start_time
         start_time = timeit.default_timer()
         self._set_top_flags(results_munged)
