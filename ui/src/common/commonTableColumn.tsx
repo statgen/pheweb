@@ -1462,7 +1462,7 @@ const pqtColumns = {
     accessor: "source_displayname",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
-    minWidth: columnWith(120)
+    minWidth: columnWith(200)
   },
   pqtlRegion: {
     Header: () => (<span style={{ textDecoration: "underline" }}>region</span>),
@@ -1560,7 +1560,7 @@ const colocColumns = {
     Cell: (props : { value : any }) => (
       <a href={`/region/${props.value.pheno}/${props.value.region}`} target="_blank" rel="noopener noreferrer">{props.value.pheno}</a>
     ),
-    minWidth: 150
+    minWidth: 200
   },
   description: {
     Header: () => (<span style={{ textDecoration: "underline" }}>description</span>),

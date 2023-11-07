@@ -15,8 +15,6 @@ const showPqtl : boolean = config?.userInterface?.gene?.pqtlColocalizations != n
 const showGeneColocs : boolean = config?.userInterface?.gene?.geneColocalizations != null;
 
 
-
-
 const GenePqtlColocsTab = () => {
 
   const { gene } = useContext<Partial<GeneState>>(GeneContext);
@@ -46,11 +44,10 @@ const GenePqtlColocsTab = () => {
         { showGeneColocs && <Tab>Phenotype</Tab> }
       </TabList>
         { showPqtl && <TabPanel>
-          <div style={{margin: '20px'}}>
-            <b>Data sources</b>
-            <ul style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', width: 'fit-content'}}>
-              {Object.keys(totalCounts).map((key, i) => <li key={key}> {key}: <b>{totalCounts[key]}</b> </li>)}
-            </ul>
+          <div>
+            <div id='pqtl totals' style={{display: 'flex', flexDirection: 'row', margin: '20px'}} >
+              {Object.keys(totalCounts).map((key, i) => <div style={{marginRight: '20px'}} key={key}> {key}: <b>{totalCounts[key]}</b> </div>)}
+            </div>  
             <div id='pqtl table'> 
               <GenePqtls 
                 genePqtlColocalizationData={genePqtlColocalizationData} 

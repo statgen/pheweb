@@ -316,8 +316,6 @@ export namespace PqtlColocalizations {
 
 }
 
-
-
 export namespace GeneColocalizations {
 
   export type Data = Row[]
