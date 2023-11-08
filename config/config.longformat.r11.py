@@ -7,6 +7,8 @@ data_dir="/mnt/nfs/pheweb/r11/release/"
 resource_dir="/mnt/nfs/pheweb/r11/release/resources"
 cache="/mnt/nfs/pheweb/r11/release/cache/"
 
+logging_level="WARNING"
+
 database_conf = (
     { "annotation": { "TabixAnnotationDao": { "matrix_path": "/mnt/nfs/pheweb/r11/dev/annotation/variants/R11_annotated_variants_v2.gz" ,
                                               "gene_column" : "gene_most_severe" } } },
