@@ -73,12 +73,12 @@ At this point your PheWeb should be working how you want it to, except maybe the
 
 ## Using Google Analytics
 
-Go [here](https://analytics.google.com/analytics/web) and do whatever you have to to get your own UA-xxxxxxxx-x tracking id.
+Go [here](https://analytics.google.com/analytics/web) and do whatever you have to to get your own tracking id (i.e. AW-XXXXX or G-XXXXX).
 
 Then, in `config.py`, set:
 
 ```
-GOOGLE_ANALYTICS_TRACKING_ID = 'UA-xxxxxxxx-x'
+GOOGLE_ANALYTICS_TRACKING_ID = 'G-XXXXX'
 ```
 
 and kill and restart `pheweb serve`.
