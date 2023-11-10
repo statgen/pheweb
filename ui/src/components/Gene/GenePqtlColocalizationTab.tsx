@@ -7,6 +7,7 @@ import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { getGenePqtlColocalisations, getGeneColocalisations } from "./geneAPI";
 import { PqtlColocalizations, GeneColocalizations } from "./geneModel";
 import 'react-table-v6/react-table.css';
+import { getCounts } from "../../common/commonTableColumn";
 
 
 declare let window: ConfigurationWindow;
@@ -28,9 +29,23 @@ const GenePqtlColocsTab = () => {
   useEffect(() => { getGeneColocalisations(gene, setGeneColocalizationData, setErrorColoc) },[gene]);
 
   const { selectedTab, setSelectedTab } = useContext<Partial<GeneState>>(GeneContext);
-  var arr = genePqtlColocalizationData?.map(element => { return element['source_displayname'] }).sort();
-  var totalCounts = {};
-  arr?.forEach( element => totalCounts[element] = 1  + (totalCounts[element] || 0));
+  
+  var arr = genePqtlColocalizationData?.map(element => { return element['source_displayname'] }).sort();  
+  var posBeta = genePqtlColocalizationData?.filter(element =>  element['beta'] > 0).map(element => { return element['source_displayname'] }).sort();
+  var negBeta = genePqtlColocalizationData?.filter(element =>  element['beta'] <= 0).map(element => { return element['source_displayname'] }).sort();
+  
+  var totalCounts = getCounts(arr);
+  var pos = getCounts(posBeta);
+  var neg = getCounts(negBeta);
+
+  Object.keys(totalCounts).forEach(key => {
+    if(!neg.hasOwnProperty(key)) {
+      neg[key] = 0;
+    }
+    if(!pos.hasOwnProperty(key)) {
+      pos[key] = 0;
+    }
+  })
 
   return <>
     <h3>pQTL and disease colocalizations</h3>
@@ -46,8 +61,11 @@ const GenePqtlColocsTab = () => {
         { showPqtl && <TabPanel>
           <div>
             <div id='pqtl totals' style={{display: 'flex', flexDirection: 'row', margin: '20px'}} >
-              {Object.keys(totalCounts).map((key, i) => <div style={{marginRight: '20px'}} key={key}> {key}: <b>{totalCounts[key]}</b> </div>)}
-            </div>  
+              {Object.keys(totalCounts).map((key, i) => 
+                <div style={{marginRight: '30px'}} key={key}> 
+                  {key}: <b style={{color: '#E54B4B'}}>↑</b>{pos[key]} <b style={{color: '#156064'}}>↓</b>{neg[key]} 
+                </div>)}
+            </div> 
             <div id='pqtl table'> 
               <GenePqtls 
                 genePqtlColocalizationData={genePqtlColocalizationData} 

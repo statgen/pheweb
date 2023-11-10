@@ -6,6 +6,7 @@ import { scientificFormatter, shortNumberFormatter } from "./commonFormatter";
 import { LabelKeyObject , Headers } from "react-csv/components/CommonPropTypes";
 import matchSorter from 'match-sorter';
 import { string } from 'purify-ts';
+import ReactTooltip from "react-tooltip";
 
 interface PhewebWindow extends Window {
   release_prev: number;
@@ -31,6 +32,12 @@ function getSize(size = '1em', parent = document.body) {
  *
  */
 const emsize = getSize();
+
+export const getCounts = (arr: Array<string>) => {
+  var counts = {};
+  arr?.forEach(element => counts[element] = 1  + (counts[element] || 0));
+  return counts
+}
 
 export const pValueSentinel = 5e-324;
 
@@ -1443,12 +1450,49 @@ const pqtColumns = {
     Cell: textCellFormatter,
     minWidth: columnWith(120)
   },
+
   n_colocs : {
     Header: () => (<span style={{ textDecoration: "underline" }}>n colocalizations</span>),
     accessor: "n_colocs",
-    filterMethod: (filter, row) => row[filter.id] > filter.value,
-    Cell: numberCellFormatter,
-    minWidth: columnWith(80)
+    Cell: (e) => {
+      var data = e.original.disease_colocalizations;
+      var arr = data.map(element => { return element['source2_displayname'] }).sort();
+
+      var posBeta = data.filter(element =>  element['beta2'] > 0).map(element => { return element['source2_displayname'] }).sort();
+      var negBeta = data.filter(element =>  element['beta2'] <= 0).map(element => { return element['source2_displayname'] }).sort();
+
+      var totalCounts = getCounts(arr);
+      var pos = getCounts(posBeta);
+      var neg = getCounts(negBeta);
+    
+      Object.keys(totalCounts).forEach(key => {
+        if(!neg.hasOwnProperty(key)) {
+          neg[key] = 0;
+        }
+        if(!pos.hasOwnProperty(key)) {
+          pos[key] = 0;
+        }
+      })
+      
+      var rows = Object.keys(totalCounts).map((key, i) => { 
+          return `<div style="margin-right: 20px" key=${key}> ↑${pos[key]} ↓${neg[key]} · ${key} </div>`
+        }
+      )
+      var ncolocsTooltip = `<div>${rows.join("")}<div>`;
+
+      return (
+        <>
+          <ReactTooltip
+            id="tooltip-n-colocs"
+            place="left" 
+            arrowColor="transparent"
+            html={true}
+            effect="solid"
+          />
+          <span data-tip={ncolocsTooltip} data-for="tooltip-n-colocs">{e.value}</span>
+        </>
+      );
+    },
   },
   pqtlTrait: {
     Header: () => (<span style={{ textDecoration: "underline" }}>trait</span>),
@@ -1462,7 +1506,7 @@ const pqtColumns = {
     accessor: "source_displayname",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
-    minWidth: columnWith(200)
+    minWidth: columnWith(300)
   },
   pqtlRegion: {
     Header: () => (<span style={{ textDecoration: "underline" }}>region</span>),

@@ -17,6 +17,12 @@ const tableColumns : Column<GeneColocalizationsModel.Row>[] = createTableColumns
 const tableProperties = {
   defaultPageSize : 10
 }
+
+const defaultSorted = [{
+  id: 'n_colocs',
+  desc: true
+}]
+
 const dataToTableRows = (d : GeneColocalizationsModel.Data| null) : GeneColocalizationsModel.Row[] => d || []
 
 export const hasError = (errorMessage : string | null | undefined, content:  JSX.Element) :  JSX.Element => {
@@ -52,7 +58,7 @@ const GeneColocs = (props) => {
     dataToTableRows,
     tableColumns ,
     tableProperties,
-    defaultSorted: [], 
+    defaultSorted, 
     subComponent: colocalizationSubTable
   }
 
