@@ -37,6 +37,27 @@ test("mustacheDiv", () => {
   expect(wrapper.text()).toContain(uuid);
 });
 
+test("mustacheDiv 23", () => {
+    const number23 = mount(mustacheDiv("{{23toX chr}}", { "chr" : 23 }));
+    expect(number23.text()).toBe("X");
+    const text23 = mount(mustacheDiv("{{23toX chr}}", { "chr" : "23" }));
+    expect(text23.text()).toBe("X");
+    const text24 = mount(mustacheDiv("{{23toX chr}}", { "chr" : "24" }));
+    expect(text24.text()).toBe("24");
+});
+
+test("mustacheDiv isX", () => {
+    const uuid = v4();
+    const isX1 = mount(mustacheDiv("{{#unless (isX chr)}}{{ uuid }}{{/unless}}", { "chr" : "23" , "uuid" : uuid }));
+    expect(isX1.text()).toBe("");
+    const isX2 = mount(mustacheDiv("{{#unless (isX chr)}}{{ uuid }}{{/unless}}", { "chr" : 23  , "uuid" : uuid}));
+    expect(isX2.text()).toBe("");
+    const isX3 = mount(mustacheDiv("{{#unless (isX chr)}}{{ uuid }}{{/unless}}", { "chr" : "X"  , "uuid" : uuid }));
+    expect(isX3.text()).toBe("");
+    const isX4 = mount(mustacheDiv("{{#unless (isX chr)}}{{ uuid }}{{/unless}}", { "chr" : 24  , "uuid" : uuid }));
+    expect(isX4.text()).toBe(uuid);
+})
+
 test("mustacheSpan", () => {
   const uuid = v4();
   const wrapper = mount(mustacheSpan("<i>{{uuid}}</i>", { uuid }));

@@ -303,8 +303,8 @@ const default_banner: string = `
        <div>
 
        <p style="margin-bottom: 0px;">View in
-          <a target="_blank" href="https://genetics.opentargets.org/variant/{{ summary.chrom }}_{{ summary.pos}}_{{ summary.ref}}_{{ summary.alt }}">Open Targets</a> ,
-          <a target="_blank" href="https://gnomad.broadinstitute.org/variant/{{ summary.chrom }}-{{ summary.pos}}-{{ summary.ref}}-{{ summary.alt }}?dataset=gnomad_r3">gnomAD</a> ,
+          <a target="_blank" href="https://genetics.opentargets.org/variant/{{ 23toX summary.chrom }}_{{ summary.pos}}_{{ summary.ref}}_{{ summary.alt }}">Open Targets</a> ,
+          <a target="_blank" href="https://gnomad.broadinstitute.org/variant/{{ 23toX summary.chrom }}-{{ summary.pos}}-{{ summary.ref}}-{{ summary.alt }}?dataset=gnomad_r3">gnomAD</a> ,
           <a target="_blank" href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&highlight=hg38.chr{{ chrom }}%3A{{ summary.pos }}-{{ summary.pos }}&position=chr{{ summary.chrom }}%3A{{ summary.posStart }}-{{ summary.posStop }}">UCSC</a>
 
           {{#summary.rsids.length}} , GWAS Catalog for {{/summary.rsids.length}}
@@ -313,12 +313,14 @@ const default_banner: string = `
           {{#summary.rsids}}
           <a id="urlDbSNP" target="_blank" href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a>
           {{/summary.rsids}}
-          {{#bioBankURL.length}} , UMich UK Biobank {{/bioBankURL.length}}
 
+	  {{#unless (isX summary.chrom) }}
+          {{#bioBankURL.length}} , UMich UK Biobank {{/bioBankURL.length}}
 
           {{#bioBankURL}}
             <a href="{{url}}" target="_blank">{{rsid}}</a>
           {{/bioBankURL}}
+	  {{/unless}}
        </p>
 
        <p style="margin-bottom: 0px;">

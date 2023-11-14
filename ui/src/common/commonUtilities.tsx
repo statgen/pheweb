@@ -82,6 +82,8 @@ export const deleteRequest : <X>(url: string,
         .then(sink)
         .catch(handler(url));
 
+Handlebars.registerHelper('23toX', (x) => (x === 23 || x === '23')?'X':x);
+Handlebars.registerHelper('isX', (x) => (x === 23 || x === '23' || x === 23 || x === 'X'));
 
 /**
  * mustacheDiv
