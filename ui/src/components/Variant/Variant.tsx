@@ -318,7 +318,11 @@ const default_banner: string = `
           {{#bioBankURL.length}} , UMich UK Biobank {{/bioBankURL.length}}
 
           {{#bioBankURL}}
+            {{#if url}}
             <a href="{{url}}" target="_blank">{{rsid}}</a>
+            {{else}}
+            <span class="alert-danger">failed loading {{rsid}}</span>
+            {{/if}}
           {{/bioBankURL}}
 	  {{/unless}}
        </p>
@@ -354,7 +358,7 @@ interface sortOptionsObj {
 
 const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
-  const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : string }| null>(null);
+  const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : (string|null) }| null>(null);
   const [loadedBioBank, setLoadedBioBank] = useState<boolean>(false);
   const [error, setError] = useState<string|null>(null);
   const [varSumstats, setSumstats] = useState<Sumstats.Data | null>(null);
@@ -448,7 +452,9 @@ const Variant = (props : Props) => {
     if(variantData && bioBankURL == null && loadedBioBank === false) {
       const variant = createVariant()
       const summary : VariantSummary | undefined = createVariantSummary(variantData)
-      const rsids : string[] | undefined  = summary?.rsids
+      // filter out malformed rsids e.g. na and null
+      const rsids : string[] | undefined  = summary?.rsids?.filter((id) => `${id}`.startsWith("rs"))
+      console.log(rsids);
       if(rsids === undefined || rsids === null || rsids.length === 0){
         setBioBankURL({});
       } else {
@@ -462,7 +468,8 @@ const Variant = (props : Props) => {
 	      return v;
 	      })
             }
-          }))();
+          },
+              (url : string) => (e : Error) => { console.log(error); setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : null } }); }))();
         });
       }
       setLoadedBioBank(true);
