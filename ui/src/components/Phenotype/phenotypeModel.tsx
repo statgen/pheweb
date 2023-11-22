@@ -127,4 +127,5 @@ export interface PhenotypeConfiguration {
 
   credibleSet : { table : VariantTableConfiguration<CredibleSet> }
   vis_conf : VisConfiguration;
+  r2_to_lead_threshold: number;
 }

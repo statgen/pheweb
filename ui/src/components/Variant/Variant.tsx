@@ -303,8 +303,8 @@ const default_banner: string = `
        <div>
 
        <p style="margin-bottom: 0px;">View in
-          <a target="_blank" href="https://genetics.opentargets.org/variant/{{ summary.chrom }}_{{ summary.pos}}_{{ summary.ref}}_{{ summary.alt }}">Open Targets</a> ,
-          <a target="_blank" href="https://gnomad.broadinstitute.org/variant/{{ summary.chrom }}-{{ summary.pos}}-{{ summary.ref}}-{{ summary.alt }}?dataset=gnomad_r3">gnomAD</a> ,
+          <a target="_blank" href="https://genetics.opentargets.org/variant/{{ 23toX summary.chrom }}_{{ summary.pos}}_{{ summary.ref}}_{{ summary.alt }}">Open Targets</a> ,
+          <a target="_blank" href="https://gnomad.broadinstitute.org/variant/{{ 23toX summary.chrom }}-{{ summary.pos}}-{{ summary.ref}}-{{ summary.alt }}?dataset=gnomad_r3">gnomAD</a> ,
           <a target="_blank" href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&highlight=hg38.chr{{ chrom }}%3A{{ summary.pos }}-{{ summary.pos }}&position=chr{{ summary.chrom }}%3A{{ summary.posStart }}-{{ summary.posStop }}">UCSC</a>
 
           {{#summary.rsids.length}} , GWAS Catalog for {{/summary.rsids.length}}
@@ -313,12 +313,18 @@ const default_banner: string = `
           {{#summary.rsids}}
           <a id="urlDbSNP" target="_blank" href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a>
           {{/summary.rsids}}
+
+	  {{#unless (isX summary.chrom) }}
           {{#bioBankURL.length}} , UMich UK Biobank {{/bioBankURL.length}}
 
-
           {{#bioBankURL}}
+            {{#if url}}
             <a href="{{url}}" target="_blank">{{rsid}}</a>
+            {{else}}
+            <span class="alert-danger">failed loading {{rsid}}</span>
+            {{/if}}
           {{/bioBankURL}}
+	  {{/unless}}
        </p>
 
        <p style="margin-bottom: 0px;">
@@ -352,7 +358,7 @@ interface sortOptionsObj {
 
 const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
-  const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : string }| null>(null);
+  const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : (string|null) }| null>(null);
   const [loadedBioBank, setLoadedBioBank] = useState<boolean>(false);
   const [error, setError] = useState<string|null>(null);
   const [varSumstats, setSumstats] = useState<Sumstats.Data | null>(null);
@@ -446,7 +452,9 @@ const Variant = (props : Props) => {
     if(variantData && bioBankURL == null && loadedBioBank === false) {
       const variant = createVariant()
       const summary : VariantSummary | undefined = createVariantSummary(variantData)
-      const rsids : string[] | undefined  = summary?.rsids
+      // filter out malformed rsids e.g. na and null
+      const rsids : string[] | undefined  = summary?.rsids?.filter((id) => `${id}`.startsWith("rs"))
+      console.log(rsids);
       if(rsids === undefined || rsids === null || rsids.length === 0){
         setBioBankURL({});
       } else {
@@ -460,7 +468,8 @@ const Variant = (props : Props) => {
 	      return v;
 	      })
             }
-          }))();
+          },
+              (url : string) => (e : Error) => { console.log(error); setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : null } }); }))();
         });
       }
       setLoadedBioBank(true);

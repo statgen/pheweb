@@ -1506,7 +1506,7 @@ const pqtColumns = {
     accessor: "source_displayname",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
-    minWidth: columnWith(300)
+    minWidth: columnWith(200)
   },
   pqtlRegion: {
     Header: () => (<span style={{ textDecoration: "underline" }}>region</span>),
@@ -1593,7 +1593,14 @@ const pqtColumns = {
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
     minWidth: columnWith(80)
-  }
+  },
+  pqtlColocNumber: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>number of disease colocalizations</span>),
+    accessor: "disease_colocalizations",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,    
+    Cell: props => <div>{props.original.disease_colocalizations[0].length}</div>,
+    minWidth: columnWith(80)
+  },  
 }
 
 const colocColumns = {
@@ -1604,7 +1611,7 @@ const colocColumns = {
     Cell: (props : { value : any }) => (
       <a href={`/region/${props.value.pheno}/${props.value.region}`} target="_blank" rel="noopener noreferrer">{props.value.pheno}</a>
     ),
-    minWidth: 200
+    minWidth: 150
   },
   description: {
     Header: () => (<span style={{ textDecoration: "underline" }}>description</span>),
@@ -1636,28 +1643,28 @@ const colocColumns = {
     accessor: "clpp",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: decimalCellFormatter,
-    minWidth: 100
+    minWidth: 80
   },
   clpa: {
     Header: () => (<span style={{ textDecoration: "underline" }}>clpa</span>),
     accessor: "clpa",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: decimalCellFormatter,
-    minWidth: 100
+    minWidth: 80
   },
   lenInter: {
     Header: () => (<span style={{ textDecoration: "underline" }}>len intersect</span>),
     accessor: "len_inter",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: numberCellFormatter,
-    minWidth: 100
+    minWidth: 80
   },
   lenCS1: {
     Header: () => (<span style={{ textDecoration: "underline" }}>len cs1</span>),
     accessor: "len_cs1",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: numberCellFormatter,
-    minWidth: 100
+    minWidth: 80
   },
   lenCS2: {
     Header: () => (<span style={{ textDecoration: "underline" }}>len cs2</span>),
@@ -2096,7 +2103,8 @@ minWidth: 50,
 Header: () => (<span title="Credible set PIP" style={{textDecoration: 'underline'}}>CS PIP</span>),
 accessor: 'cs_prob',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
-Cell: optionalCellScientificFormatter ,
+sortMethod: nullToBottomSorter,
+Cell: (props) => isNaN(+props.value) || props.value === "" || props.value === null ? 'NA' : decimalCellFormatter(props),
 minWidth: 40
 }, {
 Header: () => (<span title="Functional Category" style={{textDecoration: 'underline'}}>Functional variant</span>),
@@ -2114,7 +2122,7 @@ minWidth: 40
 }, {
 Header: () => (<span title="R^2 to lead variant" style={{textDecoration: 'underline'}}>R^2 to lead variant</span>),
 accessor: 'r2_to_lead',
-Cell: props => props.value,
+Cell: (props) => isNaN(+props.original.cs_prob) || props.original.cs_prob === null ? 'NA' : decimalCellFormatter(props),
 minWidth: 40
 }]
 

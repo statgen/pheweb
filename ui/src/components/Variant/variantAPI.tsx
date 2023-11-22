@@ -12,8 +12,10 @@ export const getVariant= (variant: Variant,
 }
 
 export  const getEnsembl = (rsid : String,
-                            sink: (s: Ensembl.Data) => void,getURL = get) : void => {
-  getURL(`https://grch37.rest.ensembl.org/variation/human/${rsid}?content-type=application/json`, sink)
+                            sink: (s: Ensembl.Data) => void,
+                            handler? :  Handler,
+                            getURL = get) : void => {
+  getURL(`https://grch37.rest.ensembl.org/variation/human/${rsid}?content-type=application/json`, sink, handler)
 }
 
 

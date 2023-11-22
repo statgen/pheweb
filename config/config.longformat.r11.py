@@ -62,7 +62,7 @@ database_conf = (
               "table": "colocalization",
               "columns": ["source2", "phenotype1", "phenotype1_description",
                           "clpp", "clpa", "len_inter", "len_cs1", 
-                          "len_cs2"]
+                          "len_cs2", "source2_displayname", "beta1", "beta2", "pval1", "pval2"]
           } 
       ] } } 
     }
