@@ -1432,7 +1432,7 @@ const pqtColumns = {
     accessor: "source_displayname",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
-    minWidth: columnWith(120)
+    minWidth: columnWith(200)
   },
   pqtlRegion: {
     Header: () => (<span style={{ textDecoration: "underline" }}>region</span>),

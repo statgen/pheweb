@@ -4,3 +4,18 @@
 .geneNonSelectedRow {
 
 }
+
+nav > ol {
+  padding-left: 38px;
+  padding-bottom: 5px;
+  padding-top: 15px;
+  background-color: rgb(244, 244, 244);
+}
+
+nav > ol > li {
+  margin-bottom: 5px;
+}
+
+.gene-page-container h3 {
+  margin-top: 15px;
+}
