@@ -8,12 +8,14 @@ import { Column } from "react-table";
 import CommonDownloadTable, { DownloadTableProps } from "../../common/CommonDownloadTable";
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 
-type LocusGroups =  { [locus_id: string]: LocusGroupEntry };
-declare let window: ConfigurationWindow;
+type LocusGroups =  [{ [locus_id: string]: LocusGroupEntry }];
 
+declare let window: ConfigurationWindow;
 const configuration = window?.config?.userInterface?.phenotype?.credibleSet;
 
 const defaultSorted = configuration?.table?.defaultSorted || [{ id: 'pval', desc: false }];
+
+const r2leadThreshold = window?.config?.userInterface?.phenotype?.r2_to_lead_threshold;
 
 const PhenotypeCSTable = () => {
   const {  credibleSets , phenotypeCode } = useContext<Partial<PhenotypeState>>(PhenotypeContext);
@@ -21,7 +23,7 @@ const PhenotypeCSTable = () => {
   const filename : string = `${phenotypeCode}.tsv`
   const dataToTableRows : (d : CredibleSet[]) => CredibleSet[] = (x => x)
   const tableColumns :  Column<CredibleSet>[] = createTableColumns<CredibleSet>(configuration?.table?.columns) || csTableCols as Column<CredibleSet>[];
-  const [locusGroups, setLocusGroups] = useState<LocusGroups>({});
+  const [locusGroups, setLocusGroups] = useState<LocusGroups>([{}]);
   const tableProperties = {}
 
   const getLocusGroupData = (locus_id : string) => {
@@ -39,12 +41,15 @@ const PhenotypeCSTable = () => {
     }
     setLocusGroups(updated);
   }
-
+  
   const subComponent = row => {
+    
     const locus_id = row['original']['locus_id'];
     const data = getLocusGroupData(locus_id);
-    return <ReactTable data={data || [] }
-                       loading={data == null}
+    const dataFilt = r2leadThreshold ? data?.filter((element) => element['r2_to_lead'] > r2leadThreshold) : data
+
+    return <ReactTable data={dataFilt || [] }
+                       loading={dataFilt == null}
                        columns={csInsideTableCols}
                        defaultSorted={defaultSorted}
                        defaultPageSize={10}

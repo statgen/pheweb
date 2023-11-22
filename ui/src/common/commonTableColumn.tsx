@@ -1980,7 +1980,8 @@ minWidth: 50,
 Header: () => (<span title="Credible set PIP" style={{textDecoration: 'underline'}}>CS PIP</span>),
 accessor: 'cs_prob',
 filterMethod: (filter, row) => Math.abs(row[filter.id]) >= +filter.value,
-Cell: optionalCellScientificFormatter ,
+sortMethod: nullToBottomSorter,
+Cell: (props) => isNaN(+props.value) || props.value === "" || props.value === null ? 'NA' : decimalCellFormatter(props),
 minWidth: 40
 }, {
 Header: () => (<span title="Functional Category" style={{textDecoration: 'underline'}}>Functional variant</span>),
@@ -1998,7 +1999,7 @@ minWidth: 40
 }, {
 Header: () => (<span title="R^2 to lead variant" style={{textDecoration: 'underline'}}>R^2 to lead variant</span>),
 accessor: 'r2_to_lead',
-Cell: props => props.value,
+Cell: (props) => isNaN(+props.original.cs_prob) || props.original.cs_prob === null ? 'NA' : decimalCellFormatter(props),
 minWidth: 40
 }]
 
