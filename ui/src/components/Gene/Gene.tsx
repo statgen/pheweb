@@ -30,11 +30,10 @@ const GeneContent = () => {
   var keys = {};
   if (titles !== null) {
     tableOfContents = Object.keys(titles).map( (el, index) => {
-      var key = "#" + titles[el].toLowerCase().split(' ').join('-');
       return (
         <div key={index} className="list-item-container">
             <div  className="list-item-box">{index + 1}</div>
-            <a href={key}>{titles[el]}</a>
+            <a href={"#" + titles[el].toLowerCase().split(' ').join('-')}>{titles[el]}</a>
         </div>
       )
     })
