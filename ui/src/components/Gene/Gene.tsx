@@ -10,6 +10,7 @@ import GeneBanner from "./GeneBanner";
 import GenePqtls from "./GenePqtlColocalization"
 import { ConfigurationWindow } from "../Configuration/configurationModel";
 import { GeneParams } from "./geneModel";
+import { Gene as GeneModel } from "./geneModel";
 import { RouteComponentProps } from "react-router-dom";
 import { hasError, isLoading } from "../../common/CommonLoading";
 
@@ -18,33 +19,58 @@ const { config } = window;
 const showLOF : boolean = config?.userInterface?.gene?.lossOfFunction != null;
 const showPqtl : boolean = config?.userInterface?.gene?.pqtlColocalizations != null;
 
+const titles : GeneModel.TableOfContentsTitlesConfiguration = config?.userInterface?.gene?.tableOfContentsTitles || null;
+
 type Props = RouteComponentProps<GeneParams>;
 
 const GeneContent = () => {
 
   const { genePhenotype, errorMessage } = useContext<Partial<GeneState>>(GeneContext);
 
+  var tableOfContents = null;
+  var keys = {};
+  if (titles !== null) {
+    tableOfContents = Object.keys(titles).map( (el, index) => {
+      var key = "#" + titles[el].toLowerCase().split(' ').join('-');
+      return (
+        <div key={index} className="list-item-container">
+            <div  className="list-item-box">{index + 1}</div>
+            <a href={key}>{titles[el]}</a>
+        </div>
+      )
+    })
+
+    Object.keys(titles).forEach( (el) => { 
+      keys[el] = titles[el].toLowerCase().split(' ').join('-')
+    });
+
+  }
+
   const content = () => <div className="gene-page-container">
     <GeneBanner/>
     <GeneDownload/>
-    <h3>Contents</h3>
-    <nav>
-      <ol>
-          <li><a href="#disease-associations-within-gene-region">Disease associations within gene region</a></li>
-          <li><a href="#coding-variant-associations">Coding variant associations</a></li>
-          { showLOF && <li><a href="#protein-truncating-variant-burden-associations">Protein truncating variant burden associations</a></li> }
-          { showPqtl && <li><a href="#pqtl-and-colocalizations">pQTL and colocalizations</a></li> }
-          <li><a href="#drugs-targeting-the-gene">Drugs targeting the gene</a></li>
-      </ol>
-    </nav>
-    <div id="disease-associations-within-gene-region">
+    {
+      titles ? (
+        <div>
+          <h3>Contents</h3> 
+          <div className="gene-content-container">      
+            { titles && <div className="vl"></div> }
+            {tableOfContents}
+          </div>  
+        </div>
+      ) : null
+    }
+    <div id={titles ? keys['associationResults'] : null}>
       <GenePhenotypeAssociation/>
       <GeneLocusZoom />
     </div>
-    <div id="coding-variant-associations"><GeneFunctionalVariants/></div>
-    { showLOF && <div id="protein-truncating-variant-burden-associations"><GeneLossOfFunction/></div>}
-    { showPqtl && <div id="pqtl-and-colocalizations"><GenePqtls/></div> }
-    <div id="drugs-targeting-the-gene"><GeneDrugs/></div>
+    <div id={titles ? keys['geneFunctionalVariants'] : null}>
+      <GeneFunctionalVariants/>
+    </div>
+    { showLOF && <div id={titles ? keys['lossOfFunction'] : null}><GeneLossOfFunction/></div>}
+    { showPqtl && <div id={titles ? keys['pqtlColocalizations'] : null}><GenePqtls/></div> }
+    <div id={titles ? keys['geneDrugs'] : null}><GeneDrugs/></div>
+
   </div>
 
   return hasError(errorMessage, isLoading(genePhenotype === null || genePhenotype === undefined, content));

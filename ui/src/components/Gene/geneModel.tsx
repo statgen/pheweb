@@ -40,6 +40,14 @@ export namespace Gene {
     tableColumns? : TableColumnConfiguration<PqtlColocalizations.Row>
   }
 
+  export interface TableOfContentsTitlesConfiguration {
+    "associationResults": string
+    "geneFunctionalVariants": string
+    "lossOfFunction": string
+    "pqtlColocalizations": string
+    "geneDrugs": string
+  }
+
   export interface Configuration {
     banner?: string
     phenotype? : GenePhenotypeConfiguration
@@ -48,6 +56,7 @@ export namespace Gene {
     drugs? : DrugsConfiguration
     lz_config? : LzConfiguration
     pqtlColocalizations? : PqtlColocalizationsConfiguration | null
+    tableOfContentsTitles? : TableOfContentsTitlesConfiguration | null
   }
 }
 export namespace FunctionalVariants {
