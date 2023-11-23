@@ -9,8 +9,7 @@ import GeneContextProvider, { GeneContext, GeneState } from "./GeneContext";
 import GeneBanner from "./GeneBanner";
 import GenePqtls from "./GenePqtlColocalization"
 import { ConfigurationWindow } from "../Configuration/configurationModel";
-import { GeneParams } from "./geneModel";
-import { Gene as GeneModel } from "./geneModel";
+import { GeneParams, Gene as GeneModel } from "./geneModel";
 import { RouteComponentProps } from "react-router-dom";
 import { hasError, isLoading } from "../../common/CommonLoading";
 
