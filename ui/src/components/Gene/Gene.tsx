@@ -17,8 +17,9 @@ declare let window: ConfigurationWindow;
 const { config } = window;
 const showLOF : boolean = config?.userInterface?.gene?.lossOfFunction != null;
 const showPqtl : boolean = config?.userInterface?.gene?.pqtlColocalizations != null;
+const showTableOfContents : boolean = config?.userInterface?.gene?.tableOfContentsTitles != null;
 
-const titles : GeneModel.TableOfContentsTitlesConfiguration = config?.userInterface?.gene?.tableOfContentsTitles || null;
+const tableOfContentsTitles : GeneModel.TableOfContentsTitlesConfiguration = config?.userInterface?.gene?.tableOfContentsTitles || null;
 
 type Props = RouteComponentProps<GeneParams>;
 
@@ -27,19 +28,19 @@ const GeneContent = () => {
   const { genePhenotype, errorMessage } = useContext<Partial<GeneState>>(GeneContext);
 
   var tableOfContents = null;
-  var keys = {};
-  if (titles !== null) {
-    tableOfContents = Object.keys(titles).map( (el, index) => {
+  var tableOfContentsComponentIds = {};
+  if (showTableOfContents) {
+    tableOfContents = Object.keys(tableOfContentsTitles).map( (el, index) => {
       return (
         <div key={index} className="list-item-container">
             <div  className="list-item-box">{index + 1}</div>
-            <a href={"#" + titles[el].toLowerCase().split(' ').join('-')}>{titles[el]}</a>
+            <a href={"#" + tableOfContentsTitles[el].toLowerCase().split(' ').join('-')}>{tableOfContentsTitles[el]}</a>
         </div>
       )
     })
 
-    Object.keys(titles).forEach( (el) => { 
-      keys[el] = titles[el].toLowerCase().split(' ').join('-')
+    Object.keys(tableOfContentsTitles).forEach( (el) => { 
+      tableOfContentsComponentIds[el] = tableOfContentsTitles[el].toLowerCase().split(' ').join('-')
     });
 
   }
@@ -48,26 +49,26 @@ const GeneContent = () => {
     <GeneBanner/>
     <GeneDownload/>
     {
-      titles ? (
+      showTableOfContents ? (
         <div>
           <h3>Contents</h3> 
           <div className="gene-content-container">      
-            { titles && <div className="vl"></div> }
+            { showTableOfContents && <div className="vl"></div> }
             {tableOfContents}
           </div>  
         </div>
       ) : null
     }
-    <div id={titles ? keys['associationResults'] : null}>
+    <div id={showTableOfContents ? tableOfContentsComponentIds['associationResults'] : null}>
       <GenePhenotypeAssociation/>
       <GeneLocusZoom />
     </div>
-    <div id={titles ? keys['geneFunctionalVariants'] : null}>
+    <div id={showTableOfContents ? tableOfContentsComponentIds['geneFunctionalVariants'] : null}>
       <GeneFunctionalVariants/>
     </div>
-    { showLOF && <div id={titles ? keys['lossOfFunction'] : null}><GeneLossOfFunction/></div>}
-    { showPqtl && <div id={titles ? keys['pqtlColocalizations'] : null}><GenePqtls/></div> }
-    <div id={titles ? keys['geneDrugs'] : null}><GeneDrugs/></div>
+    { showLOF && <div id={showTableOfContents ? tableOfContentsComponentIds['lossOfFunction'] : null}><GeneLossOfFunction/></div>}
+    { showPqtl && <div id={showTableOfContents ? tableOfContentsComponentIds['pqtlColocalizations'] : null}><GenePqtls/></div> }
+    <div id={showTableOfContents ? tableOfContentsComponentIds['geneDrugs'] : null}><GeneDrugs/></div>
 
   </div>
 
