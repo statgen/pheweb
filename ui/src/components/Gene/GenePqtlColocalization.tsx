@@ -35,7 +35,7 @@ export const hasError = (errorMessage : string | null | undefined, content:  JSX
 const colocalizationSubTable = ( row :  ReactTable ) : JSX.Element | any => {
 
   const value = row.original.disease_colocalizations[0];
-  const pageSize = Math.min(10, Object.keys(value).length);
+  const pageSize = Math.min(5, Object.keys(value).length);
 
   var chrPos = row.original.v.split(':', 2);  
   var chrom = chrPos[0];
