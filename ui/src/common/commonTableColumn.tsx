@@ -1593,14 +1593,7 @@ const pqtColumns = {
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
     minWidth: columnWith(80)
-  },
-  pqtlColocNumber: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>number of disease colocalizations</span>),
-    accessor: "disease_colocalizations",
-    filterMethod: (filter, row) => row[filter.id] >= filter.value,    
-    Cell: props => <div>{props.original.disease_colocalizations[0].length}</div>,
-    minWidth: columnWith(80)
-  },  
+  }
 }
 
 const colocColumns = {
