@@ -2115,7 +2115,8 @@ minWidth: 40
 }, {
 Header: () => (<span title="R^2 to lead variant" style={{textDecoration: 'underline'}}>R^2 to lead variant</span>),
 accessor: 'r2_to_lead',
-Cell: (props) => isNaN(+props.original.cs_prob) || props.original.cs_prob === null ? 'NA' : decimalCellFormatter(props),
+// Cell: (props) => isNaN(+props.original.cs_prob) || props.original.cs_prob === null ? 'NA' : decimalCellFormatter(props),
+Cell: (props) => decimalCellFormatter(props),
 minWidth: 40
 }]
 
