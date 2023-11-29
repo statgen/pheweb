@@ -42,7 +42,15 @@ from .components.coding.service import coding
 from flask_cors import CORS
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+log_d = {
+    "NOTSET":logging.NOTSET,
+    "DEBUG":logging.DEBUG,
+    "INFO":logging.INFO,
+    "WARNING":logging.WARNING,
+    "ERROR":logging.ERROR,
+    "CRITICAL":logging.CRITICAL,
+}
+logging.basicConfig(level=log_d.get(conf.get("logging_level"),logging.WARNING))
 
 app = Flask(__name__,
             # this is hack so this it doesn't get confused on the static subdirectory
