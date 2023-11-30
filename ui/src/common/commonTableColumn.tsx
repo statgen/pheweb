@@ -1828,7 +1828,7 @@ export const LOFTableColumns = [
 export const variantTableColumns = [
   phenotypeColumns.category,
   phenotypeColumns.phenotype,
-  phenotypeColumns.phenocode,
+  {...phenotypeColumns.phenocode, show: false},
   phenotypeColumns.betaVariant,
   { ...phenotypeColumns.sebeta, show : false},
   { ...phenotypeColumns.pValue, sortMethod: nullToBottomSorter },
