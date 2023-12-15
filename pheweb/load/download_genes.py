@@ -43,6 +43,8 @@ snRNA
 snoRNA
 TEC
 vaultRNA
+lncRNA
+vault_RNA
 '''.split()).union(good_genetypes)
 
 def get_all_genes(gencode_filepath):
