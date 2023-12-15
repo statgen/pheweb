@@ -66,7 +66,7 @@ const userInterface = {
         </a>
       </p>
     `,
-    // r2_to_lead_threshold: 0.6
+    r2_to_lead_threshold: 0.6,
   },
   index: {
     table: {
@@ -97,13 +97,14 @@ const userInterface = {
   },
   gene: { lossOfFunction: null , lz_config : { ld_panel_version : "sisu42" }, 
           pqtlColocalizations: null,
-          // tableOfContentsTitles: {
+          geneColocalizations: null,
+          tableOfContentsTitles: {
           //   "associationResults": "Disease associations within gene region",
           //   "geneFunctionalVariants": "Coding variant associations",
           //   "lossOfFunction": "Protein truncating variant burden associations",
           //   "pqtlColocalizations": "pQTL and colocalizations",
           //   "geneDrugs": "Drugs targeting the gene"
-          // }
+          }
   }
 }
 
