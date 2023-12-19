@@ -20,7 +20,7 @@ mkdir -p ${OUT_DIR}/generated-by-pheweb/sites
 mkdir -p ${OUT_DIR}/.pheweb/cache
 ```
 
-Copy unannotated variants sites file to be used by pheweb during the generation of new pheweb resources:
+Copy unannotated variants sites file to be used by pheweb which is required for generating new pheweb resources:
 ```
 gsutil cp gs://r10-data-green/regenie/demopheno/sites.tsv ${OUT_DIR}/generated-by-pheweb/sites/sites-unannotated.tsv
 ```
@@ -29,17 +29,17 @@ There are two ways to update the resources:
 
 **Option 1** If you would like to use pheweb-native genes pre-processing step which includes downloading gencode gene annotation file, selecting protein-coding/IG/TR genes, de-duplicating gene symbols and gene ids, run the following:
 ```
-# downloads fresh genes annotation gtf and formats genes file that will be used in other steps
+# download fresh genes annotation gtf and formats genes file
 pheweb download-genes
 
-# adds nearest_genes column to the variant sites by using genes file generated above
+# add nearest_genes column to the variant sites by using genes file generated above
 pheweb add-genes
 
-# creates genes aliases db using genes file
+# create genes aliases db using freshly created genes file
 pheweb make-gene-aliases-sqlite3
 ``` 
 
-**Option 2** If you would like to keep gene types other than protein-coding/IG/TR in the pheweb broser, perform steps described below:
+**Option 2** If you would like to keep gene types other than protein-coding/IG/TR in pheweb browser, perform steps described below:
 
 ```
 # Download gene annotation file and remove gene symbol duplicates
@@ -56,23 +56,23 @@ BEGIN{FS=OFS="\t"}
         }
 ' | awk '!seen[$4]++' > genes-b38-v39.bed
 
-# adds nearest_genes column to the variant sites by using genes file generated above
-pheweb add-genes --genes-filepath gencode.v39.genes.nodups.bed
+# add nearest_genes column to the variant sites by using genes file generated above
+pheweb add-genes --genes-filepath genes-b38-v39.bed
 
-# creates genes aliases db using genes file generated above
+# create genes aliases db using genes file generated above
 cp genes-b38-v39.bed ${OUT_DIR}/.pheweb/cache/
 pheweb make-gene-aliases-sqlite3
 
 ```
 
-Copy generated resources to be served by the pheweb browser to the cloud bucket:
+Copy generated resources to be served by the pheweb browser to google cloud storage bucket:
 ```
 ${OUT_DIR}/.pheweb/cache/genes-b38-v39.bed
 ${OUT_DIR}/generated-by-pheweb/resources/gene_aliases.sqlite3
 ${OUT_DIR}/generated-by-pheweb/sites/sites.tsv
 ```
 
-The Latest pheweb docker image can be used to run pheweb commands:
+The latest pheweb docker image can be used to run pheweb commands:
 ```
 docker run -it --rm \
 -v $PWD/${OUT_DIR}:/root \
