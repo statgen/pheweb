@@ -293,6 +293,15 @@ class FileCodingDAO(CodingDAO):
         time_db = timeit.default_timer() - start_time
         # convert results from {a: [1,2], b: [3,4]} to [{a: 1, b: 3}, {a: 2, b: 4}]
         start_time = timeit.default_timer()
+
+        # read top list for appending possible_explaining_signals to the search results
+        top_list = pd.read_csv(self.top_table, sep='\t')[
+            ['pheno',
+             'variant',
+             'possible_explaining_signals']
+             ]
+        top_list.index = top_list['pheno'] + '_' + top_list['variant']
+
         results_munged = []
         indices = {}
         for i in range(len(results['variant_index'])):
@@ -322,7 +331,13 @@ class FileCodingDAO(CodingDAO):
                                              ]['variant'].replace(':', '-')
             indices[res['variant_index']] = True
             del res['variant_index']
+
+            # add possible_explaining_signals if available
+            pheno_var_id = res['pheno']['code'] + '_' + res['variant']
+            if pheno_var_id in top_list.index:
+                res['possible_explaining_signals'] = top_list.loc[pheno_var_id]['possible_explaining_signals']
             results_munged.append(res)
+            
         time_munge = timeit.default_timer() - start_time
         start_time = timeit.default_timer()
         self._set_top_flags(results_munged)
@@ -334,6 +349,7 @@ class FileCodingDAO(CodingDAO):
             ) if v['gene_most_severe'].upper() == gene.upper()}
             results_munged = [
                 res for res in results_munged if res['variant'] in anno]
+
         time_rest = timeit.default_timer() - start_time
         return {
             'results': results_munged,
