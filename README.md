@@ -13,36 +13,9 @@ python3 create_custom_json.py --phenotype_col phenocode --n_cases_col num_cases 
 
 ***In case you need to update genes and their coordinates (used for gene page to gather best associations for each pheno and thus generally used as the set of gene names )***
 
-Prepare output directories to store new pheweb resources:
-```
-export OUT_DIR="pheweb"
-mkdir -p ${OUT_DIR}/generated-by-pheweb/sites
-mkdir -p ${OUT_DIR}/.pheweb/cache
-```
-
-Copy unannotated variants sites file to be used by pheweb which is required for generating new pheweb resources:
-```
-gsutil cp gs://r10-data-green/regenie/demopheno/sites.tsv ${OUT_DIR}/generated-by-pheweb/sites/sites-unannotated.tsv
-```
-
-There are two ways to update the resources:
-
-**Option 1** If you would like to use pheweb-native genes pre-processing step which includes downloading gencode gene annotation file, selecting protein-coding/IG/TR genes, de-duplicating gene symbols and gene ids, run the following:
-```
-# download fresh genes annotation gtf and formats genes file
-pheweb download-genes
-
-# add nearest_genes column to the variant sites by using genes file generated above
-pheweb add-genes
-
-# create genes aliases db using freshly created genes file
-pheweb make-gene-aliases-sqlite3
-``` 
-
-**Option 2** If you would like to keep gene types other than protein-coding/IG/TR in pheweb browser, perform steps described below:
+The gene file needs to be bed file with build 38 coordinates where there are no duplicate genes. Example below for generating file using gene version 39:
 
 ```
-# Download gene annotation file and remove gene symbol duplicates
 curl https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_39/gencode.v39.annotation.gff3.gz | zcat |  awk '
 BEGIN{FS=OFS="\t"} 
     $3=="gene"{ 
@@ -52,33 +25,20 @@ BEGIN{FS=OFS="\t"}
         for(e in row) { 
             split(row[e],b,"=");
             elems[b[1]]=b[2] }; 
-            print $1,$4,$5,elems["gene_name"],elems["gene_id"]; 
+            split(elems["gene_id"], gid ,".")
+            print $1,$4,$5,elems["gene_name"],gid[1]; 
         }
 ' | awk '!seen[$4]++' > genes-b38-v39.bed
-
-# add nearest_genes column to the variant sites by using genes file generated above
-pheweb add-genes --genes-filepath genes-b38-v39.bed
-
-# create genes aliases db using genes file generated above
-cp genes-b38-v39.bed ${OUT_DIR}/.pheweb/cache/
-pheweb make-gene-aliases-sqlite3
-
 ```
 
-Copy generated resources to be served by the pheweb browser to google cloud storage bucket:
+Run import worfkfow using prepared bed file as input `import_pheweb.bed_file` to the workflow. The following files genereated by pheweb should be updated once the workflow is finished: 
 ```
-${OUT_DIR}/.pheweb/cache/genes-b38-v39.bed
-${OUT_DIR}/generated-by-pheweb/resources/gene_aliases.sqlite3
-${OUT_DIR}/generated-by-pheweb/sites/sites.tsv
+cache/genes-b38-v39.bed
+generated-by-pheweb/resources/gene_aliases.sqlite3
+generated-by-pheweb/sites/cpras-rsids.sqlite3
+generated-by-pheweb/sites/sites.tsv
 ```
 
-The latest pheweb docker image can be used to run pheweb commands:
-```
-docker run -it --rm \
--v $PWD/${OUT_DIR}:/root \
--v $PWD/${OUT_DIR}/generated-by-pheweb:/generated-by-pheweb/ eu.gcr.io/phewas-development/pheweb:latest \
-pheweb ${PHEWEB_COMMAND}
-```
 
 ***Copy imported data to destination***
 
