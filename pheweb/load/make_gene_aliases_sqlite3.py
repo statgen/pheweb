@@ -98,11 +98,9 @@ def run(argv:List[str]) -> None:
     else:
         print("getting an existing bed file: {}".format(gene_filepath))
         genes = [{'canonical': canonical, 'ensg':ensg} for _,_,_,canonical,ensg in get_gene_tuples_with_ensg()]
-        if not len({g['ensg'] for g in genes}) == len(genes) or not len({g['canonical'] for g in genes}) == len(genes):
-            gene_filepath_new = "{}_not_valid.bed".format(gene_filepath)
-            print('Detected duplicates in the provided genes file - rename {} to {}. Downloading genes instead'.format(gene_filepath, gene_filepath_new))
-            os.rename(gene_filepath, gene_filepath_new)
-            download_genes.run([])
+        
+        assert len({g['ensg'] for g in genes}) == len(genes), 'Detected duplicates in gene symbols in the provided genes file {}'.format(gene_filepath)
+        assert len({g['canonical'] for g in genes}) == len(genes), 'Detected duplicates in ensembl gene ids in the provided genes file {}'.format(gene_filepath)
     
     dest_filepath = Path(get_filepath('gene-aliases-sqlite3', must_exist=False)())
     print('sqlite filename: {}'.format(dest_filepath))
