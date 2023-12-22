@@ -97,8 +97,7 @@ def run(argv:List[str]) -> None:
         download_genes.run([])
     else:
         print("getting an existing bed file: {}".format(gene_filepath))
-        genes = [{'canonical': canonical, 'ensg':ensg} for _,_,_,canonical,ensg in get_gene_tuples_with_ensg()]
-        
+        genes = [{'canonical': canonical, 'ensg': ensg.split('.')[0]} for _,_,_,canonical,ensg in get_gene_tuples_with_ensg()]
         assert len({g['ensg'] for g in genes}) == len(genes), 'Detected duplicates in gene symbols in the provided genes file {}'.format(gene_filepath)
         assert len({g['canonical'] for g in genes}) == len(genes), 'Detected duplicates in ensembl gene ids in the provided genes file {}'.format(gene_filepath)
     
