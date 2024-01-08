@@ -40,8 +40,9 @@ class ServerJeeves(object):
         self.variant_phenotype = self.dbs_fact.get_variant_phenotype_dao()
         self.threadpool = ThreadPoolExecutor(max_workers= self.conf.n_query_threads)
         self.phenos = {pheno['phenocode']: pheno for pheno in get_phenolist()}
-        self.autocompleter = self.dbs_fact.get_autocompleter()
+        self.autocompleter_dao = self.dbs_fact.get_autocompleter_dao()
         self.pqtl_colocalization = self.dbs_fact.get_pqtl_colocalization_dao()
+        self.health_dao = self.dbs_fact.get_health_dao()
 
     def gene_functional_variants(self, gene, pThreshold=None):
         if pThreshold is None:
@@ -480,8 +481,8 @@ class ServerJeeves(object):
     @functools.lru_cache(None)
     def get_best_phenos_by_gene(self, gene):
         chrom,start,end = self.get_gene_region_mapping()[gene]
-        results = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)  
-        if 'pval' in r.assoc:
+        results = self.result_dao.get_top_per_pheno_variant_results_range(chrom, start, end)
+        if 'pval' in results.assoc:
             phenolist = [r.assoc.phenocode for r in results if r.assoc.pval < 1e-08]
         else:
             phenolist = [r.assoc.phenocode for r in results if r.assoc.mlogp > 16.8]

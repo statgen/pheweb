@@ -82,6 +82,7 @@ setup(
         'PyMySQL>=0.10.1',
         'mysqlclient>=2.0.1',
         'smart_open[gcs]~=5.2.1',
+        'prometheus-flask-exporter~=0.23.0',
         'tiledb==0.18.3',
     ],
     dependency_links=[
