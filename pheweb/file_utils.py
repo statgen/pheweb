@@ -18,7 +18,6 @@ import pysam
 from .utils import PheWebError, get_phenolist, chrom_order
 from .conf_utils import conf, get_field_parser, validate_fields
 
-
 def get_generated_path(*path_parts):
     return os.path.join(conf.data_dir, "generated-by-pheweb", *path_parts)
 
@@ -34,7 +33,7 @@ genome_build = "38"
 if genome_build not in ["37", "38"]:
     raise ("genome build needs to be 37 or 38")
 dbsnp_version = "151"
-genes_version = "37"
+genes_version = "39"
 
 common_filepaths = {
     "phenolist": os.path.join(conf.data_dir, "pheno-list.json"),

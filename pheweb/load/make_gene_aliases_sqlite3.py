@@ -7,7 +7,9 @@ import re, json, shutil
 from pathlib import Path
 import urllib.request
 import sqlite3
+from . import download_genes
 from typing import List, Dict, Iterable, Iterator, Tuple
+import os
 
 def get_gene_tuples_with_ensg() -> Iterator[Tuple[str,int,int,str,str]]:
     with open(get_filepath('genes')) as f:
@@ -82,18 +84,25 @@ def download_gene_aliases() -> None:
         db.executemany('INSERT INTO gene_aliases VALUES (?,?)', sorted(get_gene_aliases().items()))
     aliases_tmp_filepath.replace(aliases_filepath)
 
+
 def run(argv:List[str]) -> None:
     if '-h' in argv or '--help' in argv:
         print('Make a database of all gene names and their aliases for easy searching.')
         exit(1)
-
+    
     # This needs genes for filtering
-    if not Path(get_filepath('genes', must_exist=False)).exists():
+    gene_filepath = Path(get_filepath('genes', must_exist=False))
+    if not gene_filepath.exists():
         print('Downloading genes')
-        from . import download_genes
         download_genes.run([])
+    else:
+        print("getting an existing bed file: {}".format(gene_filepath))
+        genes = [{'canonical': canonical, 'ensg': ensg.split('.')[0]} for _,_,_,canonical,ensg in get_gene_tuples_with_ensg()]
+        assert len({g['ensg'] for g in genes}) == len(genes), 'Detected duplicates in gene symbols in the provided genes file {}'.format(gene_filepath)
+        assert len({g['canonical'] for g in genes}) == len(genes), 'Detected duplicates in ensembl gene ids in the provided genes file {}'.format(gene_filepath)
     
     dest_filepath = Path(get_filepath('gene-aliases-sqlite3', must_exist=False)())
+    print('sqlite filename: {}'.format(dest_filepath))
     if dest_filepath.exists(): return
 
     # Check cache_dir
