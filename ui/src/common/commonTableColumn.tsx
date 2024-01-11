@@ -1422,8 +1422,15 @@ const phenotypeColumns = {
     id: 'beta',
     minWidth: 5 * emsize ,
     width: 5 * emsize
-  }
-
+  },
+  phenocode: {
+      Header: () => (<span title="phenocode" style={{ textDecoration: "underline" }}>phenocode</span>),
+      label: "phenocode",
+      id: "phenocode",
+      accessor: "phenocode",
+      Cell: phenotypeCellFormatter,
+      minWidth: 150
+    }
 }
 
 const pqtColumns = {
@@ -1937,6 +1944,7 @@ export const LOFTableColumns = [
 export const variantTableColumns = [
   phenotypeColumns.category,
   phenotypeColumns.phenotype,
+  {...phenotypeColumns.phenocode, show: false},
   phenotypeColumns.betaVariant,
   { ...phenotypeColumns.sebeta, show : false},
   { ...phenotypeColumns.pValue, sortMethod: nullToBottomSorter },

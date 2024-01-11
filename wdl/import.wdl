@@ -135,26 +135,32 @@ task annotation {
      String dir = '/cromwell_root/'
      Array[String] output_url
 
+     Int gene_version
+
     command <<<
 	set -euxo pipefail
 	cd ${dir}
 
-        mkdir -p pheweb/generated-by-pheweb/parsed
+    mkdir -p pheweb/generated-by-pheweb/parsed
 	mkdir -p pheweb/generated-by-pheweb/tmp
 	mkdir -p pheweb/generated-by-pheweb/sites/genes
 	mkdir -p pheweb/generated-by-pheweb/sites/dbSNP
+    mkdir -p /root/.pheweb/cache/
+
+    # to ensure that bed file is used by pheweb
+    [[ -z "${bed_file}" ]] || cp ${bed_file} /root/.pheweb/cache/genes-b38-v${gene_version}.bed
 
 	# TODO test cache
 	# TODO this file also appears : generated-by-pheweb/sites/dbSNP/dbsnp-b151-GRCh38.gz
 	[[ -z "${rsids_file}" ]] || mv ${rsids_file} pheweb/generated-by-pheweb/sites/dbSNP/rsids-b38-dbsnp151.vcf.gz
-        [[ -z "${bed_file}" ]] || mv ${bed_file}   pheweb/generated-by-pheweb/sites/genes/genes-b38-v37.bed
-        # allow for compressed sites file
+    [[ -z "${bed_file}" ]] || mv ${bed_file} /root/.pheweb/cache/genes-b38-v${gene_version}.bed
+    # allow for compressed sites file
 	cat ${variant_list} | (if [[ "${variant_list}" == *.gz || "${variant_list}" == *.bgz ]]; then zcat ; else cat ; fi) > pheweb/generated-by-pheweb/sites/sites-unannotated.tsv
 
  	cd pheweb
-
+        [[ -z "${bed_file}" ]] && pheweb download-genes 
         df -h && pheweb add-rsids
-        df -h && pheweb add-genes --genes-filepath ${dir}/pheweb/generated-by-pheweb/sites/genes/genes-b38-v37.bed
+        [[ -z "${bed_file}" ]] && pheweb add-genes || pheweb add-genes --genes-filepath /root/.pheweb/cache/genes-b38-v${gene_version}.bed
         df -h && pheweb make-cpras-rsids-sqlite3
         df -h && pheweb make-gene-aliases-sqlite3
 
@@ -167,7 +173,7 @@ task annotation {
         /pheweb/scripts/copy_files.sh ${dir}/pheweb/generated-by-pheweb/sites/sites.tsv                $url/generated-by-pheweb/sites/sites.tsv
         /pheweb/scripts/copy_files.sh ${dir}/pheweb/generated-by-pheweb/resources/gene_aliases.sqlite3 $url/generated-by-pheweb/resources/gene_aliases.sqlite3
         /pheweb/scripts/copy_files.sh ${dir}/pheweb/generated-by-pheweb/sites/cpras-rsids.sqlite3      $url/generated-by-pheweb/sites/cpras-rsids.sqlite3
-        /pheweb/scripts/copy_files.sh ${dir}/pheweb/generated-by-pheweb/sites/genes/genes-b38-v37.bed  $url/cache/genes-b38-v37.bed
+        /pheweb/scripts/copy_files.sh /root/.pheweb/cache/genes-b38-v${gene_version}.bed $url/cache/genes-b38-v${gene_version}.bed
 
         done
 

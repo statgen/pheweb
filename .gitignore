@@ -86,3 +86,4 @@ tramp
 .\#*
 .coverage
 .isort.cfg
+*,cover

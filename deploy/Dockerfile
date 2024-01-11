@@ -25,15 +25,22 @@ RUN apt-get install cmake libcurl4-openssl-dev  --yes
 
 # install nodejs
 RUN apt-get install curl software-properties-common gnupg --yes
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -x -
-RUN apt-get install nodejs --yes
-
+RUN apt-get update; \
+    apt-get install -y ca-certificates curl gnupg; \
+    mkdir -p /etc/apt/keyrings; \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+     | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg; \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
+     > /etc/apt/sources.list.d/nodesource.list; \
+    apt-get -qy update; \
+    apt-get -qy install nodejs;
 
 RUN apt-get update && apt-get install --no-install-recommends texlive wget --yes
 # install cloudsql
 RUN wget --no-check-certificate https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/local/bin/cloud_sql_proxy && \
     chmod +x /usr/local/bin/cloud_sql_proxy
 
+RUN apt-get install bzip2 -y 
 RUN curl -LO https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 && \
     tar -xvjf htslib-1.9.tar.bz2 && cd htslib-1.9 && \
     ./configure && make && make install && cd .. && rm -rf htslib-1.9*
@@ -58,8 +65,13 @@ RUN rm -r /pheweb
 ADD . /pheweb
 ADD pheweb/load/external_matrix.py /usr/local/bin/
 
+# install gsutil
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | \
+    tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
+    gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && apt-get update -y && apt-get install google-cloud-sdk -y
+
 # remove build tools
 RUN apt-get purge git gcc rustc cmake --yes
-
+    
 EXPOSE 8080
 CMD cloud_sql_proxy -instances=$CLOUD_SQL_PROXY_INSTANCES -credential_file=$CLOUD_SQL_PROXY_CREDENTIAL_FILE & cd $PHEWEB_DIR && pheweb serve --port 8080 --num-workers 1

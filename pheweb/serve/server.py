@@ -4,7 +4,7 @@ from ..file_utils import common_filepaths
 from .server_utils import get_pheno_region
 from .auth import GoogleSignIn
 from ..version import version as pheweb_version
-
+from typing import Optional
 from flask import Blueprint
 
 from .data_access.db import Variant
@@ -12,8 +12,11 @@ from .data_access.db import Variant
 from flask import Flask, jsonify, render_template, request, redirect, abort, flash, current_app, send_from_directory, send_file, session, url_for,make_response
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
+from prometheus_flask_exporter import PrometheusMetrics
+
 from .reporting import Report
 
+import ipaddress
 import urllib
 import urllib.parse as urlparse
 from urllib.parse import urlencode
@@ -33,21 +36,42 @@ from collections import defaultdict
 from .encoder import FGJSONEncoder
 from .group_based_auth  import verify_membership
 
-from .server_auth import before_request
+from .server_auth import before_request, is_public, do_check_auth
 
 from pheweb_colocalization.view import colocalization
-from .components.autocomplete.service import autocomplete
 from .components.chip.service import chip
 from .components.coding.service import coding
 from flask_cors import CORS
 
+from pheweb.serve.components.autocomplete.service import component as component_autocomplete
+from pheweb.serve.components.health.service import component as component_health, add_status_check
+from pheweb.serve.components.configuration.service import component as component_configuration
+
+components = [ component_autocomplete, component_health , component_configuration ]
+
+
 import logging
-logging.basicConfig(level=logging.DEBUG)
+log_d = {
+    "NOTSET":logging.NOTSET,
+    "DEBUG":logging.DEBUG,
+    "INFO":logging.INFO,
+    "WARNING":logging.WARNING,
+    "ERROR":logging.ERROR,
+    "CRITICAL":logging.CRITICAL,
+}
+logging.basicConfig(level=log_d.get(conf.get("logging_level"),logging.WARNING))
 
 app = Flask(__name__,
             # this is hack so this it doesn't get confused on the static subdirectory
             static_url_path='/55e2cb41-9305-4f09-97fd-b66c4141d245',
             static_folder='static')
+
+default_labels = conf['collector_labels'] if 'collector_labels' in conf else {}
+metrics = PrometheusMetrics(app,
+                            path=None,
+                            group_by='endpoint',
+                            default_labels=default_labels)
+
 
 # see: https://flask-cors.readthedocs.io/en/latest/
 if 'cors_origins' in conf:
@@ -88,10 +112,12 @@ jeeves = ServerJeeves( conf )
 
 app.jeeves = jeeves
 app.register_blueprint(colocalization)
-app.register_blueprint(autocomplete)
 app.register_blueprint(chip)
 app.register_blueprint(coding)
 
+for c in components:
+    app.register_blueprint(c.blueprint)
+    add_status_check(c.status_check)
 
 # static resources
 resource_dir = None
@@ -107,22 +133,46 @@ if resource_dir:
                                  static_folder=resource_dir)
     app.register_blueprint(static_resources)
 
-# see discussion
-# https://stackoverflow.com/questions/13428708/best-way-to-make-flask-logins-login-required-the-default
-def is_public(function):
-    function.is_public = True
-    return function
-
 @app.before_request
 def check_auth():
-    # check if endpoint is mapped then
-    # check if endpoint has is public annotation
-    if request.endpoint and (request.endpoint in app.view_functions) and getattr(app.view_functions[request.endpoint], 'is_public', False) :
-        result = None
-    else: # check authentication
-        result = before_request()
+    return do_check_auth(app)
+
+def is_ip_in_cidr(ip, cidr):
+    """
+    Check if an IP address is within a specified CIDR block.
+
+    Args:
+    ip (str): The IP address to test.
+    cidr (str): The CIDR block.
+
+    Returns:
+    bool: True if the IP is within the CIDR block, False otherwise.
+    """
+    ip_address = ipaddress.ip_address(ip)
+    cidr_network = ipaddress.ip_network(cidr, strict=False)
+    return ip_address in cidr_network
+
+def metric_endpoint_is_accessible():
+    result = False
+    ip_addr = request.remote_addr
+    if 'collector_ips' in conf and ip_addr in conf['collector_ips']:
+        result = True
+    elif 'collector_cidrs' in conf:
+        result = any(is_ip_in_cidr(ip_addr, cidr) for cidr in conf['collector_cidrs'])
     return result
 
+@app.route('/api/metrics')
+@is_public
+def api_metrics():
+    # only allow access to the metrics to the collector
+    if metric_endpoint_is_accessible():
+        response_data, content_type = metrics.generate_metrics()
+        response = make_response(response_data)
+        response.content_type = content_type
+        return response
+    else:
+        abort(403)  # Forbidden access
+    
 @app.route('/health')
 @is_public
 def health():
@@ -157,9 +207,12 @@ def pheno(phenocode):
         abort(404)
     return jsonify(phenos[phenocode])
 
+def active_phenolist():
+    return [pheno for pheno in get_phenolist() if pheno['phenocode'] in use_phenos]
+
 @app.route('/api/phenos')
 def phenolist():
-    return jsonify([pheno for pheno in get_phenolist() if pheno['phenocode'] in use_phenos])
+    return jsonify(active_phenolist())
 
 @app.route('/api/variant/<query>')
 def api_variant(query):
@@ -250,14 +303,6 @@ def api_lof_gene(gene):
             lofs_use.append(lof)
     return jsonify(lofs_use)
 
-@app.route('/api/top_hits.json')
-def api_top_hits():
-    return send_file(common_filepaths['top-hits-1k'])
-
-@app.route('/download/top_hits.tsv')
-def download_top_hits():
-    return send_file(common_filepaths['top-hits-tsv'])
-
 @app.route('/api/qq/pheno/<phenocode>')
 def api_pheno_qq(phenocode):
     if phenocode not in use_phenos:
@@ -291,10 +336,10 @@ def api_region_page(phenocode, region):
     return jsonify(data)
 
 @app.route('/api/region/<phenocode>/lz-results/') # This API is easier on the LZ side.
-def api_region(phenocode):
+def api_region(phenocode : str,filter_param = None):
     if phenocode not in use_phenos:
         abort(404)
-    filter_param = request.args.get('filter')
+    filter_param = filter_param if filter_param is not None else request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
     chrom = '23' if str(chrom) == 'X' else chrom
@@ -303,20 +348,22 @@ def api_region(phenocode):
     return jsonify(rv)
 
 @app.route('/api/conditional_region/<phenocode>/lz-results/')
-def api_conditional_region(phenocode):
+def api_conditional_region(phenocode, filter_param : Optional[str] = None):
     if phenocode not in use_phenos:
         abort(404)
-    filter_param = request.args.get('filter')
+    if filter_param is None:
+        filter_param=request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
     rv = jeeves.get_conditional_regions_for_pheno(phenocode, chrom, pos_start, pos_end)
     return jsonify(rv)
 
 @app.route('/api/finemapped_region/<phenocode>/lz-results/')
-def api_finemapped_region(phenocode):
+def api_finemapped_region(phenocode : str, filter_param : Optional[str] = None):
     if phenocode not in use_phenos:
         abort(404)
-    filter_param = request.args.get('filter')
+    if filter_param is None:
+        filter_param=request.args.get('filter')
     groups = re.match(r"analysis in 3 and chromosome in +'(.+?)' and position ge ([0-9]+) and position le ([0-9]+)", filter_param).groups()
     chrom, pos_start, pos_end = groups[0], int(groups[1]), int(groups[2])
     chrom = 23 if str(chrom) == 'X' else int(chrom)
@@ -338,49 +385,6 @@ def api_gene_colocalization(genename):
     except Exception as e:
         die(f"\nSorry, pQTL data for the gene {genename} is not available: {e}\n")
     return jsonify(dat)
-
-@app.route('/api/gene/<genename>')
-def gene_api(genename):
-
-    phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene(genename) if pheno['phenocode'] in use_phenos]
-    if not phenos_in_gene:
-        die("Sorry, that gene doesn't appear to have any associations in any phenotype")
-    try:
-        phenocode=phenos_in_gene[0]['phenocode']
-        gene_region_mapping = jeeves.get_gene_region_mapping()
-        chrom, start, end = gene_region_mapping[genename]
-
-        include_string = request.args.get('include', '')
-        if include_string:
-            include_chrom, include_pos = include_string.split('-')
-            include_pos = int(include_pos)
-            assert include_chrom == chrom
-            if include_pos < start:
-                start = include_pos - (end - start) * 0.01
-            elif include_pos > end:
-                end = include_pos + (end - start) * 0.01
-        start, end = pad_gene(start, end)
-
-        pheno = phenos[phenocode]
-
-        phenos_in_gene = []
-        for pheno_in_gene in jeeves.get_best_phenos_by_gene().get(genename, []):
-            if pheno_in_gene['phenocode'] in use_phenos:
-                phenos_in_gene.append({
-                    'pheno': {k:v for k,v in phenos[pheno_in_gene['phenocode']].items() if k not in ['assoc_files', 'colnum']},
-                    'assoc': {k:v for k,v in pheno_in_gene.items() if k != 'phenocode'},
-                })
-
-        gene_information = { "pheno" :  pheno,
-                             "significant_phenos" : phenos_in_gene,
-                             "gene_symbol" : genename,
-                             "region" : f'{chrom}-{start}-{end}',
-                             "start" : start ,
-                             "end" : end }
-
-        return jsonify(gene_information)
-    except Exception as exc:
-        die("Sorry, your region request for phenocode {!r} and gene {!r} didn't work".format(phenocode, genename), exception=exc)
 
 @app.route('/api/genereport/<genename>')
 def gene_report(genename):
@@ -469,11 +473,13 @@ def drugs(genename):
 
 # NCBI sometimes doesn't like cross-origin requests so do them here and not in the browser
 @app.route('/api/ncbi/<endpoint>')
-def ncbi(endpoint):
+def ncbi(endpoint, args=None):
     url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/' + endpoint + '?'
     url_parts = list(urlparse.urlparse(url))
     query = dict(urlparse.parse_qsl(url_parts[3]))
-    query.update({param: request.args.get(param) for param in request.args})
+    if args is None:
+        args=request.args
+    query.update({param: args.get(param) for param in args})
     url_parts[3] = urlencode(query)
     return urllib.request.urlopen(urlparse.urlunparse(url_parts).replace(';', '?')).read()
 

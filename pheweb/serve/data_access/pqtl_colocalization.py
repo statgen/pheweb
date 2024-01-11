@@ -88,7 +88,7 @@ class PqtlColocalisationDao(PqtlColocalisationDB, MysqlDAO):
                 columns = colocalizaion['columns']
                 columns = ", ".join(columns)
                 sql = f"""SELECT {columns} FROM {table} WHERE 
-                                phenotype2_descriptions=%s """
+                                phenotype2_description=%s """
                 parameters = [gene_name]    
                 cursor.execute(sql, parameters)
                 colocs = cursor.fetchall()

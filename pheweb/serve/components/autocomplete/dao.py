@@ -1,9 +1,9 @@
-import json
 import abc
-from typing import List,Dict,Any,Optional,Iterator
-from dataclasses import dataclass
+from typing import List,Dict,Optional
+from pheweb.serve.components.model import ComponentCheck, ComponentStatus
 
-class AutocompleterDAO:
+
+class AutocompleterDAO(ComponentCheck):
 
 
     @abc.abstractmethod
@@ -21,5 +21,13 @@ class AutocompleterDAO:
         """
         raise NotImplementedError
 
-"""Max number of results to return"""
+    def get_status(self,) -> ComponentStatus:
+        try:
+            self.autocomplete("APOE")
+        except Exception as ex:
+            return ComponentStatus.from_exception(ex) 
+        return ComponentStatus(True, [])
+    
+
+# Max number of results to return
 QUERY_LIMIT : int = 10

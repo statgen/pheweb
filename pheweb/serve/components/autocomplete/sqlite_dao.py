@@ -1,14 +1,14 @@
 from ....file_utils import get_filepath
 from ...server_utils import parse_variant
 from .dao import AutocompleterDAO, QUERY_LIMIT
-from flask import url_for
 from pathlib import Path
 import urllib.parse
 import itertools
 import re
 import copy
 import sqlite3
-from typing import List,Dict,Any,Optional,Iterator
+from pheweb.serve.components.model import ComponentStatus
+from typing import List,Dict,Optional,Iterator
 
 import logging
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class AutocompleterSqliteDAO(AutocompleterDAO):
                  phenos,
                  cpras_rsids_path = Path(get_filepath('cpras-rsids-sqlite3', must_exist=False)),
                  gene_aliases_path = Path(get_filepath('gene-aliases-sqlite3', must_exist=False)())):
-        logger.info(f"autocomplete:'AutocompleterSqliteDAO'")
+        logger.info(f"autocomplete:{AutocompleterSqliteDAO.__name__}")
         logger.info(f"cpras_rsids_path:'{cpras_rsids_path}'")
         logger.info(f"gene_aliases_path:{gene_aliases_path}'")
 
@@ -174,3 +174,14 @@ class AutocompleterSqliteDAO(AutocompleterDAO):
                         'display' : '{} (alias for {})'.format(alias, canonical_symbols[0]),
                     }
 
+
+    def get_name(self,) -> str:
+        return "autocomplete sqlite"
+    
+    def get_status(self,) -> ComponentStatus:
+        try:
+            list(self._cpras_rsids_sqlite3.execute('SELECT cpra FROM cpras_rsids LIMIT 1'))
+            list(self._gene_aliases_sqlite3.execute('SELECT alias FROM gene_aliases LIMIT 1'))
+        except Exception as ex:
+            return ComponentStatus.from_exception(ex)
+        return super().get_status()

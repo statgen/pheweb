@@ -13,10 +13,32 @@ python3 create_custom_json.py --phenotype_col phenocode --n_cases_col num_cases 
 
 ***In case you need to update genes and their coordinates (used for gene page to gather best associations for each pheno and thus generally used as the set of gene names )***
 
-Get bed file e.g. v38 gene annotations from gencode and upload to a bucket and change bed gene annotation to point to this file
+The gene file needs to be bed file with build 38 coordinates where there are no duplicate genes. Example below for generating file using gene version 39:
+
 ```
-curl https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz | zcat |  awk ' BEGIN{FS=OFS="\t"} $3=="gene"{ gsub("chr","",$1); gsub("M","MT",$1); split($9,a,";"); for(e in a) { split(a[e],b,"=");elems[b[1]]=b[2] }; print $1,$4,$5,elems["gene_name"],elems["gene_id"]; }' > gencode.v38.genes.bed
+curl https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_39/gencode.v39.annotation.gff3.gz | zcat |  awk '
+BEGIN{FS=OFS="\t"} 
+    $3=="gene"{ 
+        gsub("chr","",$1); 
+        gsub("M","MT",$1); 
+        split($9, row ,";"); 
+        for(e in row) { 
+            split(row[e],b,"=");
+            elems[b[1]]=b[2] }; 
+            split(elems["gene_id"], gid ,".")
+            print $1,$4,$5,elems["gene_name"],gid[1]; 
+        }
+' | awk '!seen[$4]++' > genes-b38-v39.bed
 ```
+
+Run import worfkfow using prepared bed file as input `import_pheweb.bed_file` to the workflow. The following files genereated by pheweb should be updated once the workflow is finished: 
+```
+cache/genes-b38-v39.bed
+generated-by-pheweb/resources/gene_aliases.sqlite3
+generated-by-pheweb/sites/cpras-rsids.sqlite3
+generated-by-pheweb/sites/sites.tsv
+```
+
 
 ***Copy imported data to destination***
 

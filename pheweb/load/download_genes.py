@@ -43,6 +43,8 @@ snRNA
 snoRNA
 TEC
 vaultRNA
+lncRNA
+vault_RNA
 '''.split()).union(good_genetypes)
 
 def get_all_genes(gencode_filepath):
@@ -124,16 +126,11 @@ def run(argv):
         if not os.path.exists(gencode_filepath):
             make_basedir(gencode_filepath)
             if genome_build == '37':
-                wget.download(
-                    url="ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz",
-                    out=gencode_filepath
-                )
+                url=f"ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_{genes_version}/GRCh37_mapping/gencode.v{genes_version}lift37.annotation.gtf.gz",
             else:
-                wget.download(
-                    url="ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz",
-                    out=gencode_filepath
-                )
-            print('gencode annotations downloaded')
+                url=f"ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_{genes_version}/gencode.v{genes_version}.annotation.gtf.gz"
+            wget.download( url=url, out=gencode_filepath)
+            print('gencode annotations downloaded from {} to {} - generating final file {}'.format(url, gencode_filepath, genes_filepath))
         genes = get_all_genes(gencode_filepath)
         genes = dedup_ensg(genes)
         genes = dedup_symbol(genes)
