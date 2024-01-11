@@ -24,8 +24,8 @@ pipeline {
 		    sh '''helm fetch production_jenkins_storage_green/finngen-pheweb'''
                     sh '''/root/google-cloud-sdk/bin/gcloud container clusters get-credentials development-staging-pheweb --zone europe-west1-b'''
                     sh '''if helm ls | grep development-staging > /dev/null  ; then
-		          helm get values development-staging | grep -v USER-SUPPLIED > ./staging-values.yaml ;
-			  helm upgrade development-staging production_jenkins_storage_green/finngen-pheweb -f ./staging-values.yaml  --set image.tag=ci-${GIT_COMMIT} ;
+		          helm get values development-staging-pheweb | grep -v USER-SUPPLIED > ./staging-values.yaml ;
+			  helm upgrade development-staging-pheweb production_jenkins_storage_green/finngen-pheweb -f ./staging-values.yaml  --set image.tag=ci-${GIT_COMMIT} ;
 			  kubectl delete pods --all --wait=false
 			  fi'''
 		}
