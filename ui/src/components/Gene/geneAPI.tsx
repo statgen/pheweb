@@ -1,5 +1,5 @@
 import { get, Handler } from "../../common/commonUtilities";
-import { FunctionalVariants, GeneDrugs, GenePhenotypes, LossOfFunction, MyGene, PqtlColocalizations } from "./geneModel";
+import { FunctionalVariants, GeneDrugs, GenePhenotypes, LossOfFunction, MyGene, PqtlColocalizations, GeneColocalizations } from "./geneModel";
 import { resolveURL } from "../Configuration/configurationModel";
 
 export const getGeneDrugs =(geneName : string,
@@ -42,5 +42,14 @@ export const getGenePqtlColocalisations = (gene : string,
   getURL = get) : void => {
     const handler : Handler = (url : string) => (e : Error) => setError(`pQTL data ${e.message}`);
     const url = resolveURL(`/api/gene_pqtl_colocalization/${gene}`)
+    getURL(url, sink, handler)
+}
+
+export const getGeneColocalisations = (gene : string,
+  sink: (s: GeneColocalizations.Data) => void,
+  setError: (s: string | null) => void,
+  getURL = get) : void => {
+    const handler : Handler = (url : string) => (e : Error) => setError(`gene disease colocalization data ${e.message}`);
+    const url = resolveURL(`/api/gene_colocalization/${gene}`)
     getURL(url, sink, handler)
 }

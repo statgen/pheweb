@@ -6,6 +6,7 @@ import { scientificFormatter, shortNumberFormatter } from "./commonFormatter";
 import { LabelKeyObject , Headers } from "react-csv/components/CommonPropTypes";
 import matchSorter from 'match-sorter';
 import { string } from 'purify-ts';
+import ReactTooltip from "react-tooltip";
 
 interface PhewebWindow extends Window {
   release_prev: number;
@@ -31,6 +32,12 @@ function getSize(size = '1em', parent = document.body) {
  *
  */
 const emsize = getSize();
+
+export const getCounts = (arr: Array<string>) => {
+  var counts = {};
+  arr?.forEach(element => counts[element] = 1  + (counts[element] || 0));
+  return counts
+}
 
 export const pValueSentinel = 5e-324;
 
@@ -1427,6 +1434,73 @@ const phenotypeColumns = {
 }
 
 const pqtColumns = {
+  phenotype: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>phenotype</span>),
+    accessor: "phenotype",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: textCellFormatter,
+    minWidth: columnWith(120)
+  },
+  pheno: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>phenotype</span>),
+    accessor: "phenotype1_region",
+    filterMethod: (filter, row) => row[filter.id] == filter.value.pheno,
+    Cell: (props : { value : any }) => (
+      <a href={`/region/${props.value.pheno}/${props.value.region}`} target="_blank" rel="noopener noreferrer">{props.value.pheno}</a>
+    ),
+    minWidth: 150
+  },
+  phenotypeDescription: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>description</span>),
+    accessor: "description",
+    filterMethod: (filter, row) => row[filter.id] == filter.value,
+    Cell: textCellFormatter,
+    minWidth: columnWith(120)
+  },
+
+  n_colocs : {
+    Header: () => (<span style={{ textDecoration: "underline" }}>n colocalizations</span>),
+    accessor: "n_colocs",
+    Cell: (e) => {
+      var data = e.original.disease_colocalizations;
+      var arr = data.map(element => { return element['source2_displayname'] }).sort();
+
+      var posBeta = data.filter(element =>  element['beta2'] > 0).map(element => { return element['source2_displayname'] }).sort();
+      var negBeta = data.filter(element =>  element['beta2'] <= 0).map(element => { return element['source2_displayname'] }).sort();
+
+      var totalCounts = getCounts(arr);
+      var pos = getCounts(posBeta);
+      var neg = getCounts(negBeta);
+    
+      Object.keys(totalCounts).forEach(key => {
+        if(!neg.hasOwnProperty(key)) {
+          neg[key] = 0;
+        }
+        if(!pos.hasOwnProperty(key)) {
+          pos[key] = 0;
+        }
+      })
+      
+      var rows = Object.keys(totalCounts).map((key, i) => { 
+          return `<div style="margin-right: 20px" key=${key}> ↑${pos[key]} ↓${neg[key]} · ${key} </div>`
+        }
+      )
+      var ncolocsTooltip = `<div>${rows.join("")}<div>`;
+
+      return (
+        <>
+          <ReactTooltip
+            id="tooltip-n-colocs"
+            place="left" 
+            arrowColor="transparent"
+            html={true}
+            effect="solid"
+          />
+          <span data-tip={ncolocsTooltip} data-for="tooltip-n-colocs">{e.value}</span>
+        </>
+      );
+    },
+  },
   pqtlTrait: {
     Header: () => (<span style={{ textDecoration: "underline" }}>trait</span>),
     accessor: "trait",
@@ -1492,6 +1566,13 @@ const pqtColumns = {
     Cell: decimalCellFormatter,
     minWidth: columnWith(80)
   },
+  pqtlColocNumber: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>number of disease colocalizations</span>),
+    accessor: "disease_colocalizations",
+    filterMethod: (filter, row) => row[filter.id] >= filter.value,    
+    Cell: props => <div>{props.original.disease_colocalizations[0].length}</div>,
+    minWidth: columnWith(80)
+  },  
   pqtlBeta: {
     Header: () => (<span style={{ textDecoration: "underline" }}>beta</span>),
     accessor: "beta",
@@ -1519,14 +1600,7 @@ const pqtColumns = {
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
     minWidth: columnWith(80)
-  },
-  pqtlColocNumber: {
-    Header: () => (<span style={{ textDecoration: "underline" }}>number of disease colocalizations</span>),
-    accessor: "disease_colocalizations",
-    filterMethod: (filter, row) => row[filter.id] >= filter.value,    
-    Cell: props => <div>{props.original.disease_colocalizations[0].length}</div>,
-    minWidth: columnWith(80)
-  },  
+  }
 }
 
 const colocColumns = {
@@ -1544,7 +1618,25 @@ const colocColumns = {
     accessor: "phenotype1_description",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: textCellFormatter,
-    minWidth: 200
+    minWidth: 250
+  },
+  source: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>source</span>),
+    accessor: "source2_displayname",
+    Cell: textCellFormatter,
+    minWidth: 300
+  },
+  phenotype2: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>trait</span>),
+    accessor: "phenotype2",
+    Cell: textCellFormatter,
+    minWidth: 100
+  },
+  phenotype2Description: {
+    Header: () => (<span style={{ textDecoration: "underline" }}>description</span>),
+    accessor: "phenotype2_description",
+    Cell: textCellFormatter,
+    minWidth: 100
   },
   clpp: {
     Header: () => (<span style={{ textDecoration: "underline" }}>clpp</span>),
@@ -1579,7 +1671,7 @@ const colocColumns = {
     accessor: "len_cs2",
     filterMethod: (filter, row) => row[filter.id] == filter.value,
     Cell: numberCellFormatter,
-    minWidth: 80
+    minWidth: 100
   },
   beta1: {
     Header: () => (<span style={{ textDecoration: "underline" }}>beta cs1</span>),
@@ -1630,7 +1722,7 @@ const colocColumns = {
        props.original.locus_id2_alt].join(":") 
     }</div>,
     minWidth: columnWith(120)
-  },
+  }
 }
 
 export const colocSubTable = [
@@ -1649,6 +1741,23 @@ export const colocSubTable = [
   colocColumns.pval2
 ]
 
+export const phenoColocSubTable = [
+  colocColumns.source,
+  colocColumns.phenotype2,
+  colocColumns.clpp,
+  colocColumns.clpa,
+  colocColumns.lenInter,
+  colocColumns.lenCS1,
+  colocColumns.lenCS2,
+  { ...colocColumns.leadingVariantCS1, minWidth : 200},
+  { ...colocColumns.leadingVariantCS2, minWidth : 200},
+  colocColumns.beta1,
+  colocColumns.beta2,
+  colocColumns.pval1,
+  colocColumns.pval2
+]
+
+
 export const genePqtlTableColumns = [
   pqtColumns.pqtlTrait,
   pqtColumns.pqtlSource,
@@ -1664,6 +1773,13 @@ export const genePqtlTableColumns = [
   phenotypeColumns.codingMostServe,
   pqtColumns.pqtlGeneMostSevere,
   pqtColumns.pqtlColocNumber
+]
+
+
+export const geneColocTableColumns = [
+  { ...pqtColumns.phenotype, minWidth : 150},
+  { ...pqtColumns.phenotypeDescription, minWidth : 200},
+  pqtColumns.n_colocs
 ]
 
 export const geneLossOfFunctionTableColumns = [
@@ -2007,7 +2123,8 @@ minWidth: 40
 }, {
 Header: () => (<span title="R^2 to lead variant" style={{textDecoration: 'underline'}}>R^2 to lead variant</span>),
 accessor: 'r2_to_lead',
-Cell: (props) => isNaN(+props.original.cs_prob) || props.original.cs_prob === null ? 'NA' : decimalCellFormatter(props),
+// Cell: (props) => isNaN(+props.original.cs_prob) || props.original.cs_prob === null ? 'NA' : decimalCellFormatter(props),
+Cell: (props) => decimalCellFormatter(props),
 minWidth: 40
 }]
 

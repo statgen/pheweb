@@ -627,8 +627,11 @@ class ServerJeeves(object):
         return values
 
     def get_pqtl_colocalization_by_gene_name(self, gene_name: str):
-        """
-            Get pqtl and colocalization data by the gene name
-        """
+        """ Get pqtl and colocalization by signal by the gene name """
         dat = self.pqtl_colocalization.get_pqtl_colocalization(gene_name) if self.pqtl_colocalization else dict()
+        return dat
+
+    def get_colocalization_by_gene_name(self, gene_name: str):
+        """ Get gene colocalization data """
+        dat = self.pqtl_colocalization.get_gene_colocalization(gene_name) if self.pqtl_colocalization else dict()
         return dat 

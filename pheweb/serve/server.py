@@ -378,6 +378,14 @@ def api_gene_pqtl_colocalization(genename):
         die(f"\nSorry, pQTL data for the gene {genename} is not available: {e}\n")
     return jsonify(pqtldat)
 
+@app.route('/api/gene_colocalization/<genename>')
+def api_gene_colocalization(genename):
+    try:
+        dat = jeeves.get_colocalization_by_gene_name(genename)
+    except Exception as e:
+        die(f"\nSorry, pQTL data for the gene {genename} is not available: {e}\n")
+    return jsonify(dat)
+
 @app.route('/api/genereport/<genename>')
 def gene_report(genename):
     phenos_in_gene = [pheno for pheno in jeeves.get_best_phenos_by_gene(genename) if pheno in use_phenos]

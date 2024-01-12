@@ -50,21 +50,20 @@ database_conf = (
     { "pqtl_colocalization": 
       { "PqtlColocalisationDao": 
         { "authentication_file": "/etc/gcp/mysql.conf",
-        "fields": [ 
-          {
+          "pqtl": {
             "table": "pqtl_finemap",
             "columns": [ "trait","region","cs","v","cs_specific_prob",
                          "cs_log10bf", "cs_min_r2", "beta", "p", "prob", 
                          "most_severe", "gene_name", "gene_most_severe", 
                          "source", "source_displayname"] 
           },
-          {
+          "colocalization": {
               "table": "colocalization",
               "columns": ["source2", "phenotype1", "phenotype1_description",
                           "clpp", "clpa", "len_inter", "len_cs1", 
                           "len_cs2"]
           } 
-      ] } } 
+      } } 
     }
     )
 
