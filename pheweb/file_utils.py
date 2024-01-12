@@ -86,6 +86,14 @@ common_filepaths = {
     ),
 }
 
+# override common filepaths paths
+# allow the configuration to override filepath
+if hasattr(conf, 'filepath_conf'):
+    for key, new_value in conf.filepath_conf.items():
+        previous_value = common_filepaths[key]
+        common_filepaths[key] = new_value
+        print(f"Overridding path '{key}' from '{previous_value}' to '{new_value}'")
+
 # TODO: make a standard function for getting file names that checks that
 # they exist. if the file doesn't exist, it prints an error message telling
 # the user how to make that file.
