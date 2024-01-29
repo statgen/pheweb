@@ -13,24 +13,135 @@ import { finEnrichmentLabel } from "../Finngen/finngenGnomad"
 import VariantContextProvider from "./VariantContext"
 import VariantLavaaPlot from "./VariantLavaaPlot"
 import { Either, Left, Right } from "purify-ts/Either"
+import { notBottom, promiseValues } from '../../common/commonPromise';
+declare let window: ConfigurationWindow;
+const { config } = window;
 
+const default_banner: string = `
+<div className="variant-info col-xs-12">
+	<h1 style="margin-top:0">
+		{{summary.chrom}}:{{summary.pos}}:{{summary.ref}}:{{summary.alt}}
+		{{#summary.rsids}}
+		({{.}})
+		{{/summary.rsids}}
+	</h1>
+	<p style="margin-bottom: 0px;">
+		Nearest gene:
+		{{#summary.nearestGenes}}
+		<a style="color:black" href="/gene/{{.}}">{{.}}</a>
+		{{/summary.nearestGenes}}
+	</p>
+
+	<p id="annotation" style="margin-bottom: 0px;">
+		{{#summary.mostSevereConsequence}}
+		<span id="most_severe">
+                Most severe consequence: {{.}}
+             </span>
+		{{/summary.mostSevereConsequence}}
+	</p>
+
+	{{#summary.maf}}
+	<p id="maf-range"
+		 style="margin-bottom: 0px;text-decoration: underline;"
+		 data-place="bottom"
+		 data-tip="<div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
+                    {{#properties}}
+                         <div>
+                              <span style='text-align: left; float: left; padding-right: 10px;'>{{value}}</span>
+                              <span style='text-align: left; float: left;'>{{key}}</span>
+                         </div>
+                    {{/properties}}
+                    </div>"
+		 html="true"
+		 data-html="true">
+		AF {{value}} ( ranges from {{start}} to {{stop}} {{description}} )
+
+	</p>
+	{{/summary.maf}}
+
+	{{#summary.gnomAD}}
+	<p id="gnomad"
+		 style="margin-bottom: 0px;text-decoration: underline;"
+		 data-place="bottom"
+		 data-tip="<div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
+                    {{#properties}}
+                         <div>
+                              <span style='text-align: left; float: left; padding-right: 10px;'>{{value}}</span>
+                              <span style='text-align: left; float: left;'>{{key}}</span>
+                         </div>
+                    {{/properties}}
+                    </div>"
+		 html="true"
+		 data-html="true">
+		AF in gnomAD genomes 2.1: FIN {{afFin}} POPMAX {{afPopmax}} FIN enrichment vs. NFEE:  {{finEnrichment}}
+	</p>
+	{{/summary.gnomAD}}
+	{{^summary.gnomAD}} No data found in gnomAD 2.1.1 {{/summary.gnomAD}}
+
+	{{#summary.infoRange}}
+	<p id="info-range"
+		 style="margin-bottom: 0px;text-decoration: underline;"
+		 data-place="bottom"
+		 data-tip="<div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
+                    {{#properties}}
+                         <div>
+                              <span style='text-align: left; float: left; padding-right: 10px;'>{{value}}</span>
+                              <span style='text-align: left; float: left;'>{{key}}</span>
+                         </div>
+                    {{/properties}}
+                    </div>"
+		 html="true"
+		 data-html="true">
+		INFO {{value}} (ranges in genotyping batches from {{start}} to {{stop}} )
+	</p>
+	{{/summary.infoRange}}
+
+	{{#summary.numberAlternativeHomozygotes}}
+	<p id="alt-homozygotes"
+		 style="margin-bottom: 0px;">
+		Number of alt homozygotes:  {{.}}
+	</p>
+	{{/summary.numberAlternativeHomozygotes}}
+
+
+	<div>
+
+		<p style="margin-bottom: 0px;">View in
+			<a target="_blank" href="https://genetics.opentargets.org/variant/{{ 23toX summary.chrom }}_{{ summary.pos}}_{{ summary.ref}}_{{ summary.alt }}">Open Targets</a> ,
+			<a target="_blank" href="https://gnomad.broadinstitute.org/variant/{{ 23toX summary.chrom }}-{{ summary.pos}}-{{ summary.ref}}-{{ summary.alt }}?dataset=gnomad_r3">gnomAD</a> ,
+			<a target="_blank" href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&highlight=hg38.chr{{ chrom }}%3A{{ summary.pos }}-{{ summary.pos }}&position=chr{{ summary.chrom }}%3A{{ summary.posStart }}-{{ summary.posStop }}">UCSC</a>
+
+			{{#summary.rsids.length}} , GWAS Catalog for {{/summary.rsids.length}}
+			{{#summary.rsids}} <a target="_blank" href="https://www.ebi.ac.uk/gwas/search?query={{ . }}">{{.}}</a> {{/summary.rsids}}
+			{{#summary.rsids.length}} , dbSNP for {{/summary.rsids.length}}
+			{{#summary.rsids}}
+			<a id="urlDbSNP" target="_blank" href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a>
+			{{/summary.rsids}}
+
+			{{#unless (isX summary.chrom) }}
+			{{#bioBankURL.length}} , UMich UK Biobank {{/bioBankURL.length}}
+
+			{{#bioBankURL}}
+			{{#if url}}
+			<a href="{{url}}" target="_blank">{{rsid}}</a>
+			{{else}}
+			<span class="alert-danger">failed loading {{rsid}}</span>
+			{{/if}}
+			{{/bioBankURL}}
+			{{/unless}}
+		</p>
+
+		<p style="margin-bottom: 0px;">
+			p-values smaller than 1e-10 are shown on a log-log scale
+		</p>
+
+	</div>
+`
+const banner: string = config?.userInterface?.variant?.banner || default_banner;
+
+export type BioBankURL = {rsid: string, url: string}
+interface BannerData { bioBankURL : BioBankURL[] , summary : VariantSummary }
 interface Props {}
-
-
-export const createVariant = (pathanme : string = window.location.pathname) : Either<string,CommonVariantModel>  => {
-  const match = pathanme.match("^/variant/(.+)$")
-  if(match){
-    const [, variantString ] : Array<string> = match;
-    const variant : CommonVariantModel | undefined = variantFromStr(variantString)
-    if(variant == null){
-      return Left(`Could not parse variant from '${variantString}'`)
-    } else {
-      return Right(variant);
-    }
-  } else {
-    Left(`Could not parse variant from url '${pathanme}'`)
-  }
-}
 
 interface KeyValue {
   key : string
@@ -58,7 +169,7 @@ interface InfoRange {
   properties :  KeyValue[]
 }
 
-interface VariantSummary {
+export interface VariantSummary {
   nearestGenes : string[]
   mostSevereConsequence? : string
   infoRange? : InfoRange
@@ -74,7 +185,33 @@ interface VariantSummary {
   alt : string
 }
 
-const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary | undefined => {
+interface sortOptionsObj {
+  id: string;
+  desc: boolean;
+  currentPage: number;
+  pageSize: number;
+}
+
+export type RSIDMapping = { mapping : Ensembl.Mapping ,
+  rsid : string };
+
+
+export const createVariant = (pathanme : string = window.location.pathname) : Either<string,CommonVariantModel>  => {
+  const match = pathanme.match("^/variant/(.+)$")
+  if(match){
+    const [, variantString ] : Array<string> = match;
+    const variant : CommonVariantModel | undefined = variantFromStr(variantString)
+    if(variant == null){
+      return Left(`Could not parse variant from '${variantString}'`)
+    } else {
+      return Right(variant);
+    }
+  } else {
+    Left(`Could not parse variant from url '${pathanme}'`)
+  }
+}
+
+export const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary | undefined => {
 
   const nearestGenes : string [] = variantData?.variant?.annotation?.annot?.nearest_gene?.split(",") || [];
   const mostSevereConsequence = variantData?.variant?.annotation?.annot?.most_severe?.replace(/_/g, ' ')
@@ -108,7 +245,7 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
     let properties = annot === undefined || annot == null ? []  :
     Object.keys(annot).filter((key) => key.indexOf('AF_') === 0 ).map(createIndex)
 
-    const value = 'AF' in annot ? annot['AF'] : undefined
+    const value = annot && 'AF' in annot ? annot['AF'] : undefined
     if(mafs.length === numPhenotypesWithMaf.length){
       maf = {
         value : scientificFormatter(value),
@@ -159,7 +296,7 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
   // info range
   let infoRange : InfoRange
   {
-    const info = 'INFO' in annot ? annot['INFO'] : undefined
+    const info = annot && 'INFO' in annot ? annot['INFO'] : undefined
     if(annot && info){
 
       let infos : number[] = Object.keys(annot).filter(function(key) {
@@ -185,7 +322,7 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
   }
 
   const acHom = variantData?.variant?.annotation?.annot
-  const numberAlternativeHomozygotes = 'AC_Hom' in acHom && !isNaN(+acHom['AC_Hom'])?numberFormatter(+acHom['AC_Hom']/2):undefined
+  const numberAlternativeHomozygotes = acHom && 'AC_Hom' in acHom && !isNaN(+acHom['AC_Hom'])?numberFormatter(+acHom['AC_Hom']/2):undefined
   const rsids : string[] = variantData?.variant?.annotation?.rsids?.split(',') || []
   const chrom = variantData.variant.chr
   const pos = variantData.variant.pos
@@ -213,153 +350,57 @@ const createVariantSummary = (variantData : VariantModel.Data) : VariantSummary 
   return variantSummary
 }
 
-const default_banner: string = `
-<div className="variant-info col-xs-12">
-        <h1 style="margin-top:0">
-          {{summary.chrom}}:{{summary.pos}}:{{summary.ref}}:{{summary.alt}}
-          {{#summary.rsids}}
-          ({{.}})
-          {{/summary.rsids}}
-        </h1>
-        <p style="margin-bottom: 0px;">
-          Nearest gene:
-          {{#summary.nearestGenes}}
-          <a style="color:black" href="/gene/{{.}}">{{.}}</a>
-          {{/summary.nearestGenes}}
-        </p>
 
-        <p id="annotation" style="margin-bottom: 0px;">
-           {{#summary.mostSevereConsequence}}
-             <span id="most_severe">
-                Most severe consequence: {{.}}
-             </span>
-           {{/summary.mostSevereConsequence}}
-        </p>
-
-       {{#summary.maf}}
-       <p id="maf-range"
-          style="margin-bottom: 0px;text-decoration: underline;"
-          data-place="bottom"
-          data-tip="<div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
-                    {{#properties}}
-                         <div>
-                              <span style='text-align: left; float: left; padding-right: 10px;'>{{value}}</span>
-                              <span style='text-align: left; float: left;'>{{key}}</span>
-                         </div>
-                    {{/properties}}
-                    </div>"
-          html="true"
-          data-html="true">
-          AF {{value}} ( ranges from {{start}} to {{stop}} {{description}} )
-
-       </p>
-       {{/summary.maf}}
-
-       {{#summary.gnomAD}}
-       <p id="gnomad"
-          style="margin-bottom: 0px;text-decoration: underline;"
-          data-place="bottom"
-          data-tip="<div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
-                    {{#properties}}
-                         <div>
-                              <span style='text-align: left; float: left; padding-right: 10px;'>{{value}}</span>
-                              <span style='text-align: left; float: left;'>{{key}}</span>
-                         </div>
-                    {{/properties}}
-                    </div>"
-          html="true"
-          data-html="true">
-          AF in gnomAD genomes 2.1: FIN {{afFin}} POPMAX {{afPopmax}} FIN enrichment vs. NFEE:  {{finEnrichment}}
-       </p>
-       {{/summary.gnomAD}}
-       {{^summary.gnomAD}} No data found in gnomAD 2.1.1 {{/summary.gnomAD}}
-
-       {{#summary.infoRange}}
-       <p id="info-range"
-          style="margin-bottom: 0px;text-decoration: underline;"
-          data-place="bottom"
-          data-tip="<div style='display: flex; flex-direction: column; flex-wrap: wrap; height: 320px;'>
-                    {{#properties}}
-                         <div>
-                              <span style='text-align: left; float: left; padding-right: 10px;'>{{value}}</span>
-                              <span style='text-align: left; float: left;'>{{key}}</span>
-                         </div>
-                    {{/properties}}
-                    </div>"
-          html="true"
-          data-html="true">
-          INFO {{value}} (ranges in genotyping batches from {{start}} to {{stop}} )
-       </p>
-       {{/summary.infoRange}}
-
-       {{#summary.numberAlternativeHomozygotes}}
-       <p id="alt-homozygotes"
-          style="margin-bottom: 0px;">
-          Number of alt homozygotes:  {{.}}
-       </p>
-       {{/summary.numberAlternativeHomozygotes}}
-
-
-       <div>
-
-       <p style="margin-bottom: 0px;">View in
-          <a target="_blank" href="https://genetics.opentargets.org/variant/{{ 23toX summary.chrom }}_{{ summary.pos}}_{{ summary.ref}}_{{ summary.alt }}">Open Targets</a> ,
-          <a target="_blank" href="https://gnomad.broadinstitute.org/variant/{{ 23toX summary.chrom }}-{{ summary.pos}}-{{ summary.ref}}-{{ summary.alt }}?dataset=gnomad_r3">gnomAD</a> ,
-          <a target="_blank" href="http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&highlight=hg38.chr{{ chrom }}%3A{{ summary.pos }}-{{ summary.pos }}&position=chr{{ summary.chrom }}%3A{{ summary.posStart }}-{{ summary.posStop }}">UCSC</a>
-
-          {{#summary.rsids.length}} , GWAS Catalog for {{/summary.rsids.length}}
-          {{#summary.rsids}} <a target="_blank" href="https://www.ebi.ac.uk/gwas/search?query={{ . }}">{{.}}</a> {{/summary.rsids}}
-          {{#summary.rsids.length}} , dbSNP for {{/summary.rsids.length}}
-          {{#summary.rsids}}
-          <a id="urlDbSNP" target="_blank" href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{ . }}">{{.}}</a>
-          {{/summary.rsids}}
-
-	  {{#unless (isX summary.chrom) }}
-          {{#bioBankURL.length}} , UMich UK Biobank {{/bioBankURL.length}}
-
-          {{#bioBankURL}}
-            {{#if url}}
-            <a href="{{url}}" target="_blank">{{rsid}}</a>
-            {{else}}
-            <span class="alert-danger">failed loading {{rsid}}</span>
-            {{/if}}
-          {{/bioBankURL}}
-	  {{/unless}}
-       </p>
-
-       <p style="margin-bottom: 0px;">
-          p-values smaller than 1e-10 are shown on a log-log scale
-       </p>
-
-</div>
-`
-
-declare let window: ConfigurationWindow;
-const { config } = window;
-const banner: string = config?.userInterface?.variant?.banner || default_banner;
-
-interface  BioBankURL {rsid: string, url: string}
-interface BannerData { bioBankURL : BioBankURL[] , summary : VariantSummary }
-type BioBankURLObject = {[p: string]: string} | null
-
-const bannerData = (variantData :  VariantModel.Data, bioBankURLObject: BioBankURLObject) : BannerData => {
-  const bioBankURL : BioBankURL[] = bioBankURLObject == null ? [] : Object.entries(bioBankURLObject).map(([k,v])=> { return { rsid : k , url : v}})
+const bannerData = (variantData :  VariantModel.Data, bioBankURL: BioBankURL[]) : BannerData => {
   const summary = createVariantSummary(variantData)
   const data = { bioBankURL , summary }
   return data;
 }
 
-interface sortOptionsObj {
-  id: string;
-  desc: boolean;
-  currentPage: number;
-  pageSize: number;
+export const summaryRSIDS = (summary: VariantSummary | null | undefined) : string[] => {
+    const rsids = summary?.rsids || [];
+    // valid rsids start with rs
+     const validated = rsids.filter((id) => `${id}`.startsWith("rs"));
+     const deduplicated = [... new Set(validated)];
+    const sorted = deduplicated.sort();
+    return sorted;
+}
+
+export const getMapping = (rsid : string | undefined | null) => (e: Ensembl.Data | null | undefined | void)  : RSIDMapping | undefined=> {
+      let rsidmapping : RSIDMapping | undefined;
+      if (rsid && e && e.mappings && e.mappings.length > 0) {
+          rsidmapping = { mapping : e.mappings[0], rsid }
+          } else {
+         rsidmapping = undefined;
+        }
+      return rsidmapping;
+    }
+
+export const rsidMapping = (rsid : string) : Promise<null | RSIDMapping> => getEnsembl(rsid).then(getMapping(rsid))
+
+export const createBioBankURL = (v : CommonVariantModel | undefined) => (rsidMapping : RSIDMapping) : BioBankURL | undefined => {
+  let bioBankURL;
+  const mapping = rsidMapping.mapping;
+  const rsid = rsidMapping.rsid;
+
+  if(v && mapping && rsid){
+    const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${v.reference}-${v.alternate}`
+    bioBankURL = { rsid , url};
+  } else {
+    bioBankURL = undefined;
+  }
+  return bioBankURL;
+}
+export const generateBioBankURL = (variant :  CommonVariantModel | undefined,
+	                                summary : VariantSummary | undefined) : Promise<BioBankURL[]>=> {
+  const rsids : string[] = summaryRSIDS(summary);
+  const mappings : Promise<RSIDMapping[]> = Promise.allSettled<Promise<RSIDMapping>[]>(rsids.map(rsidMapping)).then(promiseValues<RSIDMapping>);
+	return  mappings.then( v => v.filter(notBottom).map(createBioBankURL(variant))).then( v => v.filter(notBottom));
 }
 
 const Variant = (props : Props) => {
   const [variantData, setVariantData] = useState<VariantModel.Data | null>(null);
-  const [bioBankURL, setBioBankURL] = useState<{ [ key : string ] : (string|null) }| null>(null);
-  const [loadedBioBank, setLoadedBioBank] = useState<boolean>(false);
+  const [bioBankURL, setBioBankURL] = useState<BioBankURL[]| null>(null);
   const [error, setError] = useState<string|null>(null);
   const [varSumstats, setSumstats] = useState<Sumstats.Data | null>(null);
   const [rowId, setRowid] = useState<number | null>(null);
@@ -449,33 +490,13 @@ const Variant = (props : Props) => {
     if (variantData && initialState) {
       setVariantDataPlots(variantData);
     }
-    if(variantData && bioBankURL == null && loadedBioBank === false) {
-      const variant = createVariant()
-      const summary : VariantSummary | undefined = createVariantSummary(variantData)
-      // filter out malformed rsids e.g. na and null
-      const rsids : string[] | undefined  = summary?.rsids?.filter((id) => `${id}`.startsWith("rs"))
-      console.log(rsids);
-      if(rsids === undefined || rsids === null || rsids.length === 0){
-        setBioBankURL({});
-      } else {
-        rsids.forEach((rsid) => {
-          (async () => getEnsembl(rsid, (e: Ensembl.Data) => {
-            if (e && e.mappings && e.mappings.length > 0) {
-              const mapping: Ensembl.Mapping = e.mappings[0]
-	      variant.map(v => {
-	      const url : string = `http://pheweb.sph.umich.edu/SAIGE-UKB/variant/${mapping.seq_region_name}-${mapping.start}-${v.reference}-${v.alternate}`
-              setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : url } });
-	      return v;
-	      })
-            }
-          },
-              (url : string) => (e : Error) => { console.log(error); setBioBankURL({...(bioBankURL == null? {} : bioBankURL),...{ [rsid] : null } }); }))();
-        });
-      }
-      setLoadedBioBank(true);
+    // set the biobank urls
+    if(variantData && bioBankURL == null) {
+      const variant :  CommonVariantModel | undefined = createVariant().orDefault(undefined);
+      const summary : VariantSummary | undefined = createVariantSummary(variantData);
+      generateBioBankURL(variant, summary).then(setBioBankURL);
     }
-
-  },[variantData, setBioBankURL,bioBankURL,loadedBioBank, setLoadedBioBank]);
+  },[variantData, setBioBankURL,bioBankURL]);
 
   // lazy load
   const content = () => <VariantContextProvider>
@@ -503,6 +524,5 @@ const Variant = (props : Props) => {
   return hasError(error,isLoading(variantData == null || bioBankURL == null,content));
 
 }
-
 
 export default Variant;

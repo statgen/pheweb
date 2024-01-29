@@ -4,13 +4,22 @@ import { VisConfiguration } from "../Configuration/configurationModel";
 
 export namespace Variant {
 
+  export type DataRegion = {
+    chr:       number;
+    end:       number;
+    path:      string;
+    phenocode: string;
+    start:     number;
+    type:      string;
+  };
+
   export interface Data {
-    regions:                     any[];
+    regions:                     DataRegion[];
     results:                     Result[];
-    var_top_pheno_export_fields: string[];
-    variant:                     Variant;
-    variant_name:                string;
-    updateRow:                   any;
+    var_top_pheno_export_fields?: string[];
+    variant:                      Variant;
+    variant_name?:                string;
+    updateRow?:                   any;
   }
 
   export interface Result {
@@ -58,9 +67,9 @@ export namespace Variant {
 
   export interface Annotation {
     annot:        { [key: string]: string };
-    gnomad:       { [key: string]: number };
+    gnomad:       { [key: string]: number | string };
     nearest_gene?: string;
-    rsids:        string;
+    rsids?:        string;
   }
 
 }
@@ -77,6 +86,7 @@ export namespace Ensembl {
     var_class:               string;
     synonyms:                string[];
     mappings:                Mapping[];
+    failed?:string
   }
 
   export interface Mapping {

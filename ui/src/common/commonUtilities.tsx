@@ -32,17 +32,13 @@ const defaultHandler : Handler = (url : string) => (e : Error) => {
  * @param sink
  * @param fetchURL
  */
-export const get: <X>(url: string,
-                      sink: (x: X) => void,
-                      handler? :  Handler) => Promise<void> = (
-  url,
-  sink,
-  handler = defaultHandler
-) =>
-  fetch(url)
+export function get<X,Y = void>(url: string,
+                         sink: (x: X) => Y,
+                         handler :  Handler= defaultHandler) : Promise<void | Y> {
+  return fetch(url)
     .then((response) => {
       if (response.status === 200) {
-        return response.json();
+        return response.json() as Promise<X>;
       } else {
         const msg = `${response.statusText}`;
         throw new Error(msg);
@@ -50,6 +46,7 @@ export const get: <X>(url: string,
     })
     .then(sink)
     .catch(handler(url));
+};
 
 /**
  * Delete url

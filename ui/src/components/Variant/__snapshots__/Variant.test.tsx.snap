@@ -1,0 +1,1945 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`regression test generate 1`] = `
+Array [
+  Object {
+    "alt": "CA",
+    "chrom": 16,
+    "gnomAD": undefined,
+    "infoRange": Object {
+      "properties": Array [
+        Object {
+          "key": "AxiomGT1_b01_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b02_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b03_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b04_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b05_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b06_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b07_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b08_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b09_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b10_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b11_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b12_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b13_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b14_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b15_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b16_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b17_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b18_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b19_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b20_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b21_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b22_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b23_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b24_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b25_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b26_V2P2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b27_V2P2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b28_V2P2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b29_V2P2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b30_V2P2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b31_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b3234_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b33_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b35_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b36_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b37_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b38_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b39_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b40_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b41_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b42_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b43_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b44_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b45_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b46_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b47_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b48_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b49_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b50_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b51_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b52_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b53_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b54_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b55_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b56_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b57_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b58_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b59_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b60_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b61_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b62_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b63_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b64_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b65_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b66_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b67_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b68_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b69_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b70_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b71_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b72_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b73_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b74_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b75_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b76_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b77_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b78_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b79_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b80_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b81_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b82_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b83_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b84_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b85_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b86_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b87_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b88_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b89_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS10_FINRISK_Palotie_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS11_FINRISK_PredictCVD_COROGENE_Tarto_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS12_FINRISK_Summit_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS13_FINRISK_Bf_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS14_GENERISK_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS15_H2000_Broad_norm.vcf.gz",
+          "value": "9.9e-1",
+        },
+        Object {
+          "key": "DS16_H2000_Fimm_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS17_H2000_Genmets_norm_relift.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS18_MIGRAINE_1_norm_relift.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS19_MIGRAINE_2_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS1_BOTNIA_Dgi_norm.vcf.gz",
+          "value": "9.9e-1",
+        },
+        Object {
+          "key": "DS20_SUPER_1_norm_relift.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS21_SUPER_2_norm_relift.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS22_TWINS_1_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS23_TWINS_2_norm_nosymmetric.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS24_SUPER_3_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS25_BOTNIA_Regeneron_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS26_DIREVA_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS27_NFBC66_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS28_NFBC86_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS2_BOTNIA_T2dgo_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS3_COROGENE_Sanger_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS4_FINRISK_Corogene_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS5_FINRISK_Engage_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS6_FINRISK_FR02_Broad_norm_relift.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS7_FINRISK_FR12_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS8_FINRISK_Finpcga_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS9_FINRISK_Mrpred_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+      ],
+      "start": "9.9e-1",
+      "stop": "1.0e+0",
+      "value": "1.0e+0",
+    },
+    "maf": Object {
+      "description": "for phenotypes where it is defined",
+      "properties": Array [
+        Object {
+          "key": "AxiomGT1_b01_V4",
+          "value": "2.37e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b02_V4",
+          "value": "2.41e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b03_V4",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b04_V4",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b05_V4",
+          "value": "2.26e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b06_V4",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b07_V4",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b08_V4",
+          "value": "2.24e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b09_V4",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b10_V4",
+          "value": "2.21e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b11_V4",
+          "value": "2.11e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b12_V4",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b13_V4",
+          "value": "2.26e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b14_V4",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b15_V4",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b16_V4",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b17_V4",
+          "value": "2.09e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b18_V4",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b19_V4",
+          "value": "2.24e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b20_V4",
+          "value": "2.09e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b21_V4",
+          "value": "2.25e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b22_V4",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b23_V4",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b24_V4",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b25_V4",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b26_V2P2",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b27_V2P2",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b28_V2P2",
+          "value": "2.21e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b29_V2P2",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b30_V2P2",
+          "value": "2.14e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b31_V2",
+          "value": "2.22e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b3234_V2",
+          "value": "2.06e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b33_V2",
+          "value": "2.10e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b35_V2",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b36_V2",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b37_V2",
+          "value": "2.23e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b38_V2",
+          "value": "2.26e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b39_V2",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b40_V2",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b41_V2",
+          "value": "2.25e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b42_V2",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b43_V2",
+          "value": "2.23e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b44_V2",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b45_V2",
+          "value": "2.14e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b46_V2",
+          "value": "2.09e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b47_V2",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b48_V2",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b49_V2",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b50_V2",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b51_V2",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b52_V2",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b53_V3",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b54_V3",
+          "value": "2.23e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b55_V3",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b56_V3",
+          "value": "2.23e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b57_V3",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b58_V3",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b59_V3",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b60_V3",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b61_V3",
+          "value": "2.30e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b62_V3",
+          "value": "2.24e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b63_V3",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b64_V3",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b65_V5",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b66_V5",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b67_V5",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b68_V5",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b69_V5",
+          "value": "2.21e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b70_V5",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b71_V5",
+          "value": "2.28e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b72_V5",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b73_V5",
+          "value": "2.09e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b74_V5",
+          "value": "2.21e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b75_V5",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b76_V5",
+          "value": "2.27e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b77_V5",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b78_V5",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b79_V5",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b80_V5",
+          "value": "2.08e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b81_V5",
+          "value": "2.28e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b82_V5",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b83_V5",
+          "value": "2.25e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b84_V5",
+          "value": "2.25e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b85_V5",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b86_V5",
+          "value": "2.26e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b87_V5",
+          "value": "2.25e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b88_V5",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b89_V5",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "DS10_FINRISK_Palotie_norm.vcf.gz",
+          "value": "2.09e-1",
+        },
+        Object {
+          "key": "DS11_FINRISK_PredictCVD_COROGENE_Tarto_norm.vcf.gz",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "DS12_FINRISK_Summit_norm.vcf.gz",
+          "value": "2.27e-1",
+        },
+        Object {
+          "key": "DS13_FINRISK_Bf_norm.vcf.gz",
+          "value": "2.34e-1",
+        },
+        Object {
+          "key": "DS14_GENERISK_norm.vcf.gz",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "DS15_H2000_Broad_norm.vcf.gz",
+          "value": "2.24e-1",
+        },
+        Object {
+          "key": "DS16_H2000_Fimm_norm.vcf.gz",
+          "value": "2.42e-1",
+        },
+        Object {
+          "key": "DS17_H2000_Genmets_norm_relift.vcf.gz",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "DS18_MIGRAINE_1_norm_relift.vcf.gz",
+          "value": "2.14e-1",
+        },
+        Object {
+          "key": "DS19_MIGRAINE_2_norm.vcf.gz",
+          "value": "2.28e-1",
+        },
+        Object {
+          "key": "DS1_BOTNIA_Dgi_norm.vcf.gz",
+          "value": "2.48e-1",
+        },
+        Object {
+          "key": "DS20_SUPER_1_norm_relift.vcf.gz",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "DS21_SUPER_2_norm_relift.vcf.gz",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "DS22_TWINS_1_norm.vcf.gz",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "DS23_TWINS_2_norm_nosymmetric.vcf.gz",
+          "value": "2.26e-1",
+        },
+        Object {
+          "key": "DS24_SUPER_3_norm.vcf.gz",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "DS25_BOTNIA_Regeneron_norm.vcf.gz",
+          "value": "2.40e-1",
+        },
+        Object {
+          "key": "DS26_DIREVA_norm.vcf.gz",
+          "value": "2.52e-1",
+        },
+        Object {
+          "key": "DS27_NFBC66_norm.vcf.gz",
+          "value": "2.02e-1",
+        },
+        Object {
+          "key": "DS28_NFBC86_norm.vcf.gz",
+          "value": "2.00e-1",
+        },
+        Object {
+          "key": "DS2_BOTNIA_T2dgo_norm.vcf.gz",
+          "value": "2.71e-1",
+        },
+        Object {
+          "key": "DS3_COROGENE_Sanger_norm.vcf.gz",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "DS4_FINRISK_Corogene_norm.vcf.gz",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "DS5_FINRISK_Engage_norm.vcf.gz",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "DS6_FINRISK_FR02_Broad_norm_relift.vcf.gz",
+          "value": "2.11e-1",
+        },
+        Object {
+          "key": "DS7_FINRISK_FR12_norm.vcf.gz",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "DS8_FINRISK_Finpcga_norm.vcf.gz",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "DS9_FINRISK_Mrpred_norm.vcf.gz",
+          "value": "2.24e-1",
+        },
+      ],
+      "start": "2.2e-1",
+      "stop": "2.2e-1",
+      "value": "2.2e-1",
+    },
+    "mostSevereConsequence": "intron variant",
+    "nearestGenes": Array [
+      "UMOD",
+    ],
+    "numberAlternativeHomozygotes": "20875",
+    "pos": 20341705,
+    "posStart": 20141705,
+    "posStop": 20541705,
+    "ref": "C",
+    "rsids": Array [
+      "rs35830321",
+    ],
+  },
+  Object {
+    "alt": "CA",
+    "chrom": 16,
+    "gnomAD": undefined,
+    "infoRange": Object {
+      "properties": Array [
+        Object {
+          "key": "AxiomGT1_b01_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b02_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b03_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b04_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b05_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b06_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b07_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b08_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b09_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b10_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b11_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b12_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b13_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b14_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b15_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b16_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b17_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b18_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b19_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b20_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b21_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b22_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b23_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b24_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b25_V4",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b26_V2P2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b27_V2P2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b28_V2P2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b29_V2P2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b30_V2P2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b31_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b3234_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b33_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b35_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b36_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b37_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b38_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b39_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b40_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b41_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b42_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b43_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b44_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b45_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b46_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b47_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b48_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b49_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b50_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b51_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b52_V2",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b53_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b54_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b55_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b56_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b57_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b58_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b59_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b60_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b61_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b62_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b63_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b64_V3",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b65_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b66_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b67_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b68_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b69_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b70_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b71_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b72_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b73_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b74_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b75_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b76_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b77_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b78_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b79_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b80_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b81_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b82_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b83_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b84_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b85_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b86_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b87_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b88_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "AxiomGT1_b89_V5",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS10_FINRISK_Palotie_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS11_FINRISK_PredictCVD_COROGENE_Tarto_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS12_FINRISK_Summit_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS13_FINRISK_Bf_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS14_GENERISK_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS15_H2000_Broad_norm.vcf.gz",
+          "value": "9.9e-1",
+        },
+        Object {
+          "key": "DS16_H2000_Fimm_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS17_H2000_Genmets_norm_relift.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS18_MIGRAINE_1_norm_relift.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS19_MIGRAINE_2_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS1_BOTNIA_Dgi_norm.vcf.gz",
+          "value": "9.9e-1",
+        },
+        Object {
+          "key": "DS20_SUPER_1_norm_relift.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS21_SUPER_2_norm_relift.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS22_TWINS_1_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS23_TWINS_2_norm_nosymmetric.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS24_SUPER_3_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS25_BOTNIA_Regeneron_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS26_DIREVA_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS27_NFBC66_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS28_NFBC86_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS2_BOTNIA_T2dgo_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS3_COROGENE_Sanger_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS4_FINRISK_Corogene_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS5_FINRISK_Engage_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS6_FINRISK_FR02_Broad_norm_relift.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS7_FINRISK_FR12_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS8_FINRISK_Finpcga_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+        Object {
+          "key": "DS9_FINRISK_Mrpred_norm.vcf.gz",
+          "value": "1.0e+0",
+        },
+      ],
+      "start": "9.9e-1",
+      "stop": "1.0e+0",
+      "value": "1.0e+0",
+    },
+    "maf": Object {
+      "description": "for phenotypes where it is defined",
+      "properties": Array [
+        Object {
+          "key": "AxiomGT1_b01_V4",
+          "value": "2.37e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b02_V4",
+          "value": "2.41e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b03_V4",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b04_V4",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b05_V4",
+          "value": "2.26e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b06_V4",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b07_V4",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b08_V4",
+          "value": "2.24e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b09_V4",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b10_V4",
+          "value": "2.21e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b11_V4",
+          "value": "2.11e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b12_V4",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b13_V4",
+          "value": "2.26e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b14_V4",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b15_V4",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b16_V4",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b17_V4",
+          "value": "2.09e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b18_V4",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b19_V4",
+          "value": "2.24e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b20_V4",
+          "value": "2.09e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b21_V4",
+          "value": "2.25e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b22_V4",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b23_V4",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b24_V4",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b25_V4",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b26_V2P2",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b27_V2P2",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b28_V2P2",
+          "value": "2.21e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b29_V2P2",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b30_V2P2",
+          "value": "2.14e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b31_V2",
+          "value": "2.22e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b3234_V2",
+          "value": "2.06e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b33_V2",
+          "value": "2.10e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b35_V2",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b36_V2",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b37_V2",
+          "value": "2.23e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b38_V2",
+          "value": "2.26e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b39_V2",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b40_V2",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b41_V2",
+          "value": "2.25e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b42_V2",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b43_V2",
+          "value": "2.23e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b44_V2",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b45_V2",
+          "value": "2.14e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b46_V2",
+          "value": "2.09e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b47_V2",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b48_V2",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b49_V2",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b50_V2",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b51_V2",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b52_V2",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b53_V3",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b54_V3",
+          "value": "2.23e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b55_V3",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b56_V3",
+          "value": "2.23e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b57_V3",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b58_V3",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b59_V3",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b60_V3",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b61_V3",
+          "value": "2.30e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b62_V3",
+          "value": "2.24e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b63_V3",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b64_V3",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b65_V5",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b66_V5",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b67_V5",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b68_V5",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b69_V5",
+          "value": "2.21e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b70_V5",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b71_V5",
+          "value": "2.28e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b72_V5",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b73_V5",
+          "value": "2.09e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b74_V5",
+          "value": "2.21e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b75_V5",
+          "value": "2.18e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b76_V5",
+          "value": "2.27e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b77_V5",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b78_V5",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b79_V5",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b80_V5",
+          "value": "2.08e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b81_V5",
+          "value": "2.28e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b82_V5",
+          "value": "2.17e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b83_V5",
+          "value": "2.25e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b84_V5",
+          "value": "2.25e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b85_V5",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b86_V5",
+          "value": "2.26e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b87_V5",
+          "value": "2.25e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b88_V5",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "AxiomGT1_b89_V5",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "DS10_FINRISK_Palotie_norm.vcf.gz",
+          "value": "2.09e-1",
+        },
+        Object {
+          "key": "DS11_FINRISK_PredictCVD_COROGENE_Tarto_norm.vcf.gz",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "DS12_FINRISK_Summit_norm.vcf.gz",
+          "value": "2.27e-1",
+        },
+        Object {
+          "key": "DS13_FINRISK_Bf_norm.vcf.gz",
+          "value": "2.34e-1",
+        },
+        Object {
+          "key": "DS14_GENERISK_norm.vcf.gz",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "DS15_H2000_Broad_norm.vcf.gz",
+          "value": "2.24e-1",
+        },
+        Object {
+          "key": "DS16_H2000_Fimm_norm.vcf.gz",
+          "value": "2.42e-1",
+        },
+        Object {
+          "key": "DS17_H2000_Genmets_norm_relift.vcf.gz",
+          "value": "2.12e-1",
+        },
+        Object {
+          "key": "DS18_MIGRAINE_1_norm_relift.vcf.gz",
+          "value": "2.14e-1",
+        },
+        Object {
+          "key": "DS19_MIGRAINE_2_norm.vcf.gz",
+          "value": "2.28e-1",
+        },
+        Object {
+          "key": "DS1_BOTNIA_Dgi_norm.vcf.gz",
+          "value": "2.48e-1",
+        },
+        Object {
+          "key": "DS20_SUPER_1_norm_relift.vcf.gz",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "DS21_SUPER_2_norm_relift.vcf.gz",
+          "value": "2.15e-1",
+        },
+        Object {
+          "key": "DS22_TWINS_1_norm.vcf.gz",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "DS23_TWINS_2_norm_nosymmetric.vcf.gz",
+          "value": "2.26e-1",
+        },
+        Object {
+          "key": "DS24_SUPER_3_norm.vcf.gz",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "DS25_BOTNIA_Regeneron_norm.vcf.gz",
+          "value": "2.40e-1",
+        },
+        Object {
+          "key": "DS26_DIREVA_norm.vcf.gz",
+          "value": "2.52e-1",
+        },
+        Object {
+          "key": "DS27_NFBC66_norm.vcf.gz",
+          "value": "2.02e-1",
+        },
+        Object {
+          "key": "DS28_NFBC86_norm.vcf.gz",
+          "value": "2.00e-1",
+        },
+        Object {
+          "key": "DS2_BOTNIA_T2dgo_norm.vcf.gz",
+          "value": "2.71e-1",
+        },
+        Object {
+          "key": "DS3_COROGENE_Sanger_norm.vcf.gz",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "DS4_FINRISK_Corogene_norm.vcf.gz",
+          "value": "2.19e-1",
+        },
+        Object {
+          "key": "DS5_FINRISK_Engage_norm.vcf.gz",
+          "value": "2.16e-1",
+        },
+        Object {
+          "key": "DS6_FINRISK_FR02_Broad_norm_relift.vcf.gz",
+          "value": "2.11e-1",
+        },
+        Object {
+          "key": "DS7_FINRISK_FR12_norm.vcf.gz",
+          "value": "2.13e-1",
+        },
+        Object {
+          "key": "DS8_FINRISK_Finpcga_norm.vcf.gz",
+          "value": "2.20e-1",
+        },
+        Object {
+          "key": "DS9_FINRISK_Mrpred_norm.vcf.gz",
+          "value": "2.24e-1",
+        },
+      ],
+      "start": "2.2e-1",
+      "stop": "2.2e-1",
+      "value": "2.2e-1",
+    },
+    "mostSevereConsequence": "intron variant",
+    "nearestGenes": Array [
+      "UMOD",
+    ],
+    "numberAlternativeHomozygotes": "20875",
+    "pos": 20341705,
+    "posStart": 20141705,
+    "posStop": 20541705,
+    "ref": "C",
+    "rsids": Array [
+      "rs35830321",
+    ],
+  },
+]
+`;
+
+exports[`rsidMapping 1`] = `
+Object {
+  "mapping": Object {
+    "allele_string": "TGTT/TGTTGTT",
+    "ancestral_allele": "TGTT",
+    "assembly_name": "GRCh37",
+    "coord_system": "chromosome",
+    "end": 89444937,
+    "location": "15:89444934-89444937",
+    "seq_region_name": "15",
+    "start": 89444934,
+    "strand": 1,
+  },
+  "rsid": "rs534125149",
+}
+`;
+
+exports[`rsidMissingMapping 1`] = `undefined`;

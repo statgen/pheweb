@@ -12,11 +12,8 @@ export const getVariant= (variant: Variant,
 }
 
 export  const getEnsembl = (rsid : String,
-                            sink: (s: Ensembl.Data) => void,
-                            handler? :  Handler,
-                            getURL = get) : void => {
-  getURL(`https://grch37.rest.ensembl.org/variation/human/${rsid}?content-type=application/json`, sink, handler)
-}
+                            getURL = get<Ensembl.Data>) : Promise<Ensembl.Data | void> =>
+  getURL(`https://grch37.rest.ensembl.org/variation/human/${rsid}?content-type=application/json`, x => x);
 
 
 export const getNCBI = (variant: Variant,

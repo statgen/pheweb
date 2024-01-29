@@ -41,6 +41,13 @@ test('string to chromosome', () => {
   }
 })
 
+test('parse variant undefined and null', () => {
+  const variant : string = 'chr1_1_A_G'
+  const expected : Variant = { chromosome: 1, position: 1, reference: 'A', alternate: 'G' }
+  expect(variantFromStr(undefined)).toStrictEqual(undefined)
+  expect(variantFromStr(null)).toStrictEqual(undefined)
+})
+
 test('parse variant 1', () => {
   const variant : string = 'chr1_1_A_G'
   const expected : Variant = { chromosome: 1, position: 1, reference: 'A', alternate: 'G' }

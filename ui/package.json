@@ -82,7 +82,7 @@
   },
   "scripts": {
     "watch": "npm-watch",
-    "test": "react-scripts test",
+    "test": "rm -f node_modules/lavaa/node_modules/d3/src/index.js && react-scripts test",
     "start": "env-cmd -r env-cmdrc.json -e development react-scripts start",
     "build": "env-cmd -r env-cmdrc.json -e production react-scripts build && cp -R build/* ../pheweb/serve/static/",
     "eject": "react-scripts eject",
