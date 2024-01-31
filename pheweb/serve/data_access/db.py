@@ -782,6 +782,8 @@ class TabixResultDao(ResultDB):
         self.longformat = False
     
     def get_variant_results_range(self, chrom, start, end):
+        
+        chrom = "23" if chrom == "X" else chrom
         try:
             tabix_iter = pysam.TabixFile(self.matrix_path, parser=None).fetch(
                 chrom, start - 1, end)
@@ -1554,6 +1556,8 @@ class TabixAnnotationDao(AnnotationDB):
         return annotations
 
     def get_variant_annotations_range(self, chrom, start, end, cpra):
+
+        chrom = "23" if chrom == "X" else chrom
         try:
             tabix_iter =pysam.TabixFile(self.matrix_path, parser=None).fetch(chrom, start - 1, end)
         except ValueError:
