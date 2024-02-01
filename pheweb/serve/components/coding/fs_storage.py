@@ -4,6 +4,7 @@ FS storage implementation of coding data storage.
 
 Unit test coverage for fs storage.
 """
+from typing import Callable
 import threading
 import timeit
 import json
@@ -94,7 +95,7 @@ def normalize_variant(variant: str) -> str:
     return "_".join(cpra)
 
 
-def format_path(plot_root: str, variant: str) -> str:
+def format_path(plot_root: str, path_format: str) -> Callable[[str],str]:
     """
     Format path.
 
@@ -105,10 +106,9 @@ def format_path(plot_root: str, variant: str) -> str:
     :param variant: variant
     :return: path of variant resource
     """
-    return f"{plot_root}{variant}.raw.png"
+    return lambda variant : path_format.format(plot_root=plot_root, variant=variant)
 
-@functools.lru_cache()
-def fetch_cluster_plot(plot_root: str, variant: str) -> typing.Optional[bytes]:
+def fetch_cluster_plot(variant: str, variant_to_path: Callable[[str],str]) -> typing.Optional[bytes]:
     """
     Fetch cluster plot.
 
@@ -117,7 +117,7 @@ def fetch_cluster_plot(plot_root: str, variant: str) -> typing.Optional[bytes]:
     :return: plot if there is one
     """
     variant = normalize_variant(variant)
-    path = format_path(plot_root, variant)
+    path = variant_to_path(variant)
     return read_path(path)
 
 @dataclass
@@ -128,6 +128,11 @@ class FileCodingDAO(CodingDAO):
     top_table: str
     plot_root: str
     verbose: str = False
+    path_format: str = "{plot_root}{variant}.raw.png"
+
+    @property
+    def variant_to_path(self) -> Callable[[str],str]:
+        return format_path(self.plot_root, self.path_format)
 
     def get_cluster_plot(self, variant: str) -> typing.Optional[bytes]:
         """
@@ -138,7 +143,7 @@ class FileCodingDAO(CodingDAO):
         :param variant: variant to get plot for
         :return: plot if available None otherwise
         """
-        return fetch_cluster_plot(self.plot_root, variant)
+        return fetch_cluster_plot(variant, self.variant_to_path)
 
     """
     File coding data dao.
@@ -337,7 +342,7 @@ class FileCodingDAO(CodingDAO):
             if pheno_var_id in top_list.index:
                 res['possible_explaining_signals'] = top_list.loc[pheno_var_id]['possible_explaining_signals']
             results_munged.append(res)
-            
+
         time_munge = timeit.default_timer() - start_time
         start_time = timeit.default_timer()
         self._set_top_flags(results_munged)
