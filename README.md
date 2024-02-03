@@ -74,6 +74,7 @@ Column names are case-insensitive.  If your file has a different column name, se
 
 Any field can be null if it is one of ['', '.', 'NA', 'N/A', 'n/a', 'nan', '-nan', 'NaN', '-NaN', 'null', 'NULL'].  If a required field is null, the variant gets dropped.
 
+If your pval is log10 (like in REGENIE output), then set these variables in config.py: `pval_is_neglog10 = True` and `field_aliases = {'LOGP':'pval'}`.
 
 ### 4. Make a list of your phenotypes
 
