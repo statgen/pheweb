@@ -1,6 +1,7 @@
 from . import utils
 from .utils import PheWebError
 from . import conf
+#import sys
 
 import itertools
 from collections import OrderedDict,Counter
@@ -78,6 +79,7 @@ per_assoc_fields: Dict[str,Dict[str,Any]] = {
         'required': True,
         'type': float,
         'nullable': True,
+        'could_be_neglog10': True,
         'range': [0, 1],
         'sigfigs': 2,
         'tooltip_lztemplate': {
@@ -200,6 +202,11 @@ class Field:
             return ''
         # type
         x = self._d['type'](value)
+
+        # It's POSSIBLE that conversion of -log10 representation is required
+        if 'could_be_neglog10' in self._d and self._d['could_be_neglog10'] and conf.pval_is_neglog10():
+            x = 10**-x
+
         # range
         if 'range' in self._d:
             assert self._d['range'][0] is None or x >= self._d['range'][0]
