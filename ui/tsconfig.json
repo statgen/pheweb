@@ -8,7 +8,8 @@
     "lib": [
       "dom",
       "es6",
-	"scripthost",
+      "es2022",
+      "scripthost",
       "es2020.promise"
     ],
     "allowJs": true,
