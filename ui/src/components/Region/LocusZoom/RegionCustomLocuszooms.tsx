@@ -1,7 +1,7 @@
 import { createCORSPromise, Data } from "locuszoom";
 import { defer, when } from "q";
 import { isFinngenServer } from "../../Finngen/finngenUtilities";
-
+import { Clinvar } from "./RegionModel"
 declare let LocusZoom : { Data : any };
 
 /* This is needed to override (locuszoom:1.0.0) assets/js/app/Data.js:666
@@ -101,6 +101,45 @@ ClinvarDataSource.prototype.fetchRequest = function(state: any, chain: any, fiel
   );
 };
 
+/**
+ * Takes a prefix and label and returns an
+ * array containing a formatted string and
+ * empty array if the label is not a string.
+ *
+ * @param prefix
+ * @param label
+ */
+export const clinvar_label = (prefix : string, label : string | null|undefined) : string[] =>
+    label ?[`${prefix} ${label}`]:[];
+
+/**
+ * Takes in a clinvar data object and returns
+ * a string containing a formatted list of
+ * classification descriptions.  Returns an
+ * empty string if there are no descriptions.
+ *
+ * @param data
+ */
+export const clinvar_significance = (data :  Clinvar.Data | undefined| null) : string => [
+    ... clinvar_label("Clinical" , data?.clinical_impact_classification?.description),
+    ... clinvar_label("Germline" , data?.germline_classification?.description),
+    ... clinvar_label("Oncogenicity",data?.oncogenicity_classification?.description)
+].join(" , ");
+
+/**
+ * Takes in a clinvar data object and returns
+ * a string containing a formatted list of
+ * trait sets, returns an empty string if there
+ * are no traits
+ *
+ * @param data
+ */
+export const clinvar_trait = (data :  Clinvar.Data | undefined| null) : string => [
+    ... (data?.germline_classification?.trait_set || []) ,
+    ... (data?.clinical_impact_classification?.trait_set || []) ,
+    ... (data?.oncogenicity_classification?.trait_set || []) ,
+].map((x) => x.trait_name).join(" ");
+
 ClinvarDataSource.prototype.parseResponse = function(resp: string, chain, fields, outnames, trans) {
 
   if (resp === "") {
@@ -111,7 +150,7 @@ ClinvarDataSource.prototype.parseResponse = function(resp: string, chain, fields
       return acc;
     }, {});
     return { header: chain.header, body: [dat] };
-  }
+    }
 
   const data = JSON.parse(resp);
 
@@ -129,40 +168,17 @@ ClinvarDataSource.prototype.parseResponse = function(resp: string, chain, fields
     throw Error(`error while processing clinvar: ${data.esummaryresult}`);
   }
   var respData: { start: string; stop: string; ref: string; alt: string; chr: string; varName: string; clinical_sig: string; trait: any; y: number; id: string; "clinvar:id": string; }[] = [];
-  Object.entries(data.result).filter(function(x) {
-    return x[0] !== "uids";
-  }).forEach(function(x: any) {
 
-    const val: {
-      variation_set: {
-        variation_name: string,
-        variation_loc: {
-          assembly_name: string,
-          start: string,
-          stop: string,
-          ref: string,
-          alt: string
-          chr: string
-        }[]
-      }[],
-      clinical_significance: { description: string },
-      trait_set: any,
-      uid: string
-    } = x[1];
-    const loc = val.variation_set[0].variation_loc.filter(function(x) {
-      return x.assembly_name === "GRCh38";
-    })[0];
+  Object.entries(data.result).filter((x) => x[0] !== "uids").forEach(function(x: any) {
+    const val: Clinvar.Data = x[1];
+    const loc = val.variation_set[0].variation_loc.filter((x) => x.assembly_name === "GRCh38")[0];
     if (loc !== null) {
-      const start = loc.start;
-      const stop = loc.stop;
-      const ref = loc.ref;
-      const alt = loc.alt;
-      const chr = loc.chr;
+      const { start, ref, stop , alt, chr} = loc;
       const varName = val.variation_set[0].variation_name;
-      const clinical_sig = val.clinical_significance.description;
-      const trait = val.trait_set.map(function(x) {
-        return x.trait_name;
-      }).join(":");
+
+      const clinical_sig = clinvar_significance(val);
+      const trait = clinvar_trait(val);
+
       const y = 5;
       const id = val.uid;
       const clinvar_id = `${chr}:${start}_${ref}/${alt}`;
@@ -181,7 +197,6 @@ ClinvarDataSource.prototype.parseResponse = function(resp: string, chain, fields
       };
       respData.push(object);
     }
-
   });
 
   return { header: chain.header, body: respData };
