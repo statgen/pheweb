@@ -35,7 +35,7 @@ There are four ways to make a `pheno-list.json`:
    - `/home/peter/data/a1c.autosomal.gz`
    - `/home/peter/data/ear-length.gz`
 
-   Then you could run `pheweb phenolist glob-files "/home/peter/data/*.gz"` to get `assoc-files`.
+   Then you could run `pheweb phenolist glob "/home/peter/data/*.gz"` to get `assoc-files`.
 
    To get `phenocodes`, you can use this command which will take the text after the last `/` and before the next `.`:
 
@@ -56,7 +56,7 @@ There are four ways to make a `pheno-list.json`:
    then you can run:
 
    ```
-   pheweb phenolist glob-files "/home/peter/data/*.gz"
+   pheweb phenolist glob "/home/peter/data/*.gz"
    pheweb phenolist extract-phenocode-from-filepath --simple
    pheweb phenolist unique-phenocode
    ```
