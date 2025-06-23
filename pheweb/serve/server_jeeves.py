@@ -411,6 +411,8 @@ class ServerJeeves(object):
         return self.finemapping_dao.get_regions_for_pheno(fm_type, phenocode, chrom, start, end) if self.finemapping_dao is not None else None
 
     def get_finemapped_region_variant_summary(self, phenocode, chromosome, start, end, prob_threshold=-1):
+        if self.finemapping_dao is None:
+            return []
         regions = self.finemapping_dao.get_regions_for_pheno('all', phenocode, chromosome, start, end)
         index = {}
         for r in map(region_summary, regions):
