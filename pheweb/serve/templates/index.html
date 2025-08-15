@@ -43,20 +43,10 @@ $(function() { $('.typeahead').focus(); }); // autofocus attribute doesn't work 
 
 <div class="row">
     <div class="col-xs-12 col-sm-offset-1 col-sm-10">
-        <h1>{% include 'index/h1.html' %}</h1>
-        {% include 'index/below-h1.html' ignore missing %}
-    </div>
-</div>
-<div class="row">
-    <div class="col-xs-12 col-sm-offset-1 col-sm-10">
-        <div id="home-searchbox">
-            <form action="{{ url_for('.go') }}">
-               <fieldset>
-                  <div class="form-group">
-                    <input name="query" class="form-control typeahead" autocomplete="off" type="text" placeholder="Search for a variant, gene, or phenotype" autofocus>
-                  </div>
-               </fieldset>
-            </form>
+        <div id="home-info">
+            <p>
+                Welcome to the Urinary Tract Infection PheWAS browswer. This site displays the phenome-wide association study between 31 loci that were found to be in significant association with urinary tract infection (UTI).
+            </p>
             {% include 'index/below-query.html' ignore missing %}
         </div>
     </div>
