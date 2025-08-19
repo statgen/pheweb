@@ -32,21 +32,11 @@
 
         </p>
     </div>
-    <div class="col-xs-12 col-sm-4">
-      {% if config.DOWNLOAD_PHENOTYPES_BUTTON %}
-        <span class="pull-right"><a class="btn btn-default" href="{{ url_for('.download_phenotypes') }}">Download</a></span>
-      {% endif %}
-  </div>
 </div>
 <br>
 
 <div class="row" style="margin-bottom: 0.5em">
-  <div class="col-xs-12 col-sm-8 col-md-6">
-        <input type="text" class="form-control" id="search" placeholder="Search... &quot;TCF7L2&quot;, &quot;rs1861867&quot;, etc.">
-  </div>
-  <div class="col-xs-12 col-sm-4 col-md-6">
-    <h5 class="pull-right"><div id="streamtable-found" class="label label-primary"></div></h5>
-  </div>
+  <!-- phenotype count removed -->
 </div>
 <div class="row stream_table_row">
   <div class="col-xs-12">
