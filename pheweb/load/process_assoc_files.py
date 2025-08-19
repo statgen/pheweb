@@ -25,6 +25,7 @@ top_hits
 qq
 phenotypes
 pheno_correlation
+gather_top_phenotype_for_each_variant
 '''.split('\n')
 scripts = [script for script in scripts if script]
 

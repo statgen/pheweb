@@ -65,6 +65,7 @@ _single_filepaths: Dict[str,Callable[[],str]] = {
     'best_of_pheno': (lambda: get_generated_path('best_of_pheno')),
     'manhattan': (lambda: get_generated_path('manhattan')),
     'qq': (lambda: get_generated_path('qq')),
+    'top-phenotype-for-each-variant': (lambda: get_generated_path('top-phenotype-for-each-variant.json')),
 }
 
 def get_pheno_filepath(kind:str, phenocode:str, *, must_exist:bool = True) -> str:

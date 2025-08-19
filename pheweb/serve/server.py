@@ -182,6 +182,11 @@ def api_pheno_filtered(phenocode):
     return jsonify(manhattan_data)
 
 
+@app.route('/api/top_phenotype_for_each_variant.json')
+@check_auth
+def api_top_hits():
+    return send_file(get_filepath('top-phenotype-for-each-variant'))
+
 @bp.route('/top_hits')
 @check_auth
 def top_hits_page():
@@ -212,6 +217,8 @@ def download_phenotypes():
 @check_auth
 def api_pheno_qq(phenocode:str):
     return send_from_directory(get_filepath('qq'), '{}.json'.format(phenocode))
+
+
 
 
 @bp.route('/random')

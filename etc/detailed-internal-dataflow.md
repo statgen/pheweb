@@ -25,12 +25,15 @@
  cpras-rsids-sqlite3  └─[matrix]─┘  │  │  └─[best-of-pheno]─> best_of_pheno/*
                            │        │  └─[qq]-> qq/*  
                            v        └─[manhattan]-> manhattan/*
-                     matrix.tsv.gz                   │      │
+                matrix.tsv.gz                   │      │
                            │                  [top-hits]  [phenotypes]
            [gather-pvalues-for-each-gene]            │      │
+           [gather-top-phenotype-for-each-variant]   |      |
                            │                         v      v
                            v               top_hits.json  phenotypes.json
               best-phenos-by-gene.sqlite3
+              top-phenotype-for-each-variant.json
+
 ```
 
 Square brackets show `pheweb <step>` subcommands.
