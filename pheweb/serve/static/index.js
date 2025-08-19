@@ -3,7 +3,22 @@
 function populate_streamtable(phenotypes) {
     $(function() {
         // This is mostly copied from <https://michigangenomics.org/health_data.html>.
-        var data = phenotypes;
+        // Preprocess and sort by chrom and pos
+        var chromToNum = function(chrom) {
+            if (typeof chrom === 'number') return chrom;
+            if (!isNaN(chrom)) return Number(chrom);
+            if (chrom === 'X') return 24;
+            if (chrom === 'Y') return 25;
+            return 26; // for other cases
+        };
+        var data = phenotypes.slice();
+        data.sort(function(a, b) {
+            var ca = chromToNum(a.chrom);
+            var cb = chromToNum(b.chrom);
+            if (ca < cb) return -1;
+            if (ca > cb) return 1;
+            return a.pos - b.pos;
+        });
         // data = _.sortBy(data, _.property('pval'));
         var template = _.template($('#streamtable-template').html());
         var view = function(pheno) {
@@ -31,8 +46,10 @@ function populate_streamtable(phenotypes) {
                 next_text: 'Next <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>',
                 prev_text: '<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Previous',
                 per_page_select: false,
-                per_page_opts: [100], // this is the best way I've found to control the number of rows
-            }
+                per_page_opts: [100] // this is the best way I've found to control the number of rows
+            },
+            // Sort by chrom and pos, even if not displayed in the table
+            sort: ['chrom', 'pos']
         }
 
         $('#stream_table').stream_table(options, data);
