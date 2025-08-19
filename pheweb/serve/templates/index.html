@@ -55,8 +55,13 @@
         <tr>
           <th>Variant</th>
           <th>Top Phenotype</th>
+          <th>Phenocode</th>
           <th>Category</th>
           <th>P-value</th>
+          <th>Effect Size</th>
+          <th>Standard Error</th>
+          <th>Odds Ratio</th>
+          <th>MAF</th>
           <th>Number of Cases</th>
           <th>Number of Controls</th>
           <th class="nearest_genes_col">Nearest Gene(s)</th>
@@ -80,8 +85,13 @@
     <td><a style="color:black" href="{{ url_for('.pheno_page', phenocode='').rstrip('/') }}/<%= h.phenocode %>">
         <%= h.phenostring || h.phenocode %>
     </a></td>
+    <td> <%= h.phenocode %></td>
     <td><%= h.category %></td>
     <td><%= (h.pval == 0) ? '≤1e-320' : h.pval.toExponential(1) %></td>
+    <td><%= h.beta %></td>
+    <td><%= h.sebeta %></td>
+    <td><%= h.or %></td>
+    <td><%= h.maf %></td>
     <td><%= h.num_cases ? h.num_cases.toLocaleString() : "" %></td>
     <td><%= h.num_controls ? h.num_controls.toLocaleString() : "" %></td>
     <td class="nearest_genes_col">
