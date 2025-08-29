@@ -95,8 +95,10 @@ def get_region_info(matrix_reader, region:Tuple[str,int,int]) -> Dict[str,Dict[s
             # Add chromosome, position, and nearest gene
             pheno['chrom'] = variant.get('chrom')
             pheno['pos'] = variant.get('pos')
+            pheno['ref'] = variant.get('ref')
+            pheno['alt'] = variant.get('alt')
             pheno['nearest_genes'] = variant.get('nearest_genes', '')
-            variant_key = f"{variant['chrom']}:{variant['pos']}:{variant.get('ref','')}-{variant.get('alt','')}"
+            variant_key = f"{variant['chrom']}-{variant['pos']}-{variant.get('ref','')}-{variant.get('alt','')}"
             if variant_key not in best_pheno_for_variant or pheno['pval'] < best_pheno_for_variant[variant_key]['pval']:
                 pheno['phenocode'] = phenocode
                 best_pheno_for_variant[variant_key] = pheno

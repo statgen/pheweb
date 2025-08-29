@@ -65,16 +65,14 @@
 
 <script type="text/template" id="streamtable-template">
   <tr>
-    <!--
-     <td><a style="color:black" href="{{ url_for('.variant_page', query='').rstrip('/') }}/<%= h.chrom %>-<%= h.pos %>-<%= h.ref %>-<%= h.alt %>">
+    <td><a style="color:black" href="{{ url_for('.variant_page', query='').rstrip('/') }}/<%= h.chrom %>-<%= h.pos %>-<%= h.ref %>-<%= h.alt %>">
         <%= h.chrom %>:<%= h.pos.toLocaleString() %> <%= h.ref %> / <%= h.alt %>
         <% if (h.rsids) { %>(<%= h.rsids.replace(/,/g, ', ') %>)<% } %>
     </a></td>
-    -->
-   <td><%= h.variant %></td>  
+    <!--<td><%= h.variant %></td>-->  
     <td><a style="color:black" href="{{ url_for('.pheno_page', phenocode='').rstrip('/') }}/<%= h.phenocode %>">
-        <%= h.phenostring || h.phenocode %>
-    </a></td>
+        <%= h.phenostring || h.phenocode %> 
+    </a></td> 
     <td> <%= h.phenocode %></td>
     <td><%= h.category %></td>
     <td><%= (h.pval == 0) ? '≤1e-320' : h.pval.toExponential(1) %></td>
