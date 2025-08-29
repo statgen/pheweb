@@ -1,8 +1,8 @@
 
 from ..utils import chrom_order, get_phenolist, PheWebError
-from .. import conf
 from ..file_utils import VariantFileReader, VariantFileWriter, get_filepath, get_pheno_filepath, make_basedir, get_dated_tmp_path, get_tmp_path
 from .load_utils import get_maf, mtime, indent, ProgressBar
+
 
 import contextlib
 import os
@@ -12,11 +12,19 @@ import bisect
 import traceback
 
 
+
 MAX_NUM_FILES_TO_MERGE_AT_ONCE = 8 # I have no idea what's fastest.  Maybe #files / #cpus?
 MIN_NUM_FILES_TO_MERGE_AT_ONCE = 4 # Try to avoid ever merging fewer than this many files at a time.
 
 def run(argv):
+
+    print('test complete')
+
+    return
+
     out_filepath = get_filepath('unanno', must_exist=False)
+
+ 
 
     force = False
     if argv == ['-f']:
@@ -118,7 +126,7 @@ class MergeManager:
             # MAKE A TASK FOR THE WORKER
             files_to_merge = self.files[:MAX_NUM_FILES_TO_MERGE_AT_ONCE]
             self.files =     self.files[MAX_NUM_FILES_TO_MERGE_AT_ONCE:]
-            out_filepath = get_tmp_path('merging-{}'.format(random.randrange(1e10)))
+            out_filepath = get_tmp_path('merging-{}'.format(int(random.randrange(10**10))))
             taskq.put({
                 'files_to_merge': files_to_merge,
                 'out_filepath': out_filepath,

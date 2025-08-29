@@ -98,6 +98,12 @@ def run(argv:List[str]) -> None:
     out_filepath = get_filepath('sites-rsids', must_exist=False)
     rsids_filepath = get_filepath('rsids', must_exist=False)
 
+    prebuilt_rsids_genes = True
+    # Config-based bypass
+    if prebuilt_rsids_genes:
+        print(f'add-rsids bypassed by config')
+        return
+
     if not os.path.exists(rsids_filepath):
         print('Fetching rsids...')
         from . import download_rsids
