@@ -2,6 +2,7 @@
 from ..utils import chrom_order, get_phenolist, PheWebError
 from ..file_utils import VariantFileReader, VariantFileWriter, get_filepath, get_pheno_filepath, make_basedir, get_dated_tmp_path, get_tmp_path
 from .load_utils import get_maf, mtime, indent, ProgressBar
+from .. import conf
 
 
 import contextlib
@@ -18,9 +19,14 @@ MIN_NUM_FILES_TO_MERGE_AT_ONCE = 4 # Try to avoid ever merging fewer than this m
 
 def run(argv):
 
-    print('test complete')
 
-    return
+    print('test message: ' + conf.get_prebuilt_sites_path())
+
+    # Config-based bypass
+    if conf.get_prebuilt_sites_bool():
+        print(f'add-rsids bypassed by config')
+        return
+
 
     out_filepath = get_filepath('unanno', must_exist=False)
 

@@ -86,22 +86,21 @@ def run(argv:List[str]) -> None:
         print('Annotate the sites file with nearest genes.  Fetches the relevant version of Gencode if not already present.')
         exit(1)
 
-    input_filepath = get_filepath('sites-rsids')
-    genes_filepath = get_filepath('genes', must_exist=False)
     out_filepath = get_filepath('sites', must_exist=False)
 
-    # cheating to make work
-    prebuilt_rsids_genes = True
-
     # Config-based bypass
-    if prebuilt_rsids_genes:
+
+    if conf.get_prebuilt_sites_bool():
         # You can set the source file path here, or make it configurable
-        bypass_file = 'prebuilt_sites.tsv' #getattr(conf, 'overrides', {}).get('prebuilt_rsids_genes', 'sites.tsv')
+        bypass_file = conf.get_prebuilt_sites_path()
         import shutil
         shutil.copyfile(bypass_file, out_filepath)
         print(f'add-genes bypassed by config: Copied {bypass_file} to {out_filepath}')
         return
 
+
+    input_filepath = get_filepath('sites-rsids')
+    genes_filepath = get_filepath('genes', must_exist=False)
 
     if not os.path.exists(genes_filepath):
         print('Fetching genes...')

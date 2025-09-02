@@ -143,7 +143,11 @@ def get_num_procs(cmd:Optional[str] = None) -> int:
     n_cpus = multiprocessing.cpu_count()
     return 1 if n_cpus==1 else int(n_cpus * 3/4)
 
-
+## Prebuilt sites and genes
+def get_prebuilt_sites_bool() -> bool:
+    return _get_config_bool('prebuilt_sites', False)
+def get_prebuilt_sites_path() -> str:
+    return _get_config_str('prebuilt_sites_path', 'prebuilt_sites.tsv')
 
 ## Parsing config
 def get_assoc_min_maf() -> float: return _get_config_float('assoc_min_maf', 0)

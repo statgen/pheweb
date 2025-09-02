@@ -90,6 +90,11 @@ def are_match(seq1:str, seq2:str) -> bool:
 
 def run(argv:List[str]) -> None:
 
+    # Config-based bypass
+    if conf.get_prebuilt_sites_bool():
+        print(f'add-rsids bypassed by config')
+        return
+
     if '-h' in argv or '--help' in argv:
         print('Annotate the sites file with rsids. Download the relevant version of dbSNP if not already present.')
         exit(1)
@@ -97,12 +102,6 @@ def run(argv:List[str]) -> None:
     in_filepath = get_filepath('unanno')
     out_filepath = get_filepath('sites-rsids', must_exist=False)
     rsids_filepath = get_filepath('rsids', must_exist=False)
-
-    prebuilt_rsids_genes = True
-    # Config-based bypass
-    if prebuilt_rsids_genes:
-        print(f'add-rsids bypassed by config')
-        return
 
     if not os.path.exists(rsids_filepath):
         print('Fetching rsids...')
