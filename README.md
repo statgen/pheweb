@@ -1,3 +1,8 @@
+**If you're starting fresh, check out [PheWeb2](https://github.com/GaglianoTaliun-Lab/PheWeb2).  It adds stratification by ancestry/sex, genotype-by-sex interactions, dynamic Miami Plots, a real API, and many other improvements.**
+
+---
+
+
 For a list of available instances of PheWeb, navigate [here](http://pheweb.sph.umich.edu).
 For a walk-through demo see [here](etc/demo.md#demo-navigating-pheweb).
 If you have questions or comments, check out our [Google Group](https://groups.google.com/g/pheweb-umich).
