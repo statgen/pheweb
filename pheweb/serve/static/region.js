@@ -1,46 +1,26 @@
 'use strict';
 
 LocusZoom.Adapters.extend("AssociationLZ", "AssociationPheWeb", {
-    getURL: function (state, chain, fields) {
-        return this.url + "results/?filter=chromosome in  '" + state.chr + "'" +
-            " and position ge " + state.start +
-            " and position le " + state.end;
-    },
-    // Although the layout fields array is useful for specifying transforms, this source will magically re-add
-    //  any data that was not explicitly requested
-    extractFields: function(data, fields, outnames, trans) {
-        // The field "all" has a special meaning, and only exists to trigger a request to this source.
-        // We're not actually trying to request a field by that name.
-        var has_all = fields.indexOf("all");
-        if (has_all !== -1) {
-            fields.splice(has_all, 1);
-            outnames.splice(has_all, 1);
-            trans.splice(has_all, 1);
-        }
-        // Find all fields that have not been requested (sans transforms), and add them back to the fields array
-        if (data.length) {
-            var fieldnames = Object.keys(data[0]);
-            var ns = this.source_id + ":"; // ensure that namespacing is applied to the fields
-            fieldnames.forEach(function(item) {
-                var ref = fields.indexOf(item);
-                if (ref === -1 || trans[ref]) {
-                    fields.push(item);
-                    outnames.push(ns + item);
-                    trans.push(null);
-                }
-            });
-        }
-        return LocusZoom.Adapters.get('AssociationLZ').prototype.extractFields.call(this, data, fields, outnames, trans);
+    _getURL: function (request_options) {
+        const { chr, start, end } = request_options;
+        return `${this._url}results/?filter=chromosome in  '${chr}' and position ge ${start} and position le ${end}`;
     },
 
-    normalizeResponse(data) {
+    _normalizeResponse(response_text) {
         // The PheWeb region API has a fun quirk where if there is no data, there are also no keys
         //   (eg data = {} instead of  {assoc:[]} etc. Explicitly detect and handle the edge case in PheWeb;
         //   we won't handle this in LZ core because we don't want squishy-blob API schemas to catch on.
-        if (!Object.keys(data).length) {
+        const data = JSON.parse(response_text);
+        if (!Object.keys(data.data).length) {
             return [];
         }
-        return LocusZoom.Adapters.get('AssociationLZ').prototype.normalizeResponse.call(this, data);
+        return LocusZoom.Adapters.get('AssociationLZ').prototype._normalizeResponse.call(this, data);
+    },
+
+    _annotateRecords(records) {
+        // The LD Adapter expects to see a field named "variant" with variant specifier. PheWeb API calls this "ID".
+        records.forEach((item) => item.variant = item.id);
+        return records;
     }
 });
 
@@ -58,12 +38,10 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
     var remoteBase = "https://portaldev.sph.umich.edu/api/v1/";
     var data_sources = new LocusZoom.DataSources()
         .add("assoc", ["AssociationPheWeb", {url: localBase }])
-        .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', params: { build: "GRCh"+window.model.grch_build_number }}])
-        .add("ld", ["LDServer", { url: "https://portaldev.sph.umich.edu/ld/",
-            params: { source: '1000G', build: 'GRCh'+window.model.grch_build_number, population: 'ALL' }
-        }])
-        .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", params: {build: 'GRCh'+window.model.grch_build_number} }])
-        .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", params: {build:'GRCh'+window.model.grch_build_number} }]);
+        .add("catalog", ["GwasCatalogLZ", {url: remoteBase + 'annotation/gwascatalog/results/', build: "GRCh"+window.model.grch_build_number }])
+        .add("ld", ["LDServer", { url: "https://portaldev.sph.umich.edu/ld/", source: '1000G', build: 'GRCh'+window.model.grch_build_number, population: 'ALL' }])
+        .add("gene", ["GeneLZ", { url: remoteBase + "annotation/genes/", build: 'GRCh'+window.model.grch_build_number }])
+        .add("recomb", ["RecombLZ", { url: remoteBase + "annotation/recomb/results/", build:'GRCh'+window.model.grch_build_number }]);
 
     LocusZoom.TransformationFunctions.add("neglog10_or_323", function(x) {
         if (x === 0) return 323;
@@ -105,9 +83,7 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
 
     // Define the layout, then fetch it via the LZ machinery responsible for namespacing
     var layout = LocusZoom.Layouts.get("plot", "association_catalog", {
-        unnamespaced: true,
         width: 800,
-        // height: 550,
         responsive_resize: true,
         max_region_scale: 500e3,
         toolbar: {
@@ -164,13 +140,11 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
         panels: [
             function() {
                 var base = LocusZoom.Layouts.get("panel", "annotation_catalog", {
-                    unnamespaced: true,
                     height: 52, min_height: 52,
                     margin: { top: 30, bottom: 13 },
                     toolbar: { widgets: [] },
                     axes: {
-                        // FIXME: Can be removed after 0.13.1 bugfix release (render: false was missing)
-                        x: { render: false, extent: 'state' }
+                        x: { extent: 'state' }
                     },
                     title: {
                         text: 'Hits in GWAS Catalog',
@@ -179,20 +153,15 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                     },
                 });
                 var anno_layer = base.data_layers[0];
-                anno_layer.id_field = "{{namespace[assoc]}}id";
-                anno_layer.fields = [  // Tell annotation track the field names as used by PheWeb
-                    "{{namespace[assoc]}}id",
-                    "{{namespace[assoc]}}chr", "{{namespace[assoc]}}position",
-                    "{{namespace[catalog]}}variant", "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
-                ];
+                anno_layer.id_field = "assoc:id";
                 anno_layer.hit_area_width = 50;
                 return base;
             }(),
             function() {
-                // FIXME: The only customization here is to make the legend button green and hide the "move panel" buttons; displayn options doesn't need to be copy-pasted
+                // FIXME: The only customization here is to make the legend button green and hide the "move panel" buttons; display options doesn't need to be copy-pasted
                 var base = LocusZoom.Layouts.get("panel", "association_catalog", {
-                    unnamespaced: true,
-                    height: 200, min_height: 200,
+                    height: 250,
+                    min_height: 200,
                     margin: { top: 10 },
                     toolbar: {
                         widgets: [
@@ -231,17 +200,17 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                                                     // Only label points if they are significant for some trait in the catalog, AND in high LD
                                                     //  with the top hit of interest
                                                     {
-                                                        field: "{{namespace[catalog]}}trait",
+                                                        field: "catalog:trait",
                                                         operator: "!=",
                                                         value: null
                                                     },
                                                     {
-                                                        field: "{{namespace[catalog]}}log_pvalue",
+                                                        field: "catalog:log_pvalue",
                                                         operator: ">",
                                                         value: 7.301
                                                     },
                                                     {
-                                                        field: "{{namespace[ld]}}state",
+                                                        field: "ld:state",
                                                         operator: ">",
                                                         value: 0.4
                                                     },
@@ -259,20 +228,11 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                         ]
                     },
                     data_layers: [
-                        LocusZoom.Layouts.get("data_layer", "significance", { unnamespaced: true }),
-                        LocusZoom.Layouts.get("data_layer", "recomb_rate", { unnamespaced: true }),
+                        LocusZoom.Layouts.get("data_layer", "significance"),
+                        LocusZoom.Layouts.get("data_layer", "recomb_rate"),
                         function() {
                             var l = LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog", {
-                                unnamespaced: true,
-                                fields: [
-                                    "{{namespace[assoc]}}all", // special mock value for the custom source
-                                    "{{namespace[assoc]}}id",
-                                    "{{namespace[assoc]}}position",
-                                    "{{namespace[assoc]}}pvalue|neglog10_or_323",
-                                    "{{namespace[ld]}}state", "{{namespace[ld]}}isrefvar",
-                                    "{{namespace[catalog]}}rsid", "{{namespace[catalog]}}trait", "{{namespace[catalog]}}log_pvalue"
-                                ],
-                                id_field: "{{namespace[assoc]}}id",
+                                id_field: "assoc:id",
                                 tooltip: {
                                     closable: true,
                                     show: {
@@ -281,17 +241,17 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                                     hide: {
                                         "and": ["unhighlighted", "unselected"]
                                     },
-                                    html: "<strong>{{{{namespace[assoc]}}id}}</strong><br><br>" +
+                                    html: "<strong>{{assoc:id}}</strong><br><br>" +
                                         window.model.tooltip_lztemplate.replace(/{{/g, "{{assoc:").replace(/{{assoc:#if /g, "{{#if assoc:").replace(/{{assoc:\/if}}/g, "{{/if}}") +
                                         "<br>" +
-                                        "<a href=\"" + window.model.urlprefix+ "/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}\"" + ">Go to PheWAS</a>" +
-                                        "{{#if {{namespace[catalog]}}rsid}}<br><a href=\"https://www.ebi.ac.uk/gwas/search?query={{{{namespace[catalog]}}rsid}}\" target=\"_new\">See hits in GWAS catalog</a>{{/if}}" +
-                                        "<br>{{#if {{namespace[ld]}}isrefvar}}<strong>LD Reference Variant</strong>{{#else}}<a href=\"javascript:void(0);\" onclick=\"var data = this.parentNode.__data__;data.getDataLayer().makeLDReference(data);\">Make LD Reference</a>{{/if}}<br>"
+                                        "<a href=\"" + window.model.urlprefix+ "/variant/{{assoc:chr}}-{{assoc:position}}-{{assoc:ref}}-{{assoc:alt}}\"" + ">Go to PheWAS</a>" +
+                                        "{{#if catalog:rsid}}<br><a href=\"https://www.ebi.ac.uk/gwas/search?query={{catalog:rsid}}\" target=\"_new\">See hits in GWAS catalog</a>{{/if}}" +
+                                        "<br>{{#if ld:isrefvar}}<strong>LD Reference Variant</strong>{{#else}}<a href=\"javascript:void(0);\" onclick=\"var data = this.parentNode.__data__;data.getDataLayer().makeLDReference(data);\">Make LD Reference</a>{{/if}}<br>"
                                 },
-                                x_axis: { field: "{{namespace[assoc]}}position" },
+                                x_axis: { field: "assoc:position" },
                                 y_axis: {
                                     axis: 1,
-                                    field: "{{namespace[assoc]}}pvalue|neglog10_or_323",
+                                    field: "assoc:pvalue|neglog10_or_323",
                                     floor: 0,
                                     upper_buffer: 0.1,
                                     min_extent: [0, 10]
@@ -299,7 +259,7 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                             });
                             l.behaviors.onctrlclick = [{
                                 action: "link",
-                                href: window.model.urlprefix+"/variant/{{{{namespace[assoc]}}chr}}-{{{{namespace[assoc]}}position}}-{{{{namespace[assoc]}}ref}}-{{{{namespace[assoc]}}alt}}"
+                                href: window.model.urlprefix+"/variant/{{assoc:chr}}-{{assoc:position}}-{{assoc:ref}}-{{assoc:alt}}"
                             }];
                             return l;
                         }()
@@ -309,7 +269,6 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                 return base;
             }(),
             LocusZoom.Layouts.get("panel", "genes", {
-                unnamespaced: true,
                 // proportional_height: 0.5,
                 toolbar: {
                     widgets: [{
@@ -319,18 +278,24 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
                     }, LocusZoom.Layouts.get('toolbar_widgets', 'gene_selector_menu')]
                 },
                 data_layers: [
-                    LocusZoom.Layouts.get("data_layer", "genes_filtered", {
-                        unnamespaced: true,
-                        fields: ["{{namespace[gene]}}all"],
-                        tooltip: {
-                            html: ("<h4><strong><i>{{gene_name}}</i></strong></h4>" +
-                                   "<div>Gene ID: <strong>{{gene_id}}</strong></div>" +
-                                   "<div>Transcript ID: <strong>{{transcript_id}}</strong></div>" +
-                                   "<div style=\"clear: both;\"></div>" +
-                                   "<table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://gnomad.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on gnomAD/ExAC</a> and <a href=\"http://bravo.sph.umich.edu/freeze5/hg38/gene/{{gene_id}}\" target=\"_new\">Bravo</a></td></tr></table>")
-                        },
-
-                    })
+                    function () {
+                        const base = LocusZoom.Layouts.get("data_layer", "genes_filtered", {
+                            tooltip: {
+                                html: ("<h4><strong><i>{{gene_name}}</i></strong></h4>" +
+                                       "<div>Gene ID: <strong>{{gene_id}}</strong></div>" +
+                                       "<div>Transcript ID: <strong>{{transcript_id}}</strong></div>" +
+                                       "<div style=\"clear: both;\"></div>" +
+                                       "<table width=\"100%\"><tr><td style=\"text-align: right;\"><a href=\"http://gnomad.broadinstitute.org/gene/{{gene_id}}\" target=\"_new\">More data on gnomAD/ExAC</a> and <a href=\"http://bravo.sph.umich.edu/freeze5/hg38/gene/{{gene_id}}\" target=\"_new\">Bravo</a></td></tr></table>")
+                            },
+                            data_operations: [
+                                // Unlike the parent data layer, PheWeb does not fetch or display gene constraint from gnomAD
+                                { type: 'fetch', from: ['gene'] },
+                            ]
+                        });
+                        // Base LocusZoom genes layer specifies two namespaces. We can't *remove* a field through "Layouts.get" (because that just merges object keys). Instead we override the namespace section completely.
+                        base.namespace = { gene: 'gene' };
+                        return base;
+                    }(),
                 ],
             })
         ]

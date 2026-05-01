@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * Code related to the single-variant page (including the PheWAS plot)
+ */
+
+
 function deepcopy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
@@ -14,7 +19,7 @@ function custom_LocusZoom_Layouts_get(layout_type, layout_name, customizations) 
         } else {
             var key_parts = key.split(".");
             var obj = layout;
-            for (var i=0; i < key_parts.length-1; i++) {
+            for (var i = 0; i < key_parts.length-1; i++) {
                 // TODO: check that `obj` contains `key_parts[i]`
                 obj = obj[key_parts[i]];
             }
@@ -32,6 +37,7 @@ LocusZoom.TransformationFunctions.add("percent", function(x) {
     return x + '%';
 });
 
+// Override the LZ builtin scale function with a special version that handles more allowed fields
 LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
     if (typeof input === "undefined"){
         return null;
@@ -48,7 +54,7 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
         else if (input.or < 0) { return parameters['-'] || null; }
     }
     return null;
-});
+}, true);
 
 (function() {
     // sort phenotypes
@@ -107,28 +113,16 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
     // Define data sources object
     // TODO: Can this be replaced with StaticSource + deepcopy?
     LocusZoom.Adapters.extend('PheWASLZ', 'PheWebSource', {
-        getData: function(state, fields, outnames, trans) {
-            // Override all parsing, namespacing, and field extraction mechanisms, and load data embedded within the page
-            trans = trans || [];
-
-            var data = deepcopy(window.variant.phenos); //otherwise LZ adds attributes I don't want to the original data.
-            data.forEach(function(d, i) {
-                data[i].x = i;
-                data[i].id = i.toString();
-                trans.forEach(function(transformation, t){
-                    if (typeof transformation === "function"){
-                        data[i][outnames[t]] = transformation(data[i][fields[t]]);
-                    }
-                });
-            });
-            return function(chain) {
-                return {header: chain.header || {}, body: data};
-            }.bind(this);
+        getData: function() {
+            const data = deepcopy(window.variant.phenos);
+            // Add a synthetic x field for plotting. (normal LZ does this automatically, but PheWeb bypasses that mechanism)
+            data.forEach((item, index) => item.x = index);
+            return data;
         }
     });
 
     var data_sources = new LocusZoom.DataSources()
-      .add("phewas", ["PheWebSource", {url: '/this/is/not/used'}]);
+      .add("phewas", ["PheWebSource", {}]);
 
     var neglog10_significance_threshold = -Math.log10(0.05 / window.variant.phenos.length);
 
@@ -136,25 +130,22 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
         state: {
             variant: ['chrom', 'pos', 'ref', 'alt'].map(function(d) { return window.variant[d];}).join("-"),
         },
-        dashboard: {
-            components: [
+        toolbar: {
+            widgets: [
                 {type: "download", position: "right"},
                 {type: "download_png", position: "right"},
             ],
         },
-        min_height: 400,
         responsive_resize: true,
         mouse_guide: false,
         panels: [custom_LocusZoom_Layouts_get('panel', 'phewas', {
-            min_width: 640, // feels reasonable to me
-            margin: { top: 20, right: 40, bottom: 120, left: 50 },
+            height: 375,
+            margin: { top: 20, right: 55, bottom: 130, left: 70 },
             data_layers: [
                 LocusZoom.Layouts.get('data_layer', 'significance', {
-                    unnamespaced: true,
                     offset: neglog10_significance_threshold,
                 }),
                 custom_LocusZoom_Layouts_get('data_layer', 'phewas_pvalues', {
-                    unnamespaced: true,
                     id_field: 'idx',
                     type: 'scatter',
                     color: {
@@ -175,6 +166,7 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
                         },
                         'circle'
                     ],
+                    "x_axis.field": 'x',
                     "y_axis.field": 'pval|neglog10_handle0',  // handles pval=0 a little better
                     "y_axis.upper_buffer": 0.1,
                     "y_axis.min_extent": [0, neglog10_significance_threshold*1.05], // always show sig line
@@ -206,7 +198,7 @@ LocusZoom.ScaleFunctions.add("effect_direction", function(parameters, input){
             // Use categories as x ticks.
             "axes.x.ticks": window.first_of_each_category.map(function(pheno) {
                 return {
-                    style: {fill: pheno.color, "font-size":"11px", "font-weight":"bold", "text-anchor":"start"},
+                    style: {fill: pheno.color, "font-size": "12x", "font-weight": "bold", "text-anchor": "start"},
                     transform: "translate(15, 0) rotate(50)",
                     text: pheno.category,
                     x: pheno.idx
