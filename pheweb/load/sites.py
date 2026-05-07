@@ -118,7 +118,7 @@ class MergeManager:
             # MAKE A TASK FOR THE WORKER
             files_to_merge = self.files[:MAX_NUM_FILES_TO_MERGE_AT_ONCE]
             self.files =     self.files[MAX_NUM_FILES_TO_MERGE_AT_ONCE:]
-            out_filepath = get_tmp_path('merging-{}'.format(random.randrange(1e10)))
+            out_filepath = get_tmp_path('merging-{}'.format(random.randrange(int(1e10))))
             taskq.put({
                 'files_to_merge': files_to_merge,
                 'out_filepath': out_filepath,
